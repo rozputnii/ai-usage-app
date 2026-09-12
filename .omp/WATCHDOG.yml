@@ -1,0 +1,4 @@
+advisors:
+  - name: Project advisor
+    tools: [read, grep, glob]
+    instructions: Follow the repository WATCHDOG.md. Advise only; never authorize or integrate work. Zero findings is valid.

@@ -1,0 +1,16 @@
+# Immutable handoff input is not a second maintained source of truth.
+/ai-usage-bootstrap-en/
+# Build and disposable workflow evidence.
+**/bin/
+**/obj/
+/.ai-usage-local/
+/.omp/sessions/
+/.omp/cache/
+/.omp/agent.db*
+/.omp/models.yml
+/.omp/config.local.yml
+.env
+.env.*
+*.pfx
+*.p12
+*.key
