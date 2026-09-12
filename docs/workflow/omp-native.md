@@ -1,68 +1,76 @@
-# OMP-native execution design
+# OMP-native execution
 
-Status: agreed requirements; runtime not implemented. The original source snapshot is v18.1.18, recorded on 2026-09-12. Revalidate the actual latest stable release during setup. This document does not claim that stock OMP already implements the project-specific workflow.
+Implemented for AIU-001 and exercised on Windows with stable OMP 18.1.18. Re-probe native APIs and configuration after upgrades; this is not a historical OMP version pin. Criterion evidence is in [verification](../specs/AIU-001-omp-bootstrap/verification.md).
 
-## Four layers
-1. Git documentation: goals, backlog, specs, ADRs, tasks and verification are portable durable state.
-2. OMP primitives: profile, configuration, Plan/Goal modes, skills/agents, task batching, isolation, Agent Hub, Advisor and local memory.
-3. Thin project bridge: selection UI, document validation, handoff metadata and critical-transition dispatch. Do not build another scheduler framework, vector database or server.
-4. GitHub controls: independent required checks and protected release authority. Ordinary agents cannot modify or bypass protection.
+## Four boundaries
 
-## Native capabilities versus project-specific work
-| Behavior | Foundation | Additional work |
-|---|---|---|
-| Profiles/configuration | Native | Root working directory and effective-schema validation |
-| Rules/skills | Native discovery | Short authored project files |
-| Ranked coarse backlog | Project | Derived score, explanation and native selection UI |
-| tasks.md dependency graph | Project | Tested parsing, eligibility and path checks |
-| Parallel workers | Native task batch/isolation | Explicit packets, ownership and serial integration |
-| Progress | Native Agent Hub/jobs/todo | Separately persisted project task state |
-| Goal continuation | Native Goal primitives | Tested authorization/accounting across fresh sessions |
-| Merge gate | GitHub and project validator | Actual head-SHA, CI and review checks |
-| Stable/manifest publication | Protected workflow | Excluded from ordinary agent auto-merge authority |
+1. Git documents hold goals, the single backlog, specifications, tasks, decisions and evidence.
+2. Native OMP owns profiles, Plan/Goal modes, task execution, isolation, Agent Hub, Advisor, sessions and local memory.
+3. The thin project bridge owns explicit selection, bounded authorization, validation and checked primary integration. It does not implement another conversation engine or scheduler.
+4. Independent GitHub controls remain a separate publication boundary. They were not configured or bypassed by the local bootstrap.
 
-## Intended settings, not a ready-to-copy configuration
-- memory.backend: local; autolearn.enabled: false.
-- plan.enabled: true; plan.defaultOnStartup: true for fresh interactive sessions, not repeated approval for already authorized handoffs.
-- advisor.enabled: true; advisor.syncBacklog: the current schema value representing 1. Check its actual type instead of relying on YAML coercion.
-- async.enabled: true; task.batch: true; task.maxConcurrency: initial target of four.
-- task.isolation.enabled: true. Every write-worker invocation must explicitly select isolation; enabling the capability does not isolate all spawns.
-- Configure isolated patch return without unreviewed automatic application. Read exact key/value semantics from the current schema.
-- Keep normal stable compaction enabled, including supported asynchronous compaction; do not add experimental context-management features.
-- Use the selected YOLO execution policy only within authorized project scope. Do not portray regex command policies as a sandbox.
-- Keep concrete model mappings profile-local. Use strong primary/planning models, a different-family advisor/reviewer and a smaller maintenance model. Do not hardcode invented model IDs into the public repository.
+## Launch and configuration
 
-OMP configuration commands may write global/profile settings instead of arbitrary project keys. Do not modify unrelated machine-wide defaults. Inspect only redacted configuration fields; do not retrieve credential values merely to report setup.
+Run `bun tools/start-work.ts` from the checkout root. The launcher delegates to native OMP with the `ai-usage` profile. Its process-local Windows PATH normalization avoids the observed MSYS `ps -o lstart` hang in native isolation ownership setup. OMP's native unavailable-start-token fallback keeps PID liveness checking; it is weaker than a process-birth token. No OMP installation or machine/profile PATH is modified. Do not rely on inherited MSYS-only executables. Recheck the upstream behavior after OMP upgrades and remove this workaround when it is no longer needed.
 
-## Commands
-Keep the owner interface short. Prefer one project namespace, /work, with status, add, select, auto, pause, resume and verify operations. If the installed native command registry conflicts, use /ai-work. Do not shadow native /resume, /goal or other built-ins.
+The actual supported project configuration is `.omp/config.yml`:
 
-A Markdown command can load a skill; it is not automatically a runtime operation. Use supported extension APIs for selection, authorization and budget behavior. An unattended prompt without necessary authorization must fail closed. Silence is not owner confirmation.
+- Local memory; automatic learning disabled.
+- Plan mode enabled and on at fresh interactive startup.
+- Advisor enabled with the schema's string `syncBacklog: "1"`; `.omp/WATCHDOG.yml` explicitly grants only read/grep/glob, plus native advice delivery.
+- Native async jobs and task batches enabled; at most four workers; a positive five-minute worker runtime limit.
+- Isolation enabled, patch return selected and automatic application disabled. Every write worker still explicitly requests `isolated: true`.
+- Stable ordinary/asynchronous compaction enabled; no experimental context system.
+- YOLO tool approval inside the explicitly authorized workflow, not a security sandbox.
 
-## Minimal skills and agents
-Author only the useful repository skills: project-work, feature-delivery, provider-evidence, security-lifecycle and convergence-review. Do not copy the entire constitution into each skill. All skill bodies, descriptions and inter-agent prompts are English.
+Concrete model roles and authentication remain in the local profile. The bridge uses the native session-scoped settings adapter, not a process-global settings singleton. The five small skills are project-work, feature-delivery, provider-evidence, security-lifecycle and convergence-review.
 
-Use bundled agents where sufficient. Create project agent definitions only when explicit role/tool/output restrictions are required. Write workers do not edit shared tasks/backlog/.omp/CI files or push/merge the parent branch. The primary checks their results and actual diffs before updating state.
+## Owner interface
 
-## Startup
-Register handlers during extension load; perform runtime actions only through supported lifecycle callbacks. Bound session-start probes and avoid secret reads. Give the primary the active scope and relevant paths, not the entire documentation corpus. Do not let subagents/reviewers recursively start backlog selection, owner prompts, memory loops or Autopilot.
+`/work` did not collide with the 86 installed built-in command names. Native owner UI supports ranked eligible work, Another AIU and cancellation. Ranking uses goal alignment, work unblocked, risk reduction, inspectable output, milestone timing and size, weighted 30/20/20/15/10/5. Unknown estimates are explicit neutral estimates, not invented measurements. Scope and dependency eligibility precede scoring.
 
-## Execution loop
-Interactive: show ranked eligible work and active/paused status -> explicit selection/continue -> deliver the selected scope -> report.
+Verified owner operations include `/work select`, `/work run`, `/work pause`, `/work resume`, `/work resume auto` and `/work verify`. `/work status` presents the current canonical state. The registered interface also composes selection/start as `/work auto` and exposes checked `integrate`, `finish` and `handoff` transitions. There is no implemented `/work add` operation and no shadow of native `/resume` or `/goal`.
 
-Autopilot: authorize goal/scope/budget -> choose eligible work -> proportional planning -> isolated worker batch -> primary integration -> tests/documentation -> one-shot independent review -> required checks for exact head -> PR squash merge -> durable progress -> fresh context preserving authorization/budget -> rerank.
+Native Plan approval is separate. The successful implementation/automatic-handoff probes first paused native Plan mode with `/plan`; the bridge does not bypass its approval UI. Select the native execution mode before starting automatic work. External startups still honor `plan.defaultOnStartup`.
 
-Ordinary tasks do not need repeated owner approval. Escalate a material intent/security boundary change or significant unapproved dependency; block the affected AIU and continue independent authorized work where safe. Do not keep inventing improvements after the goal is met.
+Selection alone does not start ordinary interactive work. The first grant confirms a goal's explicit item list and an integer budget from 2 through 10000. A fresh external process/session is unarmed even when the repository says active. Resume confirms the displayed recorded scope and consumption. A file cannot silently grant permission. Do not manually edit the execution authorization to add scope or replenish a budget.
 
-## Session transfer
-Preserve a stable goal ID, allowed item scope, starting reference, granted capabilities, cumulative accounting, current feature, pending decisions and stop reason. Canonical scope may be a structured section of goals.md; native session IDs are operational references, not authorization. Do not replace OMP's conversation engine with a project-owned orchestration server.
+## Authorization and accounting
 
-Fresh sessions recheck repository state before writing. Explicit owner pause takes priority. Ordinary interactive resume waits for confirmation. Only a proven internal Autopilot handoff may continue the same authorization without asking again. A closed local OMP process does not keep working by itself.
+One JSON section in `docs/product/goals.md` stores the goal ID, allowed items, starting branch/commit, granted capabilities, cumulative steps, current item, completed items, native session references and stop reason. Revision checks, an exclusive transition lock and atomic replacement prevent two callers from spending the same recorded revision. The live process binds the confirmed grant and rejects scope/limit changes and observed accounting/history rollback.
 
-## Review and merge
-The always-on Advisor supplies advice, not approval. The final reviewer receives frozen code/spec/test evidence, not the primary's implementation narrative, with memory disabled and read-only tools. Valid outcomes are PASS, BLOCKED and INSUFFICIENT_EVIDENCE. The latter is never silently converted to PASS.
+Steps reserve guarded native tool calls at the primary runtime boundary, plus selection/resume/completion/handoff/integration transitions. Rejected task/patch validation after a successful reservation still consumes its step; unarmed, stale or lock-conflicting calls fail before execution/reservation. Native transport calls can also consume steps. Worker calls are not charged individually to this counter; native task deadlines and native usage reports are separate. This is not a provider-request, token, money or primary wall-clock ceiling. Read-only pre-authorization inspection is not an execution grant.
 
-Use one full review per feature. After concrete fixes, perform targeted verification, not a new search for unrelated defects. A material scope expansion may justify another explicitly scoped review, not an automatic loop. Merge checks must match the actual head SHA. Ordinary work does not require repository administration, protection bypass or signing/root-key access.
+Budget exhaustion stops further guarded work and aborts the native turn. Owner pause disarms continuation before aborting and persisting pause. The displayed native async-job count is not a claim that all agents or subprocesses have already stopped. Returned/late isolated outputs cannot automatically apply to the parent; a paused primary cannot integrate them. A crash leaves unfinished tasks unfinished.
 
-## Anti-overengineering
-Bootstrap must not implement a cloud dashboard, new memory database, agent server, twenty custom tools, release PKI or the whole application. Add scripts/extensions only for verified gaps needed by a concrete acceptance criterion. The first execution is AIU-001 only; further product goals require their own selection/authorization.
+External resume needs confirmation. Only a proven internal `ctx.newSession` transfer preserves live authority without another prompt. Both native session-start and session-switch lifecycle events are handled. A closed OMP process does not continue working. Completed-item history prevents re-selection even while coarse document-status reconciliation remains the primary's responsibility.
+
+## Workers and primary integration
+
+Use declared, eligible, parallel tasks with the `work-worker` role, task-derived names such as T01, explicit isolation and disjoint write paths. Shared tasks/backlog/configuration/CI ownership stays with the primary. The validator rejects unsafe ownership and dependencies before dispatch; the bridge checks actual patch paths and contents before applying anything.
+
+`work-worker` is a native blocking role, not another scheduler: independent entries in its batch still run concurrently. Workers skip shared validation while the batch runs. They report the files changed and finish/yield; OMP then captures the patch and returns its path to the primary. Waiting for the parent to provide a future patch path would deadlock the batch, so the role explicitly forbids that protocol. Hub is available for the worker's own processes/jobs, not parent-reply waits.
+
+The primary inspects the actual native patch, then uses `work_checkpoint` or `/work integrate T-01 <patch-path>`. Integration checks the current branch, eligible ownership, reparse points, case/path collisions, unsafe/binary/submodule/symlink patches and `git apply --check`, then applies the same captured bytes. It neither trusts a worker's prose nor marks the task complete. Run relevant checks on the integrated tree and record evidence in tasks.md.
+
+## Completion and fresh context
+
+The native Goal tool owns the current item's operational objective. Its completed label is not canonical project acceptance. The primary requests `work_checkpoint` finish only after task completion and real evidence, then completes the native Goal and yields. The deferred checkpoint waits for native idle and rechecks authorization/documents; it reports a request, not premature completion.
+
+Automatic continuation records completion, spends a handoff step, creates a real native session, retains the grant and cumulative budget, records its native ID, selects only another eligible authorized item and starts the next objective. Pause and exhausted scope take precedence. It never starts another goal merely because a backlog entry exists.
+
+The primary remains responsible for coherent backlog/spec/goal status documentation and Git checkpoints. The bridge does not automatically create commits, PRs or merges. The disposable feature-to-fresh-session proof is evidence for this local bounded path, not a claim of unattended GitHub delivery.
+
+## Review and publication
+
+The always-on Advisor is read-only advice, not merge approval. Use one full independent convergence review with a different model family, memory off, read-only tools, no inherited primary conversation and frozen code/spec/test evidence. PASS with zero findings is valid; BLOCKED and INSUFFICIENT_EVIDENCE are not passes. Concrete fixes receive targeted verification, not a repeated full audit loop.
+
+The accepted broader delivery policy still requires relevant tests, one review, exact-head independent checks, authorized PR/squash merge and durable progress before protected publication. AIU-001 supplies a local validation workflow file, not those remote guarantees. Main protection and private vulnerability reporting were absent at preflight; GitHub CI, push/PR/merge and releases were not executed.
+
+## Limits
+
+- An unarmed headless primary cannot write, launch processes or dispatch workers through guarded tools. Native isolated workers are identified by native session metadata, not by headless mode alone.
+- These are critical-transition gates, not mediation of every operation inside an already permitted shell/eval/process call or an OS sandbox.
+- The deterministic validator rejects non-Latin authored scripts and honors explicit opaque-data fences. It cannot prove that all Latin-script prose is English; review still owns that requirement.
+- Initial .NET package restoration is outside the network-free validator runtime. CI has no OMP authentication, live model/provider calls or product UI tests.
+- No cloud dashboard, memory database, agent server, release PKI or Windows product code was added. Further product work requires its own explicit selection and authorization.

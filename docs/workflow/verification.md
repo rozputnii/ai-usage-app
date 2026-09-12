@@ -18,4 +18,4 @@ Historical PUBLIC schema/layout versions retained as sanitized fixtures, not eve
 One-shot independent reviewer after integration + evidence; no forced findings. PASS requires acceptance coverage, actual CI and no unresolved material defect. Local fix gets specific regression test + impacted checks, not recurring full-review prompts. Minor improvements backlog. New unknown can be BLOCKED, not invented success.
 
 ## Bootstrap checks
-AIU-001 has its own verification.md starting entirely NOT_RUN. This document packet is only structurally validated in this environment; OMP runtime, Windows app, auth, package, permissions, tests, CI and remote config are not run here.
+AIU-001 records actual native OMP, validator, isolation, pause and fresh-session results in [its verification report](../specs/AIU-001-omp-bootstrap/verification.md). Local bootstrap acceptance is not release approval. Windows product UI, packaging, provider-product authentication, GitHub CI and remote publication remain NOT_RUN; absent protection/reporting configuration is explicitly recorded.

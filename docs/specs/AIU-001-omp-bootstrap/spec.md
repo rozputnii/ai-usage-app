@@ -1,11 +1,11 @@
 ---
 id: AIU-001
 type: infrastructure
-status: draft
+status: implementing
 goal: G-001
 scope_version: 2
 approval_basis: derived-from-owner-approved-workflow-and-english-only-requirement
-execution_status: not-started
+execution_status: in-progress
 ---
 # OMP-native project bootstrap
 
@@ -36,4 +36,4 @@ No Windows product application/solution, provider login or personal secrets, pro
 AC-03 through AC-09 cannot pass merely because Markdown exists. If the installed stable OMP lacks a required primitive, report the exact gap and minimum bridge needed. Do not claim Autopilot readiness when only interactive behavior was tested.
 
 ## Authorized intent
-The workflow choices were approved in the conversation. This specification is derived from that intent and has not been executed. Launching this file in Goal Mode authorizes AIU-001 local implementation within its stated boundaries. Ask only genuine environment/permission blockers, not the settled product questionnaire.
+The workflow choices were approved in the conversation. Local implementation is executed under that authorization; the verification report records actual results and outstanding gates. Goal Mode authorizes AIU-001 local implementation within these boundaries, not remote publication or the remaining backlog. Ask only genuine environment/permission blockers, not the settled product questionnaire.

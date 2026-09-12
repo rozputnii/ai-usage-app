@@ -1,7 +1,7 @@
 ---
 id: AIU-001
 type: infrastructure-design
-status: draft
+status: implementing
 goal: G-001
 scope_version: 2
 ---
@@ -13,7 +13,7 @@ Use native OMP profiles, configuration, rules, skills, tasks, Goal Mode, Advisor
 ## File ownership
 Adopt the embedded handoff documentation into canonical repository docs paths. Create .omp/AGENTS.md, RULES.md and WATCHDOG.md from the passive seeds; generate .omp/config.yml only after reading the installed schema. Add the minimum necessary skills and agent definitions using supported registration paths.
 
-Proposed executable validator: tools/AiUsage.ProjectValidation, a small .NET 10 console project, with tests/AiUsage.ProjectValidation.Tests using xUnit v3 and no EF/UI dependencies. A small OMP TypeScript extension may live at .omp/extensions/ai-usage.ts if explicitly registered using the current loader. These are planned outputs, not code supplied by the handoff. Keep runtime credentials and personal configuration evidence out of Git.
+Implemented validator: tools/AiUsage.ProjectValidation, a small .NET 10 console project, with tests/AiUsage.ProjectValidation.Tests using xUnit v3 and no EF/UI dependencies. The native extension is .omp/extensions/ai-usage.ts, with bounded authorization and checked patch helpers in .omp/lib. tools/start-work.ts normalizes only the child Windows PATH to avoid a reproduced native MSYS ps isolation-setup hang; it does not patch OMP. Keep runtime credentials and personal configuration evidence out of Git.
 
 ## Bootstrap exception
 A nonexistent validator cannot enforce its own creation. Use an explicitly scoped initial bootstrap with inspected diffs and concrete checks. Once the validator exists, enable the gate and test negative cases; do not leave a permanent bypass. Respect existing repository rules. Discover remote/author configuration before asking only for missing required values.

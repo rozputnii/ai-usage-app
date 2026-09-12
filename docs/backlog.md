@@ -9,7 +9,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-001 - OMP-native bootstrap and workflow verification
 - goal: G-001
-- status: selected
+- status: in-progress
 - depends_on: []
 - trigger: now
 - outcome: Adopt the handoff, create minimal project instructions/skills, validator and thin native workflow UX, and prove safe lifecycle and portable state.

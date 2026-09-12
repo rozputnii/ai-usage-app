@@ -30,80 +30,60 @@ No product application code, real credential import, paid resources, production 
 
 **Verification:** Record actual versions, repository root, configuration types and missing setup facts. Compare the adopted decision IDs and topics with the embedded baseline. No product code or unsolicited remote creation.
 
-- [ ] Read the relevant scope/contracts; surface only genuine blockers.
-- [ ] For executable behavior, run the specific negative test/probe first and observe failure.
-- [ ] Implement the minimum change through OMP and inspect the actual ownership-scoped diff.
-- [ ] Run the relevant checks and record observed results.
-- [ ] Let the primary integrate, update task state and checkpoint without claiming incomplete work is done.
 
 ### T-02 - Portable native rules, skills and configuration
-- status: in-progress
+- status: done
 - depends_on: ["T-01"]
 - ownership: omp-config
-- writes: [".omp/AGENTS.md", ".omp/RULES.md", ".omp/WATCHDOG.md", ".omp/config.yml", ".omp/skills/**", ".omp/agents/**"]
+- writes: [".omp/AGENTS.md", ".omp/RULES.md", ".omp/WATCHDOG.md", ".omp/WATCHDOG.yml", ".omp/config.yml", ".omp/skills/**"]
 - shared: []
 - parallel: false
 - isolation: none
 - agent: primary
 - acceptance: ["AC-03", "AC-09", "AC-11"]
-- evidence: not-run
+- evidence: docs/workflow/environment.md; fresh native SDK project/skill discovery and explicit advisor tool inspection
 
 **Work:** Adopt the passive English seeds, create compact workflow skills and use actual supported stable configuration keys with profile-local model mappings. Restrict the advisor/reviewer explicitly. Do not install unrelated frameworks.
 
 **Verification:** A fresh root session actually discovers configuration and skills. Inspect advisor/reviewer tools and effective settings without secrets. Prove isolation from the primary narrative rather than assuming it from a filename.
 
-- [ ] Read the relevant scope/contracts; surface only genuine blockers.
-- [ ] For executable behavior, run the specific negative test/probe first and observe failure.
-- [ ] Implement the minimum change through OMP and inspect the actual ownership-scoped diff.
-- [ ] Run the relevant checks and record observed results.
-- [ ] Let the primary integrate, update task state and checkpoint without claiming incomplete work is done.
 
 ### T-03 - Lightweight document validator
-- status: pending
+- status: done
 - depends_on: ["T-01"]
 - ownership: project-validation
 - writes: ["tools/AiUsage.ProjectValidation/**", "tests/AiUsage.ProjectValidation.Tests/**"]
 - shared: []
-- parallel: true
-- isolation: required
-- agent: implementation-worker-after-discovery
+- parallel: false
+- isolation: none
+- agent: primary
 - acceptance: ["AC-05", "AC-11"]
-- evidence: not-run
+- evidence: docs/workflow/environment.md; primary integrated the isolated test-first contribution and completed the validator after a worker timeout; 49 xUnit tests pass and canonical root validates
 
 **Work:** Implement only the agreed structured-Markdown validator, test-first. Add positive/negative fixtures for IDs, references, dependency cycles, acceptance links, escaping paths, unsafe ownership and English-only authored prose. It must not access the network or mutate data.
 
 **Verification:** Run actual tests. Accept the adopted valid documents and reject intentionally corrupted fixtures with file/task/reason. Use isolated delegation only after preflight confirms support; otherwise record and resolve that prerequisite before dispatch.
 
-- [ ] Read the relevant scope/contracts; surface only genuine blockers.
-- [ ] For executable behavior, run the specific negative test/probe first and observe failure.
-- [ ] Implement the minimum change through OMP and inspect the actual ownership-scoped diff.
-- [ ] Run the relevant checks and record observed results.
-- [ ] Let the primary integrate, update task state and checkpoint without claiming incomplete work is done.
 
 ### T-04 - Thin native selection, gates and dispatch bridge
-- status: pending
+- status: done
 - depends_on: ["T-02", "T-03"]
 - ownership: omp-bridge
-- writes: [".omp/extensions/**", "tests/omp-workflow/**"]
+- writes: [".omp/extensions/**", ".omp/lib/**", ".omp/agents/**", "tools/start-work.ts", "tests/omp-workflow/**"]
 - shared: [".omp/config.yml"]
 - parallel: false
 - isolation: none
 - agent: primary
 - acceptance: ["AC-04", "AC-06", "AC-10"]
-- evidence: not-run
+- evidence: docs/workflow/environment.md; native ranked selection and cancellation, isolated worker patches, primary integration, headless denial and live-grant mutation rejection; 11 Bun tests pass
 
 **Work:** Verify the native command/extension API. Implement one thin entrypoint for ranked selection, status, authorized run/auto and pause. Wire the validator and native task batching; retain primary-only integration and configuration ownership.
 
 **Verification:** Exercise recommendation, alternative selection and cancellation. Run two independent isolated disposable workers. Refuse overlap/out-of-scope changes. Check command collisions and demonstrate failure of a supported guarded transition.
 
-- [ ] Read the relevant scope/contracts; surface only genuine blockers.
-- [ ] For executable behavior, run the specific negative test/probe first and observe failure.
-- [ ] Implement the minimum change through OMP and inspect the actual ownership-scoped diff.
-- [ ] Run the relevant checks and record observed results.
-- [ ] Let the primary integrate, update task state and checkpoint without claiming incomplete work is done.
 
 ### T-05 - Pause, fresh-session accounting and bounded-review behavior
-- status: pending
+- status: done
 - depends_on: ["T-04"]
 - ownership: workflow-recovery
 - writes: ["tests/omp-workflow/**", "docs/workflow/environment.md"]
@@ -112,23 +92,18 @@ No product application code, real credential import, paid resources, production 
 - isolation: none
 - agent: primary
 - acceptance: ["AC-07", "AC-08", "AC-09", "AC-10"]
-- evidence: not-run
+- evidence: docs/workflow/environment.md; native feature handoff and final guarded fresh-session continuation preserve scope and consumption; live-worker pause, external-resume confirmation and budget stop pass; isolated reviewer setup accepts zero findings
 
 **Work:** Use a bounded disposable two-feature scenario: complete the first, checkpoint, hand off to fresh context, then exercise owner pause and budget stop. Preserve scope/usage and avoid duplicate work. Check that a zero-findings verdict is accepted without creating a repeated full-review loop.
 
 **Verification:** Record observed native session references and sanitized results. Verify persisted state and consumption, not merely file existence. Document limitations. Rerun targeted failing checks, not the full review repeatedly.
 
-- [ ] Read the relevant scope/contracts; surface only genuine blockers.
-- [ ] For executable behavior, run the specific negative test/probe first and observe failure.
-- [ ] Implement the minimum change through OMP and inspect the actual ownership-scoped diff.
-- [ ] Run the relevant checks and record observed results.
-- [ ] Let the primary integrate, update task state and checkpoint without claiming incomplete work is done.
 
 ### T-06 - One final convergence review and handoff
-- status: pending
+- status: in-progress
 - depends_on: ["T-05"]
 - ownership: bootstrap-completion
-- writes: ["docs/specs/AIU-001-omp-bootstrap/verification.md", "docs/specs/AIU-001-omp-bootstrap/tasks.md", "docs/backlog.md", "docs/product/goals.md"]
+- writes: ["docs/**", ".omp/**", "tools/**", "tests/**", ".github/**", "README.md", "CONTRIBUTING.md", "SECURITY.md", ".editorconfig", ".gitignore", "global.json", "LICENSE"]
 - shared: []
 - parallel: false
 - isolation: none
@@ -140,14 +115,9 @@ No product application code, real credential import, paid resources, production 
 
 **Verification:** The evidence matrix, repository state and final report agree. Separate unexecuted/blocked checks from passes. Publish only verified launch commands. Do not start Windows application implementation or the entire backlog under this goal.
 
-- [ ] Read the relevant scope/contracts; surface only genuine blockers.
-- [ ] For executable behavior, run the specific negative test/probe first and observe failure.
-- [ ] Implement the minimum change through OMP and inspect the actual ownership-scoped diff.
-- [ ] Run the relevant checks and record observed results.
-- [ ] Let the primary integrate, update task state and checkpoint without claiming incomplete work is done.
 
 ## Handoff
-- completed: None; documentation prepared only.
-- next: T-01 after the owner launches this prompt in OMP at the target repository root.
-- blocked_by: No unresolved product-design choice; the execution environment has not been inspected.
-- verify: Record actual commands from the local toolchain; none are claimed to have run by this document.
+- completed: T-01, T-02, T-03, T-04, T-05.
+- next: T-06 one full independent review of the integrated local tree, targeted corrections if needed, and final handoff.
+- blocked_by: No unresolved local implementation prerequisite. Remote CI is not executed; main protection and private reporting are absent. No push or merge is claimed.
+- verify: Validator 49/49 pass; canonical documents valid; Bun workflow/patch tests 11/11 pass; formatting gate passes. Native runtime evidence is recorded in docs/workflow/environment.md.

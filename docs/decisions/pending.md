@@ -2,17 +2,17 @@
 
 No further product questionnaire blocks bootstrap. Discover setup from the current directory and environment before asking. This is not a list of reasons to stop all preparation.
 
-## SETUP-001 - Target repository and commit identity
-- timing: AIU-001, before the first persistent Git write or remote publication.
-- discover: Current directory, repository root/remotes/status, configured Git author and existing DCO policy. Redact credentials embedded in remote URLs.
-- if missing: Ask only for the non-discoverable target/author authorization required by the next operation. Never invent a GitHub owner, package publisher or Signed-off-by identity.
-- effect: Read-only preflight and authorized local document preparation may continue.
+## SETUP-001 - Resolved local repository and commit identity
+- resolved: 2026-09-12, explicit owner reply after read-only discovery.
+- result: Existing rozputnii/ai-usage-app repository; repository-local author `rozputnii <daniil.rozputnii@gmail.com>`. Owner authorized the existing license's MIT replacement.
+- evidence: ../workflow/environment.md.
+- remaining boundary: Remote publication is not authorized by local setup. Main has no branch protection; no remote changes or bypass.
 
 ## SETUP-002 - OMP roles, authentication and toolchain
-- timing: AIU-001 read-only preflight.
-- discover: Installed stable OMP/schema, primary/planning/advisor/small/review model mappings and Windows/.NET/Windows SDK availability.
-- if missing: Ask one consolidated setup question. The owner performs provider login; do not request tokens in chat.
-- effect: Never claim that an unavailable advisor or untested unattended flow is ready.
+- observed: Stable OMP 18.1.18 and profile roles discovered. Fresh native SDK confirms read-only advisor attachment. Owner authorized a user-local .NET SDK; 10.0.401 runs successfully.
+- pending: One final independent convergence review and completion handoff. Native isolation, primary integration, selection/cancel, pause/resume, budget stop and fresh-session continuity have been exercised; see evidence rather than inferring success from configuration.
+- deferred: Windows SDK installation and Windows product tooling belong to AIU-002.
+- evidence: ../workflow/environment.md.
 
 ## RELEASE-001 - Public signing eligibility
 - timing: AIU-014; not a bootstrap blocker.
