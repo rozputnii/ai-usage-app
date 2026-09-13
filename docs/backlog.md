@@ -20,7 +20,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - depends_on: [AIU-001]
 - trigger: next
 - outcome: Create the WinUI/.NET 10/Host three-project skeleton, empty dashboard, packaged launch/exit, basic CI and a standalone native-routing spike. Do not build the entire shell upfront.
-- blocker: Native build and signed development candidate exist; clean Windows 11 24H2+ x64 disposable guest is unavailable. Sandbox/Hyper-V optional features are disabled; host elevation/reboot, trust or installation is not authorized. See docs/specs/AIU-002-windows-msix/verification.md.
+- blocker: Authorized Windows Sandbox enablement succeeded with state Enabled and RestartNeeded=true. No automatic reboot occurred. Owner-controlled host restart is required before disposable guest installation/UI proof; see docs/specs/AIU-002-windows-msix/verification.md.
 
 ## AIU-003 - Codex authentication/quota feasibility and contract evidence
 - goal: G-002

@@ -64,6 +64,9 @@ Final canonical check at 2026-09-13T13:55:53Z returned `{"valid":true,"diagnosti
 ## Owner stop decision
 After the reachable local work and verification, the owner explicitly selected **Leave BLOCKED** instead of enabling Windows Sandbox or providing a disposable VM. Preserve code, signed candidates and the offline bundle. No host optional-feature changes, elevation or reboot are authorized by that selection. AIU-002 remains blocked and incomplete; do not start AIU-003.
 
+## Authorized Sandbox resumption
+The owner later requested unblocking/continuation and explicitly chose Windows Sandbox enablement with UAC elevation and required dependencies, without automatic reboot. Elevated `Enable-WindowsOptionalFeature -Online -FeatureName Containers-DisposableClientVM -All -NoRestart` completed with exit 0. Its report, started at 2026-09-13T15:04:43.9906323Z, records `ENABLE_COMMAND_SUCCEEDED`, state `Enabled`, `restartNeeded: true`, and `automaticRestart: false`. The report is retained at .ai-usage-local/AIU-002/sandbox-enable-result.json. No guest launch, host app installation or certificate trust import occurred. Acceptance remains BLOCKED until an owner-controlled host restart makes the disposable guest available; this is not a failed feature-installation command.
+
 ## Sources
 - https://builds.dotnet.microsoft.com/dotnet/release-metadata/10.0/releases.json
 - https://www.nuget.org/packages/Microsoft.WindowsAppSDK/2.4.0
