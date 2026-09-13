@@ -1,6 +1,6 @@
 ---
 schema_version: 1
-active_goal: G-001
+active_goal: G-002
 ---
 # Goals
 
@@ -13,7 +13,7 @@ active_goal: G-001
 - next-goal: G-002 only after owner selection or an explicit extension of Autopilot authorization.
 
 ## G-002 - First Windows result: runnable package and Codex end-to-end
-- status: ready
+- status: selected
 - scope: AIU-002, AIU-003, AIU-004, AIU-005, AIU-006
 - outcome: The Windows app launches offline and subsequently supports real Codex authentication, quota, cache, tray, reauthentication and clean forward upgrades.
 - success: Installable MSIX and UI smoke; one verified authentication/quota path; fresh/cached state; safe manual/background refresh; update and recovery tests.
@@ -37,6 +37,10 @@ active_goal: G-001
 - outcome: Stabilize Windows before implementing Android, Store distribution, Widgets, WSL import, ARM64, multi-window/palette, forecasting or always-on coding infrastructure.
 
 ## Authorization is not a status label
-The status records direction, not permission by itself. The owner explicitly launched AIU-001 local implementation in OMP Goal Mode on 2026-09-12 and approved the user-local SDK installation, MIT replacement and repository-local identity recorded in `../workflow/environment.md`. That local scope is complete, including bounded disposable workflow proofs and the explicitly authorized replacement review after a capture failure. No AIU-002 or later execution, remote publication, paid resources or provider-product account access is authorized. G-002 requires owner selection or a new explicit scope grant; no unlimited or renewed grant is inferred from this document.
+The status records direction, not permission by itself. The owner explicitly launched AIU-001 local implementation in OMP Goal Mode on 2026-09-12 and approved the user-local SDK installation, MIT replacement and repository-local identity recorded in `../workflow/environment.md`. That local scope is complete, including bounded disposable workflow proofs and the explicitly authorized replacement review after a capture failure.
 
 On 2026-09-13 the owner authorized a narrow post-bootstrap policy amendment: defer main protection at low priority and simplify current PR checks. This does not start another product goal or authorize remote mutation.
+
+The owner subsequently selected AIU-002 and disposable Sandbox/VM installation verification, then approved execution of the First runnable Windows MSIX and smoke CI plan. G-002 is the selected direction; AIU-002 is the current item. This authorizes that feature's local implementation and development signing only, not other G-002 items, host package installation or certificate trust changes, elevation/reboot, provider account access, paid resources, remote publication, or unlimited bounded execution. No bounded execution record is created by this approval.
+
+At the AIU-002 guest-environment gate, the owner explicitly chose to leave the item BLOCKED and retain the code, signed development candidate and offline verification bundle. This does not authorize Sandbox enablement, elevation, reboot, another item or automatic continuation past the missing guest proof.

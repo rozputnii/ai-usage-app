@@ -16,10 +16,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-002 - First runnable Windows MSIX and smoke CI
 - goal: G-002
-- status: ready
+- status: blocked
 - depends_on: [AIU-001]
 - trigger: next
 - outcome: Create the WinUI/.NET 10/Host three-project skeleton, empty dashboard, packaged launch/exit, basic CI and a standalone native-routing spike. Do not build the entire shell upfront.
+- blocker: Native build and signed development candidate exist; clean Windows 11 24H2+ x64 disposable guest is unavailable. Sandbox/Hyper-V optional features are disabled; host elevation/reboot, trust or installation is not authorized. See docs/specs/AIU-002-windows-msix/verification.md.
 
 ## AIU-003 - Codex authentication/quota feasibility and contract evidence
 - goal: G-002

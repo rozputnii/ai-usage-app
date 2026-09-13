@@ -1,0 +1,12 @@
+<Page x:Class="AiUsage.RoutingSpike.MainPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" AutomationProperties.AutomationId="MainPage">
+  <Grid Padding="32" RowSpacing="16">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <TextBlock Text="Main" FontSize="32" AutomationProperties.AutomationId="RouteName" />
+    <TextBlock Grid.Row="1" Text="{Binding MicrosoftUiXamlAssemblyIdentity}" TextWrapping="Wrap" AutomationProperties.AutomationId="MicrosoftUiXamlAssemblyIdentity" />
+    <Button Grid.Row="2" Content="Next" Command="{Binding NextCommand}" AutomationProperties.AutomationId="NextButton" />
+  </Grid>
+</Page>

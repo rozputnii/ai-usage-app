@@ -1,0 +1,5 @@
+{
+  "profiles": {
+    "AiUsage.RoutingSpike": { "commandName": "MsixPackage" }
+  }
+}

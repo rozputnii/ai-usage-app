@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="AiUsage.Core/AiUsage.Core.csproj" />
+  <Project Path="AiUsage.Infrastructure/AiUsage.Infrastructure.csproj" />
+  <Project Path="AiUsage.Windows/AiUsage.Windows.csproj" />
+</Solution>
