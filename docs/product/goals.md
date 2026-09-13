@@ -5,7 +5,7 @@ active_goal: G-001
 # Goals
 
 ## G-001 - Verified OMP development workflow
-- status: in-progress
+- status: done
 - scope: AIU-001
 - outcome: A fresh OMP session can continue repository work without the previous chat or repeated long prompts.
 - success: Adopted English decisions; verified stable OMP configuration, skill and command discovery; ranked selection; pause/resume; isolated workers; validator and reviewer checks; truthful redacted verification.
@@ -37,4 +37,4 @@ active_goal: G-001
 - outcome: Stabilize Windows before implementing Android, Store distribution, Widgets, WSL import, ARM64, multi-window/palette, forecasting or always-on coding infrastructure.
 
 ## Authorization is not a status label
-The status records direction, not permission by itself. The owner explicitly launched AIU-001 local implementation in OMP Goal Mode on 2026-09-12. Allowed scope is AIU-001 only, including its bounded disposable workflow tests. No AIU-002 or later execution, remote publication, paid resources or provider-account access is authorized. The owner subsequently approved the user-local SDK installation, MIT license replacement and repository-local commit identity recorded in `../workflow/environment.md`. Native goal accounting remains active; no new unlimited grant is inferred from this document.
+The status records direction, not permission by itself. The owner explicitly launched AIU-001 local implementation in OMP Goal Mode on 2026-09-12 and approved the user-local SDK installation, MIT replacement and repository-local identity recorded in `../workflow/environment.md`. That local scope is complete, including bounded disposable workflow proofs and the explicitly authorized replacement review after a capture failure. No AIU-002 or later execution, remote publication, paid resources or provider-product account access is authorized. G-002 requires owner selection or a new explicit scope grant; no unlimited or renewed grant is inferred from this document.

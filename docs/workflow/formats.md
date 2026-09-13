@@ -53,3 +53,5 @@ Reject duplicate IDs, dependency cycles, missing references, invalid statuses, b
 
 ## Language check
 Reject newly authored non-English repository prose while allowing opaque provider payloads, user data and explicitly approved localization resources. The current handoff uses English throughout. Language validation is not permission to translate protocol identifiers or user-supplied values.
+
+Current automated coverage is partial: docs, selected root documents and configured .omp policy/agent/skill/library/extension files. It does not include every tools/tests/.github source file, and script detection cannot prove that Latin-script prose is English. Repository-wide policy still applies; review supplements the heuristic. Coverage follow-up CR-AIU-001-03 is recorded in the canonical backlog.

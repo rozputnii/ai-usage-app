@@ -1,11 +1,11 @@
 ---
 id: AIU-001
 type: infrastructure
-status: implementing
+status: implemented
 goal: G-001
 scope_version: 2
 approval_basis: derived-from-owner-approved-workflow-and-english-only-requirement
-execution_status: in-progress
+execution_status: done
 ---
 # OMP-native project bootstrap
 

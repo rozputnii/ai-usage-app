@@ -1,6 +1,6 @@
 # AI Usage
 
-Windows-first AI usage application, currently at the development-workflow bootstrap. There is no runnable Windows product package yet; [AIU-002](docs/backlog.md) is the next package milestone.
+Windows-first AI usage application. The local development-workflow bootstrap is complete; there is no runnable Windows product package yet. [AIU-002](docs/backlog.md) is the next package milestone.
 
 ## Development prerequisites
 
@@ -16,7 +16,7 @@ Review `.omp` and the launch script before running an unfamiliar checkout: OMP l
 From the repository root:
 
 ```text
-bun tools/start-work.ts
+bun tools/start-work.ts --no-title --no-lsp
 ```
 
 The launcher uses the native `omp --profile ai-usage` entrypoint. On Windows it removes MSYS/Cygwin runtime directories from the child process's PATH, avoiding an observed OMP 18.1.18 Unix `ps` hang during isolation setup. It does not change the machine PATH, install software or patch OMP. Native Git, Bun and .NET remain required; do not depend on inherited MSYS-only utilities in this launch environment.
@@ -46,6 +46,8 @@ These snippets assume the selected SDK is on PATH. The bootstrap's optional user
 dotnet run --project tests/AiUsage.ProjectValidation.Tests
 dotnet run --project tools/AiUsage.ProjectValidation -- --root . --json
 bun test tests/omp-workflow
+dotnet format tests/AiUsage.ProjectValidation.Tests/AiUsage.ProjectValidation.Tests.csproj --no-restore --verify-no-changes
+dotnet format tools/AiUsage.ProjectValidation/AiUsage.ProjectValidation.csproj --no-restore --verify-no-changes
 ```
 
 The validator returns 0 for valid documents, 1 for diagnostics and 2 for invocation/read failures. It performs no inference or network access; initial SDK/package restoration is a separate prerequisite. The extension checks `DOTNET_ROOT`, the optional user-local `.dotnet/ai-usage-sdk` installation, then PATH.

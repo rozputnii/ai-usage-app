@@ -1,12 +1,12 @@
 ---
 id: AIU-001
-status: review
+status: done
 ---
 # Execution verification
 
-Local implementation and native runtime probes executed on 2026-09-12. The independent full review and final completion record are the remaining local gates at this checkpoint. This is not release approval or a claim of remote CI/publication.
+AIU-001 local implementation and acceptance are complete. Native runtime probes, tests and independent review executed on 2026-09-12. This is not release approval or a claim of remote CI/publication.
 
-Implementation fingerprint: SHA-256 `80a4657db727788488d31bf54b15fcdf3061f36aee6fe5064269d357b965e17a`, calculated from the sorted path/SHA-256 records for 26 implementation, test, configuration and workflow files. The one-shot review receives the frozen file inventory and actual captured check output. Environment, native session references and failed-probe history are in [environment.md](../../workflow/environment.md).
+Implementation fingerprint: SHA-256 `80a4657db727788488d31bf54b15fcdf3061f36aee6fe5064269d357b965e17a`, calculated from the sorted path/SHA-256 records for 26 implementation, test, configuration and workflow files. Independent review inspected frozen commit `9afa9d57e09b7e8af0d904d25c03774d6118352f`, its file inventory and actual captured check output. Subsequent changes close documentation and record non-blocking findings; implementation is unchanged. Environment, native session references and failed-probe history are in [environment.md](../../workflow/environment.md).
 
 ## Acceptance matrix
 
@@ -20,10 +20,10 @@ Implementation fingerprint: SHA-256 `80a4657db727788488d31bf54b15fcdf3061f36aee6
 | AC-06 | PASS | Two real native isolated workers returned inspected patches without parent application. The primary integrated exact outputs; wrong ownership, overlap, unsafe patches and main-branch integration were rejected. |
 | AC-07 | PASS | Explicit pause during live isolated workers retained task/scope/base state and left parent outputs absent. Restart required confirmation. Unfinished tasks were not converted to done by interruption or patch integration. |
 | AC-08 | PASS | AIU-903 completed once and handed off to a real fresh AIU-904 session. A final-guard handoff retained history/scope/base and reached owner pause at 16/24 steps. A separate two-step grant stopped and aborted at 2/2 without false completion. |
-| AC-09 | NOT_RUN | Advisor attachment/read-only tools and native yield observed. Reviewer setup proved different-family Claude Opus 5, memory off, read/grep/glob only and zero initial messages; empty PASS accepted. The one full review has not yet run at this checkpoint. |
+| AC-09 | PASS | Read-only Advisor attachment/yield observed. The owner-authorized replacement reviewer used Claude Opus 5, memory off, read/grep/glob only and zero initial messages, with no inherited primary narrative. Verdict PASS: no BLOCKER/MAJOR, three MINORs recorded in the backlog. Empty PASS accepted by the setup check. Review/capture failures and the explicit recovery exception are disclosed below. |
 | AC-10 | PASS | Native headless write/process-launch denial, live-grant enlargement rejection, primary integration and budget/revision/scope/branch checks exercised. Remote ADMIN permission, absent main protection and disabled private reporting were actually checked, not treated as safe merge authority. |
 | AC-11 | PASS | Git-portable source/configuration/docs inventory excludes local profiles, credentials, sessions, input archive and probes. Targeted private-path/key/token/secret-pattern scan had no matches. Real owner-supplied DCO identity and authorized MIT replacement used. |
-| AC-12 | NOT_RUN | This checkpoint separates local passes from the remaining review/closure and unexecuted remote/product checks. Final report and completion metadata follow the single review. |
+| AC-12 | PASS | Tasks, specification, goal and backlog close AIU-001 local scope only. Verified commands, known limits, deferred MINORs and remote/product NOT_RUN/BLOCKED gates are explicit. AIU-002/003 remain unstarted and require new authorization. |
 
 ## Executed checks
 
@@ -35,6 +35,7 @@ Final captured run began at 2026-09-12T23:04Z. The optional user-local SDK was i
 | `bun test tests/omp-workflow` | Exit 0; 11 tests, 74 assertions, 0 failures. |
 | `dotnet run --project tools/AiUsage.ProjectValidation --no-build -- --root . --json` | Exit 0; `{"valid":true,"diagnostics":[]}`. |
 | `dotnet format tests/AiUsage.ProjectValidation.Tests/AiUsage.ProjectValidation.Tests.csproj --no-restore --verify-no-changes` | Exit 0; no formatting changes required. |
+| `dotnet format tools/AiUsage.ProjectValidation/AiUsage.ProjectValidation.csproj --no-restore --verify-no-changes` | Exit 0 at 2026-09-12T23:51Z; direct post-review check of validator source formatting. |
 | `bun tools/start-work.ts --no-title --no-lsp` | Actual native terminal startup, discovery, selection/resume/integration/handoff/status surfaces exercised. |
 | Native `/work verify` | `Document validation PASS` after checked integration. |
 
@@ -44,7 +45,7 @@ The regression work included observed failures before fixes for unsafe wildcard 
 
 - **NOT_RUN:** GitHub Actions execution, remote push/PR/merge, product Windows UI/MSIX/install/update, production signing/release and live provider-product integrations.
 - **BLOCKED for publication:** Main has no independent branch protection; required exact-head remote checks/review are not established. Private vulnerability reporting is disabled. No bypass or configuration change was performed.
-- **No unresolved local test failure** at this checkpoint. This does not pre-judge the independent review or guarantee absence of defects.
+- **No unresolved local test failure or material review finding.** Three non-blocking follow-ups remain in the canonical backlog; PASS is not a guarantee of defect absence.
 
 ## Limits of the proof
 
@@ -52,10 +53,20 @@ Native isolation is not an OS sandbox; arbitrary actions inside an already permi
 
 Native Plan approval remains separate. The successful execution/automatic-handoff probes initially paused it through the native `/plan` command; the bridge does not silently bypass that approval surface. The demonstrated automatic path is local bounded continuation, not unattended GitHub delivery. The primary remains responsible for canonical status reconciliation, meaningful acceptance evidence and Git checkpoints.
 
+The automated language/link scan covers docs, the selected root documents and the configured .omp policy/agent/skill/library/extension files, not every tools/tests/.github source file. Repository-wide English policy still applies; review supplements this partial heuristic. The CI formatting step targets the test project; validator source formatting was additionally checked directly above. A process killed while holding the workflow lock can leave a stale lock requiring manual intervention; automatic stale-lock recovery is not implemented. These three MINOR follow-ups are recorded as CR-AIU-001-01 through CR-AIU-001-03 in [the backlog](../../backlog.md).
+
 ## Independent review
 
-Pending one read-only different-family review of this frozen candidate. No full review has been consumed by the setup-only capability/empty-report check. Zero findings is valid; material findings will receive corrections and targeted verification without a repeated full review.
+The completed authorized replacement returned **PASS**, with no BLOCKER or MAJOR findings and three MINORs. Session `01a09800-d575-7784-90d8-84fdb1a6a2be` used Anthropic Claude Opus 5 throughout, fresh in-memory context, memory/advisor off and only read/grep/glob. Its finite deadline was 20 minutes; it finished in 332.72 seconds. No implementation changes or post-fix full review followed.
+
+Recovery history is part of the result, not hidden:
+- The first bounded attempt ended after 601.54 seconds without a verdict.
+- The next review completed, but the disposable runner disposed its in-memory session before saving the response. The final text was lost; empty post-disposal usage/messages were not accepted as evidence.
+- The owner explicitly authorized **one replacement review**. Before it ran, a no-inference native lifecycle probe verified capture before disposal; terminal text was also captured independently in the event record.
+- The replacement returned introductory prose plus a JSON fence. The strict whole-response parser exited 1, but the complete response had already been saved. Its single JSON fence was extracted and schema-validated without further inference. The actual verdict is PASS; this does not relabel the runner's parser exit as success.
+
+Raw local evidence, frozen inventories and the recovery authorization remain in the ignored evidence directory. Durable findings and the redacted outcome are recorded here and in the canonical backlog; throwaway runners and fixture repositories are removed after capture.
 
 ## Next work
 
-After verified AIU-001 closure, present AIU-002 (runnable Windows package) and AIU-003 (secure lifecycle foundation) for their own selection/authorization. Neither item has been started under this bootstrap.
+AIU-002 is the next runnable Windows package milestone. AIU-003 supplies Codex authentication/quota feasibility and contract evidence. Both require their own selection/authorization; neither was started under this bootstrap.

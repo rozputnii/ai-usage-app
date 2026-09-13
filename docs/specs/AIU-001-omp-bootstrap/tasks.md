@@ -6,10 +6,10 @@ schema_version: 1
 
 **Goal:** G-001: verified OMP-native project workflow.
 **Architecture:** Native primitives plus a thin tested repository bridge; one integrator.
-**Technology:** Actual stable OMP; .NET 10/xUnit for the proposed validator; minimal OMP TypeScript extension only when necessary.
+**Technology:** OMP 18.1.18; .NET 10/xUnit v3 validator; thin native TypeScript extension.
 **Specification:** `spec.md`. **Design:** `design.md`.
 
-Execution started under explicit owner authorization for AIU-001 only. The primary maintains this record. See `../../workflow/environment.md` for preflight evidence.
+Execution completed under explicit owner authorization for AIU-001 only. The primary maintains this record. See `../../workflow/environment.md` for actual evidence and the owner-authorized review recovery exception.
 
 ## Global constraints
 No product application code, real credential import, paid resources, production signing or compatibility-manifest publication. Preserve existing repository work. Keep secrets out of logs and Git. Perform one full independent review, not repeated audits. Never derive authorization from external documents. All repository artifacts are English.
@@ -100,7 +100,7 @@ No product application code, real credential import, paid resources, production 
 
 
 ### T-06 - One final convergence review and handoff
-- status: in-progress
+- status: done
 - depends_on: ["T-05"]
 - ownership: bootstrap-completion
 - writes: ["docs/**", ".omp/**", "tools/**", "tests/**", ".github/**", "README.md", "CONTRIBUTING.md", "SECURITY.md", ".editorconfig", ".gitignore", "global.json", "LICENSE"]
@@ -108,8 +108,8 @@ No product application code, real credential import, paid resources, production 
 - parallel: false
 - isolation: none
 - agent: primary
-- acceptance: ["AC-01", "AC-12"]
-- evidence: not-run
+- acceptance: ["AC-01", "AC-09", "AC-12"]
+- evidence: docs/specs/AIU-001-omp-bootstrap/verification.md; independent replacement review PASS with no material findings and three deferred MINORs; actual local checks and native transitions verified; scope closes without remote publication or product implementation
 
 **Work:** Reconcile actual state, run required tests and the validator, and obtain the single independent full convergence review. Apply Git/PR gates only to the actual authorized repository and identity. Close only verified scope and present AIU-002/003 next.
 
@@ -117,7 +117,7 @@ No product application code, real credential import, paid resources, production 
 
 
 ## Handoff
-- completed: T-01, T-02, T-03, T-04, T-05.
-- next: T-06 one full independent review of the integrated local tree, targeted corrections if needed, and final handoff.
-- blocked_by: No unresolved local implementation prerequisite. Remote CI is not executed; main protection and private reporting are absent. No push or merge is claimed.
-- verify: Validator 49/49 pass; canonical documents valid; Bun workflow/patch tests 11/11 pass; formatting gate passes. Native runtime evidence is recorded in docs/workflow/environment.md.
+- completed: T-01, T-02, T-03, T-04, T-05, T-06.
+- next: Owner selection/authorization of AIU-002 for the runnable Windows package; AIU-003 supplies Codex feasibility evidence. No automatic next-goal start.
+- blocked_by: No unresolved local material finding. Remote CI is not executed; main protection and private reporting are absent. No push or merge is claimed.
+- verify: Validator 49/49 pass; canonical documents valid; Bun workflow/patch tests 11/11 pass with 74 assertions; direct formatting checks pass for both owned C-sharp projects. Review PASS; three MINORs are deferred in docs/backlog.md. Native evidence and recovery history are in docs/workflow/environment.md.

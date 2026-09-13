@@ -10,7 +10,7 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 
 ## SETUP-002 - OMP roles, authentication and toolchain
 - observed: Stable OMP 18.1.18 and profile roles discovered. Fresh native SDK confirms read-only advisor attachment. Owner authorized a user-local .NET SDK; 10.0.401 runs successfully.
-- pending: One final independent convergence review and completion handoff. Native isolation, primary integration, selection/cancel, pause/resume, budget stop and fresh-session continuity have been exercised; see evidence rather than inferring success from configuration.
+- resolved: Native isolation, primary integration, selection/cancel, pause/resume, budget stop and fresh-session continuity exercised. Independent replacement review PASS, no material findings; the owner-authorized capture-recovery exception and three deferred MINORs are recorded in the AIU-001 verification report.
 - deferred: Windows SDK installation and Windows product tooling belong to AIU-002.
 - evidence: ../workflow/environment.md.
 

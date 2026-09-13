@@ -1,7 +1,7 @@
 ---
 id: AIU-001
 type: infrastructure-design
-status: implementing
+status: implemented
 goal: G-001
 scope_version: 2
 ---
