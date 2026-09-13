@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
     runs-on: windows-latest
@@ -29,5 +33,3 @@ jobs:
         run: dotnet run --project tools/AiUsage.ProjectValidation --no-build -- --root . --json
       - name: Workflow and actual patch regressions
         run: bun test tests/omp-workflow
-      - name: C-sharp formatting
-        run: dotnet format tests/AiUsage.ProjectValidation.Tests/AiUsage.ProjectValidation.Tests.csproj --no-restore --verify-no-changes

@@ -27,7 +27,7 @@ active_goal: G-001
 
 ## G-004 - Reliable public direct distribution
 - status: idea
-- scope: AIU-014, AIU-015, AIU-017
+- scope: AIU-014, AIU-015, AIU-017, AIU-026
 - outcome: Trusted signing where eligible, Preview for every green merge, manual exact-artifact Stable promotion, tested direct updates and best-effort compatibility detection.
 - success: Published-schema upgrade coverage, clean-machine install, no-downgrade channel switching, identical promoted artifact hash and proven production trust/identity.
 
@@ -38,3 +38,5 @@ active_goal: G-001
 
 ## Authorization is not a status label
 The status records direction, not permission by itself. The owner explicitly launched AIU-001 local implementation in OMP Goal Mode on 2026-09-12 and approved the user-local SDK installation, MIT replacement and repository-local identity recorded in `../workflow/environment.md`. That local scope is complete, including bounded disposable workflow proofs and the explicitly authorized replacement review after a capture failure. No AIU-002 or later execution, remote publication, paid resources or provider-product account access is authorized. G-002 requires owner selection or a new explicit scope grant; no unlimited or renewed grant is inferred from this document.
+
+On 2026-09-13 the owner authorized a narrow post-bootstrap policy amendment: defer main protection at low priority and simplify current PR checks. This does not start another product goal or authorize remote mutation.

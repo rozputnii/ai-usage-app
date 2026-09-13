@@ -52,6 +52,8 @@ dotnet format tools/AiUsage.ProjectValidation/AiUsage.ProjectValidation.csproj -
 
 The validator returns 0 for valid documents, 1 for diagnostics and 2 for invocation/read failures. It performs no inference or network access; initial SDK/package restoration is a separate prerequisite. The extension checks `DOTNET_ROOT`, the optional user-local `.dotnet/ai-usage-sdk` installation, then PATH.
 
+Current PR CI runs the test/validator commands above, not formatting. Obsolete runs of the same PR are cancelled. Ordinary PRs do not need a full independent review; see [current review policy](CONTRIBUTING.md#review-and-integration). The owner deferred main protection at low priority in AIU-026; its absence is not a current development PR prerequisite.
+
 ## Project state
 
 - [Goals](docs/product/goals.md) and [single authoritative backlog](docs/backlog.md)

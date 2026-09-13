@@ -182,6 +182,14 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - trigger: later
 - outcome: Define separate host, security, cost, secret and lifetime requirements only after local automation is proven.
 
+## AIU-026 - Deferred main branch protection
+- goal: G-004
+- status: idea
+- priority: low
+- depends_on: [AIU-001]
+- trigger: only-after-owner-reprioritization
+- outcome: Configure main rulesets/protection, exact-head required checks and restricted bypass when the owner selects this work. Explicitly deferred on 2026-09-13; not a prerequisite for current development PRs or AIU-002.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
@@ -204,6 +212,6 @@ Source: the AIU-001 independent review of frozen commit `9afa9d5`; see [the pres
 
 | Finding ID | Deferred work | Current boundary |
 |---|---|---|
-| CR-AIU-001-01 | Make validator-source formatting an explicit CI check, alongside the test project. | Both projects passed direct local formatting checks; CI currently invokes formatting only for the test project. |
+| CR-AIU-001-01 | Consider explicit formatting CI for both owned projects when stricter gates are restored. | Deferred by the 2026-09-13 owner amendment: formatting is local-only, not a current PR gate. Both projects passed direct checks at bootstrap closure. |
 | CR-AIU-001-02 | Define safe stale workflow-lock recovery and ignore its runtime artifact. | A kill/power loss while holding the lock can leave later transitions failing with EEXIST. Do not remove a potentially live writer's lock or claim automatic recovery. |
 | CR-AIU-001-03 | Reconcile automated language/link coverage with tools/tests/workflow source policy, preserving opaque test data exceptions. | Current scanning covers docs, selected root files and configured .omp trees, not every authored source. English policy remains repository-wide. |

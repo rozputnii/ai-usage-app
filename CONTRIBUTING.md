@@ -16,6 +16,8 @@ Run the [local checks](README.md#local-checks). Owned-code warnings are errors. 
 
 The primary owns canonical state and integration. Native write workers use explicit, non-overlapping ownership and isolated patch return without automatic application. Review their actual patches before integration, then run relevant checks on the integrated tree.
 
-Use one independent full convergence review with read-only tools, memory disabled and no primary conversation history. Zero findings is valid. Fix material findings and rerun targeted checks rather than starting an automatic full-review loop.
+Owner amendment (2026-09-13): ordinary development PRs require primary diff/acceptance review, not a mandatory independent full convergence review. Material authentication, secret handling, destructive data lifecycle or privilege changes need focused independent review; public release approval or an explicit owner request still needs the full review. Independent reviewers remain read-only, memory-off and fresh-context. Zero findings is valid; concrete fixes get targeted verification, not another full-review loop.
 
-Remote checks and review must apply to the exact proposed head before merge. The bootstrap did not configure main protection or execute GitHub CI. Do not treat local checks, broad repository administration rights or a workflow file as permission to bypass remote controls.
+Current PR CI runs validator regressions (with compilation/analyzers), canonical document validation and workflow/patch regressions. Formatting remains a local check, not a PR gate. New commits cancel obsolete CI runs of the same PR. Do not skip failed behavioral checks merely for speed.
+
+Main protection/rulesets and enforced required checks are explicitly deferred at low priority in AIU-026. Their absence is not a prerequisite or blocker to current development PRs; this accepts the risk that GitHub does not enforce the policy. Relevant checks must still match the proposed head. Feature branches, DCO, no direct main/force push, remote-action authorization and protected production-release permissions remain unchanged. This policy change itself does not push, open or merge a PR.

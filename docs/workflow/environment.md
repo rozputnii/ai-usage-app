@@ -91,3 +91,11 @@ See `../specs/AIU-001-omp-bootstrap/verification.md` for criterion verdicts. Con
 - Completion validation initially rejected `done` as a specification/design document lifecycle value. Metadata was corrected to the existing `implemented` vocabulary, without weakening the validator; the completed canonical root then returned valid with no diagnostics at 23:56Z.
 - A final actual native root session displayed `G-001; no active item; selection required` and no automatic authorization. Native `/work verify` returned `Document validation PASS`; the smoke session was then stopped.
 - Owned disposable fixture repositories and probe/review runners were removed after capture. The original input, installed SDK, native OMP profile/session stores and ignored raw verification/review evidence were preserved.
+
+## Owner amendment: lightweight development PRs
+
+- On 2026-09-13 the owner explicitly deferred main protection at low priority and requested simpler, faster current PR checks. AIU-026 records the deferred work; no GitHub settings were changed and no push/PR/merge was performed.
+- Current CI retains validator regressions, canonical document validation and workflow/patch regressions. Formatting is local-only. Ordinary PRs use primary diff/acceptance review instead of mandatory full independent review; material auth/secret/destructive-data/privilege changes retain focused independent review and public release approval retains the full review.
+- Workflow concurrency cancels obsolete runs of the same PR. Push runs have distinct run-ID groups, avoiding accidental serialization or cancellation of main runs. Expression semantics follow [GitHub concurrency documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency); live GitHub cancellation behavior remains NOT_RUN.
+- The actual three workflow commands ran locally at 09:29Z: xUnit 49 passed with no errors/failures/skips, canonical validation returned valid with no diagnostics, and Bun 11 passed with 74 assertions. The workflow YAML parsed successfully. No GitHub speedup measurement or remote CI success is claimed.
+- This later policy/workflow amendment is outside the original AIU-001 frozen fingerprint. Bootstrap evidence remains historical; the owner did not authorize starting AIU-002 or implementing AIU-026.

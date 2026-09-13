@@ -25,7 +25,7 @@ Use this table to avoid reviving outdated recommendations from the long discussi
 | Self-contained deployment or AOT immediately | Framework-dependent deployment; Native AOT is not required. Measure first. |
 | Owner approves every feature spec/design | Escalation-only within an authorized goal, with Interactive selection or explicitly scoped Autopilot. |
 | Only one code-writing agent | Independent isolated write workers are allowed; the primary is the sole integrator. |
-| Full repeated reviews after each fix | One full independent review, then targeted verification. Zero findings is valid. |
+| Full repeated reviews after each fix | Owner amendment 2026-09-13: ordinary PRs use primary review and fast checks; focused independent review for material security/lifecycle changes, full review for public release or owner request. After fixes, targeted verification only. Zero findings is valid. |
 | Automatic skill learning | Auto-learn is disabled. Authored repository skills are authoritative; local memory is supplementary. |
 | Every fresh session automatically starts another feature | Interactive sessions ask for selection/resume; only internal Autopilot handoff carries existing authorization. |
 | Absolutely no remote policy | No dynamic remote configuration; a narrow signed static disable-only compatibility manifest is approved. |

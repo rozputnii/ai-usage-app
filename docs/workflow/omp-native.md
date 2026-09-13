@@ -7,7 +7,7 @@ Implemented for AIU-001 and exercised on Windows with stable OMP 18.1.18. Re-pro
 1. Git documents hold goals, the single backlog, specifications, tasks, decisions and evidence.
 2. Native OMP owns profiles, Plan/Goal modes, task execution, isolation, Agent Hub, Advisor, sessions and local memory.
 3. The thin project bridge owns explicit selection, bounded authorization, validation and checked primary integration. It does not implement another conversation engine or scheduler.
-4. Independent GitHub controls remain a separate publication boundary. They were not configured or bypassed by the local bootstrap.
+4. GitHub enforcement is separate from local policy. Main protection is explicitly deferred in low-priority AIU-026 and is not a current development PR prerequisite; protected production operations remain separate.
 
 ## Launch and configuration
 
@@ -63,9 +63,9 @@ The primary remains responsible for coherent backlog/spec/goal status documentat
 
 ## Review and publication
 
-The always-on Advisor is read-only advice, not merge approval. Use one full independent convergence review with a different model family, memory off, read-only tools, no inherited primary conversation and frozen code/spec/test evidence. PASS with zero findings is valid; BLOCKED and INSUFFICIENT_EVIDENCE are not passes. Concrete fixes receive targeted verification, not a repeated full audit loop.
+The always-on Advisor is read-only advice, not merge approval. Under the 2026-09-13 owner amendment, ordinary PRs use primary diff/acceptance review and fast CI without a mandatory independent full review. Material auth/secret/destructive-data/privilege changes need focused independent review; public release approval or explicit owner requests retain the full review. When used, the reviewer has a different model family, memory off, read-only tools, no primary conversation and frozen evidence. Zero findings is valid; concrete fixes receive targeted verification, not a repeated full audit.
 
-The accepted broader delivery policy still requires relevant tests, one review, exact-head independent checks, authorized PR/squash merge and durable progress before protected publication. AIU-001 supplies a local validation workflow file, not those remote guarantees. Main protection and private vulnerability reporting were absent at preflight; GitHub CI, push/PR/merge and releases were not executed.
+Current CI keeps validator regressions, document validation and workflow/patch regressions; formatting is local-only and obsolete runs of the same PR are cancelled. Main protection/required-check enforcement is deferred in low-priority AIU-026, so its absence does not block ordinary PRs. Relevant exact-head checks, authorized PR/squash merge and durable progress remain required by policy, not enforced by GitHub. This amendment performs no remote actions and does not weaken production signing, promotion or manifest permissions.
 
 ## Limits
 

@@ -1,8 +1,10 @@
 ---
 name: convergence-review
-description: Perform the single independent acceptance review
+description: Perform a scoped independent review when policy or owner requires it
 ---
 # convergence-review
+
+Ordinary development PRs do not require this skill under the 2026-09-13 owner amendment. Use a focused review for material auth/secret/destructive-data/privilege changes, and a full convergence review for public release approval or explicit owner requests. Follow the current accepted decisions rather than imposing the older blanket full-review gate.
 
 Freeze a code reference and evidence. Use a fresh different-family model, memory off, explicit read/grep/glob tools, no implementation conversation. PASS, BLOCKED and INSUFFICIENT_EVIDENCE are valid; zero findings is valid. BLOCKER/MAJOR block completion. Deduplicate MINORs into backlog. After fixes, verify only affected behavior; do not repeat the full review.
 

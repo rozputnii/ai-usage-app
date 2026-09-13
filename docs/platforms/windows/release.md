@@ -11,7 +11,7 @@ Product version separate from numeric MSIX `YYYY.M.DDNN.0`. Use UTC, serialized 
 One direct package identity for Stable and Preview. Channel is update-feed policy, not different binary. Promote EXACT signed tested bytes and record hash/commit/ProductVersion/MSIXVersion. No relabel/recompile embedded -preview data. Stable release UI is channel metadata, not a modified assembly.
 
 ## CI/merge/release authority
-PR untrusted build/test jobs have no signing/root keys or personal provider credentials. Branch protection gates exact head SHA; normal OMP identity cannot bypass or rewrite protection. DCO signing uses real configured contributor identity. Ordinary verified PR can auto squash-merge. Stable promotion and compatibility-manifest publish require human protected approval.
+PR untrusted build/test jobs have no signing/root keys or personal provider credentials. Owner amendment 2026-09-13 defers main protection at low priority in AIU-026; current development PRs use lightweight checks without enforced rulesets. Protection of the future trusted release pipeline remains a separate distribution task, not a current development PR prerequisite. Normal OMP identity must not bypass or rewrite controls that are configured. DCO uses real identity; ordinary verified, authorized PRs can squash-merge. Stable promotion and compatibility-manifest publication retain human protected approval.
 
 Trusted default-branch Preview workflow signs/packages after green checks, least-privilege credential, no long-lived PFX in public CI. Initial dev cert is generated once locally and reused for upgrade fixtures; not a fresh different publisher per build. Operational dev→public/rotation path is tested before public distribution.
 

@@ -8,6 +8,8 @@ AIU-001 local implementation and acceptance are complete. Native runtime probes,
 
 Implementation fingerprint: SHA-256 `80a4657db727788488d31bf54b15fcdf3061f36aee6fe5064269d357b965e17a`, calculated from the sorted path/SHA-256 records for 26 implementation, test, configuration and workflow files. Independent review inspected frozen commit `9afa9d57e09b7e8af0d904d25c03774d6118352f`, its file inventory and actual captured check output. Subsequent changes close documentation and record non-blocking findings; implementation is unchanged. Environment, native session references and failed-probe history are in [environment.md](../../workflow/environment.md).
 
+Historical scope notice: the matrix and fingerprint below describe bootstrap closure, not every later checkout. The owner amendment on 2026-09-13 supersedes the blanket ordinary-PR review/protection requirements and removes formatting from current CI; see [current policy](../../workflow/verification.md). Deferred main protection in AIU-026 is no longer a current development PR blocker. The original runtime/review evidence is not retroactively rewritten.
+
 ## Acceptance matrix
 
 | AC | Verdict | Observed evidence |

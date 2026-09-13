@@ -129,7 +129,7 @@ Use native task batching and isolation, initially targeting up to four workers. 
 Automatically integrate only after scope/diff checks, passing targeted tests and clean patch application. The primary resolves shared overlap and conflicts. Verify the integrated feature tree, not just isolated worker tests.
 
 ### D-041 - Review
-Perform one independent final review with fresh context, memory disabled, a different model family and read-only tools. PASS with zero findings is valid. Never require the reviewer to find a defect.
+Owner amendment, 2026-09-13: ordinary development PRs require primary diff/acceptance review and relevant automated checks, not a mandatory independent full review. Use focused independent review for material authentication, secret handling, destructive data lifecycle or privilege changes; retain the full independent review for public release approval or explicit owner requests. When used, keep context fresh, memory disabled, a different model family and read-only tools. Zero findings is valid; no automatic review loop.
 
 ### D-042 - Findings
 BLOCKER and MAJOR findings block merge. Deduplicate MINOR findings into the backlog; omit NIT findings. After a fix, run targeted verification rather than restarting a full review loop.
@@ -141,7 +141,7 @@ Use trunk-based main with short-lived feature/AIU branches and squash merge. OMP
 YOLO execution is authorized within the selected project scope; it is not a sandbox. Retain human gates and protected release/manifest operations. Do not describe textual rules as hard security enforcement.
 
 ### D-045 - Validator
-Use a lightweight repository validator and CI for IDs, statuses, links, acceptance references, dependencies and ownership. Gate critical transitions, not every keystroke. Independent protected remote checks remain a merge boundary.
+Use a lightweight repository validator and CI for IDs, statuses, links, acceptance references, dependencies and ownership. Gate critical transitions, not every keystroke. Owner amendment, 2026-09-13: defer main protection and required-check enforcement to low-priority AIU-026; their absence is not a blocker to current development PRs. Keep relevant exact-head check evidence and explicit remote-action authority. This intentionally accepts that GitHub does not independently enforce the local merge policy.
 
 ### D-046 - Documentation drift
 Use docs-as-code. Specs and designs may evolve within the approved intent. Never weaken acceptance criteria or security requirements merely to make failing implementation appear successful.
@@ -480,7 +480,7 @@ Disconnect/reset must not modify original CLI credentials or delete exports save
 ## Release, CI and operations
 
 ### D-154 - CI
-Use GitHub Actions with relevant build, unit, static, formatting, golden and security tests. Run xUnit/FlaUI UIA3 smoke tests in a genuinely interactive Windows environment.
+Owner amendment, 2026-09-13: current development PR CI runs the validator regressions (including compilation/analyzers), canonical document validation and workflow/patch regressions. Formatting stays a local check, not a PR gate. Cancel obsolete runs of the same PR; do not skip behavior checks or suppress failures. Add relevant provider/security/UI checks when those features exist. Public release evidence and genuinely interactive xUnit/FlaUI UIA3 smoke requirements remain unchanged.
 
 ### D-155 - Test-first policy
 Use test-first for parsers, authentication, token refresh, repositories, security logic and bug fixes. Test UI/configuration proportionally. Never fabricate passing verification.
