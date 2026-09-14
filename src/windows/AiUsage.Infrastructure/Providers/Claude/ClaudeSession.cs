@@ -50,10 +50,10 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
             catch (InvalidOperationException) { throw new ClaudeException(ClaudeFailureKind.BrowserCallbackUnavailable); }
             catch (System.ComponentModel.Win32Exception) { throw new ClaudeException(ClaudeFailureKind.BrowserCallbackUnavailable); }
             var connected = await auth.CompleteBrowserLoginAsync(attempt, token).ConfigureAwait(false);
-            if (stored is not null && connected.Identity != stored.Identity)
+            if (stored is not null)
             {
-                // A new account must prove the requested quota capability before replacing a
-                // working connection. This is a new login, not a rotation of the stored grant.
+                // Every reconnect must prove quota access before replacing the previous grant,
+                // even for the same identity. Login does not rotate the stored refresh token.
                 var initialQuota = await quota.GetQuotaAsync(connected, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
                 var replacement = new ClaudeStoredState

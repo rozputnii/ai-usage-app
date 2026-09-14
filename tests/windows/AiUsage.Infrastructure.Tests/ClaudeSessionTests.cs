@@ -127,23 +127,63 @@ public sealed class ClaudeSessionTests : IDisposable
         Assert.Equal(25, saved.CachedQuota!.Quota.Groups[0].Windows[0].UsedPercent);
     }
 
-    [Fact]
-    public async Task FailedAccountSwitchPreservesThePreviousConnectionAndItsCache()
+    [Theory]
+    [InlineData(false, "unauthorized")]
+    [InlineData(false, "network")]
+    [InlineData(false, "canceled")]
+    [InlineData(true, "unauthorized")]
+    [InlineData(true, "network")]
+    [InlineData(true, "canceled")]
+    public async Task FailedReconnectPreservesThePreviousGenerationAndUsableConnection(bool differentAccount, string failure)
     {
         var store = new ClaudeStateStore(directory);
-        var switched = false;
-        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Post
-            ? CodexTestServer.Json(ClaudeAuthClientTests.Tokens(account: switched ? "other-account" : "synthetic-account"))
-            : switched ? CodexTestServer.Json("{}", HttpStatusCode.ServiceUnavailable) : CodexTestServer.Json(Usage)));
+        var reconnecting = false;
+        using var cancel = new CancellationTokenSource();
+        using var server = new CodexTestServer((request, token) =>
+        {
+            if (request.Method == HttpMethod.Post)
+            {
+                var tokens = ClaudeAuthClientTests.Tokens(account: reconnecting && differentAccount ? "other-account" : "synthetic-account");
+                if (reconnecting) tokens = tokens.Replace("synthetic-access", "synthetic-new-access", StringComparison.Ordinal)
+                    .Replace("synthetic-refresh", "synthetic-new-refresh", StringComparison.Ordinal);
+                return Task.FromResult(CodexTestServer.Json(tokens));
+            }
+            if (!reconnecting)
+            {
+                Assert.Equal("Bearer synthetic-access", request.Headers.Authorization!.ToString());
+                return Task.FromResult(CodexTestServer.Json(Usage));
+            }
+            if (failure == "network") throw new HttpRequestException("Synthetic connection failure.");
+            if (failure == "canceled")
+            {
+                cancel.Cancel();
+                token.ThrowIfCancellationRequested();
+            }
+            return Task.FromResult(CodexTestServer.Json("{}", HttpStatusCode.Unauthorized));
+        });
         using var http = new HttpClient(server);
         using var session = Session(http, store);
         await session.ConnectAsync(_ => Assert.True(session.TrySubmitCode("synthetic-code")), TestContext.Current.CancellationToken);
-        switched = true;
-        var state = await session.ConnectAsync(_ => Assert.True(session.TrySubmitCode("synthetic-code")), TestContext.Current.CancellationToken);
-        Assert.Equal(25, state.Quota!.Groups[0].Windows[0].UsedPercent);
-        Assert.True(state.FromCache);
-        await using var lease = await store.AcquireAsync(TestContext.Current.CancellationToken);
-        Assert.Equal("synthetic-account", (await lease.LoadAsync(TestContext.Current.CancellationToken))!.Identity.AccountId);
+        Guid previousRevision;
+        await using (var lease = await store.AcquireAsync(TestContext.Current.CancellationToken))
+            previousRevision = (await lease.LoadAsync(TestContext.Current.CancellationToken))!.Revision;
+        reconnecting = true;
+        var reconnect = session.ConnectAsync(_ => Assert.True(session.TrySubmitCode("synthetic-code")), cancel.Token);
+        if (failure == "canceled")
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => reconnect);
+        else
+            Assert.True((await reconnect).FromCache);
+        await using (var lease = await store.AcquireAsync(TestContext.Current.CancellationToken))
+        {
+            var saved = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
+            Assert.Equal(previousRevision, saved.Revision);
+            Assert.Equal("synthetic-account", saved.Identity.AccountId);
+            Assert.Equal("synthetic-refresh", saved.RefreshToken);
+            Assert.False(saved.NeedsReauthentication);
+            Assert.Equal(25, saved.CachedQuota!.Quota.Groups[0].Windows[0].UsedPercent);
+        }
+        reconnecting = false;
+        Assert.Equal(ProviderSessionStatus.QuotaAvailable, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
     }
 
     [Fact]

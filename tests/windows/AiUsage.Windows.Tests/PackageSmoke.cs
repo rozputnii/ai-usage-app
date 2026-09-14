@@ -96,8 +96,11 @@ public sealed class PackageSmoke
                 Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ManualCode")) is { IsOffscreen: false }, TimeSpan.FromSeconds(5)));
                 var manual = window.FindFirstDescendant(cf => cf.ByAutomationId("ManualCode"));
                 Assert.NotNull(manual);
-                manual.Focus();
+                FocusForKeyboard(window, manual, evidence!, "claude-manual");
                 FlaUI.Core.Input.Keyboard.Type("synthetic-unused-code");
+                Thread.Sleep(500);
+                using (var screenshot = window.Capture())
+                    screenshot.Save(Path.Combine(evidence!, "claude-manual-entered.png"), System.Drawing.Imaging.ImageFormat.Png);
                 var cancel = window.FindFirstDescendant(cf => cf.ByAutomationId("CancelButton")).AsButton();
                 Assert.NotNull(cancel);
                 Assert.True(cancel.IsEnabled);
@@ -105,7 +108,7 @@ public sealed class PackageSmoke
                 Assert.True(WaitUntil(() => connect.IsEnabled && window.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name == "No accounts connected.", TimeSpan.FromSeconds(5)));
                 connect.Invoke();
                 Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ManualCode")) is { IsOffscreen: false }, TimeSpan.FromSeconds(5)));
-                window.Focus();
+                window.SetForeground();
                 Thread.Sleep(500);
                 using (var screenshot = window.Capture())
                     screenshot.Save(Path.Combine(evidence!, "claude-cancel-reopened.png"), System.Drawing.Imaging.ImageFormat.Png);
@@ -201,7 +204,10 @@ public sealed class PackageSmoke
                     PostMessage(handle, 0x0010, IntPtr.Zero, IntPtr.Zero);
                 }
                 else
+                {
+                    FocusForKeyboard(window, exit, evidence!, scenario + "-exit");
                     FlaUI.Core.Input.Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.ENTER);
+                }
             }
             Assert.True(process.WaitForExit(10000), "Launched PID did not terminate within ten seconds.");
             Assert.Equal(0, process.ExitCode);
@@ -238,6 +244,24 @@ public sealed class PackageSmoke
                     process.Kill();
             }
         }
+    }
+
+    private static void FocusForKeyboard(Window window, AutomationElement target, string evidence, string operation)
+    {
+        var handle = window.Properties.NativeWindowHandle.Value;
+        var foregroundBefore = GetForegroundWindow();
+        window.SetForeground();
+        target.Focus();
+        var ready = WaitUntil(() => GetForegroundWindow() == handle && target.Properties.HasKeyboardFocus.ValueOrDefault,
+            TimeSpan.FromSeconds(5));
+        File.WriteAllText(Path.Combine(evidence, operation + "-keyboard.json"), JsonSerializer.Serialize(new
+        {
+            ready,
+            foregroundWasTarget = foregroundBefore == handle,
+            foregroundIsTarget = GetForegroundWindow() == handle,
+            targetHasKeyboardFocus = target.Properties.HasKeyboardFocus.ValueOrDefault
+        }));
+        Assert.True(ready, "The launched window must own foreground keyboard input before sending keys.");
     }
 
     private static Window? FindProcessWindow(UIA3Automation automation, int pid)
@@ -324,4 +348,7 @@ public sealed class PackageSmoke
 
     [DllImport("user32.dll")]
     private static extern bool IsIconic(IntPtr window);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
 }

@@ -200,4 +200,21 @@ public sealed class ClaudeAuthClientTests
         Assert.DoesNotContain("synthetic", error.ToString());
         Assert.Equal(1, server.Calls);
     }
+
+    [Theory]
+    [InlineData("account", "{}")]
+    [InlineData("organization", "{}")]
+    [InlineData("account", "{\"name\":\"synthetic\"}")]
+    [InlineData("organization", "{\"uuid\":null}")]
+    public async Task RefreshRejectsPresentMalformedIdentityInsteadOfInheritingThePreviousBinding(string field, string container)
+    {
+        var payload = "{\"access_token\":\"synthetic-next\",\"refresh_token\":\"synthetic-rotated\",\"expires_in\":3600,\"" + field + "\":" + container + "}";
+        using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(payload)));
+        using var http = new HttpClient(server);
+        var old = new ClaudeCredentials("synthetic-access", "synthetic-refresh", new("synthetic-account", "synthetic-organization"), DateTimeOffset.MinValue);
+        var error = await Assert.ThrowsAsync<ClaudeException>(() => new ClaudeAuthClient(http).RefreshAsync(old, TestContext.Current.CancellationToken));
+        Assert.Equal(ClaudeFailureKind.InvalidResponse, error.Kind);
+        Assert.DoesNotContain("synthetic", error.ToString());
+        Assert.Equal(1, server.Calls);
+    }
 }

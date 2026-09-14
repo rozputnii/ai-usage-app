@@ -206,8 +206,6 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
         if (parent.ValueKind != JsonValueKind.Object)
             throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
         var field = Property(parent, name);
-        if (field.ValueKind == JsonValueKind.Undefined)
-            return null;
         var value = Text(field);
         if (!SafeIdentity(value))
             throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
