@@ -85,6 +85,7 @@ public sealed class PackageSmoke
             Assert.False(disconnect.IsEnabled);
             if (scenario == "claude-controls")
             {
+                window.Patterns.Window.Pattern.SetWindowVisualState(FlaUI.Core.Definitions.WindowVisualState.Maximized);
                 var picker = window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderPicker")).AsComboBox();
                 Assert.NotNull(picker);
                 picker.Select("Claude");

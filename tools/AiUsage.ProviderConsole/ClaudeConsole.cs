@@ -54,7 +54,7 @@ internal static class ClaudeConsole
                     var connect = session.ConnectAsync(url =>
                     {
                         using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
-                        if (browser is null) throw new InvalidOperationException();
+                        // Reusing an existing browser may return no new process handle.
                     }, attemptCancellation.Token);
                     activeConnection = connect;
                     Console.WriteLine("Complete sign-in in your browser. M enters a hidden fallback code; Escape cancels.");

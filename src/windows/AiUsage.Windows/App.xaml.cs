@@ -118,8 +118,7 @@ public partial class App : Application
         try
         {
             using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
-            if (browser is null)
-                throw new InvalidOperationException("The sign-in browser is unavailable.");
+            // Shell activation can succeed by reusing an existing browser and return no process.
         }
         catch (System.ComponentModel.Win32Exception) { throw new InvalidOperationException("The sign-in browser is unavailable."); }
     }

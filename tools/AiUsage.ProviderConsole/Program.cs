@@ -124,7 +124,7 @@ internal static class Program
         try
         {
             using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
-            return browser is not null;
+            return true; // A reused browser need not return a new process handle.
         }
         catch (System.ComponentModel.Win32Exception) { return false; }
         catch (InvalidOperationException) { return false; }

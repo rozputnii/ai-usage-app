@@ -62,6 +62,27 @@ public sealed class ProviderDashboardTests
     }
 
     [Fact]
+    public async Task StartupDoesNotOfferACancelButtonThatCannotCancelItsWork()
+    {
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var session = new FakeSession { HasStoredGrant = true, Operation = async token =>
+        {
+            started.SetResult();
+            await Task.Delay(Timeout.InfiniteTimeSpan, token);
+            return ProviderSessionState.NotConnected;
+        } };
+        using var workflow = new DashboardWorkflow(session);
+        var card = Card(workflow, "Claude");
+        var load = card.LoadAsync(TestContext.Current.CancellationToken);
+        await started.Task.WaitAsync(TestContext.Current.CancellationToken);
+        Assert.True(card.Busy);
+        Assert.False(card.CancelCommand.CanExecute(null));
+        Assert.False(card.ManualEntryVisible);
+        await card.StopAsync();
+        Assert.True(load.IsCompletedSuccessfully);
+    }
+
+    [Fact]
     public void ExtraSpendUsesItsOwnUnitsAndKeepsNullCapsAndUnknownAmountsDistinct()
     {
         string Resource(string key) => key == "ExtraUsageAmountsFormat/Text" ? "Used {0}; cap {1}" : key;

@@ -163,6 +163,8 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
 
     public void Dispose()
     {
+        if (disposed)
+            return;
         if (!gate.Wait(0))
             throw new InvalidOperationException("Drain Claude work before disposing it.");
         disposed = true;

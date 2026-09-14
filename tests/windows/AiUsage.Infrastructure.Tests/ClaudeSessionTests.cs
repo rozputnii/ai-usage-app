@@ -14,6 +14,14 @@ public sealed class ClaudeSessionTests : IDisposable
     private const string Usage = "{\"five_hour\":{\"utilization\":25,\"resets_at\":\"2030-01-01T04:00:00Z\"}}";
 
     [Fact]
+    public void RepeatedDisposalOfAnIdleSessionIsHarmless()
+    {
+        var session = new ClaudeSession(null!, null!, null!, TimeProvider.System);
+        session.Dispose();
+        session.Dispose();
+    }
+
+    [Fact]
     public async Task ConnectCacheResumeAndDisconnectUseOneAccountBoundProtectedRecord()
     {
         using var server = new CodexTestServer((request, _) => Task.FromResult(CodexTestServer.Json(request.Method == HttpMethod.Post ? ClaudeAuthClientTests.Tokens() : Usage)));
