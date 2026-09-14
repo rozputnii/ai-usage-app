@@ -60,10 +60,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-007 - Claude end-to-end integration
 - goal: G-003
-- status: research-needed
+- status: blocked
 - depends_on: [AIU-004, AIU-027]
 - trigger: provider-2
-- outcome: Research provider policy, authentication, import and grouped quotas; implement UI/tests from evidence. Never automatically label unresolved provider policy approved.
+- outcome: Research provider policy, authentication and grouped subscription quotas; deliver the shared library and Windows connect/resume/refresh/disconnect/reauthentication flows from evidence. Preserve Codex behavior and AIU-027 boundaries; CLI import is excluded from this task.
+- evidence: docs/specs/AIU-007-claude-integration/verification.md
+- blocker: PROVIDER-002. Current official Anthropic documentation restricts third-party Claude.ai login and session-token storage; no quota-monitor exception or project permission is established. The owner must resolve the authorization basis or explicitly change the scope before production authentication proceeds. Research/design preparation does not complete this feature.
 
 ## AIU-008 - GitHub Copilot end-to-end integration
 - goal: G-003

@@ -1,0 +1,55 @@
+# AIU-007 verification
+
+Date: 2026-09-14. Base: `0a0ffd4` (completed AIU-027). Task branch: `codex/aiu-007-claude-integration`. The initial tracked and untracked checkout was clean. No production code, credential storage, dependencies or Windows UI changed during the preparation recorded here.
+
+## Preparation and environment
+
+Read the owner's attached goal objective, CONTRIBUTING, relevant repository skills, product direction, provider assignments, accepted decisions, security/lifecycle policy and AIU-027 design/evidence. Confirmed that the checkout contains AIU-027. Existing local main is `1e4f0ce`, an ancestor of the selected base, and remains unchanged.
+
+Reviewed existing Core workflow/session contracts, Infrastructure auth/session/DPAPI/cache ownership and Windows composition/presentation. The [spec](spec.md) retains full feature acceptance; the [design](design.md) records conditional implementation choices, current official .NET references and the verification plan. No provider permission was inferred from OMP licensing or source functionality.
+
+Windows x64; user-local .NET SDK `10.0.401` was confirmed by `--version`, matching `global.json`. Existing restored packages only, with `--no-restore`. No dependency install or upgrade occurred.
+
+## Executed checks
+
+The checks below exercised the unchanged architecture baseline on 2026-09-14, before any Claude implementation. They do not establish Claude behavior or live acceptance.
+
+| Check | Verdict | Observation |
+| --- | --- | --- |
+| `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS | 78 tests; zero errors, failures, skips or not-run tests |
+| `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 72 tests; zero errors, failures, skips or not-run tests |
+| `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 12 tests; zero errors, failures, skips or not-run tests |
+| `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS | Final feature/provider records valid, zero diagnostics |
+| `git diff --cached --check` | PASS | No whitespace errors; scoped changes consist of seven documentation files |
+
+These commands used `C:/Users/danii/.dotnet/ai-usage-sdk/dotnet.exe` in place of `dotnet`.
+
+Primary document/diff review: PASS. The records keep source preparation separate from implementation/live acceptance, preserve the full requested feature scope, classify the specific blocker and provide one exact next action. Only documentation changed. No claim of a reviewed or delivered Claude adapter is made.
+
+## Provider access and review
+
+Independent research was assigned to a fresh `gpt-5.6-luna` agent with `max` reasoning, restricted to public source/official documentation and no repository writes, credentials, account calls or nested agents. The primary independently inspected OMP's auth declaration, identity hook and quota implementation and the official authentication restriction. This is research, not an independent security review of an implemented adapter.
+
+Primary review corrected the agent's initial current-stable claim (`v18.1.18`). A direct GitHub release API read identified `v18.1.22`, published at 19:29:59 UTC, whose tag resolves to `23a5b9ae38864d3f785dc6cbc96eb6d674a1d32d`. Nine relevant files fetched at that immutable commit matched the local OMP clone after line-ending normalization. The [provider record](../../providers/claude.md) uses that current reference and distinguishes its host-fallback behavior from the older tag. The primary also narrowed the agent's state-check statement: OMP's manual path accepts a raw code without state, while a supplied mismatching state is rejected. No agent implementation diff existed to integrate.
+
+The current restriction and unresolved authorization basis are recorded in [provider evidence](../../providers/claude.md) and PROVIDER-002 in the [owner inbox](../../decisions/pending.md). Authentication implementation/live access is BLOCKED on that material decision. No source CLI credentials, app-owned real credentials, browser cookies or account payloads were read. No Claude sign-in, quota request or token refresh occurred.
+
+Required independent credential/durable-state review is NOT_RUN: there is no Claude implementation or credential/storage change to review. No new package was built or installed, no host trust changed, and actual Claude packaged UI/live tests are NOT_RUN. Prior AIU-027 screenshots and checks are historical baseline evidence only.
+
+## Acceptance
+
+| Criterion | Verdict | Evidence or missing work |
+| --- | --- | --- |
+| AC-01 | PASS | Current source contracts, method classifications and unresolved permission/access are recorded; this is source preparation only |
+| AC-02 | BLOCKED | No authorized Claude connection implementation or live consent |
+| AC-03 | NOT_RUN | No Claude persistence implementation; Codex baseline regressions pass |
+| AC-04 | NOT_RUN | Quota contracts researched; no Claude parser or presentation tests executed |
+| AC-05 | NOT_RUN | Existing workflow regressions pass; two-provider behavior not implemented |
+| AC-06 | BLOCKED | Claude automated, packaged UI and live acceptance remain outstanding |
+| AC-07 | BLOCKED | No completed candidate for required review, publication or local-main integration |
+
+## Integration and next action
+
+AIU-007 is incomplete. The verified documentation preparation is committed on its task branch, identified by the Git history for this record; main has not moved. The incomplete feature branch is not published under CONTRIBUTING's completed-task rule. No remote publication, main push, release, signing or host installation occurred.
+
+Exact next action: obtain the owner's disposition of PROVIDER-002 before implementing or launching any Claude OAuth flow. The remaining task sequence is in [tasks.md](tasks.md).

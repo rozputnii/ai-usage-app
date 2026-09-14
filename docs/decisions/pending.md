@@ -27,4 +27,14 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 - unresolved fact: Product policy is not provider authorization. Verify actual scopes, endpoints and refresh behavior.
 - rule: Never label an untested or restricted integration officially approved, and never replace unavailable consumer quotas with API billing.
 
+## PROVIDER-002 - Claude third-party OAuth authorization
+- timing: AIU-007, before implementing or launching production Claude authentication.
+- affected: AIU-007 / G-003.
+- evidence: [Current provider evidence](../providers/claude.md), source-checked on 2026-09-14; [conditional design](../specs/AIU-007-claude-integration/design.md).
+- question: Is there Anthropic permission for this application's subscription login and token storage, or does the owner explicitly intend an unsupported private experiment with a different delivery boundary?
+- options: Establish provider permission/supported quota access; explicitly authorize and scope an unsupported private experiment while retaining the documented restriction; keep Claude auth blocked. API billing and CLI import are not substitutes for this task.
+- recommendation: Keep production authentication and live consent blocked until the authorization basis is established. Complete source/design preparation and retain the task branch without main integration or publication.
+- impact: The choice changes authentication authority, requested scopes and acceptance/release boundaries. Owner permission for a private experiment would not grant provider approval. Minimum monitor scopes and truthful-header compatibility would still need separately authorized live proof.
+- status: Owner clarification requested on 2026-09-14; no answer recorded.
+
 Move resolved durable decisions into the appropriate spec or ADR. Do not duplicate the entire accepted register in this inbox.
