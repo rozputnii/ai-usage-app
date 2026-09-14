@@ -1,4 +1,6 @@
 using AiUsage.Features.Dashboard;
+using AiUsage.Core.Dashboard;
+using AiUsage.Core.Providers.Codex;
 using AiUsage.Infrastructure.Providers.Codex;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -37,7 +39,15 @@ public partial class App : Application
         catch
         {
             Environment.ExitCode = 1;
-            try { DisposeHost(); }
+            try
+            {
+                try
+                {
+                    if (window is not null)
+                        await window.ViewModel.StopAsync();
+                }
+                finally { DisposeHost(); }
+            }
             catch { Environment.ExitCode = 1; }
             try
             {
@@ -68,8 +78,9 @@ public partial class App : Application
         builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
         // LocalState is the app-owned root; the DPAPI-protected Codex grant lives only there.
         builder.Services.AddCodexProductSession(Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "providers"));
+        var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
         builder.Services.AddSingleton(services => new DashboardViewModel(
-            services.GetRequiredService<CodexSession>(), OpenInBrowser, StopAsync, ShowWindow));
+            services.GetRequiredService<DashboardWorkflow>(), OpenInBrowser, StopAsync, Resource, dispatcher.InvokeAsync, ShowWindow));
         builder.Services.AddSingleton<MainWindow>();
         host = builder.Build();
         window = host.Services.GetRequiredService<MainWindow>();
@@ -79,7 +90,8 @@ public partial class App : Application
 
     private MainWindow CreateFailureWindow()
     {
-        var failureWindow = new MainWindow(new DashboardViewModel(null, OpenInBrowser, StopAsync, ShowWindow));
+        var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
+        var failureWindow = new MainWindow(new DashboardViewModel(null, OpenInBrowser, StopAsync, Resource, dispatcher.InvokeAsync, ShowWindow));
         failureWindow.AppWindow.Closing += (_, _) => _ = StopAsync();
         return failureWindow;
     }
@@ -94,15 +106,16 @@ public partial class App : Application
         window.Activate();
     }
 
-    private static bool OpenInBrowser(Uri url)
+    private static void OpenInBrowser(Uri url)
     {
         try
         {
             using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
-            return browser is not null;
+            if (browser is null)
+                throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable);
         }
-        catch (System.ComponentModel.Win32Exception) { return false; }
-        catch (InvalidOperationException) { return false; }
+        catch (System.ComponentModel.Win32Exception) { throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable); }
+        catch (InvalidOperationException) { throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable); }
     }
 
     private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
@@ -129,6 +142,8 @@ public partial class App : Application
         {
             if (startTask is not null)
                 await startTask;
+            if (window is not null)
+                await window.ViewModel.StopAsync();
             if (host is not null)
             {
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));

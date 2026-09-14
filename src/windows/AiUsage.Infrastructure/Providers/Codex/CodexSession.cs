@@ -1,31 +1,7 @@
+using AiUsage.Core.Providers.Codex;
 using AiUsage.Core.Usage;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
-
-public enum CodexSessionStatus
-{
-    NotConnected,
-    Working,
-    QuotaAvailable,
-    QuotaUnavailable,
-    ReauthenticationRequired
-}
-
-/// <summary>
-/// What a consumer may render. `Quota` is present only when a reading exists; `RetrievedAt` says
-/// when it was actually taken and `FromCache` marks it as last-known rather than current. No status
-/// implies a numeric value, so an unavailable quota can never be displayed as zero.
-/// </summary>
-public sealed record CodexSessionState(
-    CodexSessionStatus Status,
-    QuotaSnapshot? Quota = null,
-    CodexFailureKind? Failure = null,
-    DateTimeOffset? RetrievedAt = null,
-    bool FromCache = false)
-{
-    public static readonly CodexSessionState NotConnected = new(CodexSessionStatus.NotConnected);
-    public static readonly CodexSessionState Working = new(CodexSessionStatus.Working);
-}
 
 /// <summary>
 /// Owns one Codex session for the product: the stored grant, the in-memory credentials and the
@@ -33,7 +9,7 @@ public sealed record CodexSessionState(
 /// endpoint, header or parsing of its own.
 /// </summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store, CodexQuotaCache cache) : IDisposable
+public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store, CodexQuotaCache cache) : ICodexSession, IDisposable
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private CodexCredentials? credentials;

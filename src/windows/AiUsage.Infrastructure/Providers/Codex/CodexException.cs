@@ -1,24 +1,7 @@
+using AiUsage.Core.Providers.Codex;
 using System.Net;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
-
-public enum CodexFailureKind
-{
-    AuthenticationRequired,
-    AccessDenied,
-    DeviceLoginUnavailable,
-    DeviceCodeExpired,
-    BrowserCallbackUnavailable,
-    LoginAttemptExpired,
-    GrantNotRemoved,
-    RateLimited,
-    NetworkFailure,
-    Timeout,
-    InvalidResponse,
-    AccountMismatch,
-    ProviderUnavailable,
-    RequestRejected
-}
 
 public sealed class CodexException : Exception
 {

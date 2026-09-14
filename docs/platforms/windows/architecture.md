@@ -1,6 +1,6 @@
 # Windows architecture baseline
 
-Status: accepted architecture; AIU-002 implements the minimal three-project native baseline. Build/package and real guest runtime reports exist; final visual acceptance is paused by the owner's switch to provider library/console work. The later runtime and persistence sections remain intended requirements, not implemented services.
+Status: accepted architecture. AIU-002 and AIU-004 delivered the three-project native baseline and Codex dashboard. AIU-027 refines its application/presentation boundaries. The later multi-account runtime and database sections remain intended requirements, not implemented services.
 
 ## Stack
 Windows 11 24H2+, x64; .NET 10; WinUI 3 / Windows App SDK / MSIX; Generic Host; CommunityToolkit.Mvvm; MVVM-first routing (Uno.Extensions.Navigation candidate, first build gate); EF Core 10 SQLite; HttpClientFactory/typed clients/System.Text.Json/Http.Resilience; Serilog; LiveCharts2; H.NotifyIcon.WinUI; native AppNotificationManager; xUnit v3/FlaUI UIA3.
@@ -17,11 +17,14 @@ src/windows/
 tests/windows/
   AiUsage.Core.Tests/
   AiUsage.Infrastructure.Tests/
+  AiUsage.Presentation.Tests/ # neutral workflow and linked presentation tests
   AiUsage.Windows.Tests/    # Windows-specific tests as needed
 ```
-The three production paths and Windows smoke project now exist. Core/Infrastructure test projects remain future paths until behavior needs tests. See the AIU-002 specification and actual verification; do not infer that later runtime services are implemented.
+The three production paths, Infrastructure regression project, independent workflow/presentation regression project and Windows smoke project exist. Core behavior is exercised by the independent presentation test executable. See the feature verification records; do not infer that later runtime services are implemented.
 
 Core references neither WinUI, EF nor Windows APIs. Provider transport DTOs and authentication endpoints belong in Infrastructure provider slices. Core may expose a typed normalized provider extension required by consumers, not arbitrary wire payloads. Windows composition may reference Core and Infrastructure. Do not introduce an Application project or use-case layer merely to satisfy an architecture label.
+
+AIU-027: Core's `DashboardWorkflow` owns cache/resume coordination, single-operation admission and cancellation/draining over `ICodexSession`. The contract exposes normalized state without credentials. Infrastructure's `CodexSession` retains token ownership, renewal/persistence order, HTTP clients and unchanged DPAPI/cache formats. Windows owns resources, awaited dispatcher access, view-model rendering and native lifetime. The Host owns one session and one workflow; App drains workflow and presentation continuations before disposing that Host. Closing hides the window; only explicit Exit stops these services. Dependency regressions and compilation of the actual dashboard sources without Infrastructure/WinUI enforce these boundaries.
 
 ## Provider development sequence
 Owner amendment (2026-09-13): implement provider behavior behind a reusable UI-independent library boundary, first consumed by a console verification application and subsequently by WinUI. Reuse Core contracts and Infrastructure provider implementations; neither consumer duplicates authentication, quota parsing or refresh logic. The console host is a planned development surface, not an already implemented command or another production UI.

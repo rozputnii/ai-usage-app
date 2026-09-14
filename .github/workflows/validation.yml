@@ -36,6 +36,8 @@ jobs:
         run: dotnet run --project tools/AiUsage.ProjectValidation --no-build -- --root . --json
       - name: Product regression tests
         run: dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release -- -noLogo
+      - name: Application workflow, presentation and dependency regressions
+        run: dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release -- -noLogo
 
   windows-package:
     runs-on: windows-latest

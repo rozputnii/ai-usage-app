@@ -1,3 +1,4 @@
+using AiUsage.Core.Providers.Codex;
 using System.Net;
 using AiUsage.Infrastructure.Providers.Codex;
 using Xunit;

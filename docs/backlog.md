@@ -202,7 +202,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-027 - .NET architecture refinement and cleanup
 - goal: G-003
-- status: ready
+- status: done
 - depends_on: [AIU-004]
 - trigger: before-AIU-007
 - outcome: Refine the existing Core, Infrastructure and Windows projects into clear, testable boundaries organized by feature.
@@ -210,6 +210,8 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - preserve: Current authentication behavior, stored-data formats, quota semantics and close-to-tray behavior.
 - excludes: New providers, UI redesign, CLI integrations and speculative frameworks.
 - acceptance: Independent application-workflow and view-model tests; enforced dependency boundaries; passing existing regression checks; actual packaged Windows lifecycle verification.
+- evidence: docs/specs/AIU-027-architecture-refinement/verification.md
+- outcome-note: Completed 2026-09-14. Core owns a credential-free dashboard workflow; Infrastructure retains authentication/storage behavior; Windows owns presentation and awaited dispatcher/lifetime handling. Verified by 162 deterministic regressions, independent review and all five packaged lifecycle scenarios in a clean guest. Stored formats, quota semantics and close-to-tray are preserved. Live packaged account sign-in and remote CI remain NOT_RUN.
 - sequencing-note: Owner amendment, 2026-09-14: prioritize this intermediate task before AIU-007. This entry records the task only; refactoring starts separately under CONTRIBUTING.md.
 
 ## Deferred clarifications, not forgotten

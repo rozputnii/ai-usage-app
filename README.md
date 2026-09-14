@@ -20,6 +20,7 @@ Use the SDK selected by global.json. If it is not on PATH, the existing user-loc
 dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo
 dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json
 dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo
+dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo
 git diff --check
 ```
 
