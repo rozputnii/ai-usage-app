@@ -42,12 +42,14 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-004-codex-dashboard/verification.md
 - outcome-note: Closed on 2026-09-14. One Codex account persists under DPAPI CurrentUser in the app-owned LocalState root; the dashboard resumes it, renders quota with connect, refresh and disconnect, keeps unknown values distinct from zero, shows the last cached reading with an explicit staleness notice, and has tray presence with Open and Exit. The single provider client is reused; the UI adds no provider request. Verified by 72 deterministic tests and two clean-guest runs with inspected screenshots. Connecting a real account from the packaged UI is NOT_RUN: the guest has no networking and host installation is unauthorized. Close-to-tray from D-108 was completed as CR-AIU-004-01; see the follow-up verification record.
 
-## AIU-005 - Codex CLI discovery and import UX
-- goal: G-002
+## AIU-005 - Codex CLI and other provider CLI integrations
+- goal: G-003
 - status: research-needed
-- depends_on: [AIU-003, AIU-004]
-- trigger: after-slice
-- outcome: Scan known Windows locations asynchronously, show progressive candidates and import individual/all/re-import. Never mutate source stores; enable only a proven-safe token lifecycle.
+- priority: low
+- depends_on: [AIU-003, AIU-004, AIU-007, AIU-008, AIU-009, AIU-010]
+- trigger: after-all-provider-connections-and-ui-polish
+- outcome: Research and implement Codex and other supported providers' CLI discovery and import. Scan known Windows locations asynchronously, show progressive candidates and import individual/all/re-import where supported by evidence. Never mutate source stores; enable only a proven-safe token lifecycle.
+- sequencing-note: Owner amendment, 2026-09-14: defer CLI integrations until all four providers connect using the same connection style as OMP (omp.sh), and a usable UI design and UI/UX polish are complete. CLI import is no longer the next task after the Codex slice. Reading or importing real source CLI credentials still requires explicit current authorization.
 
 ## AIU-006 - First verified upgrade and recovery checkpoint
 - goal: G-002
@@ -77,12 +79,13 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - trigger: provider-4
 - outcome: Prove authentication, projects, model groups and remote-versus-official quota parity. Do not combine Gemini app, CLI and API limits.
 
-## AIU-010 - Multi-account/context dashboard and tray refinement
+## AIU-010 - Usable UI design, UI/UX polish and dashboard/tray refinement
 - goal: G-003
 - status: idea
 - depends_on: [AIU-004]
 - trigger: incremental
 - outcome: Add manual ordering/labels, Overview, group/hide controls, themes, accessibility, localization resources and shared UI state.
+- owner-direction: Owner amendment, 2026-09-14: the current UI is unattractive and not usable. Apply a coherent, usable UI design and polish core provider connection, quota, refresh and tray flows before CLI integrations. Existing functional smoke evidence does not establish satisfactory design or usability. All four provider connections should follow the OMP (omp.sh) connection style; exact design and provider-specific behavior will be established when that work is selected.
 
 ## AIU-011 - Usage history and responsive charts
 - goal: G-003
