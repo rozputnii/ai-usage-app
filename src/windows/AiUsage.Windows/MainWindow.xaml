@@ -1,5 +1,13 @@
-<Window x:Class="AiUsage.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:dashboard="using:AiUsage.Features.Dashboard">
+<Window x:Class="AiUsage.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:dashboard="using:AiUsage.Features.Dashboard" xmlns:tray="using:H.NotifyIcon">
   <StackPanel Padding="32" Spacing="20">
+    <tray:TaskbarIcon x:Name="TrayIcon" AutomationProperties.AutomationId="TrayIcon" ToolTipText="AI Usage" LeftClickCommand="{x:Bind ViewModel.ShowCommand}" NoLeftClickDelay="True">
+      <tray:TaskbarIcon.ContextFlyout>
+        <MenuFlyout>
+          <MenuFlyoutItem x:Uid="TrayShow" AutomationProperties.AutomationId="TrayShow" Command="{x:Bind ViewModel.ShowCommand}" />
+          <MenuFlyoutItem x:Uid="TrayExit" AutomationProperties.AutomationId="TrayExit" Command="{x:Bind ViewModel.ExitCommand}" />
+        </MenuFlyout>
+      </tray:TaskbarIcon.ContextFlyout>
+    </tray:TaskbarIcon>
     <TextBlock x:Uid="DashboardHeading" AutomationProperties.AutomationId="DashboardHeading" Style="{StaticResource TitleTextBlockStyle}" />
     <TextBlock AutomationProperties.AutomationId="StatusText" TextWrapping="Wrap" Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" />
     <TextBlock AutomationProperties.AutomationId="PlanText" Text="{x:Bind ViewModel.PlanText, Mode=OneWay}" />

@@ -12,10 +12,16 @@ public enum CodexSessionStatus
 }
 
 /// <summary>
-/// What a consumer may render. `Quota` is present only for <see cref="CodexSessionStatus.QuotaAvailable"/>;
-/// no status implies a numeric value, so an unavailable quota can never be displayed as zero.
+/// What a consumer may render. `Quota` is present only when a reading exists; `RetrievedAt` says
+/// when it was actually taken and `FromCache` marks it as last-known rather than current. No status
+/// implies a numeric value, so an unavailable quota can never be displayed as zero.
 /// </summary>
-public sealed record CodexSessionState(CodexSessionStatus Status, QuotaSnapshot? Quota = null, CodexFailureKind? Failure = null)
+public sealed record CodexSessionState(
+    CodexSessionStatus Status,
+    QuotaSnapshot? Quota = null,
+    CodexFailureKind? Failure = null,
+    DateTimeOffset? RetrievedAt = null,
+    bool FromCache = false)
 {
     public static readonly CodexSessionState NotConnected = new(CodexSessionStatus.NotConnected);
     public static readonly CodexSessionState Working = new(CodexSessionStatus.Working);
@@ -27,7 +33,7 @@ public sealed record CodexSessionState(CodexSessionStatus Status, QuotaSnapshot?
 /// endpoint, header or parsing of its own.
 /// </summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store) : IDisposable
+public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store, CodexQuotaCache cache) : IDisposable
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private CodexCredentials? credentials;
@@ -37,6 +43,13 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
 
     /// <summary>True when a grant is stored, whether or not it still works.</summary>
     public bool HasStoredGrant => store.Read() is not null;
+
+    /// <summary>
+    /// The last cached reading for a connected account, marked stale. Used to render something
+    /// truthful before the first provider request of a session completes.
+    /// </summary>
+    public CodexSessionState ReadCachedState() =>
+        HasStoredGrant ? Stale(CodexSessionStatus.QuotaUnavailable, null) : CodexSessionState.NotConnected;
 
     /// <summary>Restores the stored grant, if any, and reads quota once. Never starts a browser sign-in.</summary>
     public Task<CodexSessionState> ResumeAsync(CancellationToken cancellationToken = default) =>
@@ -91,6 +104,7 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
         RunAsync(token =>
         {
             store.Delete();
+            cache.Delete();
             credentials?.Dispose();
             credentials = null;
             return Task.FromResult(CodexSessionState.NotConnected);
@@ -109,14 +123,22 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
     {
         try
         {
-            return new CodexSessionState(CodexSessionStatus.QuotaAvailable, await quota.GetQuotaAsync(credentials!, token).ConfigureAwait(false));
+            var snapshot = await quota.GetQuotaAsync(credentials!, token).ConfigureAwait(false);
+            cache.Write(new CachedQuota(snapshot, snapshot.FetchedAt));
+            return new CodexSessionState(CodexSessionStatus.QuotaAvailable, snapshot, RetrievedAt: snapshot.FetchedAt);
         }
         catch (CodexException error) when (error.Kind != CodexFailureKind.AuthenticationRequired)
         {
-            // A quota failure is not a lost session: the grant stays usable for the next attempt.
-            return new CodexSessionState(CodexSessionStatus.QuotaUnavailable, Failure: error.Kind);
+            // A quota failure is not a lost session: the grant stays usable, and the last known
+            // reading is offered as explicitly stale rather than replaced by nothing.
+            return Stale(CodexSessionStatus.QuotaUnavailable, error.Kind);
         }
     }
+
+    private CodexSessionState Stale(CodexSessionStatus status, CodexFailureKind? failure) =>
+        cache.Read() is { } cached
+            ? new CodexSessionState(status, cached.Quota, failure, cached.RetrievedAt, FromCache: true)
+            : new CodexSessionState(status, Failure: failure);
 
     private void Adopt(CodexCredentials restored)
     {
@@ -140,12 +162,12 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
             // The stored grant is gone or refused; keep the record so the user can retry a sign-in knowingly.
             credentials?.Dispose();
             credentials = null;
-            return State = new CodexSessionState(CodexSessionStatus.ReauthenticationRequired, Failure: error.Kind);
+            return State = Stale(CodexSessionStatus.ReauthenticationRequired, error.Kind);
         }
         catch (CodexException error)
         {
-            return State = new CodexSessionState(
-                credentials is null ? CodexSessionStatus.NotConnected : CodexSessionStatus.QuotaUnavailable, Failure: error.Kind);
+            return State = Stale(
+                credentials is null ? CodexSessionStatus.NotConnected : CodexSessionStatus.QuotaUnavailable, error.Kind);
         }
         catch (OperationCanceledException)
         {

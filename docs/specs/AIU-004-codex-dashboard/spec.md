@@ -1,10 +1,10 @@
 ---
 id: AIU-004
 type: spec
-status: implementing
+status: implemented
 goal: G-002
 scope_version: 1
-execution_status: in-progress
+execution_status: done
 approval_basis: owner-selected-AIU-004-after-live-verified-codex-path
 ---
 # Codex quota dashboard on the verified provider path

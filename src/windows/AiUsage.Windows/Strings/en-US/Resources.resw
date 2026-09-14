@@ -22,6 +22,9 @@
   <data name="ResetsUnknown.Text" xml:space="preserve"><value>Reset time not reported</value></data>
   <data name="WindowHoursFormat.Text" xml:space="preserve"><value>{0}h window</value></data>
   <data name="WindowDaysFormat.Text" xml:space="preserve"><value>{0}d window</value></data>
+  <data name="CachedNotice.Text" xml:space="preserve"><value>Showing last known values from {0}; not a current reading.</value></data>
+  <data name="TrayShow.Text" xml:space="preserve"><value>Open AI Usage</value></data>
+  <data name="TrayExit.Text" xml:space="preserve"><value>Exit</value></data>
   <data name="StartupFailure.Text" xml:space="preserve"><value>The app could not start.</value></data>
   <data name="ShutdownFailure.Text" xml:space="preserve"><value>The app could not shut down cleanly.</value></data>
 </root>

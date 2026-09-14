@@ -69,7 +69,7 @@ public partial class App : Application
         // LocalState is the app-owned root; the DPAPI-protected Codex grant lives only there.
         builder.Services.AddCodexProductSession(Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "providers"));
         builder.Services.AddSingleton(services => new DashboardViewModel(
-            services.GetRequiredService<CodexSession>(), OpenInBrowser, StopAsync));
+            services.GetRequiredService<CodexSession>(), OpenInBrowser, StopAsync, ShowWindow));
         builder.Services.AddSingleton<MainWindow>();
         host = builder.Build();
         window = host.Services.GetRequiredService<MainWindow>();
@@ -82,6 +82,13 @@ public partial class App : Application
         var failureWindow = new MainWindow(new DashboardViewModel(null, OpenInBrowser, StopAsync));
         failureWindow.AppWindow.Closing += OnClosing;
         return failureWindow;
+    }
+
+    private void ShowWindow()
+    {
+        if (finalClose)
+            return;
+        window?.Activate();
     }
 
     private static bool OpenInBrowser(Uri url)

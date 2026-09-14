@@ -106,11 +106,88 @@ public sealed class CodexSessionTests : IDisposable
         Assert.Equal(1, refreshes);
     }
 
+    [Fact]
+    public async Task AnUnavailableProviderShowsTheLastReadingLabelledStale()
+    {
+        var failQuota = false;
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method != HttpMethod.Get
+            ? CodexTestServer.Json(CodexTestServer.Tokens())
+            : failQuota
+                ? CodexTestServer.Json("{}", HttpStatusCode.ServiceUnavailable)
+                : CodexTestServer.Json("""{"plan_type":"synthetic","rate_limit":{"primary_window":{"used_percent":30}}}""")));
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-stored"));
+        var fresh = await session.ResumeAsync(TestContext.Current.CancellationToken);
+        Assert.False(fresh.FromCache);
+
+        failQuota = true;
+        var stale = await session.RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(CodexSessionStatus.QuotaUnavailable, stale.Status);
+        Assert.True(stale.FromCache);
+        Assert.Equal(70, stale.Quota!.Groups.Single().Windows.Single().RemainingPercent);
+        Assert.Equal(fresh.RetrievedAt, stale.RetrievedAt);
+    }
+
+    [Fact]
+    public async Task ARelaunchShowsCachedValuesBeforeAnyProviderRequest()
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method != HttpMethod.Get
+            ? CodexTestServer.Json(CodexTestServer.Tokens())
+            : CodexTestServer.Json("""{"plan_type":"synthetic","rate_limit":{"primary_window":{"used_percent":10}}}""")));
+        using var first = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-stored"));
+        await first.ResumeAsync(TestContext.Current.CancellationToken);
+        var callsAfterFirstRun = server.Calls;
+
+        using var relaunched = Session(server, out _);
+        var cached = relaunched.ReadCachedState();
+
+        Assert.True(cached.FromCache);
+        Assert.Equal(90, cached.Quota!.Groups.Single().Windows.Single().RemainingPercent);
+        Assert.Equal(callsAfterFirstRun, server.Calls);
+    }
+
+    [Fact]
+    public async Task DisconnectAlsoRemovesTheCachedReading()
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method != HttpMethod.Get
+            ? CodexTestServer.Json(CodexTestServer.Tokens())
+            : CodexTestServer.Json("""{"plan_type":"synthetic","rate_limit":{"primary_window":{"used_percent":10}}}""")));
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-stored"));
+        await session.ResumeAsync(TestContext.Current.CancellationToken);
+
+        await session.DisconnectAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(CodexSessionStatus.NotConnected, session.ReadCachedState().Status);
+        Assert.Null(session.ReadCachedState().Quota);
+    }
+
+    [Fact]
+    public async Task TheCachedRecordHoldsNoCredentialMaterial()
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method != HttpMethod.Get
+            ? CodexTestServer.Json(CodexTestServer.Tokens())
+            : CodexTestServer.Json("""{"plan_type":"synthetic","rate_limit":{"primary_window":{"used_percent":10}}}""")));
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-stored"));
+        await session.ResumeAsync(TestContext.Current.CancellationToken);
+
+        var cacheFile = Path.Combine(root, "codex.quota.json");
+        var text = await File.ReadAllTextAsync(cacheFile, TestContext.Current.CancellationToken);
+        Assert.Contains("synthetic", text);
+        Assert.DoesNotContain("synthetic-stored", text);
+        Assert.DoesNotContain("synthetic-rotated", text);
+        Assert.DoesNotContain("synthetic-workspace", text);
+        Assert.DoesNotContain("synthetic-access", text);
+    }
+
     private CodexSession Session(CodexTestServer server, out CodexGrantStore store)
     {
         var http = new HttpClient(server);
         store = new CodexGrantStore(root);
-        return new CodexSession(new CodexAuthClient(http), new CodexQuotaClient(http), store);
+        return new CodexSession(new CodexAuthClient(http), new CodexQuotaClient(http), store, new CodexQuotaCache(root));
     }
 
     public void Dispose()

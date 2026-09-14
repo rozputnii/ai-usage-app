@@ -68,6 +68,8 @@ public sealed class PackageSmoke
             Assert.NotNull(disconnect);
             Assert.False(refresh.IsEnabled);
             Assert.False(disconnect.IsEnabled);
+            // The tray icon is created by the window; without it there is no tray presence at all.
+            Assert.True(TrayIconPresent(pid), "No tray icon window owned by the launched process.");
             // UIA can expose text before the compositor presents the corresponding frame.
             Thread.Sleep(500);
             using (var screenshot = window.Capture())
@@ -141,6 +143,38 @@ public sealed class PackageSmoke
         }
         return null;
     }
+
+    /// <summary>
+    /// H.NotifyIcon hosts the tray icon in a hidden message-only window owned by the app, so the
+    /// presence of that class under the launched process is the observable tray evidence available
+    /// without automating the notification area itself.
+    /// </summary>
+    private static bool TrayIconPresent(int pid)
+    {
+        var found = false;
+        EnumWindows((handle, _) =>
+        {
+            if (GetWindowThreadProcessId(handle, out var owner) == 0 || owner != (uint)pid)
+                return true;
+            var className = new System.Text.StringBuilder(256);
+            if (GetClassName(handle, className, className.Capacity) > 0 &&
+                className.ToString().Contains("NotifyIcon", StringComparison.OrdinalIgnoreCase))
+            {
+                found = true;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return found;
+    }
+
+    private delegate bool EnumWindowsProc(IntPtr window, IntPtr parameter);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc callback, IntPtr parameter);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr window, System.Text.StringBuilder className, int capacity);
 
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);

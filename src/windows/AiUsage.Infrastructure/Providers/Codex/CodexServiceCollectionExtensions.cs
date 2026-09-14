@@ -25,6 +25,7 @@ public static class CodexServiceCollectionExtensions
     {
         services.AddCodexIntegration();
         services.TryAddSingleton(new CodexGrantStore(ownedStateDirectory));
+        services.TryAddSingleton(new CodexQuotaCache(ownedStateDirectory));
         services.TryAddSingleton<CodexSession>();
         return services;
     }

@@ -14,15 +14,19 @@ internal sealed partial class DashboardViewModel : ObservableObject
     private readonly Func<Uri, bool> openBrowser;
 
     /// <summary>A null <paramref name="session"/> means the provider could not be composed; its commands stay disabled.</summary>
-    internal DashboardViewModel(CodexSession? session, Func<Uri, bool> openBrowser, Func<Task> exitAsync)
+    internal DashboardViewModel(CodexSession? session, Func<Uri, bool> openBrowser, Func<Task> exitAsync, Action? showWindow = null)
     {
         this.session = session;
         this.openBrowser = openBrowser;
         ExitCommand = new AsyncRelayCommand(exitAsync);
+        ShowCommand = new RelayCommand(showWindow ?? (() => { }));
         ConnectCommand = new AsyncRelayCommand(ConnectAsync, () => session is not null && !Busy);
         RefreshCommand = new AsyncRelayCommand(RefreshAsync, () => !Busy && Connected);
         DisconnectCommand = new AsyncRelayCommand(DisconnectAsync, () => !Busy && Connected);
     }
+
+    /// <summary>Brings the main window forward from the tray.</summary>
+    public IRelayCommand ShowCommand { get; }
 
     public IAsyncRelayCommand ExitCommand { get; }
     public IAsyncRelayCommand ConnectCommand { get; }
@@ -36,9 +40,17 @@ internal sealed partial class DashboardViewModel : ObservableObject
 
     public bool Connected => session?.HasStoredGrant == true;
 
-    /// <summary>Restores a stored account on launch. A first run with no grant stays in the empty state.</summary>
-    internal Task LoadAsync(CancellationToken cancellationToken = default) =>
-        Connected ? RunAsync(session!.ResumeAsync, cancellationToken) : Task.CompletedTask;
+    /// <summary>
+    /// Shows the last cached reading immediately, then restores the stored account. A first run
+    /// with no grant stays in the empty state and issues no provider request.
+    /// </summary>
+    internal async Task LoadAsync(CancellationToken cancellationToken = default)
+    {
+        if (session is null || !Connected)
+            return;
+        Apply(session.ReadCachedState());
+        await RunAsync(session.ResumeAsync, cancellationToken);
+    }
 
     private Task ConnectAsync() => RunAsync(token => session!.ConnectAsync(url =>
     {
@@ -79,6 +91,10 @@ internal sealed partial class DashboardViewModel : ObservableObject
             CodexSessionStatus.QuotaUnavailable => App.Resource("QuotaUnavailable/Text"),
             _ => Windows.Count > 0 ? App.Resource("QuotaShown/Text") : App.Resource("QuotaEmpty/Text")
         };
+        // Cached values must never read as a current measurement.
+        if (state.FromCache && state.RetrievedAt is { } retrievedAt)
+            StatusText += " " + string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                App.Resource("CachedNotice/Text"), retrievedAt.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture));
     }
 
     private void UpdateCommands()
