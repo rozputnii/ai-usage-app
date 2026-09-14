@@ -1,0 +1,37 @@
+{
+  "fixture_origin": "Synthetic values based on pinned Codex response types; not a live account capture.",
+  "plan_type": "synthetic-plan",
+  "rate_limit": {
+    "allowed": true,
+    "limit_reached": false,
+    "primary_window": {
+      "used_percent": 25,
+      "limit_window_seconds": 18000,
+      "reset_after_seconds": 900,
+      "reset_at": 1800000000
+    },
+    "secondary_window": null
+  },
+  "additional_rate_limits": [
+    {
+      "limit_name": "Synthetic separate pool",
+      "metered_feature": "synthetic-feature",
+      "normal_model_slug": "synthetic-model",
+      "rate_limit": {
+        "allowed": false,
+        "limit_reached": true,
+        "primary_window": { "used_percent": 100, "limit_window_seconds": 3600 }
+      }
+    },
+    {
+      "limit_name": "Synthetic unknown pool",
+      "metered_feature": "synthetic-unknown",
+      "rate_limit": {
+        "primary_window": { "reset_after_seconds": 60 }
+      }
+    }
+  ],
+  "credits": { "has_credits": true, "unlimited": true, "balance": null },
+  "rate_limit_reset_credits": { "available_count": 2 },
+  "spend_control": { "reached": false }
+}

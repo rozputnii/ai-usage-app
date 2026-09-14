@@ -1,0 +1,88 @@
+name: Validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      MsixVersion:
+        description: Explicit reserved version for a manual unsigned smoke-candidate build
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: "false"
+    steps:
+      - uses: actions/checkout@0c5077e51419868618aeaa5fe8019c62421857d6 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0; reads global.json
+      - uses: oven-sh/setup-bun@3d3c42e5aac5ba805825da76410c181273ba90b1 # v2.2.0
+        with:
+          bun-version: 1.4.2
+      - name: Validator regressions
+        run: dotnet run --project tests/AiUsage.ProjectValidation.Tests
+      - name: Canonical document validation
+        run: dotnet run --project tools/AiUsage.ProjectValidation --no-build -- --root . --json
+      - name: Workflow and actual patch regressions
+        run: bun test tests/omp-workflow
+
+  windows-package:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: "false"
+      REQUESTED_MSIX_VERSION: ${{ inputs.MsixVersion }}
+    steps:
+      - uses: actions/checkout@0c5077e51419868618aeaa5fe8019c62421857d6 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0; reads global.json
+      - name: Build unsigned native MSIX
+        shell: pwsh
+        run: |
+          [xml]$manifest = Get-Content src/windows/AiUsage.Windows/Package.appxmanifest
+          $version = if ($env:REQUESTED_MSIX_VERSION) { $env:REQUESTED_MSIX_VERSION } else { [string]$manifest.Package.Identity.Version }
+          ./tools/windows/Build-Package.ps1 -MsixVersion $version -OutputDirectory .ai-usage-local/AIU-002/ci-packages
+      - name: Build standalone native routing reproduction
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $msbuild = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe'
+          if (!$msbuild) { throw 'VS MSBuild is required.' }
+          & $msbuild spikes/windows/AIU-002-routing/AiUsage.RoutingSpike.csproj /restore /v:minimal /p:Configuration=Release /p:Platform=x64 /p:RuntimeIdentifier=win-x64 /p:AppxPackageSigningEnabled=false
+          if ($LASTEXITCODE -ne 0) { throw 'Native routing build failed.' }
+      - name: Publish isolated desktop smoke harness without running UI tests
+        run: dotnet publish tests/windows/AiUsage.Windows.Tests/AiUsage.Windows.Tests.csproj -c Release -r win-x64 --self-contained true -o .ai-usage-local/AIU-002/ci-smoke
+      - name: Record desktop evidence boundary
+        shell: pwsh
+        run: |
+          '{"build":"PASS","interactiveSmoke":"NOT_RUN","installation":"NOT_RUN","artifact":"unsigned-validation-only"}' | Set-Content .ai-usage-local/AIU-002/ci-evidence.json
+          Copy-Item tools/windows/Invoke-PackageSmoke.ps1 .ai-usage-local/AIU-002/ci-smoke/
+      - name: Retain unsigned validation output only
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unsigned-validation-only
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .ai-usage-local/AIU-002/ci-packages/*/*/AiUsage*.msix
+            .ai-usage-local/AIU-002/ci-packages/*/*/Dependencies/x64/*.msix
+            .ai-usage-local/AIU-002/ci-packages/*/*/Dependencies/x64/*.appx
+            .ai-usage-local/AIU-002/ci-packages/*/package-evidence.json
+            .ai-usage-local/AIU-002/ci-smoke/*
+            .ai-usage-local/AIU-002/ci-evidence.json

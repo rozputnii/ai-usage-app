@@ -1,0 +1,5 @@
+{
+  "profiles": {
+    "AiUsage": { "commandName": "MsixPackage" }
+  }
+}

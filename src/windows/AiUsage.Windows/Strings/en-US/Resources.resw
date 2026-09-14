@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>AI Usage</value></data>
+  <data name="DashboardHeading.Text" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="EmptyState.Text" xml:space="preserve"><value>No accounts connected.</value></data>
+  <data name="ExitButton.Content" xml:space="preserve"><value>Exit</value></data>
+  <data name="StartupFailure.Text" xml:space="preserve"><value>The app could not start.</value></data>
+  <data name="ShutdownFailure.Text" xml:space="preserve"><value>The app could not shut down cleanly.</value></data>
+</root>

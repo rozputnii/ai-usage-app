@@ -1,0 +1,27 @@
+# Verified against installed stable OMP 18.1.18; re-probe after upgrades.
+modelRoleStorage: global
+memory:
+  backend: local
+autolearn:
+  enabled: false
+plan:
+  enabled: true
+  defaultOnStartup: true
+advisor:
+  enabled: true
+  syncBacklog: "1"
+async:
+  enabled: true
+task:
+  batch: true
+  maxConcurrency: 4
+  maxRuntimeMs: 300000
+  isolation:
+    enabled: true
+    apply: false
+    merge: patch
+compaction:
+  enabled: true
+  asyncEnabled: true
+tools:
+  approvalMode: yolo

@@ -1,0 +1,8 @@
+<Window x:Class="AiUsage.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <StackPanel Padding="32" Spacing="20">
+    <TextBlock x:Uid="DashboardHeading" AutomationProperties.AutomationId="DashboardHeading" Style="{StaticResource TitleTextBlockStyle}" />
+    <TextBlock x:Uid="EmptyState" AutomationProperties.AutomationId="EmptyState" />
+    <TextBlock x:Name="FailureMessage" TextWrapping="Wrap" Visibility="Collapsed" />
+    <Button x:Name="ExitButton" x:Uid="ExitButton" AutomationProperties.AutomationId="ExitButton" Command="{x:Bind ViewModel.ExitCommand}" AccessKey="X" />
+  </StackPanel>
+</Window>
