@@ -1,0 +1,6 @@
+# Applied by Codex only after owner-controlled project trust.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[windows]
+sandbox = "elevated"

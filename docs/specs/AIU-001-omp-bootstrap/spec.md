@@ -9,6 +9,8 @@ execution_status: done
 ---
 # OMP-native project bootstrap
 
+Historical evidence: the executable workflow and its instructions were retired on 2026-09-14. Runtime commands, permission records and language prescriptions below describe the past bootstrap only; current development follows CONTRIBUTING.md. Archived sources map to docs/archive/omp/<original path>. Provider-source provenance remains unchanged.
+
 ## Outcome
 A fresh OMP session in the Windows repository restores goals and decisions without the previous conversation, presents ranked work and completes a small authorized scope with portable state and truthful verification. This is development infrastructure for AI Usage, not a general-purpose agent platform.
 

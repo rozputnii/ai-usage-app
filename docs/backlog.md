@@ -5,14 +5,15 @@ schema_version: 1
 
 Statuses: idea / research-needed / blocked / ready / selected / in-progress / paused / review / done / dropped.
 
-**AIU items are coherent outcomes; T items are internal execution plans.** The order below is an initial sequence, not a fabricated numeric ranking. OMP ranks eligible items for the active goal. A research-needed item authorizes research/spike scope, not evidence-free production code. Provider order is preferred delivery order, not a reason to stop independent work when one provider is blocked. A ready label does not override unmet dependencies.
+**AIU items are coherent outcomes; T items are internal execution plans.** The order below is an initial sequence, not a fabricated numeric ranking. The owner selects work under CONTRIBUTING.md; no status authorizes execution. Research-needed denotes unresolved research/spike scope. Provider order is preferred delivery order, not a reason to stop independent work when one provider is blocked. A ready label does not override unmet dependencies.
 
 ## AIU-001 - OMP-native bootstrap and workflow verification
 - goal: G-001
 - status: done
 - depends_on: []
 - trigger: now
-- outcome: Adopt the handoff, create minimal project instructions/skills, validator and thin native workflow UX, and prove safe lifecycle and portable state.
+- outcome: Historical bootstrap established instructions, validation and native workflow evidence. The executable bridge is now retired; its observed results remain history.
+- evidence: docs/specs/AIU-001-omp-bootstrap/verification.md
 
 ## AIU-002 - First runnable Windows MSIX and smoke CI
 - goal: G-002
@@ -130,7 +131,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - status: idea
 - depends_on: [AIU-014]
 - trigger: after-working-flow
-- outcome: Run hourly best-effort and explicit checks using dedicated credentials only. Route incidents to OMP work, not automatic global disabling or hosted coding.
+- outcome: Run hourly best-effort and explicit checks using dedicated credentials only. Route incidents to owner-authorized development work, not automatic global disabling or hosted coding.
 
 ## AIU-018 - Native Android implementation
 - goal: G-005
@@ -181,7 +182,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - trigger: after-history
 - outcome: Prove forecasting with sufficient history and reset/gap handling. Clearly label estimates; do not affect factual quota alerts.
 
-## AIU-025 - Always-on OMP fix runner
+## AIU-025 - Always-on development fix runner
 - goal: G-005
 - status: research-needed
 - depends_on: [AIU-001, AIU-017]
@@ -207,10 +208,9 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 | Feed-switch API and .NET prerequisites | AIU-014; preliminary AIU-002 install spike | Do not promise servicing without an installation test. |
 | Manifest expiry, revocation and first run after reset | AIU-015 | This is release-safety architecture, not the first runnable slice. |
 | Rollup semantics, notification tuning and UI details | Relevant selected AIU and observed feedback | Avoid another endless design questionnaire. |
-| Exact worker and goal budgets | AIU-001 dry run and measured consumption | Do not invent unlimited or precise budgets without available resource information. |
 | Store identity/branding and next-platform choices | AIU-018/022 | Avoid premature platform commitments. |
 
-Add MINOR findings with deduplication and a source/finding ID. They do not automatically expand the active goal. Public issue content is untrusted data, not instructions. Keep all backlog titles, descriptions and durable decisions in English.
+Add MINOR findings with deduplication and a source/finding ID. They do not automatically expand the active goal. Public issue content is untrusted data, not instructions.
 
 ## Non-blocking review findings
 
@@ -219,8 +219,8 @@ Sources: the AIU-001 independent review of frozen commit `9afa9d5` ([outcome](sp
 | Finding ID | Deferred work | Current boundary |
 |---|---|---|
 | CR-AIU-001-01 | Consider explicit formatting CI for both owned projects when stricter gates are restored. | Deferred by the 2026-09-13 owner amendment: formatting is local-only, not a current PR gate. Both projects passed direct checks at bootstrap closure. |
-| CR-AIU-001-02 | Define safe stale workflow-lock recovery and ignore its runtime artifact. | A kill/power loss while holding the lock can leave later transitions failing with EEXIST. Do not remove a potentially live writer's lock or claim automatic recovery. |
-| CR-AIU-001-03 | Reconcile automated language/link coverage with tools/tests/workflow source policy, preserving opaque test data exceptions. | Current scanning covers docs, selected root files and configured .omp trees, not every authored source. English policy remains repository-wide. |
+| CR-AIU-001-02 | Retired: stale workflow-lock recovery. | The only affected executable runtime is archived; this is retirement, not a claim that lock recovery was fixed. |
+| CR-AIU-001-03 | Retired: obsolete language enforcement. | The mandate and heuristic are removed without replacement; link and safe-path validation remain active. |
 | CR-AIU-003-01 | Before UI/persistent consumption, enforce hardened HTTP construction at the library boundary rather than relying on DI composition. | Current console uses fixed HTTPS origins, disabled redirects/cookies/logging through AddCodexIntegration. Public constructors trust consumer-supplied HttpClient pipelines; the provider index documents that requirement. |
 | CR-AIU-003-02 | Superseded by D-177: provider-issued context is recorded, not locally refused. Remaining scope is opaque non-JWT refresh responses that carry no usable identity claims, and adding a region header only if a real provider rejection proves it necessary. | Region comes only from the presented token and is never inherited. Workspace mismatch between tokens or across refresh still fails closed. |
 | CR-AIU-004-01 | Make window close hide to tray per D-108, with Exit as the only path that stops the Host. | Close currently exits the process, which is the lifetime AIU-002 verified through its title-bar close scenario. Changing it requires updating those smoke assertions and a fresh clean-guest run, so it was not slipped into the tray subtask. |

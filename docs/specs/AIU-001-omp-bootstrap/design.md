@@ -7,6 +7,8 @@ scope_version: 2
 ---
 # Bootstrap design
 
+Historical evidence: the executable workflow and its instructions were retired on 2026-09-14. Runtime commands, permission records and language prescriptions below describe the past bootstrap only; current development follows CONTRIBUTING.md. Archived sources map to docs/archive/omp/<original path>. Provider-source provenance remains unchanged.
+
 ## Approach
 Use native OMP profiles, configuration, rules, skills, tasks, Goal Mode, Advisor and extension APIs, plus a thin tested document/selection/handoff bridge. Do not require Codex-only execution skills or an external specification framework.
 

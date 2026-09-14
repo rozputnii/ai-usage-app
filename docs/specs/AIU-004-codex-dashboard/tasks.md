@@ -65,7 +65,7 @@ schema_version: 1
 - evidence: docs/specs/AIU-004-codex-dashboard/verification.md
 
 ## Handoff
-Selected by the owner on 2026-09-14 immediately after AIU-002 closure and the live-verified Codex path. Work proceeds directly on main, one task at a time, with a push after each completed task per D-178 and D-179. The provider client from AIU-003 is reused unchanged. No provider account action beyond an explicit owner-initiated sign-in is authorized.
+Selected by the owner on 2026-09-14 immediately after AIU-002 closure and the live-verified Codex path. The former direct-main and automatic-push instructions were past-task context; D-178/179 are superseded by CONTRIBUTING.md. The provider client from AIU-003 is reused unchanged. No provider account action beyond an explicit owner-initiated sign-in is authorized.
 
 Dashboard subtask delivered on 2026-09-14: DPAPI-protected grant storage, the session over the AIU-003 clients, and a dashboard with five distinct states. Verified by 68 deterministic tests, a Release build, and a clean disposable-guest run of signed package 2026.9.1402.0. The inspected screenshot shows the not-connected empty state with Connect enabled and Refresh and Disconnect disabled; quota rendering itself is covered by tests, not by that screenshot. Connecting a real account from the packaged UI is NOT_RUN because the guest has no networking and host installation is unauthorized; the provider path is live-verified through the console.
 

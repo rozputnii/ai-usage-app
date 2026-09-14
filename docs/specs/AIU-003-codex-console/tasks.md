@@ -53,4 +53,6 @@ schema_version: 1
 - evidence: docs/specs/AIU-003-codex-console/verification.md
 
 ## Handoff
-Paused by the owner on 2026-09-14 after live verification succeeded. AIU-003 is complete: browser sign-in, real quota read, in-memory refresh and a second real quota read all passed through the console, with 54 deterministic tests and canonical validation green. Connection and usage mirror the locally cloned OMP implementation per D-177; the earlier locally invented residency rejection was removed. Remaining provider scope - device-code login, multi-workspace switching, exhausted/rate-limited responses, long-term rotation and CLI coexistence - is NOT_RUN and belongs to AIU-004/005. Public-client reuse permission remains unresolved. No credential was persisted and no source CLI store was touched. AIU-002 remains paused with its guest evidence retained. Next session: read docs/specs/AIU-003-codex-console/verification.md before starting AIU-004.
+All listed internal tasks have retained evidence. Read verification.md for observed results and limitations, and docs/backlog.md for feature status. The old session chronology is preserved in docs/decisions/superseded.md.
+
+Next action: wait for the owner's next selected scope; this migration selects no product feature. Do not infer an account, guest, host or remote action from historical approval.

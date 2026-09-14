@@ -4,6 +4,8 @@ schema_version: 1
 ---
 # Bootstrap implementation plan and tasks
 
+Historical evidence: the executable workflow and its instructions were retired on 2026-09-14. Runtime commands, permission records and language prescriptions below describe the past bootstrap only; current development follows CONTRIBUTING.md. Archived sources map to docs/archive/omp/<original path>. Provider-source provenance remains unchanged.
+
 **Goal:** G-001: verified OMP-native project workflow.
 **Architecture:** Native primitives plus a thin tested repository bridge; one integrator.
 **Technology:** OMP 18.1.18; .NET 10/xUnit v3 validator; thin native TypeScript extension.

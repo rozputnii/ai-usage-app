@@ -5,14 +5,13 @@ status: implemented
 goal: G-002
 scope_version: 1
 approval_basis: owner-selected-AIU-002-and-approved-windows-msix-execution-plan
-execution_status: done
 ---
 # First runnable Windows MSIX and smoke CI
 
 ## Authorization
 The owner selected AIU-002, selected disposable Sandbox/VM installation verification instead of host trust, and approved execution of the corresponding Windows MSIX plan in this session. This is local feature authority, not authorization for all G-002, remote publication, paid services, provider accounts, host app installation, host certificate trust, elevation or reboot. No bounded execution budget is inferred.
 
-Post-reboot guest execution produced passing product and corrected native-routing reports. Closure was paused for Codex library/console work and then explicitly resumed on 2026-09-14 for final acceptance only. Final evidence review completed with inspected screenshots and consolidated criteria; requirements are unchanged and no scope was reduced. Remote GitHub Actions execution and interactive UI CI remain NOT_RUN by authorization. See verification.md for the acceptance matrix.
+Observed acceptance and limitations are recorded in [verification](verification.md); internal handoff belongs in tasks.md. The retained bootstrap scope below describes its original package lifetime, not later dashboard behavior.
 
 ## Scope
 Native WinUI on .NET 10, Windows 11 24H2+ x64; three production projects, framework-dependent .NET and Windows App SDK, Generic Host, resource-backed empty dashboard and coordinated exit. Core remains platform-neutral. No database, credentials, providers, tray, charts, updater, AOT or trimming. Closing exits until tray integration exists. A separate native Uno.Extensions.Navigation spike does not change the one-page product composition.

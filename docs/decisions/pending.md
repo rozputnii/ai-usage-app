@@ -8,10 +8,10 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 - evidence: ../workflow/environment.md.
 - remaining boundary: Remote publication is not authorized by local setup. Main protection is now explicitly deferred at low priority in AIU-026, not a current development PR prerequisite. No remote changes or bypass were performed.
 
-## SETUP-002 - OMP roles, authentication and toolchain
+## SETUP-002 - Historical toolchain setup (retired runtime)
 - observed: Stable OMP 18.1.18 and profile roles discovered. Fresh native SDK confirms read-only advisor attachment. Owner authorized a user-local .NET SDK; 10.0.401 runs successfully.
 - resolved: Native isolation, primary integration, selection/cancel, pause/resume, budget stop and fresh-session continuity exercised. Independent replacement review PASS, no material findings; the owner-authorized capture-recovery exception and three deferred MINORs are recorded in the AIU-001 verification report.
-- deferred: Windows SDK installation and Windows product tooling belong to AIU-002.
+- current disposition: Runtime roles are retired prerequisites. SDK 10.0.401 remains the product toolchain; AIU-002 tooling and guest verification are recorded as completed in its evidence.
 - evidence: ../workflow/environment.md.
 
 ## RELEASE-001 - Public signing eligibility
@@ -27,4 +27,4 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 - unresolved fact: Product policy is not provider authorization. Verify actual scopes, endpoints and refresh behavior.
 - rule: Never label an untested or restricted integration officially approved, and never replace unavailable consumer quotas with API billing.
 
-Move resolved durable decisions into the appropriate spec or ADR. Do not duplicate the entire accepted register in this inbox. All inbox entries and durable answers must be English.
+Move resolved durable decisions into the appropriate spec or ADR. Do not duplicate the entire accepted register in this inbox.

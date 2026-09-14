@@ -1,5 +1,7 @@
 # Technical audit and corrections
 
+Historical evidence: the executable workflow and its instructions were retired on 2026-09-14. Runtime commands, permission records and language prescriptions below describe the past bootstrap only; current development follows CONTRIBUTING.md. Archived sources map to docs/archive/omp/<original path>. Provider-source provenance remains unchanged.
+
 This is not a new product questionnaire or a change to accepted intent. It separates source-recorded facts, implementation safety reasoning and experiments. Address each item when its AIU needs it, not all before the first code commit.
 
 S identifiers refer to `../research/sources.md`. This English revision preserves the prior evidence record; it does not claim fresh authenticated or Windows runtime verification.

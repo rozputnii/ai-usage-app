@@ -4,20 +4,19 @@ type: spec
 status: implemented
 goal: G-002
 scope_version: 1
-execution_status: done
 approval_basis: owner-selected-AIU-004-after-live-verified-codex-path
 ---
 # Codex quota dashboard on the verified provider path
 
-## Authorization
-On 2026-09-14, after AIU-002 closure and the live-verified Codex library, the owner selected AIU-004 and simplified the workflow: one task at a time, committed and pushed directly to main. This authorizes connecting the existing verified provider path to the Windows product UI with durable credentials under the accepted DPAPI boundary. It does not authorize another provider, CLI credential import, host package installation, host certificate trust, elevation, paid resources, releases or publication.
+## Approval basis
+The owner selected AIU-004 on 2026-09-14 to connect the verified Codex path to the Windows UI under the DPAPI boundary. Historical task-specific Git instructions are superseded; current development follows [CONTRIBUTING](../../../CONTRIBUTING.md). This specification grants no account access or external action.
 
 ## Scope
-Reuse `AiUsage.Infrastructure.Providers.Codex` unchanged as the single provider client. Add durable credential protection, a dashboard that connects one Codex account and shows its real quota, a minimum cached snapshot so a relaunch is not blank, and tray integration. The item is delivered in subtasks; the first, the dashboard over protected credentials, is complete.
+Reuse `AiUsage.Infrastructure.Providers.Codex` unchanged as the single provider client. Add durable credential protection, a dashboard that connects one Codex account and shows its real quota, a minimum cached snapshot so a relaunch is not blank, and tray integration. Observed checks and limitations are recorded in verification.md.
 
-In scope, delivered: DPAPI CurrentUser protection of one Codex grant in the app-owned LocalState root; resume on launch; sign-in, refresh and disconnect from the UI; honest typed states for loading, unavailable quota and required reauthentication; English UI resources.
+In scope: DPAPI CurrentUser protection of one Codex grant in the app-owned LocalState root; resume on launch; sign-in, refresh and disconnect from the UI; honest typed states for loading, unavailable quota and required reauthentication; English UI resources.
 
-In scope, still open: a minimum cached quota snapshot with its fetch time, so a relaunch or an unavailable provider shows last-known values labelled as stale rather than nothing; tray presence with show and exit.
+Also in scope: a minimum cached quota snapshot with its fetch time, so a relaunch or an unavailable provider shows last-known values labelled as stale rather than nothing; tray presence with show and exit.
 
 Out of scope for this item: usage history and charts, background refresh scheduling, multiple accounts or workspaces, a database, CLI discovery and import, notifications and settings surfaces. The console remains the provider verification surface; no second provider client is introduced.
 

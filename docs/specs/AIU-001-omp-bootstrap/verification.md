@@ -4,6 +4,8 @@ status: done
 ---
 # Execution verification
 
+Historical evidence: the executable workflow and its instructions were retired on 2026-09-14. Runtime commands, permission records and language prescriptions below describe the past bootstrap only; current development follows CONTRIBUTING.md. Archived sources map to docs/archive/omp/<original path>. Provider-source provenance remains unchanged.
+
 AIU-001 local implementation and acceptance are complete. Native runtime probes, tests and independent review executed on 2026-09-12. This is not release approval or a claim of remote CI/publication.
 
 Implementation fingerprint: SHA-256 `80a4657db727788488d31bf54b15fcdf3061f36aee6fe5064269d357b965e17a`, calculated from the sorted path/SHA-256 records for 26 implementation, test, configuration and workflow files. Independent review inspected frozen commit `9afa9d57e09b7e8af0d904d25c03774d6118352f`, its file inventory and actual captured check output. Subsequent changes close documentation and record non-blocking findings; implementation is unchanged. Environment, native session references and failed-probe history are in [environment.md](../../workflow/environment.md).

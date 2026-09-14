@@ -2,7 +2,7 @@
 
 Consolidated: 2026-09-12. Source: the owner conversation. These are normative product and engineering decisions, not claims of implemented code.
 
-The latest explicit owner decision supersedes earlier alternatives. Technical corrections and experiments are separated in `technical-audit.md`; they must not silently rewrite product intent. D-001 through D-175 preserve the original register. D-176 records the explicit repository-wide English-language requirement.
+The latest explicit owner decision supersedes earlier alternatives. Technical corrections and experiments are separated in `technical-audit.md`; they must not silently rewrite product intent. Execution amendments are explicitly marked below; superseded originals, including D-176, are retained in the historical register. Unrelated product decisions remain in force.
 
 ## Product and boundaries
 
@@ -40,108 +40,108 @@ External Issues are intake; external PRs are accepted with DCO. Include CONTRIBU
 Share requirements, provider semantics, research and sanitized fixtures. Do not impose a shared .NET UI or Core implementation on Android in advance.
 
 ### D-012 - Development harness
-OMP on Windows implements all executable product and workflow code. This handoff is documentation, not an implemented application.
+Owner-approved agent-neutral amendment, 2026-09-14: Development is agent-neutral. Root AGENTS.md is the common entry point; specialized guidance has one active copy in .agents/skills. No workflow runtime or plugin is required.
 
 ## AI workflow and autonomy
 
 ### D-013 - Method
-Goal-driven, repository-first, proportional specification-driven development. The owner provides goals and feedback; OMP handles research, decomposition, implementation, verification, PRs and authorized merges.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-014 - Execution modes
-Interactive mode presents a ranked backlog for owner selection. Autopilot works independently within an explicitly authorized goal, with defined escalation exceptions.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-015 - Approval
-Per-spec and per-design approval was superseded by escalation-only approval for ordinary authorized work. Changes to product intent, security boundaries, significant architecture or a significant unapproved dependency require the owner.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-016 - Questions
-Do not ask settled questions again. Record clearly superior minor technical choices automatically; ask about important trade-offs. A blank/space reply selects a recommendation only in response to an actual owner-facing question, never in unattended execution.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-017 - Granularity
-AIU items represent coherent outcomes, not individual classes, DTOs or tests. T items are internal decomposition of the selected feature. Decompose just in time; no universal line or token limit guarantees quality.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-018 - Proportional documentation
-Small fixes need a short plan and evidence; normal features need a spec and tasks; architecture, authentication and security changes need a design and an ADR only for durable decisions. Do not produce four large documents for every edit.
+Owner-approved agent-neutral amendment, 2026-09-14: Use proportional records under CONTRIBUTING and docs/workflow/formats.md: small fixes need a brief plan and evidence; features need spec and verification with optional tasks. Designs explain meaningful choices; ADRs record durable decisions.
 
 ### D-019 - Canonical backlog
-Use docs/backlog.md, not GitHub Issues or native OMP todo. Statuses: idea, research-needed, blocked, ready, selected, in-progress, paused, review, done, dropped.
+Owner-approved agent-neutral amendment, 2026-09-14: docs/backlog.md owns feature status and evidence references, using the existing status vocabulary. Status alone never authorizes execution.
 
 ### D-020 - Prioritization
-Weighted scoring plus explained judgment. Initial weights: goal alignment 30%, work unblocked 20%, risk reduction 20%, user value 15%, urgency 10%, effort efficiency 5%. Scores are derived; evaluate eligibility and dependencies first.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-021 - Goals and owner inbox
-Use docs/product/goals.md; every AIU belongs to a goal. docs/decisions/pending.md is the durable inbox for decisions requiring the owner.
+Owner-approved agent-neutral amendment, 2026-09-14: docs/product/goals.md owns outcomes and goal membership, without session permission chronology. docs/decisions/pending.md records unresolved owner decisions.
 
 ### D-022 - Execution state
-tasks.md is the sole feature execution record: status, dependencies, ownership, writes/shared paths, isolation, agent, acceptance criteria and handoff. A single coordinator updates it at meaningful transitions.
+Owner-approved agent-neutral amendment, 2026-09-14: Optional tasks.md owns internal task state and a concise handoff. Required structured fields are status, depends_on, acceptance and evidence; parallel ownership is defined in docs/workflow/formats.md.
 
 ### D-023 - Resume
-A fresh interactive session performs compatibility checks and shows either the active feature with a continue confirmation or the ranked backlog. Internal Autopilot handoff preserves valid goal authorization and cumulative budgets.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-024 - Pause
-The owner may pause or switch. Create a safe checkpoint, perform targeted verification, update the handoff in tasks.md and commit/push recoverable state when authorized. Do not label work in progress as complete or passing. Settle worker state first.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-025 - Autopilot sessions
-Use a fresh execution session for each feature. After merge, hand off through the repository to a fresh context. Preserve goal-level authorization, budget and accounting across sessions.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-026 - Selective blocking
-A local issue blocks its AIU, not the entire goal. Continue other independent authorized items. Stop the goal for a global security/product blocker or when no safe work remains.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-027 - Budgets
-Use adaptive overall and per-feature effort budgets, bounded recovery attempts and checkpoints for lack of progress or abnormal consumption. Budget exhaustion never means completion.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-028 - No artificial pauses
-Autopilot does not wait for the owner after every merge. Stop for goal completion, escalation, budget exhaustion, fatal failure or explicit pause. Do not run an unbounded improvement loop.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-029 - Plan Mode
-Fresh interactive sessions start in Plan Mode; a trivial fix needs only a short plan. Exit for authorized implementation. Do not require repeated approval at every internal handoff.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-030 - OMP version policy
-Use the latest stable release, not main/nightly and not a permanent historical pin. Probe compatibility after upgrades and record the exact tested version. Do not upgrade OMP during an active feature.
+Owner-approved agent-neutral amendment, 2026-09-14: AI client versions are optional environment context, not product build prerequisites. Historical OMP compatibility evidence remains historical.
 
 ### D-031 - Profile
-Use the ai-usage profile and launch from the repository root. The profile contains authentication, model mappings, local sessions, cache and memory, not canonical project policy.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-032 - Memory
-Use memory.backend=local as supplementary context, never authority. Disable auto-learn. The repository must support recovery without memory or conversation history.
+Owner-approved agent-neutral amendment, 2026-09-14: Memory is supplementary, never authority. The repository must support recovery without previous conversation history.
 
 ### D-033 - Portable behavior
-Version rules, skills, agents, documentation and the validator in Git. Do not commit generated local state, credentials or model-provider authentication.
+Owner-approved agent-neutral amendment, 2026-09-14: Version authored instructions, shared guidance, documentation and validation in Git; keep credentials and generated local state out.
 
 ### D-034 - Skills
-Keep essential rules short in RULES.md and the project map in AGENTS.md. Load specialized skills on demand. Do not inject all documentation as always-apply context.
+Owner-approved agent-neutral amendment, 2026-09-14: Keep essential instructions and the selective map in root AGENTS.md. Read specialized .agents/skills guidance on demand; native discovery is optional.
 
 ### D-035 - AI infrastructure changes
-Protect configuration, RULES and changes to privileges or gates. Small navigation fixes in AGENTS, evidence-based WATCHDOG checks and existing-skill improvements may be made without weakening policy.
+Owner-approved agent-neutral amendment, 2026-09-14: Respect current owner scope for workflow changes. Repository guidance does not grant native tool privileges.
 
 ### D-036 - Models
-Use strong primary/planning models, an advisor and fresh reviewer from a different model family, and a smaller model for inexpensive tasks. Discover actual available model IDs rather than inventing them.
+Owner-approved agent-neutral amendment, 2026-09-14: No model vendor or family is required. Use available tools proportionally and report unavailable required independent review.
 
 ### D-037 - Advisor
-Always enable the advisor for the primary agent. Grant read/grep/glob only, not write/bash/eval. syncBacklog=1 means bounded catch-up, not completed review. Do not automatically attach an advisor to every worker.
+Owner-approved agent-neutral amendment, 2026-09-14: An Advisor is not required. Review scope and evidence follow CONTRIBUTING.
 
 ### D-038 - Parallelism
-One active feature may have several independent isolated write workers. The primary is the only integrator; shared contracts are handled sequentially. Research may run in parallel. Avoid an arbitrary 32-agent swarm.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-039 - Workers
-Use native task batching and isolation, initially targeting up to four workers. Require explicit ownership and write globs; validate the actual diff. Workers must not edit the shared backlog, tasks, settings or CI.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-040 - Integration
-Automatically integrate only after scope/diff checks, passing targeted tests and clean patch application. The primary resolves shared overlap and conflicts. Verify the integrated feature tree, not just isolated worker tests.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-041 - Review
-Owner amendment, 2026-09-13: ordinary development PRs require primary diff/acceptance review and relevant automated checks, not a mandatory independent full review. Use focused independent review for material authentication, secret handling, destructive data lifecycle or privilege changes; retain the full independent review for public release approval or explicit owner requests. When used, keep context fresh, memory disabled, a different model family and read-only tools. Zero findings is valid; no automatic review loop.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-042 - Findings
-BLOCKER and MAJOR findings block merge. Deduplicate MINOR findings into the backlog; omit NIT findings. After a fix, run targeted verification rather than restarting a full review loop.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-043 - Git
-Use trunk-based main with short-lived feature/AIU branches and squash merge. OMP may commit, push, open PRs and merge after the required gates. No direct main push or force-push.
+Owner-approved agent-neutral amendment, 2026-09-14: The sole current Git policy is [CONTRIBUTING](../../CONTRIBUTING.md#git-policy). This decision grants no remote action or main integration.
 
 ### D-044 - Permissions
-YOLO execution is authorized within the selected project scope; it is not a sandbox. Retain human gates and protected release/manifest operations. Do not describe textual rules as hard security enforcement.
+Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-045 - Validator
-Use a lightweight repository validator and CI for IDs, statuses, links, acceptance references, dependencies and ownership. Gate critical transitions, not every keystroke. Owner amendment, 2026-09-13: defer main protection and required-check enforcement to low-priority AIU-026; their absence is not a blocker to current development PRs. Keep relevant exact-head check evidence and explicit remote-action authority. This intentionally accepts that GitHub does not independently enforce the local merge policy.
+Owner-approved agent-neutral amendment, 2026-09-14: The local validator checks IDs, statuses, links, acceptance, dependencies, safe paths and evidence without runtime dependencies. Main protection remains deferred in AIU-026; local evidence is not remote enforcement.
 
 ### D-046 - Documentation drift
 Use docs-as-code. Specs and designs may evolve within the approved intent. Never weaken acceptance criteria or security requirements merely to make failing implementation appear successful.
@@ -153,7 +153,7 @@ Research uses structured frontmatter and Markdown with verification dates, sourc
 Probe uncertain authentication, APIs or stack integration with a disposable spike answering one question. A throwaway proof is not production readiness.
 
 ### D-049 - Native workflow UX
-Use thin project commands, selection UI and hooks over OMP primitives, not a new agent framework. Check names for built-in collisions. Commands do not exist until implemented and verified.
+Owner-approved agent-neutral amendment, 2026-09-14: The executable OMP bridge is retired. Thin adapters point to root AGENTS.md; no replacement orchestrator is introduced. Historical evidence is retained in docs/archive/omp.
 
 ## Windows stack and code
 
@@ -482,7 +482,7 @@ Disconnect/reset must not modify original CLI credentials or delete exports save
 ## Release, CI and operations
 
 ### D-154 - CI
-Owner amendment, 2026-09-13: current development PR CI runs the validator regressions (including compilation/analyzers), canonical document validation and workflow/patch regressions. Formatting stays a local check, not a PR gate. Cancel obsolete runs of the same PR; do not skip behavior checks or suppress failures. Add relevant provider/security/UI checks when those features exist. Public release evidence and genuinely interactive xUnit/FlaUI UIA3 smoke requirements remain unchanged.
+Owner-approved agent-neutral amendment, 2026-09-14: CI retains validator regressions and document validation, adds deterministic product regressions on Windows, and retains unsigned package/routing builds and smoke-harness publication. Formatting remains local. Cancel obsolete PR runs; live provider and interactive UI execution are separate evidence.
 
 ### D-155 - Test-first policy
 Use test-first for parsers, authentication, token refresh, repositories, security logic and bug fixes. Test UI/configuration proportionally. Never fabricate passing verification.
@@ -518,7 +518,7 @@ Keep the latest 50 Preview builds and retain Stable/persistent-state milestones 
 Use risk-based evidence, with no mandatory soak. A compatibility-only hotfix may release hourly after verification. Authentication, storage or dependency scope expansion increases the risk class.
 
 ### D-166 - Release authority
-OMP may merge normal verified PRs. The owner approves Stable promotion and emergency compatibility-policy publication. Never expose signing secrets to arbitrary PRs or agents.
+Owner-approved agent-neutral amendment, 2026-09-14: Integration and remote authority follow CONTRIBUTING. The owner approves Stable promotion and emergency compatibility-policy publication. Never expose signing secrets to arbitrary PRs or agents.
 
 ### D-167 - Compatibility manifest
 Use signed static GitHub-hosted policy with bundled and cached last-good versions, fetched asynchronously. It may only narrow capabilities, not configure executable code, endpoints, authentication or secrets.
@@ -533,26 +533,21 @@ Use an offline root and rotating signing key separate from the MSIX certificate,
 Run hourly best-effort upstream/dedicated-account checks plus post-merge and manual checks. Confirmed incidents receive highest priority. Never disable a provider automatically on a weak signal.
 
 ### D-171 - Watchdog execution boundary
-Detection may run while the owner PC is off; fixes start in the next active authorized OMP session. No always-on coding runner initially. Scheduled Actions are not guaranteed 24/7 monitoring.
+Owner-approved agent-neutral amendment, 2026-09-14: Future detection may run while the owner PC is off; fixes require a current authorized development task. No always-on coding runner initially. Scheduled Actions are not guaranteed continuous monitoring.
 
 ### D-172 - Dependency maintenance
 Use Dependabot for NuGet and Actions intake, prioritizing security. No blind major upgrades. Do not repeatedly ask the owner to reselect already approved packages.
 
 ### D-173 - Feedback
-The owner reviews installable results and supplies goals/feedback, not detailed implementation prompts. OMP turns feedback into coarse backlog outcomes and preserves deferred decisions.
+Owner-approved agent-neutral amendment, 2026-09-14: The owner supplies goals and feedback. Translate authorized feedback into coherent outcomes and preserve deferred decisions using the shared development procedure.
 
 ## Deferred work
 
 ### D-174 - Deferred scope
-Defer Android, ARM64/x86 expansion, Windows Widgets, WSL import, multi-window, command palette, Store infrastructure and an always-on OMP runner.
+Owner-approved agent-neutral amendment, 2026-09-14: Defer Android, ARM64/x86 expansion, Widgets, WSL import, multi-window, command palette, Store infrastructure and an always-on development runner.
 
 ### D-175 - Later experiments
 Develop forecasting and advanced tuning only after measured history. Defer remote policy protocol details to the release-safety task. Do not build a complete platform framework first.
-
-## Repository language
-
-### D-176 - Repository language
-All repository documentation, decisions, goals, backlog items, specifications, plans, skills, agent instructions, prompts, code identifiers/comments, test descriptions, generated reports, commit messages, PRs and release notes must be in English. Ukrainian is for conversation with the owner only. Do not translate opaque provider/user data or previously approved identifiers. Deliberately added future product translations belong only in localization resources.
 
 ## Provider account context
 
@@ -562,7 +557,7 @@ On 2026-09-14 a live console sign-in proved the owner's account carries a `chatg
 ## Branching
 
 ### D-178 - Direct main development until the first release
-On 2026-09-14 the owner decided to merge completed work into `main` and continue development by committing directly to `main`, one task at a time, treating feature branches as unnecessary overhead at this stage. Local merges and commits are ordinary work; pushing, remote publication and branch protection changes remain separately authorized and are not implied. Each commit must still be a coherent, verified task with its canonical records updated, not a checkpoint of unfinished work. Proposal to revisit, recorded at the owner's request: before the first release, restore short-lived feature branches with pull requests for anything touching signing, release artifacts, credential or data lifecycle, so release candidates are reviewable and revertible; main protection remains deferred in AIU-026 until then.
+Owner-approved agent-neutral amendment, 2026-09-14: The former direct-main default is superseded. Follow the sole Git policy in [CONTRIBUTING](../../CONTRIBUTING.md#git-policy); historical task permission is not current authority.
 
 ### D-179 - Push each completed task to main
-On 2026-09-14 the owner authorized pushing directly to `origin/main` after every completed task, to avoid accumulating unpushed work and to keep implementation steps minimal. A push is now part of finishing a task, not a separate approval. Conditions that still hold: push only a fast-forward of the exact verified head, never force-push, never rewrite published history and never change branch protection or repository settings. If the remote has diverged, stop and report instead of forcing. Nothing here authorizes releases, tags, remote workflow dispatch, secrets or publication; GitHub Actions execution remains unverified evidence until a run is actually observed.
+Owner-approved agent-neutral amendment, 2026-09-14: The former automatic push grant is superseded. Remote actions require explicit current owner authorization under [CONTRIBUTING](../../CONTRIBUTING.md#git-policy).

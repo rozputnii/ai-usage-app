@@ -5,12 +5,11 @@ status: implemented
 goal: G-002
 scope_version: 1
 approval_basis: owner-directed-provider-library-and-console-integration
-execution_status: done
 ---
 # Codex integration library and console verification
 
-## Authorization
-On 2026-09-13 the owner explicitly redirected development from Windows UI work to provider integration using a console application and appropriate integration/unit tests. Codex remains the first selected provider. AIU-002 is paused separately; its completion is not a prerequisite for this work. This authorizes local research, library/console implementation and deterministic verification. It does not authorize personal CLI credential access, source-store mutation, unattended account consent, paid resources, inference requests, remote publication or other providers.
+## Approval basis
+On 2026-09-13 the owner explicitly redirected development from Windows UI work to provider integration using a console application and appropriate integration/unit tests. That historical selection covered local research, library/console implementation and deterministic verification independently of UI readiness. Current work follows CONTRIBUTING.md and the current owner request; this spec grants no account access or external action. Observations are recorded in verification.md.
 
 ## Scope
 An executable Codex subscription integration behind the existing UI-independent Core/Infrastructure library boundaries, consumed first by a console application. Establish current source-backed authentication and quota contracts before implementation. Keep authenticated sessions in memory for this verification slice; do not introduce plaintext persistence, a credential manager, database, tray, WinUI integration or a speculative multi-provider framework. A future persistent application adapter must use the accepted DPAPI CurrentUser boundary and independently verified token lifecycle.

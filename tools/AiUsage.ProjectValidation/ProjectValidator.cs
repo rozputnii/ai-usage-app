@@ -33,13 +33,14 @@ public static class ProjectValidator
                 var attributes = File.GetAttributes(path);
                 if ((attributes & FileAttributes.ReparsePoint) != 0)
                 { Error(relative, "", "UNSAFE_PATH", "Reparse document entry is not read."); continue; }
+                if (relative.Equals("docs/archive", StringComparison.OrdinalIgnoreCase)) continue;
                 if ((attributes & FileAttributes.Directory) != 0) Walk(path);
-                else if (Path.GetExtension(path) is ".md" or ".txt" or ".ts" or ".yml") documents[relative] = File.ReadAllText(path).Replace("\r\n", "\n");
+                else if (Path.GetExtension(path) is ".md" or ".txt" or ".ts" or ".yml" or ".toml") documents[relative] = File.ReadAllText(path).Replace("\r\n", "\n");
             }
         }
         Walk(Path.Combine(root, "docs"));
-        foreach (var folder in new[] { ".omp/skills", ".omp/agents", ".omp/lib", ".omp/extensions" }) Walk(Path.Combine(root, folder));
-        foreach (var relative in new[] { "README.md", "CONTRIBUTING.md", "SECURITY.md", ".omp/AGENTS.md", ".omp/RULES.md", ".omp/WATCHDOG.md", ".omp/WATCHDOG.yml", ".omp/config.yml" })
+        Walk(Path.Combine(root, ".agents/skills"));
+        foreach (var relative in new[] { "AGENTS.md", "CLAUDE.md", "README.md", "CONTRIBUTING.md", "SECURITY.md", ".github/copilot-instructions.md", ".omp/AGENTS.md" })
         {
             var path = Path.Combine(root, relative);
             if (!File.Exists(path)) continue;
@@ -50,15 +51,16 @@ public static class ProjectValidator
             if (!documents.ContainsKey(required)) Error(required, "", "MISSING_REFERENCE", "Required canonical document is missing.");
         foreach (var (file, text) in documents)
         {
-            CheckLanguage(file, text, Error);
             if (file.EndsWith(".md", StringComparison.Ordinal)) CheckLinks(root, file, text, Error);
         }
+        CheckSkills(documents, Error);
         var goals = Parse(documents.GetValueOrDefault("docs/product/goals.md", ""), "docs/product/goals.md", "##", "G", 3, Error);
         var items = Parse(documents.GetValueOrDefault("docs/backlog.md", ""), "docs/backlog.md", "##", "AIU", 3, Error);
         foreach (var goal in goals) CheckFields(goal, Value(goal, "status") == "idea" ? ["status", "scope", "outcome"] : ["status", "scope", "outcome", "success"], BacklogStates, Error);
         foreach (var item in items)
         {
             CheckFields(item, ["goal", "status", "depends_on", "trigger", "outcome"], BacklogStates, Error);
+            CheckEvidence(root, item, Error);
             var goal = goals.FirstOrDefault(g => g.Id == Value(item, "goal"));
             if (goal is null) Error(item.File, item.Id, "MISSING_GOAL", "Backlog goal does not exist.");
             else if (!List(Value(goal, "scope")).Contains(item.Id)) Error(goal.File, goal.Id, "GOAL_SCOPE", "Goal scope omits one of its backlog items.");
@@ -90,32 +92,39 @@ public static class ProjectValidator
             if (ac.Length == 0) Error(file, id, "AC_REFERENCE", "Specification requires acceptance criteria.");
             if (ac.Distinct().Count() != ac.Length) Error(file, id, "DUPLICATE_ID", "Duplicate acceptance criterion.");
             var folder = file[..file.LastIndexOf('/')];
+            var designFile = folder + "/design.md";
+            if (documents.TryGetValue(designFile, out var design))
+            {
+                var designBlock = new Block(id, designFile, design, Metadata(design));
+                CheckFields(designBlock, ["id", "type", "status", "goal", "scope_version"], DocStates, Error);
+                if (Value(designBlock, "id") != id || Value(designBlock, "goal") != Value(spec, "goal")) Error(designFile, id, "MISSING_REFERENCE", "Design ownership differs from specification.");
+            }
             var taskFile = folder + "/tasks.md";
-            if (!documents.TryGetValue(taskFile, out var taskText)) { Error(taskFile, id, "MISSING_REFERENCE", "Specification requires tasks.md."); continue; }
+            if (!documents.TryGetValue(taskFile, out var taskText)) continue;
             var taskMeta = Metadata(taskText);
             if (taskMeta.GetValueOrDefault("id") != id || taskMeta.GetValueOrDefault("schema_version") != "1") Error(taskFile, id, "REQUIRED_METADATA", "Task metadata must name the feature and schema version 1.");
             var tasks = Parse(taskText, taskFile, "###", "T", 2, Error);
             CheckDependencies(tasks, Error);
             foreach (var task in tasks)
             {
-                CheckFields(task, ["status", "depends_on", "ownership", "writes", "shared", "parallel", "isolation", "agent", "acceptance", "evidence"], TaskStates, Error);
-                if (!new[] { "true", "false" }.Contains(Value(task, "parallel")) || !new[] { "required", "none" }.Contains(Value(task, "isolation"))) Error(taskFile, task.Id, "INVALID_STATUS", "Invalid parallel or isolation value.");
+                CheckFields(task, ["status", "depends_on", "acceptance", "evidence"], TaskStates, Error);
+                if (Value(task, "parallel") == "true") CheckFields(task, ["ownership", "writes", "shared", "isolation", "agent"], TaskStates, Error);
+                if (!new[] { "true", "false" }.Contains(task.Fields.GetValueOrDefault("parallel", "false")) || !new[] { "required", "none" }.Contains(task.Fields.GetValueOrDefault("isolation", "none"))) Error(taskFile, task.Id, "INVALID_STATUS", "Invalid parallel or isolation value.");
                 var writes = List(Value(task, "writes"));
                 var shared = List(Value(task, "shared"));
                 foreach (var path in writes.Concat(shared)) if (!SafePath(root, path)) Error(taskFile, task.Id, "UNSAFE_PATH", "Ownership path is unsafe or traverses a reparse entry.");
-                if (Value(task, "agent") != "primary" && writes.Length > 0)
+                if (task.Fields.GetValueOrDefault("agent", "primary") != "primary" && writes.Length > 0)
                 {
                     if (Value(task, "isolation") != "required") Error(taskFile, task.Id, "WORKER_ISOLATION", "Write worker must require isolation.");
                     if (shared.Length > 0 || writes.Any(PrimaryPath)) Error(taskFile, task.Id, "PRIMARY_SHARED", "Shared state belongs to the primary.");
                 }
                 var refs = List(Value(task, "acceptance"));
                 if (refs.Length == 0 || refs.Any(r => !ac.Contains(r))) Error(taskFile, task.Id, "AC_REFERENCE", "Task acceptance reference is missing from its specification.");
+                CheckEvidence(root, task, Error);
                 if (Value(task, "status") == "done")
                 {
                     var evidence = Value(task, "evidence");
-                    var paths = Matches(evidence, @"(?:docs|tests|tools|\.omp)/[^\s;,`]+\.[a-zA-Z0-9]+").Select(m => m.Value).ToArray();
-                    if (paths.Length == 0 || !paths.Any(p => SafePath(root, p) && File.Exists(Path.Combine(root, p)))) Error(taskFile, task.Id, "DONE_WITHOUT_EVIDENCE", "Done task requires an existing evidence artifact.");
-                    if (Value(task, "agent") != "primary" && !evidence.Contains("integrated", StringComparison.OrdinalIgnoreCase)) Error(taskFile, task.Id, "DONE_WITHOUT_INTEGRATION", "Write worker completion requires recorded primary integration.");
+                    if (task.Fields.GetValueOrDefault("agent", "primary") != "primary" && writes.Length > 0 && !evidence.Contains("integrated", StringComparison.OrdinalIgnoreCase)) Error(taskFile, task.Id, "DONE_WITHOUT_INTEGRATION", "Write worker completion requires recorded primary integration.");
                     if (List(Value(task, "depends_on")).Any(d => !tasks.Any(t => t.Id == d && Value(t, "status") == "done"))) Error(taskFile, task.Id, "MISSING_DEPENDENCY", "Done task has an unfinished dependency.");
                 }
             }
@@ -126,22 +135,47 @@ public static class ProjectValidator
                     if (Value(left, "parallel") != "true" || Value(right, "parallel") != "true" || new[] { "done", "dropped" }.Contains(Value(left, "status")) || new[] { "done", "dropped" }.Contains(Value(right, "status")) || Depends(left.Id, right.Id, tasks, []) || Depends(right.Id, left.Id, tasks, [])) continue;
                     if (Value(left, "ownership") == Value(right, "ownership") || List(Value(left, "writes")).Any(l => List(Value(right, "writes")).Any(r => Overlap(l, r)))) Error(taskFile, right.Id, "PARALLEL_OVERLAP", $"Concurrent ownership overlaps {left.Id}; serialize the tasks.");
                 }
-            var designFile = folder + "/design.md";
-            if (documents.TryGetValue(designFile, out var design))
-            {
-                var designBlock = new Block(id, designFile, design, Metadata(design));
-                CheckFields(designBlock, ["id", "type", "status", "goal", "scope_version"], DocStates, Error);
-                if (Value(designBlock, "id") != id || Value(designBlock, "goal") != Value(spec, "goal")) Error(designFile, id, "MISSING_REFERENCE", "Design ownership differs from specification.");
-            }
+
         }
         return errors.OrderBy(e => e.File, StringComparer.Ordinal).ThenBy(e => e.Task, StringComparer.Ordinal).ThenBy(e => e.Code, StringComparer.Ordinal).ToArray();
+    }
+
+    private static void CheckEvidence(string root, Block block, Action<string, string, string, string> error)
+    {
+        var paths = Matches(Value(block, "evidence"), @"[^\s;,`()\[\]]*[/\\][^\s;,`()\[\]]+\.[a-zA-Z0-9]+[^\s;,`()\[\]]*")
+            .Select(m => m.Value)
+            .Where(path => !Uri.TryCreate(path, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
+            .ToArray();
+        foreach (var path in paths)
+            if (!SafePath(root, path)) error(block.File, block.Id, "UNSAFE_PATH", "Evidence path is unsafe or traverses a reparse entry.");
+        if (Value(block, "status") == "done" && !paths.Any(path => SafePath(root, path) && File.Exists(Path.Combine(root, path))))
+            error(block.File, block.Id, "DONE_WITHOUT_EVIDENCE", "Completion requires an existing safe evidence artifact.");
+    }
+
+    private static void CheckSkills(Dictionary<string, string> documents, Action<string, string, string, string> error)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var (file, text) in documents.Where(p =>
+            p.Key.StartsWith(".agents/skills/", StringComparison.Ordinal) &&
+            p.Key.EndsWith("/SKILL.md", StringComparison.Ordinal)))
+        {
+            var metadata = Metadata(text);
+            var name = metadata.GetValueOrDefault("name", "");
+            if (name.Length is < 1 or > 64 || !Regex.IsMatch(name, @"^[a-z0-9]+(?:-[a-z0-9]+)*$") ||
+                string.IsNullOrWhiteSpace(metadata.GetValueOrDefault("description")))
+                error(file, "", "SKILL_METADATA", "Skill requires a kebab-case name and nonempty description in frontmatter.");
+            if (!names.Add(name))
+                error(file, name, "DUPLICATE_SKILL", "Shared skill names must be unique.");
+            var expected = $".agents/skills/{name}/SKILL.md";
+            if (file != expected) error(file, name, "SKILL_PATH", "Skill name must match its direct repository skill directory.");
+        }
     }
 
     private static Dictionary<string, string> Metadata(string text)
     {
         if (!text.StartsWith("---\n", StringComparison.Ordinal)) return [];
         var end = text.IndexOf("\n---", 4, StringComparison.Ordinal);
-        return end < 0 ? [] : Matches(text[4..end], @"^([a-z_]+):\s*(.*)$").GroupBy(m => m.Groups[1].Value).ToDictionary(g => g.Key, g => g.Last().Groups[2].Value.Trim());
+        return end < 0 ? [] : Matches(text[4..end], @"^([a-z_][a-z_0-9]*):[ \t]*(.*)$").GroupBy(m => m.Groups[1].Value).ToDictionary(g => g.Key, g => g.Last().Groups[2].Value.Trim());
     }
     private static List<Block> Parse(string text, string file, string level, string prefix, int digits, Action<string, string, string, string> error)
     {
@@ -182,7 +216,7 @@ public static class ProjectValidator
     private static bool PrimaryPath(string path)
     {
         path = path.Replace('\\', '/').ToLowerInvariant();
-        return path.StartsWith(".omp/") || path.StartsWith(".github/") || path is "docs/backlog.md" or "docs/product/goals.md" || path.EndsWith("/tasks.md");
+        return path.StartsWith(".omp/") || path.StartsWith(".agents/") || path.StartsWith(".github/") || path is "agents.md" or "claude.md" or "contributing.md" or "security.md" or "docs/constitution.md" or "docs/backlog.md" or "docs/product/goals.md" || path.EndsWith("/tasks.md");
     }
     private static bool Overlap(string a, string b)
     {
@@ -206,19 +240,6 @@ public static class ProjectValidator
             if ((File.Exists(current) || Directory.Exists(current)) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0) return false;
         }
         return true;
-    }
-    private static void CheckLanguage(string file, string text, Action<string, string, string, string> error)
-    {
-        // Script detection is deterministic, not a proof that Latin-script prose is English.
-        // Only explicitly labelled opaque data fences are exempt; surrounding prose is checked.
-        var opaque = false;
-        foreach (var line in text.Split('\n'))
-        {
-            if (line.Trim() == "```opaque-user-data") { opaque = true; continue; }
-            if (opaque && line.Trim() == "```") { opaque = false; continue; }
-            if (!opaque && line.Any(c => char.IsLetter(c) && c > '\u024f' && c is not (>= '\u1e00' and <= '\u1eff')))
-            { error(file, "", "NON_ENGLISH_SCRIPT", "Authored prose contains a non-Latin script; review the English-only policy."); break; }
-        }
     }
     private static void CheckLinks(string root, string file, string text, Action<string, string, string, string> error)
     {

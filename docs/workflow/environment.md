@@ -1,5 +1,7 @@
 # Bootstrap environment and evidence
 
+Historical evidence: the executable workflow and its instructions were retired on 2026-09-14. Runtime commands, permission records and language prescriptions below describe the past bootstrap only; current development follows CONTRIBUTING.md. Archived sources map to docs/archive/omp/<original path>. Provider-source provenance remains unchanged.
+
 Observed 2026-09-12 through OMP on the owner workstation. Repository paths below are relative; the checked Git root was the current `ai-usage-app` checkout under the owner's projects directory. No credential stores or tokens were inspected.
 
 ## Preflight
