@@ -16,25 +16,29 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-002 - First runnable Windows MSIX and smoke CI
 - goal: G-002
-- status: blocked
+- status: done
 - depends_on: [AIU-001]
 - trigger: next
 - outcome: Create the WinUI/.NET 10/Host three-project skeleton, empty dashboard, packaged launch/exit, basic CI and a standalone native-routing spike. Do not build the entire shell upfront.
-- blocker: Authorized Windows Sandbox enablement succeeded with state Enabled and RestartNeeded=true. No automatic reboot occurred. Owner-controlled host restart is required before disposable guest installation/UI proof; see docs/specs/AIU-002-windows-msix/verification.md.
+- evidence: docs/specs/AIU-002-windows-msix/verification.md
+- outcome-note: Closed on 2026-09-14 after final evidence review. A signed development MSIX installed in a clean disposable guest, the offline packaged UI passed three inspected launch/exit scenarios, and the native routing spike navigated Main to Second and back under Microsoft.WinUI, exiting cleanly. Genuine missing-framework and missing-runtime negatives were observed rather than simulated. Remote GitHub Actions execution and interactive UI CI remain NOT_RUN by authorization; host installation and host certificate trust were never performed.
 
 ## AIU-003 - Codex authentication/quota feasibility and contract evidence
 - goal: G-002
-- status: research-needed
+- status: done
 - depends_on: [AIU-001]
 - trigger: next
-- outcome: Run a disposable provider spike covering browser/device availability, scopes, redirects, quota groups and coexistence of rotating CLI credentials; retain sanitized evidence.
+- outcome: Run a console-driven provider/library spike covering browser/device availability, scopes, redirects, quota groups and coexistence of rotating CLI credentials; retain sanitized evidence. This research does not depend on WinUI readiness.
+- evidence: docs/specs/AIU-003-codex-console/verification.md
+- outcome-note: Live-verified on 2026-09-14. The console completed a real browser sign-in, read this account's actual subscription quota, refreshed in memory and read quota again, exiting cleanly. Connection and usage mirror the locally cloned OMP implementation per D-177. Remaining provider scope - device login, multi-workspace, exhausted/rate-limited responses, long-term rotation and CLI coexistence - is NOT_RUN and belongs to AIU-004/005. Public-client reuse permission remains unknown.
 
 ## AIU-004 - Codex vertical slice: account to secure quota dashboard
 - goal: G-002
 - status: idea
-- depends_on: [AIU-002, AIU-003]
+- depends_on: [AIU-003]
 - trigger: after-evidence
-- outcome: Implement DPAPI, the minimum EF schema/cache, one working account path with multi-account identity, parser, state store, refresh/errors and tray integration, with tests required by this outcome.
+- outcome: First implement the reusable UI-independent Codex integration library and verify its real account, quota, refresh and reauthentication behavior through a console application. Reuse that implementation for the secure quota dashboard, minimum cache/state, refresh/errors and tray integration afterward. Preserve DPAPI and multi-account identity boundaries; no duplicate console/UI provider clients.
+- integration-gate: Library/console work is independent of AIU-002; connecting it to the Windows UI requires AIU-002 acceptance. Completion of this item still includes the UI integration, not console-only proof.
 
 ## AIU-005 - Codex CLI discovery and import UX
 - goal: G-002
@@ -209,10 +213,14 @@ Add MINOR findings with deduplication and a source/finding ID. They do not autom
 
 ## Non-blocking review findings
 
-Source: the AIU-001 independent review of frozen commit `9afa9d5`; see [the preserved outcome](specs/AIU-001-omp-bootstrap/verification.md#independent-review). These MINORs are deduplicated follow-ups, not new authorization or blockers to local bootstrap closure.
+Sources: the AIU-001 independent review of frozen commit `9afa9d5` ([outcome](specs/AIU-001-omp-bootstrap/verification.md#independent-review)) and the AIU-003 frozen-source credential review ([outcome](specs/AIU-003-codex-console/verification.md#independent-review)). These MINORs are deduplicated follow-ups, not automatic new authorization or blockers to their local slices.
 
 | Finding ID | Deferred work | Current boundary |
 |---|---|---|
 | CR-AIU-001-01 | Consider explicit formatting CI for both owned projects when stricter gates are restored. | Deferred by the 2026-09-13 owner amendment: formatting is local-only, not a current PR gate. Both projects passed direct checks at bootstrap closure. |
 | CR-AIU-001-02 | Define safe stale workflow-lock recovery and ignore its runtime artifact. | A kill/power loss while holding the lock can leave later transitions failing with EEXIST. Do not remove a potentially live writer's lock or claim automatic recovery. |
 | CR-AIU-001-03 | Reconcile automated language/link coverage with tools/tests/workflow source policy, preserving opaque test data exceptions. | Current scanning covers docs, selected root files and configured .omp trees, not every authored source. English policy remains repository-wide. |
+| CR-AIU-003-01 | Before UI/persistent consumption, enforce hardened HTTP construction at the library boundary rather than relying on DI composition. | Current console uses fixed HTTPS origins, disabled redirects/cookies/logging through AddCodexIntegration. Public constructors trust consumer-supplied HttpClient pipelines; the provider index documents that requirement. |
+| CR-AIU-003-02 | Superseded by D-177: provider-issued context is recorded, not locally refused. Remaining scope is opaque non-JWT refresh responses that carry no usable identity claims, and adding a region header only if a real provider rejection proves it necessary. | Region comes only from the presented token and is never inherited. Workspace mismatch between tokens or across refresh still fails closed. |
+| CR-AIU-002-01 | Capture routing scenario screenshots after the navigated route repaints, as the product smoke already does with its settling interval. | Routing acceptance rests on the UIA-observed `Main` to `Second` to `Main` sequence and a clean exit; `back.png` in the retained run shows the pre-repaint Second frame. Main and Second screenshots are correct. |
+| CR-AIU-003-03 | Refine usage-401 versus terminal-refresh handling and surface immediate reauthentication guidance in console/UI. | Current memory-only slice conservatively invalidates the session after usage 401; refresh-auth then requires a new login, even when the old refresh grant might still work. No automatic auth retry or grant replay occurs. |

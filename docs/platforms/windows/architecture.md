@@ -1,6 +1,6 @@
 # Windows architecture baseline
 
-Status: accepted architecture; AIU-002 implements the minimal three-project native baseline. Build/package evidence exists; installed guest/UI proof remains blocked. The later runtime and persistence sections remain intended requirements, not implemented services.
+Status: accepted architecture; AIU-002 implements the minimal three-project native baseline. Build/package and real guest runtime reports exist; final visual acceptance is paused by the owner's switch to provider library/console work. The later runtime and persistence sections remain intended requirements, not implemented services.
 
 ## Stack
 Windows 11 24H2+, x64; .NET 10; WinUI 3 / Windows App SDK / MSIX; Generic Host; CommunityToolkit.Mvvm; MVVM-first routing (Uno.Extensions.Navigation candidate, first build gate); EF Core 10 SQLite; HttpClientFactory/typed clients/System.Text.Json/Http.Resilience; Serilog; LiveCharts2; H.NotifyIcon.WinUI; native AppNotificationManager; xUnit v3/FlaUI UIA3.
@@ -22,6 +22,11 @@ tests/windows/
 The three production paths and Windows smoke project now exist. Core/Infrastructure test projects remain future paths until behavior needs tests. See the AIU-002 specification and actual verification; do not infer that later runtime services are implemented.
 
 Core references neither WinUI, EF nor Windows APIs. Provider transport DTOs and authentication endpoints belong in Infrastructure provider slices. Core may expose a typed normalized provider extension required by consumers, not arbitrary wire payloads. Windows composition may reference Core and Infrastructure. Do not introduce an Application project or use-case layer merely to satisfy an architecture label.
+
+## Provider development sequence
+Owner amendment (2026-09-13): implement provider behavior behind a reusable UI-independent library boundary, first consumed by a console verification application and subsequently by WinUI. Reuse Core contracts and Infrastructure provider implementations; neither consumer duplicates authentication, quota parsing or refresh logic. The console host is a planned development surface, not an already implemented command or another production UI.
+
+Prove the selected provider's supported authentication, initial quota, refresh and reauthentication through that console surface before UI integration. Preserve provider-specific consent requirements, DPAPI-protected app-owned credentials, redacted output and read-only source CLI stores. Research and library/console work can proceed independently of AIU-002 UI readiness once explicitly selected. Later UI integration still requires separate dispatcher, cancellation, refresh and shutdown verification. Build only the first evidence-backed Codex slice before generalizing to other providers.
 
 ## Runtime
 ```

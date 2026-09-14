@@ -163,6 +163,8 @@ Use AiUsage.Windows, AiUsage.Core and AiUsage.Infrastructure. Organize by featur
 ### D-051 - Project boundaries
 Core is UI/platform-neutral. Windows composition references Infrastructure; provider transport DTOs do not enter the UI. Minimize the public API; use internal classes and InternalsVisibleTo for tests.
 
+Owner amendment (2026-09-13): develop provider integrations as a reusable UI-independent library and verify them through a console application before connecting them to WinUI. The console and UI must consume the same implementation, not separate provider clients. Start with the existing Core/Infrastructure library boundaries; a project per provider or a speculative universal framework is not required. Provider research and library/console verification must not depend on UI readiness. Console proof does not replace later UI lifecycle verification or authorize live account access, unsafe credential output, or source CLI credential-store mutation.
+
 ### D-052 - Host
 Use Microsoft.Extensions.Hosting Generic Host for DI, configuration, logging and lifetime. Coordinate startup/shutdown with WinUI; do not block the dispatcher with console-style Run.
 
@@ -551,3 +553,13 @@ Develop forecasting and advanced tuning only after measured history. Defer remot
 
 ### D-176 - Repository language
 All repository documentation, decisions, goals, backlog items, specifications, plans, skills, agent instructions, prompts, code identifiers/comments, test descriptions, generated reports, commit messages, PRs and release notes must be in English. Ukrainian is for conversation with the owner only. Do not translate opaque provider/user data or previously approved identifiers. Deliberately added future product translations belong only in localization resources.
+
+## Provider account context
+
+### D-177 - Codex connection parity with the inspected OMP client
+On 2026-09-14 a live console sign-in proved the owner's account carries a `chatgpt_compute_residency` claim, which this implementation's own fail-closed policy refused after a successful token exchange. The owner then explicitly directed that the Codex connection and usage read duplicate the locally cloned OMP implementation rather than deriving an independent policy, taking only the parts needed to authenticate and read usage. Account-context claims such as residency and FedRAMP are therefore not read at all: that client extracts only the workspace identity, and only provider responses decide account context. Local identity consistency stays fail-closed - conflicting access/id workspace claims and a workspace change on refresh are rejected. Quota requests send the same explicit headers as that client: `Authorization`, `User-Agent` and `ChatGPT-Account-Id`, plus the standard transport `Accept`. Self-identifying values stay truthful: `User-Agent: AiUsage/...` and `originator=ai_usage`, never impersonating OMP or the Codex CLI. A live session verified this combination end to end. This supersedes the earlier residency rejection policy and does not authorize arbitrary headers, other providers, durable credential storage or UI integration.
+
+## Branching
+
+### D-178 - Direct main development until the first release
+On 2026-09-14 the owner decided to merge completed work into `main` and continue development by committing directly to `main`, one task at a time, treating feature branches as unnecessary overhead at this stage. Local merges and commits are ordinary work; pushing, remote publication and branch protection changes remain separately authorized and are not implied. Each commit must still be a coherent, verified task with its canonical records updated, not a checkpoint of unfinished work. Proposal to revisit, recorded at the owner's request: before the first release, restore short-lived feature branches with pull requests for anything touching signing, release artifacts, credential or data lifecycle, so release candidates are reviewable and revertible; main protection remains deferred in AIU-026 until then.

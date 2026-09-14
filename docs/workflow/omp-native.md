@@ -21,7 +21,7 @@ The actual supported project configuration is `.omp/config.yml`:
 - Native async jobs and task batches enabled; at most four workers; a positive five-minute worker runtime limit.
 - Isolation enabled, patch return selected and automatic application disabled. Every write worker still explicitly requests `isolated: true`.
 - Stable ordinary/asynchronous compaction enabled; no experimental context system.
-- YOLO tool approval inside the explicitly authorized workflow, not a security sandbox.
+- Native tool approval is currently configured as tools.approvalMode: yolo in .omp/config.yml. Ordinary interactive sessions inherit this setting even without /work selection or resume, so tools may execute without per-call confirmation. YOLO also applies inside an explicitly authorized /work workflow, where the project bridge separately enforces bounded authorization. Native Plan approval and explicit tool-policy restrictions remain separate; YOLO is not a security sandbox.
 
 Concrete model roles and authentication remain in the local profile. The bridge uses the native session-scoped settings adapter, not a process-global settings singleton. The five small skills are project-work, feature-delivery, provider-evidence, security-lifecycle and convergence-review.
 
@@ -33,17 +33,19 @@ Verified owner operations include `/work select`, `/work run`, `/work pause`, `/
 
 Native Plan approval is separate. The successful implementation/automatic-handoff probes first paused native Plan mode with `/plan`; the bridge does not bypass its approval UI. Select the native execution mode before starting automatic work. External startups still honor `plan.defaultOnStartup`.
 
-Selection alone does not start ordinary interactive work. The first grant confirms a goal's explicit item list and an integer budget from 2 through 10000. A fresh external process/session is unarmed even when the repository says active. Resume confirms the displayed recorded scope and consumption. A file cannot silently grant permission. Do not manually edit the execution authorization to add scope or replenish a budget.
+Ordinary interactive tools use native OMP permissions; `/work` opts into bounded execution. A local planning artifact or native proposal is not a bounded execution grant and does not select a product goal. Selection alone does not start the bounded primary. The first grant confirms a goal's explicit item list and an integer budget from 2 through 10000. A fresh external process/session is unarmed even when the repository says active. Resume confirms the displayed recorded scope and consumption. A file cannot silently grant bounded permission. Do not manually edit the execution authorization to add scope or replenish a budget.
 
 ## Authorization and accounting
 
 One JSON section in `docs/product/goals.md` stores the goal ID, allowed items, starting branch/commit, granted capabilities, cumulative steps, current item, completed items, native session references and stop reason. Revision checks, an exclusive transition lock and atomic replacement prevent two callers from spending the same recorded revision. The live process binds the confirmed grant and rejects scope/limit changes and observed accounting/history rollback.
 
-Steps reserve guarded native tool calls at the primary runtime boundary, plus selection/resume/completion/handoff/integration transitions. Rejected task/patch validation after a successful reservation still consumes its step; unarmed, stale or lock-conflicting calls fail before execution/reservation. Native transport calls can also consume steps. Worker calls are not charged individually to this counter; native task deadlines and native usage reports are separate. This is not a provider-request, token, money or primary wall-clock ceiling. Read-only pre-authorization inspection is not an execution grant.
+Within armed bounded execution, steps reserve guarded native tool calls at the primary runtime boundary, plus selection/resume/completion/handoff/integration transitions. Rejected task/patch validation after a successful reservation still consumes its step; unarmed, stale or lock-conflicting calls fail before execution/reservation. Ordinary interactive calls neither load an execution grant nor spend its budget. Unarmed denied calls are tool-local rejections, not whole-turn aborts. Native transport calls can also consume steps. Worker calls are not charged individually to this counter; native task deadlines and native usage reports are separate. This is not a provider-request, token, money or primary wall-clock ceiling. Read-only pre-authorization inspection is not an execution grant.
 
 Budget exhaustion stops further guarded work and aborts the native turn. Owner pause disarms continuation before aborting and persisting pause. The displayed native async-job count is not a claim that all agents or subprocesses have already stopped. Returned/late isolated outputs cannot automatically apply to the parent; a paused primary cannot integrate them. A crash leaves unfinished tasks unfinished.
 
-External resume needs confirmation. Only a proven internal `ctx.newSession` transfer preserves live authority without another prompt. Both native session-start and session-switch lifecycle events are handled. A closed OMP process does not continue working. Completed-item history prevents re-selection even while coarse document-status reconciliation remains the primary's responsibility.
+Successful selection/resume, explicit pause and internal transfer latch that session into bounded enforcement for this extension process. Pause, revocation, budget/scope exhaustion, cancelled handoff and switching away never remove the latch. Switching back to a stopped bounded session remains restricted; a distinct never-opted-in interactive session remains ordinary. Failed or cancelled selection/resume does not opt an ordinary session in. Explicit pause latches before persistence, including when persistence fails.
+
+External resume needs confirmation. Only a proven internal `ctx.newSession` transfer preserves live authority without another prompt: the incoming session must have a different native ID and its native header must name the recorded parent session file. Transfer intent is consumed on every lifecycle event, including headless events, and cleared on cancellation, rejection or return from session creation. Both native session-start and session-switch lifecycle events are handled. A closed OMP process does not continue working. Completed-item history prevents re-selection even while coarse document-status reconciliation remains the primary's responsibility.
 
 ## Workers and primary integration
 
@@ -70,6 +72,7 @@ Current CI keeps validator regressions, document validation and workflow/patch r
 ## Limits
 
 - An unarmed headless primary cannot write, launch processes or dispatch workers through guarded tools. Native isolated workers are identified by native session metadata, not by headless mode alone.
+- Ordinary interactive access does not authorize `work_checkpoint`: checked integration and completion retain their independent armed primary command-context checks. The per-session latch is in-process, not persistent native permission; a fresh external interactive process is ordinary until explicit bounded opt-in.
 - These are critical-transition gates, not mediation of every operation inside an already permitted shell/eval/process call or an OS sandbox.
 - The deterministic validator rejects non-Latin authored scripts and honors explicit opaque-data fences. It cannot prove that all Latin-script prose is English; review still owns that requirement.
 - Initial .NET package restoration is outside the network-free validator runtime. CI has no OMP authentication, live model/provider calls or product UI tests.

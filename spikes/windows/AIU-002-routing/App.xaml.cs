@@ -30,12 +30,7 @@ public partial class App : Application
             new ViewMap<SecondPage, SecondViewModel>());
 
         routes.Register(
-            new RouteMap(
-                "",
-                Nested:
-                [
-                    new RouteMap("Main", View: views.FindByViewModel<MainViewModel>(), IsDefault: true),
-                    new RouteMap("Second", View: views.FindByViewModel<SecondViewModel>())
-                ]));
+            new RouteMap("Main", View: views.FindByViewModel<MainViewModel>(), IsDefault: true),
+            new RouteMap("Second", View: views.FindByViewModel<SecondViewModel>()));
     }
 }

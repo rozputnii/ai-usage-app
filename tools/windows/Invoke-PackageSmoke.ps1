@@ -61,7 +61,7 @@ try {
     if ($certificate.Subject -ne $manifest.Package.Identity.Publisher -or !$signature.SignerCertificate -or $signature.SignerCertificate.Thumbprint -ne $certificate.Thumbprint) { throw 'Prerequisite: package and public certificate mismatch.' }
     $dotnet = Join-Path $env:ProgramFiles 'dotnet/dotnet.exe'
     $report.signer = $certificate.Thumbprint
-    $runtimeInventory = if (Test-Path -LiteralPath $dotnet) { @(& $dotnet --list-runtimes) } else { @() }
+    $runtimeInventory = @(if (Test-Path -LiteralPath $dotnet) { & $dotnet --list-runtimes })
     $frameworkInventory = @(Get-AppxPackage -PackageTypeFilter Framework | Select-Object Name, Version, Architecture)
     $report.runtimeRequired = $runtime
     $report.initialRuntimes = $runtimeInventory
@@ -69,7 +69,7 @@ try {
     $report.packageHash = (Get-FileHash -LiteralPath $PackagePath -Algorithm SHA256).Hash
     $report.packageVersion = [string]$manifest.Package.Identity.Version
     if (Get-AppxPackage -Name 'AiUsage.Dev') { throw 'Prerequisite: fresh guest must not contain AiUsage.Dev.' }
-    $sdks = if (Test-Path -LiteralPath $dotnet) { @(& $dotnet --list-sdks) } else { @() }
+    $sdks = @(if (Test-Path -LiteralPath $dotnet) { & $dotnet --list-sdks })
     if ($sdks.Count -ne 0 -or (Test-Path "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe")) { throw 'Prerequisite: guest must not contain a developer SDK or Visual Studio.' }
     # Trust is changed only after all inputs validate, and only inside this disposable guest.
     Import-Certificate -FilePath $CertificatePath -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null

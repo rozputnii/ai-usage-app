@@ -27,4 +27,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <Content Include="../../../src/windows/AiUsage.Windows/Assets/*.png" Link="Assets/%(Filename)%(Extension)" />
   </ItemGroup>
+  <ItemGroup Condition="'$(AiUsagePackageManifest)' != ''">
+    <AppxManifest Include="$(AiUsagePackageManifest)" />
+  </ItemGroup>
 </Project>

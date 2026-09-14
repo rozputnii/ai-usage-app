@@ -33,8 +33,10 @@ export default function (pi: ExtensionAPI) {
   // A new external session never arms itself from a file. Only this process's
   // explicit UI authorization or internal handoff can arm its primary.
   let armed = false;
+  const boundedSessions = new Set<string>();
   let automatic = false;
   let transfer = false;
+  let transferParent: { id: string; file: string } | undefined;
   let commandContext: ExtensionCommandContext | undefined;
   let finishing = false;
   let confirmed: Authorization | undefined;
@@ -85,6 +87,7 @@ export default function (pi: ExtensionAPI) {
       const preview = auth ?? draft(project, goalId, 'read-only-preview', 32);
       summary += ` Eligible: ${work.rank({ ...project, authorization: preview }, goalId).slice(0, 5).map(c => `${c.id} (${c.score.toFixed(0)}/100)`).join(', ') || 'none'}. Ranking does not grant permission.`;
     }
+    summary += ' Ordinary interactive tools use native OMP permissions; /work opts into bounded execution.';
     announce(ctx, summary);
   }
 
@@ -104,10 +107,16 @@ export default function (pi: ExtensionAPI) {
   }
 
   const onSession = async (_event: unknown, ctx: ExtensionContext) => {
-    if (!ctx.hasUI) return; // Workers must not recursively select work or inherit authority.
-    armed = transfer;
-    if (!transfer) { automatic = false; confirmed = undefined; }
+    // Headless lifecycle events consume transfer intent without revoking the live primary.
+    if (!ctx.hasUI) { transfer = false; transferParent = undefined; return; }
+    const incoming = ctx.sessionManager.getSessionId();
+    const continuing = transfer && transferParent !== undefined
+      && incoming !== transferParent.id && ctx.sessionManager.getHeader()?.parentSession === transferParent.file;
     transfer = false;
+    transferParent = undefined;
+    armed = continuing;
+    if (!continuing) { automatic = false; confirmed = undefined; }
+    if (continuing) boundedSessions.add(incoming);
     await present(ctx);
   };
   pi.on('session_start', onSession);
@@ -117,9 +126,10 @@ export default function (pi: ExtensionAPI) {
     // Native session metadata distinguishes isolated workers from unattended primaries.
     // Headless mode by itself never grants write permission.
     if (!ctx.hasUI && isNativeWorker(ctx)) return;
+    if (ctx.hasUI && !armed && !boundedSessions.has(ctx.sessionManager.getSessionId())) return;
     if (!armed && ['read', 'grep', 'glob', 'web_search', 'ask', 'todo', 'goal', 'advise'].includes(event.toolName)) return;
+    if (!armed) return { block: true, reason: 'Work is not armed: use /work select or /work resume' };
     try {
-      if (!armed) throw new Error('Work is not armed: use /work select or /work resume');
       const auth = await current(ctx);
       showStatus(ctx, await work.charge(ctx.cwd, auth, 1));
       if (event.toolName === 'task') {
@@ -141,9 +151,7 @@ export default function (pi: ExtensionAPI) {
       }
     } catch (error) {
       const saved = await work.loadAuthorization(ctx.cwd).catch(() => null);
-      if (!armed || !saved || saved.status !== 'active') {
-        armed = false; automatic = false; transfer = false; ctx.abort();
-      }
+      if (armed && (!saved || saved.status !== 'active')) disarm(ctx);
       return { block: true, reason: error instanceof Error ? error.message : 'Work gate failed' };
     }
   });
@@ -172,6 +180,7 @@ export default function (pi: ExtensionAPI) {
         if (action === 'verify') { await validate(ctx.cwd); announce(ctx, 'Document validation PASS'); return; }
         if (!ctx.hasUI) throw new Error('Owner-facing work transitions require a native interactive session');
         if (action === 'pause') {
+          boundedSessions.add(ctx.sessionManager.getSessionId());
           armed = false; automatic = false; transfer = false; ctx.abort();
           await work.pause(ctx.cwd, 'Owner pause');
           showStatus(ctx, await work.loadAuthorization(ctx.cwd));
@@ -189,6 +198,7 @@ export default function (pi: ExtensionAPI) {
           showStatus(ctx, await work.noteSession(ctx.cwd, await current(ctx), ctx.sessionManager.getSessionId()));
           confirmed = await current(ctx);
           automatic = rest[0] === 'auto';
+          boundedSessions.add(ctx.sessionManager.getSessionId());
           armed = true;
           announce(ctx, 'Work confirmed for this session. /work run starts the primary.');
           return;
@@ -220,6 +230,7 @@ export default function (pi: ExtensionAPI) {
           await work.select(ctx.cwd, id, auth);
           showStatus(ctx, await work.noteSession(ctx.cwd, await current(ctx), ctx.sessionManager.getSessionId()));
           confirmed = await current(ctx);
+          boundedSessions.add(ctx.sessionManager.getSessionId());
           armed = true; automatic = action === 'auto';
           announce(ctx, `Selected ${id}; ${candidates.find(c => c.id === id)?.rationale.join('; ')}. /work run starts implementation.`);
           if (automatic) await start(ctx);
@@ -253,9 +264,20 @@ export default function (pi: ExtensionAPI) {
         if (!saved || saved.status !== 'active') { armed = false; automatic = false; announce(ctx, 'Budget stop; no fresh work started'); return; }
         const candidates = work.rank(await work.readProject(ctx.cwd), saved.goalId);
         if (!saved.currentItem && !candidates.length) { armed = false; automatic = false; announce(ctx, 'Authorized goal scope exhausted. No next goal started.'); return; }
+        const parentFile = ctx.sessionManager.getSessionFile();
+        if (!parentFile) throw new Error('Internal handoff requires a native parent session file');
+        transferParent = { id: ctx.sessionManager.getSessionId(), file: parentFile };
         transfer = true;
-        const result = await ctx.newSession({ parentSession: ctx.sessionManager.getSessionFile() });
-        if (result.cancelled) { transfer = false; armed = false; return; }
+        try {
+          const result = await ctx.newSession({ parentSession: parentFile });
+          if (result.cancelled) { armed = false; automatic = false; return; }
+        } catch (error) {
+          armed = false; automatic = false;
+          throw error;
+        } finally {
+          transfer = false;
+          transferParent = undefined;
+        }
         if (!armed || !automatic) throw new Error('Handoff interrupted; explicit resume required');
         const restored = await work.noteSession(ctx.cwd, saved, ctx.sessionManager.getSessionId());
         await branchGuard(ctx.cwd, saved);

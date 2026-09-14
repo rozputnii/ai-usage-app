@@ -43,14 +43,17 @@ public sealed class PackageSmoke
             var startup = Stopwatch.StartNew();
             while (startup.Elapsed < TimeSpan.FromSeconds(15) && !process.HasExited)
             {
-                window = automation.GetDesktop().FindFirstChild(cf => cf.ByProcessId(pid))?.AsWindow();
-                if (window?.FindFirstDescendant(cf => cf.ByAutomationId("EmptyState"))?.Name == "No accounts connected.")
+                window = FindProcessWindow(automation, pid);
+                if (window?.FindFirstDescendant(cf => cf.ByAutomationId("EmptyState"))?.Name == "No accounts connected."
+                    && (scenario != "title-bar" || window.TitleBar?.CloseButton is not null))
                     break;
                 Thread.Sleep(100);
             }
             Assert.NotNull(window);
             Assert.Equal("Dashboard", window.FindFirstDescendant(cf => cf.ByAutomationId("DashboardHeading"))?.Name);
             Assert.Equal("No accounts connected.", window.FindFirstDescendant(cf => cf.ByAutomationId("EmptyState"))?.Name);
+            // UIA can expose text before the compositor presents the corresponding frame.
+            Thread.Sleep(500);
             using (var screenshot = window.Capture())
                 screenshot.Save(Path.Combine(evidence!, scenario + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             var handle = window.Properties.NativeWindowHandle.Value;
@@ -66,7 +69,7 @@ public sealed class PackageSmoke
                 Assert.NotNull(exit);
                 exit.Focus();
                 Assert.True(exit.Properties.IsKeyboardFocusable.Value);
-                FlaUI.Core.Input.Keyboard.Press(FlaUI.Core.WindowsAPI.VirtualKeyShort.ENTER);
+                FlaUI.Core.Input.Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.ENTER);
                 if (scenario == "repeated-exit")
                 {
                     // Overlap the keyboard Exit action with native close requests.
@@ -76,7 +79,7 @@ public sealed class PackageSmoke
             }
             Assert.True(process.WaitForExit(10000), "Launched PID did not terminate within ten seconds.");
             Assert.Equal(0, process.ExitCode);
-            Assert.Null(automation.GetDesktop().FindFirstChild(cf => cf.ByProcessId(pid)));
+            Assert.Null(FindProcessWindow(automation, pid));
             passed = true;
         }
         finally
@@ -110,6 +113,21 @@ public sealed class PackageSmoke
             }
         }
     }
+
+    private static Window? FindProcessWindow(UIA3Automation automation, int pid)
+    {
+        // Sandbox UIA3 can report ProcessId=0; the native HWND owner remains authoritative.
+        foreach (var element in automation.GetDesktop().FindAllChildren())
+        {
+            var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
+            if (handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == (uint)pid)
+                return element.AsWindow();
+        }
+        return null;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr OpenInputDesktop(uint flags, bool inherit, uint access);
