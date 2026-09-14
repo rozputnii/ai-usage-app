@@ -1,9 +1,9 @@
 # AIU-004 verification
 
 ## Scope and environment
-- Date: 2026-09-14.
+- Date: 2026-09-14. This records the dashboard subtask of AIU-004; the cached-snapshot and tray subtasks remain open in the same item.
 - Environment: Windows 11, OMP 18.1.19, user-local .NET SDK 10.0.401, disposable Windows Sandbox guest without networking.
-- Change: DPAPI-protected Codex grant storage, a session that owns resume/connect/refresh/disconnect, and a dashboard that renders real quota. The provider client from AIU-003 is reused unchanged.
+- Change: DPAPI-protected Codex grant storage, a session that owns resume/connect/refresh/disconnect, and a dashboard that renders quota. The provider client from AIU-003 is reused unchanged.
 - No source CLI credential store was read or modified. No host installation, host certificate trust change, elevation or remote action occurred.
 
 ## Executed checks
@@ -13,8 +13,7 @@
 | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release -- -noLogo` | PASS: 68 tests, zero failures/errors/skips | Provider protocol plus grant store and session state transitions |
 | `Build-Package.ps1 -MsixVersion 2026.9.1402.0 -CertificateThumbprint 771CB0E8...` | Signed candidate retained; host `signtool` verification failed closed on the untrusted development root | Expected behavior recorded in AIU-002; the bytes are guest-verified, not host-installable |
 | Clean disposable guest run `guest-evidence-1789392583866` | PASS: `positive: PASS`, `smokeExitCode: 0`, orchestration `FINISHED`, product exit 0 | Installed offline dashboard on the new package 2026.9.1402.0, hash 3482BAD8286FE7DA1526505DF3A5CDEA9BE1FB1A2B4D77832FCF694388FA7814 |
-| Inspected screenshot `product/positive/exit.png` | PASS | Installed window shows Dashboard, "No accounts connected.", enabled "Connect Codex", and disabled Refresh and Disconnect |
-| Missing-framework and missing-runtime negatives | Observed again: `OBSERVED_INSTALL_FAILURE` and `OBSERVED_FAILURE_AFTER_ACTIVATION_ATTEMPT` | Genuine clean-machine prerequisites, not simulated |
+| Inspected screenshot `product/positive/exit.png` | PASS | Installed window shows Dashboard, "No accounts connected.", enabled "Connect Codex", and disabled Refresh and Disconnect. With networking disabled this observes the not-connected state, not quota in the dashboard |
 | Canonical project validation | PASS: `{"valid":true,"diagnostics":[]}` | `dotnet run --project tools/AiUsage.ProjectValidation -- --root . --json` |
 
 ## Behavior covered by tests
@@ -37,9 +36,11 @@ Also NOT_RUN: a relaunch that resumes a real stored grant end to end, disconnect
 | AC-01 | PASS | The UI resolves `CodexSession` from dependency injection; no endpoint, header, token parsing or quota normalization exists in the UI layer |
 | AC-02 | PASS, deterministic | DPAPI CurrentUser record under the app-owned LocalState `providers` directory; no plaintext secret on disk, in UI text or in failure messages. Real-account persistence on the packaged app is NOT_RUN |
 | AC-03 | PASS, deterministic | Resume and invalidated-grant transitions are covered by tests; a live relaunch with a real stored grant is NOT_RUN |
-| AC-04 | PASS | Five distinct states; absent percentages and reset times render as explicit unknown labels and exhausted windows say so. The empty state and disabled commands were inspected in the installed screenshot |
+| AC-04 | PASS, deterministic | Five distinct states; absent percentages and reset times render as explicit unknown labels and exhausted windows say so. The installed screenshot confirms the not-connected state and command availability only; quota rendering is covered by tests, since the guest has no networking |
 | AC-05 | PASS, deterministic | Disconnect deletes only the owned record, keeps neighbouring files, and states no provider-side revocation |
 | AC-06 | PASS | Build, 68 tests, guest run with inspected screenshot and canonical validation recorded above; every unexercised path is marked NOT_RUN rather than inferred |
+| AC-07 | NOT_RUN | Cached-snapshot subtask not started |
+| AC-08 | NOT_RUN | Tray subtask not started |
 
 ## Notes
 The previous smoke asserted an `EmptyState` element that the new dashboard replaces with `StatusText`. The smoke was updated to the new surface and strengthened: it now also asserts that the quota list is empty on a first run, that Connect is enabled and keyboard focusable, and that Refresh and Disconnect are disabled while nothing is connected. Assertions on actual process exit and the absence of process-owned windows are unchanged.

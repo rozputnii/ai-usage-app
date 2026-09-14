@@ -34,12 +34,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-004 - Codex vertical slice: account to secure quota dashboard
 - goal: G-002
-- status: done
+- status: in-progress
 - depends_on: [AIU-003]
 - trigger: after-evidence
 - outcome: First implement the reusable UI-independent Codex integration library and verify its real account, quota, refresh and reauthentication behavior through a console application. Reuse that implementation for the secure quota dashboard, minimum cache/state, refresh/errors and tray integration afterward. Preserve DPAPI and multi-account identity boundaries; no duplicate console/UI provider clients.
 - evidence: docs/specs/AIU-004-codex-dashboard/verification.md
-- outcome-note: Closed on 2026-09-14 for the dashboard slice: one Codex account persists under DPAPI CurrentUser in the app-owned LocalState root, the dashboard resumes it and shows real quota with connect, refresh and disconnect, and unknown values never render as zero. The single provider client is reused; the UI adds no provider request. Tray integration, cache/history, background refresh and multiple accounts were deliberately deferred to AIU-010/011 rather than expanded here. Connecting a real account from the packaged UI is NOT_RUN: the disposable guest has no networking and host installation is unauthorized.
+- outcome-note: Dashboard subtask delivered on 2026-09-14: one Codex account persists under DPAPI CurrentUser in the app-owned LocalState root, the dashboard resumes it and renders quota with connect, refresh and disconnect, and unknown values never render as zero. The single provider client is reused; the UI adds no provider request. Still open in this item and not deferred: minimum cache/state so a relaunch can show last-known values, and tray integration. The guest run observed the not-connected empty state, not quota in the dashboard; quota itself is live-verified only through the console.
 
 ## AIU-005 - Codex CLI discovery and import UX
 - goal: G-002

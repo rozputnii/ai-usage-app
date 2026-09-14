@@ -40,7 +40,33 @@ schema_version: 1
 - acceptance: [AC-01, AC-02, AC-03, AC-04, AC-05, AC-06]
 - evidence: docs/specs/AIU-004-codex-dashboard/verification.md
 
-## Handoff
-Selected by the owner on 2026-09-14 immediately after AIU-002 closure and the live-verified Codex path. Work proceeds directly on main, one task at a time, with a push after each completed task per D-178 and D-179. The provider client from AIU-003 is reused unchanged; this item adds DPAPI-protected persistence and the dashboard surface only. Tray, history, background refresh, multiple accounts, CLI import and a database stay out of scope. No provider account action beyond an explicit owner-initiated sign-in is authorized.
+### T-04 - Cache the last quota snapshot honestly
+- status: pending
+- depends_on: [T-02]
+- ownership: product state
+- writes: [src/windows/AiUsage.Core/**, src/windows/AiUsage.Infrastructure/**, src/windows/AiUsage.Windows/**, tests/windows/**]
+- shared: []
+- parallel: false
+- isolation: none
+- agent: primary
+- acceptance: [AC-07]
+- evidence: not-run
 
-Delivered on 2026-09-14: DPAPI-protected grant storage, the session over the AIU-003 clients and a dashboard that renders real quota with five distinct states. Verified by 68 deterministic tests, a Release build, and a clean disposable-guest run of signed package 2026.9.1402.0 with an inspected screenshot. Connecting a real account from the packaged UI is NOT_RUN because the guest has no networking and host installation is unauthorized; the provider path itself is live-verified through the console. Tray, history, background refresh, multiple accounts, CLI import and a database remain out of scope.
+### T-05 - Add tray presence
+- status: pending
+- depends_on: [T-02]
+- ownership: product shell
+- writes: [src/windows/AiUsage.Windows/**, tests/windows/**]
+- shared: []
+- parallel: false
+- isolation: none
+- agent: primary
+- acceptance: [AC-08]
+- evidence: not-run
+
+## Handoff
+Selected by the owner on 2026-09-14 immediately after AIU-002 closure and the live-verified Codex path. Work proceeds directly on main, one task at a time, with a push after each completed task per D-178 and D-179. The provider client from AIU-003 is reused unchanged. No provider account action beyond an explicit owner-initiated sign-in is authorized.
+
+Dashboard subtask delivered on 2026-09-14: DPAPI-protected grant storage, the session over the AIU-003 clients, and a dashboard with five distinct states. Verified by 68 deterministic tests, a Release build, and a clean disposable-guest run of signed package 2026.9.1402.0. The inspected screenshot shows the not-connected empty state with Connect enabled and Refresh and Disconnect disabled; quota rendering itself is covered by tests, not by that screenshot. Connecting a real account from the packaged UI is NOT_RUN because the guest has no networking and host installation is unauthorized; the provider path is live-verified through the console.
+
+Still open in this item, kept from the original backlog outcome rather than deferred: T-04 minimum cached snapshot with an explicit staleness label, and T-05 tray presence. History, charts, background refresh scheduling, multiple accounts, CLI import and a database remain outside AIU-004.
