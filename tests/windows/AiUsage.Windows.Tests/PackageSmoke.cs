@@ -251,12 +251,21 @@ public sealed class PackageSmoke
         var handle = window.Properties.NativeWindowHandle.Value;
         var foregroundBefore = GetForegroundWindow();
         window.SetForeground();
+        // Windows can deny programmatic foreground activation. A real title-bar click gives
+        // this keyboard scenario the same activation a user performs, without invoking Exit.
+        var activatedWithClick = GetForegroundWindow() != handle;
+        if (activatedWithClick)
+        {
+            Assert.NotNull(window.TitleBar);
+            window.TitleBar.Click();
+        }
         target.Focus();
         var ready = WaitUntil(() => GetForegroundWindow() == handle && target.Properties.HasKeyboardFocus.ValueOrDefault,
             TimeSpan.FromSeconds(5));
         File.WriteAllText(Path.Combine(evidence, operation + "-keyboard.json"), JsonSerializer.Serialize(new
         {
             ready,
+            activatedWithClick,
             foregroundWasTarget = foregroundBefore == handle,
             foregroundIsTarget = GetForegroundWindow() == handle,
             targetHasKeyboardFocus = target.Properties.HasKeyboardFocus.ValueOrDefault

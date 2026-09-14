@@ -51,7 +51,7 @@ After library verification, extract only behavior actually shared with Codex and
 - status: in-progress
 - depends_on: [T-04]
 - acceptance: AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07
-- evidence: not-run
+- evidence: docs/specs/AIU-007-claude-integration/verification.md
 
 Complete primary and required independent review, actual packaged Windows checks and live provider proof. Record every missing case honestly. Commit the private task branch, review/check the combined local-main candidate, and integrate locally only after required acceptance passes. The latest private scope keeps this work local; no remote publication, main push or release.
 
@@ -59,8 +59,8 @@ Complete primary and required independent review, actual packaged Windows checks
 
 Base: `0a0ffd4`. Branch: `codex/aiu-007-claude-integration`. The initial checkout was clean. Existing local main is `1e4f0ce`, an ancestor of the selected architecture base; main has not moved. No source credentials have been read or imported and no Claude account request has been made.
 
-Completed checks: 120 Infrastructure and 15 Presentation/workflow/boundary tests pass on Windows with SDK 10.0.401 and existing restored packages. The provider console normalized the synthetic fixture and native unsigned package 1413 compiled. These are automated/source checks, not live Claude verification.
+Completed checks: 130 Infrastructure and 16 Presentation/workflow/boundary tests pass on Windows with SDK 10.0.401 and existing restored packages. The provider console normalized the synthetic fixture. All six actual installed Windows scenarios pass on signed package 2026.9.1416.0; the test harness verifies foreground keyboard ownership before input. These checks do not establish live Claude verification.
 
-The owner resolved PROVIDER-002 by explicitly selecting private, unsupported OMP-style integration. Anthropic's restriction remains recorded. The quota worker's four-file commit is integrated and primary-reviewed. No worker artifact remains pending. Required independent review, actual packaged controls/lifecycle and live consent are outstanding.
+The owner resolved PROVIDER-002 by explicitly selecting private, unsupported OMP-style integration. Anthropic's restriction remains recorded. The quota worker's four-file commit is integrated and primary-reviewed. The fresh Luna max credential/durable-state review found two material issues; both were reproduced, fixed and passed targeted independent follow-up at bb25558. No worker artifact or material review finding remains pending. Live consent and acceptance are outstanding. The host's existing development registration was updated to 2026.9.1416.0 without changing host trust or resetting data; its Claude panel is open for the owner. The existing Codex connection still displays its quota.
 
-Exact next action: freeze the implemented candidate for a fresh Luna max credential/durable-state review, then execute the signed package's guest controls/lifecycle checks.
+Exact next action: have the owner select Connect Claude in the open AI Usage window and complete browser consent so the primary can verify live quota, renewal/resume and disconnect before local-main integration.

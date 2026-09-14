@@ -1,6 +1,8 @@
 # AIU-007 verification
 
-Date: 2026-09-14. Base: `0a0ffd4` (completed AIU-027). Task branch: `codex/aiu-007-claude-integration`. The initial tracked and untracked checkout was clean. No production code, credential storage, dependencies or Windows UI changed during the preparation recorded here.
+Current result: implementation, automated regressions, actual packaged Windows controls/lifecycle, and focused independent review pass. Live Claude acceptance is awaiting owner consent; AIU-007 is incomplete and remains on its private task branch. The final candidate and current acceptance are recorded below. Earlier preparation results are historical.
+
+Date: 2026-09-14. Base: `0a0ffd4` (completed AIU-027). Task branch: `codex/aiu-007-claude-integration`. The initial tracked and untracked checkout was clean. No production code, credential storage, dependencies or Windows UI changed during the initial preparation recorded here.
 
 ## Preparation and environment
 
@@ -36,7 +38,7 @@ The current restriction and unresolved authorization basis are recorded in [prov
 
 Required independent credential/durable-state review is NOT_RUN: there is no Claude implementation or credential/storage change to review. No new package was built or installed, no host trust changed, and actual Claude packaged UI/live tests are NOT_RUN. Prior AIU-027 screenshots and checks are historical baseline evidence only.
 
-## Acceptance
+## Preparation acceptance (historical)
 
 | Criterion | Verdict | Evidence or missing work |
 | --- | --- | --- |
@@ -85,3 +87,27 @@ Signed package `2026.9.1415.0` contains product source `05a469206aecdb9d882414b2
 PASS: the rerun at `.ai-usage-local/AIU-007/guest-evidence-1414/focus-1415` executed all six actual Windows scenarios with zero failures/skips and exit code zero. The harness DLL hash was `53D704AEA75707ED092CA6B22CB421D9FE04BACD283E3B77C9B209A0FCA7C9C6`. Inspected screenshots show masked synthetic manual input and an empty field after cancellation/reopening. The guest has no working HTTPS browser association and displays a shell dialog; no provider request or consent occurred. The pass establishes app controls and lifecycle, not working browser authentication. The manual-form image is clipped below the form on the small guest display; buttons were separately exercised through UIA.
 
 The frozen independent reviewer reported two material cases: same-identity reconnect replaced the prior grant before initial quota succeeded, and present account/organization objects without UUIDs inherited old identity on refresh. Primary regression tests reproduced six failures: three reconnect outcomes (401, network error, cancellation) and three malformed identity containers. The fixes preserve the previous generation for every failed reconnect and reject malformed present identity. Refresh-token rotation still persists before later quota cancellation. PASS: 130 Infrastructure tests and 16 Presentation tests, zero failures/skips, after these fixes. The frozen review is still finishing; final package verification and live acceptance remain outstanding after the fixes.
+
+## Final reviewed implementation candidate
+
+Product reference: `bb25558dd42743c45f52bcabcbd165a34d348aff`. The independent `gpt-5.6-luna` reviewer used `max` reasoning in a fresh, read-only detached worktree at `97ca3f20ab7734c5b3189707221c045fc573aafc`. Its original verdict was FAIL for the two material issues above; shared HTTP/loopback, protected staging/recovery, cancellation/overlap/shutdown, composition, console and redaction had no additional material finding. The targeted follow-up reviewed `97ca3f2..bb25558` and returned PASS for both fixes, with no new material finding. Reviewer `git diff --check`: PASS. Reviewer tests/UI: NOT_RUN because that isolated checkout lacked restored assets; it did not restore or perform account, network, credential, signing or installation work. Primary test execution is reported separately.
+
+Final signed package: `2026.9.1416.0`, SHA-256 `CAC4D6DB605C87E01309CAAF83D934685A76EC4BFAC3F584D984408A4CCC1DC2`. Actual guest install/update and signature validation: PASS. Host signing verification remains untrusted as expected; no host trust was changed. The first 1416 run detected Windows refusing programmatic foreground activation. The harness now falls back to a real title-bar click and verifies the target owns keyboard input before sending keys; it still tests Enter rather than substituting button invocation.
+
+PASS: final actual guest run started `2026-09-14T21:19:03Z`, `.ai-usage-local/AIU-007/guest-evidence-1414/activation-1416/report.json`, all six scenarios, zero failures/skips, all retained app processes exited with code zero. Harness DLL SHA-256: `24C02851A7BBBB0CA37353DB6228EED1BEFBB1C66BCE6AE14396348F299503CF`. Primary inspected the actual manual-input, canceled/reopened-input and restored-window screenshots. Synthetic input is masked and cleared; the unsupported notice is visible. The offline guest's missing HTTPS association and small screenshot viewport remain explicit evidence limitations; no live browser/provider claim follows from this smoke.
+
+Final supporting checks: PASS, all 78 project-validator regressions with zero failures/skips; PASS, canonical document validation with zero diagnostics; PASS, ProviderConsole Release build with zero warnings/errors; PASS, primary scoped diff/acceptance review and `git diff --check`. These used the pinned local SDK and existing restored packages. The native packaging build retains only the previously recorded missing-symbols-tool warning.
+
+Host preparation: updated the existing `AiUsage.Dev_951d0pt9hnds0` development registration from 2026.9.1301.0 to 2026.9.1416.0 using the verified Release manifest. No package reset, credential import, host trust change or dependency upgrade occurred. Native UI inspection confirmed the existing Codex account still displays quota and the Claude panel shows no connection with the unsupported notice. The app is open for owner-led sign-in. Live Claude connection, initial quota, renewal, restart/resume and disconnect remain NOT_RUN until that consent and subsequent checks occur.
+
+| Criterion | Current verdict | Evidence or remaining gate |
+| --- | --- | --- |
+| AC-01 | PASS | Exact current source and official restriction recorded; private scope is not provider approval |
+| AC-02 | BLOCKED | Protocol/failure regressions pass; actual Claude account consent and initial quota await the owner |
+| AC-03 | PASS | Protected-state, identity, renewal/cancellation, reconnect and deletion regressions; existing Codex state remains usable. Live Claude lifecycle remains part of AC-06 |
+| AC-04 | PASS | Synthetic parser and presentation checks preserve distinct groups/units/unknown/stale values; live values remain unverified |
+| AC-05 | PASS | 16 workflow/presentation regressions and six actual Windows scenarios; provider isolation, cancellation and exit verified |
+| AC-06 | BLOCKED | 130 Infrastructure tests, 16 Presentation tests and final packaged UI pass; live Claude lifecycle awaits consent |
+| AC-07 | BLOCKED | Independent findings resolved and reviewed; final live gate and local-main integration remain outstanding |
+
+The latest private scope keeps every commit local. Local main is still `1e4f0ce`; no remote publication, main push or release occurred. Exact next action: the owner completes Connect Claude in the open AI Usage window, enabling live quota, renewal/resume and disconnect verification before integration.
