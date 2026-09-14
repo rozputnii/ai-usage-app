@@ -1,8 +1,17 @@
 # Immutable handoff input is not a second maintained source of truth.
 /ai-usage-bootstrap-en/
 # Build and disposable workflow evidence.
-**/bin/
-**/obj/
+**/[Bb]in/
+**/[Oo]bj/
+**/[Tt]est[Rr]esults/
+**/AppPackages/
+# Visual Studio workspace caches and per-user settings.
+**/.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+# Local agent state and credentials.
 /.ai-usage-local/
 /.omp/sessions/
 /.omp/cache/
