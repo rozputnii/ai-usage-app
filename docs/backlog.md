@@ -61,7 +61,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 ## AIU-007 - Claude end-to-end integration
 - goal: G-003
 - status: research-needed
-- depends_on: [AIU-004]
+- depends_on: [AIU-004, AIU-027]
 - trigger: provider-2
 - outcome: Research provider policy, authentication, import and grouped quotas; implement UI/tests from evidence. Never automatically label unresolved provider policy approved.
 
@@ -199,6 +199,18 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - depends_on: [AIU-001]
 - trigger: only-after-owner-reprioritization
 - outcome: Configure main rulesets/protection, exact-head required checks and restricted bypass when the owner selects this work. Explicitly deferred on 2026-09-13; not a prerequisite for current development PRs or AIU-002.
+
+## AIU-027 - .NET architecture refinement and cleanup
+- goal: G-003
+- status: ready
+- depends_on: [AIU-004]
+- trigger: before-AIU-007
+- outcome: Refine the existing Core, Infrastructure and Windows projects into clear, testable boundaries organized by feature.
+- scope: Reduce concrete provider dependencies in view models; separate application workflows from transport/storage; clarify desktop service lifetimes, cancellation, dispatcher access and shutdown ownership.
+- preserve: Current authentication behavior, stored-data formats, quota semantics and close-to-tray behavior.
+- excludes: New providers, UI redesign, CLI integrations and speculative frameworks.
+- acceptance: Independent application-workflow and view-model tests; enforced dependency boundaries; passing existing regression checks; actual packaged Windows lifecycle verification.
+- sequencing-note: Owner amendment, 2026-09-14: prioritize this intermediate task before AIU-007. This entry records the task only; refactoring starts separately under CONTRIBUTING.md.
 
 ## Deferred clarifications, not forgotten
 
