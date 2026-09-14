@@ -1,23 +1,22 @@
-using AiUsage.Core.Providers.Codex;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-namespace AiUsage.Infrastructure.Providers.Codex;
+namespace AiUsage.Infrastructure.Providers;
 
 /// <summary>
 /// Minimal loopback-only HTTP receiver for the browser sign-in redirect. A raw socket bound to
 /// 127.0.0.1 is used instead of HTTP.sys, which reserves a wildcard endpoint and would accept
 /// off-machine requests carrying a loopback Host header.
 /// </summary>
-internal sealed class CodexLoopbackCallback : IDisposable
+internal sealed class LoopbackCallback : IDisposable
 {
     private const int MaximumRequestBytes = 8 * 1024;
     private readonly TcpListener[] listeners;
     private readonly Task<TcpClient>?[] pending;
     private readonly CancellationTokenSource lifetime = new();
 
-    private CodexLoopbackCallback(TcpListener[] listeners, int port)
+    private LoopbackCallback(TcpListener[] listeners, int port)
     {
         this.listeners = listeners;
         pending = new Task<TcpClient>?[listeners.Length];
@@ -26,7 +25,7 @@ internal sealed class CodexLoopbackCallback : IDisposable
 
     internal int Port { get; }
 
-    internal static CodexLoopbackCallback Start(IEnumerable<int> ports)
+    internal static LoopbackCallback Start(IEnumerable<int> ports)
     {
         foreach (var port in ports)
         {
@@ -34,9 +33,10 @@ internal sealed class CodexLoopbackCallback : IDisposable
             // required because the fixed redirect is tried there first; IPv6 is bound when available.
             // Neither endpoint accepts off-machine traffic.
             var bound = new List<TcpListener>(2);
+            var actualPort = port;
             foreach (var address in new[] { IPAddress.Loopback, IPAddress.IPv6Loopback })
             {
-                var candidate = new TcpListener(address, port);
+                var candidate = new TcpListener(address, actualPort);
                 try
                 {
                     candidate.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ExclusiveAddressUse, true);
@@ -44,20 +44,21 @@ internal sealed class CodexLoopbackCallback : IDisposable
                         candidate.Server.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, true);
                     candidate.Start(1);
                     bound.Add(candidate);
+                    actualPort = ((IPEndPoint)candidate.LocalEndpoint).Port;
                 }
                 catch (SocketException) { candidate.Dispose(); }
                 catch (PlatformNotSupportedException) { candidate.Dispose(); }
             }
             if (bound.Count > 0 && bound[0].LocalEndpoint is IPEndPoint { AddressFamily: AddressFamily.InterNetwork })
-                return new CodexLoopbackCallback([.. bound], port);
+                return new LoopbackCallback([.. bound], actualPort);
             foreach (var listener in bound)
                 listener.Dispose();
         }
-        throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable);
+        throw new IOException("The local sign-in callback is unavailable.");
     }
 
     /// <summary>Accepts one browser request and returns its request target, or null when unreadable.</summary>
-    internal async Task<CodexCallbackRequest?> AcceptAsync(CancellationToken cancellationToken)
+    internal async Task<CallbackRequest?> AcceptAsync(CancellationToken cancellationToken)
     {
         // Accepts live for the whole attempt, not one call: a request arriving on the other loopback
         // family while this one is handled stays queued, and caller cancellation never poisons them.
@@ -69,13 +70,16 @@ internal sealed class CodexLoopbackCallback : IDisposable
         pending[slot] = null;
         var client = await acceptTask.ConfigureAwait(false);
         var stream = client.GetStream();
+        var handedOff = false;
+        using var headerDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        headerDeadline.CancelAfter(TimeSpan.FromSeconds(5));
         try
         {
             var buffer = new byte[MaximumRequestBytes];
             var read = 0;
             while (read < buffer.Length)
             {
-                var chunk = await stream.ReadAsync(buffer.AsMemory(read), cancellationToken).ConfigureAwait(false);
+                var chunk = await stream.ReadAsync(buffer.AsMemory(read), headerDeadline.Token).ConfigureAwait(false);
                 if (chunk == 0)
                     break;
                 read += chunk;
@@ -86,13 +90,21 @@ internal sealed class CodexLoopbackCallback : IDisposable
                 var line = text[..text.IndexOf("\r\n", StringComparison.Ordinal)].Split(' ');
                 if (line.Length != 3 || !StringComparer.Ordinal.Equals(line[0], "GET"))
                     break;
-                return new CodexCallbackRequest(client, stream, line[1]);
+                handedOff = true;
+                return new CallbackRequest(client, stream, line[1]);
             }
         }
         catch (IOException) { }
         catch (SocketException) { }
-        stream.Dispose();
-        client.Dispose();
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && headerDeadline.IsCancellationRequested) { }
+        finally
+        {
+            if (!handedOff)
+            {
+                stream.Dispose();
+                client.Dispose();
+            }
+        }
         return null;
     }
 
@@ -115,7 +127,7 @@ internal sealed class CodexLoopbackCallback : IDisposable
 }
 
 /// <summary>One accepted browser redirect. The response is written after the caller decides its outcome.</summary>
-internal sealed class CodexCallbackRequest(TcpClient client, NetworkStream stream, string target) : IDisposable
+internal sealed class CallbackRequest(TcpClient client, NetworkStream stream, string target) : IDisposable
 {
     internal string Target { get; } = target;
 
@@ -134,6 +146,7 @@ internal sealed class CodexCallbackRequest(TcpClient client, NetworkStream strea
         catch (IOException) { }
         catch (SocketException) { }
         catch (ObjectDisposedException) { }
+        catch (OperationCanceledException) { }
     }
 
     public void Dispose()

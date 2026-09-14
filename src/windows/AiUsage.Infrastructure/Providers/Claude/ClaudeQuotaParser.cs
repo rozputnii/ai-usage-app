@@ -34,7 +34,7 @@ public static class ClaudeQuotaParser
             });
             return TryParse(document.RootElement, fetchedAt, out reading);
         }
-        catch (Exception)
+        catch (JsonException)
         {
             // A provider body is untrusted input. Do not expose parser exception text,
             // which can include excerpts from a body containing a credential-like value.
@@ -112,7 +112,7 @@ public static class ClaudeQuotaParser
                 var windowId = entry.Kind == "weekly_scoped" ? "7d" : "entry-" + entry.Ordinal.ToString(CultureInfo.InvariantCulture);
                 groups.Add(CreateGroup(
                     id,
-                    entry.DisplayName,
+                    entry.DisplayName ?? entry.Kind,
                     entry.Kind,
                     entry.Bucket,
                     windowId,
@@ -133,7 +133,7 @@ public static class ClaudeQuotaParser
             reading = new ClaudeQuotaReading(quota, extraUsage);
             return true;
         }
-        catch (Exception)
+        catch (JsonException)
         {
             reading = null;
             return false;
@@ -431,7 +431,8 @@ public static class ClaudeQuotaParser
             name,
             meteredFeature,
             NormalModelSlug: null,
-            allowed,
+            // Claude's is_active ranks severity, rather than access entitlement.
+            Allowed: null,
             LimitReached: null,
             windows.AsReadOnly());
     }

@@ -2,6 +2,7 @@ using AiUsage.Features.Dashboard;
 using AiUsage.Core.Dashboard;
 using AiUsage.Core.Providers.Codex;
 using AiUsage.Infrastructure.Providers.Codex;
+using AiUsage.Infrastructure.Providers.Claude;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -76,11 +77,15 @@ public partial class App : Application
             DisableDefaults = true
         });
         builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
-        // LocalState is the app-owned root; the DPAPI-protected Codex grant lives only there.
-        builder.Services.AddCodexProductSession(Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "providers"));
+        var ownedProviders = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "providers");
+        builder.Services.AddCodexProductSession(ownedProviders);
+        builder.Services.AddClaudeProductSession(ownedProviders);
+        builder.Services.AddKeyedSingleton("claude", (services, _) => new DashboardWorkflow(services.GetRequiredService<ClaudeSession>()));
         var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
-        builder.Services.AddSingleton(services => new DashboardViewModel(
-            services.GetRequiredService<DashboardWorkflow>(), OpenInBrowser, StopAsync, Resource, dispatcher.InvokeAsync, ShowWindow));
+        builder.Services.AddSingleton(services => new DashboardShellViewModel(
+            new DashboardViewModel(services.GetRequiredService<DashboardWorkflow>(), OpenInBrowser, Resource, dispatcher.InvokeAsync),
+            new DashboardViewModel(services.GetRequiredKeyedService<DashboardWorkflow>("claude"), OpenInBrowser, Resource, dispatcher.InvokeAsync, "Claude", supportsManualCode: true),
+            StopAsync, ShowWindow));
         builder.Services.AddSingleton<MainWindow>();
         host = builder.Build();
         window = host.Services.GetRequiredService<MainWindow>();
@@ -91,7 +96,9 @@ public partial class App : Application
     private MainWindow CreateFailureWindow()
     {
         var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
-        var failureWindow = new MainWindow(new DashboardViewModel(null, OpenInBrowser, StopAsync, Resource, dispatcher.InvokeAsync, ShowWindow));
+        var failureWindow = new MainWindow(new DashboardShellViewModel(
+            new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync),
+            new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync, "Claude", supportsManualCode: true), StopAsync, ShowWindow));
         failureWindow.AppWindow.Closing += (_, _) => _ = StopAsync();
         return failureWindow;
     }
@@ -112,10 +119,9 @@ public partial class App : Application
         {
             using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
             if (browser is null)
-                throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable);
+                throw new InvalidOperationException("The sign-in browser is unavailable.");
         }
-        catch (System.ComponentModel.Win32Exception) { throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable); }
-        catch (InvalidOperationException) { throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable); }
+        catch (System.ComponentModel.Win32Exception) { throw new InvalidOperationException("The sign-in browser is unavailable."); }
     }
 
     private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)

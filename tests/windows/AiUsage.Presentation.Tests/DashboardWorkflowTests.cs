@@ -1,5 +1,5 @@
 using AiUsage.Core.Dashboard;
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using Xunit;
 
 namespace AiUsage.Presentation.Tests;
@@ -34,7 +34,7 @@ public sealed class DashboardWorkflowTests
         session.Operation = _ =>
         {
             Assert.True(cachedShown);
-            return Task.FromResult(CodexSessionState.NotConnected);
+            return Task.FromResult(ProviderSessionState.NotConnected);
         };
         await workflow.LoadAsync(state => { cachedShown = state.FromCache; return Task.CompletedTask; }, TestContext.Current.CancellationToken);
         Assert.True(cachedShown);
@@ -55,7 +55,7 @@ public sealed class DashboardWorkflowTests
                 started.SetResult();
                 await release.Task;
                 token.ThrowIfCancellationRequested();
-                return CodexSessionState.NotConnected;
+                return ProviderSessionState.NotConnected;
             }
         };
         using var workflow = new DashboardWorkflow(session);
@@ -75,28 +75,29 @@ public sealed class DashboardWorkflowTests
     public async Task OverlappingCommandsDoNotStartAnotherSessionOperation()
     {
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var release = new TaskCompletionSource<CodexSessionState>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<ProviderSessionState>(TaskCreationOptions.RunContinuationsAsynchronously);
         var session = new FakeSession { Operation = _ => { started.SetResult(); return release.Task; } };
         using var workflow = new DashboardWorkflow(session);
         var running = workflow.RefreshAsync(TestContext.Current.CancellationToken);
         await started.Task;
         await Assert.ThrowsAsync<InvalidOperationException>(() => workflow.DisconnectAsync(TestContext.Current.CancellationToken));
-        release.SetResult(CodexSessionState.NotConnected);
+        release.SetResult(ProviderSessionState.NotConnected);
         await running;
         Assert.Equal(1, session.Calls);
     }
 }
 
-internal sealed class FakeSession : ICodexSession
+internal sealed class FakeSession : IProviderSession
 {
     public bool HasStoredGrant { get; set; }
-    public CodexSessionState State { get; set; } = CodexSessionState.NotConnected;
+    public ProviderSessionState State { get; set; } = ProviderSessionState.NotConnected;
     public int Calls { get; private set; }
-    public Func<CancellationToken, Task<CodexSessionState>> Operation { get; set; } = _ => Task.FromResult(CodexSessionState.NotConnected);
-    public CodexSessionState ReadCachedState() => new(CodexSessionStatus.QuotaUnavailable, FromCache: true);
-    public Task<CodexSessionState> ResumeAsync(CancellationToken cancellationToken = default) => Run(cancellationToken);
-    public Task<CodexSessionState> RefreshAsync(CancellationToken cancellationToken = default) => Run(cancellationToken);
-    public Task<CodexSessionState> DisconnectAsync(CancellationToken cancellationToken = default) => Run(cancellationToken);
-    public Task<CodexSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default) => Run(cancellationToken);
-    private Task<CodexSessionState> Run(CancellationToken token) { Calls++; return Operation(token); }
+    public Func<CancellationToken, Task<ProviderSessionState>> Operation { get; set; } = _ => Task.FromResult(ProviderSessionState.NotConnected);
+    public Task<ProviderSessionState> ReadCachedStateAsync(CancellationToken cancellationToken = default) =>
+        Task.FromResult(new ProviderSessionState(ProviderSessionStatus.QuotaUnavailable, FromCache: true));
+    public Task<ProviderSessionState> ResumeAsync(CancellationToken cancellationToken = default) => Run(cancellationToken);
+    public Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default) => Run(cancellationToken);
+    public Task<ProviderSessionState> DisconnectAsync(CancellationToken cancellationToken = default) => Run(cancellationToken);
+    public Task<ProviderSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default) => Run(cancellationToken);
+    private Task<ProviderSessionState> Run(CancellationToken token) { Calls++; return Operation(token); }
 }

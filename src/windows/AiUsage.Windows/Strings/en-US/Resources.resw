@@ -10,10 +10,10 @@
   <data name="RefreshButton.Content" xml:space="preserve"><value>Refresh</value></data>
   <data name="DisconnectButton.Content" xml:space="preserve"><value>Disconnect</value></data>
   <data name="WorkingState.Text" xml:space="preserve"><value>Working...</value></data>
-  <data name="QuotaShown.Text" xml:space="preserve"><value>Codex connected.</value></data>
-  <data name="QuotaEmpty.Text" xml:space="preserve"><value>Codex connected. This account reported no usage windows.</value></data>
+  <data name="QuotaShown.Text" xml:space="preserve"><value>Account connected.</value></data>
+  <data name="QuotaEmpty.Text" xml:space="preserve"><value>Account connected. No usage windows were reported.</value></data>
   <data name="QuotaUnavailable.Text" xml:space="preserve"><value>Quota is unavailable right now. The account stays connected; try Refresh again.</value></data>
-  <data name="ReauthenticationRequired.Text" xml:space="preserve"><value>Sign-in expired. Connect Codex again to continue.</value></data>
+  <data name="ReauthenticationRequired.Text" xml:space="preserve"><value>Sign-in needs to be renewed. Connect again to continue.</value></data>
   <data name="PlanLabel.Text" xml:space="preserve"><value>Plan:</value></data>
   <data name="RemainingFormat.Text" xml:space="preserve"><value>{0}% remaining</value></data>
   <data name="RemainingUnknown.Text" xml:space="preserve"><value>Remaining amount not reported</value></data>
@@ -27,4 +27,35 @@
   <data name="TrayExit.Text" xml:space="preserve"><value>Exit</value></data>
   <data name="StartupFailure.Text" xml:space="preserve"><value>The app could not start.</value></data>
   <data name="ShutdownFailure.Text" xml:space="preserve"><value>The app could not shut down cleanly.</value></data>
+  <data name="ConnectProviderFormat.Text" xml:space="preserve"><value>Connect {0}</value></data>
+  <data name="ProviderPicker.Header" xml:space="preserve"><value>Provider</value></data>
+  <data name="ClaudeUnsupported.Text" xml:space="preserve"><value>Private, unsupported integration. Anthropic prohibits third-party use of Claude.ai login and token storage.</value></data>
+  <data name="CancelButton.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ManualCodeHelp.Text" xml:space="preserve"><value>If the browser cannot return to AI Usage, paste the final redirect or authorization code here. A bare code has no returned state check.</value></data>
+  <data name="ManualCode.Header" xml:space="preserve"><value>Authorization code or final redirect</value></data>
+  <data name="SubmitCodeButton.Content" xml:space="preserve"><value>Submit code</value></data>
+  <data name="ManualCodeInvalid.Text" xml:space="preserve"><value>That code or redirect does not match this sign-in attempt. Try again or cancel.</value></data>
+  <data name="RecoveryRequired.Text" xml:space="preserve"><value>The saved connection needs attention. Its files have been preserved. Disconnect to remove this app’s saved connection, then connect again.</value></data>
+  <data name="ExtraUsageEnabled.Text" xml:space="preserve"><value>Extra usage enabled.</value></data>
+  <data name="ExtraUsageDisabled.Text" xml:space="preserve"><value>Extra usage disabled.</value></data>
+  <data name="ExtraUsageUnknown.Text" xml:space="preserve"><value>Extra usage setting unknown.</value></data>
+  <data name="ExtraUsageAmountsFormat.Text" xml:space="preserve"><value>Used: {0}. Spending cap: {1}.</value></data>
+  <data name="SpendingCapNotSet.Text" xml:space="preserve"><value>no cap reported</value></data>
+  <data name="MoneyUnknown.Text" xml:space="preserve"><value>amount or units not reported</value></data>
+  <data name="FailureAuthenticationRequired.Text" xml:space="preserve"><value>Connect again to renew sign-in.</value></data>
+  <data name="FailureAccessDenied.Text" xml:space="preserve"><value>Sign-in or access was refused by the provider.</value></data>
+  <data name="FailureBrowserCallbackUnavailable.Text" xml:space="preserve"><value>The sign-in browser or local callback could not be opened.</value></data>
+  <data name="FailureLoginAttemptExpired.Text" xml:space="preserve"><value>The sign-in attempt expired. Start a new connection.</value></data>
+  <data name="FailureRateLimited.Text" xml:space="preserve"><value>The provider asked this app to wait before trying again.</value></data>
+  <data name="FailureNetworkFailure.Text" xml:space="preserve"><value>The provider could not be reached.</value></data>
+  <data name="FailureTimeout.Text" xml:space="preserve"><value>The provider did not respond in time.</value></data>
+  <data name="FailureInvalidResponse.Text" xml:space="preserve"><value>The provider returned an incomplete or unrecognized response.</value></data>
+  <data name="FailureAccountMismatch.Text" xml:space="preserve"><value>The returned account or organization did not match the saved connection.</value></data>
+  <data name="FailureProviderUnavailable.Text" xml:space="preserve"><value>The provider is temporarily unavailable.</value></data>
+  <data name="FailureRequestRejected.Text" xml:space="preserve"><value>The provider rejected this request.</value></data>
+  <data name="FailureStorageUnavailable.Text" xml:space="preserve"><value>The app could not safely access the saved connection.</value></data>
+  <data name="FailureRecoveryRequired.Text" xml:space="preserve"><value>The saved record is unreadable, unsupported or interrupted; it has been preserved.</value></data>
+  <data name="FailureGrantNotRemoved.Text" xml:space="preserve"><value>The saved connection could not be removed. It remains on this device.</value></data>
+  <data name="FailureDeviceLoginUnavailable.Text" xml:space="preserve"><value>Device sign-in is unavailable.</value></data>
+  <data name="FailureDeviceCodeExpired.Text" xml:space="preserve"><value>The device sign-in code expired.</value></data>
 </root>

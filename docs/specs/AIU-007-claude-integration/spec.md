@@ -3,8 +3,8 @@ id: AIU-007
 type: spec
 status: approved
 goal: G-003
-scope_version: 1
-approval_basis: Derived within the owner's 2026-09-14 goal objective for AIU-007; provider authorization and live consent remain unresolved.
+scope_version: 2
+approval_basis: Owner goal objective and explicit amendment on 2026-09-14 to proceed with a private unsupported OMP-style Claude integration.
 ---
 # Claude end-to-end integration
 
@@ -28,6 +28,8 @@ CLI discovery/import, other providers, broad UI redesign, new frameworks, unrela
 - AC-06: Relevant automated regressions and actual packaged Windows UI checks pass on the final candidate. Live account evidence covers connection, quota, renewal, durable resume and disconnect; unavailable cases remain BLOCKED or NOT_RUN. Automated or source checks alone cannot satisfy live acceptance.
 - AC-07: Primary review and required focused independent credential/durable-state review are complete with no unresolved material findings. Evidence and scoped changes are committed, the completed task branch is published under CONTRIBUTING, and the verified combined candidate is integrated into local main. No main push or release is implied.
 
-## Delivery gate
+## Owner amendment and delivery gate
 
-The [provider evidence](../../providers/claude.md) owns the authentication restriction and the [owner inbox](../../decisions/pending.md) owns the material decision. A research result can satisfy source preparation while the feature remains incomplete. Do not implement production authentication, mark acceptance complete or integrate into main merely because OMP contains working code.
+The owner explicitly instructed: "Proceed with a private, unsupported Claude integration using OMP's connection flow. I understand Anthropic's documented restriction. Keep that limitation recorded." This resolves the local implementation decision; it does not establish Anthropic approval. Follow the inspected OMP browser/code flow and scope set, with truthful application identity and no inference or other side effects to collect quota. Actual account consent still belongs to the owner.
+
+Keep this private work local, including the task branch. This amendment overrides automatic remote task-branch publication in AC-07 for this task; local main integration remains authorized only after all required verification and review passes. No public release or remote publication is part of this amended scope. The [provider evidence](../../providers/claude.md) retains the documented restriction. Source preparation alone cannot complete the feature.

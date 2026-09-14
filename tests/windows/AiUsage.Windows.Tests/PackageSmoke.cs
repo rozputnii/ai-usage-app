@@ -12,12 +12,25 @@ namespace AiUsage.Windows.Tests;
 
 public sealed class PackageSmoke
 {
+    private static bool WaitUntil(Func<bool> condition, TimeSpan timeout)
+    {
+        var elapsed = Stopwatch.StartNew();
+        while (elapsed.Elapsed < timeout)
+        {
+            TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
+            if (condition()) return true;
+            Thread.Sleep(50);
+        }
+        return condition();
+    }
+
     [Theory]
     [InlineData("exit")]
     [InlineData("title-bar")]
     [InlineData("repeated-exit")]
     [InlineData("minimize")]
     [InlineData("tray-exit")]
+    [InlineData("claude-controls")]
     public void InstalledDashboardTerminatesCleanly(string scenario)
     {
         var aumid = Environment.GetEnvironmentVariable("AIU_SMOKE_AUMID");
@@ -70,6 +83,38 @@ public sealed class PackageSmoke
             Assert.NotNull(disconnect);
             Assert.False(refresh.IsEnabled);
             Assert.False(disconnect.IsEnabled);
+            if (scenario == "claude-controls")
+            {
+                var picker = window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderPicker")).AsComboBox();
+                Assert.NotNull(picker);
+                picker.Select("Claude");
+                Assert.True(WaitUntil(() => connect.Name == "Connect Claude", TimeSpan.FromSeconds(5)));
+                Assert.Contains("Anthropic prohibits", window.FindFirstDescendant(cf => cf.ByAutomationId("UnsupportedNotice"))?.Name);
+                Assert.False(refresh.IsEnabled);
+                connect.Invoke();
+                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ManualCode")) is { IsOffscreen: false }, TimeSpan.FromSeconds(5)));
+                var manual = window.FindFirstDescendant(cf => cf.ByAutomationId("ManualCode"));
+                Assert.NotNull(manual);
+                manual.Focus();
+                FlaUI.Core.Input.Keyboard.Type("synthetic-unused-code");
+                var cancel = window.FindFirstDescendant(cf => cf.ByAutomationId("CancelButton")).AsButton();
+                Assert.NotNull(cancel);
+                Assert.True(cancel.IsEnabled);
+                cancel.Invoke();
+                Assert.True(WaitUntil(() => connect.IsEnabled && window.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name == "No accounts connected.", TimeSpan.FromSeconds(5)));
+                connect.Invoke();
+                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ManualCode")) is { IsOffscreen: false }, TimeSpan.FromSeconds(5)));
+                window.Focus();
+                Thread.Sleep(500);
+                using (var screenshot = window.Capture())
+                    screenshot.Save(Path.Combine(evidence!, "claude-cancel-reopened.png"), System.Drawing.Imaging.ImageFormat.Png);
+                cancel.Invoke();
+                Assert.True(WaitUntil(() => connect.IsEnabled, TimeSpan.FromSeconds(5)));
+                picker.Select("Codex");
+                Assert.True(WaitUntil(() => connect.Name == "Connect Codex", TimeSpan.FromSeconds(5)));
+                Assert.False(cancel.IsEnabled);
+                Assert.Equal("No accounts connected.", window.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name);
+            }
             // The tray icon is created by the window; without it there is no tray presence at all.
             Assert.True(TrayIconPresent(pid), "No tray icon window owned by the launched process.");
             // UIA can expose text before the compositor presents the corresponding frame.

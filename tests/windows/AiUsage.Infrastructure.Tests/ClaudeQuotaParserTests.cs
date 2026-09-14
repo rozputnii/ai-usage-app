@@ -28,7 +28,7 @@ public sealed class ClaudeQuotaParserTests
         Assert.Equal(75, fiveHourWindow.RemainingPercent);
         Assert.Equal(TimeSpan.FromHours(5), fiveHourWindow.Duration);
         Assert.Equal(new DateTimeOffset(2026, 9, 14, 14, 0, 0, TimeSpan.FromHours(2)), fiveHourWindow.ResetsAt);
-        Assert.False(fiveHour.Allowed);
+        Assert.Null(fiveHour.Allowed);
 
         var weekly = Assert.Single(reading.Quota.Groups, group => group.Id == "claude:7d");
         Assert.Equal(40, Assert.Single(weekly.Windows).UsedPercent);
@@ -36,7 +36,7 @@ public sealed class ClaudeQuotaParserTests
 
         var scoped = Assert.Single(reading.Quota.Groups, group => group.Name == "Family / Fable");
         Assert.Equal("weekly_scoped", scoped.MeteredFeature);
-        Assert.False(scoped.Allowed);
+        Assert.Null(scoped.Allowed);
         Assert.Equal(55, Assert.Single(scoped.Windows).UsedPercent);
         Assert.Equal(TimeSpan.FromDays(7), Assert.Single(scoped.Windows).Duration);
 
@@ -104,8 +104,9 @@ public sealed class ClaudeQuotaParserTests
         var sameName = reading.Quota.Groups.Where(group => group.Name == "Same Name").ToArray();
         Assert.Equal(2, sameName.Length);
         Assert.Equal(2, sameName.Select(group => group.Id).Distinct(StringComparer.Ordinal).Count());
-        Assert.Contains(sameName, group => group.Allowed == false && Assert.Single(group.Windows).UsedPercent == 5);
-        Assert.Contains(sameName, group => group.Allowed == true && Assert.Single(group.Windows).UsedPercent == 6);
+        Assert.Contains(sameName, group => Assert.Single(group.Windows).UsedPercent == 5);
+        Assert.Contains(sameName, group => Assert.Single(group.Windows).UsedPercent == 6);
+        Assert.All(sameName, group => Assert.Null(group.Allowed));
 
         var collidingSlug = Assert.Single(reading.Quota.Groups, group => group.Name == "Same/Name");
         Assert.Equal(7, Assert.Single(collidingSlug.Windows).UsedPercent);

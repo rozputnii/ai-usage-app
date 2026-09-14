@@ -13,13 +13,17 @@ internal static class Program
     {
         if (args.Length == 0 || args is ["--help"] or ["help"])
         {
-            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a quota fixture without network access.\n  login                     Interactive Codex browser sign-in on a loopback callback; credentials remain in memory.\n\nNo API keys, CLI auth stores, token arguments, saved credentials or inference requests are used.");
+            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n\nNo CLI auth stores, token arguments or inference requests are used.");
             return 0;
         }
         using var cancellation = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
         try
         {
+            if (args is ["inspect-claude", var claudePath])
+                return await ClaudeConsole.InspectAsync(claudePath, cancellation.Token);
+            if (args is ["claude"])
+                return OperatingSystem.IsWindows() ? await ClaudeConsole.RunAsync(cancellation.Token) : 2;
             if (args is ["inspect", var path])
             {
                 using var file = File.OpenRead(path);
@@ -90,7 +94,7 @@ internal static class Program
         }
         catch (OperationCanceledException)
         {
-            Console.Error.WriteLine("Operation cancelled. No credentials were saved.");
+            Console.Error.WriteLine("Operation cancelled.");
             return 130;
         }
         catch (CodexException error)

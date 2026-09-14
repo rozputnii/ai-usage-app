@@ -8,7 +8,7 @@ backlog: AIU-007
 ---
 # Claude authentication and subscription quota evidence
 
-Source inspection on 2026-09-14; no live account verification. Implementation is blocked on [PROVIDER-002](../decisions/pending.md). The owner-selected scope excludes CLI credential discovery/import, inference calls and billing-API substitution.
+Source inspection on 2026-09-14; no live account verification. The owner explicitly authorized a private, unsupported OMP-style implementation in the [scope amendment](../specs/AIU-007-claude-integration/spec.md). This permits local development without claiming provider approval. The scope excludes CLI credential discovery/import, inference calls and billing-API substitution.
 
 ## Official boundary
 

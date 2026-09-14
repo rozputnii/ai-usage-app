@@ -23,7 +23,9 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
         var verifier = RandomUrlSafe(32);
         var challenge = Base64Url(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.ASCII.GetBytes(verifier)));
         var state = RandomUrlSafe(32);
-        var callback = CodexLoopbackCallback.Start(CallbackPorts);
+        LoopbackCallback callback;
+        try { callback = LoopbackCallback.Start(CallbackPorts); }
+        catch (IOException) { throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable); }
         try
         {
             // Official source binds the same loopback ports and allow-listed callback path.

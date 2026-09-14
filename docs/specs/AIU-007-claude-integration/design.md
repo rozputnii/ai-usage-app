@@ -1,17 +1,17 @@
 ---
 id: AIU-007
 type: design
-status: draft
+status: approved
 goal: G-003
-scope_version: 1
+scope_version: 2
 ---
 # Claude integration design
 
-This is a conditional implementation design, derived from the authorized goal and inspected AIU-027 code. Authentication selection is unresolved in [PROVIDER-002](../../decisions/pending.md); no production adapter is implemented by this document.
+This implementation design follows the owner-approved private, unsupported OMP-style scope in [spec.md](spec.md), using the inspected AIU-027 boundaries. Provider approval is not established. Work and evidence stay local.
 
 ## Approach
 
-Prefer an app-owned provider-supported grant with subscription quota access if Anthropic makes one available. The inspected OMP public-client flow supplies concrete behavior but does not resolve the permission boundary. An explicitly unsupported local experiment is a material owner decision; it must retain the restriction and cannot be relabeled provider-approved. API billing cannot answer the requested consumer-quota question. CLI credential import is outside this task.
+Implement the inspected OMP public-client flow as explicitly unsupported, with an app-owned grant. The owner's scope decision permits local development despite the recorded restriction. API billing cannot answer the requested consumer-quota question. CLI credential import is outside this task.
 
 Keep three production projects. Core owns credential-free identity, normalized quota and application coordination. Infrastructure owns Claude authorization, token exchange, quota transport, parsing and app-owned state. Windows owns resources, dispatcher access, browser launch and presentation. The console must exercise the same Infrastructure clients before WinUI wiring. A second provider justifies reusing command serialization and quota presentation, but not a provider plugin framework or generic storage framework.
 
@@ -23,7 +23,7 @@ Reuse the existing percentage-window value model only for actual percentage limi
 
 ## Credentials and transport
 
-If the authorization decision permits implementation, use the system browser, PKCE and state through the evidenced provider callback. Request only proven necessary scopes; OMP's inference/session/file-management scope set is not automatically appropriate for a monitor. Minimum scopes and truthful application headers require an authorized experiment. Do not imitate Claude Code identity to overcome a rejection.
+Use the system browser, PKCE and state through the evidenced provider callback, with the OMP scope set selected by the owner. Record that a smaller monitor-only scope set is unproven. Use truthful application headers; do not imitate Claude Code identity to overcome a rejection. Support the browser callback and a deliberately submitted code/redirect fallback without putting codes in logs, arguments or persistent state.
 
 Use bounded asynchronous reads with per-operation timeouts and cancellation. Disable redirects, cookies and HTTP body/header logging on credential-bearing clients. Keep quota GET policy separate from token POST policy: no automatic replay of an ambiguous rotating exchange. Respect provider throttling without unbounded retries or extra inference calls. Reuse the existing configured `SocketsHttpHandler` pattern with finite connection lifetime; do not add packages for a retry framework.
 
@@ -51,4 +51,14 @@ Add protocol tests before auth/parser implementation: rejected consent/state, ca
 
 Add persistence fault tests for account binding, canceled quota after rotation, interrupted staged ciphertext, unsupported records, cache identity, failed removal and preserved Codex records. Add independent workflow/view-model tests for startup cache, overlap, canceled connection, separate provider failures, stale display, command state and shutdown drain. Run the existing validator, Infrastructure and Presentation suites offline.
 
-After implementation, freeze the actual combined diff for a fresh `gpt-5.6-luna`/`max` read-only credential/durable-state review; resolve material findings and verify fixes. Build a new package and exercise actual provider controls plus the existing five Windows lifecycle scenarios in the applicable Windows environment, inspecting screenshots and process assertions. Live consent and account checks remain separate from synthetic/offline UI proof. Integrate only after required acceptance passes, then rerun applicable checks on the combined local-main candidate. Publish only the completed task branch.
+After implementation, freeze the actual combined diff for a fresh `gpt-5.6-luna`/`max` read-only credential/durable-state review; resolve material findings and verify fixes. Build a new package and exercise actual provider controls plus the existing five Windows lifecycle scenarios in the applicable Windows environment, inspecting screenshots and process assertions. Live consent and account checks remain separate from synthetic/offline UI proof. Check the combined local-main candidate and integrate only after required acceptance passes. Keep the private task branch local.
+
+## Implementation contracts
+
+Quota parsing remains independent of transport. `ClaudeQuotaParser.TryParse(ReadOnlyMemory<byte>, DateTimeOffset, out ClaudeQuotaReading?)` returns false for critical schema failure without retaining or echoing the payload. `ClaudeQuotaReading` contains the existing `QuotaSnapshot` percentage model and a typed `ClaudeExtraUsage` value. The latter preserves explicit currency, minor units and decimal exponent; unknown amounts/currency stay unknown and never borrow Codex credit semantics. No existing Codex quota record is changed.
+
+Authentication is a separate typed client and session. Share the already exercised loopback transport and operation-serialization behavior where their tests demonstrate the same need; provider URLs, token DTOs, identity rules and rotation remain provider-specific. Protected Claude state and cache use their own versioned files and identity binding. Presentation consumes credential-free common session state rather than concrete clients or stores.
+
+The implemented Claude state is one DPAPI-protected grant/cache record (`claude.state`) with a parent-linked pending ciphertext generation. A process holds an exclusive file lease across each operation. A fully staged successor recovers only against the exact committed parent; torn, unsupported or unrelated records are preserved in recovery. Before refresh, the session durably marks the old grant uncertain. Only successful persistence of the returned pair clears that marker; failed or ambiguous exchanges therefore cannot replay an older grant after restart. Refresh is internal to this session authority. Cross-account reconnect checks the new account's initial quota before replacing the old connection; ordinary rotation persists before later quota cancellation.
+
+The existing Codex session and stored formats remain intact behind a small adapter to the shared credential-free dashboard port. Both providers use the same bounded HTTP and loopback transport, including a five-second incomplete-header deadline, but retain separate protocol/state rules. The desktop selector retains one current connection per provider, matching the existing application slice; deferred multi-account scheduling is not introduced. `is_active` is a severity-ranking flag in the inspected Claude source and does not populate an access entitlement.

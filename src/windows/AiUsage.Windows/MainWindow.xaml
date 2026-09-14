@@ -1,5 +1,6 @@
 <Window x:Class="AiUsage.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:dashboard="using:AiUsage.Features.Dashboard" xmlns:tray="using:H.NotifyIcon">
-  <StackPanel Padding="32" Spacing="20">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+  <StackPanel Padding="32" Spacing="16" MaxWidth="880" HorizontalAlignment="Left">
     <tray:TaskbarIcon x:Name="TrayIcon" AutomationProperties.AutomationId="TrayIcon" ToolTipText="AI Usage" LeftClickCommand="{x:Bind ViewModel.ShowCommand}" NoLeftClickDelay="True">
       <tray:TaskbarIcon.ContextFlyout>
         <MenuFlyout>
@@ -9,9 +10,11 @@
       </tray:TaskbarIcon.ContextFlyout>
     </tray:TaskbarIcon>
     <TextBlock x:Uid="DashboardHeading" AutomationProperties.AutomationId="DashboardHeading" Style="{StaticResource TitleTextBlockStyle}" />
-    <TextBlock AutomationProperties.AutomationId="StatusText" TextWrapping="Wrap" Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" />
-    <TextBlock AutomationProperties.AutomationId="PlanText" Text="{x:Bind ViewModel.PlanText, Mode=OneWay}" />
-    <ItemsControl AutomationProperties.AutomationId="QuotaWindows" ItemsSource="{x:Bind ViewModel.Windows, Mode=OneWay}">
+    <ComboBox x:Name="ProviderPicker" x:Uid="ProviderPicker" AutomationProperties.AutomationId="ProviderPicker" ItemsSource="{x:Bind ViewModel.Providers}" DisplayMemberPath="ProviderName" SelectedItem="{x:Bind ViewModel.Selected, Mode=TwoWay}" SelectionChanged="ProviderChanged" MinWidth="200" />
+    <TextBlock AutomationProperties.AutomationId="UnsupportedNotice" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.NoticeText, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" />
+    <TextBlock AutomationProperties.AutomationId="StatusText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.StatusText, Mode=OneWay}" />
+    <TextBlock AutomationProperties.AutomationId="PlanText" Text="{x:Bind ViewModel.Selected.PlanText, Mode=OneWay}" />
+    <ItemsControl AutomationProperties.AutomationId="QuotaWindows" ItemsSource="{x:Bind ViewModel.Selected.Windows, Mode=OneWay}">
       <ItemsControl.ItemTemplate>
         <DataTemplate x:DataType="dashboard:QuotaWindowItem">
           <StackPanel Margin="0,0,0,12" Spacing="2">
@@ -22,12 +25,21 @@
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>
+    <TextBlock AutomationProperties.AutomationId="ExtraUsageText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.ExtraUsageText, Mode=OneWay}" />
+    <TextBlock AutomationProperties.AutomationId="ProviderFailureText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.FailureText, Mode=OneWay}" />
+    <StackPanel Spacing="8" Visibility="{x:Bind VisibleWhen(ViewModel.Selected.ManualEntryVisible), Mode=OneWay}">
+      <TextBlock x:Uid="ManualCodeHelp" TextWrapping="Wrap" />
+      <PasswordBox x:Name="ManualCode" x:Uid="ManualCode" AutomationProperties.AutomationId="ManualCode" MaxLength="65536" PasswordRevealMode="Hidden" />
+      <Button x:Uid="SubmitCodeButton" AutomationProperties.AutomationId="SubmitCodeButton" Click="SubmitCode" />
+    </StackPanel>
     <TextBlock x:Name="FailureMessage" TextWrapping="Wrap" Visibility="Collapsed" />
     <StackPanel Orientation="Horizontal" Spacing="12">
-      <Button x:Name="ConnectButton" x:Uid="ConnectButton" AutomationProperties.AutomationId="ConnectButton" Command="{x:Bind ViewModel.ConnectCommand}" AccessKey="C" />
-      <Button x:Name="RefreshButton" x:Uid="RefreshButton" AutomationProperties.AutomationId="RefreshButton" Command="{x:Bind ViewModel.RefreshCommand}" AccessKey="R" />
-      <Button x:Name="DisconnectButton" x:Uid="DisconnectButton" AutomationProperties.AutomationId="DisconnectButton" Command="{x:Bind ViewModel.DisconnectCommand}" AccessKey="D" />
+      <Button x:Name="ConnectButton" AutomationProperties.AutomationId="ConnectButton" Content="{x:Bind ViewModel.Selected.ConnectText, Mode=OneWay}" Command="{x:Bind ViewModel.Selected.ConnectCommand, Mode=OneWay}" AccessKey="C" />
+      <Button x:Name="RefreshButton" x:Uid="RefreshButton" AutomationProperties.AutomationId="RefreshButton" Command="{x:Bind ViewModel.Selected.RefreshCommand, Mode=OneWay}" AccessKey="R" />
+      <Button x:Name="DisconnectButton" x:Uid="DisconnectButton" AutomationProperties.AutomationId="DisconnectButton" Command="{x:Bind ViewModel.Selected.DisconnectCommand, Mode=OneWay}" AccessKey="D" />
+      <Button x:Uid="CancelButton" AutomationProperties.AutomationId="CancelButton" Command="{x:Bind ViewModel.Selected.CancelCommand, Mode=OneWay}" />
       <Button x:Name="ExitButton" x:Uid="ExitButton" AutomationProperties.AutomationId="ExitButton" Command="{x:Bind ViewModel.ExitCommand}" AccessKey="X" />
     </StackPanel>
   </StackPanel>
+  </ScrollViewer>
 </Window>

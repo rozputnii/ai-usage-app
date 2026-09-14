@@ -8,7 +8,7 @@ namespace AiUsage.Infrastructure.Providers.Codex;
 /// </summary>
 public sealed class CodexBrowserAuthorization : IDisposable
 {
-    internal CodexBrowserAuthorization(CodexLoopbackCallback callback, Uri authorizationUrl, string redirectUri, string state, string codeVerifier, DateTimeOffset expiresAt)
+    internal CodexBrowserAuthorization(LoopbackCallback callback, Uri authorizationUrl, string redirectUri, string state, string codeVerifier, DateTimeOffset expiresAt)
     {
         Callback = callback;
         AuthorizationUrl = authorizationUrl;
@@ -18,7 +18,7 @@ public sealed class CodexBrowserAuthorization : IDisposable
         ExpiresAt = expiresAt;
     }
 
-    internal CodexLoopbackCallback Callback { get; }
+    internal LoopbackCallback Callback { get; }
     internal string RedirectUri { get; }
     internal string State { get; }
     internal string CodeVerifier { get; }

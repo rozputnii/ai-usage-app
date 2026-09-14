@@ -1,5 +1,4 @@
 using AiUsage.Core.Dashboard;
-using AiUsage.Core.Providers.Codex;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Dashboard;
 using Xunit;
@@ -21,19 +20,19 @@ public sealed class DashboardViewModelTests
     [Fact]
     public async Task BusyCommandsAreDisabledAndUpdatesUseTheDispatcher()
     {
-        var release = new TaskCompletionSource<CodexSessionState>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<ProviderSessionState>(TaskCreationOptions.RunContinuationsAsynchronously);
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var session = new FakeSession { HasStoredGrant = true, Operation = _ => { started.SetResult(); return release.Task; } };
         using var workflow = new DashboardWorkflow(session);
         var dispatches = 0;
-        var model = new DashboardViewModel(workflow, _ => { }, () => Task.CompletedTask, key => key,
+        var model = new DashboardViewModel(workflow, _ => { }, key => key,
             action => { dispatches++; action(); return Task.CompletedTask; });
         var running = model.RefreshCommand.ExecuteAsync(null);
         await started.Task;
         Assert.True(model.Busy);
         Assert.False(model.ConnectCommand.CanExecute(null));
         Assert.False(model.DisconnectCommand.CanExecute(null));
-        release.SetResult(new(CodexSessionStatus.ReauthenticationRequired));
+        release.SetResult(new(ProviderSessionStatus.ReauthenticationRequired));
         await running;
         Assert.False(model.Busy);
         Assert.True(model.ConnectCommand.CanExecute(null));
@@ -47,7 +46,7 @@ public sealed class DashboardViewModelTests
         var session = new FakeSession
         {
             HasStoredGrant = true,
-            Operation = _ => Task.FromResult(new CodexSessionState(CodexSessionStatus.QuotaUnavailable,
+            Operation = _ => Task.FromResult(new ProviderSessionState(ProviderSessionStatus.QuotaUnavailable,
                 RetrievedAt: DateTimeOffset.UtcNow, FromCache: true))
         };
         using var workflow = new DashboardWorkflow(session);
@@ -59,7 +58,7 @@ public sealed class DashboardViewModelTests
     }
 
     private static DashboardViewModel Create(DashboardWorkflow? workflow) =>
-        new(workflow, _ => { }, () => Task.CompletedTask, key => key, action => { action(); return Task.CompletedTask; });
+        new(workflow, _ => { }, key => key, action => { action(); return Task.CompletedTask; });
 
     [Fact]
     public void UnknownAndExhaustedQuotaRemainDistinct()
@@ -82,7 +81,7 @@ public sealed class DashboardViewModelTests
         {
             started.SetResult();
             await Task.Delay(Timeout.Infinite, token);
-            return CodexSessionState.NotConnected;
+            return ProviderSessionState.NotConnected;
         } };
         using var workflow = new DashboardWorkflow(session);
         var model = Create(workflow);

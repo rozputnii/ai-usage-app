@@ -53,3 +53,19 @@ Required independent credential/durable-state review is NOT_RUN: there is no Cla
 AIU-007 is incomplete. The verified documentation preparation is committed on its task branch, identified by the Git history for this record; main has not moved. The incomplete feature branch is not published under CONTRIBUTING's completed-task rule. No remote publication, main push, release, signing or host installation occurred.
 
 Exact next action: obtain the owner's disposition of PROVIDER-002 before implementing or launching any Claude OAuth flow. The remaining task sequence is in [tasks.md](tasks.md).
+
+## Owner amendment and implementation run
+
+The owner subsequently selected: “Proceed with a private, unsupported Claude integration using OMP’s connection flow. I understand Anthropic’s documented restriction. Keep that limitation recorded.” This resolves the local implementation decision above; it is not provider approval or live verification. The amended spec and design retain the restriction. Work stays local under the latest private scope.
+
+Started an isolated `gpt-5.6-luna`/`max` quota implementation worker on `codex/aiu-007-claude-quota` from `44cfa81`, with the exact four-file ownership recorded in tasks. The primary owns authorization, protected state, integration and canonical evidence. Implementation checks and live acceptance are still outstanding at this point.
+
+### Implemented candidate checks
+
+The primary inspected all four worker files at `b3b1d98` and integrated them as `683ba35`. Primary review corrected the worker's use of `is_active` as an entitlement (the source says it ranks severity), removed broad exception swallowing and retained opaque kind names for display. The integrated parser preserves legacy/current shared-pool precedence, independent scoped rows and explicit money units.
+
+PASS: Infrastructure Release suite now has 120 passing tests, zero failures/skips; Presentation has 15. These cover Claude PKCE/state/consent/manual input, identity mismatch, malformed payloads, throttling, protected generation recovery, exclusive leases, ambiguous-refresh replay prevention, rotation followed by quota cancellation, failed reconnect/removal, provider isolation and presentation cancellation. Early new-type tests failed before implementation. Two further regression tests failed against the candidate for stalled callbacks and failed account replacement, then passed after bounded header handling and quota-before-switch cutover.
+
+PASS: the shared provider console normalized the synthetic Claude fixture offline. PASS: native unsigned package build `2026.9.1413.0`, SHA-256 `2066D95EBBF30E0A21FC7C02743DC408A678B39B9D1177A3C7E5DA1B9B08E1C7`. The initial `1412` build failed on an XAML static/instance binding and was corrected; it is not acceptance evidence. The existing packaging-tools warning about missing `mspdbcmf.exe` prevents a symbols package, with no owned-code warnings.
+
+Independent credential/durable-state review, actual installed Windows smoke and live-provider acceptance remain NOT_RUN on this candidate. Main has not moved; no remote publication occurred. These local checks do not satisfy AC-06 or AC-07.

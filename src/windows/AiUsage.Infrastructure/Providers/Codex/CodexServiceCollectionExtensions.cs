@@ -29,7 +29,8 @@ public static class CodexServiceCollectionExtensions
         services.TryAddSingleton(new CodexGrantStore(ownedStateDirectory));
         services.TryAddSingleton(new CodexQuotaCache(ownedStateDirectory));
         services.TryAddSingleton<ICodexSession, CodexSession>();
-        services.TryAddSingleton<DashboardWorkflow>();
+        services.TryAddSingleton<CodexDashboardSession>();
+        services.TryAddSingleton(services => new DashboardWorkflow(services.GetRequiredService<CodexDashboardSession>()));
         return services;
     }
 
