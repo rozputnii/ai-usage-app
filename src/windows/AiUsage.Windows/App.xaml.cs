@@ -1,4 +1,5 @@
 using AiUsage.Features.Dashboard;
+using AiUsage.Infrastructure.Providers.Codex;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -27,7 +28,11 @@ public partial class App : Application
         {
             await StartAsync();
             if (stopTask is null)
+            {
                 window!.Activate();
+                // Restoring a stored account must not block activation or fail startup.
+                await window.ViewModel.LoadAsync();
+            }
         }
         catch
         {
@@ -61,7 +66,10 @@ public partial class App : Application
             DisableDefaults = true
         });
         builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
-        builder.Services.AddSingleton(new DashboardViewModel(StopAsync));
+        // LocalState is the app-owned root; the DPAPI-protected Codex grant lives only there.
+        builder.Services.AddCodexProductSession(Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "providers"));
+        builder.Services.AddSingleton(services => new DashboardViewModel(
+            services.GetRequiredService<CodexSession>(), OpenInBrowser, StopAsync));
         builder.Services.AddSingleton<MainWindow>();
         host = builder.Build();
         window = host.Services.GetRequiredService<MainWindow>();
@@ -71,9 +79,20 @@ public partial class App : Application
 
     private MainWindow CreateFailureWindow()
     {
-        var failureWindow = new MainWindow(new DashboardViewModel(StopAsync));
+        var failureWindow = new MainWindow(new DashboardViewModel(null, OpenInBrowser, StopAsync));
         failureWindow.AppWindow.Closing += OnClosing;
         return failureWindow;
+    }
+
+    private static bool OpenInBrowser(Uri url)
+    {
+        try
+        {
+            using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
+            return browser is not null;
+        }
+        catch (System.ComponentModel.Win32Exception) { return false; }
+        catch (InvalidOperationException) { return false; }
     }
 
     private async void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)

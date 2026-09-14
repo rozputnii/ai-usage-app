@@ -6,6 +6,22 @@
   <data name="DashboardHeading.Text" xml:space="preserve"><value>Dashboard</value></data>
   <data name="EmptyState.Text" xml:space="preserve"><value>No accounts connected.</value></data>
   <data name="ExitButton.Content" xml:space="preserve"><value>Exit</value></data>
+  <data name="ConnectButton.Content" xml:space="preserve"><value>Connect Codex</value></data>
+  <data name="RefreshButton.Content" xml:space="preserve"><value>Refresh</value></data>
+  <data name="DisconnectButton.Content" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="WorkingState.Text" xml:space="preserve"><value>Working...</value></data>
+  <data name="QuotaShown.Text" xml:space="preserve"><value>Codex connected.</value></data>
+  <data name="QuotaEmpty.Text" xml:space="preserve"><value>Codex connected. This account reported no usage windows.</value></data>
+  <data name="QuotaUnavailable.Text" xml:space="preserve"><value>Quota is unavailable right now. The account stays connected; try Refresh again.</value></data>
+  <data name="ReauthenticationRequired.Text" xml:space="preserve"><value>Sign-in expired. Connect Codex again to continue.</value></data>
+  <data name="PlanLabel.Text" xml:space="preserve"><value>Plan:</value></data>
+  <data name="RemainingFormat.Text" xml:space="preserve"><value>{0}% remaining</value></data>
+  <data name="RemainingUnknown.Text" xml:space="preserve"><value>Remaining amount not reported</value></data>
+  <data name="RemainingExhausted.Text" xml:space="preserve"><value>Exhausted</value></data>
+  <data name="ResetsFormat.Text" xml:space="preserve"><value>Resets {0}</value></data>
+  <data name="ResetsUnknown.Text" xml:space="preserve"><value>Reset time not reported</value></data>
+  <data name="WindowHoursFormat.Text" xml:space="preserve"><value>{0}h window</value></data>
+  <data name="WindowDaysFormat.Text" xml:space="preserve"><value>{0}d window</value></data>
   <data name="StartupFailure.Text" xml:space="preserve"><value>The app could not start.</value></data>
   <data name="ShutdownFailure.Text" xml:space="preserve"><value>The app could not shut down cleanly.</value></data>
 </root>

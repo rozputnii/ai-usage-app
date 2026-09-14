@@ -44,14 +44,30 @@ public sealed class PackageSmoke
             while (startup.Elapsed < TimeSpan.FromSeconds(15) && !process.HasExited)
             {
                 window = FindProcessWindow(automation, pid);
-                if (window?.FindFirstDescendant(cf => cf.ByAutomationId("EmptyState"))?.Name == "No accounts connected."
+                if (window?.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name == "No accounts connected."
+                    && window.FindFirstDescendant(cf => cf.ByAutomationId("ConnectButton")) is not null
                     && (scenario != "title-bar" || window.TitleBar?.CloseButton is not null))
                     break;
                 Thread.Sleep(100);
             }
             Assert.NotNull(window);
             Assert.Equal("Dashboard", window.FindFirstDescendant(cf => cf.ByAutomationId("DashboardHeading"))?.Name);
-            Assert.Equal("No accounts connected.", window.FindFirstDescendant(cf => cf.ByAutomationId("EmptyState"))?.Name);
+            // A first run has no stored grant, so the dashboard must say so instead of showing quota.
+            Assert.Equal("No accounts connected.", window.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name);
+            Assert.Empty(window.FindAllDescendants(cf => cf.ByAutomationId("QuotaWindows"))
+                .SelectMany(list => list.FindAllChildren()));
+            var connect = window.FindFirstDescendant(cf => cf.ByAutomationId("ConnectButton")).AsButton();
+            Assert.NotNull(connect);
+            Assert.True(connect.IsEnabled);
+            connect.Focus();
+            Assert.True(connect.Properties.IsKeyboardFocusable.Value);
+            // Nothing is connected, so refresh and disconnect must not be offered.
+            var refresh = window.FindFirstDescendant(cf => cf.ByAutomationId("RefreshButton")).AsButton();
+            var disconnect = window.FindFirstDescendant(cf => cf.ByAutomationId("DisconnectButton")).AsButton();
+            Assert.NotNull(refresh);
+            Assert.NotNull(disconnect);
+            Assert.False(refresh.IsEnabled);
+            Assert.False(disconnect.IsEnabled);
             // UIA can expose text before the compositor presents the corresponding frame.
             Thread.Sleep(500);
             using (var screenshot = window.Capture())

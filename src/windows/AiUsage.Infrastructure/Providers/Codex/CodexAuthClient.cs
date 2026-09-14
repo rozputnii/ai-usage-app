@@ -246,6 +246,36 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
         finally { authorization.Gate.Release(); }
     }
 
+    /// <summary>
+    /// Restores a session from a stored grant by exchanging its refresh token. The workspace the
+    /// provider returns must match the stored one, so a swapped record cannot silently change accounts.
+    /// </summary>
+    public async Task<CodexCredentials> ResumeAsync(CodexStoredGrant grant, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(grant);
+        using var request = new HttpRequestMessage(HttpMethod.Post, CodexHttp.AuthOrigin + "/oauth/token")
+        {
+            Content = JsonContent.Create(new RefreshRequest
+            {
+                ClientId = CodexHttp.ClientId, GrantType = "refresh_token", RefreshToken = grant.RefreshToken
+            }, CodexAuthJson.Default.RefreshRequest)
+        };
+        using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        if (!response.IsSuccess)
+        {
+            var error = Property(response.Body?.RootElement ?? default, "error");
+            var code = Text(error) ?? Text(Property(error, "code"));
+            if (response.StatusCode == HttpStatusCode.Unauthorized ||
+                code is "invalid_grant" or "refresh_token_expired" or "refresh_token_reused" or "refresh_token_invalidated")
+                throw new CodexException(CodexFailureKind.AuthenticationRequired, response.StatusCode);
+            throw CodexHttp.Failure(response);
+        }
+        var parsed = ParseTokens(response.Body!.RootElement, null);
+        if (!StringComparer.Ordinal.Equals(parsed.AccountId, grant.AccountId))
+            throw new CodexException(CodexFailureKind.AccountMismatch);
+        return new CodexCredentials(parsed.Access, parsed.Refresh, parsed.AccountId, parsed.ExpiresAt);
+    }
+
     public async Task RefreshAsync(CodexCredentials credentials, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(credentials);

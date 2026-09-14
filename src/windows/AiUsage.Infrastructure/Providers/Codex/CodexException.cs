@@ -10,6 +10,7 @@ public enum CodexFailureKind
     DeviceCodeExpired,
     BrowserCallbackUnavailable,
     LoginAttemptExpired,
+    GrantNotRemoved,
     RateLimited,
     NetworkFailure,
     Timeout,
