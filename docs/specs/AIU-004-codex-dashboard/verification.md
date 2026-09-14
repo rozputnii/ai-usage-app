@@ -1,5 +1,7 @@
 # AIU-004 verification
 
+Historical delivery evidence below describes packages 2026.9.1402.0 and 2026.9.1403.0. The subsequently completed [CR-AIU-004-01 verification](close-to-tray-verification.md) supersedes their close-exits behavior with verified close-to-tray on package 2026.9.1406.0.
+
 ## Scope and environment
 - Date: 2026-09-14. All three subtasks of AIU-004 are now recorded: dashboard over protected credentials, cached snapshot, and tray presence.
 - Environment: Windows 11, OMP 18.1.19, user-local .NET SDK 10.0.401, disposable Windows Sandbox guest without networking.

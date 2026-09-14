@@ -559,5 +559,5 @@ On 2026-09-14 a live console sign-in proved the owner's account carries a `chatg
 ### D-178 - Direct main development until the first release
 Owner-approved agent-neutral amendment, 2026-09-14: The former direct-main default is superseded. Follow the sole Git policy in [CONTRIBUTING](../../CONTRIBUTING.md#git-policy); historical task permission is not current authority.
 
-### D-179 - Push each completed task to main
-Owner-approved agent-neutral amendment, 2026-09-14: The former automatic push grant is superseded. Remote actions require explicit current owner authorization under [CONTRIBUTING](../../CONTRIBUTING.md#git-policy).
+### D-179 - Automatic publication of completed task branches
+Owner amendment after the agent-neutral migration, 2026-09-14: automatically commit and push each owner-selected task after completion, review and successful required verification. This is a standing task-branch publication instruction, not a direct-main or automatic task-selection grant. The sole operative Git policy and its boundaries are in [CONTRIBUTING](../../CONTRIBUTING.md#git-policy).

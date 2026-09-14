@@ -7,11 +7,13 @@
 3. Implement and verify within the requested scope without repeated approval for internal steps. Ask only for missing decisions affecting scope, product intent, significant architecture, dependencies, security boundaries, or external/destructive authority. Complete independent preparation first.
 4. Keep one active feature unless the owner explicitly requests a bounded batch. A backlog status or historical permission never starts another task.
 5. Review the integrated diff against acceptance criteria, run relevant checks and record actual results and limitations. Never weaken requirements to hide a failure.
-6. Finish with changes, evidence and remaining work. On interruption, record one exact next action in the selected task document, with blockers and relevant check results.
+6. After completion and successful required verification, commit and push the completed task under the Git policy below, then report changes, evidence and remaining work. On interruption, record one exact next action in the selected task document, with blockers and relevant check results.
 
 ## Git policy
 
-Default to a short-lived task branch from the inspected checkout. Commit only coherent verified changes that can be separated from pre-existing work. Require explicit current owner authorization for remote actions or integration into main. A current owner request may explicitly choose direct-main work or authorize a push; an old task's authorization is not a grant to a new session. Never force-push or bypass protection. Do not reset, stash, stage or discard unrelated work automatically.
+Default to a short-lived task branch from the inspected checkout. Commit only coherent verified changes that can be separated from unrelated pre-existing work. Standing owner instruction (2026-09-14): after each owner-selected task is completed, reviewed and passes its required verification, automatically commit its scoped changes and push its task branch to the configured origin without asking again. This standing instruction applies across sessions until changed by the owner; it does not select another task or authorize publishing incomplete or blocked work. Inspect the outgoing commits and preserve unrelated changes. If the remote has diverged or the target is ambiguous, stop and report; never force-push or bypass protection.
+
+Other remote actions and integration into main still require explicit owner authorization. A current owner request may explicitly choose direct-main work; automatic task-branch publication does not grant direct-main pushes, merges, releases, tags, workflow dispatch or settings changes. An old task-specific permission is not a new grant. Do not reset, stash, stage or discard unrelated work automatically.
 
 Main protection remains deferred in AIU-026; this does not waive relevant checks or remote-action authority. Native tool permissions are separate from these instructions.
 

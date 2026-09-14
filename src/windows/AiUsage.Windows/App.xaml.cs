@@ -29,9 +29,9 @@ public partial class App : Application
             await StartAsync();
             if (stopTask is null)
             {
-                window!.Activate();
+                ShowWindow();
                 // Restoring a stored account must not block activation or fail startup.
-                await window.ViewModel.LoadAsync();
+                await window!.ViewModel.LoadAsync();
             }
         }
         catch
@@ -79,16 +79,19 @@ public partial class App : Application
 
     private MainWindow CreateFailureWindow()
     {
-        var failureWindow = new MainWindow(new DashboardViewModel(null, OpenInBrowser, StopAsync));
-        failureWindow.AppWindow.Closing += OnClosing;
+        var failureWindow = new MainWindow(new DashboardViewModel(null, OpenInBrowser, StopAsync, ShowWindow));
+        failureWindow.AppWindow.Closing += (_, _) => _ = StopAsync();
         return failureWindow;
     }
 
     private void ShowWindow()
     {
-        if (finalClose)
+        if (stopTask is not null || finalClose || window is null)
             return;
-        window?.Activate();
+        window.AppWindow.Show();
+        if (window.AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter)
+            presenter.Restore();
+        window.Activate();
     }
 
     private static bool OpenInBrowser(Uri url)
@@ -102,12 +105,17 @@ public partial class App : Application
         catch (InvalidOperationException) { return false; }
     }
 
-    private async void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
+    private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         if (finalClose)
             return;
         args.Cancel = true;
-        await StopAsync();
+        if (stopTask is not null)
+            return;
+        if (host is not null)
+            sender.Hide();
+        else
+            _ = StopAsync();
     }
 
     private Task StopAsync() => stopTask ??= StopCoreAsync();

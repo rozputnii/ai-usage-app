@@ -16,6 +16,8 @@ public sealed class PackageSmoke
     [InlineData("exit")]
     [InlineData("title-bar")]
     [InlineData("repeated-exit")]
+    [InlineData("minimize")]
+    [InlineData("tray-exit")]
     public void InstalledDashboardTerminatesCleanly(string scenario)
     {
         var aumid = Environment.GetEnvironmentVariable("AIU_SMOKE_AUMID");
@@ -46,7 +48,7 @@ public sealed class PackageSmoke
                 window = FindProcessWindow(automation, pid);
                 if (window?.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name == "No accounts connected."
                     && window.FindFirstDescendant(cf => cf.ByAutomationId("ConnectButton")) is not null
-                    && (scenario != "title-bar" || window.TitleBar?.CloseButton is not null))
+                    && (scenario is not ("title-bar" or "tray-exit") || window.TitleBar?.CloseButton is not null))
                     break;
                 Thread.Sleep(100);
             }
@@ -75,11 +77,69 @@ public sealed class PackageSmoke
             using (var screenshot = window.Capture())
                 screenshot.Save(Path.Combine(evidence!, scenario + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             var handle = window.Properties.NativeWindowHandle.Value;
-            if (scenario == "title-bar")
+            if (scenario is "title-bar" or "minimize" or "tray-exit")
             {
                 Assert.NotNull(window.TitleBar);
-                Assert.NotNull(window.TitleBar.CloseButton);
-                window.TitleBar.CloseButton.Invoke();
+                if (scenario != "minimize")
+                {
+                    Assert.NotNull(window.TitleBar.CloseButton);
+                    window.TitleBar.CloseButton.Invoke();
+                }
+                else
+                {
+                    // WinUI's UIA title bar does not always expose its native Minimize button.
+                    Assert.True(PostMessage(handle, 0x0112, new IntPtr(0xF020), IntPtr.Zero));
+                }
+                Thread.Sleep(500);
+                Assert.False(process.HasExited, "Close and Minimize must keep the process alive.");
+                Assert.True(TrayIconPresent(pid), "Tray icon must remain present.");
+                if (scenario != "minimize")
+                    Assert.Null(FindProcessWindow(automation, pid));
+                else
+                    Assert.True(IsIconic(handle), "Minimize must use the normal minimized window state.");
+                // Exercise the real tray command; launching the package again creates a new instance.
+                var trayButton = FindTrayButton(automation);
+                Assert.NotNull(trayButton);
+                if (scenario == "tray-exit")
+                {
+                    trayButton.RightClick();
+                    AutomationElement? trayExit = null;
+                    var menuWait = Stopwatch.StartNew();
+                    while (menuWait.Elapsed < TimeSpan.FromSeconds(5) && trayExit is null)
+                    {
+                        // H.NotifyIcon's default native popup preserves menu text, not XAML automation IDs.
+                        trayExit = automation.GetDesktop().FindFirstDescendant(cf => cf.ByName("Exit").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.MenuItem)));
+                        if (trayExit is null)
+                            Thread.Sleep(100);
+                    }
+                    Assert.NotNull(trayExit);
+                    using (var screenshot = trayExit.Capture())
+                        screenshot.Save(Path.Combine(evidence!, scenario + "-menu.png"), System.Drawing.Imaging.ImageFormat.Png);
+                    trayExit.Click();
+                }
+                else
+                {
+                    trayButton.Click();
+                    window = null;
+                    var reopened = Stopwatch.StartNew();
+                    while (reopened.Elapsed < TimeSpan.FromSeconds(10))
+                    {
+                        window = FindProcessWindow(automation, pid);
+                        if (window is not null && !IsIconic(handle))
+                            break;
+                        Thread.Sleep(100);
+                    }
+                    Assert.NotNull(window);
+                    Assert.False(IsIconic(handle));
+                    Assert.Equal(handle, window.Properties.NativeWindowHandle.Value);
+                    Assert.Equal("Dashboard", window.FindFirstDescendant(cf => cf.ByAutomationId("DashboardHeading"))?.Name);
+                    Thread.Sleep(500);
+                    using (var screenshot = window.Capture())
+                        screenshot.Save(Path.Combine(evidence!, scenario + "-restored.png"), System.Drawing.Imaging.ImageFormat.Png);
+                    var exit = window.FindFirstDescendant(cf => cf.ByAutomationId("ExitButton")).AsButton();
+                    Assert.NotNull(exit);
+                    exit.Invoke();
+                }
             }
             else
             {
@@ -87,13 +147,15 @@ public sealed class PackageSmoke
                 Assert.NotNull(exit);
                 exit.Focus();
                 Assert.True(exit.Properties.IsKeyboardFocusable.Value);
-                FlaUI.Core.Input.Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.ENTER);
                 if (scenario == "repeated-exit")
                 {
-                    // Overlap the keyboard Exit action with native close requests.
+                    // Initiate Exit before close can hide the window and cancel pending keyboard input.
+                    exit.Invoke();
                     PostMessage(handle, 0x0010, IntPtr.Zero, IntPtr.Zero);
                     PostMessage(handle, 0x0010, IntPtr.Zero, IntPtr.Zero);
                 }
+                else
+                    FlaUI.Core.Input.Keyboard.Type(FlaUI.Core.WindowsAPI.VirtualKeyShort.ENTER);
             }
             Assert.True(process.WaitForExit(10000), "Launched PID did not terminate within ten seconds.");
             Assert.Equal(0, process.ExitCode);
@@ -144,6 +206,32 @@ public sealed class PackageSmoke
         return null;
     }
 
+    private static Button? FindTrayButton(UIA3Automation automation)
+    {
+        var desktop = automation.GetDesktop();
+        var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
+        var button = taskbar?.FindFirstDescendant(cf => cf.ByName("AI Usage").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)));
+        if (button is not null && !button.IsOffscreen)
+            return button.AsButton();
+        var overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
+        if (overflow is null || overflow.IsOffscreen)
+        {
+            var showHidden = taskbar?.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"));
+            Assert.NotNull(showHidden);
+            showHidden.AsButton().Invoke();
+        }
+        var wait = Stopwatch.StartNew();
+        while (wait.Elapsed < TimeSpan.FromSeconds(5))
+        {
+            overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
+            button = overflow?.FindFirstDescendant(cf => cf.ByName("AI Usage").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)));
+            if (button is not null && !button.IsOffscreen)
+                return button.AsButton();
+            Thread.Sleep(100);
+        }
+        return null;
+    }
+
     /// <summary>
     /// H.NotifyIcon hosts the tray icon in a hidden message-only window owned by the app, so the
     /// presence of that class under the launched process is the observable tray evidence available
@@ -187,4 +275,7 @@ public sealed class PackageSmoke
 
     [DllImport("user32.dll")]
     private static extern bool PostMessage(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsIconic(IntPtr window);
 }

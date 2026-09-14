@@ -64,7 +64,18 @@ schema_version: 1
 - acceptance: [AC-08]
 - evidence: docs/specs/AIU-004-codex-dashboard/verification.md
 
-## Handoff
+### T-06 - Close to tray and terminate only through Exit (CR-AIU-004-01)
+- status: done
+- depends_on: [T-05]
+- acceptance: [AC-06, AC-08]
+- evidence: docs/specs/AIU-004-codex-dashboard/close-to-tray-verification.md
+
+## CR-AIU-004-01 current handoff
+Owner selected completion and publication on 2026-09-14. Preserve and inspect the existing App.xaml.cs and PackageSmoke.cs changes. Verify that close hides without terminating the process, Open restores the dashboard, Minimize retains normal behavior, and Exit terminates cleanly. Run deterministic regressions, build a fresh offline development package and execute the updated smoke in a disposable guest; inspect its screenshots before closure. No real account, host installation or host trust change is in scope.
+
+Completed: 78 validator tests, 72 infrastructure tests and all five UI scenarios passed, including a fresh offline guest run with inspected dashboard screenshots. See close-to-tray-verification.md for exact artifacts and limitations. No pending worker artifacts or blockers. Next action: await the next owner-selected task after publishing this verified task branch.
+
+## Historical AIU-004 handoff
 Selected by the owner on 2026-09-14 immediately after AIU-002 closure and the live-verified Codex path. The former direct-main and automatic-push instructions were past-task context; D-178/179 are superseded by CONTRIBUTING.md. The provider client from AIU-003 is reused unchanged. No provider account action beyond an explicit owner-initiated sign-in is authorized.
 
 Dashboard subtask delivered on 2026-09-14: DPAPI-protected grant storage, the session over the AIU-003 clients, and a dashboard with five distinct states. Verified by 68 deterministic tests, a Release build, and a clean disposable-guest run of signed package 2026.9.1402.0. The inspected screenshot shows the not-connected empty state with Connect enabled and Refresh and Disconnect disabled; quota rendering itself is covered by tests, not by that screenshot. Connecting a real account from the packaged UI is NOT_RUN because the guest has no networking and host installation is unauthorized; the provider path is live-verified through the console.

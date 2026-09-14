@@ -3,7 +3,7 @@ id: AIU-004
 type: spec
 status: implemented
 goal: G-002
-scope_version: 1
+scope_version: 2
 approval_basis: owner-selected-AIU-004-after-live-verified-codex-path
 ---
 # Codex quota dashboard on the verified provider path
@@ -28,7 +28,7 @@ Out of scope for this item: usage history and charts, background refresh schedul
 - AC-05: Disconnect removes the stored grant and returns the app to the not-connected state without deleting anything outside the app-owned root, and without claiming provider-side revocation.
 - AC-06: Verification records actual results: deterministic tests for the credential store and dashboard state transitions, an executed build, and an actual run of the changed surface. Any check that was not run is recorded as NOT_RUN rather than inferred.
 - AC-07: A relaunch or an unavailable provider shows the last cached snapshot with its age, explicitly labelled as not current, and never presents stale values as a fresh reading. The cache holds no credential material.
-- AC-08: The app has a tray presence that can show the window and exit, consistent with the window lifetime already verified in AIU-002.
+- AC-08: The app has tray presence with Open and Exit. Under the owner-approved CR-AIU-004-01 amendment (2026-09-14), closing the dashboard hides it while its process remains alive; Open restores the same window, Minimize retains normal minimized behavior, and explicit Exit from the dashboard or tray terminates cleanly, including overlapping close requests during shutdown.
 
 ## Fixed boundaries
 The DPAPI record is app-owned; source CLI credential stores are never read or modified. Failures surface as typed states, not raw provider payloads. Sign-in requires explicit user action and discloses that the public Codex client's third-party reuse remains unresolved. No automatic retry of authentication requests and no replay of a grant whose refresh outcome is unknown.

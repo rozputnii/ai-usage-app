@@ -2,7 +2,7 @@
 
 Windows-first native WinUI/.NET 10 subscription-quota dashboard. The delivered slice connects one Codex account through the shared provider library, protects its grant with DPAPI CurrentUser, supports refresh/disconnect, displays an explicitly stale cached reading and provides tray Open/Exit.
 
-[AIU-002](docs/specs/AIU-002-windows-msix/verification.md) records clean-guest installation and offline UI evidence; [AIU-003](docs/specs/AIU-003-codex-console/verification.md) records real console sign-in, quota and in-memory refresh; [AIU-004](docs/specs/AIU-004-codex-dashboard/verification.md) records deterministic dashboard/storage checks and guest UI/tray evidence. Packaged live sign-in, real-grant resume and close-to-tray remain unverified by this migration. Public-client reuse permission and broader provider lifecycle cases remain unresolved as recorded in the evidence.
+[AIU-002](docs/specs/AIU-002-windows-msix/verification.md) records clean-guest installation and offline UI evidence; [AIU-003](docs/specs/AIU-003-codex-console/verification.md) records real console sign-in, quota and in-memory refresh; [AIU-004](docs/specs/AIU-004-codex-dashboard/verification.md) records deterministic dashboard/storage checks and guest UI/tray evidence. [CR-AIU-004-01](docs/specs/AIU-004-codex-dashboard/close-to-tray-verification.md) verifies close-to-tray, restoration and explicit Exit in a fresh guest. Packaged live sign-in and real-grant resume remain unverified. Public-client reuse permission and broader provider lifecycle cases remain unresolved as recorded in the evidence.
 
 ## Development prerequisites
 
@@ -44,6 +44,8 @@ This command was exercised with earlier reserved versions. Choose a fresh UTC `Y
 The separate executable UI suite publishes with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`. It requires an installed `AIU_SMOKE_AUMID`, an unlocked interactive desktop and `AIU_SMOKE_EVIDENCE_DIRECTORY`; missing prerequisites fail, never silently skip. Do not run it as part of platform-neutral checks.
 
 `tools/windows/Invoke-PackageSmoke.ps1` is a disposable-guest harness, not a host installer. It requires package, public CER, official offline dependencies, .NET runtime installer, published smoke executable and empty evidence directory. It changes trust only inside Sandbox or a disposable VM explicitly confirmed with `-ConfirmDisposableGuest`; an inherited environment variable does not authorize it. Retained AIU-002 and AIU-004 evidence records successful disposable-guest runs and inspected screenshots. This migration does not repeat those runs.
+
+The default `-VerificationMode ProductUi` provisions the offline dependencies before the first app activation, so ordinary UI checks do not show missing-runtime dialogs. Missing-prerequisite negative checks are reported as NOT_RUN. Use `-VerificationMode InstallationContract` explicitly when testing installation failures; that mode deliberately activates without the runtime and can display the native missing-runtime dialog. ProductUi success does not claim the installation-negative contract passed.
 
 ## Project state
 

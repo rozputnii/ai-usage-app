@@ -1,5 +1,9 @@
 # Superseded alternatives
 
+## Automatic task publication amendment, 2026-09-14
+
+After the migration was committed, the owner explicitly reinstated automatic commit and push after each completed and successfully verified task. This supersedes the migration's requirement to request a new push authorization for each task branch. It does not restore the earlier direct-main default. See D-179 and the sole Git policy in CONTRIBUTING.md for the current standing authorization and its boundaries.
+
 This register is historical, not active instruction. The table records earlier resolutions, some themselves superseded by the 2026-09-14 amendments below, including its workflow and language rows. Use accepted.md and CONTRIBUTING.md for current decisions.
 
 | Earlier proposal | Final decision |

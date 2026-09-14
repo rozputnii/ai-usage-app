@@ -6,6 +6,7 @@ param(
     [Parameter(Mandatory)][string] $DotNetRuntimeInstaller,
     [Parameter(Mandatory)][string] $SmokeExecutable,
     [Parameter(Mandatory)][string] $EvidenceDirectory,
+    [ValidateSet('ProductUi', 'InstallationContract')][string] $VerificationMode = 'ProductUi',
     [switch] $ConfirmDisposableGuest
 )
 $ErrorActionPreference = 'Stop'
@@ -26,7 +27,7 @@ if (!$admin.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { 
 if (Test-Path -LiteralPath $EvidenceDirectory) {
     if (@(Get-ChildItem -LiteralPath $EvidenceDirectory -Force).Count -ne 0) { throw 'Prerequisite: use a fresh empty evidence directory.' }
 } else { New-Item -ItemType Directory -Path $EvidenceDirectory | Out-Null }
-$report = [ordered]@{ status = 'prerequisite-check'; utc = [DateTime]::UtcNow.ToString('o'); positive = 'NOT_RUN'; remote = 'NOT_RUN' }
+$report = [ordered]@{ status = 'prerequisite-check'; verificationMode = $VerificationMode; utc = [DateTime]::UtcNow.ToString('o'); positive = 'NOT_RUN'; remote = 'NOT_RUN' }
 function Assert-MicrosoftSignature([string] $Path) {
     $signature = Get-AuthenticodeSignature -LiteralPath $Path
     if ($signature.Status -ne 'Valid' -or !$signature.SignerCertificate -or $signature.SignerCertificate.Subject -notmatch '(^|, )O=Microsoft Corporation(,|$)') { throw "Prerequisite: invalid Microsoft signature: $([IO.Path]::GetFileName($Path))" }
@@ -76,18 +77,23 @@ try {
     if ((Get-AuthenticodeSignature -LiteralPath $PackagePath).Status -ne 'Valid') { throw 'Package signature is not valid after guest-only trust provisioning.' }
     $report.frameworkNegative = 'NOT_RUN'
     $report.dotnetNegative = 'NOT_RUN'
-    try {
-        Add-AppxPackage -Path $PackagePath
-        $report.frameworkNegative = 'NO_MISSING_PREREQUISITE_OBSERVED'
-    } catch {
-        $report.frameworkNegative = 'OBSERVED_INSTALL_FAILURE'
-        $report.frameworkNegativeHResult = $_.Exception.HResult
-        $report.frameworkNegativeErrorId = $_.FullyQualifiedErrorId
+    if ($VerificationMode -eq 'InstallationContract') {
+        try {
+            Add-AppxPackage -Path $PackagePath
+            $report.frameworkNegative = 'NO_MISSING_PREREQUISITE_OBSERVED'
+        } catch {
+            $report.frameworkNegative = 'OBSERVED_INSTALL_FAILURE'
+            $report.frameworkNegativeHResult = $_.Exception.HResult
+            $report.frameworkNegativeErrorId = $_.FullyQualifiedErrorId
+        }
     }
     Add-AppxPackage -Path $PackagePath -DependencyPath @($dependencies.FullName)
     $installed = Get-AppxPackage -Name 'AiUsage.Dev'
     $env:AIU_SMOKE_AUMID = "$($installed.PackageFamilyName)!App"
-    if ($runtimeInventory -match '^Microsoft.NETCore.App 10\.') {
+    if ($VerificationMode -ne 'InstallationContract') {
+        # Normal UI runs provision dependencies before activation, avoiding apphost error dialogs.
+        $report.dotnetNegative = 'NOT_RUN'
+    } elseif ($runtimeInventory -match '^Microsoft.NETCore.App 10\.') {
         $report.dotnetNegative = 'PREREQUISITE_ALREADY_PRESENT'
     } else {
         $env:AIU_SMOKE_EVIDENCE_DIRECTORY = Join-Path $EvidenceDirectory 'negative-dotnet'
@@ -97,7 +103,7 @@ try {
         $activationAttempted = @($attempts | ForEach-Object { Get-Content -LiteralPath $_.FullName | ConvertFrom-Json } | Where-Object phase -eq 'activation-attempted').Count -gt 0
         $report.dotnetNegative = if ($LASTEXITCODE -eq 0) { 'NO_MISSING_PREREQUISITE_OBSERVED' } elseif ($activationAttempted) { 'OBSERVED_FAILURE_AFTER_ACTIVATION_ATTEMPT' } else { 'HARNESS_PREREQUISITE_FAILURE' }
     }
-    $installer = Start-Process -FilePath $DotNetRuntimeInstaller -ArgumentList '/install', '/quiet', '/norestart' -Wait -PassThru
+    $installer = Start-Process -FilePath $DotNetRuntimeInstaller -ArgumentList '/install', '/quiet', '/norestart' -WindowStyle Hidden -Wait -PassThru
     $report.runtimeInstallerExitCode = $installer.ExitCode
     if ($installer.ExitCode -ne 0) { throw 'Runtime installer failed or requires reboot; no reboot is authorized.' }
     if (!(Test-Path -LiteralPath $dotnet)) { throw 'Installed runtime host is missing.' }
@@ -112,7 +118,7 @@ try {
     $report.smokeExitCode = $LASTEXITCODE
     if ($LASTEXITCODE -ne 0) { $report.positive = 'FAIL'; throw 'Installed app smoke failed.' }
     $report.positive = 'PASS'
-    $report.status = if ($report.frameworkNegative -eq 'OBSERVED_INSTALL_FAILURE' -and $report.dotnetNegative -eq 'OBSERVED_FAILURE_AFTER_ACTIVATION_ATTEMPT') { 'PASS_REQUIRES_EVIDENCE_REVIEW' } else { 'BLOCKED_FRESH_NEGATIVE_SNAPSHOT_REQUIRED' }
+    $report.status = if ($VerificationMode -eq 'ProductUi' -or ($report.frameworkNegative -eq 'OBSERVED_INSTALL_FAILURE' -and $report.dotnetNegative -eq 'OBSERVED_FAILURE_AFTER_ACTIVATION_ATTEMPT')) { 'PASS_REQUIRES_EVIDENCE_REVIEW' } else { 'BLOCKED_FRESH_NEGATIVE_SNAPSHOT_REQUIRED' }
 } catch {
     $report.status = 'FAIL'
     $report.failureType = $_.Exception.GetType().Name
