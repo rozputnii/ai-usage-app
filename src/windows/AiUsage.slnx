@@ -6,5 +6,6 @@
   <Project Path="AiUsage.Infrastructure/AiUsage.Infrastructure.csproj" />
   <Project Path="AiUsage.Windows/AiUsage.Windows.csproj">
     <Platform Project="x64" />
+    <Deploy />
   </Project>
 </Solution>
