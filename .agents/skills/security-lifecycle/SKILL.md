@@ -1,6 +1,6 @@
 ---
 name: security-lifecycle
-description: Use when inspecting credential or durable-state safety boundaries
+description: Change or review credential storage, token lifecycle, migrations, recovery, or owned-data cleanup.
 ---
 # security-lifecycle
 

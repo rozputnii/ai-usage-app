@@ -1,6 +1,6 @@
 ---
 name: provider-evidence
-description: Use when researching provider authentication or quota semantics
+description: Investigate or revise provider authentication and quota contracts using source and live evidence.
 ---
 # provider-evidence
 

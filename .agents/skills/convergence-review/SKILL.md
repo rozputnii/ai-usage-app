@@ -1,6 +1,6 @@
 ---
 name: convergence-review
-description: Use when the owner or review policy requires scoped independent review
+description: Perform independent review when explicitly requested or required by CONTRIBUTING.md.
 ---
 # convergence-review
 

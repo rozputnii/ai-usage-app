@@ -2,6 +2,18 @@
 
 Follow [CONTRIBUTING](../../CONTRIBUTING.md) for the procedure and review requirements; use the [local commands](../../README.md#local-checks). CI runs validator regressions, document validation, deterministic product regressions on Windows, unsigned package and routing builds, and smoke-harness publication. It does not claim interactive UI or live-provider execution.
 
+## Checks by change
+
+Select all applicable rows for the requested change. Feature acceptance criteria and release requirements still apply; this matrix does not waive them. Use the commands in README.md. After required checks pass, repeat or broaden them only for new changes, failures or unresolved concerns.
+
+| Change | Required local verification |
+| --- | --- |
+| Documentation or agent instructions only | Document validation and diff check; inspect links and instruction conflicts. |
+| Validator implementation or document-contract behavior | Validator regressions, document validation, and diff check. |
+| Core, provider, persistence, or presentation behavior | Infrastructure and presentation regression suites, applicable document validation, and diff check. |
+| Windows UI, activation, tray, or lifetime | Relevant regressions, package build, and applicable actual Windows smoke scenarios. |
+| Authentication or durable-state boundaries | Relevant regressions plus focused independent review; live checks only when required and authorized. |
+
 ## Layers
 Windows UI tests: xUnit v3 + FlaUI UIA3, critical launch/navigation/settings/tray/activation only; run where an interactive Windows desktop really exists. A hosted runner label alone is not proof UI automation works. Document NOT RUN when environment unavailable; don't mark all tests green.
 Live smoke: explicit local existing credentials or dedicated safe test account. Never personal credentials in CI. Provider availability/auth consent remains external. Source-verified fixture alone is not live verified integration.

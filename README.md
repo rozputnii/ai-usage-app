@@ -1,8 +1,8 @@
 # AI Usage
 
-Windows-first native WinUI/.NET 10 subscription-quota dashboard. The delivered slice connects one Codex account through the shared provider library, protects its grant with DPAPI CurrentUser, supports refresh/disconnect, displays an explicitly stale cached reading and provides tray Open/Exit.
+Windows-first native WinUI/.NET 10 subscription-quota dashboard with Codex and Claude integrations. Shared provider libraries handle connection, refresh and disconnect; app-owned grants are protected with DPAPI CurrentUser. The dashboard displays quota and explicitly stale cached readings, with close-to-tray, restoration and explicit Exit.
 
-[AIU-002](docs/specs/AIU-002-windows-msix/verification.md) records clean-guest installation and offline UI evidence; [AIU-003](docs/specs/AIU-003-codex-console/verification.md) records real console sign-in, quota and in-memory refresh; [AIU-004](docs/specs/AIU-004-codex-dashboard/verification.md) records deterministic dashboard/storage checks and guest UI/tray evidence. [CR-AIU-004-01](docs/specs/AIU-004-codex-dashboard/close-to-tray-verification.md) verifies close-to-tray, restoration and explicit Exit in a fresh guest. Packaged live sign-in and real-grant resume remain unverified. Public-client reuse permission and broader provider lifecycle cases remain unresolved as recorded in the evidence.
+[AIU-002](docs/specs/AIU-002-windows-msix/verification.md) records clean-guest installation and offline UI evidence; [AIU-003](docs/specs/AIU-003-codex-console/verification.md) records real Codex console sign-in, quota and in-memory refresh; [AIU-004](docs/specs/AIU-004-codex-dashboard/verification.md) records Codex dashboard/storage and guest UI/tray evidence. [CR-AIU-004-01](docs/specs/AIU-004-codex-dashboard/close-to-tray-verification.md) verifies close-to-tray, restoration and explicit Exit. [AIU-027](docs/specs/AIU-027-architecture-refinement/verification.md) records workflow and presentation boundaries. [AIU-007](docs/specs/AIU-007-claude-integration/verification.md) records Claude regressions, packaged Windows checks and owner-led live connection, refresh, renewal, resume and disconnect. Provider-specific limitations remain in those records: Claude is a private, unsupported integration, and successful testing does not establish provider approval or complete lifecycle coverage.
 
 ## Development prerequisites
 
@@ -10,11 +10,11 @@ Windows-first native WinUI/.NET 10 subscription-quota dashboard. The delivered s
 - Existing restored packages for offline checks; SDK installation or network restoration needs separate authorization.
 - Windows for DPAPI tests, and the additional Windows tooling below for package builds.
 
-AI clients and plugins are optional. Start with [AGENTS](AGENTS.md) and [CONTRIBUTING](CONTRIBUTING.md). No next feature starts automatically; G-002 remains the direction and AIU-002/003/004 are recorded complete. The retired runtime is historical evidence only.
+AI clients and plugins are optional. Start with [AGENTS](AGENTS.md) and [CONTRIBUTING](CONTRIBUTING.md). Consult the [backlog](docs/backlog.md) for current feature status; no next feature starts automatically. The retired runtime is historical evidence only.
 
 ## Local checks
 
-Use the SDK selected by global.json. If it is not on PATH, the existing user-local PowerShell form replaces `dotnet` with `& "$HOME/.dotnet/ai-usage-sdk/dotnet.exe"`.
+Select commands using the [change-based verification matrix](docs/workflow/verification.md#checks-by-change). Use the SDK selected by global.json. If it is not on PATH, the existing user-local PowerShell form replaces `dotnet` with `& "$HOME/.dotnet/ai-usage-sdk/dotnet.exe"`.
 
 ```powershell
 dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo
@@ -44,7 +44,7 @@ This command was exercised with earlier reserved versions. Choose a fresh UTC `Y
 
 The separate executable UI suite publishes with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`. It requires an installed `AIU_SMOKE_AUMID`, an unlocked interactive desktop and `AIU_SMOKE_EVIDENCE_DIRECTORY`; missing prerequisites fail, never silently skip. Do not run it as part of platform-neutral checks.
 
-`tools/windows/Invoke-PackageSmoke.ps1` is a disposable-guest harness, not a host installer. It requires package, public CER, official offline dependencies, .NET runtime installer, published smoke executable and empty evidence directory. It changes trust only inside Sandbox or a disposable VM explicitly confirmed with `-ConfirmDisposableGuest`; an inherited environment variable does not authorize it. Retained AIU-002 and AIU-004 evidence records successful disposable-guest runs and inspected screenshots. This migration does not repeat those runs.
+`tools/windows/Invoke-PackageSmoke.ps1` is a disposable-guest harness, not a host installer. It requires package, public CER, official offline dependencies, .NET runtime installer, published smoke executable and empty evidence directory. It changes trust only inside Sandbox or a disposable VM explicitly confirmed with `-ConfirmDisposableGuest`; an inherited environment variable does not authorize it. Retained AIU-002 and AIU-004 evidence records successful disposable-guest runs and inspected screenshots.
 
 The default `-VerificationMode ProductUi` provisions the offline dependencies before the first app activation, so ordinary UI checks do not show missing-runtime dialogs. Missing-prerequisite negative checks are reported as NOT_RUN. Use `-VerificationMode InstallationContract` explicitly when testing installation failures; that mode deliberately activates without the runtime and can display the native missing-runtime dialog. ProductUi success does not claim the installation-negative contract passed.
 
@@ -54,4 +54,4 @@ The default `-VerificationMode ProductUi` provisions the offline dependencies be
 - [Environment history](docs/workflow/environment.md) and [security reporting](SECURITY.md).
 - [Historical bootstrap evidence](docs/specs/AIU-001-omp-bootstrap/verification.md).
 
-Remote CI and other AI-client adapter loading are NOT_RUN for this migration. No push, merge, release, host installation or trust change is implied.
+Consult each feature's verification record for observed CI, interactive and live-provider results. Git publication and integration authority are defined in CONTRIBUTING.md; host installation, trust changes and releases require their applicable authorization.
