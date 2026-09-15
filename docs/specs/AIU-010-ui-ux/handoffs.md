@@ -14,6 +14,8 @@ Use native-feasible components. No global usage percentage, invented quotas, fak
 
 ## Prompt for Claude Code (use after approved design exists)
 
+Superseded for the current delivery by the owner brief in [frontend-brief.md](frontend-brief.md) and executed through [frontend-plan.md](frontend-plan.md). Its instructions to keep normal startup on real services, avoid dependency changes and leave desktop composition to Codex no longer apply; the remaining semantic, isolation and reporting rules still do.
+
 Implement only the native Windows presentation and deterministic demo for AIU-010. Read AGENTS.md, CONTRIBUTING.md and this entire package. Obtain the approved design artifact revision from tasks.md before implementation; if missing, report that design review is incomplete. Use existing C#/.NET 10/WinUI/XAML/MVVM conventions, not React, HTML or a WebView frontend.
 
 Implement S01–S12, shared components/tokens, resource-based English copy, navigation, typed presentation records and a deterministic in-memory source following ui-contract.md and fixtures.json. The JSON catalog is scenario input, not a snapshot schema. Expand its seeds into valid typed states and cover all specified transitions. Provide a development demo entry point and scenario selector with the visible “Demo · sample data” label. Keep normal startup wired to existing real services until Codex integration. Demo composition must never initialize or call real providers, credential stores, production persistence or OS action services.

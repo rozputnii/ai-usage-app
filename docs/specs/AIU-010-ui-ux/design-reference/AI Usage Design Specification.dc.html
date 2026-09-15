@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><style>body{margin:0;background:#F6F4EF;color:#1D1B18;font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}a{color:#C8684A}a:hover{color:#B2583C}</style></helmet>
+<div style="max-width:1200px;margin:0 auto;padding:40px 32px 80px;display:flex;flex-direction:column;gap:40px;font-size:14px;line-height:1.55">
+  <header style="display:flex;flex-direction:column;gap:10px;border-bottom:1px solid rgba(29,27,24,.14);padding-bottom:24px">
+    <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6B665E">AIU‑010 · Design specification · Quiet Editorial (1b) · revision 1 · 2026‑09‑15</div>
+    <h1 style="margin:0;font:600 34px/1.15 'Segoe UI Variable Display','Segoe UI',system-ui">AI Usage — selected design, tokens, states, motion and coverage</h1>
+    <p style="margin:0;max-width:820px;color:#6B665E">Companion to the clickable prototype <a href="AI Usage App.dc.html">AI Usage App</a>. Every view below is a design rendering with synthetic fixture data, not a screenshot of a built app. Colors, type and motion values are proposals until owner visual approval and Codex feasibility review.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:#6B665E"><span>Direction: <strong style="color:#1D1B18">1b Quiet Editorial</strong></span><span>Accent: <strong style="color:#1D1B18">fixed coral</strong></span><span>Surface: <strong style="color:#1D1B18">warm paper</strong></span><span>Theme default: <strong style="color:#1D1B18">System</strong></span><span>Provider glyphs: <strong style="color:#1D1B18">custom, pending rights review</strong></span></div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">1 · Reference views (Light / Dark, 960×720)</h2>
+    <p style="margin:0;color:#6B665E;max-width:820px">Six fixed 960×720 renderings of the prototype with the demo shell hidden — Overview, Account detail and Appearance in Light and Dark on F02 data — live in <a href="AI Usage Reference Views.dc.html">AI Usage Reference Views</a>. They are embeds of the same source, so they always match the prototype.</p>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">2 · Navigation and information architecture</h2>
+    <p style="margin:0;max-width:820px">Top NavigationView (WinUI <code>NavigationView</code>, <code>PaneDisplayMode=Top</code>): Overview · Accounts · History · Settings · System Status. Add account is contextual (header button, empty state, Accounts list). Settings hosts four tabs: Appearance (S05), Monitoring &amp; notifications (S06), Data &amp; privacy (S10), Updates (S12). Recovery (S11) replaces the shell as a blocking surface while <code>system.recovery ≠ None</code>. The tray mini‑dashboard (S07) is a flyout; it never shows charts. Identity hierarchy is preserved everywhere: provider → account → context → group → window; labels are editable display values and opaque ids never appear as copy.</p>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Action</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Command</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Where</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Outcome / keyboard</th></tr></thead><tbody>
+      <sc-for list="{{ actions }}" as="r" hint-placeholder-count="6"><tr><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ r.a }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ r.c }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;color:#6B665E">{{ r.w }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ r.o }}</td></tr></sc-for>
+    </tbody></table>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">3 · Semantic tokens</h2>
+    <p style="margin:0;color:#6B665E;max-width:820px">Map to <code>ThemeResource</code> entries in <code>Themes/</code>. Dark is remapped, not inverted: surfaces step up toward the viewer, text collapses to two tiers, status hues shift lighter to keep ≥ 4.5:1 on their surface. The accent is interactive‑only (selection underline, links, focus of choice); quota meters use ink or status colours so colour never competes with data. High contrast follows the Windows HC palette (system colours at implementation; values below are the design stand‑ins).</p>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Token</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Light</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Dark</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">High contrast</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Use</th></tr></thead><tbody>
+      <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="8"><tr><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10);font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ t.n }}</td><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10)"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid rgba(29,27,24,.2);vertical-align:-2px;margin-right:6px;background:{{ t.l }}"></span><span style="font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ t.l }}</span></td><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10)"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid rgba(29,27,24,.2);vertical-align:-2px;margin-right:6px;background:{{ t.d }}"></span><span style="font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ t.d }}</span></td><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10);font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ t.h }}</td><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10);color:#6B665E">{{ t.u }}</td></tr></sc-for>
+    </tbody></table>
+    <h3 style="margin:8px 0 0;font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui">Type and spacing</h3>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><tbody>
+      <sc-for list="{{ type }}" as="t" hint-placeholder-count="6"><tr><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10);font-family:Consolas,ui-monospace,monospace;font-size:12px;white-space:nowrap">{{ t.n }}</td><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10)">{{ t.v }}</td><td style="padding:6px 10px;border-bottom:1px solid rgba(29,27,24,.10);color:#6B665E">{{ t.u }}</td></tr></sc-for>
+    </tbody></table>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">4 · Component and state catalog</h2>
+    <p style="margin:0;color:#6B665E;max-width:820px">All components exist in Light, Dark and High contrast via the tokens above; every state has a non‑colour cue (glyph, text, or pattern). WinUI mapping is the proposed native control.</p>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Component</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">WinUI</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">States</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Notes</th></tr></thead><tbody>
+      <sc-for list="{{ components }}" as="c" hint-placeholder-count="8"><tr><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-weight:600">{{ c.n }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ c.w }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ c.s }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;color:#6B665E">{{ c.o }}</td></tr></sc-for>
+    </tbody></table>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">5 · Motion</h2>
+    <p style="margin:0;max-width:820px">Three durations, one easing family. <strong>m1 150 ms</strong> hover/focus/selection (ease‑out). <strong>m2 200 ms</strong> expand, tab and page entrance (<code>cubic-bezier(.1,.9,.2,1)</code>, Fluent decelerate, 6 px rise + fade). <strong>m3 320 ms</strong> quota meter width and value colour after an actual new reading (<code>cubic-bezier(.2,0,0,1)</code>). Indeterminate work uses a 1 s linear rotation of the refresh glyph or a 12 px ring; determinate work (download, export, restore) uses a linear‑filled 4 px bar driven by real progress. Success acknowledgement is a 1.5 s fade‑in/out “✓ Updated” label; there is no motion for failures beyond the alert appearing. Nothing loops decoratively; nothing delays a command. Reduced motion (Windows setting or demo toggle) sets every duration to 0 and replaces spinners with static text — all states remain readable because every animation is paired with text.</p>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Action</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Trigger</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Pending</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Success</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Error</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Cancel</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Duration / easing</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Reduced motion</th></tr></thead><tbody>
+      <sc-for list="{{ motion }}" as="m" hint-placeholder-count="10"><tr><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-weight:600">{{ m.a }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;color:#6B665E">{{ m.t }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ m.p }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ m.s }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ m.e }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ m.c }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ m.d }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;color:#6B665E">{{ m.r }}</td></tr></sc-for>
+    </tbody></table>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">6 · Loading versus refreshing</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1000px">
+      <div><h3 style="margin:0 0 6px;font:600 15px 'Segoe UI Variable Display','Segoe UI',system-ui">No data yet</h3><p style="margin:0;color:#6B665E">Skeleton mirrors the final layout (four stat blocks, four rows with label, meter and numeral placeholders) so nothing shifts on arrival. Shimmer is a 1.6 s ease‑in‑out sweep between <code>skel</code> and <code>skel2</code> (warm greys in Light, low‑delta greys in Dark). A skeleton is bounded by its result: failure renders the error row with retry, no accounts renders the empty state; it never persists. History uses the same rule for its chart area.</p></div>
+      <div><h3 style="margin:0 0 6px;font:600 15px 'Segoe UI Variable Display','Segoe UI',system-ui">Refreshing existing data</h3><p style="margin:0;color:#6B665E">Values stay visible. The refresh glyph on the affected row rotates and a compact “Updating…” with Cancel appears to its right in a fixed‑height slot, so the row never changes height; the freshness pill is untouched, so “Updating…” never implies healthy or fresh data. The last successful timestamp is retained until a reading arrives; then meter width and colour interpolate over m3 and “✓ Updated” fades for 1.5 s. On failure the values, freshness and timestamp remain, an inline alert names the failure category and offers Retry or a countdown (<code>retryAt</code>).</p></div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">7 · Themes</h2>
+    <p style="margin:0;max-width:820px">Settings › Appearance offers System (default), Light and Dark as a radio group with miniature previews. System follows <code>UISettings.ColorValues</code> / <code>Application.RequestedTheme</code> and updates immediately when Windows changes; Light and Dark ignore Windows changes. The preference is persisted through the preference adapter (memory‑only in demo). The transition is a 200 ms colour cross‑fade on surfaces and text; no flash, no loading state. The demo shell’s “Windows mode” control simulates the OS change so both behaviours can be checked. All screens, dialogs, tray flyout, chart, skeletons and component states read the same tokens, so theme coverage is complete by construction.</p>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">8 · Responsive behaviour</h2>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><tbody>
+      <sc-for list="{{ responsive }}" as="r" hint-placeholder-count="3"><tr><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-weight:600;white-space:nowrap">{{ r.w }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ r.b }}</td></tr></sc-for>
+    </tbody></table>
+    <p style="margin:0;color:#6B665E;max-width:820px">These are design test sizes, not a minimum‑window promise. Primary actions (Refresh all, Add account, dialog confirms) never clip: the header stacks and buttons keep fixed minimum widths with labels intact. 150/200 % scaling and text enlargement follow because every measure is in effective pixels and rows wrap rather than truncate (the F15 long label wraps with <code>overflow-wrap:anywhere</code>).</p>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">9 · Accessibility</h2>
+    <ul style="margin:0;padding-left:20px;max-width:900px;display:flex;flex-direction:column;gap:6px">
+      <sc-for list="{{ a11y }}" as="i" hint-placeholder-count="6"><li>{{ i }}</li></sc-for>
+    </ul>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">10 · English copy (resource keys)</h2>
+    <p style="margin:0;color:#6B665E;max-width:820px">User labels and provider protocol values are never translated. Money is formatted only when currency and exponent are both present. Times use Windows culture; the demo renders the fixed clock in a zone equal to UTC so exact values are checkable.</p>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><tbody>
+      <sc-for list="{{ copy }}" as="c" hint-placeholder-count="10"><tr><td style="padding:5px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-family:Consolas,ui-monospace,monospace;font-size:12px;white-space:nowrap">{{ c.k }}</td><td style="padding:5px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ c.v }}</td></tr></sc-for>
+    </tbody></table>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">11 · Coverage: screens → artifacts → scenarios</h2>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">ID</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Surface</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Where in prototype</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">States covered</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">F scenarios</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Owner / availability</th></tr></thead><tbody>
+      <sc-for list="{{ coverage }}" as="r" hint-placeholder-count="12"><tr><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-weight:600">{{ r.id }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ r.s }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;color:#6B665E">{{ r.w }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ r.st }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ r.f }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;color:#6B665E">{{ r.o }}</td></tr></sc-for>
+    </tbody></table>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">12 · Proposed contract extensions</h2>
+    <p style="margin:0;color:#6B665E;max-width:820px">Each item is a request to Codex, not a change. The design already renders the listed fallback when the field is absent.</p>
+    <table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Field</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">Rationale</th><th style="text-align:left;padding:8px 10px;border-bottom:1px solid rgba(29,27,24,.24);font-weight:600">No‑data fallback</th></tr></thead><tbody>
+      <sc-for list="{{ extensions }}" as="e" hint-placeholder-count="5"><tr><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;font-family:Consolas,ui-monospace,monospace;font-size:12px">{{ e.f }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top">{{ e.r }}</td><td style="padding:7px 10px;border-bottom:1px solid rgba(29,27,24,.10);vertical-align:top;color:#6B665E">{{ e.n }}</td></tr></sc-for>
+    </tbody></table>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <h2 style="margin:0;font:600 22px 'Segoe UI Variable Display','Segoe UI',system-ui">13 · Unresolved visual choices for the owner</h2>
+    <ol style="margin:0;padding-left:20px;max-width:900px;display:flex;flex-direction:column;gap:8px">
+      <sc-for list="{{ open }}" as="o" hint-placeholder-count="6"><li><strong>{{ o.t }}</strong> — {{ o.b }}</li></sc-for>
+    </ol>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals(){return {
+    views:[{caption:'S01 Overview · Light · F02',theme:'Light',route:'overview'},{caption:'S01 Overview · Dark · F02',theme:'Dark',route:'overview'},{caption:'S02 Account detail · Light · F02/F07',theme:'Light',route:'accounts'},{caption:'S02 Account detail · Dark · F02/F07',theme:'Dark',route:'accounts'},{caption:'S05 Appearance · Light',theme:'Light',route:'settings'},{caption:'S05 Appearance · Dark',theme:'Dark',route:'settings'}],
+    actions:[
+      {a:'Refresh one',c:'RefreshAccount',w:'Row glyph, detail, tray',o:'Glyph rotates; “Updating…” + Cancel; values kept; success → m3 interpolation + “✓ Updated”; failure → inline alert with Retry / retryAt countdown. Enter on a focused row opens detail.'},
+      {a:'Refresh all',c:'RefreshAll',w:'Header, tray menu',o:'Header glyph rotates and label reads “Refreshing…”; each eligible row shows its own progress; result bar “n updated · m failed (names) — cached readings kept”. Disabled while running or when compatibility‑blocked.'},
+      {a:'Add / Connect / Reconnect',c:'Connect, SubmitCode, CancelOperation',w:'Header, empty state, detail, sign‑in‑required alert',o:'Sheet: provider → method → “Connecting…” → “Waiting for authorization” with Cancel and “Enter a code instead” where supported → result. Deny/expire return to method step with inline note; cancel is neutral; duplicate focuses the existing account.'},
+      {a:'Rename',c:'Rename',w:'Detail title',o:'Inline field; Enter saves, Esc/Cancel restores; empty or >80 chars shows inline error and keeps prior label.'},
+      {a:'Reorder',c:'Reorder',w:'Overview rows, Settings › Order',o:'Drag row or Alt+↑/↓ on focused Overview row; ▲▼ buttons live in Settings › Order and visibility (removed from Overview rows per review); announcer reads new position. Same outcome for all inputs.'},
+      {a:'Hide / Hide and mute / Show',c:'SetVisibility',w:'Detail menu, group header, Settings › Order',o:'Dialog offers “Hide only” and “Hide and mute alerts”; hidden items remain monitored and appear with a tag when “Show hidden” is on.'},
+      {a:'Expand / Collapse group',c:'SetExpansion',w:'Detail group header',o:'Chevron rotates 90° (m2); rows fade‑rise in; label shows Auto / Expanded by you / Collapsed by you. Auto expands the first group and any group with a warning unless the user has a preference.'},
+      {a:'Change context',c:'— (view state)',w:'Detail segmented control',o:'Switches groups; preference is remembered per account and kept if the context is temporarily absent.'},
+      {a:'Disconnect',c:'Disconnect',w:'Detail menu',o:'Confirm dialog (destructive) → “Disconnecting…” in the confirm button → row stays as Disconnected (label, order, history kept) or hides per preference.'},
+      {a:'History filters',c:'QueryHistoryAsync',w:'History',o:'Account/window selects, range presets, custom From/To with validation (format, order, future). Skeleton for 0.6 s, then chart, empty or disabled banner.'},
+      {a:'Theme, density, always‑on‑top, order',c:'SetPreference',w:'Settings › Appearance',o:'Immediate; no pending state; 200 ms colour cross‑fade for theme.'},
+      {a:'Usage display + thresholds',c:'SetPreference(usageDisplay), SetNotificationRule',w:'Settings › Monitoring',o:'Used % / Remaining % segmented control changes every meter, value suffix and threshold unit immediately. Global row plus one row per provider × window type discovered from data; Edit/Override → inline field accepting any number of unique integers 1–99, Save; “Reset to inherited” only on overrides. Ticks on meters show the effective thresholds.'},
+      {a:'Preview notification',c:'PreviewNotification',w:'Settings › Monitoring',o:'In‑window toast for the most urgent account with a note when Windows blocks or quiet hours hold it; “Open account” deep‑links.'},
+      {a:'CLI scan / import / re‑import',c:'DiscoverCli, ImportCli, ReimportCli',w:'Add account › Import from CLI',o:'Explicit “Scan this PC” → progressive candidates with Stop → checkboxes → “Import n selected” → per‑item result (Imported / Duplicate / Unsupported / Failed) → Cancel keeps completed items → Re‑import maps to the same identity.'},
+      {a:'Health check',c:'RunHealthCheck',w:'System Status',o:'Five progressive checks with a thin determinate bar and “Checking n of 5”; result is Warning with findings; nothing is repaired; Cancel keeps partial results.'},
+      {a:'Diagnostics / log preview',c:'PreviewDiagnostics, PreviewLogs',w:'System Status, Recovery',o:'Sanitized on‑screen sample toggles; nothing written or sent.'},
+      {a:'Export',c:'PreviewExport',w:'Settings › Data',o:'“Prepare export…” → determinate bar with Cancel → preview list of contents and exclusions; “Save file…” is disabled in demo with the reason.'},
+      {a:'Replace import',c:'PreviewReplaceImport',w:'Settings › Data',o:'Validate (spinner) → invalid: alert, state unchanged · valid: summary + destructive “Replace…” → confirm dialog → “Replacing…” → done.'},
+      {a:'Reset settings / Factory reset / Delete account data',c:'ResetSettings, FactoryReset, DeleteAccountData',w:'Settings › Data',o:'Settings reset: plain confirm, keeps accounts/labels/order/history. Factory: typed RESET, red confirm, “Erasing…” → first‑run. Delete data: destructive confirm, independent of disconnect.'},
+      {a:'Recovery',c:'RetryRecovery, RestoreCheckpoint, PreviewDataFolder',w:'Blocking surface',o:'Retry with progress → failure keeps recovery; Restore lists checkpoints → destructive confirm → progress → dashboard. Newer schema disables Retry with a reason; diagnostics stay available.'},
+      {a:'Updates',c:'CheckUpdates, SetChannel, RestartAndUpdate',w:'Settings › Updates, System Status',o:'Check (spinner, Cancel) → Available → Download (determinate) → Ready → “Restart & update” confirm. Failure keeps current text in red with the current build working. Preview→Stable → WaitingForStable. Compatibility/security banners on every screen, security not overridable.'},
+      {a:'Tray',c:'RefreshAccount, RefreshAll, navigation',w:'Flyout and menu',o:'Single click: flyout sorted by severity (sign‑in required › exhausted › critical › warning › stale › ok) with per‑account and all refresh; double click opens main; right click: Open / Refresh all / Settings / Exit (confirm).'}
+    ],
+    tokens:[
+      {n:'bg',l:'#F6F4EF',d:'#1F1E1B',h:'SystemColorWindow',u:'Window and content surface (single layer)'},
+      {n:'card',l:'#FDFCFA',d:'#282725',h:'SystemColorWindow',u:'Flyouts, dialogs, theme previews'},
+      {n:'card2',l:'#EEEBE4',d:'#31302C',h:'SystemColorWindow',u:'Hover, quiet chips, code blocks'},
+      {n:'stroke',l:'rgba(29,27,24,.11)',d:'rgba(243,241,236,.12)',h:'SystemColorWindowText',u:'Hairlines between rows'},
+      {n:'stroke2',l:'rgba(29,27,24,.24)',d:'rgba(243,241,236,.26)',h:'SystemColorWindowText',u:'Control borders, pills'},
+      {n:'text',l:'#1D1B18',d:'#F3F1EC',h:'SystemColorWindowText',u:'Primary text, ink meter fill (fill)'},
+      {n:'text2',l:'#6B665E',d:'#B8B2A7',h:'SystemColorWindowText',u:'Secondary text (≥4.5:1 on bg)'},
+      {n:'accent',l:'#C8684A',d:'#E38A6C',h:'SystemColorHotlight',u:'Nav underline, links, selection bar, progress, chart line'},
+      {n:'accentSoft',l:'rgba(200,104,74,.13)',d:'rgba(227,138,108,.18)',h:'#2A2A00',u:'Selected segment / list item background'},
+      {n:'primary / primaryText',l:'#1D1B18 / #FFFFFF',d:'#F3F1EC / #1F1E1B',h:'ButtonText / ButtonFace',u:'Filled primary button (ink, not accent)'},
+      {n:'okFill',l:'#3E9A5A',d:'#6CCB8A',h:'#3FF23F',u:'Meter fill before the first threshold (green)'},
+      {n:'warnFill / warn',l:'#E8811C / #B25A00',d:'#F0A35E',h:'#FFFF00',u:'Meter fill / value text between first and last threshold (orange)'},
+      {n:'warnBg / warnStroke',l:'#F6E7C4 / #DCC48A',d:'rgba(229,185,90,.14/.45)',h:'—',u:'Stale pill, compatibility banner'},
+      {n:'crit',l:'#B3301E',d:'#FF9C8A',h:'#FF8080',u:'Meter fill and value past the last threshold, exhausted, failures'},
+      {n:'critBg / critStroke',l:'#F8E1DC / #E8B3A8',d:'rgba(255,156,138,.14/.45)',h:'—',u:'Failure alerts, sign‑in‑required pill'},
+      {n:'ok',l:'#2F7A3E',d:'#7BCB8A',h:'#3FF23F',u:'Transient “✓ Updated”, validation success'},
+      {n:'track',l:'rgba(29,27,24,.10)',d:'rgba(243,241,236,.12)',h:'#000000 + stroke',u:'Meter track'},
+      {n:'hatch',l:'rgba(29,27,24,.30)',d:'rgba(243,241,236,.32)',h:'#FFFFFF',u:'Unknown / Unavailable dotted meter, history gaps'},
+      {n:'skel / skel2',l:'#EAE7E0 / #F4F2ED',d:'#2C2B28 / #3A3834',h:'#000 / #444',u:'Skeleton base and shimmer highlight'},
+      {n:'focus',l:'#1D1B18',d:'#F3F1EC',h:'#FFFF00',u:'2 px focus ring, 2 px offset'}
+    ],
+    type:[
+      {n:'display-64 / 300',v:'Segoe UI Variable Display 64 px, weight 300, tabular, letter‑spacing −.02em',u:'Detail hero remaining value'},
+      {n:'display-40 / 300',v:'40 px, weight 300, tabular',u:'Overview headline stats'},
+      {n:'display-28 / 300',v:'28 px, weight 300, tabular',u:'Row remaining value'},
+      {n:'title-26 / 600',v:'26 px, weight 600',u:'Page and account titles'},
+      {n:'body-14 / 13',v:'Segoe UI Variable Text 14 px controls and rows; 13 px dense tables',u:'Default text'},
+      {n:'caption-12 / 11',v:'12 px secondary; 11 px uppercase .06em section labels and pills',u:'Meta, pills, group headers'},
+      {n:'mono',v:'Consolas 12 px',u:'Paths, diagnostics, code entry, provider glyphs'},
+      {n:'spacing',v:'Row padding 11 px (comfortable) / 7 px (compact); page gutter 40 px (≥720) / 18 px; grid gaps 16–24 px',u:'Hairlines instead of cards for rows'}
+    ],
+    components:[
+      {n:'Quota meter',w:'ProgressBar (custom template) + TextBlock',s:'Used or Remaining mode (fill direction follows the mode; value carries “used” / “left” suffix), threshold tick marks on the track, Known (ink fill), Warning (▲ + warn), Critical (● + crit), Exhausted (full crit track, “0 %”), Unknown / Unavailable (dotted hatch, no fill, text), Unlimited (dashed ink pattern, “Unlimited”), Stale (pill on the row, meter unchanged), Updating (glyph spin beside pill), Disconnected (row at 60 % opacity, last values)',o:'Width transition m3 only after a new observation; never renders a zero fill for null. Value text always carries the state.'},
+      {n:'Account row (Overview)',w:'ItemsRepeater + Grid, ListViewItem drag',s:'Refresh glyph and “Updating…/✓ Updated” sit right of the account name and appear on row hover/focus (fixed 24 px line, no height change); Fresh pill hidden until hover; Collapsed (default: primary group windows only), Expanded (“Show all · n more groups”: other groups, shared‑pool note, native balances, contexts note, extensions), hover, focus, dragging, hidden‑tag, refreshing, ack, failure alert with Retry (always) and “Automatic retry at …”, disconnected',o:'Identity column plus one line per window of the primary group (label · meter · value · reset), all in the same style; providers without a given window simply list fewer lines. Compact stacks each window line. Provider header repeats per group. Headline summary strip removed per owner review.'},
+      {n:'Freshness / connection pill',w:'Border + TextBlock',s:'Hidden while Fresh on Overview rows until the row is hovered or focused (space reserved); always visible for any other state. Fresh · time, Cached · time, ◷ Stale · cached time (warn), Freshness unknown, Connected · quota unavailable, Sign‑in required (crit), Recovery required (warn), Connecting…, Disconnected',o:'Connection wins over freshness; “quota unavailable” only when every window is Unavailable.'},
+      {n:'Headline stat',w:'TextBlock pair',s:'Value, Unavailable (no comparable data), “—” (no upcoming reset), zero counts',o:'Minimum names its exact source; counts use the highest severity per account.'},
+      {n:'Provider glyph tile',w:'Border + FontIcon/TextBlock',s:'Codex (ink tile “›_”), Claude (terracotta “✳”), Copilot (blue “⊙”), Antigravity (teal “↑”)',o:'Custom simple glyphs, not provider marks. Colours approximate brand association and need rights review; a neutral monogram fallback is one token swap.'},
+      {n:'Group header',w:'Expander header (custom)',s:'Expanded/Collapsed, Auto vs user preference label, Shared pool badge, hidden badge, Hide/Unhide button',o:'Collapsed rows show “n windows · lowest x %”.'},
+      {n:'Window row (detail)',w:'Grid',s:'Same as meter + native amount subline + muted tag + reset text incl. “Reset passed · Awaiting update”',o:'Reset text always shows relative and exact local time and window duration.'},
+      {n:'Extension block',w:'Grid',s:'Money formatted (currency + exponent), minor units unformatted (missing metadata), limit not set / not reported, enabled/off',o:'Never infers currency.'},
+      {n:'Segmented control',w:'RadioButtons (horizontal) / SelectorBar',s:'Selected (accentSoft), hover, focus, disabled',o:'Context, range presets, density, channel, methods.'},
+      {n:'Primary / secondary button',w:'Button',s:'Idle, hover, pressed, disabled (50 % + reason tooltip), busy (spinner + label swap, fixed min‑width)',o:'Destructive confirms use crit fill; primary is ink, not accent.'},
+      {n:'Inline alert',w:'InfoBar (Error/Warning/Informational)',s:'Failure with Retry, Failure with retryAt countdown, Compatibility (warn), Security (crit, not closable), Refresh‑all result (ok/warn, dismissible)',o:'Scoped to the account or section; never replaces other rows.'},
+      {n:'Skeleton',w:'Custom shimmer Border',s:'Overview stats+rows, History chart',o:'Bounded by result; shimmer off under reduced motion.'},
+      {n:'Sheet (Add account)',w:'ContentDialog with tabs',s:'Pick provider (Available / Planned · demo only), Method, Connecting…, Waiting for authorization, Code entry (validation), Verifying, Result (ok / neutral), Cancelled note, Denied / expired note',o:'Never implies completion while waiting.'},
+      {n:'CLI import list',w:'ListView with CheckBox',s:'Idle, Scanning (progressive), No candidates, Found, Importing (per‑item spinner), Done (per‑item result), Cancelled',o:'Explicit user initiation.'},
+      {n:'Confirm dialog',w:'ContentDialog',s:'Plain, destructive, alternate action (Hide and mute), typed confirmation, busy',o:'Cancel restores prior state; cancellation is not an error.'},
+      {n:'Toast preview',w:'In‑window TeachingTip‑style card',s:'Would appear · Would be held (quiet hours) · Preview only (Windows blocked)',o:'Deep‑links to account; no in‑app alert history.'},
+      {n:'History chart',w:'Selected charting library or Win2D/Path',s:'Follows the Used/Remaining display mode (axis word, tooltip, legend), Loading, Empty (reason), Disabled banner, Observed segments, Gap bands, Reset lines, Tooltip (hover/focus), Invalid range',o:'No line across gaps or resets; points are focusable.'},
+      {n:'Tray flyout / menu',w:'AppWindow flyout / MenuFlyout',s:'Rows sorted by severity, per‑row refresh, refreshing, all‑refresh spin',o:'No charts; stops animation when hidden.'},
+      {n:'Recovery surface',w:'Full‑window Page',s:'Interrupted, Newer schema (Retry disabled with reason), Restore failed, Retry progress, Restore progress, Checkpoint list, Diagnostics preview, Folder preview note',o:'Blocking; no automatic wipe or restore.'},
+      {n:'Switch',w:'ToggleSwitch',s:'On (accent), off, focus',o:'Immediate local change, no pending state.'}
+    ],
+    motion:[
+      {a:'Refresh (one)',t:'Row/detail/tray glyph',p:'Glyph rotates 1 s linear ∞; “Updating…” + Cancel',s:'Stop rotation; meter width/colour m3; “✓ Updated” 1.5 s fade',e:'Stop; inline alert appears (m2 rise); values kept',c:'Stop; prior state; announcer “Refresh cancelled”',d:'spin 1000ms linear · m3 320ms cubic-bezier(.2,0,0,1)',r:'Static glyph; text “Updating…”; values switch instantly'},
+      {a:'Refresh all',t:'Header button',p:'Header glyph rotates; label “Refreshing…”; per‑row pending',s:'Result bar “n updated” (m2)',e:'Result bar “n updated · m failed …” (warn glyph)',c:'—',d:'spin 1000ms · pop 200ms',r:'Label text only'},
+      {a:'Connect / Reconnect',t:'Sheet Connect',p:'Ring 1 s; “Connecting…” → “Waiting for authorization”',s:'Result block rises; account row appears',e:'Return to method step with note (m2)',c:'Return to method step, neutral note',d:'spin 1000ms · pop 200ms',r:'Static ring; text states'},
+      {a:'Submit code',t:'Code form',p:'Validation instant (no spinner) → “Verifying code…” ring',s:'Result block',e:'Inline validation text; border → crit',c:'Back to waiting',d:'spin 1000ms',r:'Text only'},
+      {a:'CLI scan / import',t:'Scan this PC / Import',p:'Ring + “Scanning… n found”; rows rise in as found; per‑row ring while importing',s:'Per‑row result text (ok colour)',e:'Per‑row failure text (crit)',c:'Remaining rows “Cancelled”; completed kept',d:'pop 200ms per row · spin 1000ms',r:'Rows appear instantly'},
+      {a:'Health check',t:'Run health check',p:'Thin determinate bar (real step count) + “Checking n of 5”; findings rise in',s:'Result line (warn/ok)',e:'—',c:'Partial results kept; “Cancelled”',d:'bar width m3 linear',r:'Bar jumps'},
+      {a:'Export',t:'Prepare export…',p:'Determinate bar (3 stages) + Cancel',s:'Preview card rises; ✓ label',e:'—',c:'Bar removed, button returns',d:'width 320ms linear · pop 200ms',r:'Instant'},
+      {a:'Replace import',t:'Validate / Replace…',p:'Ring “Validating…” → dialog busy “Replacing…”',s:'Done line',e:'Invalid alert; state unchanged',c:'Dialog closes; valid summary remains',d:'spin 1000ms',r:'Text only'},
+      {a:'Save / Apply (theme, density, toggles, thresholds)',t:'Any preference control',p:'None (local); threshold Save closes field',s:'Theme cross‑fade; announcer “saved”',e:'Inline validation',c:'Field closes, prior value',d:'theme 200ms ease · m1 150ms',r:'Instant swap'},
+      {a:'Disconnect / Delete / Reset / Restore',t:'Confirm button',p:'Spinner in confirm button, label “…ing”; other buttons disabled',s:'Dialog closes; row updates; announcer only (no celebration)',e:'Dialog stays with message',c:'Dialog closes; nothing changes',d:'spin 1000ms · dialog pop 200ms',r:'Label text only'},
+      {a:'Expand / Collapse',t:'Overview row “Show all” or detail group header',p:'—',s:'Chevron rotates 90°; rows rise 6 px + fade',e:'—',c:'—',d:'200ms cubic-bezier(.1,.9,.2,1)',r:'Instant'},
+      {a:'Navigation / tab',t:'Nav or tab',p:'—',s:'Underline opacity m1; page rises 6 px + fade m2',e:'—',c:'—',d:'150ms / 200ms',r:'Instant'},
+      {a:'Theme selection',t:'Radio card',p:'—',s:'Background/text colour transition; card border → accent',e:'—',c:'—',d:'200ms ease',r:'Instant'},
+      {a:'Update check / download / install',t:'Updates buttons',p:'Ring “Checking…” + Cancel · determinate bar “Downloading… n %” · dialog busy “Installing…”',s:'Text state changes',e:'Failed text in crit; current build retained',c:'Back to Current',d:'spin 1000ms · bar 320ms linear',r:'Text and bar jumps'},
+      {a:'Recovery retry / restore',t:'Recovery buttons',p:'Determinate bar + label; buttons disabled',s:'Dashboard appears (pop)',e:'Message block (crit)',c:'—',d:'bar 320ms linear',r:'Instant'},
+      {a:'Hover / focus',t:'Pointer / keyboard',p:'—',s:'Background m1; 2 px focus ring instant',e:'—',c:'—',d:'150ms ease',r:'Instant'},
+      {a:'Hidden to tray',t:'Close‑to‑tray',p:'All spinners, shimmer and countdown timers stop',s:'—',e:'—',c:'—',d:'—',r:'—'}
+    ],
+    responsive:[
+      {w:'≥ 960 px',b:'Overview rows in three columns (label · meter · value+reset); Accounts as list + detail side by side; History filters in one row; Settings content capped at 760 px. 1440×900 gains whitespace only; no fourth column is introduced because rows, not cards, carry the data.'},
+      {w:'720–959 px',b:'Same structure with tighter gutters; detail hero and meter wrap to two rows; History filters wrap.'},
+      {w:'< 720 px (560×720 test)',b:'Header stacks: nav row, then Refresh all + Add account right‑aligned under it. Rows become two lines: label + value, then full‑width meter and reset. Accounts list stacks above detail. Detail window rows stack the same way. Sheet and dialogs are full‑width with 20 px margin. No primary action clips; nav labels wrap rather than scroll.'}
+    ],
+    a11y:[
+      'Every meter has aria-hidden visuals and a text value that includes the state word (“8 % remaining, Critical, Resets in 2 h 14 m at 2:14 PM”); rows expose a composed accessible name with position “n of m”.',
+      'Status never relies on colour or motion alone: ▲ warning, ● critical, “0 %” exhausted, dotted hatch + “Unknown”, ◷ stale badge with timestamp, dashed pattern + “Unlimited”.',
+      'A single polite live region announces command outcomes (updated, failed, cancelled, moved to position n, theme changed) — never per‑frame animation state. Alerts use role=alert; busy regions use aria-busy.',
+      'Keyboard: Tab order follows reading order (header → summary → rows → row controls); Alt+↑/↓ reorders the focused row identically to drag; Enter opens detail; Esc closes menus, sheets and dialogs; chart points are focusable and show the tooltip on focus.',
+      'Focus ring 2 px ink/white with 2 px offset on every interactive element, including custom rows, radio segments and SVG points.',
+      'Disabled controls keep their label and size, drop to 50 % opacity and carry a reason tooltip (e.g. “Live only: opens a Windows save dialog”). Only genuinely unavailable or conflicting actions are disabled.',
+      'Contrast: text2 on bg ≥ 4.5:1 in both themes (#6B665E on #F6F4EF ≈ 4.9:1; #B8B2A7 on #1F1E1B ≈ 8.6:1); warn/crit text tuned per theme (#8A5F00 ≈ 5.0:1; #E5B95A ≈ 9:1). 300‑weight numerals are ≥ 28 px so 3:1 headline contrast applies.',
+      'Reduced motion: honours the Windows setting through prefers‑reduced‑motion and an explicit toggle; all durations 0, spinners static, shimmer off; text states unchanged.',
+      'High contrast: tokens collapse to system colours; all hairlines become solid 1 px white; status glyphs remain.',
+      'Display scaling 100/150/200 % and text enlargement: effective‑pixel layout, wrapping labels (F15 long label), no fixed heights on text containers.'
+    ],
+    copy:[
+      {k:'Settings.UsageDisplay',v:'Show usage limits as · Used % / Remaining % · Meters fill as quota is consumed; thresholds are percentages of the limit already used (default 50 and 80).'},
+      {k:'Settings.Thresholds.Help',v:'Thresholds are marked on every meter and colour the value when crossed: the last threshold is critical (●), earlier ones are warnings (▲). Add as many as you like, in the unit selected above.'},
+      {k:'Settings.Thresholds.Error',v:'Enter unique whole numbers from 1 to 99, separated by commas. Any number of thresholds is allowed.'},
+      {k:'Value.Unit (accessible name only)',v:'{n} % used · {n} % left'},
+      {k:'Overview.Summary.Scope',v:'Summary covers {n} visible accounts · minimum compares known percentages only (unknown, unavailable and unlimited excluded; shared pools counted once)'},
+      {k:'Overview.Lowest.Unavailable',v:'Unavailable · no comparable known percentages'},
+      {k:'Overview.Empty.Title / Body',v:'No accounts yet · Connect a provider account to see remaining quota, resets and freshness. Nothing is collected until you connect.'},
+      {k:'Overview.Loading',v:'Loading accounts…'},
+      {k:'Row.Updating / Updated',v:'Updating… · ✓ Updated'},
+      {k:'Freshness.Fresh / Cached / Stale / Unknown',v:'Fresh · {time} · Cached · {datetime} · ◷ Stale · cached {datetime} · Freshness unknown'},
+      {k:'Connection.QuotaUnavailable',v:'Connected · quota unavailable'},
+      {k:'Connection.ReauthRequired',v:'Sign‑in required'},
+      {k:'Value.Unknown / Unavailable / Unlimited / Exhausted',v:'Unknown · Unavailable · Unlimited · 0 % (Exhausted)'},
+      {k:'Reset.Upcoming',v:'Resets in {rel} (left) · {datetime} (right‑aligned); window duration lives in the window label and accessible name'},
+      {k:'Reset.Passed',v:'Reset passed {time} · Awaiting update'},
+      {k:'Reset.None',v:'No reset known'},
+      {k:'Failure.NetworkFailure',v:'Network unavailable. Showing the last cached reading.'},
+      {k:'Failure.RateLimited',v:'Provider rate limit reached. Automatic retry after the wait.'},
+      {k:'Failure.InvalidGrant',v:'Sign‑in expired. Reconnect to resume monitoring; cached readings are kept.'},
+      {k:'Failure.AutoRetryAt',v:'Automatic retry at {time} (manual Retry stays available)'},
+      {k:'Row.Expand / Collapse',v:'Show all · {n} more groups · Show less'},
+      {k:'RefreshAll.Result',v:'{ok} updated · {failed} failed ({names}) — cached readings kept'},
+      {k:'Connect.Waiting',v:'Waiting for authorization · Finish signing in to {provider} in your browser. Nothing is connected until the provider confirms.'},
+      {k:'Connect.Denied / Expired / Cancelled',v:'Authorization was denied. Nothing was changed. · The authorization request expired. Try again when ready. · Cancelled. Nothing was changed.'},
+      {k:'Connect.Duplicate',v:'Already connected · This identity is already connected as “{label}”. No duplicate was created.'},
+      {k:'Connect.Planned',v:'Planned · demo only'},
+      {k:'Disconnect.Body',v:'Removes the locally stored credential and stops monitoring. It does not revoke access at the provider. Label, order and history are kept for reconnect.'},
+      {k:'Hide.Body',v:'Hiding removes it from Overview and the tray. Monitoring and history continue either way. You can also mute its alerts.'},
+      {k:'SharedPool.Badge',v:'Shared pool · counted once'},
+      {k:'Extension.LimitNotSet / NotReported',v:'limit not set · limit not reported · minor units · no currency formatting'},
+      {k:'History.Rule',v:'gaps are never joined, resets start a new segment'},
+      {k:'History.Disabled',v:'History collection is off. Existing samples stay readable; no new points are recorded.'},
+      {k:'Settings.Theme.System.Note',v:'Following Windows: currently {mode}. Changing Windows mode updates the app immediately.'},
+      {k:'Notifications.OsBlocked',v:'Windows has notifications turned off for AI Usage. Alerts are evaluated but cannot be shown; open Windows Settings › Notifications to allow them.'},
+      {k:'Refresh.Policy.Battery',v:'Battery saver or a metered connection is active: automatic refresh runs less often. Manual refresh is always available.'},
+      {k:'Data.ResetSettings.Body',v:'Theme, density, notification rules and refresh preferences return to defaults. Accounts, labels, order and history are kept.'},
+      {k:'Data.FactoryReset.Body',v:'All accounts, credentials, labels, history and settings on this device are removed. Type RESET to confirm.'},
+      {k:'Recovery.Interrupted.Title',v:'A data migration did not finish'},
+      {k:'Recovery.NewerSchema.Note',v:'Retry is unavailable: this build cannot migrate newer data. Diagnostics and checkpoint restore stay available.'},
+      {k:'Update.Current / Available / Ready / Failed / Waiting',v:'You’re up to date. · Version {v} is available. · Version {v} is ready. Restart to finish installing. · Could not reach the update feed. Your current version keeps working. · Waiting for the next Stable release. Your Preview build keeps working until then.'},
+      {k:'Compat.Blocked / Security',v:'This version is no longer compatible with the providers’ current interfaces · This version is blocked for security reasons'},
+      {k:'Tray.Footer',v:'Sorted by severity · no charts'},
+      {k:'Demo.Label',v:'Demo · sample data (demo shell only)'}
+    ],
+    coverage:[
+      {id:'S01',s:'Overview',w:'Overview route; skeleton via Reload; empty via F01; stress via F15',st:'Loading skeleton, first‑run empty, all‑hidden note, per‑window lines (5‑hour + weekly or whatever the provider reports), known/warning/critical/exhausted/unknown/unavailable/unlimited rows, stale pill, failure + retry/retryAt, refreshing, ack, refresh‑all partial failure, reorder (drag, keys, buttons), 1–3 column reflow, compatibility banners',f:'F01 F02 F03 F04 F06 F14 F15',o:'AIU‑010; aggregate presentation new'},
+      {id:'S02',s:'Account detail',w:'Accounts route',st:'Hero value, contexts A/B, shared pool badge, auto/user expansion, collapsed summary, native amount, extensions (money / no currency), rename validation, menu (move, hide, mute, delete data, disconnect), reconnect primary for sign‑in required, disconnected retained view, failure alert, reset passed → Awaiting update (Clock +1 h)',f:'F02 F03 F06 F07 F08 F15',o:'AIU‑010; multi‑account/context adapters future'},
+      {id:'S03',s:'Add account sheet',w:'Add account → Sign in',st:'Provider picker (Existing / Planned), methods, connecting, waiting + cancel, manual code with validation, denied, expired, cancelled, approved, approved without quota, duplicate identity, reconnect same identity',f:'F01 F05 F06',o:'AIU‑004/007 existing; 008/009 future, not asserted'},
+      {id:'S04',s:'History',w:'History route',st:'Filters, presets, custom range validation (format/order/future), loading, empty with reason, disabled collection banner, gaps, resets, tooltip (hover/focus), non‑percentage window empty',f:'F09',o:'AIU‑011; all synthetic'},
+      {id:'S05',s:'Appearance and layout',w:'Settings › Appearance',st:'System/Light/Dark with live preview and Windows simulation, density, always‑on‑top, show disconnected, order/visibility list with keyboard equivalents',f:'F10 F15',o:'AIU‑010; durable adapter future'},
+      {id:'S06',s:'Monitoring and notifications',w:'Settings › Monitoring & notifications',st:'Global 25/10/0, per‑account inherited vs override, validation, reset to inherited, reset notice, OS‑blocked and quiet‑hours preview, battery/metered reason, preview toast deep‑link',f:'F07 F10',o:'AIU‑012; simulation; manual refresh retained'},
+      {id:'S07',s:'Tray',w:'Demo shell → Tray popup / Tray menu / Hide to tray',st:'Severity‑sorted rows, per‑account and all refresh, reset/status subline, menu Open/Refresh all/Settings/Exit confirm, hidden‑to‑tray placeholder (animations stopped)',f:'F02 F04 F06 F15',o:'AIU‑010; expanded tray new'},
+      {id:'S08',s:'CLI import',w:'Add account → Import from CLI; empty state link',st:'Explicit scan, progressive candidates, stop scan, no candidates copy, per‑item success/duplicate/unsupported/failure, cancel preserving completed, re‑import same identity',f:'F11',o:'AIU‑005; no filesystem access in this work'},
+      {id:'S09',s:'System Status',w:'System Status route',st:'Build/schema, refresh status, storage, update link, provider list, health check progress/result/cancel (no repair), diagnostics and log previews',f:'F12 F14',o:'AIU‑013; adapter deferred'},
+      {id:'S10',s:'Data and privacy',w:'Settings › Data & privacy',st:'History toggle, retention, export preparation/preview/cancel (save disabled with reason), replace validation invalid/valid/confirm/processing/done, settings reset, factory reset typed confirm → first run, delete account data',f:'F12',o:'AIU‑011/013; D‑149–153 semantics'},
+      {id:'S11',s:'Recovery',w:'Scenarios F13a/b/c',st:'Interrupted, newer schema (retry disabled), restore failed, retry progress/failure, checkpoint list, restore confirm/progress/success, diagnostics preview, data folder note',f:'F13',o:'AIU‑006/013; no automatic action'},
+      {id:'S12',s:'Updates and compatibility',w:'Settings › Updates; F14a/b; demo controls',st:'Current, checking + cancel, available, downloading (determinate), ready, restart confirm, failed, channel Preview→Stable waiting, compatibility and security banners with readable cache/history',f:'F14',o:'AIU‑014/015; synthetic'}
+    ],
+    extensions:[
+      {f:'Preferences.usageDisplay: Used | Remaining (proposed, default Used)',r:'Owner request: meters and values can show consumed or remaining percentage; thresholds are entered in the same unit. WindowItem already carries usedPercent and remainingPercent; when only one is present the design derives the other for display only and never stores it as a measurement.',n:'Absent → Used.'},
+      {f:'NotificationRule.scope adds WindowType with targetId = providerId + "::" + window label; remainingThresholds becomes thresholds: ordered unique integer[] 1..99 in used‑percent, unbounded length (proposed)',r:'Owner request: thresholds per provider window type (e.g. Codex · 5‑hour window), any number of them. Stored in used‑percent so the display mode can flip without rewriting rules. Default global [50, 80]. The last (highest) threshold is critical, earlier ones are warnings.',n:'No WindowType rule → inherits global; no global → [50, 80].'},
+      {f:'AccountItem.failure.retryAt (already present) → surface as countdown',r:'Rows show “Retry available in …” instead of an actionable Retry while the provider forbids retries (F06 RateLimited).',n:'No retryAt → immediate Retry button.'},
+      {f:'WindowItem.primary: boolean (proposed)',r:'Overview needs one headline window per account; today the design picks the first window of the first visible group, which is order‑dependent.',n:'Absent → first window of first visible group.'},
+      {f:'GroupItem.severityHint or per‑window alertsMuted already covers muting; propose ContextItem.available: boolean',r:'F07 “temporary context absence” needs a way to show a context as absent without deleting its preferences.',n:'Absent → context treated as available; missing contexts disappear from the switcher and preferences are retained client‑side.'},
+      {f:'SystemStatus.updateVersion: nullable string; updateProgress: nullable 0..100',r:'Updates screen shows the target version and a determinate download bar only when measurable.',n:'Null → version omitted; indeterminate ring instead of bar.'},
+      {f:'SystemStatus.refreshPolicy: Normal | Reduced (reason key)',r:'S06/S09 explain battery saver / metered reductions with a reason, not a guess.',n:'Absent → “Automatic refresh follows the existing live policy.”'},
+      {f:'SystemStatus.notificationsAllowed: nullable boolean; quietHours: nullable boolean',r:'S06 shows why alerts cannot appear (Windows blocked / quiet hours) and previews accordingly.',n:'Null → status line “Delivery status unknown”; preview shows generic prefix.'},
+      {f:'UiSnapshot.lastRefreshAllAt and per‑command result summary',r:'“n updated · m failed” bar after RefreshAll needs an aggregate result; the design composes it from account states today.',n:'Absent → composed from account failures at completion.'},
+      {f:'HistoryPoint unchanged; propose HistoryQuery.windowLabelSnapshot (read‑only)',r:'Renamed windows should keep readable chart titles for old segments.',n:'Absent → current label.'}
+    ],
+    open:[
+      {t:'Colour‑only severity (owner decision)',b:'Per review, the ▲/● glyphs and the used/left suffix were removed; severity is now shown by meter colour (green → orange → red) and by fill position relative to the threshold ticks. Screen readers still get the state word. For High‑contrast users the tick position is the remaining non‑colour cue; confirm this is acceptable or allow glyphs in HC only.'},
+      {t:'Retry removed (owner decision)',b:'Failure lines show the message and “Automatic retry at …”; the row Refresh button is the manual retry. Reconnect remains for sign‑in‑required accounts.'},
+      {t:'Default thresholds',b:'Implemented as 50 % used (warning) and 80 % used (critical) — read from the request “50 % of used limit, then 20 %” as 20 % remaining. If 20 % used was meant, change the global default to [20, 50].'},
+      {t:'Threshold scope granularity',b:'Rules are per provider × window type, as requested. Per‑account overrides from the earlier revision were dropped to keep one scope; say if both are needed.'},
+      {t:'Provider glyph colour',b:'The four custom glyph tiles borrow provider‑associated hues (ink, terracotta, blue, teal). This is the only place colour identifies a provider. Options: keep after rights review, or swap to the neutral two‑letter monogram from the direction study (one token change).'},
+      {t:'Claude terracotta vs coral accent',b:'The Claude tile (#D77655) sits near the app accent (#C8684A). If the glyph colours stay, consider shifting the accent toward a cooler brick or making the tile neutral.'},
+      {t:'300‑weight numerals',b:'Segoe UI Variable Display Light at 28/40/64 px is the signature of this direction; confirm legibility at 100 % scaling on a 1080p panel, otherwise move to 400.'},
+      {t:'Overview grouping vs manual order',b:'Rows are grouped by provider (providers ordered by their first account), with manual order inside each provider. Alternative: a flat manually ordered list with provider shown per row.'},
+      {t:'Stale pill treatment',b:'Warm‑tinted filled chip in Light, tinted outline in Dark. Confirm whether Light should also be an outline for a quieter table.'},
+      {t:'Density default',b:'Comfortable (11 px row padding) is the default; F15 at 20 accounts may argue for Compact by default on ≥ 1440 px.'},
+      {t:'Compact header',b:'Below 720 px the nav labels wrap and actions move under them. Alternative: a compact NavigationView with a hamburger, which is more canonical but hides the section names.'},
+      {t:'Hero on detail',b:'The 64 px hero repeats the first window that also appears in the table below. Keep for hierarchy, or drop the hero and enlarge the first table row instead (design.md prefers not repeating a measure in two forms).'},
+      {t:'History line colour',b:'Chart uses the accent (interactive colour) for the observed line. Alternative: ink line with accent only for the hovered point.'}
+    ]
+  };}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><style>body{margin:0;background:#ECEAE5;font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:#1a1a1a}a{color:#0B62B8}a:hover{color:#084b8f}.dv-turn{padding:40px 44px 32px;scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 12px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.6)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.10);overflow:hidden}.dv-opt:target .dv-oid{background:#0B62B8;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}</style></helmet>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Dark theme counterparts of <a class="dv-oid" href="#1a">1a</a> and <a class="dv-oid" href="#1b">1b</a> · same F02/F04/F07/F08 sample data · Light versions are in turn 1 below</span></div>
+<div style="max-width:980px;margin:0 0 24px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.68)"><strong style="color:#1a1a1a">Status.</strong> Direction and accent source are <em>unselected</em>. 1a/Windows‑system accent were provisional working assumptions only. Dark is remapped, not inverted: surfaces step up in lightness toward the viewer (window &lt; content layer &lt; card), text drops to two tiers, status hues shift lighter to hold ≥4.5:1 on dark cards, meter fill becomes light‑grey so the accent stays interactive‑only.</div>
+<div class="dv-opts">
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Fluent Ledger · Dark (pairs with <a class="dv-oid" href="#1a">1a</a>)</div>
+
+<div class="dv-card" style="width:960px;height:720px;background:#202020;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#FFFFFF">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:3px;background:#60CDFF;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#C8C8C8;padding:1px 8px;border:1px solid rgba(255,255,255,.18);border-radius:10px">Demo · sample data · F02+F04 · Dark</span></div>
+    <div style="display:flex;color:#FFFFFF;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:196px 1fr;min-height:0">
+    <!-- rail -->
+    <div style="display:flex;flex-direction:column;padding:8px 6px 10px;gap:2px;font-size:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px;background:rgba(255,255,255,.06);position:relative"><span style="position:absolute;left:0;top:11px;width:3px;height:16px;border-radius:2px;background:#60CDFF"></span><span style="width:16px;height:16px;border:1.5px solid #FFFFFF;border-radius:3px;display:inline-block"></span>Overview</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #C8C8C8;border-radius:50%;display:inline-block"></span>Accounts</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:10px;border-bottom:1.5px solid #C8C8C8;border-left:1.5px solid #C8C8C8;display:inline-block;margin-top:4px"></span>History</div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px dashed #C8C8C8;border-radius:50%;display:inline-block"></span>Settings</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #C8C8C8;border-radius:3px;display:inline-block"></span>System Status</div>
+    </div>
+    <!-- content -->
+    <div style="background:#282828;border-radius:8px 0 0 0;border:1px solid rgba(255,255,255,.08);border-right:0;border-bottom:0;padding:20px 32px 18px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between">
+        <div><h1 style="margin:0;font:600 28px/1.2 'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif">Overview</h1><div style="font-size:12px;color:#C8C8C8;margin-top:4px">Refreshed 12:00:00 PM · 5 visible accounts · 4 providers</div></div>
+        <div style="display:flex;gap:8px"><button style="font:400 14px 'Segoe UI',system-ui;padding:6px 14px;border-radius:5px;border:1px solid rgba(255,255,255,.18);background:#2D2D2D;color:#FFFFFF">Refresh all</button><button style="font:400 14px 'Segoe UI',system-ui;padding:6px 14px;border-radius:5px;border:1px solid transparent;background:#60CDFF;color:#0B0B0B">Add account</button></div>
+      </div>
+      <!-- summary strip -->
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:9px 14px"><div style="font-size:12px;color:#C8C8C8">Lowest known remaining</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:4px"><span style="font:600 26px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#FF99A4">0 %</span><span style="font-size:12px;color:#C8C8C8">Experiments · Session window</span></div></div>
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:9px 14px"><div style="font-size:12px;color:#C8C8C8">Nearest reset</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:4px"><span style="font:600 26px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums">in 3 h</span><span style="font-size:12px;color:#C8C8C8">3:00 PM · Personal · 5‑hour window</span></div></div>
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:9px 14px"><div style="font-size:12px;color:#C8C8C8">Needs attention</div><div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:6px;font-size:12px"><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:#F2C55C;display:inline-block"></span>1 warning</span><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#FF99A4;display:inline-block"></span>1 critical</span><span style="display:flex;align-items:center;gap:5px"><span style="font-weight:700;color:#FF99A4">0</span>1 exhausted</span><span style="color:#C8C8C8">0 reauth</span></div></div>
+      </div>
+      <div style="font-size:11px;color:#C8C8C8;margin-top:-8px">Summary covers visible accounts. Minimum compares known remaining percentages only; unknown and unlimited windows are excluded.</div>
+      <!-- card grid -->
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;flex:1;min-height:0;align-content:start">
+        <!-- Personal -->
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#3A3A3A;display:grid;place-items:center;font:600 11px system-ui;color:#C8C8C8">CX</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Personal</div><div style="font-size:12px;color:#C8C8C8">Codex · Sample plan</div></div><span style="font-size:11px;color:#C8C8C8;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.06)">Fresh 12:00 PM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#C8C8C8">5‑hour window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">72 %</span></div>
+          <div style="height:6px;border-radius:3px;background:#404040;overflow:hidden"><div style="width:72%;height:100%;background:#D9D9D9;border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#C8C8C8"><span>Resets in 3 h · 3:00 PM</span><span>Weekly window 61 %</span></div>
+        </div>
+        <!-- Work stale warning -->
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#3A3A3A;display:grid;place-items:center;font:600 11px system-ui;color:#C8C8C8">CX</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Work</div><div style="font-size:12px;color:#C8C8C8">Codex · Sample plan</div></div><span style="font-size:11px;color:#FFFFFF;padding:2px 8px;border-radius:10px;background:rgba(242,197,92,.14);border:1px solid rgba(242,197,92,.4)">◷ Stale · cached Sep 14, 6:00 PM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#C8C8C8">5‑hour window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#F2C55C">▲ 20 %</span></div>
+          <div style="height:6px;border-radius:3px;background:#404040;overflow:hidden"><div style="width:20%;height:100%;background:#F2C55C;border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#C8C8C8"><span style="color:#FF99A4">Refresh failed · network · retry in 1 m 40 s</span><span>Weekly window 44 %</span></div>
+        </div>
+        <!-- Research critical -->
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#3A3A3A;display:grid;place-items:center;font:600 11px system-ui;color:#C8C8C8">CL</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Research</div><div style="font-size:12px;color:#C8C8C8">Claude · Sample plan · Workspace A</div></div><span style="font-size:11px;color:#C8C8C8;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.06)">Fresh 12:00 PM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#C8C8C8">Session window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#FF99A4">● 8 %</span></div>
+          <div style="height:6px;border-radius:3px;background:#404040;overflow:hidden"><div style="width:8%;height:100%;background:#FF99A4;border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#C8C8C8"><span>Resets in 2 h 14 m · 2:14 PM</span><span>Weekly window 34 %</span></div>
+        </div>
+        <!-- Development unknown -->
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#3A3A3A;display:grid;place-items:center;font:600 11px system-ui;color:#C8C8C8">CP</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Development</div><div style="font-size:12px;color:#C8C8C8">Copilot · Plan unknown</div></div><span style="font-size:11px;color:#C8C8C8;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.06)">Connected · quota unavailable</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#C8C8C8">Remaining</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;color:#C8C8C8">Unknown</span></div>
+          <div style="height:6px;border-radius:3px;background:repeating-linear-gradient(90deg,#555555 0 4px,transparent 4px 8px);border:1px dashed #666666;box-sizing:border-box"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#C8C8C8"><span>Provider reports no quota for this account</span><span style="color:#60CDFF">Details</span></div>
+        </div>
+        <!-- Experiments exhausted -->
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#3A3A3A;display:grid;place-items:center;font:600 11px system-ui;color:#C8C8C8">AG</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Experiments</div><div style="font-size:12px;color:#C8C8C8">Antigravity · Sample plan</div></div><span style="font-size:11px;color:#C8C8C8;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.06)">Fresh 11:58 AM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#C8C8C8">Session window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#FF99A4">0 % · Exhausted</span></div>
+          <div style="height:6px;border-radius:3px;background:#FF99A4;opacity:.9"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#C8C8C8"><span>Reset passed 12:01 PM · Awaiting update</span><span>No other windows</span></div>
+        </div>
+        <!-- add tile -->
+              </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="dv-card" style="width:960px;height:720px;background:#202020;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#FFFFFF">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:3px;background:#60CDFF;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#C8C8C8;padding:1px 8px;border:1px solid rgba(255,255,255,.18);border-radius:10px">Demo · sample data · F07+F08 · Dark</span></div>
+    <div style="display:flex;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:196px 1fr;min-height:0">
+    <div style="display:flex;flex-direction:column;padding:8px 6px 10px;gap:2px;font-size:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #C8C8C8;border-radius:3px;display:inline-block"></span>Overview</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px;background:rgba(255,255,255,.06);position:relative"><span style="position:absolute;left:0;top:11px;width:3px;height:16px;border-radius:2px;background:#60CDFF"></span><span style="width:16px;height:16px;border:1.5px solid #FFFFFF;border-radius:50%;display:inline-block"></span>Accounts</div>
+      <div style="display:flex;flex-direction:column;gap:1px;padding-left:28px;font-size:13px;color:#C8C8C8"><div style="padding:6px 12px">Personal</div><div style="padding:6px 12px">Work</div><div style="padding:6px 12px;color:#FFFFFF;font-weight:600">Research</div><div style="padding:6px 12px">Development</div><div style="padding:6px 12px">Experiments</div><div style="padding:6px 12px;font-size:12px">Show hidden (1)</div></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:10px;border-bottom:1.5px solid #C8C8C8;border-left:1.5px solid #C8C8C8;display:inline-block;margin-top:4px"></span>History</div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px dashed #C8C8C8;border-radius:50%;display:inline-block"></span>Settings</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #C8C8C8;border-radius:3px;display:inline-block"></span>System Status</div>
+    </div>
+    <div style="background:#282828;border-radius:8px 0 0 0;border:1px solid rgba(255,255,255,.08);border-right:0;border-bottom:0;padding:22px 32px 24px;display:flex;flex-direction:column;gap:16px;min-height:0;overflow:hidden">
+      <div style="font-size:12px;color:#C8C8C8">Accounts <span style="margin:0 6px">›</span> <span style="color:#FFFFFF">Research</span></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span style="width:44px;height:44px;border-radius:8px;background:#3A3A3A;display:grid;place-items:center;font:600 14px system-ui;color:#C8C8C8">CL</span>
+        <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><h1 style="margin:0;font:600 24px/1.2 'Segoe UI Variable Display','Segoe UI',system-ui">Research</h1><span style="font-size:12px;color:#60CDFF">Rename</span></div><div style="font-size:12px;color:#C8C8C8;margin-top:2px">Claude · Sample plan · Connected · Observed 12:00:00 PM · Fresh</div></div>
+        <div style="display:flex;gap:8px"><button style="font:400 13px 'Segoe UI',system-ui;padding:5px 12px;border-radius:5px;border:1px solid rgba(255,255,255,.18);background:#2D2D2D;color:#FFFFFF">Refresh</button><button style="font:400 13px 'Segoe UI',system-ui;padding:5px 12px;border-radius:5px;border:1px solid rgba(255,255,255,.18);background:#2D2D2D;color:#FFFFFF">Reconnect</button><button style="font:400 13px 'Segoe UI',system-ui;padding:5px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.18);background:#2D2D2D;color:#FFFFFF" title="Move up, Move down, Hide only, Hide and mute, Disconnect">···</button></div>
+      </div>
+      <!-- context switcher -->
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:#C8C8C8">Context</span><div style="display:inline-flex;border:1px solid rgba(255,255,255,.18);border-radius:5px;background:#2D2D2D;overflow:hidden"><span style="padding:5px 14px;background:rgba(96,205,255,.14);color:#60CDFF;font-weight:600">Workspace A</span><span style="padding:5px 14px;color:#FFFFFF">Workspace B</span></div><span style="font-size:12px;color:#C8C8C8">Workspace · preferences kept if a context is temporarily absent</span></div>
+      <!-- groups -->
+      <div style="display:flex;flex-direction:column;gap:10px;flex:1;min-height:0">
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:#C8C8C8">⌄</span><span style="font-weight:600;font-size:14px">Usage limits</span><span style="font-size:11px;color:#C8C8C8;margin-left:auto">Expanded · Auto</span></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 70px 230px;align-items:center;gap:14px;font-size:13px">
+            <span>Session window</span><div style="height:6px;border-radius:3px;background:#404040;overflow:hidden"><div style="width:8%;height:100%;background:#FF99A4"></div></div><span style="text-align:right;font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#FF99A4">● 8 %</span><span style="font-size:12px;color:#C8C8C8">Resets in 2 h 14 m · Sep 15, 2:14 PM · 5 h</span>
+            <span>Weekly window</span><div style="height:6px;border-radius:3px;background:#404040;overflow:hidden"><div style="width:34%;height:100%;background:#D9D9D9"></div></div><span style="text-align:right;font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">34 %</span><span style="font-size:12px;color:#C8C8C8">Resets in 2 d 21 h · Sep 18, 9:00 AM · 7 d</span>
+          </div>
+        </div>
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:#C8C8C8">⌄</span><span style="font-weight:600;font-size:14px">Shared pool</span><span style="font-size:11px;color:#FFFFFF;padding:1px 8px;border-radius:10px;background:rgba(255,255,255,.06)">Shared with Workspace B · counted once</span><span style="font-size:11px;color:#C8C8C8;margin-left:auto">Expanded</span></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 70px 230px;align-items:center;gap:14px;font-size:13px">
+            <span>Pool window</span><div style="height:6px;border-radius:3px;background:#FF99A4"></div><span style="text-align:right;font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#FF99A4">0 %</span><span style="font-size:12px;color:#C8C8C8">Exhausted · reset passed 12:01 PM · Awaiting update</span>
+            <span>Native balance</span><div style="height:6px;border-radius:3px;background:repeating-linear-gradient(90deg,#555555 0 4px,transparent 4px 8px);border:1px dashed #666666;box-sizing:border-box"></div><span style="text-align:right;font:600 14px 'Segoe UI',system-ui;font-variant-numeric:tabular-nums">1 250</span><span style="font-size:12px;color:#C8C8C8">tokens remaining · limit not reported</span>
+          </div>
+        </div>
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:12px 16px;display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:#C8C8C8">›</span><span style="font-weight:600;font-size:14px">Model‑specific</span><span style="font-size:12px;color:#C8C8C8">3 windows · lowest 41 %</span><span style="font-size:11px;color:#C8C8C8;margin-left:auto">Collapsed by you</span></div>
+        <div style="background:#2D2D2D;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px">
+          <div><div style="font-size:12px;color:#C8C8C8">Extra usage · enabled</div><div style="font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;margin-top:2px">$12.50 <span style="font:400 12px 'Segoe UI',system-ui;color:#C8C8C8">used · USD · limit not set</span></div></div>
+          <div><div style="font-size:12px;color:#C8C8C8">Credits · currency not reported</div><div style="font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;margin-top:2px">1250 <span style="font:400 12px 'Segoe UI',system-ui;color:#C8C8C8">minor units · no currency formatting</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="width:960px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.7);padding:6px 2px 0"><strong style="color:#1a1a1a">Dark notes.</strong> Window #202020 → content #282828 → card #2D2D2D, hairline rgba(255,255,255,.08). Text #FFFFFF / #C8C8C8. Accent follows Windows dark accent (#60CDFF, dark text on filled buttons). Warning #F2C55C, critical #FF99A4, meter fill #D9D9D9 on #404040 track. Stale badge is a tinted outline, not a filled chip, so it stays quiet on dark.</div>
+</div>
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Quiet Editorial · Dark (pairs with <a class="dv-oid" href="#1b">1b</a>)</div>
+
+<div class="dv-card" style="width:960px;height:720px;background:#1F1E1B;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#F3F1EC">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:50%;background:#E38A6C;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#B8B2A7;padding:1px 8px;border:1px solid rgba(243,241,236,.18);border-radius:10px">Demo · sample data · F02+F04 · Dark</span></div>
+    <div style="display:flex;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;min-height:0;padding:0 40px 24px">
+    <!-- top nav -->
+    <div style="display:flex;align-items:center;gap:26px;height:48px;border-bottom:1px solid rgba(243,241,236,.14);font-size:14px">
+      <span style="font-weight:600;position:relative;padding:14px 0">Overview<span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#E38A6C;border-radius:1px"></span></span><span style="color:#B8B2A7">Accounts</span><span style="color:#B8B2A7">History</span><span style="color:#B8B2A7">Settings</span><span style="color:#B8B2A7">System Status</span>
+      <span style="flex:1"></span>
+      <span style="font-size:13px;color:#F3F1EC">Refresh all</span><span style="font-size:13px;color:#1F1E1B;background:#F3F1EC;padding:5px 12px;border-radius:4px">Add account</span>
+    </div>
+    <!-- headline stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding:20px 0 16px;border-bottom:1px solid rgba(243,241,236,.14)">
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">5</div><div style="font-size:12px;color:#B8B2A7;margin-top:8px">visible accounts · 4 providers</div></div>
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#FF9C8A">0 %</div><div style="font-size:12px;color:#B8B2A7;margin-top:8px">lowest known remaining<br>Experiments · Session window</div></div>
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">3 h</div><div style="font-size:12px;color:#B8B2A7;margin-top:8px">to nearest reset · 3:00 PM<br>Personal · 5‑hour window</div></div>
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">3</div><div style="font-size:12px;color:#B8B2A7;margin-top:8px">need attention<br>▲ 1 warning · ● 1 critical · 1 exhausted · 0 reauth</div></div>
+    </div>
+    <div style="font-size:11px;color:#B8B2A7;padding:8px 0 0">Visible accounts only · minimum compares known percentages · refreshed 12:00:00 PM</div>
+    <!-- rows -->
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;padding-top:10px">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7"><span style="width:18px;height:18px;border-radius:4px;background:#3A3833;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#D8D3C9">CX</span>Codex</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(243,241,236,.12)">
+        <div><div style="font-weight:600;font-size:14px">Personal</div><div style="font-size:12px;color:#B8B2A7">Sample plan · fresh 12:00 PM</div></div>
+        <div><div style="height:4px;border-radius:2px;background:rgba(243,241,236,.12);overflow:hidden"><div style="width:72%;height:100%;background:#F3F1EC"></div></div><div style="font-size:11px;color:#B8B2A7;margin-top:6px">5‑hour window · weekly 61 %</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums">72 %</div>
+        <div style="font-size:12px;color:#B8B2A7">Resets in 3 h · 3:00 PM</div>
+      </div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(243,241,236,.12)">
+        <div><div style="font-weight:600;font-size:14px">Work</div><div style="font-size:12px;color:#F3F1EC"><span style="border-bottom:1px dotted #E5B95A">◷ Stale · cached Sep 14, 6:00 PM</span></div></div>
+        <div><div style="height:4px;border-radius:2px;background:rgba(243,241,236,.12);overflow:hidden"><div style="width:20%;height:100%;background:#E5B95A"></div></div><div style="font-size:11px;color:#FF9C8A;margin-top:6px">Refresh failed · network · retry in 1 m 40 s</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#E5B95A">▲ 20 %</div>
+        <div style="font-size:12px;color:#B8B2A7">Weekly 44 % · resets Sep 18, 9:00 AM</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 0 3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7"><span style="width:18px;height:18px;border-radius:4px;background:#3A3833;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#D8D3C9">CL</span>Claude</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(243,241,236,.12)">
+        <div><div style="font-weight:600;font-size:14px">Research</div><div style="font-size:12px;color:#B8B2A7">Sample plan · Workspace A · fresh 12:00 PM</div></div>
+        <div><div style="height:4px;border-radius:2px;background:rgba(243,241,236,.12);overflow:hidden"><div style="width:8%;height:100%;background:#FF9C8A"></div></div><div style="font-size:11px;color:#B8B2A7;margin-top:6px">Session window · weekly 34 %</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#FF9C8A">● 8 %</div>
+        <div style="font-size:12px;color:#B8B2A7">Resets in 2 h 14 m · 2:14 PM</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 0 3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7"><span style="width:18px;height:18px;border-radius:4px;background:#3A3833;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#D8D3C9">CP</span>Copilot</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(243,241,236,.12)">
+        <div><div style="font-weight:600;font-size:14px">Development</div><div style="font-size:12px;color:#B8B2A7">Connected · quota unavailable</div></div>
+        <div><div style="height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,rgba(243,241,236,.30) 0 3px,transparent 3px 7px)"></div><div style="font-size:11px;color:#B8B2A7;margin-top:6px">Provider reports no quota for this account</div></div>
+        <div style="text-align:right;font:300 20px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;color:#B8B2A7">Unknown</div>
+        <div style="font-size:12px;color:#B8B2A7">No reset known</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 0 3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7"><span style="width:18px;height:18px;border-radius:4px;background:#3A3833;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#D8D3C9">AG</span>Antigravity</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(243,241,236,.12);border-bottom:1px solid rgba(243,241,236,.12)">
+        <div><div style="font-weight:600;font-size:14px">Experiments</div><div style="font-size:12px;color:#B8B2A7">Sample plan · fresh 11:58 AM</div></div>
+        <div><div style="height:4px;border-radius:2px;background:#FF9C8A"></div><div style="font-size:11px;color:#B8B2A7;margin-top:6px">Session window · no other windows</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#FF9C8A">0 %</div>
+        <div style="font-size:12px;color:#FF9C8A">Exhausted · reset passed 12:01 PM · Awaiting update</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="dv-card" style="width:960px;height:720px;background:#1F1E1B;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#F3F1EC">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:50%;background:#E38A6C;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#B8B2A7;padding:1px 8px;border:1px solid rgba(243,241,236,.18);border-radius:10px">Demo · sample data · F07+F08 · Dark</span></div>
+    <div style="display:flex;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;min-height:0;padding:0 40px 24px">
+    <div style="display:flex;align-items:center;gap:26px;height:48px;border-bottom:1px solid rgba(243,241,236,.14);font-size:14px">
+      <span style="color:#B8B2A7">Overview</span><span style="font-weight:600;position:relative;padding:14px 0">Accounts<span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#E38A6C;border-radius:1px"></span></span><span style="color:#B8B2A7">History</span><span style="color:#B8B2A7">Settings</span><span style="color:#B8B2A7">System Status</span>
+      <span style="flex:1"></span>
+      <span style="font-size:13px">Refresh all</span><span style="font-size:13px;color:#1F1E1B;background:#F3F1EC;padding:5px 12px;border-radius:4px">Add account</span>
+    </div>
+    <div style="display:grid;grid-template-columns:180px 1fr;gap:32px;flex:1;min-height:0;padding-top:20px">
+      <!-- account list -->
+      <div style="display:flex;flex-direction:column;font-size:13px;border-right:1px solid rgba(243,241,236,.14);padding-right:16px">
+        <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7;padding:4px 0 10px">Accounts · manual order</div>
+        <div style="padding:7px 0;color:#B8B2A7">Personal <span style="float:right;font-variant-numeric:tabular-nums">72 %</span></div>
+        <div style="padding:7px 0;color:#B8B2A7">Work <span style="float:right;font-variant-numeric:tabular-nums;color:#E5B95A">▲ 20 %</span></div>
+        <div style="padding:7px 0;font-weight:600;position:relative;padding-left:10px"><span style="position:absolute;left:-17px;top:9px;width:3px;height:14px;background:#E38A6C;border-radius:2px"></span>Research <span style="float:right;font-variant-numeric:tabular-nums;color:#FF9C8A">● 8 %</span></div>
+        <div style="padding:7px 0;color:#B8B2A7">Development <span style="float:right">Unknown</span></div>
+        <div style="padding:7px 0;color:#B8B2A7">Experiments <span style="float:right;font-variant-numeric:tabular-nums;color:#FF9C8A">0 %</span></div>
+        <div style="padding:14px 0 0;font-size:12px;color:#E38A6C">Show hidden (1)</div>
+      </div>
+      <!-- detail -->
+      <div style="display:flex;flex-direction:column;gap:18px;min-height:0">
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;color:#B8B2A7;display:flex;align-items:center;gap:8px"><span style="width:16px;height:16px;border-radius:3px;background:#3A3833;display:grid;place-items:center;font:600 8px system-ui;color:#D8D3C9">CL</span>Claude · Sample plan</div>
+            <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px"><h1 style="margin:0;font:600 26px/1.15 'Segoe UI Variable Display','Segoe UI',system-ui">Research</h1><span style="font-size:12px;color:#E38A6C">Rename</span></div>
+            <div style="font-size:12px;color:#B8B2A7;margin-top:4px">Connected · observed 12:00:00 PM · Fresh</div>
+          </div>
+          <div style="display:flex;gap:16px;font-size:13px;padding-top:24px"><span>Refresh</span><span>Reconnect</span><span title="Move up · Move down · Hide only · Hide and mute · Disconnect">More ▾</span></div>
+        </div>
+        <!-- hero -->
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:end;border-bottom:1px solid rgba(243,241,236,.14);padding-bottom:18px">
+          <div><div style="font:300 72px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#FF9C8A;letter-spacing:-.02em">8 %</div><div style="font-size:12px;color:#B8B2A7;margin-top:8px">● Critical · Session window · Workspace A</div></div>
+          <div style="padding-bottom:6px"><div style="height:4px;border-radius:2px;background:rgba(243,241,236,.12);overflow:hidden"><div style="width:8%;height:100%;background:#FF9C8A"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#B8B2A7;margin-top:8px"><span>Resets in 2 h 14 m · Sep 15, 2:14 PM · 5‑hour window</span><span>Context: <strong style="color:#F3F1EC">Workspace A</strong> · <span style="color:#E38A6C">Switch</span></span></div></div>
+        </div>
+        <!-- windows table -->
+        <div style="display:flex;flex-direction:column;font-size:13px;flex:1;min-height:0">
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;padding:6px 0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7"><span>Usage limits · expanded (auto)</span><span>Remaining</span><span></span><span>Reset</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(243,241,236,.12)"><span>Weekly window</span><div style="height:4px;border-radius:2px;background:rgba(243,241,236,.12);overflow:hidden"><div style="width:34%;height:100%;background:#F3F1EC"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;font-size:15px">34 %</span><span style="font-size:12px;color:#B8B2A7">in 2 d 21 h · Sep 18, 9:00 AM · 7 d</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;padding:14px 0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7"><span>Shared pool · <span style="letter-spacing:0;text-transform:none;color:#F3F1EC">shared with Workspace B, counted once</span></span><span></span><span></span><span></span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(243,241,236,.12)"><span>Pool window</span><div style="height:4px;border-radius:2px;background:#FF9C8A"></div><span style="text-align:right;font-variant-numeric:tabular-nums;font-size:15px;color:#FF9C8A">0 %</span><span style="font-size:12px;color:#FF9C8A">Exhausted · passed 12:01 PM · Awaiting update</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(243,241,236,.12)"><span>Native balance</span><div style="height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,rgba(243,241,236,.30) 0 3px,transparent 3px 7px)"></div><span style="text-align:right;font-variant-numeric:tabular-nums;font-size:15px">1 250</span><span style="font-size:12px;color:#B8B2A7">tokens remaining · limit not reported</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(243,241,236,.12);color:#B8B2A7"><span>› Model‑specific · 3 windows · lowest 41 %</span><span></span><span></span><span style="font-size:12px">Collapsed by you</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:14px 0 0;border-top:1px solid rgba(243,241,236,.12);margin-top:auto">
+            <div><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7">Extra usage · enabled</div><div style="font-size:15px;font-variant-numeric:tabular-nums;margin-top:4px">$12.50 <span style="font-size:12px;color:#B8B2A7">used · USD · limit not set</span></div></div>
+            <div><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#B8B2A7">Credits · currency not reported</div><div style="font-size:15px;font-variant-numeric:tabular-nums;margin-top:4px">1250 <span style="font-size:12px;color:#B8B2A7">minor units · no currency formatting</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="width:960px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.7);padding:6px 2px 0"><strong style="color:#1a1a1a">Dark notes.</strong> Warm graphite #1F1E1B keeps the paper temperature; ink becomes warm white #F3F1EC with #B8B2A7 secondary. Hairlines rgba(243,241,236,.14). Coral lifts to #E38A6C for the underline/links (interactive only); warning #E5B95A, critical #FF9C8A. Large light numerals rely on Segoe UI Variable Display weight 300 — verify legibility at 100 % scaling before approval.</div>
+</div>
+</div>
+<p class="dv-next">Choose in the form or reply: “<a class="dv-oid" href="#1a">1a</a>” · “<a class="dv-oid" href="#1b">1b</a>” · “<a class="dv-oid" href="#1a">1a</a> layout, fixed app accent” · “<a class="dv-oid" href="#1b">1b</a> with the Windows system accent”</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Two visual directions · Overview (S01, F02+F04) and Account detail (S02, F07+F08) · 960×720 design frames, not app screenshots</span></div>
+<div style="max-width:980px;margin:0 0 24px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.68)">
+<p style="margin:0 0 8px"><strong style="color:#1a1a1a">Assumptions.</strong> Fixed demo clock 2026‑09‑15 12:00, rendered in a local zone equal to UTC so exact timestamps are checkable. Provider marks are neutral two‑letter monograms until rights review. Plan strings are synthetic. Meter fill colour never carries the only meaning: every state also has a glyph and a text label. The accent is reserved for interactive elements (selection, primary buttons, links) so quota colour stays a status signal.</p>
+<p style="margin:0"><strong style="color:#1a1a1a">Shared rules across both directions.</strong> Remaining % is the dominant value; horizontal meters only (no ring + bar duplication). Unknown → hatched track, no fill, “Unknown”. Exhausted → full red track, “0 %”. Stale → clock badge with the cached timestamp. Reset → relative time plus exact local time; a passed reset reads “Awaiting update”. Overview minimum names its source window; no global usage percentage.</p>
+</div>
+
+<div class="dv-opts">
+
+<!-- ================= 1a FLUENT LEDGER ================= -->
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Fluent Ledger — left navigation rail, card grid, Mica surface, Windows blue accent</div>
+
+<!-- S01 Overview -->
+<div class="dv-card" style="width:960px;height:720px;background:#F3F3F3;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#1A1A1A">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:3px;background:#0B62B8;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#5C5C5C;padding:1px 8px;border:1px solid rgba(0,0,0,.12);border-radius:10px">Demo · sample data · F02+F04</span></div>
+    <div style="display:flex;color:#1a1a1a;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:196px 1fr;min-height:0">
+    <!-- rail -->
+    <div style="display:flex;flex-direction:column;padding:8px 6px 10px;gap:2px;font-size:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px;background:rgba(0,0,0,.05);position:relative"><span style="position:absolute;left:0;top:11px;width:3px;height:16px;border-radius:2px;background:#0B62B8"></span><span style="width:16px;height:16px;border:1.5px solid #1a1a1a;border-radius:3px;display:inline-block"></span>Overview</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #5C5C5C;border-radius:50%;display:inline-block"></span>Accounts</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:10px;border-bottom:1.5px solid #5C5C5C;border-left:1.5px solid #5C5C5C;display:inline-block;margin-top:4px"></span>History</div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px dashed #5C5C5C;border-radius:50%;display:inline-block"></span>Settings</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #5C5C5C;border-radius:3px;display:inline-block"></span>System Status</div>
+    </div>
+    <!-- content -->
+    <div style="background:#FBFBFB;border-radius:8px 0 0 0;border:1px solid rgba(0,0,0,.06);border-right:0;border-bottom:0;padding:20px 32px 18px;display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between">
+        <div><h1 style="margin:0;font:600 28px/1.2 'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif">Overview</h1><div style="font-size:12px;color:#5C5C5C;margin-top:4px">Refreshed 12:00:00 PM · 5 visible accounts · 4 providers</div></div>
+        <div style="display:flex;gap:8px"><button style="font:400 14px 'Segoe UI',system-ui;padding:6px 14px;border-radius:5px;border:1px solid rgba(0,0,0,.14);background:#fff;color:#1a1a1a">Refresh all</button><button style="font:400 14px 'Segoe UI',system-ui;padding:6px 14px;border-radius:5px;border:1px solid transparent;background:#0B62B8;color:#fff">Add account</button></div>
+      </div>
+      <!-- summary strip -->
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:9px 14px"><div style="font-size:12px;color:#5C5C5C">Lowest known remaining</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:4px"><span style="font:600 26px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#C42B1C">0 %</span><span style="font-size:12px;color:#5C5C5C">Experiments · Session window</span></div></div>
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:9px 14px"><div style="font-size:12px;color:#5C5C5C">Nearest reset</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:4px"><span style="font:600 26px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums">in 3 h</span><span style="font-size:12px;color:#5C5C5C">3:00 PM · Personal · 5‑hour window</span></div></div>
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:9px 14px"><div style="font-size:12px;color:#5C5C5C">Needs attention</div><div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:6px;font-size:12px"><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:2px;background:#9A5B00;display:inline-block"></span>1 warning</span><span style="display:flex;align-items:center;gap:5px"><span style="width:8px;height:8px;border-radius:50%;background:#C42B1C;display:inline-block"></span>1 critical</span><span style="display:flex;align-items:center;gap:5px"><span style="font-weight:700;color:#C42B1C">0</span>1 exhausted</span><span style="color:#5C5C5C">0 reauth</span></div></div>
+      </div>
+      <div style="font-size:11px;color:#5C5C5C;margin-top:-8px">Summary covers visible accounts. Minimum compares known remaining percentages only; unknown and unlimited windows are excluded.</div>
+      <!-- card grid -->
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;flex:1;min-height:0;align-content:start">
+        <!-- Personal -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#E9E9E9;display:grid;place-items:center;font:600 11px system-ui;color:#3b3b3b">CX</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Personal</div><div style="font-size:12px;color:#5C5C5C">Codex · Sample plan</div></div><span style="font-size:11px;color:#3b3b3b;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05)">Fresh 12:00 PM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#5C5C5C">5‑hour window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">72 %</span></div>
+          <div style="height:6px;border-radius:3px;background:#E5E5E5;overflow:hidden"><div style="width:72%;height:100%;background:#3B3B3B;border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#5C5C5C"><span>Resets in 3 h · 3:00 PM</span><span>Weekly window 61 %</span></div>
+        </div>
+        <!-- Work stale warning -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#E9E9E9;display:grid;place-items:center;font:600 11px system-ui;color:#3b3b3b">CX</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Work</div><div style="font-size:12px;color:#5C5C5C">Codex · Sample plan</div></div><span style="font-size:11px;color:#1a1a1a;padding:2px 8px;border-radius:10px;background:#FFF1D6;border:1px solid #E7C98A">◷ Stale · cached Sep 14, 6:00 PM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#5C5C5C">5‑hour window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#9A5B00">▲ 20 %</span></div>
+          <div style="height:6px;border-radius:3px;background:#E5E5E5;overflow:hidden"><div style="width:20%;height:100%;background:#9A5B00;border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#5C5C5C"><span style="color:#C42B1C">Refresh failed · network · retry in 1 m 40 s</span><span>Weekly window 44 %</span></div>
+        </div>
+        <!-- Research critical -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#E9E9E9;display:grid;place-items:center;font:600 11px system-ui;color:#3b3b3b">CL</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Research</div><div style="font-size:12px;color:#5C5C5C">Claude · Sample plan · Workspace A</div></div><span style="font-size:11px;color:#3b3b3b;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05)">Fresh 12:00 PM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#5C5C5C">Session window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#C42B1C">● 8 %</span></div>
+          <div style="height:6px;border-radius:3px;background:#E5E5E5;overflow:hidden"><div style="width:8%;height:100%;background:#C42B1C;border-radius:3px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#5C5C5C"><span>Resets in 2 h 14 m · 2:14 PM</span><span>Weekly window 34 %</span></div>
+        </div>
+        <!-- Development unknown -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#E9E9E9;display:grid;place-items:center;font:600 11px system-ui;color:#3b3b3b">CP</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Development</div><div style="font-size:12px;color:#5C5C5C">Copilot · Plan unknown</div></div><span style="font-size:11px;color:#3b3b3b;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05)">Connected · quota unavailable</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#5C5C5C">Remaining</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;color:#5C5C5C">Unknown</span></div>
+          <div style="height:6px;border-radius:3px;background:repeating-linear-gradient(90deg,#DADADA 0 4px,transparent 4px 8px);border:1px dashed #C8C8C8;box-sizing:border-box"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#5C5C5C"><span>Provider reports no quota for this account</span><span style="color:#0B62B8">Details</span></div>
+        </div>
+        <!-- Experiments exhausted -->
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:11px 16px 11px;display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#E9E9E9;display:grid;place-items:center;font:600 11px system-ui;color:#3b3b3b">AG</span><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Experiments</div><div style="font-size:12px;color:#5C5C5C">Antigravity · Sample plan</div></div><span style="font-size:11px;color:#3b3b3b;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.05)">Fresh 11:58 AM</span></div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:12px;color:#5C5C5C">Session window</span><span style="font:600 22px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#C42B1C">0 % · Exhausted</span></div>
+          <div style="height:6px;border-radius:3px;background:#C42B1C;opacity:.9"></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#5C5C5C"><span>Reset passed 12:01 PM · Awaiting update</span><span>No other windows</span></div>
+        </div>
+        <!-- add tile -->
+              </div>
+    </div>
+  </div>
+</div>
+
+<!-- S02 Detail -->
+<div class="dv-card" style="width:960px;height:720px;background:#F3F3F3;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#1A1A1A">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:3px;background:#0B62B8;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#5C5C5C;padding:1px 8px;border:1px solid rgba(0,0,0,.12);border-radius:10px">Demo · sample data · F07+F08</span></div>
+    <div style="display:flex;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:196px 1fr;min-height:0">
+    <div style="display:flex;flex-direction:column;padding:8px 6px 10px;gap:2px;font-size:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #5C5C5C;border-radius:3px;display:inline-block"></span>Overview</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px;background:rgba(0,0,0,.05);position:relative"><span style="position:absolute;left:0;top:11px;width:3px;height:16px;border-radius:2px;background:#0B62B8"></span><span style="width:16px;height:16px;border:1.5px solid #1a1a1a;border-radius:50%;display:inline-block"></span>Accounts</div>
+      <div style="display:flex;flex-direction:column;gap:1px;padding-left:28px;font-size:13px;color:#5C5C5C"><div style="padding:6px 12px">Personal</div><div style="padding:6px 12px">Work</div><div style="padding:6px 12px;color:#1a1a1a;font-weight:600">Research</div><div style="padding:6px 12px">Development</div><div style="padding:6px 12px">Experiments</div><div style="padding:6px 12px;font-size:12px">Show hidden (1)</div></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:10px;border-bottom:1.5px solid #5C5C5C;border-left:1.5px solid #5C5C5C;display:inline-block;margin-top:4px"></span>History</div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px dashed #5C5C5C;border-radius:50%;display:inline-block"></span>Settings</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:5px"><span style="width:16px;height:16px;border:1.5px solid #5C5C5C;border-radius:3px;display:inline-block"></span>System Status</div>
+    </div>
+    <div style="background:#FBFBFB;border-radius:8px 0 0 0;border:1px solid rgba(0,0,0,.06);border-right:0;border-bottom:0;padding:22px 32px 24px;display:flex;flex-direction:column;gap:16px;min-height:0;overflow:hidden">
+      <div style="font-size:12px;color:#5C5C5C">Accounts <span style="margin:0 6px">›</span> <span style="color:#1a1a1a">Research</span></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span style="width:44px;height:44px;border-radius:8px;background:#E9E9E9;display:grid;place-items:center;font:600 14px system-ui;color:#3b3b3b">CL</span>
+        <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><h1 style="margin:0;font:600 24px/1.2 'Segoe UI Variable Display','Segoe UI',system-ui">Research</h1><span style="font-size:12px;color:#0B62B8">Rename</span></div><div style="font-size:12px;color:#5C5C5C;margin-top:2px">Claude · Sample plan · Connected · Observed 12:00:00 PM · Fresh</div></div>
+        <div style="display:flex;gap:8px"><button style="font:400 13px 'Segoe UI',system-ui;padding:5px 12px;border-radius:5px;border:1px solid rgba(0,0,0,.14);background:#fff;color:#1a1a1a">Refresh</button><button style="font:400 13px 'Segoe UI',system-ui;padding:5px 12px;border-radius:5px;border:1px solid rgba(0,0,0,.14);background:#fff;color:#1a1a1a">Reconnect</button><button style="font:400 13px 'Segoe UI',system-ui;padding:5px 10px;border-radius:5px;border:1px solid rgba(0,0,0,.14);background:#fff;color:#1a1a1a" title="Move up, Move down, Hide only, Hide and mute, Disconnect">···</button></div>
+      </div>
+      <!-- context switcher -->
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="color:#5C5C5C">Context</span><div style="display:inline-flex;border:1px solid rgba(0,0,0,.12);border-radius:5px;background:#fff;overflow:hidden"><span style="padding:5px 14px;background:rgba(11,98,184,.10);color:#0B62B8;font-weight:600">Workspace A</span><span style="padding:5px 14px;color:#1a1a1a">Workspace B</span></div><span style="font-size:12px;color:#5C5C5C">Workspace · preferences kept if a context is temporarily absent</span></div>
+      <!-- groups -->
+      <div style="display:flex;flex-direction:column;gap:10px;flex:1;min-height:0">
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:#5C5C5C">⌄</span><span style="font-weight:600;font-size:14px">Usage limits</span><span style="font-size:11px;color:#5C5C5C;margin-left:auto">Expanded · Auto</span></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 70px 230px;align-items:center;gap:14px;font-size:13px">
+            <span>Session window</span><div style="height:6px;border-radius:3px;background:#E5E5E5;overflow:hidden"><div style="width:8%;height:100%;background:#C42B1C"></div></div><span style="text-align:right;font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#C42B1C">● 8 %</span><span style="font-size:12px;color:#5C5C5C">Resets in 2 h 14 m · Sep 15, 2:14 PM · 5 h</span>
+            <span>Weekly window</span><div style="height:6px;border-radius:3px;background:#E5E5E5;overflow:hidden"><div style="width:34%;height:100%;background:#3B3B3B"></div></div><span style="text-align:right;font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">34 %</span><span style="font-size:12px;color:#5C5C5C">Resets in 2 d 21 h · Sep 18, 9:00 AM · 7 d</span>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:14px 16px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:#5C5C5C">⌄</span><span style="font-weight:600;font-size:14px">Shared pool</span><span style="font-size:11px;color:#1a1a1a;padding:1px 8px;border-radius:10px;background:rgba(0,0,0,.05)">Shared with Workspace B · counted once</span><span style="font-size:11px;color:#5C5C5C;margin-left:auto">Expanded</span></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 70px 230px;align-items:center;gap:14px;font-size:13px">
+            <span>Pool window</span><div style="height:6px;border-radius:3px;background:#C42B1C"></div><span style="text-align:right;font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#C42B1C">0 %</span><span style="font-size:12px;color:#5C5C5C">Exhausted · reset passed 12:01 PM · Awaiting update</span>
+            <span>Native balance</span><div style="height:6px;border-radius:3px;background:repeating-linear-gradient(90deg,#DADADA 0 4px,transparent 4px 8px);border:1px dashed #C8C8C8;box-sizing:border-box"></div><span style="text-align:right;font:600 14px 'Segoe UI',system-ui;font-variant-numeric:tabular-nums">1 250</span><span style="font-size:12px;color:#5C5C5C">tokens remaining · limit not reported</span>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:12px 16px;display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:#5C5C5C">›</span><span style="font-weight:600;font-size:14px">Model‑specific</span><span style="font-size:12px;color:#5C5C5C">3 windows · lowest 41 %</span><span style="font-size:11px;color:#5C5C5C;margin-left:auto">Collapsed by you</span></div>
+        <div style="background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:7px;padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px">
+          <div><div style="font-size:12px;color:#5C5C5C">Extra usage · enabled</div><div style="font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;margin-top:2px">$12.50 <span style="font:400 12px 'Segoe UI',system-ui;color:#5C5C5C">used · USD · limit not set</span></div></div>
+          <div><div style="font-size:12px;color:#5C5C5C">Credits · currency not reported</div><div style="font:600 16px 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;margin-top:2px">1250 <span style="font:400 12px 'Segoe UI',system-ui;color:#5C5C5C">minor units · no currency formatting</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="width:960px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.7);display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:6px 2px 0">
+  <div><strong style="color:#1a1a1a">For.</strong> Matches WinUI NavigationView/Expander/InfoBadge one‑to‑one, so feasibility risk is lowest. Card grid maps directly to 1/2/3+ columns and manual drag order. Status pills give each card a stable place for freshness and failure without stealing the meter.</div>
+  <div><strong style="color:#1a1a1a">Against.</strong> Twenty accounts (F15) becomes a wall of similar white cards; scanning relies on the coloured numeral. Card chrome plus rail costs width, so at 560 px the rail must collapse to compact mode and the grid to one column. Least distinctive of the two.</div>
+</div>
+</div>
+
+<!-- ================= 1b QUIET LEDGER ================= -->
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Quiet Editorial — top navigation, provider‑grouped rows on one warm surface, large numerals, coral accent</div>
+
+<!-- S01 Overview -->
+<div class="dv-card" style="width:960px;height:720px;background:#F6F4EF;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#1D1B18">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:50%;background:#C8684A;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#6B665E;padding:1px 8px;border:1px solid rgba(29,27,24,.14);border-radius:10px">Demo · sample data · F02+F04</span></div>
+    <div style="display:flex;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;min-height:0;padding:0 40px 24px">
+    <!-- top nav -->
+    <div style="display:flex;align-items:center;gap:26px;height:48px;border-bottom:1px solid rgba(29,27,24,.12);font-size:14px">
+      <span style="font-weight:600;position:relative;padding:14px 0">Overview<span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#C8684A;border-radius:1px"></span></span><span style="color:#6B665E">Accounts</span><span style="color:#6B665E">History</span><span style="color:#6B665E">Settings</span><span style="color:#6B665E">System Status</span>
+      <span style="flex:1"></span>
+      <span style="font-size:13px;color:#1D1B18">Refresh all</span><span style="font-size:13px;color:#fff;background:#1D1B18;padding:5px 12px;border-radius:4px">Add account</span>
+    </div>
+    <!-- headline stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;padding:20px 0 16px;border-bottom:1px solid rgba(29,27,24,.12)">
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">5</div><div style="font-size:12px;color:#6B665E;margin-top:8px">visible accounts · 4 providers</div></div>
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#B3301E">0 %</div><div style="font-size:12px;color:#6B665E;margin-top:8px">lowest known remaining<br>Experiments · Session window</div></div>
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">3 h</div><div style="font-size:12px;color:#6B665E;margin-top:8px">to nearest reset · 3:00 PM<br>Personal · 5‑hour window</div></div>
+      <div><div style="font:300 44px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums">3</div><div style="font-size:12px;color:#6B665E;margin-top:8px">need attention<br>▲ 1 warning · ● 1 critical · 1 exhausted · 0 reauth</div></div>
+    </div>
+    <div style="font-size:11px;color:#6B665E;padding:8px 0 0">Visible accounts only · minimum compares known percentages · refreshed 12:00:00 PM</div>
+    <!-- rows -->
+    <div style="flex:1;min-height:0;display:flex;flex-direction:column;padding-top:10px">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E"><span style="width:18px;height:18px;border-radius:4px;background:#E6E2DA;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#4a463f">CX</span>Codex</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(29,27,24,.10)">
+        <div><div style="font-weight:600;font-size:14px">Personal</div><div style="font-size:12px;color:#6B665E">Sample plan · fresh 12:00 PM</div></div>
+        <div><div style="height:4px;border-radius:2px;background:rgba(29,27,24,.10);overflow:hidden"><div style="width:72%;height:100%;background:#1D1B18"></div></div><div style="font-size:11px;color:#6B665E;margin-top:6px">5‑hour window · weekly 61 %</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums">72 %</div>
+        <div style="font-size:12px;color:#6B665E">Resets in 3 h · 3:00 PM</div>
+      </div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(29,27,24,.10)">
+        <div><div style="font-weight:600;font-size:14px">Work</div><div style="font-size:12px;color:#1D1B18"><span style="border-bottom:1px dotted #A87400">◷ Stale · cached Sep 14, 6:00 PM</span></div></div>
+        <div><div style="height:4px;border-radius:2px;background:rgba(29,27,24,.10);overflow:hidden"><div style="width:20%;height:100%;background:#A87400"></div></div><div style="font-size:11px;color:#B3301E;margin-top:6px">Refresh failed · network · retry in 1 m 40 s</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#A87400">▲ 20 %</div>
+        <div style="font-size:12px;color:#6B665E">Weekly 44 % · resets Sep 18, 9:00 AM</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 0 3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E"><span style="width:18px;height:18px;border-radius:4px;background:#E6E2DA;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#4a463f">CL</span>Claude</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(29,27,24,.10)">
+        <div><div style="font-weight:600;font-size:14px">Research</div><div style="font-size:12px;color:#6B665E">Sample plan · Workspace A · fresh 12:00 PM</div></div>
+        <div><div style="height:4px;border-radius:2px;background:rgba(29,27,24,.10);overflow:hidden"><div style="width:8%;height:100%;background:#B3301E"></div></div><div style="font-size:11px;color:#6B665E;margin-top:6px">Session window · weekly 34 %</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#B3301E">● 8 %</div>
+        <div style="font-size:12px;color:#6B665E">Resets in 2 h 14 m · 2:14 PM</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 0 3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E"><span style="width:18px;height:18px;border-radius:4px;background:#E6E2DA;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#4a463f">CP</span>Copilot</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(29,27,24,.10)">
+        <div><div style="font-weight:600;font-size:14px">Development</div><div style="font-size:12px;color:#6B665E">Connected · quota unavailable</div></div>
+        <div><div style="height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,rgba(29,27,24,.22) 0 3px,transparent 3px 7px)"></div><div style="font-size:11px;color:#6B665E;margin-top:6px">Provider reports no quota for this account</div></div>
+        <div style="text-align:right;font:300 20px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;color:#6B665E">Unknown</div>
+        <div style="font-size:12px;color:#6B665E">No reset known</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 0 3px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E"><span style="width:18px;height:18px;border-radius:4px;background:#E6E2DA;display:grid;place-items:center;font:600 9px system-ui;letter-spacing:0;color:#4a463f">AG</span>Antigravity</div>
+      <div style="display:grid;grid-template-columns:160px 1fr 104px 240px;align-items:center;gap:18px;padding:9px 0;border-top:1px solid rgba(29,27,24,.10);border-bottom:1px solid rgba(29,27,24,.10)">
+        <div><div style="font-weight:600;font-size:14px">Experiments</div><div style="font-size:12px;color:#6B665E">Sample plan · fresh 11:58 AM</div></div>
+        <div><div style="height:4px;border-radius:2px;background:#B3301E"></div><div style="font-size:11px;color:#6B665E;margin-top:6px">Session window · no other windows</div></div>
+        <div style="text-align:right;font:300 28px/1 'Segoe UI Variable Display','Segoe UI',system-ui;white-space:nowrap;font-variant-numeric:tabular-nums;color:#B3301E">0 %</div>
+        <div style="font-size:12px;color:#B3301E">Exhausted · reset passed 12:01 PM · Awaiting update</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S02 Detail -->
+<div class="dv-card" style="width:960px;height:720px;background:#F6F4EF;display:grid;grid-template-rows:32px 1fr;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;color:#1D1B18">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:0 0 0 14px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="width:14px;height:14px;border-radius:50%;background:#C8684A;display:inline-block"></span><span>AI Usage</span><span style="font-size:11px;color:#6B665E;padding:1px 8px;border:1px solid rgba(29,27,24,.14);border-radius:10px">Demo · sample data · F07+F08</span></div>
+    <div style="display:flex;font-size:11px"><span style="width:46px;text-align:center;line-height:32px">─</span><span style="width:46px;text-align:center;line-height:32px">☐</span><span style="width:46px;text-align:center;line-height:32px">✕</span></div>
+  </div>
+  <div style="display:flex;flex-direction:column;min-height:0;padding:0 40px 24px">
+    <div style="display:flex;align-items:center;gap:26px;height:48px;border-bottom:1px solid rgba(29,27,24,.12);font-size:14px">
+      <span style="color:#6B665E">Overview</span><span style="font-weight:600;position:relative;padding:14px 0">Accounts<span style="position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#C8684A;border-radius:1px"></span></span><span style="color:#6B665E">History</span><span style="color:#6B665E">Settings</span><span style="color:#6B665E">System Status</span>
+      <span style="flex:1"></span>
+      <span style="font-size:13px">Refresh all</span><span style="font-size:13px;color:#fff;background:#1D1B18;padding:5px 12px;border-radius:4px">Add account</span>
+    </div>
+    <div style="display:grid;grid-template-columns:180px 1fr;gap:32px;flex:1;min-height:0;padding-top:20px">
+      <!-- account list -->
+      <div style="display:flex;flex-direction:column;font-size:13px;border-right:1px solid rgba(29,27,24,.12);padding-right:16px">
+        <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E;padding:4px 0 10px">Accounts · manual order</div>
+        <div style="padding:7px 0;color:#6B665E">Personal <span style="float:right;font-variant-numeric:tabular-nums">72 %</span></div>
+        <div style="padding:7px 0;color:#6B665E">Work <span style="float:right;font-variant-numeric:tabular-nums;color:#A87400">▲ 20 %</span></div>
+        <div style="padding:7px 0;font-weight:600;position:relative;padding-left:10px"><span style="position:absolute;left:-17px;top:9px;width:3px;height:14px;background:#C8684A;border-radius:2px"></span>Research <span style="float:right;font-variant-numeric:tabular-nums;color:#B3301E">● 8 %</span></div>
+        <div style="padding:7px 0;color:#6B665E">Development <span style="float:right">Unknown</span></div>
+        <div style="padding:7px 0;color:#6B665E">Experiments <span style="float:right;font-variant-numeric:tabular-nums;color:#B3301E">0 %</span></div>
+        <div style="padding:14px 0 0;font-size:12px;color:#C8684A">Show hidden (1)</div>
+      </div>
+      <!-- detail -->
+      <div style="display:flex;flex-direction:column;gap:18px;min-height:0">
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;color:#6B665E;display:flex;align-items:center;gap:8px"><span style="width:16px;height:16px;border-radius:3px;background:#E6E2DA;display:grid;place-items:center;font:600 8px system-ui;color:#4a463f">CL</span>Claude · Sample plan</div>
+            <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px"><h1 style="margin:0;font:600 26px/1.15 'Segoe UI Variable Display','Segoe UI',system-ui">Research</h1><span style="font-size:12px;color:#C8684A">Rename</span></div>
+            <div style="font-size:12px;color:#6B665E;margin-top:4px">Connected · observed 12:00:00 PM · Fresh</div>
+          </div>
+          <div style="display:flex;gap:16px;font-size:13px;padding-top:24px"><span>Refresh</span><span>Reconnect</span><span title="Move up · Move down · Hide only · Hide and mute · Disconnect">More ▾</span></div>
+        </div>
+        <!-- hero -->
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:end;border-bottom:1px solid rgba(29,27,24,.12);padding-bottom:18px">
+          <div><div style="font:300 72px/1 'Segoe UI Variable Display','Segoe UI',system-ui;font-variant-numeric:tabular-nums;color:#B3301E;letter-spacing:-.02em">8 %</div><div style="font-size:12px;color:#6B665E;margin-top:8px">● Critical · Session window · Workspace A</div></div>
+          <div style="padding-bottom:6px"><div style="height:4px;border-radius:2px;background:rgba(29,27,24,.10);overflow:hidden"><div style="width:8%;height:100%;background:#B3301E"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#6B665E;margin-top:8px"><span>Resets in 2 h 14 m · Sep 15, 2:14 PM · 5‑hour window</span><span>Context: <strong style="color:#1D1B18">Workspace A</strong> · <span style="color:#C8684A">Switch</span></span></div></div>
+        </div>
+        <!-- windows table -->
+        <div style="display:flex;flex-direction:column;font-size:13px;flex:1;min-height:0">
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;padding:6px 0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E"><span>Usage limits · expanded (auto)</span><span>Remaining</span><span></span><span>Reset</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(29,27,24,.10)"><span>Weekly window</span><div style="height:4px;border-radius:2px;background:rgba(29,27,24,.10);overflow:hidden"><div style="width:34%;height:100%;background:#1D1B18"></div></div><span style="text-align:right;font-variant-numeric:tabular-nums;font-size:15px">34 %</span><span style="font-size:12px;color:#6B665E">in 2 d 21 h · Sep 18, 9:00 AM · 7 d</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;padding:14px 0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E"><span>Shared pool · <span style="letter-spacing:0;text-transform:none;color:#1D1B18">shared with Workspace B, counted once</span></span><span></span><span></span><span></span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(29,27,24,.10)"><span>Pool window</span><div style="height:4px;border-radius:2px;background:#B3301E"></div><span style="text-align:right;font-variant-numeric:tabular-nums;font-size:15px;color:#B3301E">0 %</span><span style="font-size:12px;color:#B3301E">Exhausted · passed 12:01 PM · Awaiting update</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(29,27,24,.10)"><span>Native balance</span><div style="height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,rgba(29,27,24,.22) 0 3px,transparent 3px 7px)"></div><span style="text-align:right;font-variant-numeric:tabular-nums;font-size:15px">1 250</span><span style="font-size:12px;color:#6B665E">tokens remaining · limit not reported</span></div>
+          <div style="display:grid;grid-template-columns:1fr 200px 70px 230px;gap:16px;align-items:center;padding:10px 0;border-top:1px solid rgba(29,27,24,.10);color:#6B665E"><span>› Model‑specific · 3 windows · lowest 41 %</span><span></span><span></span><span style="font-size:12px">Collapsed by you</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:14px 0 0;border-top:1px solid rgba(29,27,24,.10);margin-top:auto">
+            <div><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E">Extra usage · enabled</div><div style="font-size:15px;font-variant-numeric:tabular-nums;margin-top:4px">$12.50 <span style="font-size:12px;color:#6B665E">used · USD · limit not set</span></div></div>
+            <div><div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#6B665E">Credits · currency not reported</div><div style="font-size:15px;font-variant-numeric:tabular-nums;margin-top:4px">1250 <span style="font-size:12px;color:#6B665E">minor units · no currency formatting</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="width:960px;font:13px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.7);display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:6px 2px 0">
+  <div><strong style="color:#1a1a1a">For.</strong> Rows scale to F15 (20 accounts × 12 groups) far better than cards: one hairline per row, numerals aligned in a column, provider headers give free grouping. Fewer surfaces means fewer contrast layers to maintain across Light/Dark/High contrast. Big light numerals make remaining quota unmistakably the primary value.</div>
+  <div><strong style="color:#1a1a1a">Against.</strong> Top NavigationView and a single‑column list are less canonical for a Windows dashboard; the one/two/three‑column promise becomes “columns inside a row”, not card columns, so manual drag‑order reads as list reorder. The warm surface and coral accent diverge from the system accent and need a deliberate Dark and High‑contrast mapping.</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Reply with <a class="dv-oid" href="#1a">1a</a> or <a class="dv-oid" href="#1b">1b</a> to get the complete S01–S12 package · or mix: “<a class="dv-oid" href="#1a">1a</a> rail with <a class="dv-oid" href="#1b">1b</a> rows and numerals” · “<a class="dv-oid" href="#1b">1b</a> but system accent instead of coral”</p>
+</section>
+</x-dc>
+</body>
+</html>

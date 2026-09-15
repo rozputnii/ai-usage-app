@@ -15,6 +15,10 @@ The documents define the contract for design and implementation; they do not int
 
 Codex later maps `DashboardWorkflow`, `ProviderSessionState`, `QuotaSnapshot` and Claude extra usage into the presentation contract. Core remains credential-free and platform-neutral; Infrastructure retains provider transport and persistence. Demo data may not become a fallback after a live error. Do not duplicate a live provider client or manufacture account identity from labels.
 
+## Owner amendment 2026-09-15
+
+[frontend-brief.md](frontend-brief.md) supersedes this document where they conflict: the mock frontend is the default startup for this delivery, the existing Windows UI may be replaced, UI NuGet packages are authorized within the brief's limits, and the new presentation must not reference or initialize Core/Infrastructure. The concrete structure, paths and dependencies are in [frontend-plan.md](frontend-plan.md). The paragraphs below remain authoritative for semantics, isolation of demo effects and the later Codex integration, but "off by default", "retain existing live startup" and "no new package" are superseded for this delivery.
+
 ## Demo boundary
 
 Create an explicit development/demo startup composition, off by default, with a persistent unobtrusive “Demo · sample data” label and scenario picker. The whole session uses demo services. It never initializes provider sessions, grant stores, production persistence or OS action services. Reset demo restores the in-memory seed. Production startup uses live capabilities only; an unsupported destination explains availability and never displays fictional measurements.
