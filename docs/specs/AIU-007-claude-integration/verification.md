@@ -147,3 +147,7 @@ On 2026-09-15, local main advanced by `git merge --ff-only codex/aiu-007-claude-
 | AC-07 | PASS | Required Luna max independent review and targeted fix follow-up, primary combined review, scoped committed evidence and verified local-main integration; publication excluded by the explicit private amendment |
 
 Remaining limitations are the documented Anthropic restriction and the live variants identified above as NOT_RUN; successful private testing does not grant provider approval or prove every account/entitlement. No required acceptance check remains BLOCKED or FAIL. No remote publication, main push or release occurred. No credentials, raw account payloads or private screenshots entered Git.
+
+## Owner-requested repository publication
+
+On 2026-09-15, after completion at `e02b8f1`, the owner explicitly requested commit and push and marking the task done if verification passed. The working tree was clean, AIU-007 was already done, and all final acceptance evidence above was present. A fresh remote-ref check found origin/main at `1e4f0ce` and no remote Claude task branch, allowing ordinary fast-forward publication without force or history rewriting. The latest scope amendment authorizes publishing the completed task branch and local main. Earlier no-publication statements describe the state before this request; no release is authorized. Publication results are verified against the remote refs, with the publication-record commit included in both branches.
