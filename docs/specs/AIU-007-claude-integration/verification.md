@@ -1,6 +1,6 @@
 # AIU-007 verification
 
-Current result: implementation, automated regressions, packaged Windows controls/lifecycle, focused independent review and owner-led live Claude lifecycle pass. Final local-main integration checks are in progress. The latest live evidence below supersedes earlier access blockers; historical preparation results remain identified.
+Current result: PASS. Implementation, automated regressions, packaged Windows controls/lifecycle, focused independent review, owner-led live Claude lifecycle and local-main integration are complete. The final acceptance section below supersedes earlier access blockers; historical preparation results remain identified.
 
 Date: 2026-09-14. Base: `0a0ffd4` (completed AIU-027). Task branch: `codex/aiu-007-claude-integration`. The initial tracked and untracked checkout was clean. No production code, credential storage, dependencies or Windows UI changed during the initial preparation recorded here.
 
@@ -131,3 +131,19 @@ Live limitations: the specific callback return mechanism was not separately inst
 AC-02 and AC-06 live gates now PASS. AC-01, AC-03, AC-04 and AC-05 retain their recorded source, test and UI evidence, supplemented by these live results. AC-07 independent review is PASS; the remaining action is final combined-candidate checks and local-main integration. The implementation diff has not changed since the reviewed and packaged product candidate.
 
 Final combined-candidate checks on 2026-09-15: PASS, Infrastructure Release 130/130; Presentation Release 16/16; project-validator regressions 78/78, all with zero errors/failures/skips/not-run tests. PASS, document validation with zero diagnostics; PASS, `git diff --check`. The commands used SDK 10.0.401 and `--no-restore`. The reviewed product tree is unchanged; only these evidence records changed after live verification. Main is an ancestor of the candidate, so integration can preserve the complete selected AIU-027 base and intervening existing history through a fast-forward without conflict resolution or rewriting commits.
+
+## Final acceptance and local integration
+
+On 2026-09-15, local main advanced by `git merge --ff-only codex/aiu-007-claude-integration` from `1e4f0ce` to `ba6d45e`, including the committed implementation, integrated worker contribution, review fixes and live evidence. PASS: all 130 Infrastructure, 16 Presentation and 78 project-validator tests were executed again from main with the already-built identical binaries (`--no-build --no-restore`), zero failures/skips/not-run tests. Final metadata changes affect documentation only. The completion commit on main is identifiable in Git history as `docs: complete AIU-007 after live verification and local integration`.
+
+| Acceptance | Verdict | Evidence |
+| --- | --- | --- |
+| AC-01 | PASS | Exact OMP and official provider/Microsoft evidence, pinned toolchain, truthful private/unsupported classification |
+| AC-02 | PASS | Reviewed authentication failure regressions and LIVE-01 owner-led connection/identity/initial quota |
+| AC-03 | PASS | Protected-state and rotation regressions, LIVE-03 renewal/resume and LIVE-04/05 durable removal; Codex retained |
+| AC-04 | PASS | Synthetic provider semantics/presentation cases and actual separate live quota/reset/money display |
+| AC-05 | PASS | Workflow/presentation regressions, six installed Windows scenarios and live refresh/exit/provider isolation |
+| AC-06 | PASS | 224 deterministic tests, reviewed final package 1416 and LIVE-01 through LIVE-05 |
+| AC-07 | PASS | Required Luna max independent review and targeted fix follow-up, primary combined review, scoped committed evidence and verified local-main integration; publication excluded by the explicit private amendment |
+
+Remaining limitations are the documented Anthropic restriction and the live variants identified above as NOT_RUN; successful private testing does not grant provider approval or prove every account/entitlement. No required acceptance check remains BLOCKED or FAIL. No remote publication, main push or release occurred. No credentials, raw account payloads or private screenshots entered Git.

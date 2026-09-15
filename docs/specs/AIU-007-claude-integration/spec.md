@@ -1,7 +1,7 @@
 ---
 id: AIU-007
 type: spec
-status: approved
+status: implemented
 goal: G-003
 scope_version: 2
 approval_basis: Owner goal objective and explicit amendment on 2026-09-14 to proceed with a private unsupported OMP-style Claude integration.
