@@ -83,10 +83,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-010 - Usable UI design, UI/UX polish and dashboard/tray refinement
 - goal: G-003
-- status: idea
+- status: in-progress
 - depends_on: [AIU-004]
 - trigger: incremental
 - outcome: Add manual ordering/labels, Overview, group/hide controls, themes, accessibility, localization resources and shared UI state.
+- evidence: docs/specs/AIU-010-ui-ux/verification.md
+- scope-note: Owner selected staged Codex preparation, Claude Design, Claude Code frontend and Codex integration on 2026-09-15. Prepare the complete planned Windows UI with isolated interactive mocks, including future capabilities; real backend delivery remains in its owning AIUs. See docs/specs/AIU-010-ui-ux/spec.md and tasks.md. Preparation completion does not complete the feature.
 - owner-direction: Owner amendment, 2026-09-14: the current UI is unattractive and not usable. Apply a coherent, usable UI design and polish core provider connection, quota, refresh and tray flows before CLI integrations. Existing functional smoke evidence does not establish satisfactory design or usability. All four provider connections should follow the OMP (omp.sh) connection style; exact design and provider-specific behavior will be established when that work is selected.
 
 ## AIU-011 - Usage history and responsive charts
