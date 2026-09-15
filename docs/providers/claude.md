@@ -1,14 +1,14 @@
 ---
 provider: claude
 source_verified_at: 2026-09-14
-live_verified_at: null
-confidence: source-verified-not-live
+live_verified_at: 2026-09-15
+confidence: source-and-live-verified-private-unsupported
 classification: method-specific
 backlog: AIU-007
 ---
 # Claude authentication and subscription quota evidence
 
-Source inspection on 2026-09-14; no live account verification. The owner explicitly authorized a private, unsupported OMP-style implementation in the [scope amendment](../specs/AIU-007-claude-integration/spec.md). This permits local development without claiming provider approval. The scope excludes CLI credential discovery/import, inference calls and billing-API substitution.
+Source inspection on 2026-09-14; owner-led live account verification on 2026-09-15. The owner explicitly authorized a private, unsupported OMP-style implementation in the [scope amendment](../specs/AIU-007-claude-integration/spec.md). Successful live behavior does not establish provider approval. The scope excludes CLI credential discovery/import, inference calls and billing-API substitution.
 
 ## Official boundary
 
@@ -46,7 +46,7 @@ The research agent initially identified v18.1.18 (`00085d4e7dfdcfbf302c122fa2682
 | State/PKCE | State uses 16 random bytes encoded as 32 hex characters. The authorization engine includes challenge/method/state and sends verifier, redirect and state with exchange |
 | Token endpoint | JSON POST to `https://api.anthropic.com/v1/oauth/token` for code exchange and refresh; refresh uses `grant_type=refresh_token` |
 | Expiry/rotation | `expires_in` seconds with a five-minute skew. `mapCredentials` retains the prior refresh token if a new token is omitted; access/refresh rotation and persistence must have one authority |
-| Refresh headers | `anthropic-beta: oauth-2025-04-20` and a Claude SDK-style user agent. AI Usage must keep its identity truthful; acceptance with its own headers is NOT_RUN |
+| Refresh headers | `anthropic-beta: oauth-2025-04-20` and a Claude SDK-style user agent in OMP. AI Usage's own headers were accepted during the live restart/renewal check on 2026-09-15 |
 | Grant lifetime | OMP's roughly 30-day family-expiry constant is explicitly an observed heuristic, not a guaranteed provider contract or timer for declaring a grant invalid |
 
 Login maps `account.uuid`/`account.email_address` and `organization.uuid`/`organization.name`. When identity is incomplete, the hook tries GET `https://api.anthropic.com/api/claude_cli/bootstrap?entrypoint=cli&model=claude-opus-4-8` with a Claude Code-style user agent and OAuth beta header. It reads `oauth_account.account_uuid`, `account_email`, `organization_uuid`, and `organization_name`. Bootstrap failure is swallowed by OMP, so successful token exchange alone does not guarantee stable identity.
@@ -81,4 +81,6 @@ Quota retries are bounded to three attempts for supported transient failures and
 
 The implemented parser and protocol tests use explicitly synthetic fixtures. No real fixture has been captured. Coverage includes valid/missing/conflicting identity, legacy and generic shared limits, multiple scoped rows including `is_active: false`, unknown kinds and duplicate names, null/invalid/exhausted percentages, ISO offsets and malformed resets, enabled/disabled/unknown extra spend, currency/exponent mismatch, malformed JSON and secret-bearing error payloads. The [verification record](../specs/AIU-007-claude-integration/verification.md) records executed checks separately from live evidence.
 
-Live checks remain NOT_RUN: browser consent, callback/manual fallback, minimum scopes, truthful headers, account/organization binding, initial usage, token rotation, restart/resume, invalid grant, throttling, stale cache and disconnect. A source comment reporting a production observation is evidence about OMP, not an AI Usage live result. Full required checks are specified in the [feature design](../specs/AIU-007-claude-integration/design.md).
+Live PASS on 2026-09-15: owner-led browser connection, identity validation through the shared client, initial grouped usage, manual refresh, renewal and durable resume after full process exit, local disconnect and disconnected state after another restart. The actual host development package was 2026.9.1416.0. The existing Codex connection remained usable. No credentials or raw provider payloads were captured. See the [live verification record](../specs/AIU-007-claude-integration/verification.md).
+
+Live NOT_RUN: occupied-port callback fallback, isolated manual-code fallback, reduced/minimum scopes, server-side invalidation, throttling, malformed responses and transient-offline stale cache. Failure boundaries have synthetic regression coverage; no provider failures or billable inference were induced. The observed account does not prove every account type, quota group or entitlement. A source comment about OMP is not an AI Usage live result.

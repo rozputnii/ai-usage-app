@@ -63,4 +63,6 @@ Completed checks: 130 Infrastructure and 16 Presentation/workflow/boundary tests
 
 The owner resolved PROVIDER-002 by explicitly selecting private, unsupported OMP-style integration. Anthropic's restriction remains recorded. The quota worker's four-file commit is integrated and primary-reviewed. The fresh Luna max credential/durable-state review found two material issues; both were reproduced, fixed and passed targeted independent follow-up at bb25558. No worker artifact or material review finding remains pending. Live consent and acceptance are outstanding. The host's existing development registration was updated to 2026.9.1416.0 without changing host trust or resetting data; its Claude panel is open for the owner. The existing Codex connection still displays its quota.
 
-Exact next action: have the owner select Connect Claude in the open AI Usage window and complete browser consent so the primary can verify live quota, renewal/resume and disconnect before local-main integration.
+The owner resumed on 2026-09-15 and completed live sign-in in the normal desktop app. Connection, initial quota, refresh, renewal/resume after full exit, disconnect and durable removal all passed; Codex remained connected. The live verification section supersedes the earlier consent blocker. Browser consent was reopened afterward for the owner to reconnect.
+
+Exact next action: complete the combined-candidate checks and integrate the verified private task branch into local main, then finalize the acceptance records without remote publication.

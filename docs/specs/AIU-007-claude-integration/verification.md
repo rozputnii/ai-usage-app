@@ -1,6 +1,6 @@
 # AIU-007 verification
 
-Current result: implementation, automated regressions, actual packaged Windows controls/lifecycle, and focused independent review pass. Live Claude acceptance is awaiting owner consent; AIU-007 is incomplete and remains on its private task branch. The final candidate and current acceptance are recorded below. Earlier preparation results are historical.
+Current result: implementation, automated regressions, packaged Windows controls/lifecycle, focused independent review and owner-led live Claude lifecycle pass. Final local-main integration checks are in progress. The latest live evidence below supersedes earlier access blockers; historical preparation results remain identified.
 
 Date: 2026-09-14. Base: `0a0ffd4` (completed AIU-027). Task branch: `codex/aiu-007-claude-integration`. The initial tracked and untracked checkout was clean. No production code, credential storage, dependencies or Windows UI changed during the initial preparation recorded here.
 
@@ -111,3 +111,23 @@ Host preparation: updated the existing `AiUsage.Dev_951d0pt9hnds0` development r
 | AC-07 | BLOCKED | Independent findings resolved and reviewed; final live gate and local-main integration remain outstanding |
 
 The latest private scope keeps every commit local. Local main is still `1e4f0ce`; no remote publication, main push or release occurred. Exact next action: the owner completes Connect Claude in the open AI Usage window, enabling live quota, renewal/resume and disconnect verification before integration.
+
+## Owner-led live host verification, 2026-09-15
+
+Candidate: `e02732131c47245aab61e6d5fc04ccddbb18d3b0`, product source unchanged from reviewed `bb25558`. Installed host package `AiUsage.Dev` version `2026.9.1416.0` was confirmed before launch. The owner explicitly requested the normal desktop instance and completed Claude sign-in. Windows Computer Use observed the actual app; this was not Sandbox or a synthetic provider. No source CLI credentials, protected credential contents, browser codes, cookies or raw provider payloads were read or recorded.
+
+| Check | Verdict | Direct observation |
+| --- | --- | --- |
+| LIVE-01 connection and initial quota | PASS | Owner-led sign-in produced Account connected, separate Claude 5 Hour and Claude 7 Day remaining values and reset times, and disabled extra-usage information with explicit USD units and no cap reported |
+| LIVE-02 refresh | PASS | Clicking Refresh completed with current quota rows, enabled controls and no error or stale-cache notice |
+| LIVE-03 renewal and durable resume | PASS | Exit closed the process, confirmed by the app inventory and process query. Relaunch created a new window and restored current Claude quota without browser consent or a stale-cache notice. In this implementation access tokens exist only in memory; startup ResumeAsync renews from the protected refresh grant before fetching current quota. Thus the observed fresh result exercises the real refresh exchange and persisted grant, rather than merely displaying cache |
+| LIVE-04 disconnect | PASS | Clicking Disconnect removed the quota rows, showed No accounts connected and disabled Refresh/Disconnect |
+| LIVE-05 durable removal and provider isolation | PASS | After another confirmed full process exit and relaunch, Claude still showed No accounts connected. Codex retained its existing connected quota display |
+
+After LIVE-05, Connect Claude reopened browser consent for the owner to restore the connection. A subsequent actual app observation confirmed Account connected and current quota again; the app was left connected. Screens were inspected directly in the task; private account data and screenshots were not added to Git. Neither host trust nor installed dependencies changed during this run.
+
+Live limitations: the specific callback return mechanism was not separately instrumented; occupied-port and isolated manual fallback, reduced scopes, deliberate invalidation/throttling, malformed provider responses and induced network failure were NOT_RUN live. Their applicable failure behavior remains covered by the protocol, persistence and presentation regressions. No billable inference or destructive remote account action was used to manufacture evidence. Private API behavior and provider permission remain distinct; Anthropic's documented restriction still applies.
+
+AC-02 and AC-06 live gates now PASS. AC-01, AC-03, AC-04 and AC-05 retain their recorded source, test and UI evidence, supplemented by these live results. AC-07 independent review is PASS; the remaining action is final combined-candidate checks and local-main integration. The implementation diff has not changed since the reviewed and packaged product candidate.
+
+Final combined-candidate checks on 2026-09-15: PASS, Infrastructure Release 130/130; Presentation Release 16/16; project-validator regressions 78/78, all with zero errors/failures/skips/not-run tests. PASS, document validation with zero diagnostics; PASS, `git diff --check`. The commands used SDK 10.0.401 and `--no-restore`. The reviewed product tree is unchanged; only these evidence records changed after live verification. Main is an ancestor of the candidate, so integration can preserve the complete selected AIU-027 base and intervening existing history through a fast-forward without conflict resolution or rewriting commits.
