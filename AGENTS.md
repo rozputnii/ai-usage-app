@@ -18,6 +18,21 @@ language used in user conversations or agent sessions. This includes task,
 handoff, and inter-agent prompts. Conversational replies may use the user's
 language.
 
+## Codex subagent model policy
+
+This policy applies only to OpenAI Codex agents working in this repository. It
+does not apply to other coding tools, IDE assistants, external agents, or
+application/runtime model selection.
+
+- Use GPT-5.6 Luna with reasoning effort `max` (`model = "gpt-5.6-luna"`)
+  for every Codex subagent.
+- Do not explicitly select `gpt-6-astra`, `gpt-5.6-sol` (or its `gpt-5.6`
+  alias), or `gpt-5.6-terra` for a Codex subagent.
+- The primary Codex agent keeps its configured model and owns architecture,
+  difficult reasoning, integration, and final decisions.
+- If Luna or `max` is unavailable for a Codex subagent, report the constraint
+  instead of substituting another model.
+
 Ask when a missing decision changes scope, product intent, significant
 architecture, dependencies, security boundaries, or external/destructive
 authority. Backlog status and historical permissions do not select work.
