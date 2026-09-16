@@ -58,7 +58,7 @@
   <data name="FailureGrantNotRemoved.Text" xml:space="preserve"><value>The saved connection could not be removed. It remains on this device.</value></data>
   <data name="FailureDeviceLoginUnavailable.Text" xml:space="preserve"><value>Device sign-in is unavailable.</value></data>
   <data name="FailureDeviceCodeExpired.Text" xml:space="preserve"><value>The device sign-in code expired.</value></data>
-  <data name="CopilotNotice.Text" xml:space="preserve"><value>Uses the OpenCode GitHub OAuth App (read:user), not an AI Usage registration. Shows GitHub's documented monthly billing usage for plans you pay for yourself; it does not report a remaining allowance. Disconnect removes only this device's copy; revoke the app on GitHub under Settings, Applications.</value></data>
+  <data name="CopilotNotice.Text" xml:space="preserve"><value>Uses the OpenCode GitHub OAuth App (read:user), not an AI Usage registration. Shows GitHub's documented monthly billing usage for plans you pay for yourself; it does not report a remaining allowance. Disconnect removes only this device's copy; revoke the app on GitHub under Settings, Applications. GitHub keeps at most ten tokens per app and scope, so repeated connections can sign out older OpenCode logins.</value></data>
   <data name="CopilotDeviceCodeFormat.Text" xml:space="preserve"><value>On the GitHub page that opened, enter code {0}.</value></data>
   <data name="CopilotUsageShown.Text" xml:space="preserve"><value>Account connected. Usage from GitHub's billing report is shown.</value></data>
   <data name="CopilotAiCredits.Text" xml:space="preserve"><value>AI Credits</value></data>

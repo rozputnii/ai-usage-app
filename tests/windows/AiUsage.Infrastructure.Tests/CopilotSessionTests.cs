@@ -107,6 +107,73 @@ public sealed class CopilotSessionTests : IDisposable
     }
 
     [Fact]
+    public async Task SameAccountReconnectRecoversReauthenticationWithoutAnyReport()
+    {
+        var credits = HttpStatusCode.OK;
+        using var server = Provider(() => 42, aiCredits: () => credits, premium: () => credits == HttpStatusCode.OK ? HttpStatusCode.OK : HttpStatusCode.NotFound);
+        using var http = new HttpClient(server);
+        var store = new CopilotStateStore(directory);
+        using var session = Session(http, store);
+        await Drive(session.ConnectAsync(_ => { }, TestContext.Current.CancellationToken));
+        credits = HttpStatusCode.Unauthorized;
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
+        credits = HttpStatusCode.NotFound;
+        var reconnected = await Drive(session.ConnectAsync(_ => { }, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderSessionStatus.QuotaUnavailable, reconnected.Status);
+        Assert.Equal(ProviderFailureKind.ReportUnavailable, reconnected.Failure);
+        await using var lease = await store.AcquireAsync(TestContext.Current.CancellationToken);
+        var saved = await lease.LoadAsync(TestContext.Current.CancellationToken);
+        Assert.False(saved!.NeedsReauthentication);
+        Assert.NotNull(saved.CachedUsage);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError, ProviderFailureKind.ProviderUnavailable)]
+    [InlineData(HttpStatusCode.TooManyRequests, ProviderFailureKind.RateLimited)]
+    public async Task TransientReportFailureNeverOverwritesACachedReport(HttpStatusCode failure, ProviderFailureKind expected)
+    {
+        var credits = HttpStatusCode.OK;
+        using var server = Provider(() => 42, aiCredits: () => credits);
+        using var http = new HttpClient(server);
+        var store = new CopilotStateStore(directory);
+        using var session = Session(http, store);
+        await Drive(session.ConnectAsync(_ => { }, TestContext.Current.CancellationToken));
+        credits = failure;
+        var state = await session.RefreshAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(expected, state.Failure);
+        Assert.True(state.FromCache);
+        await using var lease = await store.AcquireAsync(TestContext.Current.CancellationToken);
+        Assert.NotNull((await lease.LoadAsync(TestContext.Current.CancellationToken))!.CachedUsage!.AiCredits);
+    }
+
+    [Fact]
+    public async Task CancellationAfterIssuanceStillBindsTheIssuedToken()
+    {
+        using var cancel = new CancellationTokenSource();
+        using var server = new CodexTestServer((request, _) =>
+        {
+            var path = request.RequestUri!.AbsolutePath;
+            if (path == "/login/device/code") return Task.FromResult(CodexTestServer.Json(DeviceJson));
+            if (path == "/login/oauth/access_token")
+            {
+                cancel.Cancel();
+                return Task.FromResult(CodexTestServer.Json("{\"access_token\":\"synthetic-token\",\"token_type\":\"bearer\"}"));
+            }
+            return Task.FromResult(CodexTestServer.Json("{\"id\":42,\"login\":\"synthetic-user\"}"));
+        });
+        using var http = new HttpClient(server);
+        var auth = new CopilotAuthClient(http, clock);
+        var attempt = await auth.BeginDeviceLoginAsync(TestContext.Current.CancellationToken);
+        var completion = auth.CompleteDeviceLoginAsync(attempt, cancel.Token);
+        for (var i = 0; i < 100 && !completion.IsCompleted; i++)
+        {
+            clock.Advance(TimeSpan.FromSeconds(5));
+            await Task.Delay(1, TestContext.Current.CancellationToken);
+        }
+        Assert.Equal(42, (await completion).Identity.AccountId);
+    }
+
+    [Fact]
     public async Task InterruptedStageIsDiscardedAndCorruptRecordsArePreservedForRecovery()
     {
         var store = new CopilotStateStore(directory, afterStage: () => throw new IOException("synthetic interruption"));

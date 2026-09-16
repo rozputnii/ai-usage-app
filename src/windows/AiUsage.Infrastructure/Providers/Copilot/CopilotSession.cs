@@ -70,7 +70,10 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotUsageClient us
             var connected = await auth.CompleteDeviceLoginAsync(attempt, token).ConfigureAwait(false);
             Volatile.Write(ref pendingUserCode, null);
             var record = new CopilotStoredState { Identity = connected.Identity, AccessToken = connected.AccessToken, GrantedScope = connected.GrantedScope };
-            if (stored is not null)
+            // A different account must prove usage access before it replaces the stored one. The same
+            // numeric account is already proven by /user, so a fresh token replaces its (possibly revoked)
+            // predecessor even when GitHub provides no report for it.
+            if (stored is not null && stored.Identity.AccountId != connected.Identity.AccountId)
             {
                 var initial = await ReadUsageAsync(connected, token).ConfigureAwait(false);
                 token.ThrowIfCancellationRequested();
@@ -79,8 +82,9 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotUsageClient us
                 HasStoredGrant = true;
                 return Available(initial);
             }
-            // The issued token is persisted before a usage read can be canceled or fail.
-            stored = await lease.SaveAsync(record, null, CancellationToken.None).ConfigureAwait(false);
+            // The verified token is persisted before a usage read can be canceled or fail. A same-account
+            // reconnect keeps its last cache, which remains labeled by its own retrieval time.
+            stored = await lease.SaveAsync(record with { CachedUsage = stored?.CachedUsage }, stored?.Revision, CancellationToken.None).ConfigureAwait(false);
             credentials = connected;
             HasStoredGrant = true;
             try
@@ -110,17 +114,16 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotUsageClient us
     }, cancellationToken, load: false);
 
     /// <summary>
-    /// Reads both documented reports. One absent report does not hide the other; if neither is
-    /// available the first failure is reported. Authentication failure always wins.
+    /// Reads both documented reports. Only GitHub's explicit refusal (403/404) marks one report as
+    /// absent without hiding the other; any other failure fails the whole read so a transient error
+    /// cannot overwrite a good cached report. If neither report is available the first refusal is reported.
     /// </summary>
     private async Task<CopilotUsageReading> ReadUsageAsync(CopilotCredentials current, CancellationToken token)
     {
-        CopilotReportResult aiCredits = await ReadReportAsync(current, CopilotUsageReportKind.AiCredits, token).ConfigureAwait(false);
-        if (aiCredits.Error?.Kind is CopilotFailureKind.AuthenticationRequired or CopilotFailureKind.AccountMismatch or CopilotFailureKind.RateLimited)
-            throw aiCredits.Error;
-        CopilotReportResult premium = await ReadReportAsync(current, CopilotUsageReportKind.PremiumRequests, token).ConfigureAwait(false);
-        if (premium.Error?.Kind is CopilotFailureKind.AuthenticationRequired or CopilotFailureKind.AccountMismatch)
-            throw premium.Error;
+        var aiCredits = await ReadReportAsync(current, CopilotUsageReportKind.AiCredits, token).ConfigureAwait(false);
+        var premium = await ReadReportAsync(current, CopilotUsageReportKind.PremiumRequests, token).ConfigureAwait(false);
+        if (aiCredits.Report is null || premium.Report is null)
+            credentials = null; // A renamed login also reads as absent; re-read identity next time.
         if (aiCredits.Report is null && premium.Report is null)
             throw aiCredits.Error!;
         return new(aiCredits.Report, premium.Report, (aiCredits.Report ?? premium.Report)!.ObservedAt);
@@ -129,7 +132,10 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotUsageClient us
     private async Task<CopilotReportResult> ReadReportAsync(CopilotCredentials current, CopilotUsageReportKind kind, CancellationToken token)
     {
         try { return new(await usage.GetUsageAsync(current, kind, token).ConfigureAwait(false), null); }
-        catch (CopilotException error) { return new(null, error); }
+        catch (CopilotException error) when (error.Kind is CopilotFailureKind.ReportUnavailable or CopilotFailureKind.AccessDenied)
+        {
+            return new(null, error);
+        }
     }
 
     private sealed record CopilotReportResult(CopilotUsageReport? Report, CopilotException? Error);

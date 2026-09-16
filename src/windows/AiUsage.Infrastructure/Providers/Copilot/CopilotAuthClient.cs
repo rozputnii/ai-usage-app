@@ -57,7 +57,9 @@ public sealed class CopilotAuthClient(HttpClient client, TimeProvider? timeProvi
                 });
                 string accessToken;
                 string? scope;
-                using (var response = await CopilotHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false))
+                // A poll can issue a token; abandoning its response would silently spend one of GitHub's
+                // ten per-user tokens. Cancellation is honored between polls; the request deadline still applies.
+                using (var response = await CopilotHttp.SendAsync(client, request, clock, CancellationToken.None).ConfigureAwait(false))
                 {
                     if (!response.IsSuccess) throw CopilotHttp.Failure(response);
                     var root = RootObject(response);
@@ -85,7 +87,9 @@ public sealed class CopilotAuthClient(HttpClient client, TimeProvider? timeProvi
                         throw new CopilotException(CopilotFailureKind.InvalidResponse);
                     scope = TryString(root, "scope", out var granted) ? granted : null;
                 }
-                var identity = await GetIdentityAsync(accessToken, cancellationToken).ConfigureAwait(false);
+                // The attempt cannot be replayed, and each issuance counts toward GitHub's ten-token cap:
+                // bind the issued token without honoring cancellation (the request deadline still applies).
+                var identity = await GetIdentityAsync(accessToken, CancellationToken.None).ConfigureAwait(false);
                 return new CopilotCredentials(accessToken, identity, scope);
             }
         }

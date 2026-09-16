@@ -122,7 +122,6 @@ public sealed class PackageSmoke
             }
             if (scenario == "copilot-controls")
             {
-                window.Patterns.Window.Pattern.SetWindowVisualState(FlaUI.Core.Definitions.WindowVisualState.Maximized);
                 var picker = window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderPicker")).AsComboBox();
                 Assert.NotNull(picker);
                 picker.Select("GitHub Copilot");
@@ -133,9 +132,9 @@ public sealed class PackageSmoke
                 // The disposable guest has no network: the device-code request must fail without a stored grant.
                 connect.Invoke();
                 Assert.True(WaitUntil(() => connect.IsEnabled
-                    && !string.IsNullOrEmpty(window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderFailureText"))?.Name), TimeSpan.FromSeconds(30)));
+                    && !string.IsNullOrEmpty(window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderFailureText"))?.Properties.Name.ValueOrDefault), TimeSpan.FromSeconds(30)));
                 Assert.Equal("No accounts connected.", window.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name);
-                Assert.True(string.IsNullOrEmpty(window.FindFirstDescendant(cf => cf.ByAutomationId("DeviceCodeText"))?.Name));
+                Assert.True(string.IsNullOrEmpty(window.FindFirstDescendant(cf => cf.ByAutomationId("DeviceCodeText"))?.Properties.Name.ValueOrDefault));
                 Assert.Null(window.FindFirstDescendant(cf => cf.ByAutomationId("ManualCode")) is { IsOffscreen: false } ? "visible" : null);
                 Assert.False(refresh.IsEnabled);
                 Assert.False(disconnect.IsEnabled);
@@ -145,7 +144,7 @@ public sealed class PackageSmoke
                     screenshot.Save(Path.Combine(evidence!, "copilot-offline-connect.png"), System.Drawing.Imaging.ImageFormat.Png);
                 picker.Select("Codex");
                 Assert.True(WaitUntil(() => connect.Name == "Connect Codex", TimeSpan.FromSeconds(5)));
-                Assert.True(string.IsNullOrEmpty(window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderFailureText"))?.Name));
+                Assert.True(string.IsNullOrEmpty(window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderFailureText"))?.Properties.Name.ValueOrDefault));
                 Assert.Equal("No accounts connected.", window.FindFirstDescendant(cf => cf.ByAutomationId("StatusText"))?.Name);
             }
             // The tray icon is created by the window; without it there is no tray presence at all.
