@@ -14,6 +14,14 @@ Select all applicable rows for the requested change. Feature acceptance criteria
 | Windows UI, activation, tray, or lifetime | Relevant regressions, package build, and applicable actual Windows smoke scenarios. |
 | Authentication or durable-state boundaries | Relevant regressions plus focused independent review; live checks only when required and authorized. |
 
+## Development environment
+
+Owner direction (2026-09-16): default to local unpackaged Windows run/debug, local regression tests and local interactive UI smoke for routine development, including provider integration. Do not launch Windows Sandbox or provision a disposable VM merely because a change affects the UI or providers.
+
+Use Windows Sandbox or a disposable VM only when the specific check requires isolation or a clean machine, such as installation prerequisites, package install/update/uninstall, recovery with destructive fault injection, or changes to certificate trust. State the concrete reason before using it. Run those checks when the affected behavior requires them; they are not automatically deferred to final release.
+
+Required MSIX build validation remains applicable and does not require installing the package or starting a guest. Local unpackaged UI evidence does not establish package installation, packaged activation or update behavior. Keep development data isolated from installed-app data and preserve existing credentials. Host installation, trust changes and live authentication retain their existing authorization boundaries. This policy concerns Windows test environments, not Codex execution permissions.
+
 ## Layers
 Windows UI tests: xUnit v3 + FlaUI UIA3, critical launch/navigation/settings/tray/activation only; run where an interactive Windows desktop really exists. A hosted runner label alone is not proof UI automation works. Document NOT RUN when environment unavailable; don't mark all tests green.
 Live smoke: explicit local existing credentials or dedicated safe test account. Never personal credentials in CI. Provider availability/auth consent remains external. Source-verified fixture alone is not live verified integration.
