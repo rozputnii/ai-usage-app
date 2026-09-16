@@ -213,4 +213,12 @@ PASS: Release unpackaged build with zero warnings/errors; Presentation.Tests 117
 
 Exact next action: owner visually rechecks the rebuilt tray icon at normal Windows scale and confirms it is recognizable and correctly aligned. T-11 remains blocked until that confirmation and any still-open live/screen-reader gates are explicitly accepted. No commit/push while T-11 is incomplete.
 
+## T-11 tray mark correction, 2026-09-16
+
+The owner then reported that the arrow correction rendered as an empty transparent tray slot. The arrow was the failing dependency: `GeneratedIconSource` did not reliably render `↗` with `Segoe UI Symbol` on the current Windows shell. Replaced it with the guaranteed-supported `AI` text mark in regular `Segoe UI`, removed the alignment margin that could clip the glyph, and retained the existing attention-level colour mapping and tray commands.
+
+PASS: Release unpackaged build with zero warnings/errors; Presentation.Tests 117/117; the final fresh isolated Windows smoke passed 7/7. The first full rerun had one close-to-tray click timeout; a clean isolated rerun passed all 7 scenarios. Evidence is under `.ai-usage-local/AIU-010/t11-tray-ai-mark-smoke-rerun/`; no credential-bearing state was used.
+
+Exact next action: owner visually rechecks the rebuilt `AI` tray mark at normal Windows scale and confirms it is visible, recognizable and correctly aligned. T-11 remains blocked until that confirmation and the still-open live/screen-reader gates are explicitly accepted.
+
 Owner publication instruction, 2026-09-16: the owner explicitly instructed Codex to commit and push all current tracked changes. This publishes the current T-11 snapshot by direct owner direction; it does not convert the remaining NOT_RUN/BLOCKED acceptance gates to PASS or mark T-11 done.

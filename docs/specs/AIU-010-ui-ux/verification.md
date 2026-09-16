@@ -158,6 +158,19 @@ Candidate: `5358d2f` plus the working diff on `codex/aiu-010-integrated-acceptan
 | Harness compatibility correction | PASS | The first host smoke attempt hit an optional FlaUI `Name` property on an unrelated taskbar element. The harness now treats that property as unavailable and still requires the exact `AI Usage · ` tray tooltip prefix; the rerun passed 7/7. |
 | Owner visual confirmation | NOT_RUN | The owner must recheck the rebuilt icon at normal Windows scale. T-11 remains incomplete; this correction does not close the live provider or screen-reader gates. |
 
+### Owner-reported blank tray mark correction — 2026-09-16
+
+The owner reported that the arrow correction appeared as an empty transparent tray slot. Source inspection confirmed that the problem was the `↗` glyph/font combination, not an asset offset. `GeneratedIconSource` now uses the ASCII `AI` mark in regular `Segoe UI` with no clipping margin; the existing severity colour mapping and tray behavior remain unchanged.
+
+| Check | Result | Evidence / limitation |
+|---|---|---|
+| Owner-reported blank icon | CONFIRMED | The previous arrow-based correction was not visibly rendered in the owner's tray. |
+| Visible-mark source correction | PASS | `MainWindow.xaml` now uses `Text="AI"`, `FontFamily="Segoe UI"`, a large bold size and no `TextMargin`; `MainWindow.xaml.cs` still maps the worst attention level to the foreground colour. |
+| Presentation regressions after correction | PASS | Release suite 117/117. |
+| Unpackaged Windows build after correction | PASS | Release/x64 `WindowsPackageType=None`, zero warnings/errors. |
+| Actual Windows tray/lifetime smoke after correction | PASS | Final fresh isolated run passed 7/7 scenarios, including close-to-tray, tray restore, tray menu Exit and repeated Exit. Evidence: `.ai-usage-local/AIU-010/t11-tray-ai-mark-smoke-rerun/`. One earlier full run had a close-to-tray click timeout; the clean rerun passed. |
+| Owner visual confirmation | NOT_RUN | The owner must recheck the rebuilt icon at normal Windows scale. T-11 remains incomplete; live provider and screen-reader gates are still open. |
+
 ### Owner-directed publication — 2026-09-16
 
 The owner explicitly requested that all current tracked changes be committed and pushed. This is publication authority for the current T-11 snapshot, not evidence that the remaining NOT_RUN/BLOCKED acceptance gates passed; T-11 remains incomplete unless those gates are separately accepted and recorded.
