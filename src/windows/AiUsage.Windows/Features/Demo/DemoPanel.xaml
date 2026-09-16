@@ -1,0 +1,66 @@
+<UserControl
+    x:Class="AiUsage.Features.Demo.DemoPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    xmlns:demo="using:AiUsage.Features.Demo"
+    IsTabStop="False"
+    AutomationProperties.AutomationId="DemoPanel">
+  <!-- Demo shell only: scenario, simulated Windows state, clock, forced outcomes, environment and tray previews. -->
+  <Border Background="{ThemeResource CardBrush}" BorderBrush="{ThemeResource StrokeBrush}" BorderThickness="1,0,0,0">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Padding="16,14" Spacing="12">
+        <Grid>
+          <Border Style="{StaticResource OutlineBadge}" Background="{ThemeResource PrimaryBrush}" BorderThickness="0" HorizontalAlignment="Left" Padding="9,2,9,3">
+            <TextBlock Text="{x:Bind ViewModel.MarkerText, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource PrimaryTextBrush}" />
+          </Border>
+          <Button x:Uid="Demo_ClosePanel" AutomationProperties.AutomationId="DemoClose" Style="{StaticResource GhostIconButton}" HorizontalAlignment="Right" Command="{x:Bind ViewModel.TogglePanelCommand, Mode=OneWay}">
+            <TextBlock Text="✕" FontSize="12" />
+          </Button>
+        </Grid>
+        <TextBlock x:Uid="Demo_PanelNote" Style="{StaticResource Caption11Text}" />
+
+        <ComboBox x:Uid="Demo_Scenario" AutomationProperties.AutomationId="DemoScenario" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
+                  ItemsSource="{x:Bind ViewModel.Scenarios, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedScenario, Mode=TwoWay, Converter={StaticResource PassThrough}}" DisplayMemberPath="Name" />
+        <ComboBox x:Uid="Demo_WindowsMode" AutomationProperties.AutomationId="DemoWindowsMode" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
+                  ItemsSource="{x:Bind ViewModel.WindowsModeLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.WindowsModeIndex, Mode=TwoWay}" />
+        <ComboBox x:Uid="Demo_Motion" AutomationProperties.AutomationId="DemoMotion" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
+                  ItemsSource="{x:Bind ViewModel.MotionLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.MotionIndex, Mode=TwoWay}" />
+        <ComboBox x:Uid="Demo_Scale" AutomationProperties.AutomationId="DemoScale" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
+                  ItemsSource="{x:Bind ViewModel.ScaleLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.ScaleIndex, Mode=TwoWay}" />
+        <ComboBox x:Uid="Demo_Outcome" AutomationProperties.AutomationId="DemoOutcome" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
+                  ItemsSource="{x:Bind ViewModel.OutcomeLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.OutcomeIndex, Mode=TwoWay}" />
+
+        <StackPanel Spacing="0">
+          <CheckBox x:Uid="Demo_HighContrast" AutomationProperties.AutomationId="DemoHighContrast" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.HighContrast, Mode=TwoWay}" />
+          <CheckBox x:Uid="Demo_ProviderHues" AutomationProperties.AutomationId="DemoProviderHues" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.ProviderHues, Mode=TwoWay}" />
+          <CheckBox x:Uid="Demo_NotificationsAllowed" AutomationProperties.AutomationId="DemoNotificationsAllowed" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.NotificationsAllowed, Mode=TwoWay}" />
+          <CheckBox x:Uid="Demo_QuietHours" AutomationProperties.AutomationId="DemoQuietHours" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.QuietHours, Mode=TwoWay}" />
+          <CheckBox x:Uid="Demo_BatterySaver" AutomationProperties.AutomationId="DemoBatterySaver" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.BatterySaver, Mode=TwoWay}" />
+          <CheckBox x:Uid="Demo_SecondContext" AutomationProperties.AutomationId="DemoSecondContext" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.SecondContextAvailable, Mode=TwoWay}"
+                    IsEnabled="{x:Bind ViewModel.HasMultiContextAccount, Mode=OneWay}" />
+          <CheckBox x:Uid="Demo_NextScanEmpty" AutomationProperties.AutomationId="DemoNextScanEmpty" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.NextCliScanEmpty, Mode=TwoWay}" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Text="{x:Bind ViewModel.ClockText, Mode=OneWay}" Style="{StaticResource Caption11Text}" AutomationProperties.AutomationId="DemoClock" />
+          <controls:WrapPanel HorizontalSpacing="6" VerticalSpacing="6">
+            <Button x:Uid="Demo_ClockPlus" AutomationProperties.AutomationId="DemoClockPlus" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind ViewModel.AdvanceClockCommand, Mode=OneWay}" />
+            <Button x:Uid="Demo_Reload" AutomationProperties.AutomationId="DemoReload" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind ViewModel.ReloadCommand, Mode=OneWay}" />
+            <Button x:Uid="Demo_Reset" AutomationProperties.AutomationId="DemoReset" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind ViewModel.ResetCommand, Mode=OneWay}" />
+            <Button x:Uid="Demo_TrayPopup" AutomationProperties.AutomationId="DemoTrayPopup" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind ViewModel.ShowTrayPopupCommand, Mode=OneWay}" />
+            <Button AutomationProperties.AutomationId="DemoHideToTray" Style="{StaticResource SmallSecondaryButton}" Content="{x:Bind ViewModel.HideLabel, Mode=OneWay}" Command="{x:Bind ViewModel.ToggleHideToTrayCommand, Mode=OneWay}" />
+          </controls:WrapPanel>
+        </StackPanel>
+        <StackPanel Spacing="6">
+          <TextBlock x:Uid="Demo_WindowSize" Style="{StaticResource Caption11Text}" />
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <Button AutomationProperties.AutomationId="DemoSize560" Style="{StaticResource SmallSecondaryButton}" Content="560" Command="{x:Bind ViewModel.ResizeWindowCommand, Mode=OneWay}" CommandParameter="560" />
+            <Button AutomationProperties.AutomationId="DemoSize960" Style="{StaticResource SmallSecondaryButton}" Content="960" Command="{x:Bind ViewModel.ResizeWindowCommand, Mode=OneWay}" CommandParameter="960" />
+            <Button AutomationProperties.AutomationId="DemoSize1440" Style="{StaticResource SmallSecondaryButton}" Content="1440" Command="{x:Bind ViewModel.ResizeWindowCommand, Mode=OneWay}" CommandParameter="1440" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Border>
+</UserControl>

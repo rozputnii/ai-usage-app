@@ -1,0 +1,37 @@
+<UserControl
+    x:Class="AiUsage.Features.Settings.Monitoring.ThresholdRuleRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    IsTabStop="False">
+  <Border Style="{StaticResource HairlineRow}" Padding="0,10">
+    <controls:WrapPanel HorizontalSpacing="10" VerticalSpacing="6">
+      <StackPanel MinWidth="200" MaxWidth="320">
+        <TextBlock Text="{x:Bind Rule.Label, Mode=OneWay}" Style="{StaticResource Body13Text}" />
+        <TextBlock Text="{x:Bind Rule.SubText, Mode=OneWay}" Style="{StaticResource CaptionText}" />
+      </StackPanel>
+      <!-- Editing -->
+      <StackPanel Orientation="Horizontal" Spacing="6" Visibility="{x:Bind controls:Bind.Visible(Rule.IsEditing), Mode=OneWay}">
+        <StackPanel Spacing="3">
+          <TextBox x:Name="Editor" x:Uid="Rules_Editor" Style="{StaticResource AppTextBox}" Width="180" Text="{x:Bind Rule.EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" KeyDown="OnEditorKeyDown"
+                   AutomationProperties.AutomationId="{x:Bind EditorId(Rule.Key), Mode=OneWay}" />
+          <TextBlock Text="{x:Bind Rule.UnitHint, Mode=OneWay}" Style="{StaticResource Caption11Text}" />
+          <TextBlock Text="{x:Bind Rule.Error, Mode=OneWay}" Style="{StaticResource ErrorText}" FontSize="11" MaxWidth="260" Visibility="{x:Bind controls:Bind.Visible(Rule.HasError), Mode=OneWay}" AutomationProperties.LiveSetting="Assertive" />
+        </StackPanel>
+        <Button x:Uid="Action_SaveButton" Style="{StaticResource SmallPrimaryButton}" VerticalAlignment="Top" Command="{x:Bind Rule.SaveCommand, Mode=OneWay}" AutomationProperties.AutomationId="{x:Bind SaveId(Rule.Key), Mode=OneWay}" />
+        <Button x:Uid="Dialog_CancelButton" Style="{StaticResource SmallSecondaryButton}" MinHeight="26" VerticalAlignment="Top" Command="{x:Bind Rule.CancelEditCommand, Mode=OneWay}" />
+      </StackPanel>
+      <!-- Display -->
+      <StackPanel Orientation="Horizontal" Spacing="10" Visibility="{x:Bind controls:Bind.Visible(Rule.IsNotEditing), Mode=OneWay}">
+        <TextBlock Text="{x:Bind Rule.ValuesText, Mode=OneWay}" Style="{StaticResource Body13Text}" VerticalAlignment="Center" />
+        <Border Style="{StaticResource OutlineBadge}" Visibility="{x:Bind controls:Bind.Visible(Rule.HasInheritanceText), Mode=OneWay}">
+          <TextBlock Text="{x:Bind Rule.InheritanceText, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource Text2Brush}" />
+        </Border>
+        <Button Style="{StaticResource SmallSecondaryButton}" Content="{x:Bind Rule.EditLabel, Mode=OneWay}" Command="{x:Bind Rule.StartEditCommand, Mode=OneWay}" VerticalAlignment="Center"
+                AutomationProperties.AutomationId="{x:Bind EditId(Rule.Key), Mode=OneWay}" />
+        <Button x:Uid="Rules_ResetInherited" Style="{StaticResource SmallLinkButton}" Command="{x:Bind Rule.ResetToInheritedCommand, Mode=OneWay}" VerticalAlignment="Center"
+                Visibility="{x:Bind controls:Bind.Visible(Rule.CanReset), Mode=OneWay}" AutomationProperties.AutomationId="{x:Bind ResetId(Rule.Key), Mode=OneWay}" />
+      </StackPanel>
+    </controls:WrapPanel>
+  </Border>
+</UserControl>

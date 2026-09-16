@@ -1,0 +1,82 @@
+<UserControl
+    x:Class="AiUsage.Features.Recovery.RecoveryView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    xmlns:recovery="using:AiUsage.Features.Recovery"
+    IsTabStop="False"
+    AutomationProperties.AutomationId="RecoverySurface">
+  <!-- S11: blocking recovery surface. Nothing is wiped or restored automatically. -->
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+    <Grid Padding="20,32">
+      <StackPanel MaxWidth="560" Spacing="16" HorizontalAlignment="Center" VerticalAlignment="Center" controls:Motion.Entrance="True">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Border Width="36" Height="36" CornerRadius="18" Background="{ThemeResource WarnBgBrush}" BorderBrush="{ThemeResource WarnStrokeBrush}" BorderThickness="1" VerticalAlignment="Center">
+            <TextBlock Text="!" FontWeight="Bold" Foreground="{ThemeResource WarnBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
+          </Border>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}" Style="{StaticResource Title22Text}" AutomationProperties.HeadingLevel="Level1" AutomationProperties.AutomationId="RecoveryTitle" />
+            <TextBlock x:Uid="Recovery_Subtitle" Style="{StaticResource CaptionText}" Margin="0,2,0,0" />
+          </StackPanel>
+        </StackPanel>
+        <TextBlock Text="{x:Bind ViewModel.Body, Mode=OneWay}" Style="{StaticResource Body13SecondaryText}" LineHeight="20" />
+        <Border BorderBrush="{ThemeResource StrokeBrush}" BorderThickness="0,1" Padding="12,10">
+          <Grid ColumnSpacing="14" RowSpacing="6">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock x:Uid="Recovery_SchemaLabel" Style="{StaticResource CaptionText}" />
+            <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.SchemaText, Mode=OneWay}" FontSize="12" />
+            <TextBlock Grid.Row="1" x:Uid="Recovery_CheckpointField" Style="{StaticResource CaptionText}" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.CheckpointText, Mode=OneWay}" FontSize="12" />
+            <TextBlock Grid.Row="2" x:Uid="Recovery_FolderLabel" Style="{StaticResource CaptionText}" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.FolderText, Mode=OneWay}" FontSize="12" FontFamily="{StaticResource MonoFont}" TextWrapping="Wrap" />
+          </Grid>
+        </Border>
+        <Border CornerRadius="6" BorderThickness="1" Padding="12,8" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasMessage), Mode=OneWay}" controls:Motion.Entrance="True"
+                controls:Tokens.Background="{x:Bind MessageBackground(ViewModel.MessageIsCritical), Mode=OneWay}" controls:Tokens.Border="{x:Bind MessageBorder(ViewModel.MessageIsCritical), Mode=OneWay}">
+          <TextBlock Text="{x:Bind ViewModel.Message, Mode=OneWay}" Style="{StaticResource Body13Text}" LineHeight="19" AutomationProperties.AutomationId="RecoveryMessage" AutomationProperties.LiveSetting="Assertive" />
+        </Border>
+        <StackPanel Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasProgress), Mode=OneWay}" Spacing="6">
+          <TextBlock Text="{x:Bind ViewModel.ProgressLabel, Mode=OneWay}" Style="{StaticResource CaptionText}" AutomationProperties.LiveSetting="Polite" />
+          <ProgressBar Minimum="0" Maximum="1" Value="{x:Bind ViewModel.Progress, Mode=OneWay}" x:Uid="Recovery_Progress" AutomationProperties.AutomationId="RecoveryProgress" />
+        </StackPanel>
+        <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="8">
+          <Button AutomationProperties.AutomationId="RecoveryRetry" Style="{StaticResource PrimaryButton}" MinWidth="140" Content="{x:Bind ViewModel.RetryLabel, Mode=OneWay}" Command="{x:Bind ViewModel.RetryCommand, Mode=OneWay}"
+                  ToolTipService.ToolTip="{x:Bind ViewModel.DisabledNote, Mode=OneWay}" />
+          <Button x:Uid="Recovery_Restore" AutomationProperties.AutomationId="RecoveryRestore" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleCheckpointsCommand, Mode=OneWay}" />
+          <Button x:Uid="Recovery_PreviewDiagnostics" AutomationProperties.AutomationId="RecoveryDiagnostics" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleDiagnosticsCommand, Mode=OneWay}" />
+          <Button x:Uid="Recovery_DataFolder" AutomationProperties.AutomationId="RecoveryDataFolder" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.PreviewDataFolderCommand, Mode=OneWay}" />
+        </controls:WrapPanel>
+        <TextBlock Text="{x:Bind ViewModel.DisabledNote, Mode=OneWay}" Style="{StaticResource CaptionText}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasDisabledNote), Mode=OneWay}" AutomationProperties.AutomationId="RecoveryDisabledNote" />
+        <StackPanel Spacing="6" Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowCheckpoints), Mode=OneWay}" controls:Motion.Entrance="True">
+          <TextBlock x:Uid="Recovery_CheckpointsHelp" Style="{StaticResource CaptionText}" />
+          <ItemsRepeater ItemsSource="{x:Bind ViewModel.Checkpoints, Mode=OneWay}" AutomationProperties.AutomationId="RecoveryCheckpoints">
+            <ItemsRepeater.Layout>
+              <StackLayout Spacing="6" />
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate x:DataType="recovery:CheckpointViewModel">
+                <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="12,8" Click="OnCheckpointClick" Tag="{x:Bind}" AutomationProperties.Name="{x:Bind Label}">
+                  <controls:WrapPanel HorizontalSpacing="12">
+                    <TextBlock Text="{x:Bind Label}" FontSize="13" />
+                    <TextBlock Text="{x:Bind Meta}" Style="{StaticResource CaptionText}" />
+                  </controls:WrapPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
+        </StackPanel>
+        <Border Style="{StaticResource CodeBlock}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasDiagnostics), Mode=OneWay}" controls:Motion.Entrance="True">
+          <TextBlock Text="{x:Bind ViewModel.DiagnosticsText, Mode=OneWay}" Style="{StaticResource MonoText}" LineHeight="18" AutomationProperties.AutomationId="RecoveryDiagnosticsText" />
+        </Border>
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
+</UserControl>

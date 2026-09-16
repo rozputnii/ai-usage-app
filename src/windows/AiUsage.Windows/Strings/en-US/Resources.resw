@@ -1,61 +1,2184 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <data name="AppTitle" xml:space="preserve"><value>AI Usage</value></data>
-  <data name="DashboardHeading.Text" xml:space="preserve"><value>Dashboard</value></data>
-  <data name="EmptyState.Text" xml:space="preserve"><value>No accounts connected.</value></data>
-  <data name="ExitButton.Content" xml:space="preserve"><value>Exit</value></data>
-  <data name="ConnectButton.Content" xml:space="preserve"><value>Connect Codex</value></data>
-  <data name="RefreshButton.Content" xml:space="preserve"><value>Refresh</value></data>
-  <data name="DisconnectButton.Content" xml:space="preserve"><value>Disconnect</value></data>
-  <data name="WorkingState.Text" xml:space="preserve"><value>Working...</value></data>
-  <data name="QuotaShown.Text" xml:space="preserve"><value>Account connected.</value></data>
-  <data name="QuotaEmpty.Text" xml:space="preserve"><value>Account connected. No usage windows were reported.</value></data>
-  <data name="QuotaUnavailable.Text" xml:space="preserve"><value>Quota is unavailable right now. The account stays connected; try Refresh again.</value></data>
-  <data name="ReauthenticationRequired.Text" xml:space="preserve"><value>Sign-in needs to be renewed. Connect again to continue.</value></data>
-  <data name="PlanLabel.Text" xml:space="preserve"><value>Plan:</value></data>
-  <data name="RemainingFormat.Text" xml:space="preserve"><value>{0}% remaining</value></data>
-  <data name="RemainingUnknown.Text" xml:space="preserve"><value>Remaining amount not reported</value></data>
-  <data name="RemainingExhausted.Text" xml:space="preserve"><value>Exhausted</value></data>
-  <data name="ResetsFormat.Text" xml:space="preserve"><value>Resets {0}</value></data>
-  <data name="ResetsUnknown.Text" xml:space="preserve"><value>Reset time not reported</value></data>
-  <data name="WindowHoursFormat.Text" xml:space="preserve"><value>{0}h window</value></data>
-  <data name="WindowDaysFormat.Text" xml:space="preserve"><value>{0}d window</value></data>
-  <data name="CachedNotice.Text" xml:space="preserve"><value>Showing last known values from {0}; not a current reading.</value></data>
-  <data name="TrayShow.Text" xml:space="preserve"><value>Open AI Usage</value></data>
-  <data name="TrayExit.Text" xml:space="preserve"><value>Exit</value></data>
-  <data name="StartupFailure.Text" xml:space="preserve"><value>The app could not start.</value></data>
-  <data name="ShutdownFailure.Text" xml:space="preserve"><value>The app could not shut down cleanly.</value></data>
-  <data name="ConnectProviderFormat.Text" xml:space="preserve"><value>Connect {0}</value></data>
-  <data name="ProviderPicker.Header" xml:space="preserve"><value>Provider</value></data>
-  <data name="ClaudeUnsupported.Text" xml:space="preserve"><value>Private, unsupported integration. Anthropic prohibits third-party use of Claude.ai login and token storage.</value></data>
-  <data name="CancelButton.Content" xml:space="preserve"><value>Cancel</value></data>
-  <data name="ManualCodeHelp.Text" xml:space="preserve"><value>If the browser cannot return to AI Usage, paste the final redirect or authorization code here. A bare code has no returned state check.</value></data>
-  <data name="ManualCode.Header" xml:space="preserve"><value>Authorization code or final redirect</value></data>
-  <data name="SubmitCodeButton.Content" xml:space="preserve"><value>Submit code</value></data>
-  <data name="ManualCodeInvalid.Text" xml:space="preserve"><value>That code or redirect does not match this sign-in attempt. Try again or cancel.</value></data>
-  <data name="RecoveryRequired.Text" xml:space="preserve"><value>The saved connection needs attention. Its files have been preserved. Disconnect to remove this app’s saved connection, then connect again.</value></data>
-  <data name="ExtraUsageEnabled.Text" xml:space="preserve"><value>Extra usage enabled.</value></data>
-  <data name="ExtraUsageDisabled.Text" xml:space="preserve"><value>Extra usage disabled.</value></data>
-  <data name="ExtraUsageUnknown.Text" xml:space="preserve"><value>Extra usage setting unknown.</value></data>
-  <data name="ExtraUsageAmountsFormat.Text" xml:space="preserve"><value>Used: {0}. Spending cap: {1}.</value></data>
-  <data name="SpendingCapNotSet.Text" xml:space="preserve"><value>no cap reported</value></data>
-  <data name="MoneyUnknown.Text" xml:space="preserve"><value>amount or units not reported</value></data>
-  <data name="FailureAuthenticationRequired.Text" xml:space="preserve"><value>Connect again to renew sign-in.</value></data>
-  <data name="FailureAccessDenied.Text" xml:space="preserve"><value>Sign-in or access was refused by the provider.</value></data>
-  <data name="FailureBrowserCallbackUnavailable.Text" xml:space="preserve"><value>The sign-in browser or local callback could not be opened.</value></data>
-  <data name="FailureLoginAttemptExpired.Text" xml:space="preserve"><value>The sign-in attempt expired. Start a new connection.</value></data>
-  <data name="FailureRateLimited.Text" xml:space="preserve"><value>The provider asked this app to wait before trying again.</value></data>
-  <data name="FailureNetworkFailure.Text" xml:space="preserve"><value>The provider could not be reached.</value></data>
-  <data name="FailureTimeout.Text" xml:space="preserve"><value>The provider did not respond in time.</value></data>
-  <data name="FailureInvalidResponse.Text" xml:space="preserve"><value>The provider returned an incomplete or unrecognized response.</value></data>
-  <data name="FailureAccountMismatch.Text" xml:space="preserve"><value>The returned account or organization did not match the saved connection.</value></data>
-  <data name="FailureProviderUnavailable.Text" xml:space="preserve"><value>The provider is temporarily unavailable.</value></data>
-  <data name="FailureRequestRejected.Text" xml:space="preserve"><value>The provider rejected this request.</value></data>
-  <data name="FailureStorageUnavailable.Text" xml:space="preserve"><value>The app could not safely access the saved connection.</value></data>
-  <data name="FailureRecoveryRequired.Text" xml:space="preserve"><value>The saved record is unreadable, unsupported or interrupted; it has been preserved.</value></data>
-  <data name="FailureGrantNotRemoved.Text" xml:space="preserve"><value>The saved connection could not be removed. It remains on this device.</value></data>
-  <data name="FailureDeviceLoginUnavailable.Text" xml:space="preserve"><value>Device sign-in is unavailable.</value></data>
-  <data name="FailureDeviceCodeExpired.Text" xml:space="preserve"><value>The device sign-in code expired.</value></data>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Absolute_NotReported" xml:space="preserve">
+    <value>Amount not reported ({0})</value>
+  </data>
+  <data name="Absolute_RemainingNoLimit" xml:space="preserve">
+    <value>{0} {1} remaining · limit not reported</value>
+  </data>
+  <data name="Absolute_RemainingOfLimit" xml:space="preserve">
+    <value>{0} of {1} {2} remaining</value>
+  </data>
+  <data name="Absolute_UsedNoLimit" xml:space="preserve">
+    <value>{0} {1} used · limit not reported</value>
+  </data>
+  <data name="Absolute_UsedOfLimit" xml:space="preserve">
+    <value>{0} of {1} {2} used</value>
+  </data>
+  <data name="Account_PlanUnknown" xml:space="preserve">
+    <value>Plan unknown</value>
+  </data>
+  <data name="Accounts_EmptyAdd.Content" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Accounts_EmptyList.Text" xml:space="preserve">
+    <value>No accounts.</value>
+  </data>
+  <data name="Accounts_ItemAria" xml:space="preserve">
+    <value>{0}, {1}, {2}</value>
+  </data>
+  <data name="Accounts_ListHeading.Text" xml:space="preserve">
+    <value>Accounts · manual order</value>
+  </data>
+  <data name="Accounts_ListRegion.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Accounts in manual order</value>
+  </data>
+  <data name="Accounts_NoSelection.Text" xml:space="preserve">
+    <value>Select an account to see its windows, contexts and balances.</value>
+  </data>
+  <data name="Accounts_Off" xml:space="preserve">
+    <value>off</value>
+  </data>
+  <data name="Accounts_ShowDisconnected" xml:space="preserve">
+    <value>Show disconnected ({0})</value>
+  </data>
+  <data name="Accounts_ShowHidden" xml:space="preserve">
+    <value>Show hidden ({0})</value>
+  </data>
+  <data name="Action_Connect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="Action_Hide" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="Action_Mute" xml:space="preserve">
+    <value>Mute</value>
+  </data>
+  <data name="Action_Reconnect" xml:space="preserve">
+    <value>Reconnect</value>
+  </data>
+  <data name="Action_Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Action_SaveButton.Content" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Action_Show" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="Action_Unhide" xml:space="preserve">
+    <value>Unhide</value>
+  </data>
+  <data name="Action_Unmute" xml:space="preserve">
+    <value>Unmute</value>
+  </data>
+  <data name="AddAccount_Close.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="AddAccount_ReconnectTitle" xml:space="preserve">
+    <value>Reconnect</value>
+  </data>
+  <data name="AddAccount_TabCli.Content" xml:space="preserve">
+    <value>Import from CLI</value>
+  </data>
+  <data name="AddAccount_TabSignIn.Content" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="AddAccount_Title" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Announce_AlwaysOnTopOff" xml:space="preserve">
+    <value>Always on top off</value>
+  </data>
+  <data name="Announce_AlwaysOnTopOn" xml:space="preserve">
+    <value>Always on top on</value>
+  </data>
+  <data name="Announce_Cancelled" xml:space="preserve">
+    <value>Cancelled. Nothing was changed.</value>
+  </data>
+  <data name="Announce_CheckCancelled" xml:space="preserve">
+    <value>Update check cancelled</value>
+  </data>
+  <data name="Announce_CliFound" xml:space="preserve">
+    <value>{0} candidates found</value>
+  </data>
+  <data name="Announce_CliImportCancelled" xml:space="preserve">
+    <value>Import cancelled. Completed items kept.</value>
+  </data>
+  <data name="Announce_CliImportFinished" xml:space="preserve">
+    <value>Import finished</value>
+  </data>
+  <data name="Announce_CliScanCancelled" xml:space="preserve">
+    <value>Scan stopped. Found candidates kept.</value>
+  </data>
+  <data name="Announce_CliScanning" xml:space="preserve">
+    <value>Scanning for CLI sign-ins</value>
+  </data>
+  <data name="Announce_Collapsed" xml:space="preserve">
+    <value>{0} collapsed</value>
+  </data>
+  <data name="Announce_Context" xml:space="preserve">
+    <value>Context {0}</value>
+  </data>
+  <data name="Announce_DataDeleted" xml:space="preserve">
+    <value>Stored data for {0} deleted</value>
+  </data>
+  <data name="Announce_DensityComfortable" xml:space="preserve">
+    <value>Density comfortable</value>
+  </data>
+  <data name="Announce_DensityCompact" xml:space="preserve">
+    <value>Density compact</value>
+  </data>
+  <data name="Announce_Disconnected" xml:space="preserve">
+    <value>{0} disconnected</value>
+  </data>
+  <data name="Announce_Expanded" xml:space="preserve">
+    <value>{0} expanded</value>
+  </data>
+  <data name="Announce_ExportCancelled" xml:space="preserve">
+    <value>Export cancelled</value>
+  </data>
+  <data name="Announce_ExportPreparing" xml:space="preserve">
+    <value>Preparing export preview</value>
+  </data>
+  <data name="Announce_ExportReady" xml:space="preserve">
+    <value>Export preview ready</value>
+  </data>
+  <data name="Announce_FactoryReset" xml:space="preserve">
+    <value>All data erased. Showing first run.</value>
+  </data>
+  <data name="Announce_FiltersShowAll" xml:space="preserve">
+    <value>Showing hidden and disconnected accounts</value>
+  </data>
+  <data name="Announce_HealthStarted" xml:space="preserve">
+    <value>Health check started</value>
+  </data>
+  <data name="Announce_Hidden" xml:space="preserve">
+    <value>Hidden. Monitoring and alerts continue.</value>
+  </data>
+  <data name="Announce_HiddenMuted" xml:space="preserve">
+    <value>Hidden and alerts muted. Monitoring continues.</value>
+  </data>
+  <data name="Announce_HistoryOff" xml:space="preserve">
+    <value>History collection off</value>
+  </data>
+  <data name="Announce_HistoryOn" xml:space="preserve">
+    <value>History collection on</value>
+  </data>
+  <data name="Announce_MovedTo" xml:space="preserve">
+    <value>{0} moved to position {1} of {2}</value>
+  </data>
+  <data name="Announce_Muted" xml:space="preserve">
+    <value>Alerts muted</value>
+  </data>
+  <data name="Announce_RefreshAllDone" xml:space="preserve">
+    <value>All accounts updated</value>
+  </data>
+  <data name="Announce_RefreshAllPartial" xml:space="preserve">
+    <value>Refresh finished with failures. Cached readings kept.</value>
+  </data>
+  <data name="Announce_RefreshAllStarted" xml:space="preserve">
+    <value>Refreshing all accounts</value>
+  </data>
+  <data name="Announce_RefreshCancelled" xml:space="preserve">
+    <value>Refresh cancelled. Previous reading kept.</value>
+  </data>
+  <data name="Announce_RefreshFailed" xml:space="preserve">
+    <value>Refresh failed for {0}. Cached reading kept.</value>
+  </data>
+  <data name="Announce_RefreshUnavailable" xml:space="preserve">
+    <value>Refresh is not available for {0} right now.</value>
+  </data>
+  <data name="Announce_Renamed" xml:space="preserve">
+    <value>Renamed to {0}</value>
+  </data>
+  <data name="Announce_ReplaceDone" xml:space="preserve">
+    <value>Replace completed (simulated)</value>
+  </data>
+  <data name="Announce_Restored" xml:space="preserve">
+    <value>Checkpoint restored. Dashboard available.</value>
+  </data>
+  <data name="Announce_RestoreFailed" xml:space="preserve">
+    <value>Restore failed. Current data unchanged.</value>
+  </data>
+  <data name="Announce_RetryFailed" xml:space="preserve">
+    <value>Retry failed</value>
+  </data>
+  <data name="Announce_SettingsReset" xml:space="preserve">
+    <value>Settings reset. Accounts, labels, order and history kept.</value>
+  </data>
+  <data name="Announce_Shown" xml:space="preserve">
+    <value>Shown again</value>
+  </data>
+  <data name="Announce_ShowRemaining" xml:space="preserve">
+    <value>Showing remaining percentage</value>
+  </data>
+  <data name="Announce_ShowUsed" xml:space="preserve">
+    <value>Showing used percentage</value>
+  </data>
+  <data name="Announce_Theme" xml:space="preserve">
+    <value>Theme {0}</value>
+  </data>
+  <data name="Announce_ThresholdsReset" xml:space="preserve">
+    <value>Reset to inherited thresholds</value>
+  </data>
+  <data name="Announce_ThresholdsSaved" xml:space="preserve">
+    <value>Thresholds saved</value>
+  </data>
+  <data name="Announce_Unmuted" xml:space="preserve">
+    <value>Alerts unmuted</value>
+  </data>
+  <data name="Announce_Updated" xml:space="preserve">
+    <value>{0} updated</value>
+  </data>
+  <data name="Announce_UpdateInstalled" xml:space="preserve">
+    <value>Update installed (simulated)</value>
+  </data>
+  <data name="Announce_UpdateReady" xml:space="preserve">
+    <value>Update ready to install</value>
+  </data>
+  <data name="Announce_Validating" xml:space="preserve">
+    <value>Validating bundle</value>
+  </data>
+  <data name="Announce_WaitingForStable" xml:space="preserve">
+    <value>Waiting for the next Stable release</value>
+  </data>
+  <data name="Appearance_AlwaysOnTop.Text" xml:space="preserve">
+    <value>Always on top</value>
+  </data>
+  <data name="Appearance_AlwaysOnTopHelp.Text" xml:space="preserve">
+    <value>Off by default · keeps the window above others</value>
+  </data>
+  <data name="Appearance_AlwaysOnTopSwitch.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Always on top</value>
+  </data>
+  <data name="Appearance_Density.Text" xml:space="preserve">
+    <value>Density</value>
+  </data>
+  <data name="Appearance_DensityGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Density</value>
+  </data>
+  <data name="Appearance_DensityHelp.Text" xml:space="preserve">
+    <value>Compact reduces row padding</value>
+  </data>
+  <data name="Appearance_LayoutHeading.Text" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="Appearance_OrderHeading.Text" xml:space="preserve">
+    <value>Order and visibility</value>
+  </data>
+  <data name="Appearance_OrderHelp.Text" xml:space="preserve">
+    <value>Manual order applies to Overview, Accounts and the tray. Hiding never stops monitoring; muting alerts is separate. Alt+Up and Alt+Down move the focused row.</value>
+  </data>
+  <data name="Appearance_ShowDisconnected.Text" xml:space="preserve">
+    <value>Show disconnected accounts</value>
+  </data>
+  <data name="Appearance_ShowDisconnectedHelp.Text" xml:space="preserve">
+    <value>Disconnected accounts keep label, order and history</value>
+  </data>
+  <data name="Appearance_ShowDisconnectedSwitch.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Show disconnected accounts</value>
+  </data>
+  <data name="Appearance_ThemeGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>App theme</value>
+  </data>
+  <data name="Appearance_ThemeHeading.Text" xml:space="preserve">
+    <value>App theme</value>
+  </data>
+  <data name="AppTitle" xml:space="preserve">
+    <value>AI Usage</value>
+  </data>
+  <data name="AppTitleText.Text" xml:space="preserve">
+    <value>AI Usage</value>
+  </data>
+  <data name="Aria_Duration" xml:space="preserve">
+    <value> ({0})</value>
+  </data>
+  <data name="Aria_Muted" xml:space="preserve">
+    <value>Alerts muted</value>
+  </data>
+  <data name="Aria_Window" xml:space="preserve">
+    <value>{0}{1}, {2}, {3}. {4}</value>
+  </data>
+  <data name="Attention_Critical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="Attention_Exhausted" xml:space="preserve">
+    <value>Exhausted</value>
+  </data>
+  <data name="Attention_Failure" xml:space="preserve">
+    <value>Refresh failed</value>
+  </data>
+  <data name="Attention_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="Attention_ReauthRequired" xml:space="preserve">
+    <value>Sign-in required</value>
+  </data>
+  <data name="Attention_Stale" xml:space="preserve">
+    <value>Stale reading</value>
+  </data>
+  <data name="Attention_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Channel_Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="Channel_Stable" xml:space="preserve">
+    <value>Stable</value>
+  </data>
+  <data name="Cli_Cancelled" xml:space="preserve">
+    <value>Cancelled · not imported</value>
+  </data>
+  <data name="Cli_Done.Content" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Cli_Duplicate" xml:space="preserve">
+    <value>Duplicate of “{0}” · skipped</value>
+  </data>
+  <data name="Cli_Failed" xml:space="preserve">
+    <value>Import failed · sign-in file unreadable</value>
+  </data>
+  <data name="Cli_Imported" xml:space="preserve">
+    <value>Imported</value>
+  </data>
+  <data name="Cli_Importing" xml:space="preserve">
+    <value>Importing…</value>
+  </data>
+  <data name="Cli_ImportingNote.Text" xml:space="preserve">
+    <value>Importing… completed items are kept if you cancel.</value>
+  </data>
+  <data name="Cli_ImportSelected" xml:space="preserve">
+    <value>Import {0} selected</value>
+  </data>
+  <data name="Cli_Intro.Text" xml:space="preserve">
+    <value>Finds sign-ins saved by provider command-line tools on this PC and imports them as accounts. Nothing is read until you start the scan, and nothing is imported until you choose.</value>
+  </data>
+  <data name="Cli_NoCandidates.Text" xml:space="preserve">
+    <value>No CLI sign-ins were found. Sign in with a provider CLI first, or use Sign in above.</value>
+  </data>
+  <data name="Cli_Reimport.Content" xml:space="preserve">
+    <value>Re-import selected</value>
+  </data>
+  <data name="Cli_Reimported" xml:space="preserve">
+    <value>Re-imported · same account identity</value>
+  </data>
+  <data name="Cli_Rescan.Content" xml:space="preserve">
+    <value>Scan again</value>
+  </data>
+  <data name="Cli_Scan.Content" xml:space="preserve">
+    <value>Scan this PC</value>
+  </data>
+  <data name="Cli_Scanning" xml:space="preserve">
+    <value>Scanning… {0} found</value>
+  </data>
+  <data name="Cli_Stop.Content" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Cli_Unsupported" xml:space="preserve">
+    <value>Unsupported credential format</value>
+  </data>
+  <data name="Compat_BlockedBody" xml:space="preserve">
+    <value>Automatic refresh is paused until you update. Cached readings and history stay readable.</value>
+  </data>
+  <data name="Compat_BlockedPreview" xml:space="preserve">
+    <value>A compatibility block is active. On the Preview channel you can override it on this device. Cached readings and History stay readable.</value>
+  </data>
+  <data name="Compat_BlockedStable" xml:space="preserve">
+    <value>A compatibility block is active. Stable builds cannot override it; update to continue. Cached readings and History stay readable.</value>
+  </data>
+  <data name="Compat_BlockedTitle" xml:space="preserve">
+    <value>This version is no longer compatible with the providers’ current interfaces</value>
+  </data>
+  <data name="Compat_Normal" xml:space="preserve">
+    <value>No compatibility or security block is active.</value>
+  </data>
+  <data name="Compat_Overridden" xml:space="preserve">
+    <value>Compatibility block overridden on this device (Preview). Refresh is enabled again; readings may be unreliable until you update.</value>
+  </data>
+  <data name="Compat_OverriddenBody" xml:space="preserve">
+    <value>Overridden on this device for the Preview channel. Refresh is enabled again; readings may be unreliable until you update.</value>
+  </data>
+  <data name="Compat_SecurityBody" xml:space="preserve">
+    <value>Automatic refresh and connections are disabled until you update. Cached readings and history stay readable. This block cannot be overridden.</value>
+  </data>
+  <data name="Compat_SecurityStatus" xml:space="preserve">
+    <value>A security block is active. It cannot be dismissed or overridden. Cached readings and History stay readable.</value>
+  </data>
+  <data name="Compat_SecurityTitle" xml:space="preserve">
+    <value>This version is blocked for security reasons</value>
+  </data>
+  <data name="Compat_UpdatesButton.Content" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="Connect_Available" xml:space="preserve">
+    <value>Available</value>
+  </data>
+  <data name="Connect_Cancelled" xml:space="preserve">
+    <value>Cancelled. Nothing was changed.</value>
+  </data>
+  <data name="Connect_ChangeProvider.Content" xml:space="preserve">
+    <value>Change provider</value>
+  </data>
+  <data name="Connect_CodeError" xml:space="preserve">
+    <value>Enter the full code shown by the provider (at least 8 characters).</value>
+  </data>
+  <data name="Connect_CodeNeverStored.Text" xml:space="preserve">
+    <value>The code is used once and never stored.</value>
+  </data>
+  <data name="Connect_CodePrompt" xml:space="preserve">
+    <value>Enter the code shown by {0}</value>
+  </data>
+  <data name="Connect_Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Connect_ConnectedBody" xml:space="preserve">
+    <value>{0} was added. First reading recorded.</value>
+  </data>
+  <data name="Connect_ConnectedNoQuota" xml:space="preserve">
+    <value>Connected · quota unavailable</value>
+  </data>
+  <data name="Connect_ConnectedNoQuotaBody" xml:space="preserve">
+    <value>The provider accepted the connection but reports no quota for this account. It stays listed as connected without measurements.</value>
+  </data>
+  <data name="Connect_Connecting" xml:space="preserve">
+    <value>Connecting to {0}…</value>
+  </data>
+  <data name="Connect_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Connect_Denied" xml:space="preserve">
+    <value>Authorization was denied. Nothing was changed.</value>
+  </data>
+  <data name="Connect_DuplicateBody" xml:space="preserve">
+    <value>This identity is already connected as “{0}”. No duplicate was created.</value>
+  </data>
+  <data name="Connect_DuplicateBodyGeneric" xml:space="preserve">
+    <value>This identity is already connected. No duplicate was created.</value>
+  </data>
+  <data name="Connect_DuplicateTitle" xml:space="preserve">
+    <value>Already connected</value>
+  </data>
+  <data name="Connect_EnterCode.Content" xml:space="preserve">
+    <value>Enter a code instead</value>
+  </data>
+  <data name="Connect_Expired" xml:space="preserve">
+    <value>The authorization request expired. Try again when ready.</value>
+  </data>
+  <data name="Connect_MethodLabel.Text" xml:space="preserve">
+    <value>Connection method</value>
+  </data>
+  <data name="Connect_OpenAccount.Content" xml:space="preserve">
+    <value>Open account</value>
+  </data>
+  <data name="Connect_PickHelp.Text" xml:space="preserve">
+    <value>Choose a provider. Planned providers are interactive here but unavailable in the live app until their connection method ships.</value>
+  </data>
+  <data name="Connect_Planned" xml:space="preserve">
+    <value>Planned · demo only</value>
+  </data>
+  <data name="Connect_PlannedNote.Text" xml:space="preserve">
+    <value>Planned connection · demo only, not a verified provider flow</value>
+  </data>
+  <data name="Connect_Reconnected" xml:space="preserve">
+    <value>Reconnected</value>
+  </data>
+  <data name="Connect_ReconnectedBody" xml:space="preserve">
+    <value>{0} keeps its label, order and history. Monitoring resumed.</value>
+  </data>
+  <data name="Connect_SubmitCode.Content" xml:space="preserve">
+    <value>Submit code</value>
+  </data>
+  <data name="Connect_Verifying.Text" xml:space="preserve">
+    <value>Verifying code…</value>
+  </data>
+  <data name="Connect_WaitingBody" xml:space="preserve">
+    <value>Finish signing in to {0} in your browser. Nothing is connected until the provider confirms.</value>
+  </data>
+  <data name="Connect_WaitingTitle" xml:space="preserve">
+    <value>Waiting for authorization</value>
+  </data>
+  <data name="Connect_WaitingTitleText.Text" xml:space="preserve">
+    <value>Waiting for authorization</value>
+  </data>
+  <data name="Connection_Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Connection_Connecting" xml:space="preserve">
+    <value>Connecting</value>
+  </data>
+  <data name="Connection_NotConnected" xml:space="preserve">
+    <value>Disconnected</value>
+  </data>
+  <data name="Connection_ReauthRequired" xml:space="preserve">
+    <value>Sign-in required</value>
+  </data>
+  <data name="Connection_RecoveryRequired" xml:space="preserve">
+    <value>Recovery required</value>
+  </data>
+  <data name="ContextKind_Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="ContextKind_Organization" xml:space="preserve">
+    <value>Organization</value>
+  </data>
+  <data name="ContextKind_Project" xml:space="preserve">
+    <value>Project</value>
+  </data>
+  <data name="ContextKind_Workspace" xml:space="preserve">
+    <value>Workspace</value>
+  </data>
+  <data name="Data_BundleBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Bundle</value>
+  </data>
+  <data name="Data_BundleLabel.Text" xml:space="preserve">
+    <value>Bundle</value>
+  </data>
+  <data name="Data_ChooseAnother.Content" xml:space="preserve">
+    <value>Choose another</value>
+  </data>
+  <data name="Data_ClosePreview.Content" xml:space="preserve">
+    <value>Close preview</value>
+  </data>
+  <data name="Data_DeleteAccount.Text" xml:space="preserve">
+    <value>Delete stored data for one account</value>
+  </data>
+  <data name="Data_DeleteAccountHelp.Text" xml:space="preserve">
+    <value>Removes its history and cached readings. Separate from disconnecting.</value>
+  </data>
+  <data name="Data_DeleteButton.Content" xml:space="preserve">
+    <value>Delete data…</value>
+  </data>
+  <data name="Data_DeleteTarget.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="Data_Done.Content" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Data_EraseAll.Text" xml:space="preserve">
+    <value>Erase everything</value>
+  </data>
+  <data name="Data_EraseAllButton.Content" xml:space="preserve">
+    <value>Erase all data…</value>
+  </data>
+  <data name="Data_EraseAllHelp.Text" xml:space="preserve">
+    <value>Factory reset: all accounts, credentials, history and settings on this device. Requires typed confirmation.</value>
+  </data>
+  <data name="Data_ExportHeading.Text" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="Data_ExportHelp.Text" xml:space="preserve">
+    <value>Creates a portable bundle of accounts, preferences and history. Credentials are never included. You review the contents before anything is written.</value>
+  </data>
+  <data name="Data_ExportProgress.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Export preparation</value>
+  </data>
+  <data name="Data_HistoryHeading.Text" xml:space="preserve">
+    <value>History collection</value>
+  </data>
+  <data name="Data_PrepareExport.Content" xml:space="preserve">
+    <value>Prepare export…</value>
+  </data>
+  <data name="Data_Preparing.Text" xml:space="preserve">
+    <value>Preparing…</value>
+  </data>
+  <data name="Data_RecordHistory.Text" xml:space="preserve">
+    <value>Record readings for History</value>
+  </data>
+  <data name="Data_RecordHistoryHelp.Text" xml:space="preserve">
+    <value>Turning this off keeps existing samples; nothing new is stored</value>
+  </data>
+  <data name="Data_RecordHistorySwitch.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Record readings for History</value>
+  </data>
+  <data name="Data_Replace.Content" xml:space="preserve">
+    <value>Replace…</value>
+  </data>
+  <data name="Data_ReplaceDoneRun.Text" xml:space="preserve">
+    <value>Replace completed (simulated). In the live app the dashboard reloads from the bundle.</value>
+  </data>
+  <data name="Data_ReplaceHeading.Text" xml:space="preserve">
+    <value>Replace from bundle</value>
+  </data>
+  <data name="Data_Replacing.Text" xml:space="preserve">
+    <value>Replacing data… the dialog shows progress.</value>
+  </data>
+  <data name="Data_ResetHeading.Text" xml:space="preserve">
+    <value>Reset and delete</value>
+  </data>
+  <data name="Data_ResetSettings.Text" xml:space="preserve">
+    <value>Reset settings</value>
+  </data>
+  <data name="Data_ResetSettingsButton.Content" xml:space="preserve">
+    <value>Reset settings…</value>
+  </data>
+  <data name="Data_ResetSettingsHelp.Text" xml:space="preserve">
+    <value>Theme, density, thresholds and refresh preferences return to defaults. Accounts, labels, order and history are kept.</value>
+  </data>
+  <data name="Data_Retention.Text" xml:space="preserve">
+    <value>Retention</value>
+  </data>
+  <data name="Data_RetentionBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Retention</value>
+  </data>
+  <data name="Data_RetentionHelp.Text" xml:space="preserve">
+    <value>Older samples are pruned on start</value>
+  </data>
+  <data name="Data_SaveFile.Content" xml:space="preserve">
+    <value>Save file…</value>
+  </data>
+  <data name="Data_Validate.Content" xml:space="preserve">
+    <value>Validate</value>
+  </data>
+  <data name="Data_Validating.Text" xml:space="preserve">
+    <value>Validating…</value>
+  </data>
+  <data name="DeleteData_Body" xml:space="preserve">
+    <value>Removes this account’s history and cached readings from this device. The connection and label are unaffected; disconnecting is a separate action.</value>
+  </data>
+  <data name="DeleteData_Busy" xml:space="preserve">
+    <value>Deleting…</value>
+  </data>
+  <data name="DeleteData_Confirm" xml:space="preserve">
+    <value>Delete data</value>
+  </data>
+  <data name="DeleteData_Title" xml:space="preserve">
+    <value>Delete stored data for {0}?</value>
+  </data>
+  <data name="Delivery_Allowed" xml:space="preserve">
+    <value>Windows notifications are on for AI Usage.</value>
+  </data>
+  <data name="Delivery_Blocked" xml:space="preserve">
+    <value>Windows has notifications turned off for AI Usage. Alerts are evaluated but cannot be shown; open Windows Settings › Notifications to allow them.</value>
+  </data>
+  <data name="Delivery_Unknown" xml:space="preserve">
+    <value>Delivery status unknown.</value>
+  </data>
+  <data name="Demo_BatterySaver.Content" xml:space="preserve">
+    <value>Battery saver or metered</value>
+  </data>
+  <data name="Demo_ClockPlus.Content" xml:space="preserve">
+    <value>Clock +1 h</value>
+  </data>
+  <data name="Demo_ClosePanel.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close demo controls</value>
+  </data>
+  <data name="Demo_HideToTray" xml:space="preserve">
+    <value>Hide to tray</value>
+  </data>
+  <data name="Demo_HighContrast.Content" xml:space="preserve">
+    <value>Simulate high contrast</value>
+  </data>
+  <data name="Demo_Marker" xml:space="preserve">
+    <value>Demo · sample data</value>
+  </data>
+  <data name="Demo_MarkerTip.Content" xml:space="preserve">
+    <value>Open the demo controls</value>
+  </data>
+  <data name="Demo_ModeActual" xml:space="preserve">
+    <value>Follow Windows</value>
+  </data>
+  <data name="Demo_ModeDark" xml:space="preserve">
+    <value>Simulate Dark</value>
+  </data>
+  <data name="Demo_ModeLight" xml:space="preserve">
+    <value>Simulate Light</value>
+  </data>
+  <data name="Demo_Motion.Header" xml:space="preserve">
+    <value>Motion</value>
+  </data>
+  <data name="Demo_MotionFull" xml:space="preserve">
+    <value>Full motion</value>
+  </data>
+  <data name="Demo_MotionReduced" xml:space="preserve">
+    <value>Reduced motion</value>
+  </data>
+  <data name="Demo_MotionWindows" xml:space="preserve">
+    <value>Follow Windows</value>
+  </data>
+  <data name="Demo_NextScanEmpty.Content" xml:space="preserve">
+    <value>Next CLI scan finds nothing</value>
+  </data>
+  <data name="Demo_NotificationsAllowed.Content" xml:space="preserve">
+    <value>Windows notifications allowed</value>
+  </data>
+  <data name="Demo_Outcome.Header" xml:space="preserve">
+    <value>Next refresh outcome</value>
+  </data>
+  <data name="Demo_OutcomeInvalidGrant" xml:space="preserve">
+    <value>Sign-in expired</value>
+  </data>
+  <data name="Demo_OutcomeNetwork" xml:space="preserve">
+    <value>Network failure</value>
+  </data>
+  <data name="Demo_OutcomeRateLimited" xml:space="preserve">
+    <value>Rate limited</value>
+  </data>
+  <data name="Demo_OutcomeScenario" xml:space="preserve">
+    <value>Scenario default</value>
+  </data>
+  <data name="Demo_OutcomeSuccess" xml:space="preserve">
+    <value>Always succeed</value>
+  </data>
+  <data name="Demo_PanelNote.Text" xml:space="preserve">
+    <value>Demo controls are not part of the product surface.</value>
+  </data>
+  <data name="Demo_ProviderHues.Content" xml:space="preserve">
+    <value>Provider tile hues (pending rights review)</value>
+  </data>
+  <data name="Demo_QuietHours.Content" xml:space="preserve">
+    <value>Quiet hours active</value>
+  </data>
+  <data name="Demo_Reload.Content" xml:space="preserve">
+    <value>Reload (skeleton)</value>
+  </data>
+  <data name="Demo_Reset.Content" xml:space="preserve">
+    <value>Reset scenario</value>
+  </data>
+  <data name="Demo_RestoreWindow" xml:space="preserve">
+    <value>Restore window</value>
+  </data>
+  <data name="Demo_Scale.Header" xml:space="preserve">
+    <value>Content scale</value>
+  </data>
+  <data name="Demo_Scenario.Header" xml:space="preserve">
+    <value>Scenario</value>
+  </data>
+  <data name="Demo_SecondContext.Content" xml:space="preserve">
+    <value>Second context available</value>
+  </data>
+  <data name="Demo_TrayPopup.Content" xml:space="preserve">
+    <value>Tray popup</value>
+  </data>
+  <data name="Demo_WindowSize.Text" xml:space="preserve">
+    <value>Window width (effective pixels)</value>
+  </data>
+  <data name="Demo_WindowsMode.Header" xml:space="preserve">
+    <value>Windows mode</value>
+  </data>
+  <data name="Density_Comfortable" xml:space="preserve">
+    <value>Comfortable</value>
+  </data>
+  <data name="Density_Compact" xml:space="preserve">
+    <value>Compact</value>
+  </data>
+  <data name="Detail_CachedUntilReconnect" xml:space="preserve">
+    <value> · cached readings retained until reconnect</value>
+  </data>
+  <data name="Detail_ContextGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Context</value>
+  </data>
+  <data name="Detail_ContextLabel.Text" xml:space="preserve">
+    <value>Context</value>
+  </data>
+  <data name="Detail_ContextNote" xml:space="preserve">
+    <value>{0} · preferences are kept if a context is temporarily absent</value>
+  </data>
+  <data name="Detail_DisconnectedNote" xml:space="preserve">
+    <value>Disconnected. The local credential was removed and monitoring stopped. Readings below are the last known values before disconnect; connect again to resume with the same label, order and history.</value>
+  </data>
+  <data name="Detail_LastObservation" xml:space="preserve">
+    <value>Last observation {0} · {1}{2}</value>
+  </data>
+  <data name="Detail_Meta" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Detail_MoreActions.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>More actions</value>
+  </data>
+  <data name="Detail_NoObservation" xml:space="preserve">
+    <value>No observation yet</value>
+  </data>
+  <data name="Detail_RefreshButton.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Refresh this account</value>
+  </data>
+  <data name="Detail_RefreshLabel.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Detail_Rename.Content" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="Detail_RenameBox.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Account label</value>
+  </data>
+  <data name="Detail_ResetCredits" xml:space="preserve">
+    <value>Reset credits available: {0}</value>
+  </data>
+  <data name="Detail_SpendControlNotReached" xml:space="preserve">
+    <value>Spend control not reached</value>
+  </data>
+  <data name="Detail_SpendControlReached" xml:space="preserve">
+    <value>Spend control reached</value>
+  </data>
+  <data name="Dialog_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Dialog_CancelButton.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Dialog_CloseButton.Content" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Dialog_OperationFailed" xml:space="preserve">
+    <value>The operation did not complete. Nothing else was changed.</value>
+  </data>
+  <data name="Dialog_TypeToConfirm" xml:space="preserve">
+    <value>Type {0} to confirm</value>
+  </data>
+  <data name="Disconnect_Body" xml:space="preserve">
+    <value>Removes the locally stored credential and stops monitoring. It does not revoke access at the provider. Label, order and history are kept for reconnect.</value>
+  </data>
+  <data name="Disconnect_Busy" xml:space="preserve">
+    <value>Disconnecting…</value>
+  </data>
+  <data name="Disconnect_Confirm" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Disconnect_Title" xml:space="preserve">
+    <value>Disconnect {0}?</value>
+  </data>
+  <data name="Display_NoteRemaining" xml:space="preserve">
+    <value>Meters show what is left; thresholds are percentages remaining (default 25, 10 and 0).</value>
+  </data>
+  <data name="Display_NoteUsed" xml:space="preserve">
+    <value>Meters fill as quota is consumed; thresholds are shown as percentages used (default 75, 90 and 100).</value>
+  </data>
+  <data name="Display_Remaining" xml:space="preserve">
+    <value>Remaining %</value>
+  </data>
+  <data name="Display_Used" xml:space="preserve">
+    <value>Used %</value>
+  </data>
+  <data name="Duration_Days" xml:space="preserve">
+    <value>{0} d</value>
+  </data>
+  <data name="Duration_Hours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="Duration_Minutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="Exit_Body" xml:space="preserve">
+    <value>Monitoring and alerts stop until you open the app again.</value>
+  </data>
+  <data name="Exit_Confirm" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="Exit_Title" xml:space="preserve">
+    <value>Exit AI Usage?</value>
+  </data>
+  <data name="Export_Accounts" xml:space="preserve">
+    <value>Accounts: provider, label, plan, order, visibility (no credentials, no tokens)</value>
+  </data>
+  <data name="Export_Excluded" xml:space="preserve">
+    <value>Excluded: credentials, device identifiers, raw provider payloads</value>
+  </data>
+  <data name="Export_History" xml:space="preserve">
+    <value>History: {0} sampled points across {1} accounts</value>
+  </data>
+  <data name="Export_Preferences" xml:space="preserve">
+    <value>Preferences: theme, density, thresholds, refresh settings</value>
+  </data>
+  <data name="Export_PreviewTitle" xml:space="preserve">
+    <value>Preview ready · {0} (synthetic)</value>
+  </data>
+  <data name="Export_SaveDisabled" xml:space="preserve">
+    <value>Live only: opens a Windows save dialog. Saving is unavailable in the demo; no file is written.</value>
+  </data>
+  <data name="Extension_CurrencyNotReported" xml:space="preserve">
+    <value> · currency not reported</value>
+  </data>
+  <data name="Extension_Enabled" xml:space="preserve">
+    <value> · enabled</value>
+  </data>
+  <data name="Extension_LimitNotReported" xml:space="preserve">
+    <value>limit not reported</value>
+  </data>
+  <data name="Extension_LimitNotSet" xml:space="preserve">
+    <value>limit not set</value>
+  </data>
+  <data name="Extension_LimitOf" xml:space="preserve">
+    <value>of {0}</value>
+  </data>
+  <data name="Extension_LineMinor" xml:space="preserve">
+    <value>{0}: {1} minor units · currency not reported</value>
+  </data>
+  <data name="Extension_LineMoney" xml:space="preserve">
+    <value>{0}: {1} used · {2}</value>
+  </data>
+  <data name="Extension_LineNone" xml:space="preserve">
+    <value>{0}: no amount reported</value>
+  </data>
+  <data name="Extension_MinorUnits" xml:space="preserve">
+    <value>minor units · no currency formatting</value>
+  </data>
+  <data name="Extension_MoneyNote" xml:space="preserve">
+    <value>used · {0} · {1}</value>
+  </data>
+  <data name="Extension_NoAmount" xml:space="preserve">
+    <value>no amount reported</value>
+  </data>
+  <data name="Extension_Off" xml:space="preserve">
+    <value> · off</value>
+  </data>
+  <data name="Factory_Body" xml:space="preserve">
+    <value>All accounts, credentials, labels, history and settings on this device are removed. Type RESET to confirm.</value>
+  </data>
+  <data name="Factory_Busy" xml:space="preserve">
+    <value>Erasing…</value>
+  </data>
+  <data name="Factory_Confirm" xml:space="preserve">
+    <value>Erase all data</value>
+  </data>
+  <data name="Factory_Title" xml:space="preserve">
+    <value>Erase everything?</value>
+  </data>
+  <data name="Failure_AutoRetryAt" xml:space="preserve">
+    <value>Automatic retry at {0}</value>
+  </data>
+  <data name="Failure_ConnectionsBlocked" xml:space="preserve">
+    <value>Connections are disabled by a security block until you update.</value>
+  </data>
+  <data name="Failure_InvalidGrant" xml:space="preserve">
+    <value>Sign-in expired. Reconnect to resume monitoring; cached readings are kept.</value>
+  </data>
+  <data name="Failure_NetworkFailure" xml:space="preserve">
+    <value>Network unavailable. Showing the last cached reading.</value>
+  </data>
+  <data name="Failure_RateLimited" xml:space="preserve">
+    <value>Provider rate limit reached. Automatic retry after the wait.</value>
+  </data>
+  <data name="Failure_RetryAvailableAt" xml:space="preserve">
+    <value>Retry available at {0}</value>
+  </data>
+  <data name="Failure_Short_InvalidGrant" xml:space="preserve">
+    <value>sign-in expired</value>
+  </data>
+  <data name="Failure_Short_NetworkFailure" xml:space="preserve">
+    <value>network unavailable</value>
+  </data>
+  <data name="Failure_Short_RateLimited" xml:space="preserve">
+    <value>rate limited</value>
+  </data>
+  <data name="Failure_Short_SchemaMismatch" xml:space="preserve">
+    <value>unexpected response</value>
+  </data>
+  <data name="Format_DateTime" xml:space="preserve">
+    <value>{0}, {1}</value>
+  </data>
+  <data name="Format_Percent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="Freshness_Cached" xml:space="preserve">
+    <value>Cached</value>
+  </data>
+  <data name="Freshness_Fresh" xml:space="preserve">
+    <value>Fresh</value>
+  </data>
+  <data name="Freshness_Stale" xml:space="preserve">
+    <value>Stale</value>
+  </data>
+  <data name="Freshness_Unknown" xml:space="preserve">
+    <value>Freshness unknown</value>
+  </data>
+  <data name="Group_CollapsedAuto" xml:space="preserve">
+    <value>Collapsed · auto</value>
+  </data>
+  <data name="Group_CollapsedByYou" xml:space="preserve">
+    <value>Collapsed by you</value>
+  </data>
+  <data name="Group_ExpandedAuto" xml:space="preserve">
+    <value>Expanded · auto</value>
+  </data>
+  <data name="Group_ExpandedByYou" xml:space="preserve">
+    <value>Expanded by you</value>
+  </data>
+  <data name="Group_HiddenBadge.Text" xml:space="preserve">
+    <value>hidden</value>
+  </data>
+  <data name="Group_SharedPoolBadge" xml:space="preserve">
+    <value>Shared pool · counted once</value>
+  </data>
+  <data name="Group_SummaryMany" xml:space="preserve">
+    <value>{0} windows</value>
+  </data>
+  <data name="Group_SummaryManyLowest" xml:space="preserve">
+    <value>{0} windows · lowest {1} {2}</value>
+  </data>
+  <data name="Group_SummaryOne" xml:space="preserve">
+    <value>{0} window</value>
+  </data>
+  <data name="Group_SummaryOneLowest" xml:space="preserve">
+    <value>{0} window · lowest {1} {2}</value>
+  </data>
+  <data name="Header_AddAccountButton.Content" xml:space="preserve">
+    <value>Add account</value>
+  </data>
+  <data name="Header_RefreshAll" xml:space="preserve">
+    <value>Refresh all</value>
+  </data>
+  <data name="Header_RefreshBlocked" xml:space="preserve">
+    <value>Refresh is paused by a compatibility or security block</value>
+  </data>
+  <data name="Header_Refreshing" xml:space="preserve">
+    <value>Refreshing…</value>
+  </data>
+  <data name="Header_RefreshNothing" xml:space="preserve">
+    <value>No connected, visible account can refresh right now</value>
+  </data>
+  <data name="Health_Cancelled" xml:space="preserve">
+    <value>Cancelled · partial results kept</value>
+  </data>
+  <data name="Health_Checking" xml:space="preserve">
+    <value>Checking {0} of {1}</value>
+  </data>
+  <data name="Health_FindingNotifications" xml:space="preserve">
+    <value>Blocked by Windows settings</value>
+  </data>
+  <data name="Health_FindingSignIn" xml:space="preserve">
+    <value>1 account needs sign-in</value>
+  </data>
+  <data name="Health_NotificationChannel" xml:space="preserve">
+    <value>Windows notification channel</value>
+  </data>
+  <data name="Health_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Health_ProviderSessions" xml:space="preserve">
+    <value>Provider sessions</value>
+  </data>
+  <data name="Health_RefreshScheduler" xml:space="preserve">
+    <value>Refresh scheduler</value>
+  </data>
+  <data name="Health_ResultOk" xml:space="preserve">
+    <value>Healthy · no findings. Nothing was changed.</value>
+  </data>
+  <data name="Health_ResultWarning" xml:space="preserve">
+    <value>Warning · {0} findings. Nothing was repaired; review the items above.</value>
+  </data>
+  <data name="Health_SchemaMatches" xml:space="preserve">
+    <value>Schema version matches</value>
+  </data>
+  <data name="Health_StorageReadable" xml:space="preserve">
+    <value>Storage readable</value>
+  </data>
+  <data name="Hide_AndMute" xml:space="preserve">
+    <value>Hide and mute alerts</value>
+  </data>
+  <data name="Hide_Body" xml:space="preserve">
+    <value>Hiding removes it from Overview and the tray. Monitoring and history continue either way. You can also mute its alerts.</value>
+  </data>
+  <data name="Hide_Only" xml:space="preserve">
+    <value>Hide only</value>
+  </data>
+  <data name="Hide_Title" xml:space="preserve">
+    <value>Hide {0}?</value>
+  </data>
+  <data name="History_AccountFilter.Header" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="History_Apply.Content" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="History_Chart.GapLabel" xml:space="preserve">
+    <value>gap</value>
+  </data>
+  <data name="History_Chart.ResetLabel" xml:space="preserve">
+    <value>reset</value>
+  </data>
+  <data name="History_ChartAriaRemaining" xml:space="preserve">
+    <value>Remaining percent over time, {0} observed points, {1} gaps, {2} resets</value>
+  </data>
+  <data name="History_ChartAriaUsed" xml:space="preserve">
+    <value>Used percent over time, {0} observed points, {1} gaps, {2} resets</value>
+  </data>
+  <data name="History_ChartTitle" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="History_DisabledBanner.Text" xml:space="preserve">
+    <value>History collection is off. Existing samples stay readable; no new points are recorded.</value>
+  </data>
+  <data name="History_EmptyCollectionOff" xml:space="preserve">
+    <value>Collection is off; nothing new is recorded.</value>
+  </data>
+  <data name="History_EmptyDeleted" xml:space="preserve">
+    <value>Stored data for this account was deleted. New samples appear after the next reading.</value>
+  </data>
+  <data name="History_EmptyNoAccount" xml:space="preserve">
+    <value>No account selected.</value>
+  </data>
+  <data name="History_EmptyNoPercentage" xml:space="preserve">
+    <value>This window has no comparable percentage (unknown, unlimited or unavailable).</value>
+  </data>
+  <data name="History_EmptyRange" xml:space="preserve">
+    <value>The selected range has no samples.</value>
+  </data>
+  <data name="History_EmptyTitle.Text" xml:space="preserve">
+    <value>No samples to show</value>
+  </data>
+  <data name="History_ErrorFormat" xml:space="preserve">
+    <value>Use the format YYYY-MM-DD HH:MM for both fields.</value>
+  </data>
+  <data name="History_ErrorFuture" xml:space="preserve">
+    <value>“To” is in the future; no samples can exist there.</value>
+  </data>
+  <data name="History_ErrorOrder" xml:space="preserve">
+    <value>“From” must be earlier than “To”.</value>
+  </data>
+  <data name="History_From.Header" xml:space="preserve">
+    <value>From</value>
+  </data>
+  <data name="History_From.PlaceholderText" xml:space="preserve">
+    <value>2026-09-14 00:00</value>
+  </data>
+  <data name="History_LegendGap.Text" xml:space="preserve">
+    <value>Gap · no observation</value>
+  </data>
+  <data name="History_LegendRemaining" xml:space="preserve">
+    <value>Observed remaining %</value>
+  </data>
+  <data name="History_LegendReset.Text" xml:space="preserve">
+    <value>Reset · new segment</value>
+  </data>
+  <data name="History_LegendUsed" xml:space="preserve">
+    <value>Observed used %</value>
+  </data>
+  <data name="History_Loading.Text" xml:space="preserve">
+    <value>Loading history…</value>
+  </data>
+  <data name="History_OpenData.Content" xml:space="preserve">
+    <value>Data &amp; privacy</value>
+  </data>
+  <data name="History_PartialNote.Text" xml:space="preserve">
+    <value>Partial range · older samples were pruned by retention</value>
+  </data>
+  <data name="History_PointAria" xml:space="preserve">
+    <value>{0}: {1} {2}</value>
+  </data>
+  <data name="History_PointCount" xml:space="preserve">
+    <value>Synthetic samples · {0} points</value>
+  </data>
+  <data name="History_PointTip" xml:space="preserve">
+    <value>{0} · {1} {2}</value>
+  </data>
+  <data name="History_RangeGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Range</value>
+  </data>
+  <data name="History_RangeText" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
+  <data name="History_SubtitleRemaining" xml:space="preserve">
+    <value>Remaining percentage over time, one window at a time · gaps are never joined, resets start a new segment</value>
+  </data>
+  <data name="History_SubtitleUsed" xml:space="preserve">
+    <value>Used percentage over time, one window at a time · gaps are never joined, resets start a new segment</value>
+  </data>
+  <data name="History_Title.Text" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="History_To.Header" xml:space="preserve">
+    <value>To</value>
+  </data>
+  <data name="History_To.PlaceholderText" xml:space="preserve">
+    <value>2026-09-15 12:00</value>
+  </data>
+  <data name="History_WindowFilter.Header" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="History_WindowOption" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="History_WindowOptionContext" xml:space="preserve">
+    <value>{0} · {1} · {2}</value>
+  </data>
+  <data name="Menu_DeleteData.Text" xml:space="preserve">
+    <value>Delete stored data…</value>
+  </data>
+  <data name="Menu_Disconnect" xml:space="preserve">
+    <value>Disconnect…</value>
+  </data>
+  <data name="Menu_Disconnected" xml:space="preserve">
+    <value>Disconnected</value>
+  </data>
+  <data name="Menu_Hide" xml:space="preserve">
+    <value>Hide…</value>
+  </data>
+  <data name="Menu_MoveDown.Text" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="Menu_MoveUp.Text" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="Menu_MuteAlerts" xml:space="preserve">
+    <value>Mute alerts</value>
+  </data>
+  <data name="Menu_ShowInOverview" xml:space="preserve">
+    <value>Show in Overview</value>
+  </data>
+  <data name="Menu_UnmuteAlerts" xml:space="preserve">
+    <value>Unmute alerts</value>
+  </data>
+  <data name="Method_BrowserSignIn" xml:space="preserve">
+    <value>Browser sign-in</value>
+  </data>
+  <data name="Method_ManualCode" xml:space="preserve">
+    <value>Manual code</value>
+  </data>
+  <data name="Monitoring_AccountOverrides.Text" xml:space="preserve">
+    <value>Per-account and per-window overrides</value>
+  </data>
+  <data name="Monitoring_AccountOverridesHelp.Text" xml:space="preserve">
+    <value>Each account inherits the global list unless you override it; resetting an override never changes the global list.</value>
+  </data>
+  <data name="Monitoring_DeliveryHeading.Text" xml:space="preserve">
+    <value>Delivery</value>
+  </data>
+  <data name="Monitoring_DisplayGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Show usage limits as</value>
+  </data>
+  <data name="Monitoring_DisplayHeading.Text" xml:space="preserve">
+    <value>Usage display</value>
+  </data>
+  <data name="Monitoring_DisplayLabel.Text" xml:space="preserve">
+    <value>Show usage limits as</value>
+  </data>
+  <data name="Monitoring_Preview.Content" xml:space="preserve">
+    <value>Preview a notification</value>
+  </data>
+  <data name="Monitoring_PreviewHelp.Text" xml:space="preserve">
+    <value>Shows the most urgent visible account in-window. Windows Notification Center owns alert history; there is no in-app alert log.</value>
+  </data>
+  <data name="Monitoring_QuietHours.Text" xml:space="preserve">
+    <value>Quiet hours</value>
+  </data>
+  <data name="Monitoring_ReduceOnBattery.Text" xml:space="preserve">
+    <value>Reduce automatic refresh on battery saver or metered connections</value>
+  </data>
+  <data name="Monitoring_ReduceOnBatteryHelp.Text" xml:space="preserve">
+    <value>Manual refresh is always available</value>
+  </data>
+  <data name="Monitoring_ReduceOnBatterySwitch.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Reduce automatic refresh on battery saver or metered connections</value>
+  </data>
+  <data name="Monitoring_RefreshHeading.Text" xml:space="preserve">
+    <value>Automatic refresh</value>
+  </data>
+  <data name="Monitoring_ResetNotice.Text" xml:space="preserve">
+    <value>Notify when a reset restores quota</value>
+  </data>
+  <data name="Monitoring_ResetNoticeHelp.Text" xml:space="preserve">
+    <value>Only after a new observation confirms the reset</value>
+  </data>
+  <data name="Monitoring_ResetNoticeSwitch.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Notify when a reset restores quota</value>
+  </data>
+  <data name="Monitoring_SimulateAllowed.Content" xml:space="preserve">
+    <value>Simulate: allowed in Windows</value>
+  </data>
+  <data name="Monitoring_SimulateBattery.Content" xml:space="preserve">
+    <value>Simulate: battery saver / metered</value>
+  </data>
+  <data name="Monitoring_SimulateQuiet.Content" xml:space="preserve">
+    <value>Simulate: quiet hours active</value>
+  </data>
+  <data name="Monitoring_ThresholdsHeading.Text" xml:space="preserve">
+    <value>Warning thresholds</value>
+  </data>
+  <data name="Monitoring_ThresholdsHelp.Text" xml:space="preserve">
+    <value>Thresholds are marked on every meter and colour the value when crossed: the smallest crossed threshold above zero is critical, larger ones are warnings, and 0 means exhausted. Add as many as you like, in the unit selected above.</value>
+  </data>
+  <data name="Monitoring_WindowsNotifications.Text" xml:space="preserve">
+    <value>Windows notifications</value>
+  </data>
+  <data name="Nav_Accounts.Content" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Nav_History.Content" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="Nav_Main.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Main</value>
+  </data>
+  <data name="Nav_Overview.Content" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="Nav_Settings.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Nav_SystemStatus.Content" xml:space="preserve">
+    <value>System Status</value>
+  </data>
+  <data name="Operation_Disconnecting" xml:space="preserve">
+    <value>Disconnecting</value>
+  </data>
+  <data name="Operation_Idle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="Operation_Loading" xml:space="preserve">
+    <value>Loading</value>
+  </data>
+  <data name="Operation_Refreshing" xml:space="preserve">
+    <value>Refreshing</value>
+  </data>
+  <data name="Order_Hidden" xml:space="preserve">
+    <value>, hidden</value>
+  </data>
+  <data name="Order_HiddenTag.Text" xml:space="preserve">
+    <value>hidden</value>
+  </data>
+  <data name="Order_ItemAria" xml:space="preserve">
+    <value>{0}, {1}, position {2} of {3}{4}{5}. Alt+Up or Alt+Down moves it.</value>
+  </data>
+  <data name="Order_MoveDownName" xml:space="preserve">
+    <value>Move {0} down</value>
+  </data>
+  <data name="Order_MoveUpName" xml:space="preserve">
+    <value>Move {0} up</value>
+  </data>
+  <data name="Order_Muted" xml:space="preserve">
+    <value>, alerts muted</value>
+  </data>
+  <data name="Order_MutedTag.Text" xml:space="preserve">
+    <value>muted</value>
+  </data>
+  <data name="Override_Body" xml:space="preserve">
+    <value>Refresh resumes on this device although this build is not compatible with the provider interface. Readings may be unreliable until you update. Security blocks can never be overridden.</value>
+  </data>
+  <data name="Override_Confirm" xml:space="preserve">
+    <value>Override on this device</value>
+  </data>
+  <data name="Override_Title" xml:space="preserve">
+    <value>Override the compatibility block?</value>
+  </data>
+  <data name="Overview_AllHidden.Text" xml:space="preserve">
+    <value>All accounts are hidden or disconnected by your filters.</value>
+  </data>
+  <data name="Overview_EmptyBody.Text" xml:space="preserve">
+    <value>Connect a provider account to see remaining quota, resets and freshness. Nothing is collected until you connect.</value>
+  </data>
+  <data name="Overview_EmptyImport.Content" xml:space="preserve">
+    <value>Import from CLI…</value>
+  </data>
+  <data name="Overview_EmptyTitle.Text" xml:space="preserve">
+    <value>No accounts yet</value>
+  </data>
+  <data name="Overview_LoadingRegion.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Loading accounts</value>
+  </data>
+  <data name="Overview_LoadingText.Text" xml:space="preserve">
+    <value>Loading accounts… A skeleton never outlives its result: failure becomes an error row, absence becomes the empty state.</value>
+  </data>
+  <data name="Overview_ProviderList" xml:space="preserve">
+    <value>{0} accounts</value>
+  </data>
+  <data name="Overview_ShowAll.Content" xml:space="preserve">
+    <value>Show hidden and disconnected</value>
+  </data>
+  <data name="Overview_SummaryRegion.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Pill_Cached" xml:space="preserve">
+    <value>Cached · {0}</value>
+  </data>
+  <data name="Pill_Connecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="Pill_Disconnected" xml:space="preserve">
+    <value>Disconnected</value>
+  </data>
+  <data name="Pill_Fresh" xml:space="preserve">
+    <value>Fresh · {0}</value>
+  </data>
+  <data name="Pill_FreshnessUnknown" xml:space="preserve">
+    <value>Freshness unknown</value>
+  </data>
+  <data name="Pill_QuotaUnavailable" xml:space="preserve">
+    <value>Connected · quota unavailable</value>
+  </data>
+  <data name="Pill_RecoveryRequired" xml:space="preserve">
+    <value>Recovery required</value>
+  </data>
+  <data name="Pill_SignInRequired" xml:space="preserve">
+    <value>Sign-in required</value>
+  </data>
+  <data name="Pill_Stale" xml:space="preserve">
+    <value>◷ Stale · cached {0}</value>
+  </data>
+  <data name="Preview_Blocked" xml:space="preserve">
+    <value>Preview only · Windows notifications are off for this app</value>
+  </data>
+  <data name="Preview_Body" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Preview_NoAccount" xml:space="preserve">
+    <value>No visible account to preview</value>
+  </data>
+  <data name="Preview_Quiet" xml:space="preserve">
+    <value>Preview only · quiet hours active, would be held</value>
+  </data>
+  <data name="Preview_Title" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Preview_Unknown" xml:space="preserve">
+    <value>Preview · delivery status unknown</value>
+  </data>
+  <data name="Preview_WouldAppear" xml:space="preserve">
+    <value>Preview · would appear in Windows Notification Center</value>
+  </data>
+  <data name="Quiet_Active" xml:space="preserve">
+    <value>Quiet hours are active: alerts are held until they end.</value>
+  </data>
+  <data name="Quiet_Inactive" xml:space="preserve">
+    <value>Alerts are held while Windows Focus assist or quiet hours are active.</value>
+  </data>
+  <data name="Range_1y" xml:space="preserve">
+    <value>1y</value>
+  </data>
+  <data name="Range_24h" xml:space="preserve">
+    <value>24h</value>
+  </data>
+  <data name="Range_30d" xml:space="preserve">
+    <value>30d</value>
+  </data>
+  <data name="Range_7d" xml:space="preserve">
+    <value>7d</value>
+  </data>
+  <data name="Range_90d" xml:space="preserve">
+    <value>90d</value>
+  </data>
+  <data name="Range_Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="Recovery_Body_Interrupted" xml:space="preserve">
+    <value>AI Usage stopped while updating its local data. Nothing was deleted. Retry the migration, restore a checkpoint taken before it started, or inspect diagnostics first.</value>
+  </data>
+  <data name="Recovery_Body_NewerSchema" xml:space="preserve">
+    <value>The local data uses Schema 5, but this build understands Schema 4. Normal operation is disabled to avoid corrupting it. Update the app, or restore a compatible checkpoint.</value>
+  </data>
+  <data name="Recovery_Body_RestoreFailed" xml:space="preserve">
+    <value>A checkpoint restore was interrupted. Your current data is unchanged. Retry the restore or choose another checkpoint.</value>
+  </data>
+  <data name="Recovery_CheckpointBeforeMigration" xml:space="preserve">
+    <value>Before migration</value>
+  </data>
+  <data name="Recovery_CheckpointLabel" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Recovery_CheckpointField.Text" xml:space="preserve">
+    <value>Checkpoint</value>
+  </data>
+  <data name="Recovery_CheckpointMeta" xml:space="preserve">
+    <value>Schema {0} · {1} accounts · {2} rows</value>
+  </data>
+  <data name="Recovery_CheckpointNightly" xml:space="preserve">
+    <value>Nightly</value>
+  </data>
+  <data name="Recovery_CheckpointsHelp.Text" xml:space="preserve">
+    <value>Synthetic checkpoints · restore replaces current data after confirmation</value>
+  </data>
+  <data name="Recovery_DataFolder.Content" xml:space="preserve">
+    <value>Data folder…</value>
+  </data>
+  <data name="Recovery_FolderLabel.Text" xml:space="preserve">
+    <value>Data folder</value>
+  </data>
+  <data name="Recovery_FolderMessage" xml:space="preserve">
+    <value>Would open {0} in File Explorer. No action in demo.</value>
+  </data>
+  <data name="Recovery_FolderPreview" xml:space="preserve">
+    <value>{0} (preview only)</value>
+  </data>
+  <data name="Recovery_NewerSchemaNote" xml:space="preserve">
+    <value>Retry is unavailable: this build cannot migrate newer data. Diagnostics and checkpoint restore stay available.</value>
+  </data>
+  <data name="Recovery_PreviewDiagnostics.Content" xml:space="preserve">
+    <value>Preview diagnostics</value>
+  </data>
+  <data name="Recovery_Progress.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Recovery progress</value>
+  </data>
+  <data name="Recovery_Recovered" xml:space="preserve">
+    <value>Migration completed</value>
+  </data>
+  <data name="Recovery_Restore.Content" xml:space="preserve">
+    <value>Restore checkpoint…</value>
+  </data>
+  <data name="Recovery_RestoreFailed" xml:space="preserve">
+    <value>Restore failed: checkpoint verification did not match. Current data unchanged.</value>
+  </data>
+  <data name="Recovery_Restoring" xml:space="preserve">
+    <value>Restoring checkpoint…</value>
+  </data>
+  <data name="Recovery_RetryFailed" xml:space="preserve">
+    <value>Retry failed at step 3 of 5. Data was not modified. You can restore a checkpoint or inspect diagnostics.</value>
+  </data>
+  <data name="Recovery_Retrying" xml:space="preserve">
+    <value>Retrying migration…</value>
+  </data>
+  <data name="Recovery_RetryingButton" xml:space="preserve">
+    <value>Retrying…</value>
+  </data>
+  <data name="Recovery_RetryMigration" xml:space="preserve">
+    <value>Retry migration</value>
+  </data>
+  <data name="Recovery_RetryRestore" xml:space="preserve">
+    <value>Retry restore</value>
+  </data>
+  <data name="Recovery_SchemaLabel.Text" xml:space="preserve">
+    <value>Schema</value>
+  </data>
+  <data name="Recovery_Subtitle.Text" xml:space="preserve">
+    <value>Recovery · normal operation is paused until data is safe</value>
+  </data>
+  <data name="Recovery_Title_Interrupted" xml:space="preserve">
+    <value>A data migration did not finish</value>
+  </data>
+  <data name="Recovery_Title_NewerSchema" xml:space="preserve">
+    <value>This data was written by a newer version</value>
+  </data>
+  <data name="Recovery_Title_RestoreFailed" xml:space="preserve">
+    <value>The last restore did not complete</value>
+  </data>
+  <data name="Refresh_PolicyBatteryNotReduced" xml:space="preserve">
+    <value>Battery saver or a metered connection is active, but automatic refresh keeps its normal schedule because you turned reduction off. Manual refresh is always available.</value>
+  </data>
+  <data name="Refresh_PolicyNormal" xml:space="preserve">
+    <value>Automatic refresh follows the existing live policy. Manual refresh is always available.</value>
+  </data>
+  <data name="Refresh_PolicyReduced" xml:space="preserve">
+    <value>Battery saver or a metered connection is active: automatic refresh runs less often. Manual refresh is always available.</value>
+  </data>
+  <data name="RefreshAll_Dismiss.Content" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="RefreshAll_ResultFailures" xml:space="preserve">
+    <value>{0} updated · {1} failed ({2}) — cached readings kept</value>
+  </data>
+  <data name="RefreshAll_ResultMany" xml:space="preserve">
+    <value>{0} accounts updated</value>
+  </data>
+  <data name="RefreshAll_ResultOne" xml:space="preserve">
+    <value>{0} account updated</value>
+  </data>
+  <data name="Rename_ErrorEmpty" xml:space="preserve">
+    <value>Label cannot be empty.</value>
+  </data>
+  <data name="Rename_ErrorTooLong" xml:space="preserve">
+    <value>Keep the label under 80 characters.</value>
+  </data>
+  <data name="Replace_Busy" xml:space="preserve">
+    <value>Replacing…</value>
+  </data>
+  <data name="Replace_Confirm" xml:space="preserve">
+    <value>Replace</value>
+  </data>
+  <data name="Replace_ConfirmBody" xml:space="preserve">
+    <value>Accounts, labels, order, preferences and history on this device are replaced by the bundle contents. This cannot be undone.</value>
+  </data>
+  <data name="Replace_ConfirmTitle" xml:space="preserve">
+    <value>Replace all current data?</value>
+  </data>
+  <data name="Replace_InvalidChecksum" xml:space="preserve">
+    <value>Validation failed: the bundle checksum does not match. Nothing was changed.</value>
+  </data>
+  <data name="Replace_Valid" xml:space="preserve">
+    <value>Valid bundle · Schema {0} · {1} accounts · {2} history rows · exported {3}. Replacing overwrites everything on this device.</value>
+  </data>
+  <data name="Reset_In" xml:space="preserve">
+    <value>Resets {0}</value>
+  </data>
+  <data name="Reset_None" xml:space="preserve">
+    <value>No reset known</value>
+  </data>
+  <data name="Reset_NoneUnlimited" xml:space="preserve">
+    <value>No reset</value>
+  </data>
+  <data name="Reset_PassedAwaiting" xml:space="preserve">
+    <value>Reset passed · Awaiting update</value>
+  </data>
+  <data name="ResetSettings_Body" xml:space="preserve">
+    <value>Theme, density, notification rules and refresh preferences return to defaults. Accounts, labels, order and history are kept.</value>
+  </data>
+  <data name="ResetSettings_Confirm" xml:space="preserve">
+    <value>Reset settings</value>
+  </data>
+  <data name="ResetSettings_Title" xml:space="preserve">
+    <value>Reset settings?</value>
+  </data>
+  <data name="Restart_Body" xml:space="preserve">
+    <value>AI Usage closes, installs {0} and reopens. Monitoring pauses briefly. In this demo no process restarts.</value>
+  </data>
+  <data name="Restart_Busy" xml:space="preserve">
+    <value>Installing…</value>
+  </data>
+  <data name="Restart_Confirm" xml:space="preserve">
+    <value>Restart &amp; update</value>
+  </data>
+  <data name="Restart_Title" xml:space="preserve">
+    <value>Restart and update now?</value>
+  </data>
+  <data name="Restore_Body" xml:space="preserve">
+    <value>Current data is replaced by checkpoint {0}. Readings recorded after the checkpoint are lost.</value>
+  </data>
+  <data name="Restore_Busy" xml:space="preserve">
+    <value>Restoring…</value>
+  </data>
+  <data name="Restore_Confirm" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="Restore_Title" xml:space="preserve">
+    <value>Restore this checkpoint?</value>
+  </data>
+  <data name="Retention_Days30" xml:space="preserve">
+    <value>30 days</value>
+  </data>
+  <data name="Retention_Days90" xml:space="preserve">
+    <value>90 days</value>
+  </data>
+  <data name="Retention_KeepEverything" xml:space="preserve">
+    <value>Keep everything</value>
+  </data>
+  <data name="Retention_Year1" xml:space="preserve">
+    <value>1 year</value>
+  </data>
+  <data name="Row_Aria" xml:space="preserve">
+    <value>{0}, {1}. {2}. {3}. Position {4} of {5}</value>
+  </data>
+  <data name="Row_Cancel.Content" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Row_ContextsNote" xml:space="preserve">
+    <value>{0} contexts · showing {1}</value>
+  </data>
+  <data name="Row_Hidden" xml:space="preserve">
+    <value>hidden</value>
+  </data>
+  <data name="Row_HiddenMuted" xml:space="preserve">
+    <value>hidden · alerts muted</value>
+  </data>
+  <data name="Row_MonitoringStopped" xml:space="preserve">
+    <value>Monitoring stopped</value>
+  </data>
+  <data name="Row_NoMeasurement" xml:space="preserve">
+    <value>No measurement</value>
+  </data>
+  <data name="Row_NoWindows" xml:space="preserve">
+    <value>No windows reported</value>
+  </data>
+  <data name="Row_RefreshName" xml:space="preserve">
+    <value>Refresh {0}</value>
+  </data>
+  <data name="Row_SharedPoolGroup" xml:space="preserve">
+    <value>{0} · counted once</value>
+  </data>
+  <data name="Row_ShowAll" xml:space="preserve">
+    <value>Show all</value>
+  </data>
+  <data name="Row_ShowAllMany" xml:space="preserve">
+    <value>Show all · {0} more groups</value>
+  </data>
+  <data name="Row_ShowAllOne" xml:space="preserve">
+    <value>Show all · {0} more group</value>
+  </data>
+  <data name="Row_ShowLess" xml:space="preserve">
+    <value>Show less</value>
+  </data>
+  <data name="Row_SparklineCaption" xml:space="preserve">
+    <value>{0} · last 24 h</value>
+  </data>
+  <data name="Row_SwitchInDetail.Content" xml:space="preserve">
+    <value>switch in account detail</value>
+  </data>
+  <data name="Row_Updated.Text" xml:space="preserve">
+    <value>✓ Updated</value>
+  </data>
+  <data name="Row_Updating.Text" xml:space="preserve">
+    <value>Updating…</value>
+  </data>
+  <data name="Rules_AccountHeader" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Rules_AccountLabel" xml:space="preserve">
+    <value>All windows of this account</value>
+  </data>
+  <data name="Rules_AccountSub" xml:space="preserve">
+    <value>Account scope</value>
+  </data>
+  <data name="Rules_EditAction" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Rules_Editor.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Thresholds, percent</value>
+  </data>
+  <data name="Rules_Editor.PlaceholderText" xml:space="preserve">
+    <value>e.g. 25, 10, 0</value>
+  </data>
+  <data name="Rules_Error" xml:space="preserve">
+    <value>Enter unique whole numbers from 0 to 100, separated by commas. Any number of thresholds is allowed.</value>
+  </data>
+  <data name="Rules_GlobalLabel" xml:space="preserve">
+    <value>Global default</value>
+  </data>
+  <data name="Rules_GlobalSub" xml:space="preserve">
+    <value>Applies to every window without its own thresholds</value>
+  </data>
+  <data name="Rules_InheritedFrom" xml:space="preserve">
+    <value>Inherited from {0}</value>
+  </data>
+  <data name="Rules_Override" xml:space="preserve">
+    <value>Override</value>
+  </data>
+  <data name="Rules_OverrideAction" xml:space="preserve">
+    <value>Override</value>
+  </data>
+  <data name="Rules_ProviderSub" xml:space="preserve">
+    <value>Provider scope</value>
+  </data>
+  <data name="Rules_ResetInherited.Content" xml:space="preserve">
+    <value>Reset to inherited</value>
+  </data>
+  <data name="Rules_UnitRemaining" xml:space="preserve">
+    <value>% remaining</value>
+  </data>
+  <data name="Rules_UnitUsed" xml:space="preserve">
+    <value>% used</value>
+  </data>
+  <data name="Rules_Values" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="Rules_WindowLabelContext" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Rules_WindowTypeSub" xml:space="preserve">
+    <value>{0} · window type</value>
+  </data>
+  <data name="Scope_Account" xml:space="preserve">
+    <value>account</value>
+  </data>
+  <data name="Scope_Global" xml:space="preserve">
+    <value>global</value>
+  </data>
+  <data name="Scope_Provider" xml:space="preserve">
+    <value>provider</value>
+  </data>
+  <data name="Scope_Window" xml:space="preserve">
+    <value>window</value>
+  </data>
+  <data name="Scope_WindowType" xml:space="preserve">
+    <value>window type</value>
+  </data>
+  <data name="Settings_TabAppearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Settings_TabAppearanceButton.Content" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Settings_TabData" xml:space="preserve">
+    <value>Data &amp; privacy</value>
+  </data>
+  <data name="Settings_TabDataButton.Content" xml:space="preserve">
+    <value>Data &amp; privacy</value>
+  </data>
+  <data name="Settings_TabMonitoring" xml:space="preserve">
+    <value>Monitoring &amp; notifications</value>
+  </data>
+  <data name="Settings_TabMonitoringButton.Content" xml:space="preserve">
+    <value>Monitoring &amp; notifications</value>
+  </data>
+  <data name="Settings_TabsGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Settings sections</value>
+  </data>
+  <data name="Settings_TabUpdates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="Settings_TabUpdatesButton.Content" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="Settings_Title.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Sim_Approve" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Sim_ApproveNoQuota" xml:space="preserve">
+    <value>Approve · no quota</value>
+  </data>
+  <data name="Sim_Badge.Text" xml:space="preserve">
+    <value>Demo · simulated browser outcome</value>
+  </data>
+  <data name="Sim_Deny" xml:space="preserve">
+    <value>Deny</value>
+  </data>
+  <data name="Sim_Duplicate" xml:space="preserve">
+    <value>Duplicate identity</value>
+  </data>
+  <data name="Sim_Expire" xml:space="preserve">
+    <value>Let it expire</value>
+  </data>
+  <data name="State_Critical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="State_Exhausted" xml:space="preserve">
+    <value>Exhausted</value>
+  </data>
+  <data name="State_Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="State_Unavailable" xml:space="preserve">
+    <value>Not reported by provider</value>
+  </data>
+  <data name="State_Unknown" xml:space="preserve">
+    <value>No measurement</value>
+  </data>
+  <data name="State_Unlimited" xml:space="preserve">
+    <value>Unlimited, provider-reported</value>
+  </data>
+  <data name="State_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Status_BuildLine" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Status_ExitButton.Content" xml:space="preserve">
+    <value>Exit…</value>
+  </data>
+  <data name="Status_ExitHelp.Text" xml:space="preserve">
+    <value>Monitoring and alerts stop until you open the app again. Exit is also available from the tray menu and with Ctrl+Q.</value>
+  </data>
+  <data name="Status_ExitLabel.Text" xml:space="preserve">
+    <value>Exit AI Usage</value>
+  </data>
+  <data name="Status_HealthHelp.Text" xml:space="preserve">
+    <value>Reads state only. It never repairs, deletes or reconnects anything.</value>
+  </data>
+  <data name="Status_HealthLabel.Text" xml:space="preserve">
+    <value>Health check</value>
+  </data>
+  <data name="Status_HealthProgress.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Health check progress</value>
+  </data>
+  <data name="Status_OpenData.Content" xml:space="preserve">
+    <value>Data &amp; privacy</value>
+  </data>
+  <data name="Status_OpenUpdates.Content" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="Status_PreviewDiagnostics.Content" xml:space="preserve">
+    <value>Preview diagnostics</value>
+  </data>
+  <data name="Status_PreviewLog.Content" xml:space="preserve">
+    <value>Preview log</value>
+  </data>
+  <data name="Status_PreviewNote.Text" xml:space="preserve">
+    <value>Sanitized on-screen samples; nothing is written or sent.</value>
+  </data>
+  <data name="Status_ProvidersLabel.Text" xml:space="preserve">
+    <value>Providers</value>
+  </data>
+  <data name="Status_RefreshLabel.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Status_RefreshMany" xml:space="preserve">
+    <value>Last refresh {0} · {1} failures · {2}</value>
+  </data>
+  <data name="Status_RefreshOne" xml:space="preserve">
+    <value>Last refresh {0} · {1} failure · {2}</value>
+  </data>
+  <data name="Status_RunAgain.Content" xml:space="preserve">
+    <value>Run again</value>
+  </data>
+  <data name="Status_RunHealth.Content" xml:space="preserve">
+    <value>Run health check</value>
+  </data>
+  <data name="Status_ScheduleNormal" xml:space="preserve">
+    <value>normal schedule</value>
+  </data>
+  <data name="Status_ScheduleReduced" xml:space="preserve">
+    <value>reduced schedule (battery saver)</value>
+  </data>
+  <data name="Status_Storage" xml:space="preserve">
+    <value>{0} · {1} history rows · {2} checkpoints · {3} retention</value>
+  </data>
+  <data name="Status_StorageLabel.Text" xml:space="preserve">
+    <value>Storage</value>
+  </data>
+  <data name="Status_Title.Text" xml:space="preserve">
+    <value>System Status</value>
+  </data>
+  <data name="Status_UpdateLabel.Text" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="Summary_AccountsLabel.Text" xml:space="preserve">
+    <value>Accounts</value>
+  </data>
+  <data name="Summary_AttentionDetail" xml:space="preserve">
+    <value>{0} warning · {1} critical · {2} exhausted · {3} sign-in</value>
+  </data>
+  <data name="Summary_AttentionLabel.Text" xml:space="preserve">
+    <value>Need attention</value>
+  </data>
+  <data name="Summary_LowestLabel.Text" xml:space="preserve">
+    <value>Lowest remaining</value>
+  </data>
+  <data name="Summary_LowestUnavailable" xml:space="preserve">
+    <value>Unavailable · no comparable known percentages</value>
+  </data>
+  <data name="Summary_LowestValue" xml:space="preserve">
+    <value>{0} left</value>
+  </data>
+  <data name="Summary_NoReset" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="Summary_NoResetKnown" xml:space="preserve">
+    <value>No upcoming reset known</value>
+  </data>
+  <data name="Summary_ProvidersMany" xml:space="preserve">
+    <value>across {0} providers</value>
+  </data>
+  <data name="Summary_ProvidersOne" xml:space="preserve">
+    <value>across {0} provider</value>
+  </data>
+  <data name="Summary_ResetLabel.Text" xml:space="preserve">
+    <value>Next reset</value>
+  </data>
+  <data name="Summary_ResetSource" xml:space="preserve">
+    <value>{0} · {1} · {2}</value>
+  </data>
+  <data name="Summary_Scope" xml:space="preserve">
+    <value>Summary covers {0} visible accounts{1}{2} · minimum compares known percentages only (unknown, unavailable and unlimited excluded; shared pools counted once)</value>
+  </data>
+  <data name="Summary_ScopeExclDisconnected" xml:space="preserve">
+    <value> excl. disconnected</value>
+  </data>
+  <data name="Summary_ScopeInclHidden" xml:space="preserve">
+    <value> incl. hidden</value>
+  </data>
+  <data name="Summary_Source" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Summary_SourceStale" xml:space="preserve">
+    <value>{0} · {1} · stale</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="Theme_DarkDescription" xml:space="preserve">
+    <value>Always dark, regardless of Windows.</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Theme_LightDescription" xml:space="preserve">
+    <value>Always light, regardless of Windows.</value>
+  </data>
+  <data name="Theme_NoteFixed" xml:space="preserve">
+    <value>Fixed to {0}. Windows mode changes are ignored until you choose System.</value>
+  </data>
+  <data name="Theme_NoteHighContrast" xml:space="preserve">
+    <value>A Windows contrast theme is active and takes precedence.</value>
+  </data>
+  <data name="Theme_NoteSystem" xml:space="preserve">
+    <value>Following Windows: currently {0}. Changing Windows mode updates the app immediately.</value>
+  </data>
+  <data name="Theme_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="Theme_SystemDescription" xml:space="preserve">
+    <value>Follows the Windows app mode and changes with it.</value>
+  </data>
+  <data name="Theme_SystemLabel" xml:space="preserve">
+    <value>System ({0} now)</value>
+  </data>
+  <data name="Theme_WordDark" xml:space="preserve">
+    <value>dark</value>
+  </data>
+  <data name="Theme_WordLight" xml:space="preserve">
+    <value>light</value>
+  </data>
+  <data name="Time_InDays" xml:space="preserve">
+    <value>in {0} d</value>
+  </data>
+  <data name="Time_InDaysHours" xml:space="preserve">
+    <value>in {0} d {1} h</value>
+  </data>
+  <data name="Time_InHours" xml:space="preserve">
+    <value>in {0} h</value>
+  </data>
+  <data name="Time_InHoursMinutes" xml:space="preserve">
+    <value>in {0} h {1} m</value>
+  </data>
+  <data name="Time_InMinutes" xml:space="preserve">
+    <value>in {0} m</value>
+  </data>
+  <data name="Toast_Dismiss.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="Tray_Close.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Tray_CountMany" xml:space="preserve">
+    <value>{0} accounts · {1} need attention</value>
+  </data>
+  <data name="Tray_CountOne" xml:space="preserve">
+    <value>{0} account · {1} need attention</value>
+  </data>
+  <data name="Tray_Footer.Text" xml:space="preserve">
+    <value>Sorted by severity · no charts</value>
+  </data>
+  <data name="Tray_MenuExit.Text" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="Tray_MenuOpen.Text" xml:space="preserve">
+    <value>Open AI Usage</value>
+  </data>
+  <data name="Tray_MenuRefreshAll.Text" xml:space="preserve">
+    <value>Refresh all</value>
+  </data>
+  <data name="Tray_MenuSettings.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Tray_OpenDashboard.Content" xml:space="preserve">
+    <value>Open dashboard</value>
+  </data>
+  <data name="Tray_RefreshAll.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Refresh all</value>
+  </data>
+  <data name="Tray_RowAria" xml:space="preserve">
+    <value>{0}, {1}, {2} {3}, {4}</value>
+  </data>
+  <data name="Tray_Settings.Content" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Tray_TipAllHidden" xml:space="preserve">
+    <value>AI Usage · all accounts hidden</value>
+  </data>
+  <data name="Tray_TipAttention" xml:space="preserve">
+    <value>AI Usage · {0}: {1} ({2}) · {3}</value>
+  </data>
+  <data name="Tray_TipFreshness" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="Tray_TipNoAccounts" xml:space="preserve">
+    <value>AI Usage · no accounts connected</value>
+  </data>
+  <data name="Tray_TipNormal" xml:space="preserve">
+    <value>AI Usage · {0}</value>
+  </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>Version {0} is available.</value>
+  </data>
+  <data name="Update_BuildLine" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="Update_Checking" xml:space="preserve">
+    <value>Checking for updates…</value>
+  </data>
+  <data name="Update_Current" xml:space="preserve">
+    <value>You’re up to date.</value>
+  </data>
+  <data name="Update_CurrentInstalled" xml:space="preserve">
+    <value>You’re up to date · {0} installed.</value>
+  </data>
+  <data name="Update_Downloading" xml:space="preserve">
+    <value>Downloading {0}… {1}</value>
+  </data>
+  <data name="Update_Failed" xml:space="preserve">
+    <value>Could not reach the update feed. Your current version keeps working.</value>
+  </data>
+  <data name="Update_LastChecked" xml:space="preserve">
+    <value>Last checked {0}</value>
+  </data>
+  <data name="Update_NeverChecked" xml:space="preserve">
+    <value>Never checked</value>
+  </data>
+  <data name="Update_Ready" xml:space="preserve">
+    <value>Version {0} is ready. Restart to finish installing.</value>
+  </data>
+  <data name="Update_Unsupported" xml:space="preserve">
+    <value>Updates are managed outside the app.</value>
+  </data>
+  <data name="Update_Waiting" xml:space="preserve">
+    <value>Waiting for the next Stable release. Your Preview build keeps working until then.</value>
+  </data>
+  <data name="Updates_Channel.Text" xml:space="preserve">
+    <value>Update channel</value>
+  </data>
+  <data name="Updates_ChannelGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Update channel</value>
+  </data>
+  <data name="Updates_ChannelHelp.Text" xml:space="preserve">
+    <value>Switching Preview to Stable keeps the current build until the next Stable release</value>
+  </data>
+  <data name="Updates_Check.Content" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Updates_Checking.Text" xml:space="preserve">
+    <value>Checking…</value>
+  </data>
+  <data name="Updates_CompatibilityHeading.Text" xml:space="preserve">
+    <value>Compatibility</value>
+  </data>
+  <data name="Updates_CompatibilityHelp.Text" xml:space="preserve">
+    <value>When a build is no longer compatible with a provider interface, automatic refresh pauses and connections are disabled until you update; cached readings and History remain readable. A security block additionally cannot be dismissed or overridden.</value>
+  </data>
+  <data name="Updates_DemoBadge.Text" xml:space="preserve">
+    <value>Demo</value>
+  </data>
+  <data name="Updates_Download.Content" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Updates_Downloading.Content" xml:space="preserve">
+    <value>Downloading…</value>
+  </data>
+  <data name="Updates_DownloadProgress.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
+    <value>Download progress</value>
+  </data>
+  <data name="Updates_Heading.Text" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="Updates_Override.Content" xml:space="preserve">
+    <value>Override the compatibility block</value>
+  </data>
+  <data name="Updates_Restart.Content" xml:space="preserve">
+    <value>Restart &amp; update</value>
+  </data>
+  <data name="Updates_SimulateFailure.Content" xml:space="preserve">
+    <value>Simulate check failure</value>
+  </data>
+  <data name="Updates_ToggleCompat.Content" xml:space="preserve">
+    <value>Toggle compatibility block</value>
+  </data>
+  <data name="Updates_ToggleSecurity.Content" xml:space="preserve">
+    <value>Toggle security block</value>
+  </data>
+  <data name="Value_Unavailable" xml:space="preserve">
+    <value>Unavailable</value>
+  </data>
+  <data name="Value_UnitLeft" xml:space="preserve">
+    <value>left</value>
+  </data>
+  <data name="Value_UnitUsed" xml:space="preserve">
+    <value>used</value>
+  </data>
+  <data name="Value_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="Value_Unlimited" xml:space="preserve">
+    <value>Unlimited</value>
+  </data>
+  <data name="Window_MutedTag" xml:space="preserve">
+    <value> · muted</value>
+  </data>
 </root>

@@ -1,45 +1,162 @@
-<Window x:Class="AiUsage.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:dashboard="using:AiUsage.Features.Dashboard" xmlns:tray="using:H.NotifyIcon">
-  <ScrollViewer VerticalScrollBarVisibility="Auto">
-  <StackPanel Padding="32" Spacing="16" MaxWidth="880" HorizontalAlignment="Left">
-    <tray:TaskbarIcon x:Name="TrayIcon" AutomationProperties.AutomationId="TrayIcon" ToolTipText="AI Usage" LeftClickCommand="{x:Bind ViewModel.ShowCommand}" NoLeftClickDelay="True">
+<Window
+    x:Class="AiUsage.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    xmlns:platform="using:AiUsage.Platform"
+    xmlns:recovery="using:AiUsage.Features.Recovery"
+    xmlns:shell="using:AiUsage.Features.Shell"
+    xmlns:demo="using:AiUsage.Features.Demo"
+    xmlns:tray="using:H.NotifyIcon">
+  <Grid x:Name="RootGrid" Background="{ThemeResource AppBgBrush}" AutomationProperties.AutomationId="AppRoot">
+    <Grid.KeyboardAccelerators>
+      <KeyboardAccelerator Key="Q" Modifiers="Control" Invoked="OnExitAccelerator" />
+      <KeyboardAccelerator Key="F5" Invoked="OnRefreshAllAccelerator" />
+      <KeyboardAccelerator Key="Left" Modifiers="Menu" Invoked="OnBackAccelerator" />
+    </Grid.KeyboardAccelerators>
+
+    <tray:TaskbarIcon x:Name="TrayIcon" ToolTipText="{x:Bind Tray.ToolTip, Mode=OneWay}" NoLeftClickDelay="False"
+                      LeftClickCommand="{x:Bind Tray.ShowPopupCommand}" DoubleClickCommand="{x:Bind Tray.OpenDashboardCommand}">
+      <tray:TaskbarIcon.IconSource>
+        <tray:GeneratedIconSource x:Name="TrayGlyph" Text="●" FontSize="44" Foreground="#C8684A" />
+      </tray:TaskbarIcon.IconSource>
       <tray:TaskbarIcon.ContextFlyout>
         <MenuFlyout>
-          <MenuFlyoutItem x:Uid="TrayShow" AutomationProperties.AutomationId="TrayShow" Command="{x:Bind ViewModel.ShowCommand}" />
-          <MenuFlyoutItem x:Uid="TrayExit" AutomationProperties.AutomationId="TrayExit" Command="{x:Bind ViewModel.ExitCommand}" />
+          <MenuFlyoutItem x:Uid="Tray_MenuOpen" Command="{x:Bind Tray.OpenDashboardCommand}" />
+          <MenuFlyoutItem x:Uid="Tray_MenuRefreshAll" Command="{x:Bind Tray.RefreshAllCommand}" />
+          <MenuFlyoutItem x:Uid="Tray_MenuSettings" Command="{x:Bind Tray.OpenSettingsCommand}" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem x:Uid="Tray_MenuExit" Command="{x:Bind Tray.ExitCommand}" />
         </MenuFlyout>
       </tray:TaskbarIcon.ContextFlyout>
     </tray:TaskbarIcon>
-    <TextBlock x:Uid="DashboardHeading" AutomationProperties.AutomationId="DashboardHeading" Style="{StaticResource TitleTextBlockStyle}" />
-    <ComboBox x:Name="ProviderPicker" x:Uid="ProviderPicker" AutomationProperties.AutomationId="ProviderPicker" ItemsSource="{x:Bind ViewModel.Providers}" DisplayMemberPath="ProviderName" SelectedItem="{x:Bind ViewModel.Selected, Mode=TwoWay}" SelectionChanged="ProviderChanged" MinWidth="200" />
-    <TextBlock AutomationProperties.AutomationId="UnsupportedNotice" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.NoticeText, Mode=OneWay}" Style="{StaticResource CaptionTextBlockStyle}" />
-    <TextBlock AutomationProperties.AutomationId="StatusText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.StatusText, Mode=OneWay}" />
-    <TextBlock AutomationProperties.AutomationId="PlanText" Text="{x:Bind ViewModel.Selected.PlanText, Mode=OneWay}" />
-    <ItemsControl AutomationProperties.AutomationId="QuotaWindows" ItemsSource="{x:Bind ViewModel.Selected.Windows, Mode=OneWay}">
-      <ItemsControl.ItemTemplate>
-        <DataTemplate x:DataType="dashboard:QuotaWindowItem">
-          <StackPanel Margin="0,0,0,12" Spacing="2">
-            <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}" />
-            <TextBlock Text="{x:Bind Remaining}" />
-            <TextBlock Text="{x:Bind Resets}" Style="{StaticResource CaptionTextBlockStyle}" />
-          </StackPanel>
-        </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
-    <TextBlock AutomationProperties.AutomationId="ExtraUsageText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.ExtraUsageText, Mode=OneWay}" />
-    <TextBlock AutomationProperties.AutomationId="ProviderFailureText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.FailureText, Mode=OneWay}" />
-    <StackPanel Spacing="8" Visibility="{x:Bind VisibleWhen(ViewModel.Selected.ManualEntryVisible), Mode=OneWay}">
-      <TextBlock x:Uid="ManualCodeHelp" TextWrapping="Wrap" />
-      <PasswordBox x:Name="ManualCode" x:Uid="ManualCode" AutomationProperties.AutomationId="ManualCode" MaxLength="65536" PasswordRevealMode="Hidden" />
-      <Button x:Uid="SubmitCodeButton" AutomationProperties.AutomationId="SubmitCodeButton" Click="SubmitCode" />
-    </StackPanel>
-    <TextBlock x:Name="FailureMessage" TextWrapping="Wrap" Visibility="Collapsed" />
-    <StackPanel Orientation="Horizontal" Spacing="12">
-      <Button x:Name="ConnectButton" AutomationProperties.AutomationId="ConnectButton" Content="{x:Bind ViewModel.Selected.ConnectText, Mode=OneWay}" Command="{x:Bind ViewModel.Selected.ConnectCommand, Mode=OneWay}" AccessKey="C" />
-      <Button x:Name="RefreshButton" x:Uid="RefreshButton" AutomationProperties.AutomationId="RefreshButton" Command="{x:Bind ViewModel.Selected.RefreshCommand, Mode=OneWay}" AccessKey="R" />
-      <Button x:Name="DisconnectButton" x:Uid="DisconnectButton" AutomationProperties.AutomationId="DisconnectButton" Command="{x:Bind ViewModel.Selected.DisconnectCommand, Mode=OneWay}" AccessKey="D" />
-      <Button x:Uid="CancelButton" AutomationProperties.AutomationId="CancelButton" Command="{x:Bind ViewModel.Selected.CancelCommand, Mode=OneWay}" />
-      <Button x:Name="ExitButton" x:Uid="ExitButton" AutomationProperties.AutomationId="ExitButton" Command="{x:Bind ViewModel.ExitCommand}" AccessKey="X" />
-    </StackPanel>
-  </StackPanel>
-  </ScrollViewer>
+
+    <controls:ScalePanel x:Name="Scaler">
+      <Grid x:Name="WindowContent" Background="{ThemeResource AppBgBrush}">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="32" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Title bar: accent mark, name and the demo marker (opens the demo controls). -->
+        <Grid x:Name="AppTitleBar" Padding="14,0,0,0" ColumnSpacing="10">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Ellipse Width="14" Height="14" Fill="{ThemeResource AccentBrush}" VerticalAlignment="Center" />
+          <TextBlock Grid.Column="1" x:Uid="AppTitleText" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextBrush}" />
+          <Button x:Name="DemoMarker" Grid.Column="2" AutomationProperties.AutomationId="DemoMarker" Visibility="{x:Bind controls:Bind.Visible(Shell.IsDemo)}"
+                  Style="{StaticResource SecondaryButton}" Background="Transparent" CornerRadius="10" Padding="8,0,8,1" MinHeight="0" FontSize="11" Foreground="{ThemeResource Text2Brush}"
+                  Content="{x:Bind Shell.DemoMarker, Mode=OneWay}" Command="{x:Bind Demo.TogglePanelCommand}" VerticalAlignment="Center">
+            <ToolTipService.ToolTip>
+              <ToolTip x:Uid="Demo_MarkerTip" />
+            </ToolTipService.ToolTip>
+          </Button>
+        </Grid>
+
+        <Grid Grid.Row="1">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <!-- S11 Recovery replaces the shell while data is unsafe; the demo controls stay reachable beside it. -->
+          <recovery:RecoveryView ViewModel="{x:Bind Recovery}" Visibility="{x:Bind controls:Bind.Visible(Shell.IsRecovery), Mode=OneWay}" />
+
+          <Grid x:Name="ShellColumn" Visibility="{x:Bind controls:Bind.Collapsed(Shell.IsRecovery), Mode=OneWay}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Header: top navigation and actions. Below 720 px the actions move under the navigation. -->
+            <Border x:Name="HeaderHost" Margin="40,0,40,0" BorderBrush="{ThemeResource StrokeBrush}" BorderThickness="0,0,0,1">
+              <Grid x:Name="HeaderGrid" MinHeight="48" ColumnSpacing="22">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <controls:WrapPanel x:Name="NavBar" HorizontalSpacing="22" VerticalAlignment="Bottom" AutomationProperties.AutomationId="MainNavigation" x:Uid="Nav_Main" XYFocusKeyboardNavigation="Enabled" controls:ArrowNavigation.Enabled="True"
+                                    TabFocusNavigation="Once">
+                  <RadioButton x:Uid="Nav_Overview" AutomationProperties.AutomationId="NavOverview" Tag="Overview" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
+                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 0), Mode=OneWay}" />
+                  <RadioButton x:Uid="Nav_Accounts" AutomationProperties.AutomationId="NavAccounts" Tag="Accounts" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
+                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 1), Mode=OneWay}" />
+                  <RadioButton x:Uid="Nav_History" AutomationProperties.AutomationId="NavHistory" Tag="History" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
+                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 2), Mode=OneWay}" />
+                  <RadioButton x:Uid="Nav_Settings" AutomationProperties.AutomationId="NavSettings" Tag="Settings" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
+                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 3), Mode=OneWay}" />
+                  <RadioButton x:Uid="Nav_SystemStatus" AutomationProperties.AutomationId="NavSystemStatus" Tag="SystemStatus" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
+                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 4), Mode=OneWay}" />
+                </controls:WrapPanel>
+                <StackPanel x:Name="HeaderActions" Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="0,6,0,10">
+                  <Button AutomationProperties.AutomationId="RefreshAllButton" Style="{StaticResource SecondaryButton}" MinWidth="118"
+                          Command="{x:Bind Shell.RefreshAllCommand}" AutomationProperties.Name="{x:Bind Shell.RefreshAllLabel, Mode=OneWay}"
+                          ToolTipService.ToolTip="{x:Bind Shell.RefreshAllDisabledReason, Mode=OneWay}">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                      <controls:RefreshGlyph IsSpinning="{x:Bind Shell.IsRefreshingAll, Mode=OneWay}" Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Bind Shell.RefreshAllLabel, Mode=OneWay}" />
+                    </StackPanel>
+                  </Button>
+                  <Button x:Uid="Header_AddAccountButton" AutomationProperties.AutomationId="AddAccountButton" Style="{StaticResource PrimaryButton}" Command="{x:Bind Shell.AddAccountCommand}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+
+            <!-- Compatibility banner and Refresh-all result bar. -->
+            <StackPanel x:Name="BannerHost" Grid.Row="1" Margin="40,0,40,0">
+              <Border AutomationProperties.AutomationId="CompatibilityBanner" Margin="0,14,0,0" CornerRadius="6" BorderThickness="1" Padding="14,10"
+                      Visibility="{x:Bind controls:Bind.Visible(Shell.ShowCompatibilityBanner), Mode=OneWay}"
+                      controls:Tokens.Background="{x:Bind BannerBackground(Shell.CompatibilityIsSecurity), Mode=OneWay}"
+                      controls:Tokens.Border="{x:Bind BannerBorder(Shell.CompatibilityIsSecurity), Mode=OneWay}" controls:Motion.Entrance="True">
+                <Grid ColumnSpacing="10">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="!" FontWeight="Bold" FontSize="13" controls:Tokens.Foreground="{x:Bind BannerGlyph(Shell.CompatibilityIsSecurity), Mode=OneWay}" />
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="{x:Bind Shell.CompatibilityTitle, Mode=OneWay}" Style="{StaticResource Body13StrongText}" />
+                    <TextBlock Text="{x:Bind Shell.CompatibilityBody, Mode=OneWay}" Style="{StaticResource Body13SecondaryText}" Margin="0,2,0,0" LineHeight="19" />
+                  </StackPanel>
+                  <Button Grid.Column="2" x:Uid="Compat_UpdatesButton" AutomationProperties.AutomationId="CompatibilityUpdates" Style="{StaticResource SmallSecondaryButton}" VerticalAlignment="Top" Command="{x:Bind Shell.OpenUpdatesCommand}" />
+                </Grid>
+              </Border>
+              <Border AutomationProperties.AutomationId="RefreshAllResult" Margin="0,14,0,0" Style="{StaticResource QuietNote}" Visibility="{x:Bind controls:Bind.Visible(Shell.ShowResult), Mode=OneWay}" controls:Motion.Entrance="True">
+                <Grid ColumnSpacing="10">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{x:Bind ResultGlyph(Shell.ResultHasFailures), Mode=OneWay}" FontWeight="Bold" FontSize="13" VerticalAlignment="Center"
+                             controls:Tokens.Foreground="{x:Bind ResultBrush(Shell.ResultHasFailures), Mode=OneWay}" />
+                  <TextBlock Grid.Column="1" Text="{x:Bind Shell.ResultText, Mode=OneWay}" Style="{StaticResource Body13Text}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+                  <Button Grid.Column="2" x:Uid="RefreshAll_Dismiss" AutomationProperties.AutomationId="RefreshAllDismiss" Style="{StaticResource QuietLinkButton}" Command="{x:Bind Shell.DismissResultCommand}" />
+                </Grid>
+              </Border>
+            </StackPanel>
+
+            <Frame x:Name="ContentFrame" Grid.Row="2" IsNavigationStackEnabled="False" />
+          </Grid>
+
+          <demo:DemoPanel Grid.Column="1" ViewModel="{x:Bind Demo}" Width="300" Visibility="{x:Bind controls:Bind.Visible(Demo.IsPanelOpen), Mode=OneWay}" />
+        </Grid>
+
+        <shell:ToastPreview Grid.Row="1" ViewModel="{x:Bind Shell.Toast}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16" />
+      </Grid>
+    </controls:ScalePanel>
+
+    <TextBlock x:Name="LiveRegion" AutomationProperties.AutomationId="LiveRegion" AutomationProperties.LiveSetting="Polite" Opacity="0" IsHitTestVisible="False" Width="1" Height="1"
+               HorizontalAlignment="Left" VerticalAlignment="Top" />
+  </Grid>
 </Window>

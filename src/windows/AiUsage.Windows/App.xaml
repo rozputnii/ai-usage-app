@@ -1,5 +1,16 @@
-<Application x:Class="AiUsage.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Application
+    x:Class="AiUsage.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls">
   <Application.Resources>
-    <ResourceDictionary><ResourceDictionary.MergedDictionaries><XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" /></ResourceDictionary.MergedDictionaries></ResourceDictionary>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+        <ResourceDictionary Source="ms-appx:///Themes/Tokens.xaml" />
+        <ResourceDictionary Source="ms-appx:///Themes/Styles.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+      <controls:PassThroughConverter x:Key="PassThrough" />
+    </ResourceDictionary>
   </Application.Resources>
 </Application>

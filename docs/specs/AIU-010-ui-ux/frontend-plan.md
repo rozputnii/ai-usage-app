@@ -29,17 +29,22 @@ The Design Specification is the authoritative written companion. It supplies tok
 
 ### Design decisions that differ from earlier AIU-010 documents
 
-The imported design records these as owner review decisions. The brief makes the design the visual reference, so implementation follows the design. Contract changes go into ui-contract.md in the phase-1 diff. Items marked "owner" appear in the delivery report as open choices and are not blockers.
+The imported design records these as owner review decisions. The owner `/goal` of 2026-09-15 settles precedence: visual approval does not authorize changing quota semantics, notification threshold defaults or removing required override scopes. Written functional requirements (accepted decisions, ui-contract.md, screens.md, fixtures.json) are preserved and the selected visual design is adapted to them. "Resolution" is what the implementation does. Contract extensions go into ui-contract.md in the phase-1 diff. Items marked "owner" are open choices reported at delivery; none blocks implementation.
 
-| # | Earlier text | Imported design | Implementation |
+| # | Earlier text | Imported design | Resolution (implemented) |
 |---|---|---|---|
-| D1 | Thresholds are remaining-percent `[25,10,0]` with Global/Provider/Account/Window scopes (ui-contract, screens S06, fixtures F10) | Thresholds are used-percent integers 1–99 of any count; default global `[50,80]`; scopes are Global plus provider × window type; highest threshold is critical; per-account overrides dropped | Follow the design; extend `NotificationRule` (spec §12). F10 transitions are adapted: "account threshold" becomes "window-type override". Owner: confirm `[50,80]` vs `[20,50]` and the dropped per-account scope |
-| D2 | No setting for used vs remaining | `Preferences.usageDisplay` Used/Remaining, default Used; flips meters, values, ticks, chart and threshold unit | Follow the design; derive the other value for display only |
-| D3 | S01 Overview shows counts, lowest known remaining, nearest reset and warning/critical/reauth counts | Headline summary strip removed per owner review; rows are grouped by provider with manual order inside each provider; the tray shows "n accounts · m need attention" | Follow the design. Keep the summary computation in `OverviewViewModel` (tested, shared-pool-once) for the tray and accessibility. Owner: S01 summary gap |
-| D4 | Status never relies on colour alone | ▲/● glyphs and used/left suffix removed; severity by colour and threshold-tick position; accessible names keep the state word | Follow the design; keep state words in automation names. Owner: allow glyphs in High Contrast only |
-| D5 | Failure with Retry | Retry removed; failure line shows message plus "Automatic retry at …"; row Refresh is the manual retry; Reconnect for sign-in-required | Follow the prototype |
-| D6 | Neutral provider marks by default | Custom glyph tiles with provider-associated hues (Codex ink `›_`, Claude `#D77655` `✳`, Copilot `#5B6CFF` `⊙`, Antigravity `#1BA39C` `↑`), pending rights review | Follow the design, isolating tile colours into one resource dictionary so a neutral monogram is a single swap |
-| D7 | Scenario catalog F01–F15 | Prototype selector splits F13 into a/b/c and F14 into a/b, and omits separately selectable F04/F05/F07–F12 | Native scenario selector offers the prototype list plus every F ID, with interaction entry points for F05/F10/F11/F12 |
+| D1 | Remaining-percent thresholds `[25,10,0]` with Global → Provider → Account → Window scopes (D-123, ui-contract, S06, F10) | Used-percent integers 1–99 of any count; default `[50,80]` used; Global plus provider × window type; highest threshold critical; per-account overrides dropped | Written semantics kept: `NotificationRule.remainingThresholds` stays remaining-percent, unique whole numbers 0–100, any count, default global `[25,10,0]`. Global, Provider, Account and Window are all editable. The design's provider × window type scope is kept as an extra `WindowType` scope (target `providerId::windowLabel`); a window resolves Window → Account → WindowType → Provider → Global. Values are entered and shown in the current usage-display unit and converted without mutating stored values. Severity: `0` means exhaustion; the smallest crossed nonzero threshold is critical and larger ones are warnings (the design's "last threshold is critical" applied to nonzero thresholds). Owner: placement of `WindowType` |
+| D2 | No setting for used vs remaining; D-079 remaining percentage is primary | `Preferences.usageDisplay` Used/Remaining, default Used | Display-only extension, default **Remaining** (D-079). Used is derived for display only and never stored. Owner: default Used if D-079 is amended |
+| D3 | S01/D-115 counts, lowest known remaining and nearest reset with source/freshness, warning/critical/reauth counts | Headline summary strip removed; tray "n accounts · m need attention" | Summary restored above the provider rows with the specification's headline-stat component (§4, display-40/300) and scope line (`Overview.Summary.Scope`); shared pools counted once. Provider grouping and manual order kept |
+| D4 | D-119 status cannot rely on colour alone | ▲/● glyphs and used/left suffix removed | Glyphs restored in all themes: ▲ warning, ● critical, "0 %" exhausted, dotted hatch plus text for unknown/unavailable, dashed pattern plus "Unlimited", ◷ stale. Values carry "left"/"used". Ticks kept |
+| D5 | Failure with Retry (spec §6 and §12 "no retryAt → immediate Retry") | Retry removed; row Refresh is the manual retry | Recoverable failure shows Retry. A future `retryAt` adds "Automatic retry at …"; `RateLimited` disables Retry until `retryAt` ("Retry available at …"). Sign-in required shows Reconnect |
+| D6 | D-121 neutral fallback marks until brand review | Glyph tiles with provider hues pending rights review | Neutral tiles by default (card2 surface, ink glyph). Hue dictionary kept; demo switch "Provider tile hues (pending rights review)" shows the designed colours. Owner: hues after rights review |
+| D7 | Scenario catalog F01–F15 | Selector splits F13 a/b/c and F14 a/b; omits F04/F05/F07–F12 | Selector lists every F ID plus the prototype sub-scenarios. F04–F12 load their seed and open the surface that demonstrates them |
+| D8 | D-093 disconnected accounts hidden by default | `showDisconnected` default true | Default false; Show disconnected in Accounts and Settings › Appearance |
+| D9 | D-126 tray: Re-auth > Offline/Error > Critical > Warning > Normal | sign-in › exhausted › critical › warning › stale › ok | Re-auth › failure › exhausted › critical › warning › stale › normal; tooltip names cause, freshness and account |
+| D10 | D-122 dashboard sparklines; S04 "sparkline and detailed chart" | No sparkline | 24 h sparkline in the account detail hero and in expanded Overview rows, from `IHistorySource` |
+| D11 | D-106 power override; D-168 Preview may override a compatibility block | Simulation toggles only | "Reduce automatic refresh on battery saver or metered connection" switch (default on). Preview channel offers a local compatibility-block override; security blocks never |
+| D12 | Existing lifetime has an in-window Exit | Exit only in tray menu, confirmed | Tray menu Exit with confirmation as designed, plus "Exit AI Usage" in System Status and Ctrl+Q, both confirmed, so Exit never depends on the notification area |
 
 ### Imported surfaces → S IDs
 
@@ -65,7 +70,7 @@ Design coverage gaps against earlier written requirements, closed by extending e
 - S02 drag reorder exists only on Overview; detail uses menu Move up/down, which matches the design.
 - S03 method-specific copy is generic.
 - S04 context and group filters are folded into the window select labels ("Workspace A · Usage limits · Session window").
-- S06 per-account overrides are dropped (D1).
+- S06 account and window overrides are not drawn in the design; they reuse the designed rule row inside a per-account expander (D1).
 - S09 shows no separate storage/schema error state; `SystemStatus.health`/`recovery` cover it.
 - S12 `Unsupported` update state appears only as text.
 - F15 "Hide to tray → no decorative animation" is shown as a placeholder in the prototype; natively the window really hides.
@@ -84,7 +89,7 @@ src/windows/AiUsage.Windows/
                          (IUiDispatcher, INavigationService, IDialogService, IThemeService, IMotionSettings,
                          IAnnouncer, ITextResources, IAppLifetime, IClock) and shared view-model helpers
     Demo/                DemoClock, DemoScenarioCatalog (F01–F15 seeds), DemoState, all mock service
-                         implementations, DemoControlViewModel, DemoPanel view, AddDemoServices()
+                         implementations, DemoControlViewModel, DemoPanel view
     Shell/               ShellViewModel, navigation keys, ShellPage, banners, result bar, ConfirmDialog, ToastPreview
     Overview/            OverviewViewModel, ProviderSectionViewModel, AccountRowViewModel, OverviewPage
     Accounts/            AccountsViewModel, AccountDetailViewModel, Context/QuotaGroup/QuotaWindow view models,
@@ -139,7 +144,7 @@ Host abstractions (`Features/Presentation/`) that `Platform/` implements and tes
 
 ### Composition
 
-`App.xaml.cs` builds the existing `Microsoft.Extensions.Hosting` container from `AddPresentationFeatures()`, `AddPlatformServices()` and `AddDemoServices()` only. The Windows csproj keeps its existing `ProjectReference`s to Core and Infrastructure, so project wiring stays unchanged for Codex. However, no new or retained Windows source outside the untouched backend projects may use `AiUsage.Core` or `AiUsage.Infrastructure` namespaces, register provider sessions or touch provider storage. `DependencyBoundaryTests` scans `AiUsage.Windows` sources (excluding `bin`/`obj`) to enforce this for this delivery. Close-to-tray, tray restore and explicit Exit keep the existing lifetime semantics through `IAppLifetime`. Codex later adds adapter implementations and an `AddLiveServices()` registration inside `AiUsage.Windows` behind the same interfaces, relaxing the boundary test only for that adapter folder.
+`App.xaml.cs` builds the existing `Microsoft.Extensions.Hosting` container from `AddPresentationFeatures()`, `AddPlatformServices()` and `AddDemoServices()` only. These registration extensions live in `src/windows/AiUsage.Windows/Composition/` rather than `Features/`, so the platform-neutral test compile needs no dependency-injection package. The Windows csproj keeps its existing `ProjectReference`s to Core and Infrastructure, so project wiring stays unchanged for Codex. However, no new or retained Windows source outside the untouched backend projects may use `AiUsage.Core` or `AiUsage.Infrastructure` namespaces, register provider sessions or touch provider storage. `DependencyBoundaryTests` scans `AiUsage.Windows` sources (excluding `bin`/`obj`) to enforce this for this delivery. Close-to-tray, tray restore and explicit Exit keep the existing lifetime semantics through `IAppLifetime`. Codex later adds adapter implementations and an `AddLiveServices()` registration inside `AiUsage.Windows` behind the same interfaces, relaxing the boundary test only for that adapter folder.
 
 ## Dependencies
 
@@ -166,14 +171,14 @@ Each phase ends with its checks passing and a tasks.md update. Phases run in dep
 1. Read the project metadata and file list, then read the prototype, `support.js`, the specification, the reference views and the directions study.
 2. Save them under `design-reference/` with a README giving the revision and hashes.
 3. Enumerate surfaces and map them to S IDs (above). Tokens, type, motion and copy stay in the specification; phase 2 transcribes them into XAML resources and `Resources.resw`, reading the saved specification directly.
-4. Record design decisions that differ from earlier documents (D1–D7) and design gaps (above).
+4. Record design decisions that differ from earlier documents (D1–D7, extended to D12 and resolved per the owner `/goal`) and design gaps (above).
 
 ### Phase 1 - Presentation contracts, mock services and composition (T-04)
 
 Paths: `src/windows/AiUsage.Windows/Features/{Presentation,Demo}/**`, service interfaces in the consuming `Features/<Feature>/` folders, `App.xaml(.cs)`, `tests/windows/AiUsage.Presentation.Tests/**`. The solution and project list do not change.
 
 1. Update `tests/windows/AiUsage.Presentation.Tests/AiUsage.Presentation.Tests.csproj` to compile `../../../src/windows/AiUsage.Windows/Features/**/*.cs` excluding `**/*.xaml.cs`, and extend `DependencyBoundaryTests` with the testability and no-backend-usage rules above.
-2. Implement the contract records/enums from ui-contract.md in `Features/Presentation/` with nullable measurements and native units, plus the design-required extensions from specification §12 and D1/D2: `Preferences.usageDisplay`, WindowType threshold rules in used percent, `WindowItem.primary`, `ContextItem.available`, `SystemStatus.updateVersion/updateProgress/refreshPolicy/notificationsAllowed/quietHours` and a refresh-all result summary. Document them in ui-contract.md in the same diff.
+2. Implement the contract records/enums from ui-contract.md in `Features/Presentation/` with nullable measurements and native units, plus the design-required extensions from specification §12 as resolved in D1/D2: `Preferences.usageDisplay` (default Remaining), the additional `WindowType` rule scope with remaining-percent thresholds, `WindowItem.primary`, `ContextItem.available`, `SystemStatus.updateVersion/updateProgress/refreshPolicy/notificationsAllowed/quietHours` and a refresh-all result summary. Document them in ui-contract.md in the same diff.
 3. Implement `DemoClock`, `DemoScenarioCatalog` (C# seeds matching fixtures.json IDs F01–F15, with a test asserting parity against the docs catalog) and `DemoState` (revisioned, resettable).
 4. Implement every mock service with deterministic stages, success/failure/cancel/empty/unknown/stale/partial outcomes selected by scenario or forced outcome, and delays driven by the demo clock or short fixed `Task.Delay` injected through `IClock` so tests run instantly.
 5. Replace the Windows composition with presentation, platform and demo services only. Keep the csproj references unchanged. Delete the obsolete `Features/Dashboard/*` presentation code and its obsolete view-model tests (`DashboardViewModelTests`, `ProviderDashboardTests`), replacing their behavioural intent with new tests. Retain `DashboardWorkflowTests` (Core).
@@ -202,7 +207,7 @@ Paths (under `src/windows/AiUsage.Windows/`): `Themes/**`, `Controls/**`, `Motio
 
 1. `HistoryViewModel`: account/context/group/window filters, presets 24h/7d/30d/90d/1y/Custom with range validation, loading/empty/disabled/partial, segments broken at gaps and resets, tooltip data with timestamp and unit, sparkline plus detailed chart control.
 2. `AppearanceSettingsViewModel`: theme System/Light/Dark with immediate application, density if designed, always-on-top, order/visibility management with keyboard equivalents.
-3. `MonitoringSettingsViewModel`/`ThresholdRuleViewModel` per design D1/D2: Used/Remaining display mode, global `[50,80]` used-percent default, provider × window-type overrides, validation of unique integers 1–99, override and reset-to-inherited, quiet/OS-blocked explanation, power/metered reasons, manual refresh retained, preview notification in-app only.
+3. `MonitoringSettingsViewModel`/`ThresholdRuleViewModel` per resolved D1/D2: Used/Remaining display mode (default Remaining), global `[25,10,0]` remaining-percent default, Provider, WindowType, Account and Window overrides, validation of unique whole numbers 0–100 entered in the display unit, override and reset-to-inherited, quiet/OS-blocked explanation, power/metered reasons, manual refresh retained, preview notification in-app only.
 4. Tests: F09, F10.
 
 ### Phase 5 - CLI import, diagnostics, data management, recovery and updates (T-08; S08–S12)
@@ -251,74 +256,76 @@ Host facts observed 2026-09-15: SDK 10.0.401, Windows App Runtime 2.4.0.0 x64 in
 
 Evidence values are `not-run` until a check actually passes. "Design" records whether the imported artifact covers the surface: `Designed` means the prototype renders it; `Partial` means the design covers it with the gaps or decisions noted above.
 
+Evidence naming, filled on 2026-09-16 from the run recorded in [verification.md](verification.md): a bare class name is an xUnit class in `tests/windows/AiUsage.Presentation.Tests` (100 tests, all passing); "smoke &lt;scenario&gt;" is a scenario of `ShellSmoke` in `tests/windows/AiUsage.Windows.Tests` driving the built unpackaged app through UI Automation (6 scenarios, all passing); `evidence/…` paths are screenshots under the host-local, git-ignored `.ai-usage-local/AIU-010/evidence/` (`manual/` holds captures driven by hand through UI Automation, the rest are written by the smoke run).
+
 ### Imported design surfaces
 
 | Design surface | S ID | View | View model | Evidence |
 |---|---|---|---|---|
-| Shell: top nav, header actions, compatibility banner, result bar | shared | `MainWindow`, `Features/Shell/ShellPage` | `ShellViewModel` | not-run |
-| Demo shell and in-page simulators | shared | `Features/Demo/DemoPanel` | `DemoControlViewModel` | not-run |
-| Overview route | S01 | `OverviewPage` | `OverviewViewModel` | not-run |
-| Accounts route | S02 | `AccountsPage` | `AccountsViewModel`, `AccountDetailViewModel` | not-run |
-| Add account · Sign in | S03 | `AddAccountDialog` (Sign in tab) | `AddAccountViewModel` | not-run |
-| Add account · Import from CLI | S08 | `AddAccountDialog` (CLI tab) | `CliImportViewModel` | not-run |
-| History route | S04 | `HistoryPage` | `HistoryViewModel` | not-run |
-| Settings › Appearance | S05 | `AppearanceSettingsPage` | `AppearanceSettingsViewModel` | not-run |
-| Settings › Monitoring & notifications | S06 | `MonitoringSettingsPage` | `MonitoringSettingsViewModel` | not-run |
-| Settings › Data & privacy | S10 | `DataPrivacyPage` | `DataPrivacyViewModel` | not-run |
-| Settings › Updates | S12 | `UpdatesPage` | `UpdatesViewModel` | not-run |
-| System Status route | S09 | `SystemStatusPage` | `SystemStatusViewModel` | not-run |
-| Tray popup, tray menu, hide to tray | S07 | `TrayPopup`, tray `MenuFlyout` | `TrayViewModel` | not-run |
-| Recovery surface | S11 | `RecoveryPage` | `RecoveryViewModel` | not-run |
-| Confirm dialog | shared | `ConfirmDialog` | `ConfirmDialogViewModel` | not-run |
-| Notification toast preview | S06 | `ToastPreview` | `ToastPreviewViewModel` | not-run |
-| Skeletons | shared | `SkeletonBlock` in Overview and History | `LoadState` on page view models | not-run |
+| Shell: top nav, header actions, compatibility banner, result bar | shared | `MainWindow`, `Features/Shell/*` | `ShellViewModel` | PASS ShellAndTrayTests; smoke launch + navigation; evidence/launch.png |
+| Demo shell and in-page simulators | shared | `Features/Demo/DemoPanel` | `DemoControlViewModel` | PASS ScenarioCatalogTests; smoke asserts DemoMarker; evidence/manual/f15b.png |
+| Overview route | S01 | `Features/Overview/OverviewPage` | `OverviewViewModel` | PASS OverviewTests; smoke navigation; evidence/page-NavOverview.png |
+| Accounts route | S02 | `Features/Accounts/AccountsPage` | `AccountsViewModel`, `AccountDetailViewModel` | PASS AccountTests; smoke navigation; evidence/page-NavAccounts.png |
+| Add account · Sign in | S03 | `Features/Connection/AddAccountDialog` (Sign in tab) | `AddAccountViewModel` | PASS ConnectionTests; evidence/manual/sheet-method.png, sheet-result.png |
+| Add account · Import from CLI | S08 | `Features/CliImport/CliImportView` (CLI tab) | `CliImportViewModel` | PASS ConnectionTests; evidence/manual/cli-found.png, cli-done.png |
+| History route | S04 | `Features/History/HistoryPage` | `HistoryViewModel` | PASS HistoryTests; smoke navigation; evidence/page-NavHistory.png |
+| Settings › Appearance | S05 | `Features/Settings/Appearance/AppearanceSettingsView` | `AppearanceSettingsViewModel` | PASS SettingsTests; smoke theme; evidence/theme-ThemeLight.png, theme-ThemeDark.png |
+| Settings › Monitoring & notifications | S06 | `Features/Settings/Monitoring/MonitoringSettingsView` | `MonitoringSettingsViewModel` | PASS SettingsTests; evidence/manual/s-monitoring.-1.png |
+| Settings › Data & privacy | S10 | `Features/Settings/DataPrivacy/DataPrivacyView` | `DataPrivacyViewModel` | PASS OperationsTests; evidence/manual/export.png, factory.png, factory-done.png |
+| Settings › Updates | S12 | `Features/Settings/Updates/UpdatesView` | `UpdatesViewModel` | PASS OperationsTests; evidence/manual/s-updates.-1.png, sc-f14.png |
+| System Status route | S09 | `Features/SystemStatus/SystemStatusPage` | `SystemStatusViewModel` | PASS OperationsTests; smoke navigation; evidence/page-NavSystemStatus.png |
+| Tray popup, tray menu, hide to tray | S07 | `Features/Tray/TrayPopupWindow`, tray `MenuFlyout` | `TrayViewModel` | PASS ShellAndTrayTests; smoke close-to-tray + tray-exit; evidence/manual/tray-menu.png, tray-f15.png |
+| Recovery surface | S11 | `Features/Recovery/RecoveryView` | `RecoveryViewModel` | PASS OperationsTests; evidence/manual/sc-f13.png |
+| Confirm dialog | shared | `Features/Shell/ConfirmDialog` | `ConfirmDialogViewModel` | PASS ConfirmDialogTests; every smoke scenario exits through it; evidence/launch-confirm.png |
+| Notification toast preview | S06 | `Features/Shell/ToastPreview` | `ToastPreviewViewModel` | PASS SettingsTests; evidence/manual/toast.-1.png |
+| Skeletons | shared | `Controls/SkeletonBlock`, `Features/Overview/SkeletonRows` | `IsLoading` on page view models | PASS OverviewTests/HistoryTests load states; evidence/manual/sheet-waiting.png |
 
 ### Screen inventory
 
 | S | Design | View (planned) | View model | Key properties | Commands | Scenarios | Evidence |
 |---|---|---|---|---|---|---|---|
-| S01 Overview | Partial (D3) | `Features/Overview/OverviewPage` | `OverviewViewModel`, `ProviderSectionViewModel`, `AccountRowViewModel` | `ProviderSections`, `VisibleAccounts`, `Summary` (lowest/nearest/attention counts, not rendered per D3), `IsCompact`, `LoadState`, `IsRefreshingAll`, `RefreshAllResult`, `AllHiddenNote`, `IsFirstRun`, `CompatibilityBanner` | `RefreshAllCommand`, `DismissResultCommand`, `AddAccountCommand`, `ImportCliCommand`, `MoveUpCommand`, `MoveDownCommand`, `DropCommand`, `ShowAllFiltersCommand`, `OpenAccountCommand`, `ToggleExpandCommand`, row `RefreshCommand`/`CancelRefreshCommand` | F01, F02, F03, F04, F06, F15 | not-run |
-| S02 Account detail | Designed | `Features/Accounts/AccountsPage` (list + detail), `Controls/QuotaMeter` | `AccountsViewModel`, `AccountDetailViewModel`, `ContextViewModel`, `QuotaGroupViewModel`, `QuotaWindowViewModel`, `RenameAccountViewModel` | `Label`, `Plan`, `Connection`, `Freshness`, `FetchedAt`, `SelectedContext`, `Groups`, `Expansion`, `ValueState`, `RemainingPercent`, `Absolute`, `ResetsAt`, `ResetText`, `Extensions`, `Failure`, `IsHidden`, `AlertsMuted` | `RefreshCommand`, `ReconnectCommand`, `DisconnectCommand`, `RenameCommand`, `ToggleExpansionCommand`, `HideCommand`, `HideAndMuteCommand`, `ShowHiddenCommand`, `MoveUp/DownCommand` | F02, F03, F04, F06, F07, F08, F15 | not-run |
-| S03 Add account | Designed | `Features/Connection/AddAccountDialog` | `AddAccountViewModel` | `Providers`, `SelectedProvider`, `Methods`, `SelectedMethod`, `Stage`, `ManualCode` (transient), `Failure`, `DuplicateAccountId` | `StartConnectCommand`, `SubmitCodeCommand`, `CancelCommand`, `RetryCommand`, `OpenImportCommand` | F01, F05, F06 | not-run |
-| S04 History | Partial (context/group folded into window select) | `Features/History/HistoryPage`, `Controls/HistoryChart`, `Controls/Sparkline` | `HistoryViewModel` | `AccountFilter`, `ContextFilter`, `GroupFilter`, `WindowFilter`, `Preset`, `CustomFrom`, `CustomTo`, `RangeError`, `Segments`, `LoadState`, `CollectionEnabled`, `HoverPoint` | `ApplyRangeCommand`, `LoadCommand`, `CancelLoadCommand` | F09 | not-run |
-| S05 Appearance | Designed | `Features/Settings/Appearance/AppearanceSettingsPage` | `AppearanceSettingsViewModel` | `Theme`, `EffectiveTheme`, `Density`, `AlwaysOnTop`, `OrderItems`, `HighContrastActive`, `ReducedMotion` | `SetThemeCommand`, `MoveUp/DownCommand`, `ToggleVisibilityCommand`, `ResetDemoPreferencesCommand` | F10, F15 | not-run |
-| S06 Monitoring/notifications | Partial (D1, D2) | `Features/Settings/Monitoring/MonitoringSettingsPage`, `Features/Shell/ToastPreview` | `MonitoringSettingsViewModel`, `ThresholdRuleViewModel`, `ToastPreviewViewModel` | `UsageDisplay`, `Rules` (global plus provider × window type), `IsInherited`, `EditText`, `ThresholdError`, `ResetNotice`, `OsNotificationsAllowed`, `QuietHours`, `ReducedRefreshPolicy`, `Toast` | `OverrideCommand`, `ResetToInheritedCommand`, `AddThresholdCommand`, `RemoveThresholdCommand`, `PreviewNotificationCommand`, `RefreshNowCommand` | F07, F10 | not-run |
-| S07 Tray | Designed | `Features/Tray/TrayPopup`, tray menu | `TrayViewModel` | `Accounts`, `Severity`, `ToolTip`, `IsPopupOpen` | `OpenCommand`, `RefreshAllCommand`, `RefreshAccountCommand`, `OpenSettingsCommand`, `ExitCommand` | F02, F04, F06, F15 | not-run |
-| S08 CLI import | Designed | `Features/Connection/AddAccountDialog` (Import from CLI tab) | `CliImportViewModel`, `CliCandidateViewModel` | `Stage`, `Candidates`, `SelectedCount`, `Outcomes` | `DiscoverCommand`, `ImportSelectedCommand`, `ReimportCommand`, `CancelCommand` | F11 | not-run |
-| S09 System Status | Designed | `Features/SystemStatus/SystemStatusPage` | `SystemStatusViewModel` | `BuildLabel`, `SchemaLabel`, `ProviderStatuses`, `Health`, `HealthSteps`, `UpdateSummary`, `DiagnosticsPreview`, `LogPreview` | `RunHealthCheckCommand`, `CancelHealthCheckCommand`, `PreviewDiagnosticsCommand`, `PreviewLogsCommand` | F12, F14 | not-run |
-| S10 Data and privacy | Designed | `Features/Settings/DataPrivacy/DataPrivacyPage` | `DataPrivacyViewModel`, `ReplaceImportViewModel` | `HistoryEnabled`, `Retention`, `ExportPreview`, `ImportStage`, `ImportError`, `ConfirmationPending` | `PreviewExportCommand`, `ValidateImportCommand`, `ConfirmReplaceCommand`, `ResetSettingsCommand`, `FactoryResetCommand`, `DeleteAccountDataCommand`, `PreviewDataFolderCommand` | F12 | not-run |
-| S11 Recovery | Designed | `Features/Recovery/RecoveryPage` (blocking) | `RecoveryViewModel` | `State`, `Checkpoints`, `SelectedCheckpoint`, `Stage`, `Outcome` | `RetryCommand`, `RestoreCheckpointCommand`, `PreviewDiagnosticsCommand`, `PreviewDataFolderCommand` | F13 | not-run |
-| S12 Updates | Designed | `Features/Settings/Updates/UpdatesPage` | `UpdatesViewModel` | `State`, `Channel`, `AvailableVersion`, `Compatibility`, `Failure` | `CheckCommand`, `SetChannelCommand`, `RestartAndUpdateCommand` | F14 | not-run |
-| Shell + demo | Designed | `MainWindow`, `Features/Demo/DemoPanel` | `ShellViewModel`, `DemoControlViewModel` | `CurrentPage`, `CanGoBack`, `NavigationItems`, `DemoMarker`, `Scenarios`, `SelectedScenario`, `ClockNow`, `ForcedOutcome` | `NavigateCommand`, `GoBackCommand`, `SelectScenarioCommand`, `AdvanceClockCommand`, `ResetDemoCommand` | all | not-run |
+| S01 Overview | Partial (D3) | `Features/Overview/OverviewPage` | `OverviewViewModel`, `ProviderSectionViewModel`, `AccountRowViewModel` | `ProviderSections`, `VisibleAccounts`, `Summary` (lowest/nearest/attention counts, not rendered per D3), `IsCompact`, `LoadState`, `IsRefreshingAll`, `RefreshAllResult`, `AllHiddenNote`, `IsFirstRun`, `CompatibilityBanner` | `RefreshAllCommand`, `DismissResultCommand`, `AddAccountCommand`, `ImportCliCommand`, `MoveUpCommand`, `MoveDownCommand`, `DropCommand`, `ShowAllFiltersCommand`, `OpenAccountCommand`, `ToggleExpandCommand`, row `RefreshCommand`/`CancelRefreshCommand` | F01, F02, F03, F04, F06, F15 | PASS OverviewTests (11); smoke navigation; evidence/page-NavOverview.png, manual/light-overview.-1.png, manual/ov-expand.-1.png |
+| S02 Account detail | Designed | `Features/Accounts/AccountsPage` (list + detail), `Controls/QuotaMeter` | `AccountsViewModel`, `AccountDetailViewModel`, `ContextViewModel`, `QuotaGroupViewModel`, `QuotaWindowViewModel`, `RenameAccountViewModel` | `Label`, `Plan`, `Connection`, `Freshness`, `FetchedAt`, `SelectedContext`, `Groups`, `Expansion`, `ValueState`, `RemainingPercent`, `Absolute`, `ResetsAt`, `ResetText`, `Extensions`, `Failure`, `IsHidden`, `AlertsMuted` | `RefreshCommand`, `ReconnectCommand`, `DisconnectCommand`, `RenameCommand`, `ToggleExpansionCommand`, `HideCommand`, `HideAndMuteCommand`, `ShowHiddenCommand`, `MoveUp/DownCommand` | F02, F03, F04, F06, F07, F08, F15 | PASS AccountTests (10), QuotaSemanticsTests (10); evidence/page-NavAccounts.png, manual/accounts3.-1.png |
+| S03 Add account | Designed | `Features/Connection/AddAccountDialog` | `AddAccountViewModel` | `Providers`, `SelectedProvider`, `Methods`, `SelectedMethod`, `Stage`, `ManualCode` (transient), `Failure`, `DuplicateAccountId` | `StartConnectCommand`, `SubmitCodeCommand`, `CancelCommand`, `RetryCommand`, `OpenImportCommand` | F01, F05, F06 | PASS ConnectionTests (8); evidence/manual/sheet-method.png, sheet-waiting.png, sheet-result.png |
+| S04 History | Partial (context/group folded into window select) | `Features/History/HistoryPage`, `Controls/HistoryChart`, `Controls/Sparkline` | `HistoryViewModel` | `AccountFilter`, `ContextFilter`, `GroupFilter`, `WindowFilter`, `Preset`, `CustomFrom`, `CustomTo`, `RangeError`, `Segments`, `LoadState`, `CollectionEnabled`, `HoverPoint` | `ApplyRangeCommand`, `LoadCommand`, `CancelLoadCommand` | F09 | PASS HistoryTests (7); evidence/page-NavHistory.png, manual/history2.-1.png |
+| S05 Appearance | Designed | `Features/Settings/Appearance/AppearanceSettingsPage` | `AppearanceSettingsViewModel` | `Theme`, `EffectiveTheme`, `Density`, `AlwaysOnTop`, `OrderItems`, `HighContrastActive`, `ReducedMotion` | `SetThemeCommand`, `MoveUp/DownCommand`, `ToggleVisibilityCommand`, `ResetDemoPreferencesCommand` | F10, F15 | PASS SettingsTests; smoke theme scenario; evidence/theme-ThemeLight.png, theme-ThemeDark.png, theme-ThemeSystem.png |
+| S06 Monitoring/notifications | Partial (D1, D2) | `Features/Settings/Monitoring/MonitoringSettingsPage`, `Features/Shell/ToastPreview` | `MonitoringSettingsViewModel`, `ThresholdRuleViewModel`, `ToastPreviewViewModel` | `UsageDisplay`, `Rules` (global plus provider × window type), `IsInherited`, `EditText`, `ThresholdError`, `ResetNotice`, `OsNotificationsAllowed`, `QuietHours`, `ReducedRefreshPolicy`, `Toast` | `OverrideCommand`, `ResetToInheritedCommand`, `AddThresholdCommand`, `RemoveThresholdCommand`, `PreviewNotificationCommand`, `RefreshNowCommand` | F07, F10 | PASS SettingsTests (9); evidence/manual/s-monitoring.-1.png, toast.-1.png |
+| S07 Tray | Designed | `Features/Tray/TrayPopup`, tray menu | `TrayViewModel` | `Accounts`, `Severity`, `ToolTip`, `IsPopupOpen` | `OpenCommand`, `RefreshAllCommand`, `RefreshAccountCommand`, `OpenSettingsCommand`, `ExitCommand` | F02, F04, F06, F15 | PASS ShellAndTrayTests (9); smoke close-to-tray, tray-exit; evidence/manual/tray-f15.png, tray-menu.png, close-to-tray-restored.png |
+| S08 CLI import | Designed | `Features/Connection/AddAccountDialog` (Import from CLI tab) | `CliImportViewModel`, `CliCandidateViewModel` | `Stage`, `Candidates`, `SelectedCount`, `Outcomes` | `DiscoverCommand`, `ImportSelectedCommand`, `ReimportCommand`, `CancelCommand` | F11 | PASS ConnectionTests; evidence/manual/cli-found.png, cli-done.png |
+| S09 System Status | Designed | `Features/SystemStatus/SystemStatusPage` | `SystemStatusViewModel` | `BuildLabel`, `SchemaLabel`, `ProviderStatuses`, `Health`, `HealthSteps`, `UpdateSummary`, `DiagnosticsPreview`, `LogPreview` | `RunHealthCheckCommand`, `CancelHealthCheckCommand`, `PreviewDiagnosticsCommand`, `PreviewLogsCommand` | F12, F14 | PASS OperationsTests (15); smoke navigation; evidence/page-NavSystemStatus.png, manual/health.-1.png |
+| S10 Data and privacy | Designed | `Features/Settings/DataPrivacy/DataPrivacyPage` | `DataPrivacyViewModel`, `ReplaceImportViewModel` | `HistoryEnabled`, `Retention`, `ExportPreview`, `ImportStage`, `ImportError`, `ConfirmationPending` | `PreviewExportCommand`, `ValidateImportCommand`, `ConfirmReplaceCommand`, `ResetSettingsCommand`, `FactoryResetCommand`, `DeleteAccountDataCommand`, `PreviewDataFolderCommand` | F12 | PASS OperationsTests; evidence/manual/export.png, factory.png, factory-done.png, s-data.-1.png |
+| S11 Recovery | Designed | `Features/Recovery/RecoveryPage` (blocking) | `RecoveryViewModel` | `State`, `Checkpoints`, `SelectedCheckpoint`, `Stage`, `Outcome` | `RetryCommand`, `RestoreCheckpointCommand`, `PreviewDiagnosticsCommand`, `PreviewDataFolderCommand` | F13 | PASS OperationsTests; evidence/manual/sc-f13.png |
+| S12 Updates | Designed | `Features/Settings/Updates/UpdatesPage` | `UpdatesViewModel` | `State`, `Channel`, `AvailableVersion`, `Compatibility`, `Failure` | `CheckCommand`, `SetChannelCommand`, `RestartAndUpdateCommand` | F14 | PASS OperationsTests; evidence/manual/s-updates.-1.png, sc-f14.png |
+| Shell + demo | Designed | `MainWindow`, `Features/Demo/DemoPanel` | `ShellViewModel`, `DemoControlViewModel` | `CurrentPage`, `CanGoBack`, `NavigationItems`, `DemoMarker`, `Scenarios`, `SelectedScenario`, `ClockNow`, `ForcedOutcome` | `NavigateCommand`, `GoBackCommand`, `SelectScenarioCommand`, `AdvanceClockCommand`, `ResetDemoCommand` | all | PASS ShellAndTrayTests, ScenarioCatalogTests (6); smoke launch/navigation; evidence/launch.png, manual/f15b.png |
 
 ### Scenarios
 
 | F | Name | Surfaces | Required outcomes to demonstrate | Test (planned) | Evidence |
 |---|---|---|---|---|---|
-| F01 | First run | S01, S03 | Empty dashboard, Add account, cancel leaves empty | `OverviewTests.FirstRun*` | not-run |
-| F02 | Four providers, multiple accounts | S01, S02, S07 | Reorder persists across navigation; one refresh failure leaves other cards readable | `OverviewTests.Reorder*`, `RefreshAll*` | not-run |
-| F03 | Measurement semantics | S01, S02 | Known/Unknown/Unlimited/Exhausted/Unavailable/Stale distinct; no zero meter for unknown | `QuotaWindowTests.*` | not-run |
-| F04 | Offline cache | S01, S02, S07 | Refresh failure keeps stale 42 and timestamp; retry gives fresh 39 | `AccountCardTests.StaleRetry*` | not-run |
-| F05 | Connection | S03 | Waiting, manual code, cancel, denied, success without quota, duplicate focus | `AddAccountTests.*` | not-run |
-| F06 | Reauth and rate limit | S01, S02, S03, S07 | ReauthRequired retains cache; RateLimited until retryAt; reconnect keeps identity; cancel restores | `AccountCardTests.Reauth*` | not-run |
-| F07 | Contexts and shared pools | S02, S06 | Shared pool counted once; hide vs hide+mute; context absence retains preference | `OverviewTests.SharedPool*`, `ContextTests.*` | not-run |
-| F08 | Reset and native amounts | S02 | Passed reset shows Awaiting update and stays exhausted; new observation 100; no invented money | `QuotaWindowTests.Reset*`, `ExtensionTests.*` | not-run |
-| F09 | History gaps and reset | S04 | Invalid range inline; disabled collection keeps samples; empty; segments not joined | `HistoryTests.*` | not-run |
-| F10 | Preferences | S05, S06 | Dark immediate; window-type override leaves global unchanged; reset to inherited `[50,80]` (D1); Used/Remaining flip; OS disabled; quiet hours; battery saver | `AppearanceTests.*`, `NotificationRuleTests.*` | not-run |
-| F11 | CLI discovery | S08 | Progressive candidates; per-item outcomes; cancel keeps completed; reimport same identity | `CliImportTests.*` | not-run |
-| F12 | Diagnostics and data | S09, S10 | Health warning without repair; export preview; invalid/valid replace; factory/settings reset | `SystemStatusTests.*`, `DataPrivacyTests.*` | not-run |
-| F13 | Recovery | S11 | Retry failure stays; restore valid checkpoint; newer schema disables operations | `RecoveryTests.*` | not-run |
-| F14 | Updates and compatibility | S12, S09 | Available→Ready; simulated restart; WaitingForStable; blocks keep cache; check failure keeps dashboard | `UpdatesTests.*` | not-run |
-| F15 | Layout/accessibility stress | S01, S02, S05, S07 | 20 accounts × 12 groups; narrow width; keyboard reorder; high contrast; reduced motion; tray hides animation | `OverviewTests.Stress*` plus Windows manual/FlaUI | not-run |
+| F01 | First run | S01, S03 | Empty dashboard, Add account, cancel leaves empty | `OverviewTests.FirstRun*` | PASS OverviewTests.FirstRun*; evidence/manual/sc-f01.png, factory-done.png |
+| F02 | Four providers, multiple accounts | S01, S02, S07 | Reorder persists across navigation; one refresh failure leaves other cards readable | `OverviewTests.Reorder*`, `RefreshAll*` | PASS OverviewTests reorder/refresh-all; evidence/manual/reduced-refresh.png |
+| F03 | Measurement semantics | S01, S02 | Known/Unknown/Unlimited/Exhausted/Unavailable/Stale distinct; no zero meter for unknown | `QuotaWindowTests.*` | PASS QuotaSemanticsTests; evidence/manual/accounts3.-1.png |
+| F04 | Offline cache | S01, S02, S07 | Refresh failure keeps stale 42 and timestamp; retry gives fresh 39 | `AccountCardTests.StaleRetry*` | PASS AccountTests stale/retry; evidence/manual/reduced-refresh.png |
+| F05 | Connection | S03 | Waiting, manual code, cancel, denied, success without quota, duplicate focus | `AddAccountTests.*` | PASS ConnectionTests; evidence/manual/sheet-method.png, sheet-waiting.png, sheet-result.png |
+| F06 | Reauth and rate limit | S01, S02, S03, S07 | ReauthRequired retains cache; RateLimited until retryAt; reconnect keeps identity; cancel restores | `AccountCardTests.Reauth*` | PASS AccountTests reauth/rate-limit |
+| F07 | Contexts and shared pools | S02, S06 | Shared pool counted once; hide vs hide+mute; context absence retains preference | `OverviewTests.SharedPool*`, `ContextTests.*` | PASS OverviewTests shared pool, AccountTests contexts |
+| F08 | Reset and native amounts | S02 | Passed reset shows Awaiting update and stays exhausted; new observation 100; no invented money | `QuotaWindowTests.Reset*`, `ExtensionTests.*` | PASS QuotaSemanticsTests reset/native amounts |
+| F09 | History gaps and reset | S04 | Invalid range inline; disabled collection keeps samples; empty; segments not joined | `HistoryTests.*` | PASS HistoryTests; evidence/manual/history2.-1.png |
+| F10 | Preferences | S05, S06 | Dark immediate; account and window-type overrides leave global unchanged; reset to inherited global `[25,10,0]` (D1); Used/Remaining flip; OS disabled; quiet hours; battery saver | `AppearanceTests.*`, `NotificationRuleTests.*` | PASS SettingsTests; smoke theme scenario; evidence/theme-ThemeDark.png |
+| F11 | CLI discovery | S08 | Progressive candidates; per-item outcomes; cancel keeps completed; reimport same identity | `CliImportTests.*` | PASS ConnectionTests CLI; evidence/manual/cli-found.png, cli-done.png |
+| F12 | Diagnostics and data | S09, S10 | Health warning without repair; export preview; invalid/valid replace; factory/settings reset | `SystemStatusTests.*`, `DataPrivacyTests.*` | PASS OperationsTests; evidence/manual/health.-1.png, export.png, factory.png |
+| F13 | Recovery | S11 | Retry failure stays; restore valid checkpoint; newer schema disables operations | `RecoveryTests.*` | PASS OperationsTests recovery; evidence/manual/sc-f13.png |
+| F14 | Updates and compatibility | S12, S09 | Available→Ready; simulated restart; WaitingForStable; blocks keep cache; check failure keeps dashboard | `UpdatesTests.*` | PASS OperationsTests updates; evidence/manual/sc-f14.png |
+| F15 | Layout/accessibility stress | S01, S02, S05, S07 | 20 accounts × 12 groups; narrow width; keyboard reorder; high contrast; reduced motion; tray hides animation | `OverviewTests.Stress*` plus Windows manual/FlaUI | PASS OverviewTests stress; evidence/manual/f15b.png, compact560.-1.png, scale150b.png, scale200-wide2.-1.png, hc14.-1.png, keyboard-nav2.-1.png |
 
 ### Cross-cutting requirements
 
 | Requirement | Planned implementation | Evidence |
 |---|---|---|
-| Default startup mock-only | Composition plus boundary test (no Core/Infrastructure reference) | not-run |
-| System/Light/Dark, follows Windows | `ThemeService`, `ThemeDictionaries` | not-run |
-| High contrast, keyboard, labels, scaling | HighContrast dictionary, `AutomationProperties`, access keys, tab order checks at 100/150/200% | not-run |
-| Skeleton, Updating…, per-action motion, reduced motion | `SkeletonBlock`, `OperationStatus`, `RefreshButton`, `Motion/` gating | not-run |
-| Tray/window lifetime and clean Exit | `IAppLifetime`, H.NotifyIcon, FlaUI smoke | not-run |
-| Resources and culture formatting | `Resources.resw`, `ITextResources`, `CultureInfo.CurrentCulture` | not-run |
-| Core/Infrastructure unchanged | `git diff --stat 744e4e0 -- src/windows/AiUsage.Core src/windows/AiUsage.Infrastructure tests/windows/AiUsage.Infrastructure.Tests` empty | not-run |
+| Default startup mock-only | Composition plus boundary test (no Core/Infrastructure reference) | PASS DependencyBoundaryTests (7); smoke asserts the demo marker at launch |
+| System/Light/Dark, follows Windows | `ThemeService`, `ThemeDictionaries` | PASS smoke theme scenario (Dark/Light/System); evidence/theme-*.png |
+| High contrast, keyboard, labels, scaling | HighContrast dictionary, `AutomationProperties`, access keys, tab order checks at 100/150/200% | PASS contrast evidence/manual/hc14.-1.png, hc-accounts.-1.png, hc-dialog2.png; keyboard evidence/manual/keyboard-nav2.-1.png; scaling evidence/manual/scale150b.png, scale200-wide2.-1.png, compact560.-1.png |
+| Skeleton, Updating…, per-action motion, reduced motion | `SkeletonBlock`, `OperationStatus`, `RefreshButton`, `Motion/` gating | PASS evidence/manual/sheet-waiting.png (skeleton), reduced-refresh.png (Updating + reduced motion) |
+| Tray/window lifetime and clean Exit | `IAppLifetime`, H.NotifyIcon, FlaUI smoke | PASS shell-smoke close-to-tray, tray-exit, repeated-exit (exit code 0) |
+| Resources and culture formatting | `Resources.resw`, `ITextResources`, `CultureInfo.CurrentCulture` | PASS 723 resw keys resolved at runtime; PRI built into the package; dates/numbers via CurrentCulture |
+| Core/Infrastructure unchanged | `git diff --stat 744e4e0 -- src/windows/AiUsage.Core src/windows/AiUsage.Infrastructure tests/windows/AiUsage.Infrastructure.Tests` empty | PASS git diff --stat 744e4e0 -- src/windows/AiUsage.Core src/windows/AiUsage.Infrastructure tests/windows/AiUsage.Infrastructure.Tests is empty |

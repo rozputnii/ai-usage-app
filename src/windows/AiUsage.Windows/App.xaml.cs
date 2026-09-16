@@ -1,154 +1,76 @@
-using AiUsage.Features.Dashboard;
-using AiUsage.Core.Dashboard;
-using AiUsage.Core.Providers.Codex;
-using AiUsage.Infrastructure.Providers.Codex;
-using AiUsage.Infrastructure.Providers.Claude;
+using AiUsage.Composition;
+using AiUsage.Features.Demo;
+using AiUsage.Features.Presentation;
+using AiUsage.Features.Tray;
+using AiUsage.Platform;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.UI.Windowing;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
-using Microsoft.Windows.ApplicationModel.Resources;
 
 namespace AiUsage;
 
+/// <summary>
+/// Composition root. AIU-010 default startup is mock-only: presentation features, WinUI platform services and the
+/// deterministic demo adapters. Close hides to the tray; only a confirmed Exit ends the process.
+/// </summary>
 public partial class App : Application
 {
-    private static readonly ResourceLoader TextResources = new();
     private IHost? host;
     private MainWindow? window;
-    private Task? startTask;
+    private TrayPopupWindow? popup;
     private Task? stopTask;
-    private bool finalClose;
 
     public App() => InitializeComponent();
-
-    internal static string Resource(string name) => TextResources.GetString(name);
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         try
         {
-            await StartAsync();
-            if (stopTask is null)
-            {
-                ShowWindow();
-                // Restoring a stored account must not block activation or fail startup.
-                await window!.ViewModel.LoadAsync();
-            }
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });
+            builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
+            builder.Services.AddSingleton(DispatcherQueue.GetForCurrentThread());
+            builder.Services.AddPresentationFeatures().AddPlatformServices().AddDemoServices();
+            host = builder.Build();
+            await host.StartAsync();
+
+            var services = host.Services;
+            window = services.GetRequiredService<MainWindow>();
+            services.GetRequiredService<Announcer>().Attach(window.LiveRegionElement);
+            services.GetRequiredService<DialogService>().Attach(window.Root, services.GetRequiredService<PresentationFormatter>());
+            services.GetRequiredService<DisplaySimulation>().Attach(window);
+            services.GetRequiredService<AppLifetime>().Attach(window, StopAsync, ShowTrayPopup);
+            window.Activate();
+
+            // Initial load shows layout-matched skeletons for the prototype's load latency before the F02 seed appears.
+            _ = services.GetRequiredService<DemoScenarioController>().LoadScenarioAsync(DemoScenarioCatalog.DefaultScenarioId, openEntry: false);
         }
         catch
         {
             Environment.ExitCode = 1;
-            try
-            {
-                try
-                {
-                    if (window is not null)
-                        await window.ViewModel.StopAsync();
-                }
-                finally { DisposeHost(); }
-            }
-            catch { Environment.ExitCode = 1; }
-            try
-            {
-                if (!finalClose)
-                {
-                    window ??= CreateFailureWindow();
-                    window.ShowFailure("StartupFailure/Text");
-                    window.Activate();
-                }
-            }
-            catch
-            {
-                // Resource/XAML failure can also prevent recovery UI. Exit without exposing it.
-                finalClose = true;
-                Exit();
-            }
+            await StopAsync();
         }
     }
 
-    private Task StartAsync() => startTask ??= StartCoreAsync();
-
-    private async Task StartCoreAsync()
+    private void ShowTrayPopup()
     {
-        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
-        {
-            DisableDefaults = true
-        });
-        builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
-        var ownedProviders = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "providers");
-        builder.Services.AddCodexProductSession(ownedProviders);
-        builder.Services.AddClaudeProductSession(ownedProviders);
-        builder.Services.AddKeyedSingleton("claude", (services, _) => new DashboardWorkflow(services.GetRequiredService<ClaudeSession>()));
-        var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
-        builder.Services.AddSingleton(services => new DashboardShellViewModel(
-            new DashboardViewModel(services.GetRequiredService<DashboardWorkflow>(), OpenInBrowser, Resource, dispatcher.InvokeAsync),
-            new DashboardViewModel(services.GetRequiredKeyedService<DashboardWorkflow>("claude"), OpenInBrowser, Resource, dispatcher.InvokeAsync, "Claude", supportsManualCode: true),
-            StopAsync, ShowWindow));
-        builder.Services.AddSingleton<MainWindow>();
-        host = builder.Build();
-        window = host.Services.GetRequiredService<MainWindow>();
-        window.AppWindow.Closing += OnClosing;
-        await host.StartAsync();
-    }
-
-    private MainWindow CreateFailureWindow()
-    {
-        var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
-        var failureWindow = new MainWindow(new DashboardShellViewModel(
-            new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync),
-            new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync, "Claude", supportsManualCode: true), StopAsync, ShowWindow));
-        failureWindow.AppWindow.Closing += (_, _) => _ = StopAsync();
-        return failureWindow;
-    }
-
-    private void ShowWindow()
-    {
-        if (stopTask is not null || finalClose || window is null)
+        if (host is null || stopTask is not null)
             return;
-        window.AppWindow.Show();
-        if (window.AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter)
-            presenter.Restore();
-        window.Activate();
-    }
-
-    private static void OpenInBrowser(Uri url)
-    {
-        try
-        {
-            using var browser = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true });
-            // Shell activation can succeed by reusing an existing browser and return no process.
-        }
-        catch (System.ComponentModel.Win32Exception) { throw new InvalidOperationException("The sign-in browser is unavailable."); }
-    }
-
-    private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
-    {
-        if (finalClose)
-            return;
-        args.Cancel = true;
-        if (stopTask is not null)
-            return;
-        if (host is not null)
-            sender.Hide();
-        else
-            _ = StopAsync();
+        var services = host.Services;
+        popup ??= new TrayPopupWindow(services.GetRequiredService<TrayViewModel>(), services.GetRequiredService<ThemeService>(),
+            services.GetRequiredService<ITextResources>().Get("AppTitle"));
+        popup.ShowNearTray();
     }
 
     private Task StopAsync() => stopTask ??= StopCoreAsync();
 
     private async Task StopCoreAsync()
     {
-        // Yield before final close so the cached task is visible to reentrant requests.
         await Task.Yield();
-        window?.DisableExit();
         try
         {
-            if (startTask is not null)
-                await startTask;
-            if (window is not null)
-                await window.ViewModel.StopAsync();
+            popup?.CloseForExit();
             if (host is not null)
             {
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
@@ -158,33 +80,23 @@ public partial class App : Application
         catch
         {
             Environment.ExitCode = 1;
-            window?.ShowFailure("ShutdownFailure/Text");
         }
         finally
         {
             try
             {
-                DisposeHost();
+                window?.CloseForExit();
+                host?.Dispose();
             }
             catch
             {
                 Environment.ExitCode = 1;
-                window?.ShowFailure("ShutdownFailure/Text");
             }
-            finalClose = true;
-            window?.Close();
+            Exit();
         }
     }
 
-    private void DisposeHost()
-    {
-        var ownedHost = host;
-        host = null;
-        ownedHost?.Dispose();
-    }
-
-    // WinUI owns process signals. Host callbacks must not register ConsoleLifetime handlers
-    // or recursively call the App stop operation which is already awaiting Host.StopAsync.
+    // WinUI owns process signals; the host must not register console lifetime handlers.
     private sealed class WindowOwnedLifetime : IHostLifetime
     {
         public Task WaitForStartAsync(CancellationToken cancellationToken) => Task.CompletedTask;

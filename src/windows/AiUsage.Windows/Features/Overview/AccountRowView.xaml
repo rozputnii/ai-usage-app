@@ -1,0 +1,133 @@
+<UserControl
+    x:Class="AiUsage.Features.Overview.AccountRowView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    xmlns:accounts="using:AiUsage.Features.Accounts"
+    xmlns:overview="using:AiUsage.Features.Overview"
+    xmlns:platform="using:AiUsage.Platform"
+    IsTabStop="True"
+    UseSystemFocusVisuals="True"
+    FocusVisualPrimaryBrush="{ThemeResource FocusBrush}"
+    FocusVisualPrimaryThickness="2"
+    FocusVisualSecondaryThickness="0"
+    CanDrag="True"
+    AllowDrop="True"
+    AutomationProperties.AutomationId="{x:Bind AutomationIdFor(Row.Id), Mode=OneWay}"
+    AutomationProperties.Name="{x:Bind Row.AccessibleName, Mode=OneWay}"
+    AutomationProperties.PositionInSet="{x:Bind Row.Position, Mode=OneWay}">
+  <Border x:Name="RowBorder" Style="{StaticResource HairlineRow}" Padding="{x:Bind controls:Bind.RowPadding(platform:AppLayout.Current.CompactDensity), Mode=OneWay}"
+          Opacity="{x:Bind controls:Bind.Opacity(Row.IsDisconnected), Mode=OneWay}" Background="Transparent">    <Grid x:Name="RowGrid" ColumnSpacing="24" RowSpacing="8">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition x:Name="IdentityColumn" Width="190" />
+        <ColumnDefinition x:Name="LinesColumn" Width="*" />
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <!-- Identity: label, hover-revealed refresh, Updating… / ✓ Updated, plan, pill, hidden tag. -->
+      <StackPanel x:Name="IdentityHost" Spacing="3">
+        <StackPanel Orientation="Horizontal" Spacing="6" Height="24">
+          <Button AutomationProperties.AutomationId="RowOpen" Style="{StaticResource LinkButton}" Foreground="{ThemeResource TextBrush}" FontSize="14" FontWeight="SemiBold" Padding="0"
+                  Command="{x:Bind Row.OpenCommand}" AutomationProperties.Name="{x:Bind Row.Label, Mode=OneWay}" MaxWidth="170" IsTabStop="False">
+            <TextBlock Text="{x:Bind Row.Label, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" FontWeight="SemiBold" />
+          </Button>
+          <Button AutomationProperties.AutomationId="RowRefresh" Style="{StaticResource GhostIconButton}" Command="{x:Bind Row.RefreshCommand}"
+                  AutomationProperties.Name="{x:Bind Row.RefreshName, Mode=OneWay}" Opacity="{x:Bind RevealOpacity(Row.IsHovered, Row.IsRefreshing), Mode=OneWay}">
+            <controls:RefreshGlyph IsSpinning="{x:Bind Row.IsRefreshing, Mode=OneWay}" Foreground="{ThemeResource Text2Brush}" />          </Button>
+          <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.Visible(Row.IsRefreshing), Mode=OneWay}" controls:Motion.Entrance="True">
+            <TextBlock x:Uid="Row_Updating" Style="{StaticResource Caption11Text}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+            <Button x:Uid="Row_Cancel" AutomationProperties.AutomationId="RowCancel" Style="{StaticResource LinkButton}" FontSize="11" Command="{x:Bind Row.CancelRefreshCommand}" />
+          </StackPanel>
+          <TextBlock x:Uid="Row_Updated" FontSize="11" Foreground="{ThemeResource OkBrush}" VerticalAlignment="Center" Visibility="Collapsed" controls:Motion.Acknowledge="{x:Bind Row.ShowAck, Mode=OneWay}" />
+        </StackPanel>
+        <TextBlock Text="{x:Bind Row.SubText, Mode=OneWay}" Style="{StaticResource CaptionText}" />
+        <controls:StatusPill Text="{x:Bind Row.Pill.Text, Mode=OneWay}" Tone="{x:Bind Row.Pill.Tone, Mode=OneWay}" HorizontalAlignment="Left"
+                             Opacity="{x:Bind PillOpacity(Row.Pill.IsQuietFresh, Row.IsHovered), Mode=OneWay}" />
+        <TextBlock Text="{x:Bind Row.HiddenTag, Mode=OneWay}" Style="{StaticResource Caption11Text}" Visibility="{x:Bind controls:Bind.Visible(Row.HasHiddenTag), Mode=OneWay}" />
+      </StackPanel>
+
+      <!-- Lines of the primary group, failure, expansion. -->
+      <StackPanel x:Name="LinesHost" Grid.Column="1" Spacing="2">
+        <ItemsRepeater ItemsSource="{x:Bind Row.Windows}">
+          <ItemsRepeater.Layout>
+            <StackLayout Spacing="0" />
+          </ItemsRepeater.Layout>
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate x:DataType="accounts:QuotaWindowViewModel">
+              <accounts:WindowLineView Window="{x:Bind}" Variant="Overview" Padding="0,4" />
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+        <StackPanel Visibility="{x:Bind controls:Bind.Collapsed(Row.HasPrimary), Mode=OneWay}" Spacing="4" Padding="0,4">
+          <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Border Height="4" BorderBrush="{ThemeResource Stroke2Brush}" BorderThickness="1" CornerRadius="2" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="—" Style="{StaticResource Display22Text}" FontSize="20" Foreground="{ThemeResource Text2Brush}" />
+          </Grid>
+          <TextBlock Text="{x:Bind Row.NoPrimaryText, Mode=OneWay}" Style="{StaticResource Caption11Text}" />
+        </StackPanel>
+
+        <!-- Scoped failure: message, Retry (D5) or countdown, Reconnect for sign-in required. -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0" Visibility="{x:Bind controls:Bind.Visible(Row.Failure.IsVisible), Mode=OneWay}" controls:Motion.Entrance="True"
+                    AutomationProperties.LiveSetting="Assertive">
+          <TextBlock Text="{x:Bind Row.Failure.Message, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource CritBrush}" VerticalAlignment="Center" MaxWidth="420" />
+          <Button AutomationProperties.AutomationId="RowRetry" Style="{StaticResource SmallSecondaryButton}" Content="{x:Bind Row.Failure.ActionLabel, Mode=OneWay}" Command="{x:Bind Row.RetryCommand}"
+                  IsEnabled="{x:Bind Row.Failure.ActionEnabled, Mode=OneWay}" Visibility="{x:Bind controls:Bind.Visible(Row.Failure.HasAction), Mode=OneWay}" VerticalAlignment="Center" />
+          <TextBlock Text="{x:Bind Row.Failure.WaitText, Mode=OneWay}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.Visible(Row.Failure.HasWait), Mode=OneWay}" />
+        </StackPanel>
+
+        <Button AutomationProperties.AutomationId="RowExpand" Style="{StaticResource QuietLinkButton}" Margin="0,4,0,0" Padding="0,2" HorizontalAlignment="Left"
+                Command="{x:Bind Row.ToggleExpandCommand}" Visibility="{x:Bind controls:Bind.Visible(Row.HasMore), Mode=OneWay}" AutomationProperties.Name="{x:Bind Row.ExpandLabel, Mode=OneWay}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="›" Width="10" TextAlignment="Center" controls:Motion.Rotate="{x:Bind controls:Bind.Rotation(Row.IsExpanded), Mode=OneWay}" />
+            <TextBlock Text="{x:Bind Row.ExpandLabel, Mode=OneWay}" />
+          </StackPanel>
+        </Button>
+
+        <StackPanel Spacing="2" Padding="0,6,0,2" Visibility="{x:Bind controls:Bind.Visible(Row.IsExpanded), Mode=OneWay}" controls:Motion.Entrance="True">
+          <StackPanel Orientation="Horizontal" Spacing="4" Padding="0,2,0,4" Visibility="{x:Bind controls:Bind.Visible(Row.HasMoreContext), Mode=OneWay}">
+            <TextBlock Text="{x:Bind Row.MoreContextText, Mode=OneWay}" Style="{StaticResource Caption11Text}" VerticalAlignment="Center" />
+            <Button x:Uid="Row_SwitchInDetail" Style="{StaticResource LinkButton}" FontSize="11" Command="{x:Bind Row.OpenCommand}" />
+          </StackPanel>
+          <StackPanel Visibility="{x:Bind controls:Bind.Visible(Row.HasSparkline), Mode=OneWay}" Spacing="2" Padding="0,2,0,6">
+            <TextBlock Text="{x:Bind Row.SparklineCaption, Mode=OneWay}" Style="{StaticResource Caption11Text}" />
+            <controls:Sparkline Model="{x:Bind Row.Sparkline, Mode=OneWay}" Height="28" MaxWidth="360" HorizontalAlignment="Left" Width="360" />
+          </StackPanel>
+          <ItemsRepeater ItemsSource="{x:Bind Row.MoreGroups}">
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate x:DataType="overview:GroupLinesViewModel">
+                <StackPanel>
+                  <Border Style="{StaticResource HairlineRow}" Padding="0,8,0,2">
+                    <TextBlock Text="{x:Bind Label, Mode=OneWay}" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+                  </Border>
+                  <ItemsRepeater ItemsSource="{x:Bind Windows}">
+                    <ItemsRepeater.ItemTemplate>
+                      <DataTemplate x:DataType="accounts:QuotaWindowViewModel">
+                        <accounts:WindowLineView Window="{x:Bind}" Variant="OverviewExpanded" Padding="0,4" />
+                      </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                  </ItemsRepeater>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
+          <ItemsRepeater ItemsSource="{x:Bind Row.ExtensionLines}">
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate x:DataType="x:String">
+                <Border Style="{StaticResource HairlineRow}" Padding="0,6,0,2">
+                  <TextBlock Text="{x:Bind}" Style="{StaticResource CaptionText}" />
+                </Border>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
+        </StackPanel>
+      </StackPanel>
+    </Grid>
+  </Border>
+</UserControl>

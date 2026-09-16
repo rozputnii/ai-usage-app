@@ -1,0 +1,127 @@
+<Page
+    x:Class="AiUsage.Features.Overview.OverviewPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    xmlns:overview="using:AiUsage.Features.Overview"
+    xmlns:platform="using:AiUsage.Platform"
+    NavigationCacheMode="Required"
+    Background="Transparent"
+    AutomationProperties.AccessibilityView="Control"
+    AutomationProperties.AutomationId="OverviewPage">
+  <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+    <Grid x:Name="PageRoot" Padding="{x:Bind Gutter(platform:AppLayout.Current.IsCompact), Mode=OneWay}" controls:Motion.Entrance="True">
+      <!-- Skeleton: mirrors the final layout (summary, provider headers, rows with label, meter and numeral). -->
+      <StackPanel AutomationProperties.AutomationId="OverviewSkeleton" x:Uid="Overview_LoadingRegion" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsLoading), Mode=OneWay}">
+        <Grid Padding="0,20,0,14" ColumnSpacing="28">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel Spacing="8">
+            <controls:SkeletonBlock Height="9" Width="70" HorizontalAlignment="Left" />
+            <controls:SkeletonBlock Height="34" Width="110" HorizontalAlignment="Left" Shimmer="True" CornerRadius="4" />
+            <controls:SkeletonBlock Height="9" Width="150" HorizontalAlignment="Left" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Spacing="8">
+            <controls:SkeletonBlock Height="9" Width="70" HorizontalAlignment="Left" />
+            <controls:SkeletonBlock Height="34" Width="110" HorizontalAlignment="Left" Shimmer="True" CornerRadius="4" />
+            <controls:SkeletonBlock Height="9" Width="150" HorizontalAlignment="Left" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="8">
+            <controls:SkeletonBlock Height="9" Width="70" HorizontalAlignment="Left" />
+            <controls:SkeletonBlock Height="34" Width="110" HorizontalAlignment="Left" Shimmer="True" CornerRadius="4" />
+            <controls:SkeletonBlock Height="9" Width="150" HorizontalAlignment="Left" />
+          </StackPanel>
+        </Grid>
+        <overview:SkeletonRows />
+        <overview:SkeletonRows />
+        <Border Style="{StaticResource HairlineRow}" />
+        <TextBlock x:Uid="Overview_LoadingText" Style="{StaticResource CaptionText}" Padding="0,10,0,0" />
+      </StackPanel>
+
+      <!-- First run -->
+      <Grid Padding="20,64" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsFirstRun), Mode=OneWay}" AutomationProperties.AutomationId="OverviewEmpty" controls:Motion.Entrance="True">
+        <StackPanel MaxWidth="400" HorizontalAlignment="Center">
+          <Border Width="44" Height="44" CornerRadius="22" BorderBrush="{ThemeResource Stroke2Brush}" BorderThickness="1.5" HorizontalAlignment="Center" Margin="0,0,0,14">
+            <TextBlock Text="+" FontSize="20" Foreground="{ThemeResource Text2Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
+          </Border>
+          <TextBlock x:Uid="Overview_EmptyTitle" Style="{StaticResource Heading20Text}" HorizontalAlignment="Center" TextAlignment="Center" AutomationProperties.HeadingLevel="Level1" />
+          <TextBlock x:Uid="Overview_EmptyBody" Style="{StaticResource Body13SecondaryText}" TextAlignment="Center" Margin="0,8,0,18" LineHeight="20" />
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+            <Button x:Uid="Header_AddAccountButton" AutomationProperties.AutomationId="EmptyAddAccount" Style="{StaticResource PrimaryButton}" FontSize="14" Padding="16,6,16,7" Command="{x:Bind ViewModel.AddAccountCommand}" />
+            <Button x:Uid="Overview_EmptyImport" AutomationProperties.AutomationId="EmptyImportCli" Style="{StaticResource SecondaryButton}" FontSize="14" Padding="16,6,16,7" Command="{x:Bind ViewModel.ImportFromCliCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+      <!-- All hidden -->
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Padding="32" Spacing="4" Visibility="{x:Bind controls:Bind.Visible(ViewModel.AllHidden), Mode=OneWay}" AutomationProperties.AutomationId="OverviewAllHidden">
+        <TextBlock x:Uid="Overview_AllHidden" Style="{StaticResource Body13SecondaryText}" VerticalAlignment="Center" />
+        <Button x:Uid="Overview_ShowAll" AutomationProperties.AutomationId="OverviewShowAll" Style="{StaticResource LinkButton}" Command="{x:Bind ViewModel.ShowHiddenAndDisconnectedCommand}" />
+      </StackPanel>
+
+      <!-- Rows -->
+      <StackPanel Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasRows), Mode=OneWay}">
+        <!-- D3: summary restored (S01 counts, lowest known remaining with source, nearest reset, attention). -->
+        <Grid x:Name="SummaryGrid" Padding="0,20,0,6" ColumnSpacing="28" RowSpacing="16" AutomationProperties.AutomationId="OverviewSummary" x:Uid="Overview_SummaryRegion">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <StackPanel x:Name="StatAccounts" Spacing="2">
+            <TextBlock x:Uid="Summary_AccountsLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryAccounts, Mode=OneWay}" Style="{StaticResource Display40Text}" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryAccountsDetail, Mode=OneWay}" Style="{StaticResource CaptionText}" />
+          </StackPanel>
+          <StackPanel x:Name="StatLowest" Grid.Column="1" Spacing="2">
+            <TextBlock x:Uid="Summary_LowestLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryLowest, Mode=OneWay}" Style="{StaticResource Display40Text}" TextWrapping="Wrap"
+                       controls:Tokens.Foreground="{x:Bind CriticalKey(ViewModel.SummaryLowestCritical), Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryLowestSource, Mode=OneWay}" Style="{StaticResource CaptionText}" />
+          </StackPanel>
+          <StackPanel x:Name="StatReset" Grid.Column="2" Spacing="2">
+            <TextBlock x:Uid="Summary_ResetLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryReset, Mode=OneWay}" Style="{StaticResource Display40Text}" TextWrapping="Wrap" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryResetSource, Mode=OneWay}" Style="{StaticResource CaptionText}" />
+          </StackPanel>
+          <StackPanel x:Name="StatAttention" Grid.Column="3" Spacing="2">
+            <TextBlock x:Uid="Summary_AttentionLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryAttention, Mode=OneWay}" Style="{StaticResource Display40Text}"
+                       controls:Tokens.Foreground="{x:Bind CriticalKey(ViewModel.SummaryAttentionCritical), Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.SummaryAttentionDetail, Mode=OneWay}" Style="{StaticResource CaptionText}" />
+          </StackPanel>
+        </Grid>
+        <TextBlock Text="{x:Bind ViewModel.SummaryScope, Mode=OneWay}" Style="{StaticResource Caption11Text}" Padding="0,0,0,4" />
+
+        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Sections}" AutomationProperties.AutomationId="ProviderSections">
+          <ItemsRepeater.ItemTemplate>
+            <DataTemplate x:DataType="overview:ProviderSectionViewModel">
+              <StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="10" Padding="0,14,0,3">
+                  <controls:ProviderTile ProviderId="{x:Bind ProviderId}" TileSize="18" VerticalAlignment="Center" />
+                  <TextBlock Text="{x:Bind Name, Mode=OneWay}" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" VerticalAlignment="Center" AutomationProperties.HeadingLevel="Level2" />
+                </StackPanel>
+                <ItemsRepeater ItemsSource="{x:Bind Rows}" AutomationProperties.Name="{x:Bind ListName, Mode=OneWay}">
+                  <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="overview:AccountRowViewModel">
+                      <overview:AccountRowView Row="{x:Bind}" />
+                    </DataTemplate>
+                  </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+        <Border Style="{StaticResource HairlineRow}" Margin="0,0,0,24" />
+      </StackPanel>
+    </Grid>
+  </ScrollViewer>
+</Page>

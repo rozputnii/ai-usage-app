@@ -31,50 +31,50 @@ The owner identified the selected Claude Design project and file in the brief (o
 Imported `AI Usage App.dc.html`, `support.js` and the rest of the project through the claude_design MCP. The local snapshot with revision and hashes is in `design-reference/`. All designed surfaces are enumerated in the plan's coverage matrix, and the design decisions that differ from earlier documents (D1–D7) and the design gaps are recorded there.
 
 ### T-04 - Presentation contracts, mock services and application composition
-- status: ready
+- status: done
 - depends_on: [T-02]
 - acceptance: AC-02, AC-06, AC-10, AC-11
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md (2026-09-16)
 
 Plan phase 1, including the design-required contract extensions. All code stays inside `AiUsage.Windows` under `Features/<Feature>/`, within the existing three-project architecture. Adding a project requires a demonstrated need and owner approval first.
 
 ### T-05 - Theme resources, reusable controls, motion and navigation shell
-- status: pending
+- status: done
 - depends_on: [T-03, T-04]
 - acceptance: AC-03, AC-05, AC-10, AC-11
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md (2026-09-16)
 
 Plan phase 2.
 
 ### T-06 - Overview, accounts, quotas, connection and tray
-- status: pending
+- status: done
 - depends_on: [T-05]
 - acceptance: AC-04, AC-05, AC-06, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md (2026-09-16)
 
 Plan phase 3: S01, S02, S03, S07 and F01–F08, F15.
 
 ### T-07 - History, appearance, monitoring and notification settings
-- status: pending
+- status: done
 - depends_on: [T-05]
 - acceptance: AC-04, AC-05, AC-06, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md (2026-09-16)
 
 Plan phase 4: S04, S05, S06 and F09, F10.
 
 ### T-08 - CLI import, diagnostics, data management, recovery and updates
-- status: pending
+- status: done
 - depends_on: [T-05]
 - acceptance: AC-04, AC-08, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md (2026-09-16)
 
 Plan phase 5: S08–S12 and F11–F14.
 
 ### T-09 - Scenario coverage, Windows verification and backend handoff
-- status: pending
+- status: done
 - depends_on: [T-06, T-07, T-08]
 - acceptance: AC-03, AC-04, AC-05, AC-06, AC-09, AC-10, AC-11
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md (2026-09-16)
 
 Plan phase 6. Actual Windows screenshots in Light and Dark, keyboard, scaling, tray and Exit checks, coverage matrix evidence, verification.md record and adapter handoff. Commit and push the task branch after verification; do not merge.
 
@@ -96,7 +96,7 @@ Run required regressions/build and actual Windows UI scenarios on the integrated
 
 ## Handoff
 
-Base: `744e4e0` (identical to `codex/aiu-010-design-handoff`). Branch: `codex/aiu-010-mock-frontend`; checkout was clean at start. No application source has changed.
+Base: `744e4e0` (identical to `codex/aiu-010-design-handoff`). Branch: `codex/aiu-010-mock-frontend`; checkout was clean at start. This section records the preparation phase, when no application source had changed yet; the mock frontend delivery below supersedes it.
 
 Completed 2026-09-15 (preparation phase):
 - Saved the owner brief verbatim as frontend-brief.md.
@@ -120,7 +120,7 @@ Open owner choices (not blockers; the implementation follows the design unless t
 - The remaining items in specification §13.
 
 Risks:
-- Unpackaged launch (`-p:WindowsPackageType=None`) for host screenshots is untested. If it fails, registering the dev package on the host needs owner authorization.
+- Unpackaged launch (`-p:WindowsPackageType=None`) for host screenshots is untested. If it fails, registering the dev package on the host needs owner authorization. Resolved 2026-09-16: unpackaged launch works, so nothing was installed or registered.
 - No new package is currently required. Any later addition needs network restore.
 
 Check results (preparation):
@@ -129,4 +129,52 @@ Check results (preparation):
 - An untracked root `install.cmd` appeared during the session. It was not created by this work and was left untouched.
 - NOT_RUN: product regressions, builds and Windows UI checks, because no code has changed.
 
-Exact next action (after owner `/goal`): T-04 step 1. Change `tests/windows/AiUsage.Presentation.Tests/AiUsage.Presentation.Tests.csproj` to compile `src/windows/AiUsage.Windows/Features/**/*.cs` excluding `**/*.xaml.cs`, and extend `DependencyBoundaryTests` with the Features-without-WinUI and no-Core/Infrastructure-usage rules. Then create the `Features/Presentation/` contracts.
+Owner `/goal` 2026-09-15 (implementation phase, T-04–T-09 only; T-10/T-11 stay with Codex):
+- Baseline before code changes: Presentation.Tests 16/16 PASS, Infrastructure.Tests 130/130 PASS (Release, SDK 10.0.401).
+- D1–D7 reconciled against written requirements and extended with D8–D12 in frontend-plan.md. Written quota semantics, `[25,10,0]` remaining defaults and Global/Provider/Account/Window scopes are kept; the design is adapted.
+
+- T-04 progress: contracts (`Features/Presentation`), adapter interfaces in their feature folders, deterministic demo world and all mock services (`Features/Demo`), and every feature view model are implemented. `Features/Dashboard` and its two obsolete view-model test files were removed; their behaviour is covered by the new tests. The presentation test project compiles `Features/**/*.cs` without `*.xaml.cs`. Presentation tests: 94/97 pass; the 3 failures are the boundary tests that require the WinUI replacement (old App/MainWindow still reference Core/Infrastructure).
+- Next action: T-05, which adds `Themes/`, `Controls/`, `Platform/` and `Composition/`, then replaces `App.xaml(.cs)`/`MainWindow` with the mock shell.
+
+Previous next action (superseded by the progress entries above once work starts): T-04 step 1. Change `tests/windows/AiUsage.Presentation.Tests/AiUsage.Presentation.Tests.csproj` to compile `src/windows/AiUsage.Windows/Features/**/*.cs` excluding `**/*.xaml.cs`, and extend `DependencyBoundaryTests` with the Features-without-WinUI and no-Core/Infrastructure-usage rules. Then create the `Features/Presentation/` contracts.
+
+## Mock frontend delivery (T-04 - T-09), 2026-09-16
+
+Branch `codex/aiu-010-mock-frontend`, base `375c409`. Presentation, WinUI shell and demo services live in `src/windows/AiUsage.Windows`; Core, Infrastructure and their tests are untouched (`git diff --stat 744e4e0 -- src/windows/AiUsage.Core src/windows/AiUsage.Infrastructure tests/windows/AiUsage.Infrastructure.Tests` is empty). Check results are in [verification.md](verification.md); coverage evidence per surface, screen, scenario and cross-cutting requirement is in [frontend-plan.md](frontend-plan.md).
+
+### Where the code is
+
+- `Features/<Feature>/` - adapter interfaces, view models (CommunityToolkit.Mvvm) and the XAML views of that feature. `Features/Presentation/` holds the host abstractions and shared records; `Features/Demo/` holds the deterministic mock adapters, the scenario catalog and the demo panel.
+- `Platform/` - WinUI implementations of the host abstractions (`UiDispatcher`, `NavigationService`, `DialogService`, `ThemeService`, `MotionSettings`, `Announcer`, `ResourceText`, `AppLifetime`, `DisplaySimulation`).
+- `Controls/`, `Themes/` - reusable controls (`QuotaMeter`, `SkeletonBlock`, `ProviderTile`, `StatusPill`, `WrapPanel`, `ArrowNavigation`, token binding helpers) and the generated `Tokens.xaml` / `SimulatedHighContrast.xaml` plus `Styles.xaml`. Regenerate tokens with `tools/windows/New-ThemeTokens.ps1`.
+- `Composition/ServiceRegistration.cs` - `AddPresentationFeatures()`, `AddPlatformServices()`, `AddDemoServices()`.
+- `Strings/en-US/Resources.resw` - 723 keys; views bind through `x:Uid`, view models through `ITextResources`.
+
+### Codex integration point
+
+`App.OnLaunched` builds the host with `builder.Services.AddPresentationFeatures().AddPlatformServices().AddDemoServices()`. Backend integration adds `AddLiveServices()` in `Composition/` that registers live implementations of the same interfaces, and selects it instead of `AddDemoServices()` for the product build; the demo registration stays for the mock build. The interfaces and their members are listed in the plan's "Adapter interfaces (Codex boundary)" table and implemented by `Demo*` services:
+
+| Interface | File | Demo implementation |
+|---|---|---|
+| `IUsageSource` | `Features/Accounts/IUsageSource.cs` | `DemoUsageSource` |
+| `IConnectionFlow` | `Features/Connection/IConnectionFlow.cs` | `DemoConnectionFlow` |
+| `ICliImportService` | `Features/CliImport/ICliImportService.cs` | `DemoCliImportService` |
+| `IHistorySource` | `Features/History/IHistorySource.cs` | `DemoHistorySource` |
+| `IPreferenceStore`, `INotificationPreview`, `IDataManagementService`, `IUpdateService` | `Features/Settings/SettingsServices.cs` | `DemoPreferenceStore`, `DemoNotificationPreview`, `DemoDataManagementService`, `DemoUpdateService` |
+| `IDiagnosticsService` | `Features/SystemStatus/IDiagnosticsService.cs` | `DemoDiagnosticsService` |
+| `IRecoveryService` | `Features/Recovery/IRecoveryService.cs` | `DemoRecoveryService` |
+| `IClock` | `Features/Presentation/HostAbstractions.cs` | `DemoClock` (frozen 2026-09-15T12:00:00Z) |
+
+Rules for a live adapter: publish snapshots from any thread (view models marshal through `IUiDispatcher`); return typed records only, never formatted text or raw exceptions; report an unavailable capability as `CommandStatus.Unsupported` before any side effect, which the UI renders as a disabled or planned control rather than an error; keep provider payloads opaque. `DependencyBoundaryTests` currently forbids `AiUsage.Core`/`AiUsage.Infrastructure` usage anywhere in `AiUsage.Windows`; relax it for the live adapter folder only, and keep the demo path free of provider services so the mock build stays credential-free.
+
+### Deviations from the imported design, and why
+
+- Implicit `ScalarTransition`/`BrushTransition` inside control templates crash WinUI layout in WindowsAppSDK 2.4.0 (access violation in `coreclr` a few seconds after launch). All implicit transitions were removed; the designed motion is played explicitly through storyboards in `Controls/Motion` and `SkeletonBlock`, gated by `MotionSettings.Allowed`.
+- The shell nav and settings tabs are radio groups with one tab stop; WinUI's XY focus did not move between them, so `Controls/ArrowNavigation` moves focus with the arrow keys (Space or Enter still activates).
+- The demo's simulated high contrast swaps the whole token dictionary and passes each root through the opposite theme, because WinUI re-resolves `ThemeResource` references only on a theme change; content created later is refreshed through `ThemeService.RefreshContrast`.
+- D1-D7 resolutions from the plan are implemented as written there (thresholds stay remaining-percent, the Overview summary strip is restored, glyphs are kept in every theme, provider hues stay behind the demo switch).
+- At 200 % content scale with the demo panel open the effective width drops below the design's compact minimum and header labels clip; the same scale is clean with the panel closed or a wider window.
+
+### Next action
+
+T-10: Codex maps existing Codex workflows onto the adapter interfaces above and adds `AddLiveServices()`, keeping unavailable providers `Unsupported`. Do not mark AIU-010 complete on the mock delivery alone.

@@ -1,0 +1,142 @@
+<Page
+    x:Class="AiUsage.Features.SystemStatusPage.SystemStatusPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    xmlns:status="using:AiUsage.Features.SystemStatusPage"
+    xmlns:platform="using:AiUsage.Platform"
+    NavigationCacheMode="Required"
+    Background="Transparent"
+    AutomationProperties.AccessibilityView="Control"
+    AutomationProperties.AutomationId="SystemStatusPage">
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Padding="{x:Bind Gutter(platform:AppLayout.Current.IsCompact), Mode=OneWay}" controls:Motion.Entrance="True">
+      <StackPanel Spacing="18" MaxWidth="760" HorizontalAlignment="Left" Padding="0,20,0,0">
+        <StackPanel>
+          <TextBlock x:Uid="Status_Title" Style="{StaticResource Title26Text}" AutomationProperties.HeadingLevel="Level1" />
+          <TextBlock Text="{x:Bind ViewModel.BuildLine, Mode=OneWay}" Style="{StaticResource CaptionText}" Margin="0,4,0,0" AutomationProperties.AutomationId="StatusBuild" />
+        </StackPanel>
+        <Grid x:Name="FactsGrid" ColumnSpacing="32">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <Border x:Name="RefreshFact" Style="{StaticResource HairlineRow}" Padding="0,10">
+            <StackPanel>
+              <TextBlock x:Uid="Status_RefreshLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+              <TextBlock Text="{x:Bind ViewModel.RefreshText, Mode=OneWay}" Style="{StaticResource Body13Text}" Margin="0,4,0,0" LineHeight="19" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="StorageFact" Grid.Column="1" Style="{StaticResource HairlineRow}" Padding="0,10">
+            <StackPanel>
+              <TextBlock x:Uid="Status_StorageLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+              <TextBlock Text="{x:Bind ViewModel.StorageText, Mode=OneWay}" Style="{StaticResource Body13Text}" Margin="0,4,0,0" LineHeight="19" />
+            </StackPanel>
+          </Border>
+          <Border x:Name="UpdateFact" Grid.Column="2" Style="{StaticResource HairlineRow}" Padding="0,10">
+            <StackPanel>
+              <TextBlock x:Uid="Status_UpdateLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+              <TextBlock Text="{x:Bind ViewModel.UpdateText, Mode=OneWay}" Style="{StaticResource Body13Text}" Margin="0,4,0,0" LineHeight="19" controls:Tokens.Foreground="{x:Bind FailureKey(ViewModel.UpdateIsFailure), Mode=OneWay}" />
+              <Button x:Uid="Status_OpenUpdates" AutomationProperties.AutomationId="StatusOpenUpdates" Style="{StaticResource SmallLinkButton}" Padding="0" HorizontalAlignment="Left" Command="{x:Bind ViewModel.OpenUpdatesCommand}" />
+            </StackPanel>
+          </Border>
+        </Grid>
+
+        <StackPanel>
+          <TextBlock x:Uid="Status_ProvidersLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" Padding="0,0,0,4" />
+          <ItemsRepeater ItemsSource="{x:Bind ViewModel.ProviderStatuses, Mode=OneWay}" AutomationProperties.AutomationId="StatusProviders">
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate x:DataType="status:ProviderStatusViewModel">
+                <Border Style="{StaticResource HairlineRow}" Padding="0,8">
+                  <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="2">
+                    <TextBlock FontSize="13" MinWidth="220">
+                      <Run Text="{x:Bind Label, Mode=OneWay}" /><Run Text=" · " Foreground="{ThemeResource Text2Brush}" FontSize="12" /><Run Text="{x:Bind ProviderName, Mode=OneWay}" Foreground="{ThemeResource Text2Brush}" FontSize="12" />
+                    </TextBlock>
+                    <TextBlock Text="{x:Bind StatusText, Mode=OneWay}" FontSize="12" controls:Tokens.Foreground="{x:Bind controls:Bind.CriticalTextKey(IsCritical), Mode=OneWay}" />
+                  </controls:WrapPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
+        </StackPanel>
+
+        <!-- Health check: five progressive read-only checks, never repairs. -->
+        <StackPanel Spacing="8">
+          <Border Style="{StaticResource HairlineRow}" Padding="0,10,0,0">
+            <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="8">
+              <StackPanel MinWidth="200" MaxWidth="440">
+                <TextBlock x:Uid="Status_HealthLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
+                <TextBlock x:Uid="Status_HealthHelp" Style="{StaticResource CaptionText}" Margin="0,2,0,0" />
+              </StackPanel>
+              <Button x:Uid="Status_RunHealth" AutomationProperties.AutomationId="RunHealthCheck" Style="{StaticResource SecondaryButton}" MinWidth="150" Command="{x:Bind ViewModel.RunHealthCheckCommand}"
+                      Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthIdle), Mode=OneWay}" />
+              <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthChecking), Mode=OneWay}">
+                <Button Style="{StaticResource SecondaryButton}" MinWidth="150" IsEnabled="False">
+                  <StackPanel Orientation="Horizontal" Spacing="7">
+                    <controls:BusyRing Size="12" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthChecking), Mode=OneWay}" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.HealthCheckingText, Mode=OneWay}" />
+                  </StackPanel>
+                </Button>
+                <Button x:Uid="Dialog_CancelButton" AutomationProperties.AutomationId="CancelHealthCheck" Style="{StaticResource LinkButton}" Command="{x:Bind ViewModel.CancelHealthCheckCommand}" />
+              </StackPanel>
+              <Button x:Uid="Status_RunAgain" AutomationProperties.AutomationId="RunHealthAgain" Style="{StaticResource SecondaryButton}" MinWidth="150" Command="{x:Bind ViewModel.RunHealthCheckCommand}"
+                      Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthDone), Mode=OneWay}" />
+            </controls:WrapPanel>
+          </Border>
+          <ProgressBar Minimum="0" Maximum="1" Value="{x:Bind ViewModel.HealthProgress, Mode=OneWay}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthChecking), Mode=OneWay}" x:Uid="Status_HealthProgress" />
+          <ItemsRepeater ItemsSource="{x:Bind ViewModel.HealthSteps, Mode=OneWay}" AutomationProperties.AutomationId="HealthSteps">
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate x:DataType="status:HealthStepItem">
+                <Border Style="{StaticResource HairlineRow}" Padding="0,6" controls:Motion.Entrance="True">
+                  <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{x:Bind Name}" Style="{StaticResource Body13Text}" />
+                    <TextBlock Grid.Column="1" Text="{x:Bind Result}" FontSize="13" TextAlignment="Right" MaxWidth="360" controls:Tokens.Foreground="{x:Bind controls:Bind.WarningOkKey(IsWarning)}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
+          <TextBlock Text="{x:Bind ViewModel.HealthResult, Mode=OneWay}" FontSize="13" Padding="0,4,0,0" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasHealthResult), Mode=OneWay}"
+                     controls:Tokens.Foreground="{x:Bind controls:Bind.WarningOkKey(ViewModel.HealthResultWarning), Mode=OneWay}" AutomationProperties.AutomationId="HealthResult" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+
+        <!-- Sanitized previews, data link and explicit Exit (D12). -->
+        <Border Style="{StaticResource HairlineRow}" Padding="0,10,0,0">
+          <StackPanel Spacing="8">
+            <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="6">
+              <Button x:Uid="Status_PreviewDiagnostics" AutomationProperties.AutomationId="PreviewDiagnostics" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleDiagnosticsCommand}" />
+              <Button x:Uid="Status_PreviewLog" AutomationProperties.AutomationId="PreviewLog" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleLogCommand}" />
+              <Button x:Uid="Status_OpenData" AutomationProperties.AutomationId="StatusOpenData" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.OpenDataPrivacyCommand}" />
+              <TextBlock x:Uid="Status_PreviewNote" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+            </controls:WrapPanel>
+            <Border Style="{StaticResource CodeBlock}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasDiagnostics), Mode=OneWay}" controls:Motion.Entrance="True">
+              <TextBlock Text="{x:Bind ViewModel.DiagnosticsText, Mode=OneWay}" Style="{StaticResource MonoText}" LineHeight="18" AutomationProperties.AutomationId="DiagnosticsPreview" />
+            </Border>
+            <Border Style="{StaticResource CodeBlock}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasLog), Mode=OneWay}" controls:Motion.Entrance="True">
+              <TextBlock Text="{x:Bind ViewModel.LogText, Mode=OneWay}" Style="{StaticResource MonoText}" LineHeight="18" AutomationProperties.AutomationId="LogPreview" />
+            </Border>
+          </StackPanel>
+        </Border>
+        <Border Style="{StaticResource HairlineRow}" Padding="0,12,0,24">
+          <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="6">
+            <StackPanel MinWidth="220" MaxWidth="440">
+              <TextBlock x:Uid="Status_ExitLabel" Style="{StaticResource Body13Text}" />
+              <TextBlock x:Uid="Status_ExitHelp" Style="{StaticResource CaptionText}" LineHeight="17" />
+            </StackPanel>
+            <Button x:Uid="Status_ExitButton" AutomationProperties.AutomationId="ExitButton" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ExitCommand}" VerticalAlignment="Center" />
+          </controls:WrapPanel>
+        </Border>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</Page>

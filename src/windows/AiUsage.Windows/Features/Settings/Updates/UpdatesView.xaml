@@ -1,0 +1,71 @@
+<UserControl
+    x:Class="AiUsage.Features.Settings.Updates.UpdatesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    IsTabStop="False"
+    AutomationProperties.AutomationId="UpdatesSettings">
+  <StackPanel Spacing="22" Padding="0,0,0,24">
+    <StackPanel Spacing="10">
+      <TextBlock x:Uid="Updates_Heading" Style="{StaticResource Section16Text}" AutomationProperties.HeadingLevel="Level2" />
+      <Border Style="{StaticResource HairlineRow}" Padding="0,12">
+        <controls:WrapPanel HorizontalSpacing="14" VerticalSpacing="10">
+          <StackPanel MinWidth="240" MaxWidth="460">
+            <TextBlock Text="{x:Bind ViewModel.StatusText, Mode=OneWay}" FontSize="14" AutomationProperties.AutomationId="UpdateStatus" AutomationProperties.LiveSetting="Polite"
+                       controls:Tokens.Foreground="{x:Bind FailureKey(ViewModel.StatusIsFailure), Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.BuildText, Mode=OneWay}" Style="{StaticResource CaptionText}" Margin="0,4,0,0" />
+            <ProgressBar Margin="0,10,0,0" MaxWidth="320" HorizontalAlignment="Left" Width="320" Minimum="0" Maximum="1" Value="{x:Bind ViewModel.DownloadProgress, Mode=OneWay}"
+                         Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsDownloading), Mode=OneWay}" x:Uid="Updates_DownloadProgress" AutomationProperties.AutomationId="DownloadProgress" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button x:Uid="Updates_Check" AutomationProperties.AutomationId="CheckUpdates" Style="{StaticResource SecondaryButton}" MinWidth="150" Command="{x:Bind ViewModel.CheckCommand, Mode=OneWay}"
+                    Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowCheck), Mode=OneWay}" />
+            <Button AutomationProperties.AutomationId="CheckingUpdates" Style="{StaticResource SecondaryButton}" MinWidth="150" IsEnabled="False" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsChecking), Mode=OneWay}">
+              <StackPanel Orientation="Horizontal" Spacing="7">
+                <controls:BusyRing Size="12" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsChecking), Mode=OneWay}" VerticalAlignment="Center" />
+                <TextBlock x:Uid="Updates_Checking" />
+              </StackPanel>
+            </Button>
+            <Button x:Uid="Dialog_CancelButton" AutomationProperties.AutomationId="CancelCheck" Style="{StaticResource LinkButton}" Command="{x:Bind ViewModel.CancelCheckCommand, Mode=OneWay}"
+                    Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsChecking), Mode=OneWay}" />
+            <Button x:Uid="Updates_Download" AutomationProperties.AutomationId="DownloadUpdate" Style="{StaticResource PrimaryButton}" MinWidth="150" Command="{x:Bind ViewModel.DownloadCommand, Mode=OneWay}"
+                    Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowDownload), Mode=OneWay}" />
+            <Button x:Uid="Updates_Downloading" Style="{StaticResource SecondaryButton}" MinWidth="150" IsEnabled="False" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsDownloading), Mode=OneWay}" />
+            <Button x:Uid="Updates_Restart" AutomationProperties.AutomationId="RestartUpdate" Style="{StaticResource PrimaryButton}" MinWidth="150" Command="{x:Bind ViewModel.RestartAndUpdateCommand, Mode=OneWay}"
+                    Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowRestart), Mode=OneWay}" />
+          </StackPanel>
+        </controls:WrapPanel>
+      </Border>
+      <Border Style="{StaticResource HairlineRow}" Padding="0,12">
+        <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="8">
+          <StackPanel MinWidth="220" MaxWidth="460">
+            <TextBlock x:Uid="Updates_Channel" Style="{StaticResource Body13Text}" />
+            <TextBlock x:Uid="Updates_ChannelHelp" Style="{StaticResource CaptionText}" LineHeight="17" />
+          </StackPanel>
+          <controls:SegmentedControl AutomationProperties.AutomationId="ChannelSelector" x:Uid="Updates_ChannelGroup" Items="{x:Bind ViewModel.ChannelLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.ChannelIndex, Mode=TwoWay}" VerticalAlignment="Center" />
+        </controls:WrapPanel>
+      </Border>
+    </StackPanel>
+
+    <StackPanel Spacing="6">
+      <TextBlock x:Uid="Updates_CompatibilityHeading" Style="{StaticResource Section16Text}" AutomationProperties.HeadingLevel="Level2" />
+      <Border Style="{StaticResource HairlineRow}" Padding="0,10">
+        <StackPanel Spacing="8">
+          <TextBlock x:Uid="Updates_CompatibilityHelp" Style="{StaticResource Body13SecondaryText}" LineHeight="20" />
+          <TextBlock Text="{x:Bind ViewModel.CompatibilityText, Mode=OneWay}" Style="{StaticResource Body13Text}" AutomationProperties.AutomationId="CompatibilityStatus"
+                     controls:Tokens.Foreground="{x:Bind FailureKey(ViewModel.IsSecurityBlocked), Mode=OneWay}" />
+          <Button x:Uid="Updates_Override" AutomationProperties.AutomationId="OverrideCompatibility" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Command="{x:Bind ViewModel.OverrideCompatibilityCommand, Mode=OneWay}"
+                  Visibility="{x:Bind controls:Bind.Visible(ViewModel.CanOverrideCompatibility), Mode=OneWay}" />
+        </StackPanel>
+      </Border>
+      <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="6" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasSimulator), Mode=OneWay}">
+        <Border Style="{StaticResource OutlineBadge}" Background="{ThemeResource Card2Brush}" BorderBrush="{ThemeResource StrokeBrush}">
+          <TextBlock x:Uid="Updates_DemoBadge" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource Text2Brush}" />
+        </Border>
+        <Button x:Uid="Updates_SimulateFailure" AutomationProperties.AutomationId="SimulateCheckFailure" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind ViewModel.SimulateCheckFailureCommand, Mode=OneWay}" />
+        <Button x:Uid="Updates_ToggleCompat" AutomationProperties.AutomationId="ToggleCompatibilityBlock" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind ViewModel.ToggleCompatibilityBlockCommand, Mode=OneWay}" />
+        <Button x:Uid="Updates_ToggleSecurity" AutomationProperties.AutomationId="ToggleSecurityBlock" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind ViewModel.ToggleSecurityBlockCommand, Mode=OneWay}" />
+      </controls:WrapPanel>
+    </StackPanel>
+  </StackPanel>
+</UserControl>

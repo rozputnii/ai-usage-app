@@ -10,7 +10,9 @@
   <ItemGroup>
     <PackageReference Include="xunit.v3" Version="3.2.2" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- Retained for DashboardWorkflowTests, which cover the Core workflow Codex will adapt. -->
     <ProjectReference Include="../../../src/windows/AiUsage.Core/AiUsage.Core.csproj" />
-    <Compile Include="../../../src/windows/AiUsage.Windows/Features/Dashboard/*.cs" Link="Presentation/%(Filename)%(Extension)" />
+    <!-- Platform-neutral presentation sources: view models, contracts and demo services. Views and code-behind stay in the Windows project. -->
+    <Compile Include="../../../src/windows/AiUsage.Windows/Features/**/*.cs" Exclude="../../../src/windows/AiUsage.Windows/Features/**/*.xaml.cs" Link="Presentation/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

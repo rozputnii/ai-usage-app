@@ -1,0 +1,49 @@
+<UserControl
+    x:Class="AiUsage.Features.Accounts.WindowLineView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:AiUsage.Controls"
+    IsTabStop="False">
+  <!-- One quota window: label · meter · value (glyph, number, left/used) · reset (relative left, exact right). -->
+  <Grid x:Name="LineGrid" ColumnSpacing="14" RowSpacing="4">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition x:Name="LabelColumn" Width="Auto" MinWidth="90" MaxWidth="130" />
+      <ColumnDefinition x:Name="MeterColumn" Width="*" MinWidth="80" />
+      <ColumnDefinition x:Name="ValueColumn" Width="Auto" MinWidth="72" />
+      <ColumnDefinition x:Name="ResetColumn" Width="Auto" MinWidth="150" MaxWidth="230" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <TextBlock x:Name="LabelText" VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" AutomationProperties.AccessibilityView="Raw">
+      <Run Text="{x:Bind Window.Label, Mode=OneWay}" /><Run x:Name="MutedRun" Text="{x:Bind MutedText(Window.IsMuted), Mode=OneWay}" FontSize="11" Foreground="{ThemeResource Text2Brush}" />
+    </TextBlock>
+    <StackPanel x:Name="MeterHost" Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+      <controls:QuotaMeter Kind="{x:Bind Window.Kind, Mode=OneWay}" Tone="{x:Bind Window.Tone, Mode=OneWay}" Ticks="{x:Bind Window.Ticks, Mode=OneWay}"
+                           Observation="{x:Bind Window.Observation, Mode=OneWay}" Fraction="{x:Bind Window.Fraction, Mode=OneWay}" />
+      <TextBlock x:Name="AbsoluteUnderMeter" Text="{x:Bind Window.AbsoluteText, Mode=OneWay}" Style="{StaticResource Caption11Text}" AutomationProperties.AccessibilityView="Raw"
+                 Visibility="Collapsed" />
+    </StackPanel>
+    <StackPanel x:Name="ValueHost" Grid.Column="2" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw">
+      <TextBlock x:Name="GlyphText" Text="{x:Bind Window.Glyph, Mode=OneWay}" FontSize="12" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.VisibleText(Window.Glyph), Mode=OneWay}"
+                 controls:Tokens.Foreground="{x:Bind controls:Bind.ToneKey(Window.Tone), Mode=OneWay}" AutomationProperties.AccessibilityView="Raw" />
+      <TextBlock x:Name="ValueText" Text="{x:Bind Window.ValueText, Mode=OneWay}" FontFamily="{StaticResource DisplayFont}" FontWeight="Light" TextWrapping="NoWrap" VerticalAlignment="Center"
+                 controls:Tokens.Foreground="{x:Bind controls:Bind.ToneKey(Window.Tone), Mode=OneWay}" AutomationProperties.AccessibilityView="Raw" />
+      <TextBlock x:Name="UnitText" Text="{x:Bind Window.UnitText, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource Text2Brush}" VerticalAlignment="Bottom" Margin="0,0,0,2"
+                 Visibility="{x:Bind controls:Bind.VisibleText(Window.UnitText), Mode=OneWay}" AutomationProperties.AccessibilityView="Raw" />
+    </StackPanel>
+    <StackPanel x:Name="ResetHost" Grid.Column="3" VerticalAlignment="Center" Spacing="2" AutomationProperties.AccessibilityView="Raw">
+      <Grid ColumnSpacing="8">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="{x:Bind Window.ResetRelative, Mode=OneWay}" x:Name="ResetRelativeText" FontSize="11" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" controls:Tokens.Foreground="{x:Bind ResetKey(Window.ResetIsCritical), Mode=OneWay}" AutomationProperties.AccessibilityView="Raw" />
+        <TextBlock Grid.Column="1" Text="{x:Bind Window.ResetExact, Mode=OneWay}" x:Name="ResetExactText" FontSize="11" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" controls:Tokens.Foreground="{x:Bind ResetKey(Window.ResetIsCritical), Mode=OneWay}" AutomationProperties.AccessibilityView="Raw" />
+      </Grid>
+      <TextBlock x:Name="AbsoluteUnderReset" Text="{x:Bind Window.AbsoluteText, Mode=OneWay}" Style="{StaticResource Caption11Text}" Visibility="Collapsed" AutomationProperties.AccessibilityView="Raw" />
+    </StackPanel>
+  </Grid>
+</UserControl>
