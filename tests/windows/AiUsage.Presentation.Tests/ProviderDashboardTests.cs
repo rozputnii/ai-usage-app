@@ -18,7 +18,7 @@ public sealed class ProviderDashboardTests
         using var claudeWorkflow = new DashboardWorkflow(claude);
         var codexCard = Card(codexWorkflow, "Codex");
         var claudeCard = Card(claudeWorkflow, "Claude");
-        var shell = new DashboardShellViewModel(codexCard, claudeCard, () => Task.CompletedTask, () => { });
+        var shell = new DashboardShellViewModel([codexCard, claudeCard], () => Task.CompletedTask, () => { });
         shell.Selected = claudeCard;
         await shell.Selected.RefreshCommand.ExecuteAsync(null);
         Assert.Equal("ReauthenticationRequired/Text", claudeCard.StatusText);

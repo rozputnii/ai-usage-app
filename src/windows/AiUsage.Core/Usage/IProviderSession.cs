@@ -11,4 +11,6 @@ public interface IProviderSession
     Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default);
     Task<ProviderSessionState> DisconnectAsync(CancellationToken cancellationToken = default);
     bool TrySubmitCode(string code) => false;
+    /// <summary>A short-lived device user code to show while a device connection waits for approval.</summary>
+    string? PendingUserCode => null;
 }

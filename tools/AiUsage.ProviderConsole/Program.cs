@@ -13,7 +13,7 @@ internal static class Program
     {
         if (args.Length == 0 || args is ["--help"] or ["help"])
         {
-            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n\nNo CLI auth stores, token arguments or inference requests are used.");
+            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n  inspect-copilot <file>     Normalize a GitHub Copilot usage report fixture offline.\n  copilot-probe             Interactive GitHub device login; read-only usage probe, nothing stored.\n\nNo CLI auth stores, token arguments or inference requests are used.");
             return 0;
         }
         using var cancellation = new CancellationTokenSource();
@@ -22,6 +22,10 @@ internal static class Program
         {
             if (args is ["inspect-claude", var claudePath])
                 return await ClaudeConsole.InspectAsync(claudePath, cancellation.Token);
+            if (args is ["inspect-copilot", var copilotPath])
+                return await CopilotConsole.InspectAsync(copilotPath, cancellation.Token);
+            if (args is ["copilot-probe"])
+                return await CopilotConsole.ProbeAsync(cancellation.Token);
             if (args is ["claude"])
                 return OperatingSystem.IsWindows() ? await ClaudeConsole.RunAsync(cancellation.Token) : 2;
             if (args is ["inspect", var path])

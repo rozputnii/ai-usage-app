@@ -16,6 +16,7 @@ public sealed class DashboardWorkflow(IProviderSession session) : IDisposable
 
     public bool Connected => session.HasStoredGrant;
     public ProviderSessionState State => session.State;
+    public string? PendingUserCode => session.PendingUserCode;
 
     public Task<ProviderSessionState> LoadAsync(Func<ProviderSessionState, Task> showCached, CancellationToken cancellationToken = default) =>
         RunAsync(async token =>

@@ -1,4 +1,5 @@
 using AiUsage.Core.Providers.Claude;
+using AiUsage.Core.Providers.Copilot;
 
 namespace AiUsage.Core.Usage;
 
@@ -12,7 +13,7 @@ public enum ProviderFailureKind
     AuthenticationRequired, AccessDenied, DeviceLoginUnavailable, DeviceCodeExpired,
     BrowserCallbackUnavailable, LoginAttemptExpired, GrantNotRemoved, RateLimited,
     NetworkFailure, Timeout, InvalidResponse, AccountMismatch, ProviderUnavailable,
-    RequestRejected, StorageUnavailable, RecoveryRequired
+    RequestRejected, StorageUnavailable, RecoveryRequired, LoginDenied, ReportUnavailable
 }
 
 public sealed record ProviderSessionState(
@@ -21,7 +22,8 @@ public sealed record ProviderSessionState(
     ProviderFailureKind? Failure = null,
     DateTimeOffset? RetrievedAt = null,
     bool FromCache = false,
-    ClaudeExtraUsage? ExtraUsage = null)
+    ClaudeExtraUsage? ExtraUsage = null,
+    CopilotUsageReading? CopilotUsage = null)
 {
     public static ProviderSessionState NotConnected { get; } = new(ProviderSessionStatus.NotConnected);
     public static ProviderSessionState Working { get; } = new(ProviderSessionStatus.Working);

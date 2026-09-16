@@ -3,6 +3,7 @@ using AiUsage.Core.Dashboard;
 using AiUsage.Core.Providers.Codex;
 using AiUsage.Infrastructure.Providers.Codex;
 using AiUsage.Infrastructure.Providers.Claude;
+using AiUsage.Infrastructure.Providers.Copilot;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -81,11 +82,15 @@ public partial class App : Application
         builder.Services.AddCodexProductSession(ownedProviders);
         builder.Services.AddClaudeProductSession(ownedProviders);
         builder.Services.AddKeyedSingleton("claude", (services, _) => new DashboardWorkflow(services.GetRequiredService<ClaudeSession>()));
+        builder.Services.AddCopilotProductSession(ownedProviders);
+        builder.Services.AddKeyedSingleton("copilot", (services, _) => new DashboardWorkflow(services.GetRequiredService<CopilotSession>()));
         var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
         builder.Services.AddSingleton(services => new DashboardShellViewModel(
+        [
             new DashboardViewModel(services.GetRequiredService<DashboardWorkflow>(), OpenInBrowser, Resource, dispatcher.InvokeAsync),
             new DashboardViewModel(services.GetRequiredKeyedService<DashboardWorkflow>("claude"), OpenInBrowser, Resource, dispatcher.InvokeAsync, "Claude", supportsManualCode: true),
-            StopAsync, ShowWindow));
+            new DashboardViewModel(services.GetRequiredKeyedService<DashboardWorkflow>("copilot"), OpenInBrowser, Resource, dispatcher.InvokeAsync, "GitHub Copilot", noticeResource: "CopilotNotice/Text")
+        ], StopAsync, ShowWindow));
         builder.Services.AddSingleton<MainWindow>();
         host = builder.Build();
         window = host.Services.GetRequiredService<MainWindow>();
@@ -97,8 +102,11 @@ public partial class App : Application
     {
         var dispatcher = new DesktopDispatcher(Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread());
         var failureWindow = new MainWindow(new DashboardShellViewModel(
+        [
             new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync),
-            new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync, "Claude", supportsManualCode: true), StopAsync, ShowWindow));
+            new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync, "Claude", supportsManualCode: true),
+            new DashboardViewModel(null, OpenInBrowser, Resource, dispatcher.InvokeAsync, "GitHub Copilot", noticeResource: "CopilotNotice/Text")
+        ], StopAsync, ShowWindow));
         failureWindow.AppWindow.Closing += (_, _) => _ = StopAsync();
         return failureWindow;
     }

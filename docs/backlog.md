@@ -69,10 +69,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-008 - GitHub Copilot end-to-end integration
 - goal: G-003
-- status: research-needed
+- status: review
 - depends_on: [AIU-004]
 - trigger: provider-3
 - outcome: Use an app-owned client where supported; preserve subscription credit/request entitlement semantics and evidence-based context/import capabilities.
+- evidence: docs/specs/AIU-008-copilot-integration/verification.md
+- scope-note: On 2026-09-16 the owner selected OMP's reused OpenCode OAuth App over a registered AI Usage GitHub App, and GitHub's documented billing usage reports only. The owner then directed completion without the live probe, with live testing to follow in the app. Implementation, automated and packaged checks are recorded in the verification; live acceptance remains outstanding, so the feature is not done.
 
 ## AIU-009 - Antigravity end-to-end integration
 - goal: G-003

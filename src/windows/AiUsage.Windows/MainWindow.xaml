@@ -26,6 +26,8 @@
       </ItemsControl.ItemTemplate>
     </ItemsControl>
     <TextBlock AutomationProperties.AutomationId="ExtraUsageText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.ExtraUsageText, Mode=OneWay}" />
+    <TextBlock AutomationProperties.AutomationId="ProviderUsageText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.ProviderUsageText, Mode=OneWay}" />
+    <TextBlock AutomationProperties.AutomationId="DeviceCodeText" TextWrapping="Wrap" IsTextSelectionEnabled="True" Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind ViewModel.Selected.DeviceCodeText, Mode=OneWay}" />
     <TextBlock AutomationProperties.AutomationId="ProviderFailureText" TextWrapping="Wrap" Text="{x:Bind ViewModel.Selected.FailureText, Mode=OneWay}" />
     <StackPanel Spacing="8" Visibility="{x:Bind VisibleWhen(ViewModel.Selected.ManualEntryVisible), Mode=OneWay}">
       <TextBlock x:Uid="ManualCodeHelp" TextWrapping="Wrap" />

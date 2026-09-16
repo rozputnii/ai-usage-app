@@ -6,10 +6,10 @@ namespace AiUsage.Features.Dashboard;
 /// <summary>Provider selection and desktop lifetime. Each card retains its own operation and state.</summary>
 internal sealed partial class DashboardShellViewModel : ObservableObject
 {
-    internal DashboardShellViewModel(DashboardViewModel codex, DashboardViewModel claude, Func<Task> exitAsync, Action showWindow)
+    internal DashboardShellViewModel(IReadOnlyList<DashboardViewModel> providers, Func<Task> exitAsync, Action showWindow)
     {
-        Providers = [codex, claude];
-        Selected = codex;
+        Providers = providers;
+        Selected = providers[0];
         ExitCommand = new AsyncRelayCommand(exitAsync);
         ShowCommand = new RelayCommand(showWindow);
     }

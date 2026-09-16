@@ -1,0 +1,7 @@
+{
+  "timePeriod": { "year": 2030, "month": 1 },
+  "user": "synthetic-user",
+  "usageItems": [
+    { "product": "copilot", "sku": "copilot_ai_credit", "model": "synthetic-model-a", "unitType": "ai-credits", "pricePerUnit": 0.01, "grossQuantity": 120.5, "grossAmount": 1.205, "discountQuantity": 100.25, "discountAmount": 1.0025, "netQuantity": 20.25, "netAmount": 0.2025 }
+  ]
+}

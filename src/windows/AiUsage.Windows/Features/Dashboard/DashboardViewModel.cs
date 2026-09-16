@@ -20,15 +20,19 @@ internal sealed partial class DashboardViewModel : ObservableObject
     private bool connecting;
     private bool refreshing;
     private readonly bool supportsManualCode;
+    private readonly string? noticeResource;
+    private Task? deviceCodeTask;
 
     /// <summary>A null <paramref name="workflow"/> means the provider could not be composed; its commands stay disabled.</summary>
     internal DashboardViewModel(DashboardWorkflow? workflow, Action<Uri> openBrowser,
-        Func<string, string> resource, Func<Action, Task> dispatch, string providerName = "Codex", bool supportsManualCode = false)
+        Func<string, string> resource, Func<Action, Task> dispatch, string providerName = "Codex", bool supportsManualCode = false,
+        string? noticeResource = null)
     {
         this.workflow = workflow;
         this.resource = resource;
         this.dispatch = dispatch;
         this.supportsManualCode = supportsManualCode;
+        this.noticeResource = noticeResource ?? (supportsManualCode ? "ClaudeUnsupported/Text" : null);
         ProviderName = providerName;
         StatusText = resource("EmptyState/Text");
         this.openBrowser = openBrowser;
@@ -40,7 +44,7 @@ internal sealed partial class DashboardViewModel : ObservableObject
 
     public string ProviderName { get; }
     public string ConnectText => string.Format(System.Globalization.CultureInfo.CurrentCulture, resource("ConnectProviderFormat/Text"), ProviderName);
-    public string NoticeText => supportsManualCode ? resource("ClaudeUnsupported/Text") : string.Empty;
+    public string NoticeText => noticeResource is null ? string.Empty : resource(noticeResource);
     public bool ManualEntryVisible => supportsManualCode && connecting && Busy;
     public IAsyncRelayCommand ConnectCommand { get; }
     public IAsyncRelayCommand RefreshCommand { get; }
@@ -52,6 +56,8 @@ internal sealed partial class DashboardViewModel : ObservableObject
     [ObservableProperty] public partial string? PlanText { get; private set; }
     [ObservableProperty] public partial string FailureText { get; private set; } = string.Empty;
     [ObservableProperty] public partial string ExtraUsageText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial string ProviderUsageText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial string DeviceCodeText { get; private set; } = string.Empty;
     [ObservableProperty] public partial IReadOnlyList<QuotaWindowItem> Windows { get; private set; } = [];
 
     public bool Connected => workflow?.Connected == true;
@@ -72,8 +78,25 @@ internal sealed partial class DashboardViewModel : ObservableObject
     private async Task ConnectAsync(CancellationToken cancellationToken)
     {
         connecting = true;
-        try { await RunAsync(token => workflow!.ConnectAsync(openBrowser, token), cancellationToken); }
-        finally { connecting = false; OnPropertyChanged(nameof(ManualEntryVisible)); }
+        try { await RunAsync(token => workflow!.ConnectAsync(ShowCodeAndOpen, token), cancellationToken); }
+        finally
+        {
+            connecting = false;
+            var shown = deviceCodeTask;
+            deviceCodeTask = null;
+            try { if (shown is not null) await shown; }
+            catch (InvalidOperationException) { } // The dispatcher is shutting down; nothing to clear on screen.
+            DeviceCodeText = string.Empty;
+            OnPropertyChanged(nameof(ManualEntryVisible));
+        }
+    }
+
+    /// <summary>A device connection publishes its user code before the verification page opens.</summary>
+    private void ShowCodeAndOpen(Uri url)
+    {
+        if (workflow?.PendingUserCode is { } code)
+            deviceCodeTask = dispatch(() => DeviceCodeText = string.Format(System.Globalization.CultureInfo.CurrentCulture, resource("CopilotDeviceCodeFormat/Text"), code));
+        openBrowser(url);
     }
     private async Task RefreshAsync(CancellationToken cancellationToken)
     {
@@ -140,6 +163,7 @@ internal sealed partial class DashboardViewModel : ObservableObject
             : [];
         PlanText = state.Quota?.PlanType is { Length: > 0 } plan ? resource("PlanLabel/Text") + " " + plan : null;
         ExtraUsageText = ClaudeExtraUsageText.Format(state.ExtraUsage, resource);
+        ProviderUsageText = CopilotUsageText.Format(state.CopilotUsage, resource);
         FailureText = state.Failure is { } failure ? resource("Failure" + failure + "/Text") : string.Empty;
         StatusText = state.Status switch
         {
@@ -148,7 +172,8 @@ internal sealed partial class DashboardViewModel : ObservableObject
             ProviderSessionStatus.ReauthenticationRequired => resource("ReauthenticationRequired/Text"),
             ProviderSessionStatus.RecoveryRequired => resource("RecoveryRequired/Text"),
             ProviderSessionStatus.QuotaUnavailable => resource("QuotaUnavailable/Text"),
-            _ => Windows.Count > 0 ? resource("QuotaShown/Text") : resource("QuotaEmpty/Text")
+            _ => state.CopilotUsage is not null ? resource("CopilotUsageShown/Text")
+                : Windows.Count > 0 ? resource("QuotaShown/Text") : resource("QuotaEmpty/Text")
         };
         // Cached values must never read as a current measurement.
         if (state.FromCache && state.RetrievedAt is { } retrievedAt)
