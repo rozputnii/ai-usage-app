@@ -2186,6 +2186,8 @@
   <data name="Detail_LimitReason" xml:space="preserve"><value>Provider limit reason: {0}</value></data>
   <data name="Detail_GroupNotAllowed" xml:space="preserve"><value>Access not allowed for {0}, as reported by the provider.</value></data>
   <data name="Detail_GroupLimitReached" xml:space="preserve"><value>Provider reports a limit reached for {0}.</value></data>
-  <data name="Connect_PickHelpLive" xml:space="preserve"><value>Choose a provider to connect.</value></data>
+  <data name="Connect_PickHelpLive" xml:space="preserve"><value>Choose a provider to connect. This version supports one account per provider.</value></data>
+  <data name="Connect_ProviderSlotTitle" xml:space="preserve"><value>One account per provider</value></data>
+  <data name="Connect_ProviderSlotBody" xml:space="preserve"><value>This version supports one account per provider. Open the existing account and use Reconnect to sign in again, or Disconnect before connecting a different account. No browser sign-in was started.</value></data>
   <data name="Connect_ProviderHelpDemo" xml:space="preserve"><value>Choose a provider. Planned providers are interactive here but unavailable in the live app until their connection method ships.</value></data>
 </root>

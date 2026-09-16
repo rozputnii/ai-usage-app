@@ -13,6 +13,7 @@ public enum ConnectionStageKind
     ConnectedWithoutQuota,
     Reconnected,
     Duplicate,
+    ProviderSlotOccupied,
     Denied,
     Expired,
     Cancelled,

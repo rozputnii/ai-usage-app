@@ -74,7 +74,7 @@ public sealed class LiveAdapterTests
 
     private sealed class LoginSession : IProviderSession
     {
-        private readonly TaskCompletionSource code = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private TaskCompletionSource code = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public int Connects { get; private set; }
         public bool Cancelled { get; private set; }
         public bool HasStoredGrant { get; private set; }
@@ -84,6 +84,7 @@ public sealed class LiveAdapterTests
         public Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default) => Task.FromResult(State);
         public async Task<ProviderSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default)
         {
+            code = new(TaskCreationOptions.RunContinuationsAsynchronously);
             Connects++;
             openAuthorizationUrl(new Uri("https://example.test/authorize"));
             try { await code.Task.WaitAsync(cancellationToken); }
@@ -133,7 +134,7 @@ public sealed class LiveAdapterTests
     }
 
     [Fact]
-    public async Task UnsupportedConnectionDoesNotOpenBrowserAndDuplicateDoesNotReplaceGrant()
+    public async Task OccupiedProviderExplainsLimitWithoutClaimingIdentityVerification()
     {
         var session = new Session();
         using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { ["codex"] = session });
@@ -146,8 +147,46 @@ public sealed class LiveAdapterTests
         Assert.Equal(ConnectionStageKind.Failed, stages.Single().Kind);
         stages.Clear();
         await foreach (var stage in flow.ConnectAsync(new("codex", ConnectionMethod.BrowserSignIn, null), token)) stages.Add(stage);
-        Assert.Equal(ConnectionStageKind.Duplicate, stages.Single().Kind);
+        Assert.Equal(ConnectionStageKind.ProviderSlotOccupied, stages.Single().Kind);
+        using var host = new TestHost();
+        var sheet = new AddAccountViewModel(host.Context, flow, host.CliImport());
+        sheet.Open(new(AddAccountTab.SignIn, "codex"));
+        await sheet.StartCommand.ExecuteAsync(null);
+        Assert.Equal("One account per provider", sheet.ResultTitle);
+        Assert.Contains("Disconnect", sheet.ResultBody);
+        Assert.DoesNotContain("identity", sheet.ResultBody);
         Assert.Equal(0, launches);
+        await source.StopAsync();
+    }
+
+    [Theory]
+    [InlineData("codex", false)]
+    [InlineData("claude", false)]
+    [InlineData("codex", true)]
+    [InlineData("claude", true)]
+    public async Task DisconnectAllowsAnotherBrowserAuthorization(string provider, bool useAccountAction)
+    {
+        var session = new LoginSession();
+        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { [provider] = session });
+        var launches = 0;
+        var flow = new LiveConnectionFlow(source, _ => launches++);
+        var token = TestContext.Current.CancellationToken;
+        await source.InitializeAsync();
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            var stages = new List<ConnectionStage>();
+            var reconnect = attempt > 0 && useAccountAction ? provider : null;
+            await foreach (var stage in flow.ConnectAsync(new(provider, ConnectionMethod.BrowserSignIn, reconnect), token))
+            {
+                stages.Add(stage);
+                if (stage.Kind == ConnectionStageKind.WaitingForAuthorization) session.TrySubmitCode("synthetic-code");
+            }
+            Assert.Equal(reconnect is null ? ConnectionStageKind.Connected : ConnectionStageKind.Reconnected, stages.Last().Kind);
+            Assert.Equal(attempt + 1, launches);
+            Assert.Equal(CommandStatus.Succeeded, (await source.ExecuteAsync(new(UiCommandKind.Disconnect, provider, null,
+                source.Current.Revision), token)).Status);
+            Assert.Equal(ConnectionState.NotConnected, source.Current.Accounts.Single().Connection);
+        }
         await source.StopAsync();
     }
 

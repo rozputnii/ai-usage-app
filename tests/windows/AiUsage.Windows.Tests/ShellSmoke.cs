@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Exceptions;
 using FlaUI.Core.Input;
 using FlaUI.Core.WindowsAPI;
 using FlaUI.UIA3;
@@ -351,7 +352,8 @@ public sealed class ShellSmoke
     {
         var desktop = automation.GetDesktop();
         var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
-        // The icon's automation name is its tooltip, which carries the current summary after the app title.
+        // Match the tooltip's summary separator as well as the title: the taskbar's
+        // application button also starts with "AI Usage" while the main window is visible.
         var button = TrayIcon(taskbar);
         if (button is not null && !button.IsOffscreen)
             return button.AsButton();
@@ -376,7 +378,23 @@ public sealed class ShellSmoke
 
     private static AutomationElement? TrayIcon(AutomationElement? host) =>
         host?.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))
-            .FirstOrDefault(element => element.Name?.StartsWith("AI Usage", StringComparison.Ordinal) == true);
+            .FirstOrDefault(element => TryReadAutomationName(element)?.StartsWith("AI Usage · ", StringComparison.Ordinal) == true);
+
+    private static string? TryReadAutomationName(AutomationElement element)
+    {
+        try
+        {
+            return element.Name;
+        }
+        catch (PropertyNotSupportedException)
+        {
+            return null;
+        }
+        catch (COMException)
+        {
+            return null;
+        }
+    }
 
     /// <summary>
     /// H.NotifyIcon hosts the tray icon in a hidden message-only window owned by the app, so the

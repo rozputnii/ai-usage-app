@@ -329,6 +329,9 @@ internal sealed partial class AddAccountViewModel : ObservableObject
                 var existing = context.Usage.Current.Accounts.FirstOrDefault(a => a.Id == stage.AccountId);
                 Result(format.T("Connect_DuplicateTitle"), existing is null ? format.T("Connect_DuplicateBodyGeneric") : format.F("Connect_DuplicateBody", existing.Label), false, stage.AccountId);
                 break;
+            case ConnectionStageKind.ProviderSlotOccupied:
+                Result(format.T("Connect_ProviderSlotTitle"), format.T("Connect_ProviderSlotBody"), false, stage.AccountId);
+                break;
             case ConnectionStageKind.Reconnected:
                 var reconnected = context.Usage.Current.Accounts.FirstOrDefault(a => a.Id == stage.AccountId);
                 Result(format.T("Connect_Reconnected"), format.F("Connect_ReconnectedBody", reconnected?.Label ?? name), true, stage.AccountId);

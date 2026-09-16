@@ -18,7 +18,8 @@
     <tray:TaskbarIcon x:Name="TrayIcon" ToolTipText="{x:Bind Tray.ToolTip, Mode=OneWay}" NoLeftClickDelay="False"
                       LeftClickCommand="{x:Bind Tray.ShowPopupCommand}" DoubleClickCommand="{x:Bind Tray.OpenDashboardCommand}">
       <tray:TaskbarIcon.IconSource>
-        <tray:GeneratedIconSource x:Name="TrayGlyph" Text="●" FontSize="44" Foreground="#C8684A" />
+        <tray:GeneratedIconSource x:Name="TrayGlyph" Text="↗" FontFamily="Segoe UI Symbol" FontSize="78" FontWeight="Bold"
+                                 TextMargin="0,0,0,3" Foreground="#C8684A" />
       </tray:TaskbarIcon.IconSource>
       <tray:TaskbarIcon.ContextFlyout>
         <MenuFlyout>

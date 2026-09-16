@@ -27,7 +27,7 @@ internal sealed class LiveConnectionFlow(LiveUsageSource source, Action<Uri> ope
         var account = source.Current.Accounts.FirstOrDefault(a => a.Id == request.ProviderId);
         if (request.ReconnectAccountId is null && account?.Connection is ConnectionState.Connected or ConnectionState.ReauthRequired or ConnectionState.RecoveryRequired)
         {
-            yield return new(ConnectionStageKind.Duplicate, request.ProviderId);
+            yield return new(ConnectionStageKind.ProviderSlotOccupied, request.ProviderId);
             yield break;
         }
         yield return new(ConnectionStageKind.Connecting);

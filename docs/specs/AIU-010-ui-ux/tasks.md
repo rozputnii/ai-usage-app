@@ -87,10 +87,10 @@ Plan phase 6. Actual Windows screenshots in Light and Dark, keyboard, scaling, t
 Codex maps existing workflows onto the presentation adapter interfaces, keeps future services unavailable in product mode and adds mapping/capability regressions. If durable-state or credential boundaries change, use security-lifecycle and focused review.
 
 ### T-11 - Integrated Windows and visual acceptance
-- status: pending
+- status: blocked
 - depends_on: [T-10]
 - acceptance: AC-03, AC-04, AC-05, AC-06, AC-07, AC-08, AC-09
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md
 
 Run required regressions/build and actual Windows UI scenarios on the integrated candidate. Record owner visual acceptance separately from deterministic checks. Do not mark future backend AIUs done based on demo success.
 
@@ -188,3 +188,29 @@ Plan: add Windows-owned live adapters over existing `DashboardWorkflow` / `IProv
 T-10 complete: live product adapters/startup, isolated --demo, active Claude manual-code fallback, authoritative cancellation/reauthentication state, drained startup/shutdown, independent restriction metadata, presentation persistence and unavailable-capability gating. PASS: Presentation 113/113; Infrastructure 131/131; product Windows smoke 7/7; final demo smoke 7/7 with no product-directory creation; unpackaged build; unsigned MSIX 2026.9.1634.0; focused review with its one finding corrected and regression-tested. See verification.md for failures found during development, final evidence paths and limits. Core and existing provider implementations are unchanged.
 
 Exact next action: when T-11 is selected, run the integrated Windows/visual acceptance matrix and owner-authorized live provider scenarios from verification.md. T-11 remains pending; no live or owner visual acceptance is claimed. T-10 is published on its scoped task branch under CONTRIBUTING; no merge is authorized.
+
+## T-11 acceptance pass, 2026-09-16
+
+Started from clean `codex/english-prompts-specs` at `5358d2f`, containing T-10 `90b07c4`; the only intervening change is the English-writing instruction in AGENTS.md. Working branch: `codex/aiu-010-integrated-acceptance`. Reuse the unchanged T-10 regression, build, product/demo smoke and focused-review evidence, with the limits recorded in verification.md.
+
+Plan: verify remaining integrated keyboard/accessibility, native Windows contrast/scaling, tray and applicable packaged behavior; coordinate owner-led Codex/Claude lifecycle and separate visual acceptance; fix observed defects, verify affected changes and perform required integrated review. Do not publish a blocked or incomplete task.
+
+Completed: product keyboard/navigation/dialog subset, actual Windows Night sky contrast on Settings and Add account, native 100/150/200% scaling on Appearance and the connection dialog, scrolling at 200%, and Windows text enlargement to 153%. Original contrast (None), display scale (125%, 1920 x 1200) and text size (100%) restored. Product runs in `.ai-usage-local/AIU-010/t11-offline-state`; no agent-initiated sign-in or source CLI credential access occurred. Full screen-reader and populated live-account acceptance remain outstanding.
+
+Desktop input was briefly paused after the tool detected user input. A fresh observation later confirmed an unchanged idle Connect screen with no authorization in progress; the authorized offline checks resumed. Owner availability for live sign-in and visual review is still pending.
+
+Packaged acceptance: installed development-signed 2026.9.1635.0 in an offline disposable Sandbox. Initial smoke 6/7 exposed a harness selector matching the taskbar application button instead of the tray tooltip. Tightened the selector to `AI Usage · ` in ShellSmoke.cs. Corrected installed smoke 7/7; upgrade to 2026.9.1636.0 preserved package-local preferences and updated smoke passed 7/7. Separate application-ID activation, visible UI and explicit Exit observed. The guest was stopped; no host installation/trust change. Product source and dependencies are unchanged. Primary integrated review and final document/diff checks apply; no new credential/destructive-data/privilege change requiring independent review was introduced.
+
+Owner follow-up: successful Codex and Claude sign-ins reported, followed by inability to add another account or reconnect after disconnect. Confirmed that the live adapter incorrectly labelled its one-provider-slot guard as verified duplicate identity. Added a distinct occupied-slot result and explicit one-account-per-provider help; no provider, credential or connection eligibility logic changed. Presentation 117/117, Infrastructure 131/131, unsigned MSIX 2026.9.1637.0, unpackaged Release build and targeted native capability smoke 1/1 pass. Actual updated provider-help layout inspected. The original credential-bearing Debug process remains running and has not received the source correction. Codex was observed disconnected; Claude had a displayed quota reading. Live reconnect failure is owner-reported and not yet reproduced; deterministic repeat authorization passes through both Add account and account-detail reconnect routes for both provider identifiers.
+
+Exact next action: obtain the owner's exact post-disconnect Connect outcome (Already connected, another error, or no response), then reproduce the owner-led Codex reconnect without importing CLI credentials or automatically signing in. Continue the remaining live lifecycle, screen-reader and separate owner visual checks after fixing any confirmed defect. No commit/push while T-11 is incomplete.
+
+## T-11 owner visual follow-up: tray mark, 2026-09-16
+
+The owner reported that the system-tray icon was an unclear, tiny dot. Root cause confirmed: `MainWindow.xaml` used `GeneratedIconSource` with the placeholder `●` glyph. Replaced it with a bold, larger `↗` usage mark using `Segoe UI Symbol`; the existing attention-level colour mapping and tray commands are unchanged. The Windows smoke harness also now ignores taskbar elements that do not expose the optional UIA `Name` property, without weakening the tray assertions.
+
+PASS: Release unpackaged build with zero warnings/errors; Presentation.Tests 117/117; actual isolated Windows smoke 7/7 after republishing the harness. Evidence is under `.ai-usage-local/AIU-010/t11-tray-icon-fix-smoke/`; no credential-bearing state was used.
+
+Exact next action: owner visually rechecks the rebuilt tray icon at normal Windows scale and confirms it is recognizable and correctly aligned. T-11 remains blocked until that confirmation and any still-open live/screen-reader gates are explicitly accepted. No commit/push while T-11 is incomplete.
+
+Owner publication instruction, 2026-09-16: the owner explicitly instructed Codex to commit and push all current tracked changes. This publishes the current T-11 snapshot by direct owner direction; it does not convert the remaining NOT_RUN/BLOCKED acceptance gates to PASS or mark T-11 done.
