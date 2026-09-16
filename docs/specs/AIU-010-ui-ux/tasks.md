@@ -219,6 +219,8 @@ The owner then reported that the arrow correction rendered as an empty transpare
 
 PASS: Release unpackaged build with zero warnings/errors; Presentation.Tests 117/117; the final fresh isolated Windows smoke passed 7/7. The first full rerun had one close-to-tray click timeout; a clean isolated rerun passed all 7 scenarios. Evidence is under `.ai-usage-local/AIU-010/t11-tray-ai-mark-smoke-rerun/`; no credential-bearing state was used.
 
-Exact next action: owner visually rechecks the rebuilt `AI` tray mark at normal Windows scale and confirms it is visible, recognizable and correctly aligned. T-11 remains blocked until that confirmation and the still-open live/screen-reader gates are explicitly accepted.
+Owner confirmation and integration request, 2026-09-16: the owner replied `good` after the rebuilt `AI` tray mark was presented and explicitly requested commit, push and merge into `main`. This is visual acceptance of the tray correction and publication authority for the current snapshot. The remaining live Codex/Claude lifecycle and full screen-reader gates are still open, so T-11 remains blocked and AIU-010 remains in-progress.
 
-Owner publication instruction, 2026-09-16: the owner explicitly instructed Codex to commit and push all current tracked changes. This publishes the current T-11 snapshot by direct owner direction; it does not convert the remaining NOT_RUN/BLOCKED acceptance gates to PASS or mark T-11 done.
+Exact next action: continue the live Codex/Claude lifecycle and full screen-reader acceptance. This owner-authorized merge does not claim those remaining checks passed.
+
+Owner publication instruction, 2026-09-16: the owner explicitly instructed Codex to commit, push and merge all current tracked changes. This publishes the current T-11 snapshot by direct owner direction; it does not convert the remaining NOT_RUN/BLOCKED acceptance gates to PASS or mark T-11 done.

@@ -169,7 +169,11 @@ The owner reported that the arrow correction appeared as an empty transparent tr
 | Presentation regressions after correction | PASS | Release suite 117/117. |
 | Unpackaged Windows build after correction | PASS | Release/x64 `WindowsPackageType=None`, zero warnings/errors. |
 | Actual Windows tray/lifetime smoke after correction | PASS | Final fresh isolated run passed 7/7 scenarios, including close-to-tray, tray restore, tray menu Exit and repeated Exit. Evidence: `.ai-usage-local/AIU-010/t11-tray-ai-mark-smoke-rerun/`. One earlier full run had a close-to-tray click timeout; the clean rerun passed. |
-| Owner visual confirmation | NOT_RUN | The owner must recheck the rebuilt icon at normal Windows scale. T-11 remains incomplete; live provider and screen-reader gates are still open. |
+| Owner visual confirmation | PASS | The owner replied `good` after the rebuilt `AI` tray mark was presented. This confirms the tray correction only; live provider and screen-reader gates remain open. |
+
+### Owner-authorized integration of the current snapshot — 2026-09-16
+
+The owner explicitly requested commit, push and merge of the current AIU-010 snapshot into `main` after confirming the tray correction. This is direct integration authority, not evidence that the remaining live Codex/Claude lifecycle or full screen-reader checks passed. T-11 remains `blocked` and AIU-010 remains `in-progress` until those gates are separately completed.
 
 ### Owner-directed publication — 2026-09-16
 
