@@ -13,6 +13,11 @@ For substantial work, briefly state the intended result and acceptance checks.
 Complete authorized implementation, relevant verification, and integrated
 review without repeated approval for routine internal steps.
 
+Write all authored prompts and specifications in English, regardless of the
+language used in user conversations or agent sessions. This includes task,
+handoff, and inter-agent prompts. Conversational replies may use the user's
+language.
+
 Ask when a missing decision changes scope, product intent, significant
 architecture, dependencies, security boundaries, or external/destructive
 authority. Backlog status and historical permissions do not select work.
