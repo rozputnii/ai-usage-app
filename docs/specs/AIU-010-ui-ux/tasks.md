@@ -4,7 +4,7 @@ schema_version: 1
 ---
 # AIU-010 staged execution
 
-The primary owns shared contracts, canonical documents and integration. This file is the single progress and resume record for the mock-first frontend delivery defined by [frontend-brief.md](frontend-brief.md) and [frontend-plan.md](frontend-plan.md). After interruption or context compaction, read the brief, the plan and this file before editing. No worker has been launched.
+The primary owns shared contracts, canonical documents and integration. This file is the single progress and resume record for the mock-first frontend delivery defined by [frontend-brief.md](frontend-brief.md) and [frontend-plan.md](frontend-plan.md). After interruption or context compaction, read the brief, the plan and this file before editing. No write worker was launched; T-10 used one read-only independent reviewer.
 
 ### T-01 - Prepare current and planned UI contract
 - status: done
@@ -79,10 +79,10 @@ Plan phase 5: S08–S12 and F11–F14.
 Plan phase 6. Actual Windows screenshots in Light and Dark, keyboard, scaling, tray and Exit checks, coverage matrix evidence, verification.md record and adapter handoff. Commit and push the task branch after verification; do not merge.
 
 ### T-10 - Codex available-service integration
-- status: pending
+- status: done
 - depends_on: [T-09]
 - acceptance: AC-06, AC-07, AC-08
-- evidence: not-run
+- evidence: docs/specs/AIU-010-ui-ux/verification.md
 
 Codex maps existing workflows onto the presentation adapter interfaces, keeps future services unavailable in product mode and adds mapping/capability regressions. If durable-state or credential boundaries change, use security-lifecycle and focused review.
 
@@ -175,6 +175,16 @@ Rules for a live adapter: publish snapshots from any thread (view models marshal
 - D1-D7 resolutions from the plan are implemented as written there (thresholds stay remaining-percent, the Overview summary strip is restored, glyphs are kept in every theme, provider hues stay behind the demo switch).
 - At 200 % content scale with the demo panel open the effective width drops below the design's compact minimum and header labels clip; the same scale is clean with the panel closed or a wider window.
 
-### Next action
+### Mock delivery next action (superseded by T-10 completion below)
 
 T-10: Codex maps existing Codex workflows onto the adapter interfaces above and adds `AddLiveServices()`, keeping unavailable providers `Unsupported`. Do not mark AIU-010 complete on the mock delivery alone.
+
+## T-10 implementation, 2026-09-16
+
+Base `3ba2c88` on `codex/aiu-010-live-adapters`; clean checkout. Since `ca61583`, only the local-development instruction change intervened. Baseline product tests were not repeated.
+
+Plan: add Windows-owned live adapters over existing `DashboardWorkflow` / `IProviderSession`; map nullable quota and cached/error states; preserve the active Claude authorization for manual-code fallback; select product composition by default and `--demo` explicitly; drain work on Exit; persist presentation-only preferences through Infrastructure; reject and disable future capabilities; run targeted and full relevant regressions, unpackaged/package builds, applicable offline Windows smoke and focused independent review. Existing provider stores and protocols remain authoritative. One existing slot per provider; multi-account remains unavailable. T-11 and owner visual/live acceptance remain separate.
+
+T-10 complete: live product adapters/startup, isolated --demo, active Claude manual-code fallback, authoritative cancellation/reauthentication state, drained startup/shutdown, independent restriction metadata, presentation persistence and unavailable-capability gating. PASS: Presentation 113/113; Infrastructure 131/131; product Windows smoke 7/7; final demo smoke 7/7 with no product-directory creation; unpackaged build; unsigned MSIX 2026.9.1634.0; focused review with its one finding corrected and regression-tested. See verification.md for failures found during development, final evidence paths and limits. Core and existing provider implementations are unchanged.
+
+Exact next action: when T-11 is selected, run the integrated Windows/visual acceptance matrix and owner-authorized live provider scenarios from verification.md. T-11 remains pending; no live or owner visual acceptance is claimed. T-10 is published on its scoped task branch under CONTRIBUTING; no merge is authorized.

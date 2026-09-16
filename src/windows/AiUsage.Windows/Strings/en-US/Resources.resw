@@ -2181,4 +2181,11 @@
   <data name="Window_MutedTag" xml:space="preserve">
     <value> · muted</value>
   </data>
+  <data name="Capability_Unavailable" xml:space="preserve"><value>Not available yet</value></data>
+  <data name="Refresh_ManualOnly" xml:space="preserve"><value>Refresh manually. Automatic monitoring is not available yet.</value></data>
+  <data name="Detail_LimitReason" xml:space="preserve"><value>Provider limit reason: {0}</value></data>
+  <data name="Detail_GroupNotAllowed" xml:space="preserve"><value>Access not allowed for {0}, as reported by the provider.</value></data>
+  <data name="Detail_GroupLimitReached" xml:space="preserve"><value>Provider reports a limit reached for {0}.</value></data>
+  <data name="Connect_PickHelpLive" xml:space="preserve"><value>Choose a provider to connect.</value></data>
+  <data name="Connect_ProviderHelpDemo" xml:space="preserve"><value>Choose a provider. Planned providers are interactive here but unavailable in the live app until their connection method ships.</value></data>
 </root>

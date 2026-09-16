@@ -28,7 +28,7 @@
       <ItemsRepeater ItemsSource="{x:Bind ViewModel.SharedRules, Mode=OneWay}" AutomationProperties.AutomationId="SharedRules">
         <ItemsRepeater.ItemTemplate>
           <DataTemplate x:DataType="monitoring:ThresholdRuleViewModel">
-            <monitoring:ThresholdRuleRow Rule="{x:Bind}" />
+            <monitoring:ThresholdRuleRow controls:CapabilityGate.Key="SetNotificationRule" Rule="{x:Bind}" />
           </DataTemplate>
         </ItemsRepeater.ItemTemplate>
       </ItemsRepeater>
@@ -52,11 +52,11 @@
                 </Button>
               </Border>
               <StackPanel Padding="18,0,0,0" Visibility="{x:Bind controls:Bind.Visible(IsExpanded), Mode=OneWay}" controls:Motion.Entrance="True">
-                <monitoring:ThresholdRuleRow Rule="{x:Bind AccountRule, Mode=OneWay}" />
+                <monitoring:ThresholdRuleRow controls:CapabilityGate.Key="SetNotificationRule" Rule="{x:Bind AccountRule, Mode=OneWay}" />
                 <ItemsRepeater ItemsSource="{x:Bind WindowRules}">
                   <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="monitoring:ThresholdRuleViewModel">
-                      <monitoring:ThresholdRuleRow Rule="{x:Bind}" />
+                      <monitoring:ThresholdRuleRow controls:CapabilityGate.Key="SetNotificationRule" Rule="{x:Bind}" />
                     </DataTemplate>
                   </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
@@ -75,7 +75,7 @@
             <TextBlock x:Uid="Monitoring_ResetNotice" Style="{StaticResource Body13Text}" />
             <TextBlock x:Uid="Monitoring_ResetNoticeHelp" Style="{StaticResource CaptionText}" />
           </StackPanel>
-          <ToggleSwitch Grid.Column="1" x:Uid="Monitoring_ResetNoticeSwitch" AutomationProperties.AutomationId="ResetNoticeSwitch" IsOn="{x:Bind ViewModel.ResetNotice, Mode=TwoWay}" VerticalAlignment="Center" />
+          <ToggleSwitch Grid.Column="1" x:Uid="Monitoring_ResetNoticeSwitch" controls:CapabilityGate.Key="SetNotificationRule" AutomationProperties.AutomationId="ResetNoticeSwitch" IsOn="{x:Bind ViewModel.ResetNotice, Mode=TwoWay}" VerticalAlignment="Center" />
         </Grid>
       </Border>
     </StackPanel>
@@ -105,7 +105,7 @@
       </Border>
       <Border Style="{StaticResource HairlineRow}" Padding="0,10">
         <controls:WrapPanel HorizontalSpacing="12" VerticalSpacing="6">
-          <Button x:Uid="Monitoring_Preview" AutomationProperties.AutomationId="PreviewNotification" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.PreviewNotificationCommand, Mode=OneWay}" />
+          <Button x:Uid="Monitoring_Preview" AutomationProperties.AutomationId="PreviewNotification" Style="{StaticResource SecondaryButton}" controls:CapabilityGate.Key="PreviewNotification" Command="{x:Bind ViewModel.PreviewNotificationCommand, Mode=OneWay}" />
           <TextBlock x:Uid="Monitoring_PreviewHelp" Style="{StaticResource CaptionText}" VerticalAlignment="Center" MaxWidth="480" />
         </controls:WrapPanel>
       </Border>
@@ -124,7 +124,7 @@
             <TextBlock x:Uid="Monitoring_ReduceOnBattery" Style="{StaticResource Body13Text}" />
             <TextBlock x:Uid="Monitoring_ReduceOnBatteryHelp" Style="{StaticResource CaptionText}" />
           </StackPanel>
-          <ToggleSwitch Grid.Column="1" x:Uid="Monitoring_ReduceOnBatterySwitch" AutomationProperties.AutomationId="ReduceOnBatterySwitch" IsOn="{x:Bind ViewModel.ReduceOnBatterySaver, Mode=TwoWay}" VerticalAlignment="Center" />
+          <ToggleSwitch Grid.Column="1" x:Uid="Monitoring_ReduceOnBatterySwitch" controls:CapabilityGate.Key="ReduceRefreshOnBatterySaver" AutomationProperties.AutomationId="ReduceOnBatterySwitch" IsOn="{x:Bind ViewModel.ReduceOnBatterySaver, Mode=TwoWay}" VerticalAlignment="Center" />
         </Grid>
       </Border>
       <Border Style="{StaticResource HairlineRow}" Padding="0,10">

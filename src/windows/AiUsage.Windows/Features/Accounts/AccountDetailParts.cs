@@ -49,7 +49,7 @@ internal sealed partial class ExtensionViewModel : ObservableObject
         return new ExtensionViewModel
         {
             Title = title,
-            Value = money ?? (extension.AmountMinor is null ? "—" : format.NativeNumber(extension.AmountMinor)),
+            Value = extension.Unlimited == true ? format.T("Value_Unlimited") : money ?? (extension.AmountMinor is null ? "—" : format.NativeNumber(extension.AmountMinor)),
             Note = note,
         };
     }

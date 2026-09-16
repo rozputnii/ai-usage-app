@@ -220,6 +220,11 @@ internal sealed partial class MonitoringSettingsViewModel : SnapshotViewModel
             RefreshPolicyText = system.RefreshPolicy == RefreshPolicy.Reduced
                 ? format.T("Refresh_PolicyReduced")
                 : demo?.BatterySaver == true ? format.T("Refresh_PolicyBatteryNotReduced") : format.T("Refresh_PolicyNormal");
+            if (snapshot.Mode == UiMode.Live)
+            {
+                QuietHoursText = format.T("Capability_Unavailable");
+                RefreshPolicyText = format.T("Refresh_ManualOnly");
+            }
 
             var accounts = QuotaRules.Ordered(snapshot);
             var shared = new List<ThresholdRuleViewModel> { Rule(RuleScope.Global, null, prefs, format.T("Rules_GlobalLabel"), format.T("Rules_GlobalSub"), null, null, null) };

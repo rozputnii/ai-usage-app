@@ -67,6 +67,7 @@ internal sealed partial class AddAccountViewModel : ObservableObject
     public ObservableCollection<MethodOptionViewModel> Methods { get; } = [];
     public IReadOnlyList<SimulatorOption> Simulators { get; }
     public bool HasSimulator => demo is not null;
+    public string ProviderHelp => context.Format.T(HasSimulator ? "Connect_ProviderHelpDemo" : "Connect_PickHelpLive");
 
     [NotifyPropertyChangedFor(nameof(IsPick), nameof(IsMethod), nameof(IsConnecting), nameof(IsWaiting), nameof(IsCode), nameof(IsVerifying), nameof(IsResult), nameof(IsBusy))]
     [ObservableProperty] public partial ConnectStep Step { get; private set; }
@@ -179,7 +180,7 @@ internal sealed partial class AddAccountViewModel : ObservableObject
     {
         if (Provider is null)
             return;
-        if (Method == ConnectionMethod.ManualCode)
+        if (Method == ConnectionMethod.ManualCode && !flow.ManualCodeUsesActiveConnection)
         {
             Note = string.Empty;
             Step = ConnectStep.Code;
@@ -191,7 +192,8 @@ internal sealed partial class AddAccountViewModel : ObservableObject
     [RelayCommand]
     private void EnterCodeInstead()
     {
-        Detach();
+        if (!SupportsManualCode) return;
+        if (!flow.ManualCodeUsesActiveConnection) Detach();
         Code = string.Empty;
         Step = ConnectStep.Code;
     }
@@ -209,6 +211,12 @@ internal sealed partial class AddAccountViewModel : ObservableObject
         }
         // The code is used once and never stored: clear it before the request starts.
         Code = string.Empty;
+        if (flow.ManualCodeUsesActiveConnection)
+        {
+            if (flow.TrySubmitCode(Request(), code)) Step = ConnectStep.Verifying;
+            else CodeError = context.Format.T("Connect_CodeError");
+            return;
+        }
         await RunAsync(token => flow.SubmitCodeAsync(Request(), code, token));
     }
 
@@ -275,7 +283,7 @@ internal sealed partial class AddAccountViewModel : ObservableObject
                         context.Announcer.Announce(ConnectingText);
                         break;
                     case ConnectionStageKind.WaitingForAuthorization:
-                        Step = ConnectStep.Waiting;
+                        Step = flow.ManualCodeUsesActiveConnection && Method == ConnectionMethod.ManualCode ? ConnectStep.Code : ConnectStep.Waiting;
                         context.Announcer.Announce(context.Format.T("Connect_WaitingTitle"));
                         break;
                     case ConnectionStageKind.Verifying:

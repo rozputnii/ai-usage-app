@@ -164,7 +164,7 @@
                 <TextBlock Grid.Column="1" x:Uid="Order_HiddenTag" Style="{StaticResource Caption11Text}" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.Visible(IsHidden), Mode=OneWay}" />
                 <TextBlock Grid.Column="2" x:Uid="Order_MutedTag" Style="{StaticResource Caption11Text}" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.Visible(IsMuted), Mode=OneWay}" />
                 <Button Grid.Column="3" Style="{StaticResource SmallSecondaryButton}" MinWidth="52" Content="{x:Bind HideLabel, Mode=OneWay}" Command="{x:Bind ToggleHiddenCommand}" />
-                <Button Grid.Column="4" Style="{StaticResource SmallSecondaryButton}" MinWidth="60" Content="{x:Bind MuteLabel, Mode=OneWay}" Command="{x:Bind ToggleMutedCommand}" />
+                <Button Grid.Column="4" Style="{StaticResource SmallSecondaryButton}" MinWidth="60" Content="{x:Bind MuteLabel, Mode=OneWay}" controls:CapabilityGate.Key="SetMute" Command="{x:Bind ToggleMutedCommand}" />
                 <Button Grid.Column="5" Style="{StaticResource SmallSecondaryButton}" Width="26" Padding="0" Foreground="{ThemeResource Text2Brush}" AutomationProperties.Name="{x:Bind MoveUpName, Mode=OneWay}" Command="{x:Bind MoveUpCommand}">
                   <TextBlock Text="▲" FontSize="10" />
                 </Button>

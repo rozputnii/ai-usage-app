@@ -73,7 +73,12 @@ public sealed record ContextItem(string Id, string Label, ContextKind Kind, bool
     public bool Available { get; init; } = true;
 }
 
-public sealed record GroupItem(string Id, string Label, string? SharedPoolId, bool Hidden, ExpansionPreference Expansion, IReadOnlyList<WindowItem> Windows);
+public sealed record GroupItem(string Id, string Label, string? SharedPoolId, bool Hidden, ExpansionPreference Expansion, IReadOnlyList<WindowItem> Windows)
+{
+    // Independent provider restrictions; never replace or synthesize window measurements.
+    public bool? Allowed { get; init; }
+    public bool? LimitReached { get; init; }
+}
 
 /// <summary>Null percentages are unknown, never zero. Unlimited requires an explicit <see cref="ValueState.Unlimited"/>.</summary>
 public sealed record WindowItem(

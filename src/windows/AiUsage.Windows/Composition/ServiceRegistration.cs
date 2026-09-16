@@ -20,9 +20,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AiUsage.Composition;
 
 /// <summary>
-/// Composition for the mock-first frontend (AIU-010). The default application registers presentation features, WinUI
-/// platform services and the deterministic demo adapters only; no provider session, credential or storage service.
-/// Backend integration adds an AddLiveServices registration behind the same adapter interfaces.
+/// Shared presentation and platform composition, plus isolated synthetic demo adapters.
+/// Product adapters are registered separately by AddLiveServices.
 /// </summary>
 internal static class ServiceRegistration
 {

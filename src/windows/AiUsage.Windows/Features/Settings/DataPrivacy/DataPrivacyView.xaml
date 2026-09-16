@@ -19,7 +19,7 @@
             <TextBlock x:Uid="Data_RecordHistory" Style="{StaticResource Body13Text}" />
             <TextBlock x:Uid="Data_RecordHistoryHelp" Style="{StaticResource CaptionText}" />
           </StackPanel>
-          <ToggleSwitch Grid.Column="1" x:Uid="Data_RecordHistorySwitch" AutomationProperties.AutomationId="HistoryEnabledSwitch" IsOn="{x:Bind ViewModel.HistoryEnabled, Mode=TwoWay}" VerticalAlignment="Center" />
+          <ToggleSwitch Grid.Column="1" x:Uid="Data_RecordHistorySwitch" controls:CapabilityGate.Key="HistoryEnabled" AutomationProperties.AutomationId="HistoryEnabledSwitch" IsOn="{x:Bind ViewModel.HistoryEnabled, Mode=TwoWay}" VerticalAlignment="Center" />
         </Grid>
       </Border>
       <Border Style="{StaticResource HairlineRow}" Padding="0,10">
@@ -32,7 +32,7 @@
             <TextBlock x:Uid="Data_Retention" Style="{StaticResource Body13Text}" />
             <TextBlock x:Uid="Data_RetentionHelp" Style="{StaticResource CaptionText}" />
           </StackPanel>
-          <ComboBox Grid.Column="1" x:Uid="Data_RetentionBox" AutomationProperties.AutomationId="RetentionSelector" Style="{StaticResource AppComboBox}" MinWidth="160" VerticalAlignment="Center"
+          <ComboBox Grid.Column="1" x:Uid="Data_RetentionBox" controls:CapabilityGate.Key="Retention" AutomationProperties.AutomationId="RetentionSelector" Style="{StaticResource AppComboBox}" MinWidth="160" VerticalAlignment="Center"
                     ItemsSource="{x:Bind ViewModel.RetentionLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.RetentionIndex, Mode=TwoWay}" />
         </Grid>
       </Border>
@@ -49,7 +49,7 @@
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock x:Uid="Data_ExportHelp" Style="{StaticResource CaptionText}" LineHeight="17" VerticalAlignment="Center" />
-            <Button Grid.Column="1" x:Uid="Data_PrepareExport" AutomationProperties.AutomationId="PrepareExport" Style="{StaticResource SecondaryButton}" MinWidth="150" Command="{x:Bind ViewModel.PrepareExportCommand, Mode=OneWay}"
+            <Button Grid.Column="1" x:Uid="Data_PrepareExport" AutomationProperties.AutomationId="PrepareExport" Style="{StaticResource SecondaryButton}" MinWidth="150" controls:CapabilityGate.Key="PreviewExport" Command="{x:Bind ViewModel.PrepareExportCommand, Mode=OneWay}"
                     Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsExportIdle), Mode=OneWay}" />
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" MinWidth="220" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsExportPreparing), Mode=OneWay}">
               <ProgressBar Width="100" Minimum="0" Maximum="1" Value="{x:Bind ViewModel.ExportProgress, Mode=OneWay}" VerticalAlignment="Center" x:Uid="Data_ExportProgress" AutomationProperties.AutomationId="ExportProgress" />
@@ -94,7 +94,7 @@
             <TextBlock x:Uid="Data_BundleLabel" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
             <ComboBox x:Uid="Data_BundleBox" AutomationProperties.AutomationId="ReplaceCandidate" Style="{StaticResource AppComboBox}" MinWidth="240" ItemsSource="{x:Bind ViewModel.ReplaceCandidates, Mode=OneWay}"
                       SelectedItem="{x:Bind ViewModel.SelectedCandidate, Mode=TwoWay, Converter={StaticResource PassThrough}}" DisplayMemberPath="DisplayName" />
-            <Button x:Uid="Data_Validate" AutomationProperties.AutomationId="ValidateReplace" Style="{StaticResource SecondaryButton}" MinWidth="100" Command="{x:Bind ViewModel.ValidateReplaceCommand, Mode=OneWay}"
+            <Button x:Uid="Data_Validate" AutomationProperties.AutomationId="ValidateReplace" Style="{StaticResource SecondaryButton}" MinWidth="100" controls:CapabilityGate.Key="PreviewReplaceImport" Command="{x:Bind ViewModel.ValidateReplaceCommand, Mode=OneWay}"
                     Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsReplaceIdle), Mode=OneWay}" />
             <StackPanel Orientation="Horizontal" Spacing="6" MinWidth="100" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsReplaceValidating), Mode=OneWay}">
               <controls:BusyRing Size="12" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsReplaceValidating), Mode=OneWay}" VerticalAlignment="Center" />
@@ -116,7 +116,7 @@
               <TextBlock Style="{StaticResource CaptionText}" Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center" MaxWidth="460">
                 <Run Text="✓ " Foreground="{ThemeResource OkBrush}" FontWeight="Bold" /><Run Text="{x:Bind ViewModel.ReplaceMessage, Mode=OneWay}" />
               </TextBlock>
-              <Button x:Uid="Data_Replace" AutomationProperties.AutomationId="ConfirmReplace" Style="{StaticResource SmallDestructiveButton}" Command="{x:Bind ViewModel.ConfirmReplaceCommand, Mode=OneWay}" />
+              <Button x:Uid="Data_Replace" AutomationProperties.AutomationId="ConfirmReplace" Style="{StaticResource SmallDestructiveButton}" controls:CapabilityGate.Key="PreviewReplaceImport" Command="{x:Bind ViewModel.ConfirmReplaceCommand, Mode=OneWay}" />
               <Button x:Uid="Dialog_CancelButton" Style="{StaticResource SmallSecondaryButton}" MinHeight="26" Command="{x:Bind ViewModel.ResetReplaceCommand, Mode=OneWay}" />
             </controls:WrapPanel>
           </Border>
@@ -156,7 +156,7 @@
           <StackPanel Orientation="Horizontal" Spacing="8">
             <ComboBox x:Uid="Data_DeleteTarget" AutomationProperties.AutomationId="DeleteTarget" Style="{StaticResource AppComboBox}" MaxWidth="220" MinWidth="160" ItemsSource="{x:Bind ViewModel.DeleteTargets, Mode=OneWay}"
                       SelectedItem="{x:Bind ViewModel.SelectedDeleteTarget, Mode=TwoWay, Converter={StaticResource PassThrough}}" DisplayMemberPath="Label" />
-            <Button x:Uid="Data_DeleteButton" AutomationProperties.AutomationId="DeleteAccountData" Style="{StaticResource DestructiveOutlineButton}" Command="{x:Bind ViewModel.DeleteAccountDataCommand, Mode=OneWay}" />
+            <Button x:Uid="Data_DeleteButton" AutomationProperties.AutomationId="DeleteAccountData" Style="{StaticResource DestructiveOutlineButton}" controls:CapabilityGate.Key="DeleteAccountData" Command="{x:Bind ViewModel.DeleteAccountDataCommand, Mode=OneWay}" />
           </StackPanel>
         </controls:WrapPanel>
       </Border>
@@ -170,7 +170,7 @@
             <TextBlock x:Uid="Data_EraseAll" Style="{StaticResource Body13Text}" />
             <TextBlock x:Uid="Data_EraseAllHelp" Style="{StaticResource CaptionText}" LineHeight="17" />
           </StackPanel>
-          <Button Grid.Column="1" x:Uid="Data_EraseAllButton" AutomationProperties.AutomationId="FactoryReset" Style="{StaticResource DestructiveButton}" VerticalAlignment="Center" Command="{x:Bind ViewModel.FactoryResetCommand, Mode=OneWay}" />
+          <Button Grid.Column="1" x:Uid="Data_EraseAllButton" AutomationProperties.AutomationId="FactoryReset" Style="{StaticResource DestructiveButton}" VerticalAlignment="Center" controls:CapabilityGate.Key="FactoryReset" Command="{x:Bind ViewModel.FactoryResetCommand, Mode=OneWay}" />
         </Grid>
       </Border>
     </StackPanel>

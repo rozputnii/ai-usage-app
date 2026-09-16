@@ -13,7 +13,7 @@ using Xunit;
 namespace AiUsage.Windows.Tests;
 
 /// <summary>
-/// Interactive smoke checks for the AIU-010 shell. The app under test is the mock-only build: it launches unpackaged
+/// Interactive smoke checks for the AIU-010 product or explicit demo shell. It launches unpackaged
 /// from <c>AIU_SMOKE_EXE</c>, or from an installed package when <c>AIU_SMOKE_AUMID</c> is set instead. Nothing here
 /// installs, registers or uninstalls anything.
 /// </summary>
@@ -33,6 +33,7 @@ public sealed class ShellSmoke
     [InlineData("close-to-tray")]
     [InlineData("tray-exit")]
     [InlineData("repeated-exit")]
+    [InlineData("capabilities")]
     public void ShellLaunchesNavigatesAndExits(string scenario)
     {
         var aumid = Environment.GetEnvironmentVariable("AIU_SMOKE_AUMID");
@@ -51,7 +52,14 @@ public sealed class ShellSmoke
         using var automation = new UIA3Automation();
         File.WriteAllText(Path.Combine(evidence!, scenario + "-activation.json"),
             JsonSerializer.Serialize(new { scenario, phase = "activation-attempted", utc = DateTime.UtcNow }));
-        using var app = string.IsNullOrWhiteSpace(exe) ? Application.LaunchStoreApp(aumid!) : Application.Launch(exe!);
+        var demo = Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") == "demo";
+        if (!demo)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(exe), "Product smoke currently requires the unpackaged executable; packaged acceptance is separate.");
+            Assert.False(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY")),
+                "Product smoke requires an explicitly isolated development state directory with no stored grants.");
+        }
+        using var app = string.IsNullOrWhiteSpace(exe) ? Application.LaunchStoreApp(aumid!) : Application.Launch(exe!, demo ? "--demo" : "");
         var pid = app.ProcessId;
         using var process = Process.GetProcessById(pid);
         // Acquire the OS process handle before observing exit so PID reuse cannot change ownership.
@@ -64,13 +72,15 @@ public sealed class ShellSmoke
             while (startup.Elapsed < TimeSpan.FromSeconds(30) && !process.HasExited)
             {
                 window = FindProcessWindow(automation, pid);
-                if (window?.FindFirstDescendant(cf => cf.ByAutomationId("OverviewSummary")) is not null)
+                if (window?.FindFirstDescendant(cf => cf.ByAutomationId(demo ? "OverviewSummary" : "EmptyAddAccount")) is not null)
                     break;
                 Thread.Sleep(200);
             }
             Assert.NotNull(window);
-            // The default build is the mock shell: the demo marker is the visible proof that no provider is involved.
-            Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId("DemoMarker")));
+            window.Patterns.Window.Pattern.SetWindowVisualState(FlaUI.Core.Definitions.WindowVisualState.Maximized);
+            var marker = window.FindFirstDescendant(cf => cf.ByAutomationId("DemoMarker"));
+            if (demo) Assert.NotNull(marker);
+            else Assert.Null(marker);
             foreach (var id in NavigationIds)
                 Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId(id)));
             Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId("AddAccountButton")));
@@ -81,6 +91,22 @@ public sealed class ShellSmoke
                 Navigate(window, evidence!, scenario);
             if (scenario == "theme")
                 SwitchTheme(window, evidence!);
+            if (scenario == "capabilities")
+            {
+                Assert.Equal(demo, window.FindFirstDescendant(cf => cf.ByAutomationId("EmptyImportCli"))?.IsEnabled ?? demo);
+                Required(window, "AddAccountButton").AsButton().Invoke();
+                Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "AddAccountTabCli").Count > 0, TimeSpan.FromSeconds(5)));
+                Assert.Equal(demo, FindAllInProcess(automation, pid, "AddAccountTabCli").Single().IsEnabled);
+                Capture(window, evidence!, "capabilities-connect");
+                FindAllInProcess(automation, pid, "AddAccountClose").Single().AsButton().Invoke();
+                Required(window, "NavSettings").Click();
+                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("TabDataPrivacy")) is not null, TimeSpan.FromSeconds(5)));
+                Required(window, "TabDataPrivacy").Click();
+                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("HistoryEnabledSwitch")) is not null, TimeSpan.FromSeconds(5)));
+                foreach (var id in new[] { "HistoryEnabledSwitch", "RetentionSelector", "PrepareExport" })
+                    Assert.Equal(demo, Required(window, id).IsEnabled);
+                Capture(window, evidence!, "capabilities-data");
+            }
 
             // UIA can expose text before the compositor presents the corresponding frame.
             Thread.Sleep(500);
@@ -185,15 +211,20 @@ public sealed class ShellSmoke
         }
     }
 
-    /// <summary>Every designed page must be reachable from the shell navigation.</summary>
+    /// <summary>Demo pages remain reachable; product History remains disabled until its backend exists.</summary>
     private static void Navigate(Window window, string evidence, string scenario)
     {
         for (var i = 0; i < NavigationIds.Length; i++)
         {
             var tab = window.FindFirstDescendant(cf => cf.ByAutomationId(NavigationIds[i]));
             Assert.NotNull(tab);
+            if (i == 2 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") != "demo")
+            {
+                Assert.False(tab.IsEnabled);
+                continue;
+            }
             tab.Click();
-            var marker = PageMarkers[i];
+            var marker = i == 0 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") != "demo" ? "EmptyAddAccount" : PageMarkers[i];
             Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId(marker)) is not null, TimeSpan.FromSeconds(10)),
                 $"{NavigationIds[i]} must show the page carrying {marker}.");
             if (scenario == "navigation")
@@ -249,6 +280,13 @@ public sealed class ShellSmoke
         return found;
     }
 
+    private static AutomationElement Required(Window window, string id)
+    {
+        var element = window.FindFirstDescendant(cf => cf.ByAutomationId(id));
+        Assert.NotNull(element);
+        return element;
+    }
+
     private static void Capture(Window window, string evidence, string name)
     {
         using var screenshot = window.Capture();
@@ -297,10 +335,14 @@ public sealed class ShellSmoke
         // Sandbox UIA3 can report ProcessId=0; the native HWND owner remains authoritative.
         foreach (var element in automation.GetDesktop().FindAllChildren())
         {
-            var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
-            if (handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == (uint)pid
-                && element.FindFirstDescendant(cf => cf.ByAutomationId("MainNavigation")) is not null)
-                return element.AsWindow();
+            try
+            {
+                var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
+                if (handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == (uint)pid
+                    && element.FindFirstDescendant(cf => cf.ByAutomationId("MainNavigation")) is not null)
+                    return element.AsWindow();
+            }
+            catch (COMException) { /* Another desktop window can disappear during enumeration. Retry the owned PID. */ }
         }
         return null;
     }

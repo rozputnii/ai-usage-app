@@ -51,7 +51,7 @@
           <TextBlock x:Uid="Overview_EmptyBody" Style="{StaticResource Body13SecondaryText}" TextAlignment="Center" Margin="0,8,0,18" LineHeight="20" />
           <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
             <Button x:Uid="Header_AddAccountButton" AutomationProperties.AutomationId="EmptyAddAccount" Style="{StaticResource PrimaryButton}" FontSize="14" Padding="16,6,16,7" Command="{x:Bind ViewModel.AddAccountCommand}" />
-            <Button x:Uid="Overview_EmptyImport" AutomationProperties.AutomationId="EmptyImportCli" Style="{StaticResource SecondaryButton}" FontSize="14" Padding="16,6,16,7" Command="{x:Bind ViewModel.ImportFromCliCommand}" />
+            <Button x:Uid="Overview_EmptyImport" AutomationProperties.AutomationId="EmptyImportCli" Style="{StaticResource SecondaryButton}" FontSize="14" Padding="16,6,16,7" controls:CapabilityGate.Key="DiscoverCli" Command="{x:Bind ViewModel.ImportFromCliCommand}" />
           </StackPanel>
         </StackPanel>
       </Grid>

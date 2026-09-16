@@ -74,7 +74,7 @@
                 <TextBlock x:Uid="Status_HealthLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
                 <TextBlock x:Uid="Status_HealthHelp" Style="{StaticResource CaptionText}" Margin="0,2,0,0" />
               </StackPanel>
-              <Button x:Uid="Status_RunHealth" AutomationProperties.AutomationId="RunHealthCheck" Style="{StaticResource SecondaryButton}" MinWidth="150" Command="{x:Bind ViewModel.RunHealthCheckCommand}"
+              <Button x:Uid="Status_RunHealth" AutomationProperties.AutomationId="RunHealthCheck" Style="{StaticResource SecondaryButton}" MinWidth="150" controls:CapabilityGate.Key="RunHealthCheck" Command="{x:Bind ViewModel.RunHealthCheckCommand}"
                       Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthIdle), Mode=OneWay}" />
               <StackPanel Orientation="Horizontal" Spacing="8" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthChecking), Mode=OneWay}">
                 <Button Style="{StaticResource SecondaryButton}" MinWidth="150" IsEnabled="False">
@@ -85,7 +85,7 @@
                 </Button>
                 <Button x:Uid="Dialog_CancelButton" AutomationProperties.AutomationId="CancelHealthCheck" Style="{StaticResource LinkButton}" Command="{x:Bind ViewModel.CancelHealthCheckCommand}" />
               </StackPanel>
-              <Button x:Uid="Status_RunAgain" AutomationProperties.AutomationId="RunHealthAgain" Style="{StaticResource SecondaryButton}" MinWidth="150" Command="{x:Bind ViewModel.RunHealthCheckCommand}"
+              <Button x:Uid="Status_RunAgain" AutomationProperties.AutomationId="RunHealthAgain" Style="{StaticResource SecondaryButton}" MinWidth="150" controls:CapabilityGate.Key="RunHealthCheck" Command="{x:Bind ViewModel.RunHealthCheckCommand}"
                       Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsHealthDone), Mode=OneWay}" />
             </controls:WrapPanel>
           </Border>
@@ -114,8 +114,8 @@
         <Border Style="{StaticResource HairlineRow}" Padding="0,10,0,0">
           <StackPanel Spacing="8">
             <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="6">
-              <Button x:Uid="Status_PreviewDiagnostics" AutomationProperties.AutomationId="PreviewDiagnostics" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleDiagnosticsCommand}" />
-              <Button x:Uid="Status_PreviewLog" AutomationProperties.AutomationId="PreviewLog" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleLogCommand}" />
+              <Button x:Uid="Status_PreviewDiagnostics" controls:CapabilityGate.Key="PreviewDiagnostics" AutomationProperties.AutomationId="PreviewDiagnostics" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleDiagnosticsCommand}" />
+              <Button x:Uid="Status_PreviewLog" controls:CapabilityGate.Key="PreviewLogs" AutomationProperties.AutomationId="PreviewLog" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleLogCommand}" />
               <Button x:Uid="Status_OpenData" AutomationProperties.AutomationId="StatusOpenData" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.OpenDataPrivacyCommand}" />
               <TextBlock x:Uid="Status_PreviewNote" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
             </controls:WrapPanel>

@@ -90,7 +90,7 @@
                                IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 0), Mode=OneWay}" />
                   <RadioButton x:Uid="Nav_Accounts" AutomationProperties.AutomationId="NavAccounts" Tag="Accounts" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
                                IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 1), Mode=OneWay}" />
-                  <RadioButton x:Uid="Nav_History" AutomationProperties.AutomationId="NavHistory" Tag="History" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
+                  <RadioButton controls:CapabilityGate.Key="ViewHistory" x:Uid="Nav_History" AutomationProperties.AutomationId="NavHistory" Tag="History" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
                                IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 2), Mode=OneWay}" />
                   <RadioButton x:Uid="Nav_Settings" AutomationProperties.AutomationId="NavSettings" Tag="Settings" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
                                IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 3), Mode=OneWay}" />
@@ -149,7 +149,9 @@
             <Frame x:Name="ContentFrame" Grid.Row="2" IsNavigationStackEnabled="False" />
           </Grid>
 
-          <demo:DemoPanel Grid.Column="1" ViewModel="{x:Bind Demo}" Width="300" Visibility="{x:Bind controls:Bind.Visible(Demo.IsPanelOpen), Mode=OneWay}" />
+          <Grid Grid.Column="1" Visibility="{x:Bind controls:Bind.Visible(Shell.IsDemo)}">
+            <demo:DemoPanel ViewModel="{x:Bind Demo}" Width="300" Visibility="{x:Bind controls:Bind.Visible(Demo.IsPanelOpen), Mode=OneWay}" />
+          </Grid>
         </Grid>
 
         <shell:ToastPreview Grid.Row="1" ViewModel="{x:Bind Shell.Toast}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16" />

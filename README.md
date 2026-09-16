@@ -37,7 +37,9 @@ dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Plat
 & ./src/windows/AiUsage.Windows/bin/x64/Debug/net10.0-windows10.0.26100.0/win-x64/AiUsage.exe
 ```
 
-For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. An unlocked interactive desktop is required. Reserve Windows Sandbox or a disposable VM for checks that need isolation or a clean machine; package builds alone do not need either.
+Product startup uses live adapters. Pass `--demo` for the isolated synthetic frontend. Unpackaged product data lives under `%LOCALAPPDATA%/AiUsage/Development`; `AIU_DEVELOPMENT_STATE_DIRECTORY` can select an empty directory for offline development checks. Packaged startup keeps its existing package-local provider store. Never point smoke checks at a credential-bearing directory without authorization.
+
+For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. Set `AIU_SMOKE_MODE=demo` to verify the demo path; the default smoke mode is product with an empty `AIU_DEVELOPMENT_STATE_DIRECTORY`. An unlocked interactive desktop is required. Reserve Windows Sandbox or a disposable VM for checks that need isolation or a clean machine; package builds alone do not need either.
 
 ## Native Windows package
 

@@ -52,7 +52,7 @@
                   ToolTipService.ToolTip="{x:Bind ViewModel.DisabledNote, Mode=OneWay}" />
           <Button x:Uid="Recovery_Restore" AutomationProperties.AutomationId="RecoveryRestore" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleCheckpointsCommand, Mode=OneWay}" />
           <Button x:Uid="Recovery_PreviewDiagnostics" AutomationProperties.AutomationId="RecoveryDiagnostics" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleDiagnosticsCommand, Mode=OneWay}" />
-          <Button x:Uid="Recovery_DataFolder" AutomationProperties.AutomationId="RecoveryDataFolder" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.PreviewDataFolderCommand, Mode=OneWay}" />
+          <Button x:Uid="Recovery_DataFolder" AutomationProperties.AutomationId="RecoveryDataFolder" Style="{StaticResource SecondaryButton}" controls:CapabilityGate.Key="PreviewDataFolder" Command="{x:Bind ViewModel.PreviewDataFolderCommand, Mode=OneWay}" />
         </controls:WrapPanel>
         <TextBlock Text="{x:Bind ViewModel.DisabledNote, Mode=OneWay}" Style="{StaticResource CaptionText}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasDisabledNote), Mode=OneWay}" AutomationProperties.AutomationId="RecoveryDisabledNote" />
         <StackPanel Spacing="6" Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowCheckpoints), Mode=OneWay}" controls:Motion.Entrance="True">

@@ -33,14 +33,14 @@ internal sealed partial class MainWindow : Window
     private RectInt32? passthrough;
     private bool finalClose;
 
-    public MainWindow(ShellViewModel shell, TrayViewModel tray, RecoveryViewModel recovery, DemoControlViewModel demo, OverviewViewModel overview, AccountsViewModel accounts,
+    public MainWindow(ShellViewModel shell, TrayViewModel tray, RecoveryViewModel recovery, OverviewViewModel overview, AccountsViewModel accounts,
         HistoryViewModel history, SettingsViewModel settings, SystemStatusViewModel systemStatus, NavigationService navigation, ThemeService theme, DisplaySimulation display,
         IUsageSource usage, IServiceProvider services)
     {
         Shell = shell;
         Tray = tray;
         Recovery = recovery;
-        Demo = demo;
+        Demo = services.GetService<DemoControlViewModel>();
         this.navigation = navigation;
         this.theme = theme;
         this.display = display;
@@ -89,7 +89,7 @@ internal sealed partial class MainWindow : Window
     public ShellViewModel Shell { get; }
     public TrayViewModel Tray { get; }
     public RecoveryViewModel Recovery { get; }
-    public DemoControlViewModel Demo { get; }
+    public DemoControlViewModel? Demo { get; }
 
     public TextBlock LiveRegionElement => LiveRegion;
     public FrameworkElement Root => RootGrid;

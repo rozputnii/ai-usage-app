@@ -118,9 +118,9 @@
                   <MenuFlyoutItem x:Uid="Menu_MoveUp" AutomationProperties.AutomationId="MenuMoveUp" Command="{x:Bind ViewModel.Detail.MoveUpCommand}" />
                   <MenuFlyoutItem x:Uid="Menu_MoveDown" AutomationProperties.AutomationId="MenuMoveDown" Command="{x:Bind ViewModel.Detail.MoveDownCommand}" />
                   <MenuFlyoutItem AutomationProperties.AutomationId="MenuHide" Text="{x:Bind ViewModel.Detail.HideMenuLabel, Mode=OneWay}" Command="{x:Bind ViewModel.Detail.ToggleAccountHiddenCommand}" />
-                  <MenuFlyoutItem AutomationProperties.AutomationId="MenuMute" Text="{x:Bind ViewModel.Detail.MuteMenuLabel, Mode=OneWay}" Command="{x:Bind ViewModel.Detail.ToggleMuteCommand}" />
+                  <MenuFlyoutItem AutomationProperties.AutomationId="MenuMute" Text="{x:Bind ViewModel.Detail.MuteMenuLabel, Mode=OneWay}" controls:CapabilityGate.Key="SetMute" Command="{x:Bind ViewModel.Detail.ToggleMuteCommand}" />
                   <MenuFlyoutSeparator />
-                  <MenuFlyoutItem x:Uid="Menu_DeleteData" AutomationProperties.AutomationId="MenuDeleteData" Command="{x:Bind ViewModel.Detail.DeleteStoredDataCommand}" Foreground="{ThemeResource CritBrush}" />
+                  <MenuFlyoutItem controls:CapabilityGate.Key="DeleteAccountData" x:Uid="Menu_DeleteData" AutomationProperties.AutomationId="MenuDeleteData" Command="{x:Bind ViewModel.Detail.DeleteStoredDataCommand}" Foreground="{ThemeResource CritBrush}" />
                   <MenuFlyoutItem AutomationProperties.AutomationId="MenuDisconnect" Text="{x:Bind ViewModel.Detail.DisconnectMenuLabel, Mode=OneWay}" Command="{x:Bind ViewModel.Detail.DisconnectCommand}" Foreground="{ThemeResource CritBrush}" />
                 </MenuFlyout>
               </Button.Flyout>

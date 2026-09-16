@@ -35,6 +35,8 @@ public sealed record ConnectionStage(ConnectionStageKind Kind, string? AccountId
 /// </summary>
 public interface IConnectionFlow
 {
+    bool ManualCodeUsesActiveConnection => false;
+    bool TrySubmitCode(ConnectRequest request, string transientCode) => false;
     IReadOnlyList<ProviderDescriptor> Providers { get; }
 
     IAsyncEnumerable<ConnectionStage> ConnectAsync(ConnectRequest request, CancellationToken cancellationToken);

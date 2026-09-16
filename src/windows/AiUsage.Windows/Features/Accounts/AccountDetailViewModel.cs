@@ -149,6 +149,13 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
             InfoLines.Add(format.F("Detail_ResetCredits", credits));
         if (item.SpendControlReached is { } reached)
             InfoLines.Add(format.T(reached ? "Detail_SpendControlReached" : "Detail_SpendControlNotReached"));
+        if (item.LimitReachedType is { } limitReason)
+            InfoLines.Add(format.F("Detail_LimitReason", limitReason));
+        foreach (var group in item.Contexts.SelectMany(c => c.Groups))
+        {
+            if (group.Allowed == false) InfoLines.Add(format.F("Detail_GroupNotAllowed", group.Label));
+            if (group.LimitReached == true) InfoLines.Add(format.F("Detail_GroupLimitReached", group.Label));
+        }
         OnPropertyChanged(nameof(HasInfo));
 
         ObservedText = item.FetchedAt is { } fetched
@@ -221,21 +228,22 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
     {
         if (currentlyHidden)
         {
-            await context.Usage.ExecuteAsync(context.Command(UiCommandKind.SetVisibility, targetId, new VisibilityPayload(false, false)), CancellationToken.None);
-            context.Announcer.Announce(context.Format.T("Announce_Shown"));
+            var shown = await context.Usage.ExecuteAsync(context.Command(UiCommandKind.SetVisibility, targetId, new VisibilityPayload(false, false)), CancellationToken.None);
+            if (shown.Status == CommandStatus.Succeeded) context.Announcer.Announce(context.Format.T("Announce_Shown"));
             return;
         }
         var format = context.Format;
         var outcome = await context.Dialogs.ConfirmAsync(new(
-            format.F("Hide_Title", label), format.T("Hide_Body"), format.T("Hide_Only"), AlternateLabel: format.T("Hide_AndMute")));
+            format.F("Hide_Title", label), format.T("Hide_Body"), format.T("Hide_Only"),
+            AlternateLabel: QuotaRules.IsAvailable(context.Usage.Current, nameof(UiCommandKind.SetMute)) ? format.T("Hide_AndMute") : null));
         if (outcome == ConfirmOutcome.Cancelled)
         {
             context.Announcer.Announce(format.T("Announce_Cancelled"));
             return;
         }
         var mute = outcome == ConfirmOutcome.Alternate;
-        await context.Usage.ExecuteAsync(context.Command(UiCommandKind.SetVisibility, targetId, new VisibilityPayload(true, mute)), CancellationToken.None);
-        context.Announcer.Announce(format.T(mute ? "Announce_HiddenMuted" : "Announce_Hidden"));
+        var result = await context.Usage.ExecuteAsync(context.Command(UiCommandKind.SetVisibility, targetId, new VisibilityPayload(true, mute)), CancellationToken.None);
+        if (result.Status == CommandStatus.Succeeded) context.Announcer.Announce(format.T(mute ? "Announce_HiddenMuted" : "Announce_Hidden"));
     }
 
     private bool CanRefreshNow() => CanRefresh && !IsRefreshing;

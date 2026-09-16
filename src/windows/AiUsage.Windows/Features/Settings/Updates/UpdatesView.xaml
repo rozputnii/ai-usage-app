@@ -18,7 +18,7 @@
                          Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsDownloading), Mode=OneWay}" x:Uid="Updates_DownloadProgress" AutomationProperties.AutomationId="DownloadProgress" />
           </StackPanel>
           <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button x:Uid="Updates_Check" AutomationProperties.AutomationId="CheckUpdates" Style="{StaticResource SecondaryButton}" MinWidth="150" Command="{x:Bind ViewModel.CheckCommand, Mode=OneWay}"
+            <Button x:Uid="Updates_Check" AutomationProperties.AutomationId="CheckUpdates" Style="{StaticResource SecondaryButton}" MinWidth="150" controls:CapabilityGate.Key="CheckUpdates" Command="{x:Bind ViewModel.CheckCommand, Mode=OneWay}"
                     Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowCheck), Mode=OneWay}" />
             <Button AutomationProperties.AutomationId="CheckingUpdates" Style="{StaticResource SecondaryButton}" MinWidth="150" IsEnabled="False" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsChecking), Mode=OneWay}">
               <StackPanel Orientation="Horizontal" Spacing="7">
@@ -28,10 +28,10 @@
             </Button>
             <Button x:Uid="Dialog_CancelButton" AutomationProperties.AutomationId="CancelCheck" Style="{StaticResource LinkButton}" Command="{x:Bind ViewModel.CancelCheckCommand, Mode=OneWay}"
                     Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsChecking), Mode=OneWay}" />
-            <Button x:Uid="Updates_Download" AutomationProperties.AutomationId="DownloadUpdate" Style="{StaticResource PrimaryButton}" MinWidth="150" Command="{x:Bind ViewModel.DownloadCommand, Mode=OneWay}"
+            <Button x:Uid="Updates_Download" AutomationProperties.AutomationId="DownloadUpdate" Style="{StaticResource PrimaryButton}" MinWidth="150" controls:CapabilityGate.Key="CheckUpdates" Command="{x:Bind ViewModel.DownloadCommand, Mode=OneWay}"
                     Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowDownload), Mode=OneWay}" />
             <Button x:Uid="Updates_Downloading" Style="{StaticResource SecondaryButton}" MinWidth="150" IsEnabled="False" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsDownloading), Mode=OneWay}" />
-            <Button x:Uid="Updates_Restart" AutomationProperties.AutomationId="RestartUpdate" Style="{StaticResource PrimaryButton}" MinWidth="150" Command="{x:Bind ViewModel.RestartAndUpdateCommand, Mode=OneWay}"
+            <Button x:Uid="Updates_Restart" AutomationProperties.AutomationId="RestartUpdate" Style="{StaticResource PrimaryButton}" MinWidth="150" controls:CapabilityGate.Key="RestartAndUpdate" Command="{x:Bind ViewModel.RestartAndUpdateCommand, Mode=OneWay}"
                     Visibility="{x:Bind controls:Bind.Visible(ViewModel.ShowRestart), Mode=OneWay}" />
           </StackPanel>
         </controls:WrapPanel>
@@ -42,7 +42,7 @@
             <TextBlock x:Uid="Updates_Channel" Style="{StaticResource Body13Text}" />
             <TextBlock x:Uid="Updates_ChannelHelp" Style="{StaticResource CaptionText}" LineHeight="17" />
           </StackPanel>
-          <controls:SegmentedControl AutomationProperties.AutomationId="ChannelSelector" x:Uid="Updates_ChannelGroup" Items="{x:Bind ViewModel.ChannelLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.ChannelIndex, Mode=TwoWay}" VerticalAlignment="Center" />
+          <controls:SegmentedControl controls:CapabilityGate.Key="SetChannel" AutomationProperties.AutomationId="ChannelSelector" x:Uid="Updates_ChannelGroup" Items="{x:Bind ViewModel.ChannelLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.ChannelIndex, Mode=TwoWay}" VerticalAlignment="Center" />
         </controls:WrapPanel>
       </Border>
     </StackPanel>
@@ -54,7 +54,7 @@
           <TextBlock x:Uid="Updates_CompatibilityHelp" Style="{StaticResource Body13SecondaryText}" LineHeight="20" />
           <TextBlock Text="{x:Bind ViewModel.CompatibilityText, Mode=OneWay}" Style="{StaticResource Body13Text}" AutomationProperties.AutomationId="CompatibilityStatus"
                      controls:Tokens.Foreground="{x:Bind FailureKey(ViewModel.IsSecurityBlocked), Mode=OneWay}" />
-          <Button x:Uid="Updates_Override" AutomationProperties.AutomationId="OverrideCompatibility" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Command="{x:Bind ViewModel.OverrideCompatibilityCommand, Mode=OneWay}"
+          <Button x:Uid="Updates_Override" AutomationProperties.AutomationId="OverrideCompatibility" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" controls:CapabilityGate.Key="CheckUpdates" Command="{x:Bind ViewModel.OverrideCompatibilityCommand, Mode=OneWay}"
                   Visibility="{x:Bind controls:Bind.Visible(ViewModel.CanOverrideCompatibility), Mode=OneWay}" />
         </StackPanel>
       </Border>

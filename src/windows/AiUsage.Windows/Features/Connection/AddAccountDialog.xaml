@@ -28,7 +28,7 @@
       <StackPanel Orientation="Horizontal" Spacing="18" XYFocusKeyboardNavigation="Enabled" AutomationProperties.AutomationId="AddAccountTabs">
         <RadioButton x:Name="SignInTab" x:Uid="AddAccount_TabSignIn" AutomationProperties.AutomationId="AddAccountTabSignIn" GroupName="AddAccountTabs" Style="{StaticResource TabRadio}" FontSize="13"
                      IsChecked="{x:Bind controls:Bind.IsAddAccountTab(ViewModel.Tab, 0), Mode=OneWay}" Checked="OnSignInChecked" />
-        <RadioButton x:Name="CliTab" x:Uid="AddAccount_TabCli" AutomationProperties.AutomationId="AddAccountTabCli" GroupName="AddAccountTabs" Style="{StaticResource TabRadio}" FontSize="13"
+        <RadioButton x:Name="CliTab" x:Uid="AddAccount_TabCli" controls:CapabilityGate.Key="DiscoverCli" AutomationProperties.AutomationId="AddAccountTabCli" GroupName="AddAccountTabs" Style="{StaticResource TabRadio}" FontSize="13"
                      IsChecked="{x:Bind controls:Bind.IsAddAccountTab(ViewModel.Tab, 1), Mode=OneWay}" Checked="OnCliChecked" />
       </StackPanel>
     </Border>
@@ -38,7 +38,7 @@
         <StackPanel Spacing="14" Visibility="{x:Bind controls:Bind.VisibleForTab(ViewModel.Tab, 0), Mode=OneWay}">
           <!-- Pick provider -->
           <StackPanel Spacing="12" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsPick), Mode=OneWay}" controls:Motion.Entrance="True">
-            <TextBlock x:Uid="Connect_PickHelp" Style="{StaticResource CaptionText}" />
+            <TextBlock Text="{x:Bind ViewModel.ProviderHelp}" Style="{StaticResource CaptionText}" />
             <TextBlock Text="{x:Bind ViewModel.Note, Mode=OneWay}" Style="{StaticResource CaptionText}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasNote), Mode=OneWay}" />
             <ItemsRepeater ItemsSource="{x:Bind ViewModel.ProviderOptions}" AutomationProperties.AutomationId="ProviderOptions">
               <ItemsRepeater.Layout>

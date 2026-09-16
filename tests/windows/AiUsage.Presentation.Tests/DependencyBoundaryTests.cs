@@ -53,7 +53,8 @@ public sealed class DependencyBoundaryTests
     [Fact]
     public void WindowsPresentationDoesNotUseBackendProjects()
     {
-        var sources = WindowsSources("*.cs").Concat(WindowsSources("*.xaml")).ToArray();
+        var sources = WindowsSources("*.cs").Concat(WindowsSources("*.xaml"))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}Adapters{Path.DirectorySeparatorChar}Live{Path.DirectorySeparatorChar}")).ToArray();
         Assert.NotEmpty(sources);
         foreach (var path in sources)
         {
@@ -66,11 +67,12 @@ public sealed class DependencyBoundaryTests
     }
 
     [Fact]
-    public void DefaultCompositionRegistersOnlyDemoAdapters()
+    public void DemoCompositionIsExplicitAndKeepsItsOwnAdapters()
     {
         var app = File.ReadAllText(Path.Combine(Windows, "App.xaml.cs"));
         Assert.Contains("AddDemoServices", app);
-        Assert.DoesNotContain("AddLiveServices", app);
+        Assert.Contains("else builder.Services.AddLiveServices()", app);
+        Assert.Contains("\"--demo\"", app);
         var registration = string.Join('\n', Directory.EnumerateFiles(Path.Combine(Windows, "Composition"), "*.cs").Select(File.ReadAllText));
         foreach (var adapter in new[] { "IUsageSource", "IConnectionFlow", "IHistorySource", "IPreferenceStore", "INotificationPreview", "ICliImportService", "IDiagnosticsService", "IDataManagementService", "IRecoveryService", "IUpdateService" })
             Assert.Matches(new Regex(adapter + @">\(\s*services\s*=>\s*services\.GetRequiredService<Demo"), registration);

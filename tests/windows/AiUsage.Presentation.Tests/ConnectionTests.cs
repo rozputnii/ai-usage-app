@@ -8,6 +8,12 @@ namespace AiUsage.Presentation.Tests;
 /// <summary>F05 connection stages, outcomes and the transient manual code.</summary>
 public sealed class ConnectionTests
 {
+    [Fact]
+    public void DemoProviderHelpUsesAnExistingResource()
+    {
+        using var host = new TestHost();
+        Assert.Contains("Choose a provider", host.AddAccount().ProviderHelp);
+    }
     private static async Task<(TestHost Host, AddAccountViewModel Sheet, Task Running)> StartWaiting(string provider = "codex")
     {
         var host = new TestHost(autoDelays: false);

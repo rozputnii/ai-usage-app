@@ -2,6 +2,12 @@ using System.ComponentModel;
 
 namespace AiUsage.Features.Presentation;
 
+public interface IProductLifecycle
+{
+    Task InitializeAsync();
+    Task StopAsync();
+}
+
 // Host abstractions implemented by Platform/ (WinUI) and faked by tests. View models depend only on these.
 
 public interface IUiDispatcher

@@ -12,8 +12,8 @@ using Microsoft.UI.Xaml;
 namespace AiUsage;
 
 /// <summary>
-/// Composition root. AIU-010 default startup is mock-only: presentation features, WinUI platform services and the
-/// deterministic demo adapters. Close hides to the tray; only a confirmed Exit ends the process.
+/// Product composition by default; --demo selects isolated synthetic adapters.
+/// Close hides to the tray; confirmed Exit drains provider work before disposing sessions.
 /// </summary>
 public partial class App : Application
 {
@@ -31,11 +31,15 @@ public partial class App : Application
             var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });
             builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
             builder.Services.AddSingleton(DispatcherQueue.GetForCurrentThread());
-            builder.Services.AddPresentationFeatures().AddPlatformServices().AddDemoServices();
+            builder.Services.AddPresentationFeatures().AddPlatformServices();
+            var demo = Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal);
+            if (demo) builder.Services.AddDemoServices();
+            else builder.Services.AddLiveServices();
             host = builder.Build();
             await host.StartAsync();
 
             var services = host.Services;
+            Controls.CapabilityGate.Source = services.GetRequiredService<Features.Accounts.IUsageSource>();
             window = services.GetRequiredService<MainWindow>();
             services.GetRequiredService<Announcer>().Attach(window.LiveRegionElement);
             services.GetRequiredService<DialogService>().Attach(window.Root, services.GetRequiredService<PresentationFormatter>());
@@ -43,8 +47,11 @@ public partial class App : Application
             services.GetRequiredService<AppLifetime>().Attach(window, StopAsync, ShowTrayPopup);
             window.Activate();
 
-            // Initial load shows layout-matched skeletons for the prototype's load latency before the F02 seed appears.
-            _ = services.GetRequiredService<DemoScenarioController>().LoadScenarioAsync(DemoScenarioCatalog.DefaultScenarioId, openEntry: false);
+            // Both paths publish through the same presentation boundary; only product loads app-owned state.
+            if (demo)
+                await services.GetRequiredService<DemoScenarioController>().LoadScenarioAsync(DemoScenarioCatalog.DefaultScenarioId, openEntry: false);
+            else
+                await services.GetRequiredService<IProductLifecycle>().InitializeAsync();
         }
         catch
         {
@@ -73,6 +80,8 @@ public partial class App : Application
             popup?.CloseForExit();
             if (host is not null)
             {
+                if (host.Services.GetService<IProductLifecycle>() is { } product)
+                    await product.StopAsync();
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                 await host.StopAsync(timeout.Token);
             }
