@@ -22,7 +22,7 @@ Preparation initially had no implementation/live evidence and an unresolved regi
 | AC-04 protected lifecycle | PASS | DPAPI round trip, staged recovery, corrupt/future records, revisions/exclusivity, reparse rejection and unrelated-file preservation tested. Failed deletion, expired grant, failed replacement and reconnect identity mismatch have explicit tests. Authorized live refresh/restart/disconnect/reconnect passed. No refresh-token rotation exists in the selected OMP path. |
 | AC-05 Windows integration | PASS | Device-code display/clearing and native unlimited/zero-entitlement mapping pass presentation tests. Actual product and demo Windows smoke cover navigation, theme, close-to-tray, exit/repeated exit and capability honesty. |
 | AC-06 verification | PASS for required local checks | Infrastructure 162/162; Presentation 120/120; unpackaged and console builds; unsigned MSIX; product 7/7 and demo 7/7 actual desktop smoke. Final document validation recorded below. |
-| AC-07 review/publication | NOT_RUN for publication | Focused independent review completed; all four material findings fixed and checked. Final primary diff/document checks and task-branch publication remain to be recorded. |
+| AC-07 review/publication | PASS | Focused independent review completed; all four material findings fixed and checked. Primary diff/document checks passed. Implementation commit 0d04763 was pushed to origin/codex/aiu-008-copilot-integration. |
 
 ## Commands and builds
 
@@ -73,3 +73,9 @@ PASS: post-fix Release relaunched and resumed at 23:07:50; manual refresh produc
 Document validation initially caught the implementing/done metadata transition before backlog closure. The lifecycle metadata was reconciled; final validation and publication results follow in the completion record.
 
 PASS: final document validation (dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json) returned valid=true with no diagnostics. git diff --check passed. Primary reviewed the integrated diff, provider/state boundaries and outgoing file list; local runtime data and credentials are ignored and absent from the change. Remote preflight found main unchanged at bc67aae and no existing task branch.
+
+## Publication
+
+PASS: implementation commit 0d047632fae06147fbe0dbdd3385cf290d391416 was pushed to origin/codex/aiu-008-copilot-integration on 2026-09-18. Outgoing changes were inspected; the worktree was clean after commit and main remained at bc67aae. This follow-up records completion without changing product source.
+
+NOT_RUN: GitHub CI. A read-only run listing returned no runs for this branch; the Validation workflow triggers on pull requests, main pushes or explicit manual dispatch, not task-branch pushes. No PR, manual dispatch, main merge or release was requested or performed. Local required checks and actual authorized browser/Windows checks passed as recorded above.

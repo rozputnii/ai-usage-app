@@ -29,7 +29,7 @@ Implement the UI-independent protocol and parser with synthetic tests and a shar
 Add protected provider state, transient device challenge presentation and native quota mapping. Preserve existing providers and demo isolation.
 
 ### T-04 - Integrated verification and publication
-- status: in-progress
+- status: done
 - depends_on: [T-03]
 - acceptance: AC-06, AC-07
 - evidence: docs/specs/AIU-008-copilot-integration/verification.md
@@ -42,4 +42,4 @@ Base: clean main at bc67aae. Branch: codex/aiu-008-copilot-integration. AIU-010 
 
 Implemented shared OMP device authorization, quota parsing, app-owned protected state, console commands and live Windows integration. Infrastructure 162/162 and Presentation 120/120 pass. Release unpackaged Windows and console builds pass with zero warnings/errors; unsigned MSIX 2026.9.1801.0 passes with one external symbol-tool warning. Live connection, quota refresh, restart resume, disconnect, cancellation and reconnect passed in an isolated profile. Focused review found four material defects; the primary fixed identity substitution, source-field loss, group ordering and inferred provider restriction, with regression coverage.
 
-Final demo smoke passed 7/7; post-fix live resume/refresh and quota presentation passed. Final document validation and diff check passed. Exact next action: commit and push the reviewed task branch under CONTRIBUTING, then record publication. No merge or release is authorized.
+Final demo smoke passed 7/7; post-fix live resume/refresh and quota presentation passed. Final document validation and diff check passed. Implementation commit 0d04763 was pushed to origin/codex/aiu-008-copilot-integration. Execution is complete; await owner selection of further work. GitHub CI is not triggered by a task-branch push; the configured workflow runs on pull requests or main. No merge or release is authorized.
