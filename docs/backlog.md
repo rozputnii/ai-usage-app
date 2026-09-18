@@ -69,10 +69,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-008 - GitHub Copilot end-to-end integration
 - goal: G-003
-- status: research-needed
+- status: done
 - depends_on: [AIU-004]
 - trigger: provider-3
 - outcome: Use an app-owned client where supported; preserve subscription credit/request entitlement semantics and evidence-based context/import capabilities.
+- evidence: docs/specs/AIU-008-copilot-integration/verification.md
+- scope-note: Owner-selected OMP-only public GitHub device flow, request-quota snapshots and protected local lifecycle implemented and live verified on 2026-09-18 in codex/aiu-008-copilot-integration. Provider approval, Included credits parity, paid/organization contexts and enterprise hosts are not established. AIU-010 remains paused. See the specification and verification for exact scope and evidence.
 
 ## AIU-009 - Antigravity end-to-end integration
 - goal: G-003
@@ -83,11 +85,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-010 - Usable UI design, UI/UX polish and dashboard/tray refinement
 - goal: G-003
-- status: in-progress
+- status: paused
 - depends_on: [AIU-004]
 - trigger: incremental
 - outcome: Add manual ordering/labels, Overview, group/hide controls, themes, accessibility, localization resources and shared UI state.
 - evidence: docs/specs/AIU-010-ui-ux/verification.md
+- pause-note: Owner paused this feature on 2026-09-18 to select AIU-008. Remaining T-11 live lifecycle, screen-reader and overall visual acceptance gates are preserved; the published snapshot is not feature completion.
 - scope-note: Owner selected staged Codex preparation, Claude Design, Claude Code frontend and Codex integration on 2026-09-15. Prepare the complete planned Windows UI with isolated interactive mocks, including future capabilities; real backend delivery remains in its owning AIUs. See docs/specs/AIU-010-ui-ux/spec.md and tasks.md. Preparation completion does not complete the feature.
 - owner-direction: Owner amendment, 2026-09-14: the current UI is unattractive and not usable. Apply a coherent, usable UI design and polish core provider connection, quota, refresh and tray flows before CLI integrations. Existing functional smoke evidence does not establish satisfactory design or usability. All four provider connections should follow the OMP (omp.sh) connection style; exact design and provider-specific behavior will be established when that work is selected.
 

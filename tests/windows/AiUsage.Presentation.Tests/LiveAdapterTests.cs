@@ -143,7 +143,7 @@ public sealed class LiveAdapterTests
         var flow = new LiveConnectionFlow(source, _ => launches++);
         var token = TestContext.Current.CancellationToken;
         var stages = new List<ConnectionStage>();
-        await foreach (var stage in flow.ConnectAsync(new("copilot", ConnectionMethod.BrowserSignIn, null), token)) stages.Add(stage);
+        await foreach (var stage in flow.ConnectAsync(new("antigravity", ConnectionMethod.BrowserSignIn, null), token)) stages.Add(stage);
         Assert.Equal(ConnectionStageKind.Failed, stages.Single().Kind);
         stages.Clear();
         await foreach (var stage in flow.ConnectAsync(new("codex", ConnectionMethod.BrowserSignIn, null), token)) stages.Add(stage);

@@ -87,6 +87,7 @@ internal sealed partial class AddAccountViewModel : ObservableObject
     [ObservableProperty] public partial bool ResultPositive { get; private set; }
     [ObservableProperty] public partial string? ResultAccountId { get; private set; }
     [ObservableProperty] public partial string WaitingText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial string DeviceUserCode { get; private set; } = string.Empty;
     [ObservableProperty] public partial string CodePrompt { get; private set; } = string.Empty;
     [ObservableProperty] public partial string ConnectingText { get; private set; } = string.Empty;
 
@@ -257,6 +258,7 @@ internal sealed partial class AddAccountViewModel : ObservableObject
     /// <summary>Abandons the running stage stream without reporting its cancellation as a user-visible outcome.</summary>
     private void Detach()
     {
+        DeviceUserCode = string.Empty;
         var running = operation;
         operation = null;
         running?.Cancel();
@@ -283,6 +285,8 @@ internal sealed partial class AddAccountViewModel : ObservableObject
                         context.Announcer.Announce(ConnectingText);
                         break;
                     case ConnectionStageKind.WaitingForAuthorization:
+                        DeviceUserCode = stage.DeviceUserCode ?? string.Empty;
+                        if (DeviceUserCode.Length > 0) WaitingText = context.Format.T("Connect_DeviceInstructions");
                         Step = flow.ManualCodeUsesActiveConnection && Method == ConnectionMethod.ManualCode ? ConnectStep.Code : ConnectStep.Waiting;
                         context.Announcer.Announce(context.Format.T("Connect_WaitingTitle"));
                         break;
@@ -309,6 +313,7 @@ internal sealed partial class AddAccountViewModel : ObservableObject
 
     private void Finish(ConnectionStage stage)
     {
+        DeviceUserCode = string.Empty;
         var format = context.Format;
         var name = Provider?.Name ?? string.Empty;
         switch (stage.Kind)

@@ -6,6 +6,7 @@ namespace AiUsage.Adapters.Live;
 
 internal static class LiveMapping
 {
+    internal static string ProviderName(string provider) => provider switch { "codex" => "Codex", "claude" => "Claude", "copilot" => "GitHub Copilot", _ => provider };
     public static AccountItem Map(string provider, ProviderSessionState state, bool connected)
     {
         var quota = state.Quota;
@@ -34,11 +35,13 @@ internal static class LiveMapping
         var groups = quota?.Groups.Select(group => new GroupItem(Qualify(provider, group.Id), group.Name ?? group.Id, null, false,
             ExpansionPreference.Auto, group.Windows.Select(window => new WindowItem(Qualify(provider, group.Id, window.Id), window.Id,
                 window.RemainingPercent, window.UsedPercent,
-                window.RemainingPercent == 0 ? ValueState.Exhausted :
+                window.Unlimited == true ? ValueState.Unlimited : window.Amount?.Limit == 0 ? ValueState.Unknown : window.RemainingPercent == 0 ? ValueState.Exhausted :
                 window.RemainingPercent is not null || window.UsedPercent is not null ? ValueState.Known : ValueState.Unknown,
-                null, window.Duration?.TotalSeconds, window.ResetsAt, false)).ToArray())
+                window.Amount is { } amount ? new NativeAmount(amount.Remaining?.ToString(CultureInfo.InvariantCulture),
+                    amount.Used?.ToString(CultureInfo.InvariantCulture), amount.Limit?.ToString(CultureInfo.InvariantCulture), amount.Unit) : null,
+                window.Duration?.TotalSeconds, window.ResetsAt, false)).ToArray())
             { Allowed = group.Allowed, LimitReached = group.LimitReached }).ToArray() ?? [];
-        return new(provider, provider, provider == "codex" ? "Codex" : "Claude", quota?.PlanType, connection,
+        return new(provider, provider, ProviderName(provider), quota?.PlanType, connection,
             AccountOperation.Idle,
             state.Failure is not null || connection is ConnectionState.ReauthRequired or ConnectionState.RecoveryRequired
                 ? Freshness.Stale : state.FromCache ? Freshness.Cached : quota is null ? Freshness.Unknown : Freshness.Fresh,

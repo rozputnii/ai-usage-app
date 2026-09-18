@@ -94,6 +94,8 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
 
     internal Task<UiCommandResult> ConnectAsync(string id, Action<Uri> openBrowser, CancellationToken token) =>
         RunAsync(id, AccountOperation.Loading, (workflow, ct) => workflow.ConnectAsync(openBrowser, ct), token);
+    internal Task<UiCommandResult> ConnectWithChallengeAsync(string id, Action<AuthorizationChallenge> authorize, CancellationToken token) =>
+        RunAsync(id, AccountOperation.Loading, (workflow, ct) => workflow.ConnectWithChallengeAsync(authorize, ct), token);
     internal bool TrySubmitCode(string id, string code)
     {
         lock (sync) return !stopped && entries.TryGetValue(id, out var entry) && entry.Workflow.TrySubmitCode(code);
@@ -182,7 +184,7 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
         current = snapshot with { Revision = current.Revision + 1, ObservedAt = DateTimeOffset.UtcNow,
             Accounts = snapshot.Accounts.Select(a => a with
             {
-                Label = labels.GetValueOrDefault(a.Id, a.ProviderId == "codex" ? "Codex" : "Claude"),
+                Label = labels.GetValueOrDefault(a.Id, LiveMapping.ProviderName(a.ProviderId)),
                 Contexts = a.Contexts.Select(c => c with { Groups = c.Groups.Select(g => g with
                 { Expansion = expansions.GetValueOrDefault(g.Id, ExpansionPreference.Auto) }).ToArray() }).ToArray()
             }).ToArray() };

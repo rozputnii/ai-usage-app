@@ -224,3 +224,9 @@ Owner confirmation and integration request, 2026-09-16: the owner replied `good`
 Exact next action: continue the live Codex/Claude lifecycle and full screen-reader acceptance. This owner-authorized merge does not claim those remaining checks passed.
 
 Owner publication instruction, 2026-09-16: the owner explicitly instructed Codex to commit, push and merge all current tracked changes. This publishes the current T-11 snapshot by direct owner direction; it does not convert the remaining NOT_RUN/BLOCKED acceptance gates to PASS or mark T-11 done.
+
+## Owner pause, 2026-09-18
+
+The owner paused AIU-010 and selected AIU-008 in a separate branch. The inspected main checkout was clean at `bc67aae`; no AIU-010 implementation was changed. T-11 retains its blocked acceptance result. Existing passing checks and unresolved live reconnect report remain recorded above.
+
+Exact next action on owner-requested resume: reproduce the owner-reported Codex disconnect/reconnect outcome with the owner completing sign-in, then finish the remaining live lifecycle, screen-reader and overall visual acceptance gates. Do not resume this work merely because AIU-008 changes shared provider presentation.

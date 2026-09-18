@@ -8,6 +8,8 @@ public interface IProviderSession
     Task<ProviderSessionState> ReadCachedStateAsync(CancellationToken cancellationToken = default);
     Task<ProviderSessionState> ResumeAsync(CancellationToken cancellationToken = default);
     Task<ProviderSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default);
+    Task<ProviderSessionState> ConnectWithChallengeAsync(Action<AuthorizationChallenge> authorize, CancellationToken cancellationToken = default) =>
+        ConnectAsync(uri => authorize(new(uri)), cancellationToken);
     Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default);
     Task<ProviderSessionState> DisconnectAsync(CancellationToken cancellationToken = default);
     bool TrySubmitCode(string code) => false;

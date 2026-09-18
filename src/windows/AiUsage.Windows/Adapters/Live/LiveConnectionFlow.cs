@@ -10,7 +10,8 @@ internal sealed class LiveConnectionFlow(LiveUsageSource source, Action<Uri> ope
     public IReadOnlyList<ProviderDescriptor> Providers { get; } =
     [
         new("codex", "Codex", "›_", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing),
-        new("claude", "Claude", "✳", [ConnectionMethod.BrowserSignIn, ConnectionMethod.ManualCode], CapabilityOrigin.Existing)
+        new("claude", "Claude", "✳", [ConnectionMethod.BrowserSignIn, ConnectionMethod.ManualCode], CapabilityOrigin.Existing),
+        new("copilot", "GitHub Copilot", "⊙", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing)
     ];
 
     public bool TrySubmitCode(ConnectRequest request, string transientCode) =>
@@ -32,17 +33,23 @@ internal sealed class LiveConnectionFlow(LiveUsageSource source, Action<Uri> ope
         }
         yield return new(ConnectionStageKind.Connecting);
         using var attempt = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var opened = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var pending = source.ConnectAsync(request.ProviderId, uri => { openBrowser(uri); opened.TrySetResult(); }, attempt.Token);
+        var opened = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pending = source.ConnectWithChallengeAsync(request.ProviderId, challenge =>
+        {
+            openBrowser(challenge.VerificationUri);
+            opened.TrySetResult(challenge.UserCode);
+        }, attempt.Token);
         try
         {
             if (await Task.WhenAny(opened.Task, pending).ConfigureAwait(false) == opened.Task)
-                yield return new(ConnectionStageKind.WaitingForAuthorization);
+                yield return new(ConnectionStageKind.WaitingForAuthorization) { DeviceUserCode = await opened.Task.ConfigureAwait(false) };
             var result = await pending.ConfigureAwait(false);
             account = source.Current.Accounts.FirstOrDefault(a => a.Id == request.ProviderId);
             yield return new(result.Status switch
             {
                 CommandStatus.Cancelled => ConnectionStageKind.Cancelled,
+                _ when result.Failure?.Kind == "AccessDenied" => ConnectionStageKind.Denied,
+                _ when result.Failure?.Kind == "DeviceCodeExpired" => ConnectionStageKind.Expired,
                 _ when request.ReconnectAccountId is null && account?.Connection == ConnectionState.Connected &&
                     (account.Failure is not null || account.FetchedAt is null) => ConnectionStageKind.ConnectedWithoutQuota,
                 CommandStatus.Succeeded when account?.Connection == ConnectionState.Connected && account.FetchedAt is null => ConnectionStageKind.ConnectedWithoutQuota,

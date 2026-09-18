@@ -33,6 +33,9 @@ public sealed class DashboardWorkflow(IProviderSession session) : IDisposable
     public Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default) =>
         RunAsync(session.RefreshAsync, cancellationToken);
 
+    public Task<ProviderSessionState> ConnectWithChallengeAsync(Action<AuthorizationChallenge> authorize, CancellationToken cancellationToken = default) =>
+        RunAsync(token => session.ConnectWithChallengeAsync(authorize, token), cancellationToken);
+
     public Task<ProviderSessionState> DisconnectAsync(CancellationToken cancellationToken = default) =>
         RunAsync(session.DisconnectAsync, cancellationToken);
 

@@ -123,6 +123,8 @@
                 <TextBlock x:Uid="Connect_WaitingTitleText" Style="{StaticResource Body13StrongText}" VerticalAlignment="Center" AutomationProperties.AutomationId="ConnectWaiting" />
               </StackPanel>
               <TextBlock Text="{x:Bind ViewModel.WaitingText, Mode=OneWay}" Style="{StaticResource CaptionText}" Margin="26,0,0,0" LineHeight="18" />
+              <TextBlock Text="{x:Bind ViewModel.DeviceUserCode, Mode=OneWay}" AutomationProperties.AutomationId="DeviceUserCode"
+                         FontSize="24" FontWeight="SemiBold" Margin="26,0,0,0" IsTextSelectionEnabled="True" />
               <Button x:Uid="Connect_EnterCode" AutomationProperties.AutomationId="EnterCodeInstead" Style="{StaticResource SmallLinkButton}" Margin="24,0,0,0" HorizontalAlignment="Left"
                       Visibility="{x:Bind controls:Bind.Visible(ViewModel.SupportsManualCode), Mode=OneWay}" Command="{x:Bind ViewModel.EnterCodeInsteadCommand}" />
             </StackPanel>

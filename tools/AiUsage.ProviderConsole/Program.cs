@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers.Codex;
+using AiUsage.Infrastructure.Providers.Copilot;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AiUsage.ProviderConsole;
@@ -13,13 +14,17 @@ internal static class Program
     {
         if (args.Length == 0 || args is ["--help"] or ["help"])
         {
-            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n\nNo CLI auth stores, token arguments or inference requests are used.");
+            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  inspect-copilot <file>     Normalize an OMP Copilot fixture offline.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n  copilot                   OMP device sign-in with app-owned encrypted state.\n\nNo CLI auth stores, token arguments or inference requests are used.");
             return 0;
         }
         using var cancellation = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
         try
         {
+            if (args is ["inspect-copilot", var copilotPath])
+                return await CopilotConsole.InspectAsync(copilotPath, cancellation.Token);
+            if (args is ["copilot"])
+                return OperatingSystem.IsWindows() ? await CopilotConsole.RunAsync(cancellation.Token) : 2;
             if (args is ["inspect-claude", var claudePath])
                 return await ClaudeConsole.InspectAsync(claudePath, cancellation.Token);
             if (args is ["claude"])
@@ -100,6 +105,11 @@ internal static class Program
         catch (CodexException error)
         {
             PrintFailure(error);
+            return 3;
+        }
+        catch (CopilotException error)
+        {
+            Console.Error.WriteLine($"Copilot: {error.Kind}.");
             return 3;
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)

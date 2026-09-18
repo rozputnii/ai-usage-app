@@ -27,6 +27,8 @@ public sealed record ConnectRequest(string ProviderId, ConnectionMethod Method, 
 /// <summary><paramref name="AccountId"/> is the created, reconnected or already-connected account when one exists.</summary>
 public sealed record ConnectionStage(ConnectionStageKind Kind, string? AccountId = null, FailureItem? Failure = null)
 {
+    public string? DeviceUserCode { get; init; }
+    public override string ToString() => $"ConnectionStage ({Kind})";
     public bool IsTerminal => Kind is not (ConnectionStageKind.Connecting or ConnectionStageKind.WaitingForAuthorization or ConnectionStageKind.Verifying);
 }
 
