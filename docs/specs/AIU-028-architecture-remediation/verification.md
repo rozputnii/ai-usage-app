@@ -18,7 +18,7 @@ merged in at `c2b6dd4` before the evidence below was captured, and every `path:l
 the specification was then re-checked against that tree. Four citations had drifted in files the
 AIU-009 commits touched and were corrected: `AntigravityHttp.cs` 45 to 64,
 `AntigravityQuotaClient.cs` 197 to 196, and `CopilotException.cs` / `AntigravityException.cs` 7
-to 6. All 94 file-and-line citations in the specification were confirmed to resolve to the
+to 6. All 93 file-and-line code citations in the specification were confirmed to resolve to the
 construct they are cited for on `c2b6dd4`.
 
 ## Restore
