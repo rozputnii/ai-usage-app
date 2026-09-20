@@ -957,6 +957,12 @@
   <data name="Failure_NetworkFailure" xml:space="preserve">
     <value>Network unavailable. Showing the last cached reading.</value>
   </data>
+  <data name="Failure_ProjectUnavailable" xml:space="preserve">
+    <value>No workspace is available for this account. Finish provider setup in its own app, then retry.</value>
+  </data>
+  <data name="Failure_RegistrationUnavailable" xml:space="preserve">
+    <value>This provider connection is not configured on this device. No sign-in was attempted.</value>
+  </data>
   <data name="Failure_RateLimited" xml:space="preserve">
     <value>Provider rate limit reached. Automatic retry after the wait.</value>
   </data>

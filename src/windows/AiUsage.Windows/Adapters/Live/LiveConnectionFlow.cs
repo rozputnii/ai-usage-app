@@ -11,7 +11,8 @@ internal sealed class LiveConnectionFlow(LiveUsageSource source, Action<Uri> ope
     [
         new("codex", "Codex", "›_", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing),
         new("claude", "Claude", "✳", [ConnectionMethod.BrowserSignIn, ConnectionMethod.ManualCode], CapabilityOrigin.Existing),
-        new("copilot", "GitHub Copilot", "⊙", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing)
+        new("copilot", "GitHub Copilot", "⊙", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing),
+        new("antigravity", "Antigravity", "↑", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing)
     ];
 
     public bool TrySubmitCode(ConnectRequest request, string transientCode) =>

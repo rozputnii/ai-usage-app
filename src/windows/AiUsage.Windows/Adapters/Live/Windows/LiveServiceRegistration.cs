@@ -10,6 +10,7 @@ using AiUsage.Features.Recovery;
 using AiUsage.Features.Settings;
 using AiUsage.Features.SystemStatusPage;
 using AiUsage.Infrastructure.Persistence;
+using AiUsage.Infrastructure.Providers.Antigravity;
 using AiUsage.Infrastructure.Providers.Claude;
 using AiUsage.Infrastructure.Providers.Codex;
 using AiUsage.Infrastructure.Providers.Copilot;
@@ -36,11 +37,13 @@ internal static class LiveServiceRegistration
         services.AddCodexProductSession(Path.Combine(root, "providers"));
         services.AddClaudeProductSession(Path.Combine(root, "providers"));
         services.AddCopilotProductSession(Path.Combine(root, "providers"));
+        services.AddAntigravityProductSession(Path.Combine(root, "providers"));
         services.AddSingleton(p => new LiveUsageSource(new Dictionary<string, IProviderSession>
         {
             ["codex"] = p.GetRequiredService<CodexDashboardSession>(),
             ["claude"] = p.GetRequiredService<ClaudeSession>(),
-            ["copilot"] = p.GetRequiredService<CopilotSession>()
+            ["copilot"] = p.GetRequiredService<CopilotSession>(),
+            ["antigravity"] = p.GetRequiredService<AntigravitySession>()
         }));
         services.AddSingleton<IUsageSource>(p => p.GetRequiredService<LiveUsageSource>());
         services.AddSingleton<IConnectionFlow>(p => new LiveConnectionFlow(p.GetRequiredService<LiveUsageSource>(),

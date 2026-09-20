@@ -14,13 +14,17 @@ internal static class Program
     {
         if (args.Length == 0 || args is ["--help"] or ["help"])
         {
-            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  inspect-copilot <file>     Normalize an OMP Copilot fixture offline.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n  copilot                   OMP device sign-in with app-owned encrypted state.\n\nNo CLI auth stores, token arguments or inference requests are used.");
+            Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  inspect-copilot <file>     Normalize an OMP Copilot fixture offline.\n  inspect-antigravity <file> Normalize an OMP Antigravity fixture offline.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n  copilot                   OMP device sign-in with app-owned encrypted state.\n  antigravity               Provider-restricted Antigravity connection with app-owned encrypted state.\n\nNo CLI auth stores, token arguments or inference requests are used.");
             return 0;
         }
         using var cancellation = new CancellationTokenSource();
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
         try
         {
+            if (args is ["inspect-antigravity", var antigravityPath])
+                return await AntigravityConsole.InspectAsync(antigravityPath, cancellation.Token);
+            if (args is ["antigravity"])
+                return OperatingSystem.IsWindows() ? await AntigravityConsole.RunAsync(cancellation.Token) : 2;
             if (args is ["inspect-copilot", var copilotPath])
                 return await CopilotConsole.InspectAsync(copilotPath, cancellation.Token);
             if (args is ["copilot"])
@@ -110,6 +114,11 @@ internal static class Program
         catch (CopilotException error)
         {
             Console.Error.WriteLine($"Copilot: {error.Kind}.");
+            return 3;
+        }
+        catch (AiUsage.Infrastructure.Providers.Antigravity.AntigravityException error)
+        {
+            Console.Error.WriteLine($"Antigravity: {error.Kind}.");
             return 3;
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)
