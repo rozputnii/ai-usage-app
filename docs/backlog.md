@@ -78,10 +78,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-009 - Antigravity end-to-end integration
 - goal: G-003
-- status: research-needed
+- status: in-progress
 - depends_on: [AIU-004]
 - trigger: provider-4
 - outcome: Prove authentication, projects, model groups and remote-versus-official quota parity. Do not combine Gemini app, CLI and API limits.
+- scope-note: Owner selected AIU-009 on 2026-09-20 with an OMP-only implementation, live verification through the already signed-in Chrome session in an isolated development profile, and no CLI credential import. Provider approval is not established. Tier onboarding, the legacy model-catalog quota fallback and CLI import are excluded; see docs/specs/AIU-009-antigravity-integration/spec.md.
 
 ## AIU-010 - Usable UI design, UI/UX polish and dashboard/tray refinement
 - goal: G-003
