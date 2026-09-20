@@ -2,7 +2,7 @@
 provider: antigravity
 source_verified_at: 2026-09-20
 live_verified_at: 2026-09-20
-confidence: authentication-live-verified-quota-unproven-provider-restricted
+confidence: authentication-live-verified-quota-blocked-by-provider
 classification: method-specific
 backlog: AIU-009
 ---
@@ -80,8 +80,12 @@ The Antigravity `User-Agent` in OMP identifies as the real `antigravity/hub` cli
 
 Authorization creates a grant and consumes the consent screen of whichever client the device is configured with. A refresh can rotate or invalidate the previous token. Quota reads and `loadCodeAssist` do not run inference or mint entitlements. Connecting an unprovisioned account does enrol it in the free tier, as described above. No model enablement, paid-tier purchase or upgrade, overage-setting change, CLI credential read or host trust change is included in this scope.
 
-Live on 2026-09-20, with the owner's explicit decision to accept the restriction above on their own account: Google served the consent screen for the authorization request as built, the loopback callback and the token exchange succeeded with PKCE, and the userinfo identity read succeeded. `loadCodeAssist` then returned success with no `cloudaicompanionProject`, so the session reported `ProjectUnavailable`, stored nothing, and did not onboard. The account has no provisioned Cloud Code Assist workspace and no Antigravity client is installed on that machine.
+Live on 2026-09-20, with the owner's explicit decision to accept the restriction above on their own account: Google served the consent screen for the authorization request as built, the loopback callback and the token exchange succeeded with PKCE, and the userinfo identity read succeeded. Authentication is therefore live-verified. `loadCodeAssist` then returned success with no `cloudaicompanionProject`.
 
-That is the practical consequence of excluding `onboardUser`: OMP reaches a project on an unprovisioned account only by provisioning the free tier, and a monitor that refuses to write cannot reach one by itself. Enabling that write is an owner decision, still open. Until then the quota contract in the table above remains source-derived and unproven on a real account.
+The owner then selected OMP's provisioning behavior, and a diagnostic asked the control plane directly. `loadCodeAssist` allows this account only `standard-tier`, which is Gemini Code Assist on Google Cloud terms with a user-supplied project, and lists `free-tier` as ineligible with reason code `UNSUPPORTED_CLIENT` and a message that this client is no longer supported for Gemini Code Assist for individuals, directing the user to the Antigravity products. A deliberate `onboardUser` call outside the product's eligibility fence was refused with `403 PERMISSION_DENIED` and reason `FREE_TIER_USER_NOT_ELIGIBLE`.
+
+The refusal names two different subjects: the tier listing blames the client, the onboarding error blames the account. The obvious candidate for the client half is the `User-Agent`. The backend is known to gate on the Antigravity client version, OMP sends the real `antigravity/hub` string, and AI Usage sends its own truthful identity instead. Confirming that would mean presenting another application's identity to overcome a provider rejection, which this project does not do, so the two explanations stay unseparated. The other allowed tier is a different product surface and is not Antigravity subscription quota.
+
+Consequence: quota is unreadable on this account with a truthful client identity, so the quota contract in the table above remains source-derived and unproven live. The implementation is not what blocks it.
 
 Live NOT_RUN: quota-summary field presence and units, reset semantics, the official settings-page comparison, refresh, rotation, resume, reconnect and local disconnect. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data. See the [verification record](../specs/AIU-009-antigravity-integration/verification.md).

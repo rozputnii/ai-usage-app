@@ -10,7 +10,8 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 | --- | --- | --- |
 | AC-01 | PASS | Source provenance and provider boundary recorded in [antigravity.md](../../providers/antigravity.md) |
 | AC-02 | PASS | `AntigravityProtocolTests`, 13 cases, and the live authorization, exchange and identity steps below |
-| AC-03 | PASS for discovery, NOT_RUN for live quota | `AntigravityQuotaParserTests`, the discovery cases in `AntigravityProtocolTests`, and the live `ProjectUnavailable` outcome below |
+| AC-03 | PASS | Discovery, the eligibility fence and the provisioning failure paths in `AntigravityProtocolTests`, confirmed live below |
+| AC-08 | PASS (deterministic) | `AntigravityQuotaParserTests`; live quota is BLOCKED by the provider, see below |
 | AC-04 | PASS (deterministic) | `AntigravitySessionTests`, `AntigravityStateStoreTests` |
 | AC-05 | PASS (deterministic) | `AntigravityPresentationTests`, Presentation suite 125/125 |
 | AC-06 | PARTIAL | Deterministic checks and the MSIX build pass; live quota, Windows smoke and lifecycle remain NOT_RUN, see below |
@@ -20,7 +21,7 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Infrastructure regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 209/209 |
+| Infrastructure regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 215/215 |
 | Presentation regressions | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 125/125 |
 | Validator regressions | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS |
 | Document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS, `{"valid":true,"diagnostics":[]}` |
@@ -56,10 +57,21 @@ The run used the shipped provider code through a temporary non-interactive harne
 | Token exchange | PASS | The form exchange at `https://oauth2.googleapis.com/token` with client id, client secret, code and verifier returned a grant whose granted scopes satisfied the required control-plane scope; any other outcome would have produced a different failure before discovery |
 | Account identity | PASS | The Google userinfo read returned a usable opaque subject |
 | Workspace discovery | PASS as designed, no quota | `v1internal:loadCodeAssist` with the Antigravity IDE metadata returned success but no `cloudaicompanionProject`. The session reported `ProjectUnavailable`, wrote no state file, and did not call `onboardUser` |
-| Quota reading | NOT_RUN | Unreachable without a discovered project |
+| Free-tier provisioning | BLOCKED by the provider | The provider declares this account ineligible for the free tier; the fence stopped the write, and a deliberate diagnostic call was refused with `403 PERMISSION_DENIED` |
+| Quota reading | NOT_RUN | Unreachable without a workspace |
 
-The account has no provisioned Cloud Code Assist workspace, and no Antigravity client is installed on this machine. OMP reaches a project in this situation by calling `v1internal:onboardUser` to provision the free tier, which this specification deliberately excludes as a provider-side write. So the missing quota is not a defect in the implementation: the excluded write is exactly what stands between this account and a readable quota. Whether to enable it is an owner decision on scope and external write authority, recorded as open.
+The account has no provisioned Cloud Code Assist workspace, and no Antigravity client is installed on this machine. The owner then selected OMP's provisioning behavior, and a second live run was made with `onboardUser` implemented.
 
-No credential, code, account identifier, project identifier or raw provider payload was retained. The isolated state directory holds only an empty lock file; no `antigravity.state` was written.
+### Second run, with provisioning enabled
 
-NOT_RUN: quota-summary field presence and units on a real account, parity with Antigravity's own settings page, live refresh, Exit/relaunch resume, live reconnect and local disconnect, loopback port fallback, local unpackaged Windows smoke with the new provider, and focused independent credential/state review.
+Same result: `ProjectUnavailable`, and the provisioning write was never sent. The eligibility fence stopped it, which a third run with a throwaway diagnostic outside the repository confirmed by asking the control plane directly.
+
+`loadCodeAssist` offers this account exactly one tier, `standard-tier` ("Gemini Code Assist"), flagged `userDefinedCloudaicompanionProject` and `usesGcpTos`. It lists `free-tier` as ineligible with reason code `UNSUPPORTED_CLIENT` and a message saying that this client is no longer supported for Gemini Code Assist for individuals and directing the user to the Antigravity products themselves. The diagnostic then called `onboardUser` deliberately, against the fence the product applies, and the provider answered `403 PERMISSION_DENIED` with reason `FREE_TIER_USER_NOT_ELIGIBLE`. Nothing was provisioned and no entitlement changed.
+
+So the free tier is refused, and the refusal names two different subjects: the tier listing blames the client, the onboarding error blames the account. Separating them would require either presenting the real Antigravity client's identity, which this implementation refuses to do, or an account already known to hold a workspace. The remaining allowed tier is a different product on Google Cloud terms with a user-supplied project, which this feature's outcome explicitly keeps separate from Antigravity subscription quota.
+
+This is a provider-side block, not an implementation defect, and the run is evidence for three design choices: the eligibility fence prevented a write the provider would have rejected, the failure surfaced as a single distinct state, and no provider text reached the app.
+
+No credential, code, account identifier, project identifier or raw provider payload was retained in the repository. The isolated state directory holds only an empty lock file; no `antigravity.state` was written in any of the three runs.
+
+NOT_RUN, and not reachable on this account while the provider refuses the tier: quota-summary field presence and units, parity with Antigravity's own settings page, live refresh, Exit/relaunch resume, live reconnect and local disconnect, loopback port fallback, local unpackaged Windows smoke with a connected account, and focused independent credential/state review.
