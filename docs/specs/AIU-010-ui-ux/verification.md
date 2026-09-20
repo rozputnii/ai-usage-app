@@ -205,3 +205,30 @@ Full screen-reader acceptance, applicable reauthentication and overall owner vis
 Additional actual Narrator subset: PASS. Speech recap confirmed the live Codex account list name, remaining percentage, selected state and position; hidden/disconnected checkbox labels and unchecked states; the connection dialog's manual-code fallback and Cancel controls; the cancellation announcement; selected Settings/System Status navigation; System theme and its explanation; Comfortable selected, Compact non-selected and Always on top off; and the Exit AI Usage dialog/group and Exit button. Evidence: `.ai-usage-local/AIU-010/resumed-acceptance/narrator-live-settings.png` and `narrator-exit-dialog.png`. The Claude wait was cancelled through the app and reported Cancelled. Nothing was changed. Exit was cancelled, Narrator was stopped and its process absence verified. Claude login may be completed in the browser, but a fresh app authorization must follow. This representative subset does not establish exhaustive page-content reading, every dialog, or Claude populated-account accessibility.
 
 Documentation checks: PASS, project validator returned `valid:true, diagnostics:[]`; `git diff --check` passed. Primary review found only the scoped backlog/task/evidence changes, with private account identifiers, grants and screenshots kept out of Git. Product source is unchanged, so unchanged product regression/build suites were not repeated. T-11 remains incomplete and this resumed evidence has not been committed or pushed.
+
+## T-11 closure by owner attestation — 2026-09-20
+
+The owner stated that Claude now works and explicitly directed that the remaining
+AIU-010 acceptance gates be marked complete. The owner was told beforehand that these
+checks were not observed in this session and would therefore be recorded as owner
+attestation rather than as agent-observed PASS, and chose that option deliberately.
+
+| Remaining gate | Result | Basis |
+|---|---|---|
+| Live Claude connect, refresh, Exit/relaunch, disconnect/reconnect, reauthentication | OWNER_ATTESTED | Owner statement on 2026-09-20 that Claude works. No agent-run scenario, screenshot, log or isolated-profile evidence exists for these steps. The previous BLOCKED result is superseded by owner attestation, not by new observation. |
+| Full screen-reader acceptance | OWNER_ATTESTED | Accepted by owner direction. The agent-observed evidence remains the two representative Narrator speech-recap subsets recorded above; exhaustive page-content, every dialog and Claude populated-account accessibility were never executed. |
+| Overall owner visual acceptance | OWNER_ATTESTED | Accepted by owner direction on 2026-09-20. The only separately recorded owner visual confirmation remains the 2026-09-16 tray mark `good`. |
+
+Unchanged agent-observed evidence carried into this closure: Presentation 117/117,
+Infrastructure 131/131, product Windows smoke 7/7, demo smoke 7/7, unpackaged Release
+build, unsigned MSIX 2026.9.1634.0, main CI run 35401416353, the live Codex lifecycle
+table above, and the two Narrator speech-recap subsets. No product source changed in
+this pass, so no suite was repeated.
+
+Limits that survive this closure: provider approval is unestablished for the private
+OMP-style integrations; the original Codex reconnect report remains NOT_REPRODUCED
+rather than explained; multi-account remains unavailable; and the three gates above rest
+on owner attestation, so a later regression in live Claude lifecycle, screen-reader
+coverage or visual quality would not contradict any agent-observed evidence here.
+
+Documentation checks for this closure are recorded with the commit.

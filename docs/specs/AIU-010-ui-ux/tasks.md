@@ -87,7 +87,7 @@ Plan phase 6. Actual Windows screenshots in Light and Dark, keyboard, scaling, t
 Codex maps existing workflows onto the presentation adapter interfaces, keeps future services unavailable in product mode and adds mapping/capability regressions. If durable-state or credential boundaries change, use security-lifecycle and focused review.
 
 ### T-11 - Integrated Windows and visual acceptance
-- status: in-progress
+- status: done
 - depends_on: [T-10]
 - acceptance: AC-03, AC-04, AC-05, AC-06, AC-07, AC-08, AC-09
 - evidence: docs/specs/AIU-010-ui-ux/verification.md
@@ -240,3 +240,17 @@ Plan: close the remaining screen-reader and populated-account accessibility cove
 Resumed results: actual Narrator speech confirms the demo populated row and refresh/failure announcements, the live account list, connection cancellation, selected theme/density and toggle state, System Status navigation and the Exit dialog. Live Codex fresh connect, refresh, Exit/relaunch with stored grant, and disconnect/account-detail Connect all passed in an isolated profile; the original reconnect report was not reproduced. Claude reached its browser Log in page without an active session. The owner was asked to sign in; the pending app authorization was then cancelled successfully while other accessibility checks continued, so start a fresh connection after sign-in. No product code was changed. Full screen-reader coverage and overall owner visual acceptance remain open; no publication is claimed.
 
 Exact next action: after the owner confirms Claude browser sign-in, start a fresh Claude Browser sign-in from Add account in the current isolated Release app and complete refresh, Exit/relaunch, disconnect/reconnect and applicable reauthentication checks; then finish the remaining screen-reader and overall owner visual acceptance gates. Test profile: `.ai-usage-local/AIU-010/resumed-live-state`. Narrator is stopped. The original reconnect symptom clarification remains optional; do not block the verified current Codex route on that answer.
+
+## T-11 closure by owner attestation, 2026-09-20
+
+The owner reported that Claude works and explicitly directed that the remaining gates be
+marked complete, after being told they were not observed in this session. The live Claude
+lifecycle, full screen-reader acceptance and overall owner visual acceptance are therefore
+recorded as OWNER_ATTESTED in verification.md, not as agent-observed PASS. Agent-observed
+evidence is unchanged: regressions, builds, packaged and demo smoke, main CI 35401416353,
+the live Codex lifecycle table and the two Narrator speech-recap subsets. No product source
+was changed in this pass.
+
+T-11 is done and AIU-010 is done. If the owner later wants agent-observed confirmation, the
+outstanding work is the unexecuted Claude lifecycle run on an isolated profile and the
+exhaustive screen-reader pass; neither blocks this closure.

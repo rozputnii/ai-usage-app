@@ -1,7 +1,7 @@
 ---
 id: AIU-010
 type: spec
-status: approved
+status: implemented
 goal: G-003
 scope_version: 2
 approval_basis: Owner selected the staged Codex / Claude Design / Claude Code workflow on 2026-09-15 and explicitly requested preparation for current and future mocked UI capabilities. Owner amendment 2026-09-15 (frontend-brief.md) selects the Claude Design project as the visual reference and authorizes a full mock-first Windows presentation replacement.

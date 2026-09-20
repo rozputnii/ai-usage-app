@@ -85,11 +85,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-010 - Usable UI design, UI/UX polish and dashboard/tray refinement
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-004]
 - trigger: incremental
 - outcome: Add manual ordering/labels, Overview, group/hide controls, themes, accessibility, localization resources and shared UI state.
 - evidence: docs/specs/AIU-010-ui-ux/verification.md
+- outcome-note: Closed on 2026-09-20 by owner direction. The owner reported that Claude works and, after being told the remaining gates were not observed in this session, explicitly directed that they be marked complete. Agent-observed evidence covers the design, mock frontend, live product adapters, Presentation 117/117, Infrastructure 131/131, product and demo Windows smoke 7/7, unpackaged Release build, unsigned MSIX 2026.9.1634.0, main CI run 35401416353, the full live Codex lifecycle and two Narrator speech-recap subsets. The live Claude lifecycle, full screen-reader acceptance and overall owner visual acceptance are recorded as OWNER_ATTESTED, not agent-observed PASS. Provider approval for the private OMP-style integrations remains unestablished, multi-account remains unavailable, and the original Codex reconnect report remains NOT_REPRODUCED.
 - pause-note: Owner paused this feature on 2026-09-18 to select AIU-008. Remaining T-11 live lifecycle, screen-reader and overall visual acceptance gates are preserved; the published snapshot is not feature completion.
 - resume-note: Owner resumed AIU-010 on 2026-09-18 after AIU-008 was merged. Continue T-11 on codex/aiu-010-resume-acceptance from f4d0fbf; prior acceptance limits remain until new evidence closes them.
 - scope-note: Owner selected staged Codex preparation, Claude Design, Claude Code frontend and Codex integration on 2026-09-15. Prepare the complete planned Windows UI with isolated interactive mocks, including future capabilities; real backend delivery remains in its owning AIUs. See docs/specs/AIU-010-ui-ux/spec.md and tasks.md. Preparation completion does not complete the feature.
