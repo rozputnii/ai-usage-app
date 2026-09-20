@@ -39,14 +39,14 @@ public sealed class AntigravityQuotaClient
     /// Resolves the workspace for an access token. A provisioned account is read without any write.
     /// An account with no tier is enrolled in the free tier through onboardUser, mirroring OMP; that
     /// is a provider-side change to account entitlement and happens only while connecting, never on
-    /// a refresh or resume. An account the provider declares ineligible is reported, not retried.
+    /// a refresh or resume, and only when the provider actively offers that tier.
     /// </summary>
     internal async Task<AntigravityWorkspace> DiscoverWorkspaceAsync(string accessToken, CancellationToken cancellationToken = default)
     {
         var loaded = await LoadAsync(accessToken, cancellationToken).ConfigureAwait(false);
         if (Workspace(loaded) is { } ready)
             return ready;
-        EnsureFreeTierEligible(loaded);
+        EnsureFreeTierOffered(loaded);
         await OnboardAsync(accessToken, cancellationToken).ConfigureAwait(false);
         var provisioned = await LoadAsync(accessToken, cancellationToken).ConfigureAwait(false);
         // Provisioning that reports success without yielding a workspace is still no workspace.
@@ -127,17 +127,16 @@ public sealed class AntigravityQuotaClient
         return AntigravityAuthClient.SafeIdentity(project) ? project : null;
     }
 
-    /// <summary>An explicitly ineligible account is never sent to onboarding.</summary>
-    private static void EnsureFreeTierEligible(JsonElement loaded)
+    /// <summary>
+    /// Provisioning is permitted only by an explicit offer. The gate is positive on purpose: a write
+    /// against someone's account entitlement must not proceed because a refusal was phrased in a way
+    /// this code did not recognize, so an absent, changed or empty tier listing declines it.
+    /// </summary>
+    private static void EnsureFreeTierOffered(JsonElement loaded)
     {
         var allowed = AntigravityAuthClient.Property(loaded, "allowedTiers");
-        if (allowed.ValueKind == JsonValueKind.Array && allowed.EnumerateArray().Any(tier =>
+        if (allowed.ValueKind != JsonValueKind.Array || !allowed.EnumerateArray().Any(tier =>
                 AntigravityAuthClient.Text(AntigravityAuthClient.Property(tier, "id")) == FreeTier))
-            return;
-        var ineligible = AntigravityAuthClient.Property(loaded, "ineligibleTiers");
-        if (ineligible.ValueKind == JsonValueKind.Array && ineligible.EnumerateArray().Any(tier =>
-                AntigravityAuthClient.Text(AntigravityAuthClient.Property(tier, "tierId")) == FreeTier &&
-                AntigravityAuthClient.Text(AntigravityAuthClient.Property(tier, "reasonMessage")) is { Length: > 0 }))
             throw new AntigravityException(ProviderFailureKind.ProjectUnavailable);
     }
 

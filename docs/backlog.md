@@ -78,11 +78,13 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-009 - Antigravity end-to-end integration
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-004]
 - trigger: provider-4
 - outcome: Prove authentication, projects, model groups and remote-versus-official quota parity. Do not combine Gemini app, CLI and API limits.
-- scope-note: Owner selected AIU-009 on 2026-09-20 with an OMP-only implementation, live verification through the already signed-in Chrome session in an isolated development profile, and no CLI credential import. Provider approval is not established. Tier onboarding, the legacy model-catalog quota fallback and CLI import are excluded; see docs/specs/AIU-009-antigravity-integration/spec.md.
+- evidence: docs/specs/AIU-009-antigravity-integration/verification.md
+- scope-note: Owner selected AIU-009 on 2026-09-20 with an OMP-only implementation, live verification on their own Google account, and no CLI credential import. The legacy model-catalog quota fallback, the sandbox host and CLI import are excluded. Free-tier provisioning through onboardUser was excluded at first and then included by owner decision, fenced to the connect path; see docs/specs/AIU-009-antigravity-integration/spec.md.
+- outcome-note: Closed on 2026-09-20. Live PASS for connect, quota, refresh with renewal, resume in a new process, the Windows product UI and local disconnect, with two provider groups and weekly-only windows matching the published plans page for that tier. Two owner decisions shape the result and both carry real cost. Google's published FAQ states that third-party access to Antigravity violates its Terms of Service and may be grounds for account suspension, and the owner chose to proceed on their main account. The provider then refused a truthfully identified client outright, and the owner directed that the Cloud Code Assist control plane be sent the real Antigravity client's User-Agent; that single change unblocked it, proving the gate was the client identity. That is a recorded exception to the rule kept for every other provider, scoped to this control plane. Provider approval remains unestablished. Five-hour buckets, paid tiers, AI credits, rate limiting, revocation and packaged activation with a connected account are NOT_RUN. The OAuth client registration is not vendored: the operator supplies one per device.
 
 ## AIU-010 - Usable UI design, UI/UX polish and dashboard/tray refinement
 - goal: G-003

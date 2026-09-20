@@ -276,7 +276,14 @@ public sealed class AntigravityProtocolTests
     [Theory]
     [InlineData("""{"ineligibleTiers":[{"tierId":"free-tier","reasonMessage":"synthetic-reason"}]}""")]
     [InlineData("""{"allowedTiers":[{"id":"paid-tier"}],"ineligibleTiers":[{"tierId":"free-tier","reasonMessage":"synthetic-reason"}]}""")]
-    public async Task AnIneligibleAccountIsReportedWithoutAttemptingToProvisionIt(string payload)
+    // A refusal carrying no human-readable message is still a refusal.
+    [InlineData("""{"ineligibleTiers":[{"tierId":"free-tier","reasonCode":"UNSUPPORTED_CLIENT"}]}""")]
+    // Nothing about the tiers on offer is known, so an account write is not something to guess at.
+    [InlineData("{}")]
+    [InlineData("""{"allowedTiers":[]}""")]
+    [InlineData("""{"allowedTiers":"unexpected"}""")]
+    [InlineData("""{"allowedTiers":[{"name":"Free"}]}""")]
+    public async Task AnAccountTheProviderDoesNotOfferTheFreeTierIsNeverSentToProvisioning(string payload)
     {
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(payload)));
         using var http = new HttpClient(server);
@@ -284,8 +291,39 @@ public sealed class AntigravityProtocolTests
             .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.ProjectUnavailable, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
-        // Only the initial read; the declared ineligibility is not argued with.
+        // Only the initial read: the server above throws on any other path, so reaching onboardUser
+        // would fail the test rather than silently write to the account.
         Assert.Equal(1, server.Calls);
+    }
+
+    [Fact]
+    public async Task AnExpiredAttemptIsNotExchangedEvenWhenTheBrowserAnswers()
+    {
+        var clock = new CodexTestServer.Clock();
+        using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("An expired attempt must not be exchanged."));
+        using var http = new HttpClient(server);
+        var auth = Auth(http, clock);
+        using var attempt = auth.BeginBrowserLogin();
+        var query = HttpUtility.ParseQueryString(attempt.AuthorizationUrl.Query);
+        clock.Current = attempt.ExpiresAt;
+        var error = await Assert.ThrowsAsync<AntigravityException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.LoginAttemptExpired, error.Kind);
+        Assert.Equal(0, server.Calls);
+    }
+
+    [Fact]
+    public async Task AnOccupiedCallbackPortFallsBackToAnotherLoopbackPort()
+    {
+        // Google matches a loopback redirect without its port, so a busy preferred port is survivable.
+        // Driven through LoopbackCallback rather than the fixed 51121, which a parallel class may hold.
+        using var occupied = AiUsage.Infrastructure.Providers.LoopbackCallback.Start([0]);
+        using var fallback = AiUsage.Infrastructure.Providers.LoopbackCallback.Start([occupied.Port, 0]);
+        Assert.NotEqual(occupied.Port, fallback.Port);
+        // Both remain usable loopback listeners; the exchange repeats whichever port was taken, which
+        // BrowserFlowBindsPkceStateAndTheExactLoopbackRedirect pins against the advertised redirect.
+        using var client = new System.Net.Sockets.TcpClient();
+        await client.ConnectAsync(IPAddress.Loopback, fallback.Port, TestContext.Current.CancellationToken);
+        Assert.True(client.Connected);
     }
 
     [Fact]

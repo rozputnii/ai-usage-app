@@ -10,15 +10,15 @@ schema_version: 1
 - acceptance: AC-01
 - evidence: docs/providers/antigravity.md
 
-Record the stable OMP authentication, project-discovery and quota sources, the official Google OAuth and Cloud Code Assist boundary, the registration and scope provenance, and the provisioning write and its owner decision. Google's published Antigravity FAQ restricts third-party access and names account suspension; that finding is recorded and gates live work.
+Record the stable OMP authentication, project-discovery and quota sources, the official Google OAuth and Cloud Code Assist boundary, the registration and scope provenance, the provisioning write and the client-identity exception, each with its owner decision. Google's published Antigravity FAQ restricts third-party access and names account suspension; that finding was surfaced before any live work and the owner accepted it.
 
 ### T-02 - Shared authentication, discovery and quota implementation
 - status: done
 - depends_on: [T-01]
-- acceptance: AC-02, AC-03, AC-08
+- acceptance: AC-02, AC-03, AC-08, AC-09
 - evidence: docs/specs/AIU-009-antigravity-integration/verification.md
 
-Implement the UI-independent loopback authorization, identity validation, workspace discovery with connect-only free-tier provisioning, quota-summary parsing and the console surface with synthetic regression coverage.
+Implement the UI-independent loopback authorization, identity validation, workspace discovery with connect-only free-tier provisioning behind a positive eligibility gate, quota-summary parsing, the control-plane client identity and the console surface, with synthetic regression coverage.
 
 ### T-03 - Protected lifecycle and Windows integration
 - status: done
@@ -29,17 +29,19 @@ Implement the UI-independent loopback authorization, identity validation, worksp
 Add app-owned DPAPI state with resume, refresh, reconnect and disconnect, then register the live Antigravity session in the existing Windows provider composition without changing the other providers or demo isolation.
 
 ### T-04 - Integrated verification and publication
-- status: blocked
+- status: done
 - depends_on: [T-03]
 - acceptance: AC-06, AC-07
 - evidence: docs/specs/AIU-009-antigravity-integration/verification.md
 
-Deterministic regressions, document validation, diff check and Release builds pass. Live verification is blocked pending the owner's decision on Google's published third-party restriction, which names account suspension as a consequence. Package build, local Windows smoke, the live lifecycle and focused independent review follow that decision.
+Run the required regressions, document validation, diff check, MSIX build and interactive Windows smoke; complete the authorized live lifecycle; obtain focused independent credential/state review; resolve its findings; publish to `main`.
 
-## Handoff, 2026-09-20
+## Completion, 2026-09-20
 
-Base: `main` at 3a39fb3. Working directly on `main` under the standing Git instruction.
+Closed on `main`. Live PASS for connect, quota, refresh with renewal, resume in a new process, the Windows product UI and local disconnect. Infrastructure 226/226, Presentation 125/125, validator 78/78, Windows smoke 7/7, document validation, diff check and unsigned MSIX 2026.9.2002.0.
 
-Implemented the shared Antigravity provider, protected state, console commands and live Windows registration. Infrastructure 208/208, Presentation 124/124, validator 78/78, document validation and diff check pass; unpackaged Release Windows and console builds pass with zero warnings.
+Independent review returned nine findings, all resolved: one code fix making the provisioning gate positive, and eight record corrections, including two source comments and a verification paragraph that still claimed no provider-side write after the scope changed.
 
-Nothing has contacted Google with this implementation. Exact next action: obtain the owner's decision on the Terms of Service restriction recorded in docs/providers/antigravity.md, then either run the authorized live lifecycle in an isolated development profile and complete T-04, or keep AIU-009 at deterministic evidence only and record the restriction as the blocker.
+Two owner decisions define the result. Antigravity's published terms forbid third-party access and name account suspension; the owner proceeded on their own account. The provider then refused a truthfully identified client, and the owner directed that the control plane receive the real Antigravity client's `User-Agent`, which unblocked it and proved the gate was the client identity. Provider approval is not established. The OAuth registration is not vendored; each device supplies one.
+
+Remaining NOT_RUN: five-hour buckets and paid tiers, AI credits, rate limiting, revocation, refresh-token rotation, reconnect after denial, and packaged activation with a connected account.

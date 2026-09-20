@@ -42,7 +42,7 @@ OMP also has a personal billing branch for API-key credentials. That branch is n
 
 ## Side effects and open proof
 
-OMP login discovers inference endpoints and enables models with policy POSTs. A quota monitor omits both inference setup and model-policy changes. Never imitate another application's identity to overcome a provider rejection. No automatic billing fallback, inference request, model enablement, token import or organization-policy change is authorized by selecting AIU-008.
+OMP login discovers inference endpoints and enables models with policy POSTs. A quota monitor omits both inference setup and model-policy changes. Never imitate another application's identity to overcome a provider rejection. That rule still holds for Copilot and is unchanged here; the owner authorized one recorded exception for Antigravity on 2026-09-20, after that provider refused a truthfully identified client outright, and [its record](antigravity.md) states the scope and the cost. No automatic billing fallback, inference request, model enablement, token import or organization-policy change is authorized by selecting AIU-008.
 
 Live requirements: chosen client's endpoint eligibility, stable numeric account identity, exact quota units/context and reset semantics, nullable/malformed groups, access denial versus expired auth, Retry-After, cancellation, applicable rotation, resume and local disconnect. No sanitized live fixture exists. Enterprise host trust/context switching and organization-paid parity remain unverified.
 

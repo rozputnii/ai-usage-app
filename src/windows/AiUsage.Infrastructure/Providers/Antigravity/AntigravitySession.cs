@@ -2,7 +2,10 @@ using AiUsage.Core.Usage;
 
 namespace AiUsage.Infrastructure.Providers.Antigravity;
 
-/// <summary>One app-owned connection. No source CLI credentials are read, and no tier is provisioned.</summary>
+/// <summary>
+/// One app-owned connection. No source CLI credentials are read. Connecting can provision the free
+/// tier on an account that has none, which is a provider-side write; refresh and resume never can.
+/// </summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed class AntigravitySession(AntigravityAuthClient auth, AntigravityQuotaClient quota,
     AntigravityStateStore store, TimeProvider clock) : IProviderSession, IDisposable

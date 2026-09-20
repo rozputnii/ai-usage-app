@@ -30,7 +30,10 @@ public sealed class AntigravityCredentials
     public override string ToString() => "AntigravityCredentials (redacted)";
 }
 
-/// <summary>The read-only result of one loadCodeAssist discovery. Onboarding is never performed.</summary>
+/// <summary>
+/// The project and tier a discovery resolved. Discovery reads first and provisions the free tier
+/// only when the account has none and the provider offers it; see AntigravityQuotaClient.
+/// </summary>
 internal sealed record AntigravityWorkspace(string ProjectId, string? Tier);
 
 /// <summary>

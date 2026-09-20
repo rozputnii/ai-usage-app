@@ -135,6 +135,37 @@ public sealed class AntigravitySessionTests : IDisposable
     }
 
     [Fact]
+    public async Task AnExpiredAccessTokenIsRenewedInSessionWithoutRepeatingDiscovery()
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(Respond(request)));
+        using var http = new HttpClient(server);
+        using var session = Session(http);
+        await session.ConnectAsync(Redirect, TestContext.Current.CancellationToken);
+        var connected = server.Calls;
+        // Still inside the grant's lifetime: the held access token is reused.
+        Assert.Equal(ProviderSessionStatus.QuotaAvailable, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(connected + 1, server.Calls);
+        clock.Current = clock.Current.AddHours(2);
+        Assert.Equal(ProviderSessionStatus.QuotaAvailable, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
+        // Renewal, identity revalidation and quota; the workspace is not rediscovered or reprovisioned.
+        Assert.Equal(connected + 4, server.Calls);
+    }
+
+    [Fact]
+    public async Task ABrowserThatCannotBeLaunchedIsReportedWithoutAnAttempt()
+    {
+        using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider request expected."));
+        using var http = new HttpClient(server);
+        using var session = Session(http);
+        var result = await session.ConnectAsync(_ => throw new System.ComponentModel.Win32Exception(2),
+            TestContext.Current.CancellationToken);
+        Assert.Equal(ProviderFailureKind.BrowserCallbackUnavailable, result.Failure);
+        Assert.Equal(ProviderSessionStatus.NotConnected, result.Status);
+        Assert.False(session.HasStoredGrant);
+        Assert.Equal(0, server.Calls);
+    }
+
+    [Fact]
     public async Task AnAccountTheProviderDeclaresIneligibleIsNeverStoredAsAConnection()
     {
         workspace = """{"ineligibleTiers":[{"tierId":"free-tier","reasonMessage":"synthetic-reason"}]}""";
