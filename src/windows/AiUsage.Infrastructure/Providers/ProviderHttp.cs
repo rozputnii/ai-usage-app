@@ -21,7 +21,10 @@ internal static class ProviderHttp
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(15));
-        request.Headers.UserAgent.ParseAdd("AiUsage/0.1");
+        // Truthful by default. A caller that has already set an identity owns it, so this never
+        // appends a second product token to a header a provider may parse strictly.
+        if (!request.Headers.Contains("User-Agent"))
+            request.Headers.UserAgent.ParseAdd("AiUsage/0.1");
         request.Headers.Accept.ParseAdd("application/json");
         try
         {

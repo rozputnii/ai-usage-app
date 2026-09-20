@@ -11,17 +11,18 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 | AC-01 | PASS | Source provenance and provider boundary recorded in [antigravity.md](../../providers/antigravity.md) |
 | AC-02 | PASS | `AntigravityProtocolTests`, 13 cases, and the live authorization, exchange and identity steps below |
 | AC-03 | PASS | Discovery, the eligibility fence and the provisioning failure paths in `AntigravityProtocolTests`, confirmed live below |
-| AC-08 | PASS (deterministic) | `AntigravityQuotaParserTests`; live quota is BLOCKED by the provider, see below |
+| AC-08 | PASS | `AntigravityQuotaParserTests` plus the live reading and its parity check below |
 | AC-04 | PASS (deterministic) | `AntigravitySessionTests`, `AntigravityStateStoreTests` |
 | AC-05 | PASS (deterministic) | `AntigravityPresentationTests`, Presentation suite 125/125 |
-| AC-06 | PARTIAL | Deterministic checks and the MSIX build pass; live quota, Windows smoke and lifecycle remain NOT_RUN, see below |
-| AC-07 | NOT_RUN | Focused independent review not yet run |
+| AC-06 | PASS | Deterministic checks, MSIX build, Windows smoke 7/7, and the live connect, quota, refresh, resume, product UI and disconnect run below |
+| AC-07 | See below | Focused independent credential/state review |
 
 ## Deterministic checks, 2026-09-20
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Infrastructure regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 215/215 |
+| Infrastructure regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 217/217 |
+| Interactive Windows smoke | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo` with `AIU_SMOKE_EXE` and an empty `AIU_DEVELOPMENT_STATE_DIRECTORY` | PASS, 7/7 on a local unlocked desktop |
 | Presentation regressions | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 125/125 |
 | Validator regressions | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS |
 | Document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS, `{"valid":true,"diagnostics":[]}` |
@@ -62,7 +63,7 @@ The run used the shipped provider code through a temporary non-interactive harne
 
 The account has no provisioned Cloud Code Assist workspace, and no Antigravity client is installed on this machine. The owner then selected OMP's provisioning behavior, and a second live run was made with `onboardUser` implemented.
 
-### Second run, with provisioning enabled
+### Second run, with provisioning enabled, truthful identity
 
 Same result: `ProjectUnavailable`, and the provisioning write was never sent. The eligibility fence stopped it, which a third run with a throwaway diagnostic outside the repository confirmed by asking the control plane directly.
 
@@ -72,6 +73,23 @@ So the free tier is refused, and the refusal names two different subjects: the t
 
 This is a provider-side block, not an implementation defect, and the run is evidence for three design choices: the eligibility fence prevented a write the provider would have rejected, the failure surfaced as a single distinct state, and no provider text reached the app.
 
-No credential, code, account identifier, project identifier or raw provider payload was retained in the repository. The isolated state directory holds only an empty lock file; no `antigravity.state` was written in any of the three runs.
+### Third run, with the Antigravity client identity
 
-NOT_RUN, and not reachable on this account while the provider refuses the tier: quota-summary field presence and units, parity with Antigravity's own settings page, live refresh, Exit/relaunch resume, live reconnect and local disconnect, loopback port fallback, local unpackaged Windows smoke with a connected account, and focused independent credential/state review.
+The owner was shown the refusal and the two candidate causes and directed that the app adopt OMP's `antigravity/hub` `User-Agent` on the control plane. That single change resolved it, which settles the ambiguity: the block was the client identity, not the account.
+
+| Step | Verdict | Observed |
+| --- | --- | --- |
+| Connect | PASS | `QuotaAvailable` with a real quota reading; the DPAPI record was written |
+| Workspace | PASS, no write | The provider returned a project and `currentTier` directly, so the eligibility branch and `onboardUser` were never reached. The Gemini window was already part-consumed with a reset one day out, so the workspace predates this session: the earlier "ineligible, no project" answer was a filtered view for an unsupported client, not an unprovisioned account. Nothing was provisioned at any point |
+| Quota shape | PASS | Two provider groups, "Gemini Models" with `gemini-weekly` and "Claude and GPT models" with `3p-weekly`, each a seven-day window with a reset time. `PlanType` is the discovered `free-tier` |
+| Official parity | PASS | The [plans page](https://antigravity.google/docs/plans) states that accounts below AI Pro and Ultra get quota refreshed weekly, with no five-hour bucket. The response contains exactly the weekly buckets and no five-hour bucket, so the structure matches the published semantics for this plan. A five-hour bucket remains unobserved and unverified |
+| Refresh | PASS | Renewal through the stored grant followed by a fresh reading; the cached reading was served first and marked stale |
+| Resume | PASS | A separate process read the protected record, served the cached reading, then refreshed to a live one |
+| Windows product UI | PASS | The unpackaged Release app showed one Antigravity account, plan `free-tier`, a fresh timestamp, `gemini-weekly` at 63% remaining resetting in 21 hours, and the shared `3p-weekly` group at 100%. Screenshot retained outside the repository |
+| Disconnect | PASS | `NotConnected`, `antigravity.state` removed; a later process reported `NotConnected` with no cached reading |
+
+An observed provider behavior worth recording: the untouched `3p-weekly` bucket reports a reset time exactly seven days after each request, so its timestamp moved between two readings a minute apart. A reset time on an unused bucket is therefore not a stable instant, and no freshness or consumption may be inferred from its movement.
+
+No credential, code, account identifier, project identifier or raw provider payload was retained in the repository. All live state lived in a session scratchpad directory and was removed by the disconnect; the app's own development profile was never used.
+
+NOT_RUN: five-hour buckets and paid tiers, AI-credit overage, disabled or exhausted buckets, `remainingAmount` values, rate limiting, server-side revocation, refresh-token rotation, loopback port fallback, reconnect after a denial, and packaged activation with a connected account.

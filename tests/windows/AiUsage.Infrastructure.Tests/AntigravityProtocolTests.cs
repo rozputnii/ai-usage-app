@@ -174,6 +174,51 @@ public sealed class AntigravityProtocolTests
     }
 
     [Fact]
+    public async Task OnlyTheControlPlaneReceivesTheAntigravityClientIdentity()
+    {
+        var identities = new Dictionary<string, string>(StringComparer.Ordinal);
+        using var server = new CodexTestServer((request, _) =>
+        {
+            identities[request.RequestUri!.AbsolutePath] = request.Headers.UserAgent.ToString();
+            return Task.FromResult(Route(request));
+        });
+        using var http = new HttpClient(server);
+        var auth = Auth(http, new CodexTestServer.Clock());
+        using var attempt = auth.BeginBrowserLogin();
+        var query = HttpUtility.ParseQueryString(attempt.AuthorizationUrl.Query);
+        var login = auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken);
+        using var callback = new HttpClient();
+        await callback.GetStringAsync(query["redirect_uri"] + "?code=synthetic-code&state=" + query["state"], TestContext.Current.CancellationToken);
+        await login;
+        await Quota(http).GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken);
+
+        // Owner-directed on 2026-09-20 after the provider answered UNSUPPORTED_CLIENT: the control
+        // plane is given the real Antigravity client string, and nothing else is.
+        Assert.StartsWith("antigravity/hub/", identities["/v1internal:retrieveUserQuotaSummary"]);
+        Assert.Contains("aidev_client", identities["/v1internal:retrieveUserQuotaSummary"]);
+        Assert.DoesNotContain("AiUsage", identities["/v1internal:retrieveUserQuotaSummary"]);
+        Assert.Equal("AiUsage/0.1", identities["/token"]);
+        Assert.Equal("AiUsage/0.1", identities["/oauth2/v1/userinfo"]);
+    }
+
+    [Fact]
+    public void TheClientVersionIsOverridableAndRejectsAnUnusableValue()
+    {
+        var original = Environment.GetEnvironmentVariable(AntigravityHttp.VersionVariable);
+        try
+        {
+            Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, "9.9.9");
+            Assert.StartsWith("antigravity/hub/9.9.9 (", AntigravityHttp.ClientIdentity);
+            // The version reaches a header, so a value that could inject one is refused.
+            Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, "9.9.9\r\nX-Injected: 1");
+            Assert.StartsWith("antigravity/hub/2.8.0 (", AntigravityHttp.ClientIdentity);
+            Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, "");
+            Assert.StartsWith("antigravity/hub/2.8.0 (", AntigravityHttp.ClientIdentity);
+        }
+        finally { Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, original); }
+    }
+
+    [Fact]
     public async Task AProvisionedWorkspaceIsReadWithoutAnyProviderWrite()
     {
         var bodies = new List<string>();

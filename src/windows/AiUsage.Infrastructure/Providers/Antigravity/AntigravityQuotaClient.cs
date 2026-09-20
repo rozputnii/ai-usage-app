@@ -158,7 +158,7 @@ public sealed class AntigravityQuotaClient
     private async Task<JsonElement> GetAsync(string url, string accessToken, CancellationToken cancellationToken)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        Authorize(request, accessToken);
         return await ReadAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
@@ -209,7 +209,16 @@ public sealed class AntigravityQuotaClient
         {
             Content = new StringContent(json, Encoding.UTF8, "application/json")
         };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        Authorize(request, accessToken);
         return request;
+    }
+
+    /// <summary>See <see cref="AntigravityHttp.ClientIdentity"/> for why the control plane is not told who we are.</summary>
+    private static void Authorize(HttpRequestMessage request, string accessToken)
+    {
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        // The captured string is not a well-formed product token, so it is sent verbatim rather than
+        // reformatted; the value is built from constrained parts and can carry no extra header.
+        request.Headers.TryAddWithoutValidation("User-Agent", AntigravityHttp.ClientIdentity);
     }
 }

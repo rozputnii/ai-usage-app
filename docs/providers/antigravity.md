@@ -2,7 +2,7 @@
 provider: antigravity
 source_verified_at: 2026-09-20
 live_verified_at: 2026-09-20
-confidence: authentication-live-verified-quota-blocked-by-provider
+confidence: source-and-live-verified-private-unsupported
 classification: method-specific
 backlog: AIU-009
 ---
@@ -74,7 +74,15 @@ OMP reads `POST {endpoint}/v1internal:retrieveUserQuotaSummary` with body `{"pro
 
 OMP's legacy `fetchAvailableModels` path infers daily and weekly windows from model-level reset timestamps, treats a missing `remainingFraction` with a present `resetTime` as exhausted, and duplicates one shared third-party bucket into separate Anthropic and OpenAI counters. Those are upstream ranking choices that manufacture structure the provider did not send. That path, its window inference and the sandbox host fallback are excluded from this implementation; an unavailable quota-summary endpoint is reported as unavailable.
 
-The Antigravity `User-Agent` in OMP identifies as the real `antigravity/hub` client on a pinned darwin/arm64 version discovered from the vendor's update manifest, because the backend gates newer models on that version. AI Usage sends its own truthful `AiUsage/0.1` identity and does not imitate another application to overcome a rejection. Model gating does not apply to a quota read, but a provider may reject an honest identity; that outcome is reported, not worked around.
+## Client identity: an owner-directed exception
+
+The Antigravity `User-Agent` in OMP identifies as the real `antigravity/hub` client on a pinned darwin/arm64 version discovered from the vendor's update manifest, because the backend gates on that version.
+
+This implementation first sent its own truthful `AiUsage/0.1` identity, on the rule kept elsewhere in these records that another application's identity is never presented to overcome a provider rejection. The provider then rejected it: `loadCodeAssist` answered `UNSUPPORTED_CLIENT` and `onboardUser` answered `403 FREE_TIER_USER_NOT_ELIGIBLE`, so no workspace and no quota were reachable.
+
+On 2026-09-20 the owner was shown that result, the two candidate causes, and that adopting OMP's header means presenting another application's identity to pass a gate Google closed to this client, deepening the Terms of Service exposure recorded at the top of this file. The owner directed that the header be adopted. It is therefore an explicit, recorded exception to that rule for this provider only, not a revision of it: Codex, Claude and Copilot keep their truthful identity, and so do Google's OAuth and userinfo endpoints here. Only the Cloud Code Assist control plane receives the Antigravity string.
+
+The version is pinned to OMP's captured reference and can be overridden per device through `AIU_ANTIGRAVITY_CLIENT_VERSION`, because a pinned client version ages out of a gate that tracks releases. The vendor's update manifest is not polled. The os and architecture stay as captured rather than reflecting the host, matching upstream.
 
 ## Side effects and open proof
 
@@ -84,8 +92,10 @@ Live on 2026-09-20, with the owner's explicit decision to accept the restriction
 
 The owner then selected OMP's provisioning behavior, and a diagnostic asked the control plane directly. `loadCodeAssist` allows this account only `standard-tier`, which is Gemini Code Assist on Google Cloud terms with a user-supplied project, and lists `free-tier` as ineligible with reason code `UNSUPPORTED_CLIENT` and a message that this client is no longer supported for Gemini Code Assist for individuals, directing the user to the Antigravity products. A deliberate `onboardUser` call outside the product's eligibility fence was refused with `403 PERMISSION_DENIED` and reason `FREE_TIER_USER_NOT_ELIGIBLE`.
 
-The refusal names two different subjects: the tier listing blames the client, the onboarding error blames the account. The obvious candidate for the client half is the `User-Agent`. The backend is known to gate on the Antigravity client version, OMP sends the real `antigravity/hub` string, and AI Usage sends its own truthful identity instead. Confirming that would mean presenting another application's identity to overcome a provider rejection, which this project does not do, so the two explanations stay unseparated. The other allowed tier is a different product surface and is not Antigravity subscription quota.
+The refusal named two different subjects: the tier listing blamed the client, the onboarding error blamed the account. The owner then directed the client-identity change described below, and adopting the `antigravity/hub` `User-Agent` resolved it on the very next attempt. That settles the ambiguity: the gate was the client identity. With a truthful identity this account is told it has no workspace and is ineligible for one; with the Antigravity identity the same account returns an existing project, a `free-tier` current tier and real quota.
 
-Consequence: quota is unreadable on this account with a truthful client identity, so the quota contract in the table above remains source-derived and unproven live. The implementation is not what blocks it.
+Two consequences follow. The provider deliberately closes this surface to clients other than its own, which makes the Terms of Service position at the top of this file concrete rather than theoretical. And the earlier "no project, not eligible" answer was a filtered view rather than the truth about the account, so `onboardUser` was never needed and has never run: the quota observed on 2026-09-20 came from a workspace that already existed.
 
-Live NOT_RUN: quota-summary field presence and units, reset semantics, the official settings-page comparison, refresh, rotation, resume, reconnect and local disconnect. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data. See the [verification record](../specs/AIU-009-antigravity-integration/verification.md).
+Live PASS on 2026-09-20 with that identity: connect, quota reading, refresh with renewal, durable resume in a new process, the Windows product UI and local disconnect. The reading contained two provider groups, `gemini-weekly` and the shared `3p-weekly`, each a seven-day window, and no five-hour bucket, which matches the published plans page for an account below AI Pro. One observed quirk: an untouched bucket reports its reset exactly seven days after each request, so that timestamp moves between readings and carries no information.
+
+Live NOT_RUN: five-hour buckets and paid tiers, AI credits, disabled or exhausted buckets, `remainingAmount` values, rate limiting, revocation, refresh-token rotation, loopback port fallback and reconnect after denial. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data. See the [verification record](../specs/AIU-009-antigravity-integration/verification.md).
