@@ -51,7 +51,9 @@ The registration is the part AI Usage does not own. GitHub push protection refus
 
 OMP's after-exchange hook posts `v1internal:loadCodeAssist` to `https://daily-cloudcode-pa.googleapis.com` with `metadata.ideType = "ANTIGRAVITY"` and an Antigravity `User-Agent`, reads `cloudaicompanionProject`, `currentTier`, `paidTier`, `allowedTiers` and `ineligibleTiers`, and repeats the load with the discovered project when `paidTier` is absent. When `currentTier` is missing it calls `v1internal:onboardUser` with `tierId: "free-tier"` and polls the returned long-running operation until the free tier is provisioned.
 
-`onboardUser` is a provider-side write that changes account entitlement state. It is excluded here: AI Usage performs one `loadCodeAssist` read and reports a distinct `ProjectUnavailable` failure when no `cloudaicompanionProject` comes back, so an account is never enrolled in a tier as a side effect of adding a monitor. OMP's free-tier ineligibility message and validation URL are equally informative without onboarding, and are mapped to the same explicit failure rather than echoed as a provider string.
+`onboardUser` is a provider-side write that changes account entitlement state. It was excluded in the first implementation, and the first live run showed the cost of that: an unprovisioned account returns no project, so there is no quota to read at all, and nothing in a read-only flow can change that. On 2026-09-20 the owner chose OMP's behavior, so connecting now provisions the free tier when the provider reports no current tier.
+
+The write is fenced: it happens only while connecting, never during resume or refresh; it is skipped when the provider already reports a tier; it is skipped when the provider declares the account ineligible for the free tier; the returned long-running operation is polled with the same thirty-second deadline and one-second interval OMP uses, and the poll target is constrained to the provider's operations path. A provisioning failure, timeout or a provisioning that yields no project all report `ProjectUnavailable`, and the provider's reason message and validation URL are never echoed into the app.
 
 The discovered project identifier and the discovery-time tier are stored with the grant. The tier is presented as the plan label and is only ever as fresh as the last successful discovery; it is re-read on reconnection, not on every quota refresh.
 
@@ -76,7 +78,7 @@ The Antigravity `User-Agent` in OMP identifies as the real `antigravity/hub` cli
 
 ## Side effects and open proof
 
-Authorization creates a grant and consumes the OMP client's consent screen. A refresh can rotate or invalidate the previous token. Quota reads and `loadCodeAssist` do not run inference or mint entitlements. No onboarding, project creation, model enablement, credit purchase, overage-setting change, CLI credential read or host trust change is included in this scope.
+Authorization creates a grant and consumes the consent screen of whichever client the device is configured with. A refresh can rotate or invalidate the previous token. Quota reads and `loadCodeAssist` do not run inference or mint entitlements. Connecting an unprovisioned account does enrol it in the free tier, as described above. No model enablement, paid-tier purchase or upgrade, overage-setting change, CLI credential read or host trust change is included in this scope.
 
 Live on 2026-09-20, with the owner's explicit decision to accept the restriction above on their own account: Google served the consent screen for the authorization request as built, the loopback callback and the token exchange succeeded with PKCE, and the userinfo identity read succeeded. `loadCodeAssist` then returned success with no `cloudaicompanionProject`, so the session reported `ProjectUnavailable`, stored nothing, and did not onboard. The account has no provisioned Cloud Code Assist workspace and no Antigravity client is installed on that machine.
 

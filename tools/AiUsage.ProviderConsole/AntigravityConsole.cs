@@ -27,7 +27,7 @@ internal static class AntigravityConsole
             return 2;
         }
         Console.WriteLine("Experimental OMP-compatible Antigravity connection. Google's published terms restrict third-party access to Antigravity and name account suspension as a consequence; provider approval is not established.");
-        Console.WriteLine("Choose connect to sign in through your browser. Quota is read for the discovered workspace only; no tier is provisioned and no CLI login is read.");
+        Console.WriteLine("Choose connect to sign in through your browser. An account with no Cloud Code Assist workspace is enrolled in the free tier while connecting, which changes provider-side entitlement. No CLI login is read.");
         Console.WriteLine("This build vendors no Antigravity OAuth client. Set AIU_ANTIGRAVITY_CLIENT_ID and AIU_ANTIGRAVITY_CLIENT_SECRET for this session to supply one.");
         using var services = new ServiceCollection().AddAntigravityProductSession(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AiUsage", "ProviderConsole")).BuildServiceProvider();

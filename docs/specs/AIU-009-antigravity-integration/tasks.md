@@ -10,15 +10,15 @@ schema_version: 1
 - acceptance: AC-01
 - evidence: docs/providers/antigravity.md
 
-Record the stable OMP authentication, project-discovery and quota sources, the official Google OAuth and Cloud Code Assist boundary, the registration and scope provenance, and the excluded onboarding write. Google's published Antigravity FAQ restricts third-party access and names account suspension; that finding is recorded and gates live work.
+Record the stable OMP authentication, project-discovery and quota sources, the official Google OAuth and Cloud Code Assist boundary, the registration and scope provenance, and the provisioning write and its owner decision. Google's published Antigravity FAQ restricts third-party access and names account suspension; that finding is recorded and gates live work.
 
 ### T-02 - Shared authentication, discovery and quota implementation
 - status: done
 - depends_on: [T-01]
-- acceptance: AC-02, AC-03
+- acceptance: AC-02, AC-03, AC-08
 - evidence: docs/specs/AIU-009-antigravity-integration/verification.md
 
-Implement the UI-independent loopback authorization, identity validation, read-only project discovery, quota-summary parsing and console surface with synthetic regression coverage.
+Implement the UI-independent loopback authorization, identity validation, workspace discovery with connect-only free-tier provisioning, quota-summary parsing and the console surface with synthetic regression coverage.
 
 ### T-03 - Protected lifecycle and Windows integration
 - status: done

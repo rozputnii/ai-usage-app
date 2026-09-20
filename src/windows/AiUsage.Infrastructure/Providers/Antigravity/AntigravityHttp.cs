@@ -33,6 +33,8 @@ internal static class AntigravityHttp
     internal const string IdentityUrl = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json";
     internal const string CloudCodeEndpoint = "https://daily-cloudcode-pa.googleapis.com";
     internal const string LoadCodeAssistUrl = CloudCodeEndpoint + "/v1internal:loadCodeAssist";
+    internal const string OnboardUserUrl = CloudCodeEndpoint + "/v1internal:onboardUser";
+    internal const string OperationsUrl = CloudCodeEndpoint + "/v1internal";
     internal const string QuotaSummaryUrl = CloudCodeEndpoint + "/v1internal:retrieveUserQuotaSummary";
 
     /// <summary>The scopes the inspected registration requests; a smaller quota-only set is not established.</summary>

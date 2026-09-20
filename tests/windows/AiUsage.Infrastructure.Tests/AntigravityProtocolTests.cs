@@ -174,39 +174,143 @@ public sealed class AntigravityProtocolTests
     }
 
     [Fact]
-    public async Task DiscoveryReadsTheWorkspaceWithoutOnboardingTheAccount()
+    public async Task AProvisionedWorkspaceIsReadWithoutAnyProviderWrite()
     {
-        string? body = null;
+        var bodies = new List<string>();
         using var server = new CodexTestServer(async (request, token) =>
         {
+            // Only reads: reaching onboardUser for an account that already has a tier would be a
+            // provider-side write nothing asked for.
             Assert.Equal("https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", request.RequestUri!.AbsoluteUri);
             Assert.Equal("Bearer synthetic-access", request.Headers.Authorization!.ToString());
-            body = await request.Content!.ReadAsStringAsync(token);
+            bodies.Add(await request.Content!.ReadAsStringAsync(token));
             return Route(request);
         });
         using var http = new HttpClient(server);
-        var session = await new AntigravityQuotaClient(http, new CodexTestServer.Clock())
-            .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken);
-        Assert.Equal("synthetic-project", session.ProjectId);
-        Assert.Equal("free-tier", session.Tier);
-        Assert.Equal("""{"metadata":{"ideType":"ANTIGRAVITY"}}""", body);
-        // Exactly one read: onboardUser provisions a tier and is never called.
-        Assert.Equal(1, server.Calls);
+        var workspace = await Quota(http).DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken);
+        Assert.Equal("synthetic-project", workspace.ProjectId);
+        Assert.Equal("free-tier", workspace.Tier);
+        // The second read repeats OMP's project-scoped load, which is how the active tier is confirmed
+        // before deciding whether provisioning is needed at all.
+        Assert.Equal(["""{"metadata":{"ideType":"ANTIGRAVITY"}}""",
+            """{"cloudaicompanionProject":"synthetic-project","metadata":{"ideType":"ANTIGRAVITY"}}"""], bodies);
+    }
+
+    [Fact]
+    public async Task AnUnprovisionedAccountIsEnrolledInTheFreeTierAndPolledUntilTheOperationCompletes()
+    {
+        var paths = new List<string>();
+        var bodies = new List<string>();
+        var onboarded = false;
+        var polls = 0;
+        using var server = new CodexTestServer(async (request, token) =>
+        {
+            paths.Add(request.RequestUri!.AbsolutePath);
+            if (request.Content is not null) bodies.Add(await request.Content.ReadAsStringAsync(token));
+            return request.RequestUri.AbsolutePath switch
+            {
+                "/v1internal:loadCodeAssist" => CodexTestServer.Json(onboarded
+                    ? Workspace
+                    : """{"allowedTiers":[{"id":"free-tier"}]}"""),
+                "/v1internal:onboardUser" => CodexTestServer.Json("""{"name":"operations/synthetic-op","done":false}"""),
+                "/v1internal/operations/synthetic-op" => CodexTestServer.Json(++polls < 2
+                    ? """{"name":"operations/synthetic-op","done":false}"""
+                    : Onboarded(() => onboarded = true)),
+                _ => throw new InvalidOperationException("Unexpected endpoint.")
+            };
+        });
+        using var http = new HttpClient(server);
+        var workspace = await Quota(http).DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken);
+        Assert.Equal("synthetic-project", workspace.ProjectId);
+        Assert.Equal("free-tier", workspace.Tier);
+        Assert.Equal(["/v1internal:loadCodeAssist", "/v1internal:onboardUser", "/v1internal/operations/synthetic-op",
+            "/v1internal/operations/synthetic-op", "/v1internal:loadCodeAssist", "/v1internal:loadCodeAssist"], paths);
+        Assert.Contains("""{"tierId":"free-tier","metadata":{"ideType":"ANTIGRAVITY"}}""", bodies);
     }
 
     [Theory]
     [InlineData("""{"ineligibleTiers":[{"tierId":"free-tier","reasonMessage":"synthetic-reason"}]}""")]
-    [InlineData("""{"cloudaicompanionProject":""}""")]
-    [InlineData("{}")]
-    public async Task AnAccountWithoutAWorkspaceIsReportedRatherThanProvisioned(string payload)
+    [InlineData("""{"allowedTiers":[{"id":"paid-tier"}],"ineligibleTiers":[{"tierId":"free-tier","reasonMessage":"synthetic-reason"}]}""")]
+    public async Task AnIneligibleAccountIsReportedWithoutAttemptingToProvisionIt(string payload)
     {
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(payload)));
         using var http = new HttpClient(server);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => new AntigravityQuotaClient(http)
+        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
             .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.ProjectUnavailable, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
+        // Only the initial read; the declared ineligibility is not argued with.
         Assert.Equal(1, server.Calls);
+    }
+
+    [Fact]
+    public async Task FailedProvisioningReportsNoWorkspaceWithoutEchoingTheProviderReason()
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.RequestUri!.AbsolutePath switch
+        {
+            "/v1internal:loadCodeAssist" => CodexTestServer.Json("""{"allowedTiers":[{"id":"free-tier"}]}"""),
+            _ => CodexTestServer.Json("""{"name":"operations/synthetic-op","done":true,"error":{"code":7,"message":"synthetic-reason"}}""")
+        }));
+        using var http = new HttpClient(server);
+        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
+            .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.ProjectUnavailable, error.Kind);
+        Assert.DoesNotContain("synthetic", error.ToString());
+    }
+
+    [Fact]
+    public async Task ProvisioningThatNeverCompletesTimesOutInsteadOfPollingForever()
+    {
+        var clock = new CodexTestServer.Clock();
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.RequestUri!.AbsolutePath switch
+        {
+            "/v1internal:loadCodeAssist" => CodexTestServer.Json("""{"allowedTiers":[{"id":"free-tier"}]}"""),
+            _ => CodexTestServer.Json("""{"name":"operations/synthetic-op","done":false}""")
+        }));
+        using var http = new HttpClient(server);
+        var client = new AntigravityQuotaClient(http, clock, (duration, _) => { clock.Current += duration; return Task.CompletedTask; });
+        var error = await Assert.ThrowsAsync<AntigravityException>(() =>
+            client.DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.Timeout, error.Kind);
+        Assert.Equal(TimeSpan.FromSeconds(30), clock.Current - CodexTestServer.Clock.Now);
+    }
+
+    [Theory]
+    [InlineData("""{"name":"../../elsewhere","done":false}""")]
+    [InlineData("""{"name":"https://elsewhere.invalid/op","done":false}""")]
+    [InlineData("""{"done":false}""")]
+    public async Task AnUnsafeOperationNameIsRejectedInsteadOfRedirectingThePoll(string operation)
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.RequestUri!.AbsolutePath switch
+        {
+            "/v1internal:loadCodeAssist" => CodexTestServer.Json("""{"allowedTiers":[{"id":"free-tier"}]}"""),
+            "/v1internal:onboardUser" => CodexTestServer.Json(operation),
+            _ => throw new InvalidOperationException("The poll must not leave the operations path.")
+        }));
+        using var http = new HttpClient(server);
+        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
+            .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
+    }
+
+    [Fact]
+    public async Task ProvisioningThatYieldsNoWorkspaceIsStillReportedAsNoWorkspace()
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.RequestUri!.AbsolutePath switch
+        {
+            "/v1internal:loadCodeAssist" => CodexTestServer.Json("""{"allowedTiers":[{"id":"free-tier"}]}"""),
+            _ => CodexTestServer.Json(Onboarded(null))
+        }));
+        using var http = new HttpClient(server);
+        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
+            .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.ProjectUnavailable, error.Kind);
+    }
+
+    private static string Onboarded(Action? onRead)
+    {
+        onRead?.Invoke();
+        return """{"name":"operations/synthetic-op","done":true,"response":{"@type":"synthetic","cloudaicompanionProject":"synthetic-project"}}""";
     }
 
     [Fact]
@@ -220,7 +324,7 @@ public sealed class AntigravityProtocolTests
             return Route(request);
         });
         using var http = new HttpClient(server);
-        var quota = await new AntigravityQuotaClient(http, new CodexTestServer.Clock())
+        var quota = await Quota(http)
             .GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken);
         Assert.Equal("""{"project":"synthetic-project"}""", body);
         Assert.Equal("free-tier", quota.PlanType);
@@ -255,6 +359,13 @@ public sealed class AntigravityProtocolTests
     /// <summary>The repository vendors no Antigravity registration, so tests supply a synthetic one.</summary>
     internal static AntigravityAuthClient Auth(HttpClient http, TimeProvider? clock = null) =>
         new(http, clock, () => new("synthetic-client.apps.googleusercontent.invalid", "synthetic-client-secret"));
+
+    /// <summary>Provisioning waits on a provider operation, so tests drive its delay deterministically.</summary>
+    internal static AntigravityQuotaClient Quota(HttpClient http, CodexTestServer.Clock? clock = null)
+    {
+        clock ??= new CodexTestServer.Clock();
+        return new(http, clock, (duration, token) => { token.ThrowIfCancellationRequested(); clock.Current += duration; return Task.CompletedTask; });
+    }
 
     [Fact]
     public void AnAbsentOrUnusableRegistrationIsReportedInsteadOfContactingTheProvider()

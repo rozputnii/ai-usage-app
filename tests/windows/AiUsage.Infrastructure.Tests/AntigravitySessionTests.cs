@@ -52,14 +52,16 @@ public sealed class AntigravitySessionTests : IDisposable
             var connected = await initial.ConnectAsync(Redirect, TestContext.Current.CancellationToken);
             Assert.Equal(ProviderSessionStatus.QuotaAvailable, connected.Status);
             Assert.Equal("free-tier", connected.Quota!.PlanType);
-            Assert.Equal(4, server.Calls); // exchange, identity, one discovery, one quota read
+            Assert.Equal(5, server.Calls); // exchange, identity, two discovery reads, one quota read
         }
         using var resumed = Session(http);
         var cached = await resumed.ReadCachedStateAsync(TestContext.Current.CancellationToken);
         Assert.True(cached.FromCache);
-        Assert.Equal(4, server.Calls);
+        Assert.Equal(5, server.Calls);
         Assert.Equal(ProviderSessionStatus.QuotaAvailable, (await resumed.ResumeAsync(TestContext.Current.CancellationToken)).Status);
-        Assert.Equal(7, server.Calls); // renewal, identity revalidation, quota; discovery is not repeated
+        // Renewal, identity revalidation and quota only: resuming never re-runs discovery, so it can
+        // never provision anything.
+        Assert.Equal(8, server.Calls);
         Assert.Equal(ProviderSessionStatus.NotConnected, (await resumed.DisconnectAsync(TestContext.Current.CancellationToken)).Status);
         Assert.False(resumed.HasStoredGrant);
         Assert.Equal(ProviderSessionStatus.QuotaAvailable, (await resumed.ConnectAsync(Redirect, TestContext.Current.CancellationToken)).Status);
@@ -133,9 +135,9 @@ public sealed class AntigravitySessionTests : IDisposable
     }
 
     [Fact]
-    public async Task AnAccountWithoutAWorkspaceIsNeverStoredAsAConnection()
+    public async Task AnAccountTheProviderDeclaresIneligibleIsNeverStoredAsAConnection()
     {
-        workspace = "{}";
+        workspace = """{"ineligibleTiers":[{"tierId":"free-tier","reasonMessage":"synthetic-reason"}]}""";
         using var server = new CodexTestServer((request, _) => Task.FromResult(Respond(request)));
         using var http = new HttpClient(server);
         using var session = Session(http);
