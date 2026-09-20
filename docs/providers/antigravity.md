@@ -1,8 +1,8 @@
 ---
 provider: antigravity
 source_verified_at: 2026-09-20
-live_verified_at: null
-confidence: source-verified-provider-restricted
+live_verified_at: 2026-09-20
+confidence: authentication-live-verified-quota-unproven-provider-restricted
 classification: method-specific
 backlog: AIU-009
 ---
@@ -78,6 +78,8 @@ The Antigravity `User-Agent` in OMP identifies as the real `antigravity/hub` cli
 
 Authorization creates a grant and consumes the OMP client's consent screen. A refresh can rotate or invalidate the previous token. Quota reads and `loadCodeAssist` do not run inference or mint entitlements. No onboarding, project creation, model enablement, credit purchase, overage-setting change, CLI credential read or host trust change is included in this scope.
 
-Live requirements: the loopback and PKCE acceptance of a client AI Usage does not own, project discovery on a real account, quota-summary field presence and units, reset semantics, the official settings-page comparison, invalid grant, denial, cancellation, rotation, resume and local disconnect. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data.
+Live on 2026-09-20, with the owner's explicit decision to accept the restriction above on their own account: Google served the consent screen for the authorization request as built, the loopback callback and the token exchange succeeded with PKCE, and the userinfo identity read succeeded. `loadCodeAssist` then returned success with no `cloudaicompanionProject`, so the session reported `ProjectUnavailable`, stored nothing, and did not onboard. The account has no provisioned Cloud Code Assist workspace and no Antigravity client is installed on that machine.
 
-Live verification is BLOCKED pending an owner decision that accepts the Terms of Service restriction above with its account-suspension consequence. Source inspection alone does not establish endpoint eligibility, quota parity with the product's settings page, or lifecycle behavior. See the [verification record](../specs/AIU-009-antigravity-integration/verification.md).
+That is the practical consequence of excluding `onboardUser`: OMP reaches a project on an unprovisioned account only by provisioning the free tier, and a monitor that refuses to write cannot reach one by itself. Enabling that write is an owner decision, still open. Until then the quota contract in the table above remains source-derived and unproven on a real account.
+
+Live NOT_RUN: quota-summary field presence and units, reset semantics, the official settings-page comparison, refresh, rotation, resume, reconnect and local disconnect. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data. See the [verification record](../specs/AIU-009-antigravity-integration/verification.md).

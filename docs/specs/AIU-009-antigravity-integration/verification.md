@@ -9,11 +9,11 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 | AC | Verdict | Evidence |
 | --- | --- | --- |
 | AC-01 | PASS | Source provenance and provider boundary recorded in [antigravity.md](../../providers/antigravity.md) |
-| AC-02 | PASS (deterministic) | `AntigravityProtocolTests`, 13 cases |
-| AC-03 | PASS (deterministic) | `AntigravityQuotaParserTests` and the discovery cases in `AntigravityProtocolTests` |
+| AC-02 | PASS | `AntigravityProtocolTests`, 13 cases, and the live authorization, exchange and identity steps below |
+| AC-03 | PASS for discovery, NOT_RUN for live quota | `AntigravityQuotaParserTests`, the discovery cases in `AntigravityProtocolTests`, and the live `ProjectUnavailable` outcome below |
 | AC-04 | PASS (deterministic) | `AntigravitySessionTests`, `AntigravityStateStoreTests` |
 | AC-05 | PASS (deterministic) | `AntigravityPresentationTests`, Presentation suite 125/125 |
-| AC-06 | BLOCKED | Deterministic checks pass; live provider evidence is blocked, see below |
+| AC-06 | PARTIAL | Deterministic checks and the MSIX build pass; live quota, Windows smoke and lifecycle remain NOT_RUN, see below |
 | AC-07 | NOT_RUN | Focused independent review not yet run |
 
 ## Deterministic checks, 2026-09-20
@@ -26,6 +26,7 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 | Document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS, `{"valid":true,"diagnostics":[]}` |
 | Unpackaged Windows build | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS, zero warnings |
 | Provider console build | `dotnet build tools/AiUsage.ProviderConsole/AiUsage.ProviderConsole.csproj -c Release --no-restore` | PASS, zero warnings |
+| Unsigned MSIX build | `./tools/windows/Build-Package.ps1 -MsixVersion 2026.9.2001.0` | PASS, `unsigned-validation-only`, sha256 `C924D71C…AAD9C726`, one external `mspdbcmf.exe` symbol-tool warning |
 | Diff check | `git diff --check` | PASS |
 
 One existing Presentation case, `OccupiedProviderExplainsLimitWithoutClaimingIdentityVerification`, used `antigravity` as a stand-in for a provider the live flow does not offer. It now uses an unregistered identifier so it still tests refusal rather than the newly supported provider.
@@ -42,10 +43,23 @@ Discovery and quota: discovery posts exactly one `loadCodeAssist` with the Antig
 
 Lifecycle: connect, resume, refresh, disconnect and reconnect against the app-owned DPAPI record; a rotated refresh token is durable before the quota request; a reconnect with a different account is refused before discovery, quota or any write; a failed replacement keeps the previous grant and cache; unauthorized quota requires reconnection without another provider request; a failed delete reports recovery and keeps the grant; a cancelled authorization writes nothing; an account without a workspace is never stored as a connection. Storage covers encryption at rest, interrupted-replacement recovery, corrupt and future-version records, invalid identity or workspace values, lease exclusivity, revision conflicts and reparse redirection. Other providers' files in the same directory are untouched.
 
-## Live provider verification
+## Live provider verification, 2026-09-20
 
-BLOCKED, 2026-09-20. Google's published [Antigravity FAQ](https://antigravity.google/docs/faq) states that using third-party software to access Antigravity violates its Terms of Service and may be grounds for suspension or termination of the account. A live run would exercise that restriction with the owner's own Google account. The owner's task authorization covers browser sign-in for this work, but it predates this finding, so the decision is being confirmed before any provider request is made.
+Google's published [Antigravity FAQ](https://antigravity.google/docs/faq) states that using third-party software to access Antigravity violates its Terms of Service and may be grounds for suspension or termination of the account. The owner was shown that finding and chose to proceed on their own main Google account. That decision is theirs and is recorded here; it does not establish provider approval.
 
-Nothing has contacted Google with this implementation: no authorization URL has been opened, no token exchanged, no `loadCodeAssist` or quota request sent, and no Antigravity state file written outside the temporary directories the test suite creates and deletes.
+The run used the shipped provider code through a temporary non-interactive harness outside the repository, an isolated state directory in the session scratchpad, and OMP's client supplied only through the process environment. The owner approved the consent screen in their own default browser; the agent's browser-automation tools were refused by the session's permission classifier, so no agent-driven interaction with Google's sign-in pages occurred.
 
-NOT_RUN until that decision: endpoint eligibility for a client AI Usage does not own, Google's acceptance of the added PKCE parameters and of a loopback port fallback, real project discovery and tier reporting, quota-summary field presence and units on a real account, parity with Antigravity's own settings page, local unpackaged Windows smoke with the new provider, MSIX build, Exit/relaunch resume, live reconnect and disconnect, and focused independent credential/state review.
+| Step | Verdict | Observed |
+| --- | --- | --- |
+| Authorization request accepted | PASS | Google served the consent screen for the authorization URL as built, including S256 PKCE, `access_type=offline`, `prompt=consent` and the `http://127.0.0.1:51121/oauth-callback` loopback redirect. The added PKCE parameters and that redirect are accepted in practice, not only in theory |
+| Loopback callback | PASS | The redirect reached the app-owned listener with a matching `state`; the browser received the local completion page |
+| Token exchange | PASS | The form exchange at `https://oauth2.googleapis.com/token` with client id, client secret, code and verifier returned a grant whose granted scopes satisfied the required control-plane scope; any other outcome would have produced a different failure before discovery |
+| Account identity | PASS | The Google userinfo read returned a usable opaque subject |
+| Workspace discovery | PASS as designed, no quota | `v1internal:loadCodeAssist` with the Antigravity IDE metadata returned success but no `cloudaicompanionProject`. The session reported `ProjectUnavailable`, wrote no state file, and did not call `onboardUser` |
+| Quota reading | NOT_RUN | Unreachable without a discovered project |
+
+The account has no provisioned Cloud Code Assist workspace, and no Antigravity client is installed on this machine. OMP reaches a project in this situation by calling `v1internal:onboardUser` to provision the free tier, which this specification deliberately excludes as a provider-side write. So the missing quota is not a defect in the implementation: the excluded write is exactly what stands between this account and a readable quota. Whether to enable it is an owner decision on scope and external write authority, recorded as open.
+
+No credential, code, account identifier, project identifier or raw provider payload was retained. The isolated state directory holds only an empty lock file; no `antigravity.state` was written.
+
+NOT_RUN: quota-summary field presence and units on a real account, parity with Antigravity's own settings page, live refresh, Exit/relaunch resume, live reconnect and local disconnect, loopback port fallback, local unpackaged Windows smoke with the new provider, and focused independent credential/state review.
