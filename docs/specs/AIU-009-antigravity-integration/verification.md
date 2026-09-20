@@ -9,10 +9,10 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 | AC | Verdict | Evidence |
 | --- | --- | --- |
 | AC-01 | PASS | Source provenance and provider boundary recorded in [antigravity.md](../../providers/antigravity.md) |
-| AC-02 | PASS (deterministic) | `AntigravityProtocolTests`, 12 cases |
+| AC-02 | PASS (deterministic) | `AntigravityProtocolTests`, 13 cases |
 | AC-03 | PASS (deterministic) | `AntigravityQuotaParserTests` and the discovery cases in `AntigravityProtocolTests` |
 | AC-04 | PASS (deterministic) | `AntigravitySessionTests`, `AntigravityStateStoreTests` |
-| AC-05 | PASS (deterministic) | `AntigravityPresentationTests`, Presentation suite 124/124 |
+| AC-05 | PASS (deterministic) | `AntigravityPresentationTests`, Presentation suite 125/125 |
 | AC-06 | BLOCKED | Deterministic checks pass; live provider evidence is blocked, see below |
 | AC-07 | NOT_RUN | Focused independent review not yet run |
 
@@ -20,8 +20,8 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Infrastructure regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 208/208 |
-| Presentation regressions | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 124/124 |
+| Infrastructure regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 209/209 |
+| Presentation regressions | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 125/125 |
 | Validator regressions | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS |
 | Document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS, `{"valid":true,"diagnostics":[]}` |
 | Unpackaged Windows build | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS, zero warnings |
@@ -29,6 +29,10 @@ Environment: Windows 11 Pro 26200, .NET SDK from [global.json](../../../global.j
 | Diff check | `git diff --check` | PASS |
 
 One existing Presentation case, `OccupiedProviderExplainsLimitWithoutClaimingIdentityVerification`, used `antigravity` as a stand-in for a provider the live flow does not offer. It now uses an unregistered identifier so it still tests refusal rather than the newly supported provider.
+
+## Registration handling
+
+The first implementation commit carried OMP's Google client id and secret and was refused by GitHub push protection on `main`. The block was not bypassed. The registration was removed from the repository instead: the client is read from `AIU_ANTIGRAVITY_CLIENT_ID` and `AIU_ANTIGRAVITY_CLIENT_SECRET`, an absent, partial or unusable pair reports `RegistrationUnavailable` with no provider request, and that state offers no retry action because the fix is not in the app. The secret-scanning allowlist links were not used and no credential reached the remote. The published commit is b2a4288.
 
 ## What the deterministic evidence covers
 
