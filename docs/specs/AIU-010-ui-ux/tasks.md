@@ -87,7 +87,7 @@ Plan phase 6. Actual Windows screenshots in Light and Dark, keyboard, scaling, t
 Codex maps existing workflows onto the presentation adapter interfaces, keeps future services unavailable in product mode and adds mapping/capability regressions. If durable-state or credential boundaries change, use security-lifecycle and focused review.
 
 ### T-11 - Integrated Windows and visual acceptance
-- status: blocked
+- status: in-progress
 - depends_on: [T-10]
 - acceptance: AC-03, AC-04, AC-05, AC-06, AC-07, AC-08, AC-09
 - evidence: docs/specs/AIU-010-ui-ux/verification.md
@@ -230,3 +230,13 @@ Owner publication instruction, 2026-09-16: the owner explicitly instructed Codex
 The owner paused AIU-010 and selected AIU-008 in a separate branch. The inspected main checkout was clean at `bc67aae`; no AIU-010 implementation was changed. T-11 retains its blocked acceptance result. Existing passing checks and unresolved live reconnect report remain recorded above.
 
 Exact next action on owner-requested resume: reproduce the owner-reported Codex disconnect/reconnect outcome with the owner completing sign-in, then finish the remaining live lifecycle, screen-reader and overall visual acceptance gates. Do not resume this work merely because AIU-008 changes shared provider presentation.
+
+## Owner-requested resume, 2026-09-18
+
+The owner resumed the unfinished feature after merging AIU-008. Clean main and origin/main agree at f4d0fbf; GitHub Validation run 35401416353 passed. Active branch: codex/aiu-010-resume-acceptance. The final AIU-008 Release executable and its passing local evidence are the unchanged starting candidate; do not repeat builds or suites without a new change or concern.
+
+Plan: close the remaining screen-reader and populated-account accessibility coverage, reproduce the reported Codex/Claude reconnect issue through the product UI, verify applicable live lifecycle, and present a concrete final UI for owner visual acceptance. Preserve existing app and source CLI credentials; use isolated test profiles for newly authorized connections. Fix confirmed defects with focused regressions and applicable native checks. Record actual Narrator speech separately from UIA names and synthetic behavior separately from live observations.
+
+Resumed results: actual Narrator speech confirms the demo populated row and refresh/failure announcements, the live account list, connection cancellation, selected theme/density and toggle state, System Status navigation and the Exit dialog. Live Codex fresh connect, refresh, Exit/relaunch with stored grant, and disconnect/account-detail Connect all passed in an isolated profile; the original reconnect report was not reproduced. Claude reached its browser Log in page without an active session. The owner was asked to sign in; the pending app authorization was then cancelled successfully while other accessibility checks continued, so start a fresh connection after sign-in. No product code was changed. Full screen-reader coverage and overall owner visual acceptance remain open; no publication is claimed.
+
+Exact next action: after the owner confirms Claude browser sign-in, start a fresh Claude Browser sign-in from Add account in the current isolated Release app and complete refresh, Exit/relaunch, disconnect/reconnect and applicable reauthentication checks; then finish the remaining screen-reader and overall owner visual acceptance gates. Test profile: `.ai-usage-local/AIU-010/resumed-live-state`. Narrator is stopped. The original reconnect symptom clarification remains optional; do not block the verified current Codex route on that answer.

@@ -178,3 +178,30 @@ The owner explicitly requested commit, push and merge of the current AIU-010 sna
 ### Owner-directed publication — 2026-09-16
 
 The owner explicitly requested that all current tracked changes be committed and pushed. This is publication authority for the current T-11 snapshot, not evidence that the remaining NOT_RUN/BLOCKED acceptance gates passed; T-11 remains incomplete unless those gates are separately accepted and recorded.
+
+## T-11 resumed acceptance, 2026-09-18
+
+Candidate f4d0fbf on codex/aiu-010-resume-acceptance. Main CI run 35401416353 completed successfully. The unchanged final AIU-008 Release build and passing local regressions/package/product/demo smoke remain baseline evidence; no new source change has been made in this pass.
+
+Actual Narrator subset: PASS. Launched the installed Windows Narrator, used its Speech recap window, and inspected the actual speech transcript while running --demo. The transcript included the Add account heading, Close button, selected Sign in radio control, and a populated account row with provider, freshness, percent remaining, reset time and list position. Refresh all announced its start, then the partial failure and retained cached readings. This is speech-recap evidence, not merely UIA names; remaining full-page/populated live coverage is still NOT_RUN. Synthetic refresh produced 4 updated and 1 failed with preserved cached data. Local evidence: .ai-usage-local/AIU-010/resumed-acceptance/narrator-refresh.png. Narrator was stopped after this subset; no accessibility preference was deliberately changed.
+
+Reference for the invoked screen-reader commands: [Microsoft Narrator keyboard commands](https://support.microsoft.com/en-us/accessibility/windows/narrator/appendix-b-narrator-keyboard-commands-and-touch-gestures). The helper could only expose the Narrator window title through UIA because Narrator runs at higher integrity, but its native speech recap was visibly readable. No privilege or security setting was changed.
+
+### Live Codex lifecycle, resumed pass
+
+The owner authorized independent final checks using the existing browser. The current Release app used the fresh isolated development root `.ai-usage-local/AIU-010/resumed-live-state`; no source CLI credentials or original application grants were read or imported. Browser account selection and consent used the existing OpenAI session.
+
+| Check | Result | Evidence / limitation |
+|---|---|---|
+| Fresh browser connection | PASS | Native result was Connected and First reading recorded; a populated Codex account displayed the live plan, quota, reset and observation timestamp. |
+| Account refresh | PASS | Updating transitioned to Fresh and Codex updated with a newer observation timestamp. |
+| Exit and relaunch | PASS | Ctrl+Q / Exit stopped PID 2232. Relaunch as PID 15316 restored the same single account without browser authorization; Refresh all completed with 1 account updated and All accounts updated. |
+| Disconnect and account-detail Connect | PASS | Confirmed Disconnect in this isolated profile. Refresh became disabled, state became Disconnected and Connect became available. Connect opened Reconnect; browser authorization finished with Reconnected and Monitoring resumed, returning the same single account with a fresh reading. Screenshot: `.ai-usage-local/AIU-010/resumed-acceptance/codex-reconnected.png`. |
+| Original reconnect report | NOT_REPRODUCED | The observed current Release account-detail route succeeded. The original Debug process is absent; this does not establish the historical failure's cause or every alternative route. |
+| Claude browser connection | BLOCKED | The browser reached Claude's Log in page with no active Claude session. Requested owner sign-in; no password, mailbox, source CLI grant or account-creation flow was accessed. The remaining Claude lifecycle requires that session. |
+
+Full screen-reader acceptance, applicable reauthentication and overall owner visual acceptance remain open. These results supersede the previous unexecuted Codex lifecycle subset only.
+
+Additional actual Narrator subset: PASS. Speech recap confirmed the live Codex account list name, remaining percentage, selected state and position; hidden/disconnected checkbox labels and unchecked states; the connection dialog's manual-code fallback and Cancel controls; the cancellation announcement; selected Settings/System Status navigation; System theme and its explanation; Comfortable selected, Compact non-selected and Always on top off; and the Exit AI Usage dialog/group and Exit button. Evidence: `.ai-usage-local/AIU-010/resumed-acceptance/narrator-live-settings.png` and `narrator-exit-dialog.png`. The Claude wait was cancelled through the app and reported Cancelled. Nothing was changed. Exit was cancelled, Narrator was stopped and its process absence verified. Claude login may be completed in the browser, but a fresh app authorization must follow. This representative subset does not establish exhaustive page-content reading, every dialog, or Claude populated-account accessibility.
+
+Documentation checks: PASS, project validator returned `valid:true, diagnostics:[]`; `git diff --check` passed. Primary review found only the scoped backlog/task/evidence changes, with private account identifiers, grants and screenshots kept out of Git. Product source is unchanged, so unchanged product regression/build suites were not repeated. T-11 remains incomplete and this resumed evidence has not been committed or pushed.
