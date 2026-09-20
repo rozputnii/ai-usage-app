@@ -52,7 +52,9 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
         await Task.Yield();
         await Task.WhenAll(entries.Select(pair => RunAsync(pair.Key, AccountOperation.Loading,
             (workflow, token) => workflow.LoadAsync(state => { Update(pair.Key, state); return Task.CompletedTask; }, token), default)));
-        lock (sync) Publish(current with { Loaded = true });
+        Notification notification;
+        lock (sync) notification = Publish(current with { Loaded = true });
+        notification.Deliver();
     }
 
     public Task<UiCommandResult> ExecuteAsync(UiCommand command, CancellationToken cancellationToken)
@@ -86,8 +88,10 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
     {
         var ids = entries.Where(pair => pair.Value.Session.HasStoredGrant).Select(pair => pair.Key).ToArray();
         var results = await Task.WhenAll(ids.Select(id => RunAsync(id, AccountOperation.Refreshing, (workflow, ct) => workflow.RefreshAsync(ct), token)));
-        lock (sync) Publish(current with { LastRefreshAll = new(results.Count(r => r.Status == CommandStatus.Succeeded),
+        Notification notification;
+        lock (sync) notification = Publish(current with { LastRefreshAll = new(results.Count(r => r.Status == CommandStatus.Succeeded),
             ids.Where((_, i) => results[i].Status != CommandStatus.Succeeded).ToArray(), DateTimeOffset.UtcNow) });
+        notification.Deliver();
         return results.Any(r => r.Status == CommandStatus.Cancelled) ? UiCommandResult.Cancelled :
             results.All(r => r.Status == CommandStatus.Succeeded) ? UiCommandResult.Succeeded : UiCommandResult.Failed();
     }
@@ -118,11 +122,13 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
         Func<DashboardWorkflow, CancellationToken, Task<ProviderSessionState>> run, CancellationTokenSource cancellation)
     {
         await Task.Yield();
+        Notification started;
         lock (sync)
         {
             var account = current.Accounts.FirstOrDefault(a => a.Id == id) ?? LiveMapping.Map(id, entry.Session.State, entry.Session.HasStoredGrant);
-            Replace(account with { Operation = operation });
+            started = Replace(account with { Operation = operation });
         }
+        started.Deliver();
         try
         {
             var state = await run(entry.Workflow, cancellation.Token).ConfigureAwait(false);
@@ -150,36 +156,45 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
 
     private void Update(string id, ProviderSessionState state)
     {
+        Notification notification;
         lock (sync)
         {
             var entry = entries[id];
             entry.WasConnected |= entry.Session.HasStoredGrant;
             if (!entry.WasConnected && state.Status == ProviderSessionStatus.NotConnected)
+                notification = Publish(current with { Accounts = current.Accounts.Where(a => a.Id != id).ToArray() });
+            else
             {
-                Publish(current with { Accounts = current.Accounts.Where(a => a.Id != id).ToArray() });
-                return;
+                var old = current.Accounts.FirstOrDefault(a => a.Id == id);
+                var next = LiveMapping.Map(id, state, entries[id].Session.HasStoredGrant);
+                notification = Replace(next with { ObservationRevision = (old?.ObservationRevision ?? 0) +
+                    (state.Status == ProviderSessionStatus.QuotaAvailable && !state.FromCache ? 1 : 0) });
             }
-            var old = current.Accounts.FirstOrDefault(a => a.Id == id);
-            var next = LiveMapping.Map(id, state, entries[id].Session.HasStoredGrant);
-            Replace(next with { ObservationRevision = (old?.ObservationRevision ?? 0) +
-                (state.Status == ProviderSessionStatus.QuotaAvailable && !state.FromCache ? 1 : 0) });
         }
+        notification.Deliver();
     }
-    private void Replace(AccountItem item) => Publish(current with
+    private Notification Replace(AccountItem item) => Publish(current with
     {
         Accounts = current.Accounts.Where(a => a.Id != item.Id).Append(item).OrderBy(a => a.ProviderId).ToArray()
     });
     internal void SetPreferences(Preferences preferences, IReadOnlyDictionary<string, string> accountLabels,
         IReadOnlyDictionary<string, ExpansionPreference> groupExpansions)
     {
+        Notification notification;
         lock (sync)
         {
             labels = accountLabels;
             expansions = groupExpansions;
-            Publish(current with { Preferences = preferences });
+            notification = Publish(current with { Preferences = preferences });
         }
+        notification.Deliver();
     }
-    private void Publish(UiSnapshot snapshot)
+    /// <summary>
+    /// Assigns the next snapshot and its revision under <see cref="sync"/>, and returns the
+    /// subscribers to invoke. Subscribers are app code this source knows nothing about, so they
+    /// are never called while the lock is held: the caller delivers after leaving it.
+    /// </summary>
+    private Notification Publish(UiSnapshot snapshot)
     {
         current = snapshot with { Revision = current.Revision + 1, ObservedAt = DateTimeOffset.UtcNow,
             Accounts = snapshot.Accounts.Select(a => a with
@@ -188,7 +203,15 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
                 Contexts = a.Contexts.Select(c => c with { Groups = c.Groups.Select(g => g with
                 { Expansion = expansions.GetValueOrDefault(g.Id, ExpansionPreference.Auto) }).ToArray() }).ToArray()
             }).ToArray() };
-        foreach (var subscriber in subscribers.ToArray()) subscriber(current);
+        return new(current, subscribers.ToArray());
+    }
+    /// <summary>One published snapshot and the subscribers it is owed, delivered outside the lock.</summary>
+    private readonly record struct Notification(UiSnapshot Snapshot, Action<UiSnapshot>[] Subscribers)
+    {
+        public void Deliver()
+        {
+            foreach (var subscriber in Subscribers) subscriber(Snapshot);
+        }
     }
 
     public Task StopAsync()

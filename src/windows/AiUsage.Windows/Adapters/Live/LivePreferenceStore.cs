@@ -24,7 +24,7 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
         try
         {
             var json = await read(token);
-            var loaded = json is null ? new State() : JsonSerializer.Deserialize<State>(json);
+            var loaded = json is null ? new State() : JsonSerializer.Deserialize(json, PreferenceStateJson.Default.State);
             if (loaded is null || loaded.Version != 1 || !Enum.IsDefined(loaded.Theme) || !Enum.IsDefined(loaded.Density) ||
                 !Enum.IsDefined(loaded.UsageDisplay) || loaded.Order is null || loaded.Hidden is null || loaded.Labels is null || loaded.Expansion is null ||
                 loaded.Order.Any(id => id is null) || loaded.Hidden.Any(id => id is null) ||
@@ -80,7 +80,7 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
                 var next = change(state);
                 if (next is null) return UiCommandResult.Unsupported;
                 if (!writable) return UiCommandResult.Failed();
-                await write(JsonSerializer.Serialize(next), token);
+                await write(JsonSerializer.Serialize(next, PreferenceStateJson.Default.State), token);
                 state = next;
                 Apply();
                 return UiCommandResult.Succeeded;
@@ -97,19 +97,30 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
         AccountOrder = state.Order, HiddenTargets = state.Hidden
     }, state.Labels, state.Expansion);
 
+    /// <summary>
+    /// The persisted preference file. The members are settable rather than init-only because the
+    /// source generator turns init-only members into constructor parameters: extension data cannot
+    /// bind to one, and a member absent from the file would arrive as null instead of the default
+    /// below. Instances are still replaced wholesale through <c>with</c>, never mutated in place.
+    /// </summary>
     internal sealed record State
     {
-        public int Version { get; init; } = 1;
-        public ThemePreference Theme { get; init; }
-        public Density Density { get; init; }
-        public UsageDisplay UsageDisplay { get; init; }
-        public bool AlwaysOnTop { get; init; }
-        public bool ShowDisconnected { get; init; }
-        public bool ShowHidden { get; init; }
-        public string[] Order { get; init; } = [];
-        public string[] Hidden { get; init; } = [];
-        public Dictionary<string, string> Labels { get; init; } = [];
-        public Dictionary<string, ExpansionPreference> Expansion { get; init; } = [];
-        [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; init; }
+        public int Version { get; set; } = 1;
+        public ThemePreference Theme { get; set; }
+        public Density Density { get; set; }
+        public UsageDisplay UsageDisplay { get; set; }
+        public bool AlwaysOnTop { get; set; }
+        public bool ShowDisconnected { get; set; }
+        public bool ShowHidden { get; set; }
+        public string[] Order { get; set; } = [];
+        public string[] Hidden { get; set; } = [];
+        public Dictionary<string, string> Labels { get; set; } = [];
+        public Dictionary<string, ExpansionPreference> Expansion { get; set; } = [];
+        [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
     }
 }
+
+// Preferences keep [JsonExtensionData] and deliberately do not set UnmappedMemberHandling.Disallow,
+// unlike the credential stores: a file written by a newer build must survive a round-trip here.
+[JsonSerializable(typeof(LivePreferenceStore.State))]
+internal partial class PreferenceStateJson : JsonSerializerContext;

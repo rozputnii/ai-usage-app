@@ -2,8 +2,9 @@
 
 Date: 2026-09-20. This record holds the Phase 1 evidence from the analysis-only audit session
 that produced [spec.md](spec.md), plus NOT_RUN placeholders for the remediation checks. It is an
-evidence record, not a status mirror: no task in [tasks.md](tasks.md) has been started, and no
-file outside `docs/` was changed by the session that wrote it.
+evidence record, not a status mirror. The session that wrote it started no task in
+[tasks.md](tasks.md) and changed no file outside `docs/`; remediation evidence is appended per
+task as tasks are executed, starting with [T-08 and T-09](#t-08-and-t-09---2026-09-20).
 
 ## Environment and base
 
@@ -104,7 +105,8 @@ repository, not secrets.
 
 ## Remediation checks - placeholders
 
-These are the checks each task must produce. All are NOT_RUN: no task has been started.
+These are the checks each task must produce. T-08 and T-09 have since been executed and are
+recorded below; every other task is still NOT_RUN and none has been started.
 
 | Task | Acceptance | Required check | Status |
 | --- | --- | --- | --- |
@@ -115,11 +117,79 @@ These are the checks each task must produce. All are NOT_RUN: no task has been s
 | T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | NOT_RUN |
 | T-06 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | NOT_RUN |
 | T-07 | AC-08 | Warnings-visible desktop build at the raised analysis level with zero warnings; all four suites | NOT_RUN |
-| T-08 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | NOT_RUN |
-| T-09 | AC-11 | Presentation Release suite; preference round-trip including unknown members | NOT_RUN |
+| T-08 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
+| T-09 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
 | T-10 | AC-12 | Presentation visibility-gate test **and** interactive Windows smoke | NOT_RUN |
 | T-11 | AC-01 | Infrastructure Release suite; `tools/AiUsage.ProviderConsole` Release build | NOT_RUN |
 | T-12 | AC-01 | Infrastructure Release suite | NOT_RUN |
+
+## T-08 and T-09 - 2026-09-20
+
+A second session implemented T-08 (F-10, F-11) and T-09 (F-12) and nothing else. It ran on `main`
+at base `5c415d6`, in the repository working tree rather than a worktree, on the same machine and
+SDK as the Phase 1 record above. NuGet assets were already restored, so no restore was needed and
+no NuGet configuration was added; no dependency, analyzer or SDK version changed.
+
+### Changes
+
+- `src/windows/AiUsage.Core/Dashboard/DashboardWorkflow.cs`: `Dispose` no longer throws when work
+  is outstanding. It is idempotent behind a `disposed` flag, cancels the lifetime outside the lock
+  and then releases it. "Await `StopAsync` first" stays a documented precondition on `Dispose`; it
+  is not a debug assertion, because a `Debug.Assert` would still break the shutdown path the
+  finding is about. `RunAsync` now reads `lifetime.Token` under the lock and passes it to
+  `ExecuteAsync`, so an operation that starts after disposal observes cancellation rather than an
+  `ObjectDisposedException`, and `DrainAsync` tolerates an already-released lifetime.
+- `src/windows/AiUsage.Windows/Adapters/Live/LiveUsageSource.cs`: `Publish` assigns the snapshot
+  and its revision under `sync` and returns the subscriber array to invoke; each caller delivers
+  after leaving the lock. No subscriber is called while the lock is held.
+- `src/windows/AiUsage.Windows/Adapters/Live/LivePreferenceStore.cs`: both call sites use the new
+  source-generated `PreferenceStateJson` context. `[JsonExtensionData]` is kept and
+  `UnmappedMemberHandling.Disallow` was **not** added. The `State` members changed from `init` to
+  `set` because the source generator turns init-only members into constructor parameters: extension
+  data cannot bind to one, and members absent from a file would have arrived as `null` instead of
+  their declared defaults. With settable members the generator emits a parameterless
+  `ObjectCreator`, which preserves the previous reflection-based behavior. This was observed, not
+  assumed: the init-only version failed three existing preference tests with
+  `ExtensionDataCannotBindToCtorParam`.
+
+### Executed local checks
+
+Run from the repository root, 2026-09-20, against the working tree described above. Verdicts are
+read from observed command output and exit codes.
+
+| Check | Command | Verdict | Observation |
+| --- | --- | --- | --- |
+| Project validator regressions | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS | 78 tests; 0 errors, 0 failed, 0 skipped, 0 not run |
+| Canonical document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS | `{"valid":true,"diagnostics":[]}`; exit 0 |
+| Infrastructure Release regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 226 tests; 0 errors, 0 failed, 0 skipped, 0 not run; unchanged from the Phase 1 count |
+| Presentation Release regressions | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 129 tests; 0 errors, 0 failed, 0 skipped, 0 not run; 125 before, plus the four new tests |
+| Warnings-visible desktop build | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS | Build succeeded, 0 Warning(s), 0 Error(s), 36.72s |
+| Diff whitespace check | `git diff --check` | PASS | No output, exit 0 |
+
+### New tests and what they would have caught
+
+Four tests were added. Three of them were run against the pre-change code to confirm they fail for
+the reason claimed, rather than passing vacuously:
+
+| Test | File | Covers | Observed against pre-change code |
+| --- | --- | --- | --- |
+| `DisposeWithOutstandingWorkCancelsItInsteadOfThrowing` | `tests/windows/AiUsage.Presentation.Tests/DashboardWorkflowTests.cs` | AC-09, F-10 | FAIL: `InvalidOperationException : Await StopAsync before disposing dashboard work` from `Dispose` |
+| `DisposingTwiceIsIdempotentAfterDrain` | `tests/windows/AiUsage.Presentation.Tests/DashboardWorkflowTests.cs` | AC-09 | Not re-run against the old code; the old `Dispose` already tolerated a second call after a drain, so this test defends the new guard rather than reproducing a past failure |
+| `ReentrantSubscriberIsInvokedWithoutTheSourceLockAndSeesIncreasingRevisions` | `tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs` | AC-10, F-11 | FAIL: a non-publishing thread could not enter the source for 10s while a subscriber ran |
+| `PreferenceFileWithUnknownMembersRoundTripsUnchanged` | `tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs` | AC-11, F-12 | Round-trips a file with two unknown members and a nested unknown object; both survive a write, and the known values reload correctly |
+
+### Not run for these two tasks
+
+| Check | Status | Reason |
+| --- | --- | --- |
+| Interactive Windows UI smoke | NOT_RUN | No interactive run was performed in this session. Neither AC-09, AC-10 nor AC-11 requires it: the changes are a disposal contract, a lock boundary and a serializer binding, all covered by the deterministic suites. It remains required for AC-12 (T-10) |
+| `tests/windows/AiUsage.Windows.Tests` (FlaUI UIA3) | NOT_RUN | Needs an unlocked interactive desktop and a published smoke executable; neither was prepared |
+| Packaged MSIX build, live provider calls, credential-store reads | NOT_RUN | Outside this session's authority and not selected by the change-based matrix for these tasks |
+| Independent review | NOT_RUN | Not required under CONTRIBUTING.md: neither task changes credential storage, destructive data handling or a privilege boundary |
+| `dotnet format --verify-no-changes` | NOT_RUN | Optional read-only inspection; formatting remains local-only under CR-AIU-001-01 |
+
+No other task in [tasks.md](tasks.md) was started, and no provider, transport, exception or
+state-lease file was touched: that work belongs to T-01.
 
 ## Limitations
 

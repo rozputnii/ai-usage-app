@@ -140,28 +140,28 @@ makes every later task diagnosable. Polish is last.
       suites.
 
 ### T-08 - Non-throwing disposal and lock-free publication
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: AC-09, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; tests/windows/AiUsage.Presentation.Tests/DashboardWorkflowTests.cs and tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs; Presentation Release suite 129 tests, 0 failed; each new test observed failing against the pre-change code before the fix
 
-- [ ] Make `DashboardWorkflow.Dispose` idempotent and non-throwing; keep the "await `StopAsync`
+- [x] Make `DashboardWorkflow.Dispose` idempotent and non-throwing; keep the "await `StopAsync`
       first" contract as a documented precondition or debug assertion.
-- [ ] Assign the snapshot revision under the lock in `LiveUsageSource.Publish`, then invoke
+- [x] Assign the snapshot revision under the lock in `LiveUsageSource.Publish`, then invoke
       subscribers outside it.
-- [ ] Check: Core test disposing with work outstanding and disposing twice; Presentation test
+- [x] Check: Core test disposing with work outstanding and disposing twice; Presentation test
       whose subscriber re-enters the source during publication.
 
 ### T-09 - Source-generated preference serialization
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: AC-11
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs; Presentation Release suite 129 tests, 0 failed; unknown members and known values preserved across a write and a reload
 
-- [ ] Add a `JsonSerializerContext` for `LivePreferenceStore.State` and use it at both call
+- [x] Add a `JsonSerializerContext` for `LivePreferenceStore.State` and use it at both call
       sites; keep `[JsonExtensionData]` and do not add `UnmappedMemberHandling.Disallow`.
-- [ ] Confirm an existing preference file round-trips unchanged, including unknown members.
-- [ ] Check: Presentation Release suite.
+- [x] Confirm an existing preference file round-trips unchanged, including unknown members.
+- [x] Check: Presentation Release suite.
 
 ### T-10 - Gate the UI clock on window visibility
 - status: pending

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AiUsage.Adapters.Live;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Presentation;
@@ -117,6 +118,71 @@ public sealed class LiveAdapterTests
         var restored = new LivePreferenceStore(source, _ => Task.FromResult(saved), (_, _) => Task.CompletedTask);
         await restored.LoadAsync(token);
         Assert.Equal(ThemePreference.Dark, source.Current.Preferences.Theme);
+        await source.StopAsync();
+    }
+
+    [Fact]
+    public async Task ReentrantSubscriberIsInvokedWithoutTheSourceLockAndSeesIncreasingRevisions()
+    {
+        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { ["codex"] = new Session() });
+        var revisions = new List<long>();
+        var reentered = false;
+        var observedOutsideLock = false;
+        using var subscription = source.Subscribe(snapshot =>
+        {
+            lock (revisions) revisions.Add(snapshot.Revision);
+            if (reentered) return;
+            reentered = true;
+            // A thread that is not publishing must be able to enter the source while a subscriber runs.
+            observedOutsideLock = Task.Run(() => source.Current).Wait(TimeSpan.FromSeconds(10));
+            // Re-entering the source from a subscriber must publish a later revision, not deadlock.
+            source.SetPreferences(source.Current.Preferences with { AlwaysOnTop = true },
+                new Dictionary<string, string>(), new Dictionary<string, ExpansionPreference>());
+        });
+        await source.InitializeAsync();
+        Assert.True(reentered);
+        Assert.True(observedOutsideLock);
+        Assert.True(source.Current.Preferences.AlwaysOnTop);
+        Assert.Equal(revisions.Count, revisions.Distinct().Count());
+        Assert.Equal(revisions.OrderBy(revision => revision), revisions);
+        await source.StopAsync();
+    }
+
+    [Fact]
+    public async Task PreferenceFileWithUnknownMembersRoundTripsUnchanged()
+    {
+        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession>());
+        // A file written by a newer build: known members plus members this build has never heard of.
+        const string stored = """
+            {"Version":1,"Theme":2,"Density":1,"UsageDisplay":1,"AlwaysOnTop":false,"ShowDisconnected":true,
+             "ShowHidden":false,"Order":["codex"],"Hidden":[],"Labels":{"codex":"Work"},"Expansion":{"codex":1},
+             "FutureSetting":{"nested":[1,2],"flag":true},"AnotherUnknown":"kept"}
+            """;
+        string? saved = null;
+        var preferences = new LivePreferenceStore(source, _ => Task.FromResult<string?>(stored), (json, _) => { saved = json; return Task.CompletedTask; });
+        var token = TestContext.Current.CancellationToken;
+        await preferences.LoadAsync(token);
+        Assert.Equal(ThemePreference.Dark, source.Current.Preferences.Theme);
+        Assert.Equal(CommandStatus.Succeeded, (await preferences.SetPreferenceAsync(new(PreferenceKey.AlwaysOnTop, true), token)).Status);
+        using var written = JsonDocument.Parse(saved!);
+        var root = written.RootElement;
+        Assert.Equal("kept", root.GetProperty("AnotherUnknown").GetString());
+        Assert.Equal("[1,2]", root.GetProperty("FutureSetting").GetProperty("nested").GetRawText());
+        Assert.True(root.GetProperty("FutureSetting").GetProperty("flag").GetBoolean());
+        Assert.Equal(1, root.GetProperty("Version").GetInt32());
+        Assert.Equal((int)ThemePreference.Dark, root.GetProperty("Theme").GetInt32());
+        Assert.Equal((int)Density.Compact, root.GetProperty("Density").GetInt32());
+        Assert.Equal((int)UsageDisplay.Used, root.GetProperty("UsageDisplay").GetInt32());
+        Assert.True(root.GetProperty("ShowDisconnected").GetBoolean());
+        Assert.Equal("Work", root.GetProperty("Labels").GetProperty("codex").GetString());
+        Assert.Equal((int)ExpansionPreference.Expanded, root.GetProperty("Expansion").GetProperty("codex").GetInt32());
+        Assert.Equal(["codex"], root.GetProperty("Order").EnumerateArray().Select(value => value.GetString()));
+        // Only the changed preference differs from the stored file.
+        Assert.True(root.GetProperty("AlwaysOnTop").GetBoolean());
+        var reloaded = new LivePreferenceStore(source, _ => Task.FromResult(saved), (_, _) => Task.CompletedTask);
+        await reloaded.LoadAsync(token);
+        Assert.Equal(ThemePreference.Dark, source.Current.Preferences.Theme);
+        Assert.True(source.Current.Preferences.AlwaysOnTop);
         await source.StopAsync();
     }
 

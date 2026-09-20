@@ -72,6 +72,42 @@ public sealed class DashboardWorkflowTests
     }
 
     [Fact]
+    public async Task DisposeWithOutstandingWorkCancelsItInsteadOfThrowing()
+    {
+        var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var session = new FakeSession
+        {
+            Operation = async token =>
+            {
+                started.SetResult();
+                await Task.Delay(Timeout.Infinite, token);
+                return ProviderSessionState.NotConnected;
+            }
+        };
+        var workflow = new DashboardWorkflow(session);
+        var running = workflow.RefreshAsync(TestContext.Current.CancellationToken);
+        await started.Task;
+        // Shutdown must never be blocked by a throw here: the owner's remaining cleanup would be skipped.
+        workflow.Dispose();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => running);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => workflow.RefreshAsync(TestContext.Current.CancellationToken));
+        // Draining out of order still completes: the released lifetime was cancelled before release.
+        await workflow.StopAsync();
+    }
+
+    [Fact]
+    public async Task DisposingTwiceIsIdempotentAfterDrain()
+    {
+        var session = new FakeSession();
+        var workflow = new DashboardWorkflow(session);
+        await workflow.RefreshAsync(TestContext.Current.CancellationToken);
+        await workflow.StopAsync();
+        workflow.Dispose();
+        workflow.Dispose();
+        Assert.Equal(1, session.Calls);
+    }
+
+    [Fact]
     public async Task OverlappingCommandsDoNotStartAnotherSessionOperation()
     {
         var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
