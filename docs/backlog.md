@@ -226,6 +226,20 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - outcome-note: Completed 2026-09-14. Core owns a credential-free dashboard workflow; Infrastructure retains authentication/storage behavior; Windows owns presentation and awaited dispatcher/lifetime handling. Verified by 162 deterministic regressions, independent review and all five packaged lifecycle scenarios in a clean guest. Stored formats, quota semantics and close-to-tray are preserved. Live packaged account sign-in and remote CI remain NOT_RUN.
 - sequencing-note: Owner amendment, 2026-09-14: prioritize this intermediate task before AIU-007. This entry records the task only; refactoring starts separately under CONTRIBUTING.md.
 
+## AIU-028 - Architecture and clean-code remediation
+- goal: G-003
+- status: ready
+- depends_on: [AIU-027]
+- trigger: after-audit
+- outcome: Fix the evidence-backed defects and duplication recorded by the 2026-09-20 architecture and clean-code audit, so that adding a fifth provider is an additive change and a failure is distinguishable from a provider outage.
+- scope: Share the duplicated provider transport, error translation, exception type and DPAPI state-lease code; bring the Codex grant store onto the same hardened lease; remove the Codex-only session contract and its string-round-tripped enum mapping; stop flattening unclassified exceptions into a provider fault; add redacted structured logging; consolidate the six provider registries; add shared MSBuild and central package version roots and raise the analyzer set; fix the throwing Dispose, the callback-under-lock publish, the one reflection-based JSON site and the always-on UI clock.
+- preserve: Authentication behavior, stored-data file names, DPAPI entropy strings and record shapes, quota semantics, close-to-tray behavior, the AIU-027 boundaries, and `RemoveAllLoggers` on provider transports.
+- excludes: New providers, UI redesign, CLI integrations, new runtime dependencies, SDK or package version upgrades, and any change to product intent or stored-data formats.
+- acceptance: See docs/specs/AIU-028-architecture-remediation/spec.md AC-01 onward. Existing deterministic regressions, document validation and a warnings-visible desktop build continue to pass; interactive Windows smoke is required for the clock-gating task.
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md
+- audit-note: Recorded 2026-09-20 against `main` at `6681b7a` by an analysis-only session under docs/workflow/architecture-audit-plan.md, which changed no production code. Fifteen findings F-01..F-15 with `path:line` evidence are in the specification; areas verified clean, including `x:Bind` coverage, handler symmetry and the mitigated typed-`HttpClient` singleton capture, are recorded as accepted-as-is rather than as findings. AIU-027 settled the Core/Infrastructure/Windows split and the source-linked presentation test project; this entry reports drift and debt accumulated since, and does not re-propose that structure.
+- prior-work: AIU-027 (.NET architecture refinement and cleanup); F-14 resumes the deferred non-blocking finding CR-AIU-003-01, whose "before UI/persistent consumption" boundary is now crossed.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
