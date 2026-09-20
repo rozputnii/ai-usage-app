@@ -47,7 +47,7 @@ The registration is the part AI Usage does not own. GitHub push protection refus
 | Expiry/rotation | `expires_in` seconds with a five-minute skew in the rule. Google normally omits a new refresh token on refresh; a returned one must replace the stored grant, and the previous value must never be replayed afterwards |
 | Identity | `GET https://www.googleapis.com/oauth2/v1/userinfo?alt=json`; OMP maps `email`. AI Usage binds the account to the opaque `id` subject and treats a changed subject as a mismatch |
 
-## Project discovery: read-only, without onboarding
+## Project discovery, and provisioning on the connect path only
 
 OMP's after-exchange hook posts `v1internal:loadCodeAssist` to `https://daily-cloudcode-pa.googleapis.com` with `metadata.ideType = "ANTIGRAVITY"` and an Antigravity `User-Agent`, reads `cloudaicompanionProject`, `currentTier`, `paidTier`, `allowedTiers` and `ineligibleTiers`, and repeats the load with the discovered project when `paidTier` is absent. When `currentTier` is missing it calls `v1internal:onboardUser` with `tierId: "free-tier"` and polls the returned long-running operation until the free tier is provisioned.
 
