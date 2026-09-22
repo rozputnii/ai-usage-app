@@ -53,6 +53,7 @@ internal sealed class CodexHistoryClient(HttpClient client, TimeProvider? timePr
                 }
                 catch (ProviderException error)
                 {
+                    if (error.Kind == ProviderFailureKind.AccountMismatch) return ProviderHistoryResult.Unavailable(range, HistoryStatus.AccountChanged);
                     if (error.Kind == ProviderFailureKind.RateLimited) retryAt = clock.GetUtcNow() + (error.RetryAfter ?? TimeSpan.FromMinutes(1));
                     reports.Add(new(report.Id, HistoryJson.Status(error.Kind), [], error.Kind == ProviderFailureKind.RateLimited ? retryAt : null));
                     if (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.RateLimited or ProviderFailureKind.AccountMismatch) break;

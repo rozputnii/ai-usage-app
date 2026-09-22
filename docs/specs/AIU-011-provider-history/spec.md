@@ -23,9 +23,9 @@ providers. The owner's subsequent feasibility question reopens research beyond O
 official Codex OAuth analytics is now a concrete candidate. The owner selected
 implementation after that assessment. See [research.md](research.md) and [design.md](design.md).
 
-This is an architectural change to history contracts: the current presentation contract
-only represents remaining percentages, and the live adapter returns an empty placeholder.
-The existing History screen is reusable; the demo data is not evidence of provider support.
+This changes the former percentage-only history contract and empty live placeholder to
+native provider report tables. Existing demo quota sparklines keep their separate contract;
+demo history data is not evidence of provider support.
 
 ## Selected interaction
 

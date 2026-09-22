@@ -21,20 +21,29 @@ public sealed partial class CodexSession : IProviderHistorySession
                 return ProviderHistoryResult.Unavailable(range, HistoryStatus.AuthenticationRequired);
             }
             if (stored is not null && stored.AccountId != loaded.AccountId)
-                return ProviderHistoryResult.Unavailable(range, HistoryStatus.AuthenticationRequired);
+            {
+                credentials?.Dispose(); credentials = null; stored = loaded;
+                State = new(ProviderSessionStatus.QuotaUnavailable);
+                return ProviderHistoryResult.Unavailable(range, HistoryStatus.AccountChanged);
+            }
             if (stored is null || CodexGrantStore.Revision(loaded) != CodexGrantStore.Revision(stored))
             { credentials?.Dispose(); credentials = null; }
             stored = loaded; HasStoredGrant = true;
             if (credentials is null)
             {
-                Adopt(await auth.ResumeAsync(new(stored.AccountId!, stored.RefreshToken!), cancellationToken).ConfigureAwait(false));
+                cancellationToken.ThrowIfCancellationRequested();
+                // Once a rotating exchange starts, finish its bounded transport and durable save.
+                // Navigation cancellation applies again before any history GET is sent.
+                Adopt(await auth.ResumeAsync(new(stored.AccountId!, stored.RefreshToken!), CancellationToken.None).ConfigureAwait(false));
                 await PersistAsync(lease).ConfigureAwait(false);
             }
             else if (credentials.ExpiresAt <= DateTimeOffset.UtcNow)
             {
-                await auth.RefreshAsync(credentials, cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                await auth.RefreshAsync(credentials, CancellationToken.None).ConfigureAwait(false);
                 await PersistAsync(lease).ConfigureAwait(false);
             }
+            cancellationToken.ThrowIfCancellationRequested();
             return await history.FetchAsync(credentials!, range, cancellationToken).ConfigureAwait(false);
         }
         catch (CodexException error)

@@ -33,6 +33,7 @@ internal static class HistoryJson
         ProviderFailureKind.AccessDenied => HistoryStatus.AccessDenied,
         ProviderFailureKind.AuthenticationRequired => HistoryStatus.AuthenticationRequired,
         ProviderFailureKind.RateLimited => HistoryStatus.RateLimited,
+        ProviderFailureKind.AccountMismatch => HistoryStatus.AccountChanged,
         _ => HistoryStatus.Failed
     };
     internal static HistoryReport Report(string id, IReadOnlyList<HistoryValue> values) =>

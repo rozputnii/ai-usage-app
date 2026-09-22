@@ -41,6 +41,19 @@ The Antigravity provider ships without an OAuth client registration, because the
 
 Product startup uses live adapters. Pass `--demo` for the isolated synthetic frontend. Unpackaged product data lives under `%LOCALAPPDATA%/AiUsage/Development`; `AIU_DEVELOPMENT_STATE_DIRECTORY` can select an empty directory for offline development checks. Packaged startup keeps its existing package-local provider store. Never point smoke checks at a credential-bearing directory without authorization.
 
+History opens with automatic loading for connected accounts, or one selected account from
+its card. Codex analytics and Copilot personal billing reports use existing AI Usage
+sessions; availability depends on the provider, plan and current permissions. Claude and
+Antigravity currently show unsupported history. Results remain in memory and preserve
+provider units and aggregate periods. See [AIU-011 verification](docs/specs/AIU-011-provider-history/verification.md)
+for the distinction between fixture/UI success and unverified real-account access.
+
+For an authorized live check, `dotnet run --project tools/AiUsage.ProviderConsole --no-restore -- history codex <owned-provider-directory>`
+(or `copilot`) reads the last seven UTC days through the product session and prints only
+report statuses/counts. Select the existing AI Usage **provider directory**, never a CLI
+credential directory. The command cannot sign in or request extra permissions; Codex may
+renew and persist its existing grant. No credentials belong in command arguments.
+
 For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. Set `AIU_SMOKE_MODE=demo` to verify the demo path; the default smoke mode is product with an empty `AIU_DEVELOPMENT_STATE_DIRECTORY`. An unlocked interactive desktop is required. Reserve Windows Sandbox or a disposable VM for checks that need isolation or a clean machine; package builds alone do not need either.
 
 ## Native Windows package

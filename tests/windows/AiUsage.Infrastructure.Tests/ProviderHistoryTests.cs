@@ -110,13 +110,29 @@ public sealed class ProviderHistoryTests
     }
 
     [Fact]
+    public async Task CopilotDeniedCreditReportDoesNotHideAccessiblePremiumRequestHistory()
+    {
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.RequestUri!.AbsolutePath switch
+        {
+            "/user" => CodexTestServer.Json("{\"id\":123,\"login\":\"synthetic\"}"),
+            var path when path.Contains("/ai_credit/", StringComparison.Ordinal) => CodexTestServer.Json("{}", HttpStatusCode.Forbidden),
+            _ => CodexTestServer.Json("{\"timePeriod\":{\"year\":2029,\"month\":12},\"usageItems\":[{\"grossQuantity\":7,\"unitType\":\"requests\"}]}")
+        }));
+        using var http = new HttpClient(server);
+        var result = await new CopilotHistoryClient(http, new CodexTestServer.Clock()).FetchAsync(new("synthetic", "123"), Range, TestContext.Current.CancellationToken);
+        Assert.Contains(result.Reports, r => r.Status == HistoryStatus.AccessDenied);
+        Assert.Contains(result.Reports, r => r.Status == HistoryStatus.Available && r.Values.Any(v => v.Value == 7));
+        Assert.Equal(3, server.Calls);
+    }
+
+    [Fact]
     public async Task CopilotAccountMismatchDoesNotRequestAnyBillingData()
     {
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json("{\"id\":999,\"login\":\"other\"}")));
         using var http = new HttpClient(server);
         var result = await new CopilotHistoryClient(http).FetchAsync(new("synthetic", "123"), Range, TestContext.Current.CancellationToken);
         Assert.Equal(1, server.Calls);
-        Assert.Equal(HistoryStatus.Failed, Assert.Single(result.Reports).Status);
+        Assert.Equal(HistoryStatus.AccountChanged, Assert.Single(result.Reports).Status);
     }
 
     [Fact]
@@ -132,5 +148,15 @@ public sealed class ProviderHistoryTests
     {
         using var json = JsonDocument.Parse("{\"data\":[{\"date\":\"2029-12-02\",\"unexpected\":45}]}");
         Assert.ThrowsAny<Exception>(() => CodexHistoryParser.Parse("usage", json.RootElement, Range));
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("42")]
+    [InlineData("{\"unknown\":10}")]
+    public void CopilotMalformedItemIsNotEmptyHistory(string item)
+    {
+        using var json = JsonDocument.Parse("{\"timePeriod\":{\"year\":2029,\"month\":12},\"usageItems\":[" + item + "]}");
+        Assert.ThrowsAny<Exception>(() => CopilotHistoryParser.Parse(json.RootElement, Range));
     }
 }

@@ -53,3 +53,34 @@ Authorized native Chrome/Windows checks on 2026-09-18 passed device authorizatio
 The account's GitHub settings page identifies Copilot Free and shows Inline suggestions and Included credits, both 0% used. The OMP endpoint reports plan `individual` and separate request snapshots, including a zero-entitlement premium pool. These are different metrics: this implementation does not claim parity with Included credits or derive credit balances from requests. A zero entitlement has no meaningful consumed fraction and is presented as unknown with its explicit native amount. Known pools use OMP's premium/chat/completions order. Nullable quota identifiers, remaining and overage details are retained independently; no provider restriction is inferred from exhaustion.
 
 Paid plans, organization contexts, enterprise hosts, live rate limits, revoked/expired grants and credits parity were not exercised. Synthetic tests cover the relevant failure semantics. Registration reuse permission remains unknown; successful access is not provider approval. See [verification](../specs/AIU-008-copilot-integration/verification.md).
+
+## Provider history (AIU-011)
+
+- source_verified_at: 2026-09-22
+- live_verified_at: null
+- classification: official-personal-billing-api; current-OAuth-eligibility-unverified
+- confidence: source-verified; existing-session access unverified
+
+GitHub documents `/users/{username}/settings/billing/ai_credit/usage` and
+`/users/{username}/settings/billing/premium_request/usage` with year/month/day filters and
+up to 24 months of personal paid-plan history. The [pinned research](../specs/AIU-011-provider-history/research.md)
+links the official endpoint documentation and its fine-grained authorization requirements.
+The existing device grant has read:user; no PAT, billing permission or additional login is
+introduced. Whether that grant can read either report remains unverified.
+
+The client first validates the numeric identity at `/user`, then uses the returned login
+on fixed api.github.com routes with API version 2026-03-10. Complete months are requested
+as aggregate periods; partial months use one request per day for each report. The maximum
+selected range is 731 days, but backend retention can be narrower. Native quantities,
+unit prices and gross/discount/net USD amounts remain separate. Missing values stay unknown;
+malformed nonempty reports fail rather than becoming zero or empty history.
+
+Each report stops its remaining periods on failure while allowing the other report type
+to load. Authentication failure or throttling stops all further requests; Retry-After is
+honored. Identity mismatch discards partial results and clears account history. External
+removal clears session state. No durable history or permission escalation is introduced.
+Partial-month ranges can require many requests; cancellation and per-response limits apply,
+and incomplete or top-limited coverage is never promised as complete.
+
+Earlier live quota checks do not verify historical billing access. No stored Copilot grant
+was available for this run; see [verification](../specs/AIU-011-provider-history/verification.md).

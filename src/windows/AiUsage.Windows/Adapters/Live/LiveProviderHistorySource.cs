@@ -13,6 +13,7 @@ internal sealed class LiveProviderHistorySource(LiveUsageSource usage) : IProvid
             Domain.HistoryStatus.Available => HistoryStatus.Available, Domain.HistoryStatus.Empty => HistoryStatus.Empty,
             Domain.HistoryStatus.Unsupported => HistoryStatus.Unsupported, Domain.HistoryStatus.AccessDenied => HistoryStatus.AccessDenied,
             Domain.HistoryStatus.AuthenticationRequired => HistoryStatus.AuthenticationRequired, Domain.HistoryStatus.RateLimited => HistoryStatus.RateLimited,
+            Domain.HistoryStatus.AccountChanged => HistoryStatus.AccountChanged,
             Domain.HistoryStatus.Busy => HistoryStatus.Busy, _ => HistoryStatus.Failed
         }, r.Values.Select(v => new HistoryValue(v.From, v.To, v.Metric, v.Value, v.Unit, v.Dimensions)).ToArray(), r.RetryAt)).ToArray());
     }

@@ -51,3 +51,42 @@ Official latest stable release observed through GitHub releases/latest: rust-v0.
 
 ## Live verification boundary
 Live-verified on 2026-09-14 through the console with a locally cloned OMP reference at `C:/Users/danii/projects/oh-my-pi`: browser sign-in, real subscription quota read, explicit in-memory refresh, second real quota read, clean exit. The observed account returned a five-hour primary window, a seven-day secondary window, explicit non-unlimited credits with a zero balance and two available reset credits. Still NOT_RUN: device-code login availability, multi-workspace switching, exhausted-quota and rate-limited responses, long-term refresh rotation and coexistence with a personal CLI session. Third-party reuse of the public Codex client remains permission-unknown; a successful request is not provider approval. No token or raw payload was persisted.
+
+## Provider history (AIU-011)
+
+- source_verified_at: 2026-09-22
+- live_verified_at: null
+- classification: source-observed-internal-development-endpoints
+- confidence: source-verified; existing-session access and complete coverage unverified
+
+The implementation follows official Codex development commit
+`2c2a42e65de077c5518ea5b4c3999633ef6a12fc`, not the stable release contract.
+The [pinned research](../specs/AIU-011-provider-history/research.md) links the analytics
+client, models and account-bound session. OMP's history is local collection and is not used.
+
+Existing ChatGPT bearer/account headers target fixed `/backend-api/wham/` routes for
+`usage/daily-token-usage-breakdown`, `usage/credit-usage-events`,
+`analytics/daily-workspace-usage-counts`, `analytics/daily-plugin-usage-metrics`,
+`analytics/daily-skill-usage-metrics`, `usage/daily-workspace-user-token-usage-breakdown`
+and `usage/daily-workspace-user-credit-usage`. Only current-user workspace reports are
+requested. Model/product/speed/reasoning variants remain separate reports. Date requests
+use inclusive UTC dates, daily grouping where supported, at most 731 days per query;
+credit events have no date query and are filtered by returned date.
+
+Numeric tokens, credits, signed credit events, costs, activity counts and returned
+breakdown dimensions retain their provider meaning. This is an explicit typed projection,
+not a dump of every metadata field. No subscription percentage or price is inferred.
+Plugin/skill requests use a top limit of 100; acceptance of that limit is not live verified.
+Neither top lists nor an unpaged credit response establish complete account history.
+Retention, backend truncation, plan eligibility and summary-only metadata coverage remain
+limitations; the UI labels available report coverage as potentially partial.
+
+History uses the session gate and durable grant lease. A started rotating exchange finishes
+its bounded transport and durable save before navigation cancellation takes effect. A lost
+network response after server rotation remains ambiguous. External account replacement or
+response mismatch clears historical cache; optional report denial does not revoke a working
+quota session. Individual report failures remain visible; 401/429 stop further requests,
+and Retry-After prevents immediate retries. Results are memory-only.
+
+The quota live date above does not verify analytics. No eligible stored Codex grant was
+available for the AIU-011 run; see [verification](../specs/AIU-011-provider-history/verification.md).

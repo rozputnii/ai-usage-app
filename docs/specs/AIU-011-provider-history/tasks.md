@@ -4,33 +4,33 @@ schema_version: 1
 ---
 # AIU-011 implementation ledger
 
-Base: c38467a. Owner explicitly selected implementation after the broader feasibility
-assessment. Execute the [design and plan](design.md) sequentially on main. Existing
-authorization only; local observation history stays deferred to AIU-029.
+Base: c38467a. Intermediate implementation commit: 45eef10. The owner selected
+implementation after the broader feasibility assessment. Existing authorization only;
+local observation history remains deferred to AIU-029.
 
-- T-01: Core contracts, hardened Codex/Copilot transports and parsers implemented.
-  Initial new tests failed for absent contracts; targeted history tests now pass 12/12.
-- T-02: Existing-session history operations, sanitized console probe and shared live
-  scheduling implemented. Codex session/history checks passed 27/27 before additional
-  parser tests; coalescing/disconnect/shutdown tests passed 2/2.
-- T-03: Provider report presentation, automatic loading, native values, custom dates,
-  memory cache and direct account entry implemented. Presentation suite passed 150/150;
-  additional live scheduling tests passed separately. Interactive UI acceptance pending.
-- T-04: In progress. Infrastructure suite passed 295/295 before five additional tests.
-  Latest full-suite and build evidence will be recorded in verification.md.
+- T-01: Done. Credential-free contracts and hardened Codex/Copilot transports/parsers
+  preserve native metrics, date periods, access failures and partial coverage.
+- T-02: Done. Existing-session integration, sanitized operator probe, shared scheduling,
+  cancellation and draining. Token rotation and cross-process identity findings fixed
+  and independently confirmed; external removal and per-report failure isolation tested.
+- T-03: Done. Automatic all-account/scoped history, native report rows, date controls,
+  refresh, memory cache, stale results and explicit unsupported providers. Actual Windows
+  demo navigation displays synthetic native values without an initial Load action.
+- T-04: Blocked only on real-provider acceptance. Infrastructure 307/307, Presentation
+  154/154, final unpackaged build and unsigned MSIX pass. Windows and review details,
+  including the physical-click smoke limitation, are in verification.md. AC-02 requires
+  a real provider history dataset through the product; no eligible stored grant was found.
 
-Ruling: retain a presentation-specific report DTO and map it in Adapters/Live, following
-existing frontend/backend separation. An initial direct Core dependency failed the
-architecture test; the adapter fixes the cause without weakening that test.
+Ruling: presentation DTOs are mapped in Adapters/Live; presentation has no direct Core
+reference. An initial architecture-test failure was fixed without weakening the boundary.
+Legacy synthetic local-history contracts remain for demo sparklines and regression tests;
+provider tokens/credits are never converted into a fabricated percentage curve.
 
-Ruling: retain the old synthetic local-history contracts for demo sparklines and their
-existing regression tests. Product provider reports have their own units and periods;
-no percentage chart is generated from tokens or credits.
+No source CLI credentials, browser sessions, new login, extra scopes, local history store,
+host trust change or installed-package mutation was used. No pending worker artifact remains.
 
-Live prerequisite: standard development state directory is absent; the installed
-AiUsage.Dev package provider directory contained only a Claude lock file, no Codex or
-Copilot grant. The owner was asked for an alternate app-owned directory while independent
-work continues. No source CLI credential or new login is used.
-
-Exact next action: run the integrated Windows history smoke against the unpackaged build,
-then finish focused independent review and record any unavailable live acceptance honestly.
+Exact next action: when the owner identifies an existing AI Usage provider directory,
+run the sanitized `history codex <owned-provider-directory>` (or `copilot`) console read,
+then display the same authorized account's history in Windows and record real coverage and
+access outcomes for AC-02. If the current grant lacks access, report that result without
+starting a new login or changing permissions.

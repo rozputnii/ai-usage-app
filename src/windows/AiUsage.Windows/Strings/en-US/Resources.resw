@@ -2239,4 +2239,5 @@
   <data name="ProviderHistory_Report_enterprise-model" xml:space="preserve"><value>Workspace credits by model</value></data>
   <data name="ProviderHistory_Report_enterprise-speed" xml:space="preserve"><value>Workspace credits by speed</value></data>
   <data name="ProviderHistory_Report_enterprise-reasoning" xml:space="preserve"><value>Workspace credits by reasoning effort</value></data>
+  <data name="ProviderHistory_AccountChanged" xml:space="preserve"><value>The connected account changed. Previous history was cleared; refresh to load this account.</value></data>
 </root>

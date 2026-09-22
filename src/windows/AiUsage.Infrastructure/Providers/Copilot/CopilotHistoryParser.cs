@@ -15,6 +15,8 @@ internal static class CopilotHistoryParser
         var rows = new List<HistoryValue>();
         foreach (var item in HistoryJson.Array(root, "usageItems").EnumerateArray())
         {
+            if (item.ValueKind != JsonValueKind.Object) throw HistoryJson.Invalid();
+            var before = rows.Count;
             var dimensions = new Dictionary<string, string>();
             foreach (var key in new[] { "product", "sku", "model" })
                 if (HistoryJson.Text(item, key) is { } value) dimensions[key] = value;
@@ -25,6 +27,7 @@ internal static class CopilotHistoryParser
                 var unit = metric.EndsWith("Quantity", StringComparison.Ordinal) ? HistoryJson.Text(item, "unitType") : metric == "pricePerUnit" ? "USD/unit" : "USD";
                 rows.Add(new(period.From, period.To, metric, HistoryJson.Number(value), unit, dimensions));
             }
+            if (rows.Count == before) throw HistoryJson.Invalid();
         }
         return rows.AsReadOnly();
     }

@@ -23,6 +23,45 @@ public sealed class CodexSessionTests : IDisposable
     }
 
     [Fact]
+    public async Task HistoryNavigationCancellationFinishesAndPersistsAnAlreadyStartedRotation()
+    {
+        using var cancel = new CancellationTokenSource();
+        using var server = new CodexTestServer((request, token) =>
+        {
+            Assert.Equal(HttpMethod.Post, request.Method);
+            cancel.Cancel();
+            token.ThrowIfCancellationRequested();
+            return Task.FromResult(CodexTestServer.Json(CodexTestServer.Tokens()));
+        });
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-original"));
+        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.GetHistoryAsync(range, cancel.Token));
+        Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
+        Assert.Equal(1, server.Calls);
+    }
+
+    [Fact]
+    public async Task HistoryInvalidatesOldIdentityBeforeAdoptingAnExternallyReplacedAccount()
+    {
+        var identity = "synthetic-workspace";
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Post ?
+            CodexTestServer.Json(CodexTestServer.Tokens(identity)) : CodexTestServer.Json("{\"data\":[]}")));
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant(identity, "synthetic-original"));
+        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
+        await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        identity = "synthetic-other";
+        store.Write(new CodexStoredGrant(identity, "synthetic-replacement"));
+        var calls = server.Calls;
+        var changed = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        Assert.Equal("AccountChanged", Assert.Single(changed.Reports).Status.ToString());
+        Assert.Equal(calls, server.Calls);
+        var retry = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        Assert.All(retry.Reports, r => Assert.Equal(AiUsage.Core.History.HistoryStatus.Empty, r.Status));
+    }
+
+    [Fact]
     public async Task HistoryResumesOwnGrantAndPersistsRotationBeforeReadingWithoutChangingQuota()
     {
         var store = new CodexGrantStore(root);

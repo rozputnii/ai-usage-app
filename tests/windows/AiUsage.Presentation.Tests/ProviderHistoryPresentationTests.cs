@@ -28,6 +28,9 @@ public sealed class ProviderHistoryPresentationTests
         Assert.NotEmpty(vm.Sections);
         Assert.All(vm.Sections, s => Assert.NotEmpty(s.Reports));
         var calls = source.Calls;
+        host.Clock.Advance(TimeSpan.FromHours(1));
+        await Task.Yield();
+        Assert.Equal(calls, source.Calls);
         await vm.LoadAsync();
         Assert.Equal(calls, source.Calls);
         host.Navigation.Navigate(new(PageKey.Overview));
@@ -50,6 +53,11 @@ public sealed class ProviderHistoryPresentationTests
         Assert.True(vm.Sections[0].IsStale);
         Assert.NotEmpty(vm.Sections[0].Reports[0].Rows);
         Assert.Contains("access", vm.Sections[0].Message, StringComparison.OrdinalIgnoreCase);
+        source.Fetch = (_, range, _) => Task.FromResult(new ProviderHistoryResult(range, host.Clock.UtcNow,
+            [new("usage", HistoryStatus.Available, [new(range.From, range.To, "usage", 45, "tokens", new Dictionary<string, string>())])]));
+        await vm.LoadAsync(force: true);
+        Assert.False(vm.Sections[0].IsStale);
+        Assert.Contains(vm.Sections[0].Reports[0].Rows, r => r.Value == "45 tokens");
     }
 
     [Fact]
@@ -67,5 +75,49 @@ public sealed class ProviderHistoryPresentationTests
             [new("usage", HistoryStatus.Available, [new(new(2026, 9, 1), new(2026, 9, 1), "usage", 999, "tokens", new Dictionary<string, string>())])]));
         await pending;
         Assert.All(vm.Sections, s => Assert.Empty(s.Reports));
+        source.Fetch = (_, range, _) => Task.FromResult(new ProviderHistoryResult(range, host.Clock.UtcNow, [new("usage", HistoryStatus.Empty, [])]));
+        host.Navigation.Navigate(new(PageKey.History, "demo-codex-1"));
+        await vm.Pending;
+        Assert.Equal(2, source.Calls);
+        Assert.NotEmpty(Assert.Single(vm.Sections).Reports);
+    }
+
+    [Fact]
+    public async Task DisconnectDropsCachedDataBeforeTheSameSlotReconnects()
+    {
+        using var host = new TestHost();
+        var source = new Source();
+        using var vm = new ProviderHistoryViewModel(host.Context, source);
+        host.Navigation.Navigate(new(PageKey.History, "demo-codex-1"));
+        await vm.Pending;
+        var account = host.State.World.Accounts.Single(a => a.Id == "demo-codex-1");
+        account.Connection = ConnectionState.NotConnected;
+        host.State.Publish();
+        await vm.Pending;
+        Assert.DoesNotContain(vm.Sections, s => s.Id == account.Id);
+        account.Connection = ConnectionState.Connected;
+        host.State.Publish();
+        host.Navigation.Navigate(new(PageKey.History, account.Id));
+        await vm.Pending;
+        Assert.Single(vm.Sections);
+        Assert.True(source.Calls >= 2);
+    }
+
+    [Fact]
+    public async Task ExternalAccountChangeClearsHistoryInsteadOfKeepingItAsStale()
+    {
+        using var host = new TestHost();
+        var source = new Source();
+        using var vm = new ProviderHistoryViewModel(host.Context, source);
+        host.Navigation.Navigate(new(PageKey.History, "demo-codex-1"));
+        await vm.Pending;
+        source.Fetch = (_, range, _) => Task.FromResult(ProviderHistoryResult.Unavailable(range, HistoryStatus.AccountChanged));
+        await vm.LoadAsync(force: true);
+        Assert.False(vm.Sections[0].IsStale);
+        Assert.All(vm.Sections[0].Reports, r => Assert.Empty(r.Rows));
+        source.Fetch = (_, range, _) => Task.FromResult(ProviderHistoryResult.Unavailable(range, HistoryStatus.AccessDenied));
+        await vm.LoadAsync(force: true);
+        Assert.False(vm.Sections[0].IsStale);
+        Assert.All(vm.Sections[0].Reports, r => Assert.Empty(r.Rows));
     }
 }

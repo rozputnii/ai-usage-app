@@ -10,7 +10,7 @@ public sealed record HistoryRange(DateOnly From, DateOnly To)
     }
 }
 
-public enum HistoryStatus { Available, Empty, Unsupported, AccessDenied, AuthenticationRequired, RateLimited, Failed, Busy }
+public enum HistoryStatus { Available, Empty, Unsupported, AccessDenied, AuthenticationRequired, RateLimited, Failed, Busy, AccountChanged }
 
 /// <summary>A native value over its actual reporting period, never an inferred observation.</summary>
 public sealed record HistoryValue(DateOnly From, DateOnly To, string Metric, decimal? Value,

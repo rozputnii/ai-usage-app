@@ -159,6 +159,11 @@ internal sealed partial class ProviderHistoryViewModel : ObservableObject, IDisp
         {
             var result = await source.GetHistoryAsync(section.Id, range, token);
             if (token.IsCancellationRequested || disposed) return;
+            if (result.Reports.Any(r => r.Status == HistoryStatus.AccountChanged))
+            {
+                foreach (var oldKey in cache.Keys.Where(k => k.Account == section.Id).ToArray()) cache.Remove(oldKey);
+                previous = null;
+            }
             var failure = result.Reports.Any(r => r.Status is not (HistoryStatus.Available or HistoryStatus.Empty));
             if (previous is not null && failure)
             {

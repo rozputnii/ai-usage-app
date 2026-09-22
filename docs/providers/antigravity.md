@@ -99,3 +99,11 @@ Two consequences follow. The provider deliberately closes this surface to client
 Live PASS on 2026-09-20 with that identity: connect, quota reading, refresh with renewal, durable resume in a new process, the Windows product UI and local disconnect. The reading contained two provider groups, `gemini-weekly` and the shared `3p-weekly`, each a seven-day window, and no five-hour bucket, which matches the published plans page for an account below AI Pro. One observed quirk: an untouched bucket reports its reset exactly seven days after each request, so that timestamp moves between readings and carries no information.
 
 Live NOT_RUN: five-hour buckets and paid tiers, AI credits, disabled or exhausted buckets, `remainingAmount` values, rate limiting, revocation, refresh-token rotation, loopback port fallback and reconnect after denial. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data. See the [verification record](../specs/AIU-009-antigravity-integration/verification.md).
+
+## Provider history (AIU-011)
+
+Source assessment on 2026-09-22 found official credit-history UI descriptions but no
+established history transport compatible with the existing AI Usage grant. History therefore
+returns Unsupported without additional requests or authorization. This is a limitation of
+the verified integration, not proof that the provider has no history. No live history check
+was performed. See [research](../specs/AIU-011-provider-history/research.md).

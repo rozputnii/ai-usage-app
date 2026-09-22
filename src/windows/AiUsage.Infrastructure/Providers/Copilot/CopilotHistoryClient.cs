@@ -25,8 +25,8 @@ internal sealed class CopilotHistoryClient(HttpClient client, TimeProvider? time
                 throw new ProviderException(ProviderFailureKind.AccountMismatch);
             var login = HistoryJson.Text(root, "login");
             if (string.IsNullOrEmpty(login) || login.Length > 100 || !login.All(c => char.IsAsciiLetterOrDigit(c) || c == '-')) throw HistoryJson.Invalid();
-            foreach (var period in Periods(range))
-                foreach (var report in new[] { "ai_credit", "premium_request" })
+            foreach (var report in new[] { "ai_credit", "premium_request" })
+                foreach (var period in Periods(range))
                 {
                     token.ThrowIfCancellationRequested();
                     var key = report + ":" + period.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -40,9 +40,12 @@ internal sealed class CopilotHistoryClient(HttpClient client, TimeProvider? time
                     }
                     catch (ProviderException error)
                     {
+                        if (error.Kind == ProviderFailureKind.AccountMismatch) return ProviderHistoryResult.Unavailable(range, HistoryStatus.AccountChanged);
                         reports.Add(Failure(key, error));
-                        // No fan-out across many periods after a denied or failed request.
-                        return new(range, clock.GetUtcNow(), reports.AsReadOnly());
+                        if (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.RateLimited)
+                            return new(range, clock.GetUtcNow(), reports.AsReadOnly());
+                        // Stop this report's period fan-out; the other billing report may remain accessible.
+                        break;
                     }
                 }
         }

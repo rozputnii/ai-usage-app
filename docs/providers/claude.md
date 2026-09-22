@@ -84,3 +84,11 @@ The implemented parser and protocol tests use explicitly synthetic fixtures. No 
 Live PASS on 2026-09-15: owner-led browser connection, identity validation through the shared client, initial grouped usage, manual refresh, renewal and durable resume after full process exit, local disconnect and disconnected state after another restart. The actual host development package was 2026.9.1416.0. The existing Codex connection remained usable. No credentials or raw provider payloads were captured. See the [live verification record](../specs/AIU-007-claude-integration/verification.md).
 
 Live NOT_RUN: occupied-port callback fallback, isolated manual-code fallback, reduced/minimum scopes, server-side invalidation, throttling, malformed responses and transient-offline stale cache. Failure boundaries have synthetic regression coverage; no provider failures or billable inference were induced. The observed account does not prove every account type, quota group or entitlement. A source comment about OMP is not an AI Usage live result.
+
+## Provider history (AIU-011)
+
+Source assessment on 2026-09-22 found official credit-history UI descriptions but no
+established history transport compatible with the existing AI Usage grant. History therefore
+returns Unsupported without additional requests or authorization. This is a limitation of
+the verified integration, not proof that the provider has no history. No live history check
+was performed. See [research](../specs/AIU-011-provider-history/research.md).

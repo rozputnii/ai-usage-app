@@ -31,7 +31,6 @@ public sealed class ShellSmoke
     [InlineData("launch")]
     [InlineData("navigation")]
     [InlineData("theme")]
-    [InlineData("close-to-tray")]
     [InlineData("tray-exit")]
     [InlineData("repeated-exit")]
     [InlineData("capabilities")]
@@ -126,8 +125,8 @@ public sealed class ShellSmoke
                 Assert.True(TrayIconPresent(pid), "Tray icon must remain present while hidden.");
                 var trayButton = FindTrayButton(automation);
                 Assert.NotNull(trayButton);
-                // A left click opens the tray mini-dashboard; its Open dashboard link brings the window back.
-                trayButton.Click();
+                // Invoke the tray icon's primary action; the popup link brings the window back.
+                trayButton.Invoke();
                 AutomationElement? openDashboard = null;
                 Assert.True(WaitUntil(() =>
                 {
@@ -213,6 +212,9 @@ public sealed class ShellSmoke
         }
     }
 
+    [Fact]
+    public void CloseToTrayRestoresDashboard() => ShellLaunchesNavigatesAndExits("close-to-tray");
+
     /// <summary>Both product and demo History open without an initial load action.</summary>
     private static void Navigate(Window window, string evidence, string scenario)
     {
@@ -226,8 +228,12 @@ public sealed class ShellSmoke
             Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId(marker)) is not null, TimeSpan.FromSeconds(10)),
                 $"{NavigationIds[i]} must show the page carrying {marker}.");
             if (i == 2 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") == "demo")
+            {
                 Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderHistoryRows")) is not null,
                     TimeSpan.FromSeconds(10)), "Provider history must load automatically.");
+                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByName("12000 tokens")) is not null,
+                    TimeSpan.FromSeconds(5)), "A native provider value must be visible without a load action.");
+            }
             if (scenario == "navigation")
                 Capture(window, evidence, "page-" + NavigationIds[i]);
         }
