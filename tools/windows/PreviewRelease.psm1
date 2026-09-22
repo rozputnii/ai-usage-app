@@ -60,7 +60,7 @@ function Test-PreviewPromotion {
     }
     foreach ($previous in $PublishedCommits) {
         & git merge-base --is-ancestor $previous $Candidate
-        if ($LASTEXITCODE -eq 1) { return $false }
+        if ($LASTEXITCODE -eq 1) { $global:LASTEXITCODE = 0; return $false }
         if ($LASTEXITCODE -ne 0) { throw 'Cannot establish Preview ancestry.' }
     }
     return $true

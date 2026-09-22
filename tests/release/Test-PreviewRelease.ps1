@@ -39,3 +39,5 @@ Equal (Test-PreviewPromotion -Candidate $parent -PublishedCommits @($head, $pare
 Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($head)) $true
 Reject { Test-PreviewPromotion -Candidate ('0' * 40) -PublishedCommits @($head) }
 Write-Output "PASS: $script:count release policy and source ancestry assertions"
+# Expected negative native Git checks are assertions, not the script's exit status.
+exit 0
