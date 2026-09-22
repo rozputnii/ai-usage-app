@@ -216,12 +216,12 @@ public static class ProjectValidator
     private static bool PrimaryPath(string path)
     {
         path = path.Replace('\\', '/').ToLowerInvariant();
-        return path.StartsWith(".omp/") || path.StartsWith(".agents/") || path.StartsWith(".github/") || path is "agents.md" or "claude.md" or "contributing.md" or "security.md" or "docs/constitution.md" or "docs/backlog.md" or "docs/product/goals.md" || path.EndsWith("/tasks.md");
+        return path.StartsWith(".omp/", StringComparison.Ordinal) || path.StartsWith(".agents/", StringComparison.Ordinal) || path.StartsWith(".github/", StringComparison.Ordinal) || path is "agents.md" or "claude.md" or "contributing.md" or "security.md" or "docs/constitution.md" or "docs/backlog.md" or "docs/product/goals.md" || path.EndsWith("/tasks.md", StringComparison.Ordinal);
     }
     private static bool Overlap(string a, string b)
     {
         a = a.Replace('\\', '/').ToLowerInvariant(); b = b.Replace('\\', '/').ToLowerInvariant();
-        var left = a.EndsWith("/**") ? a[..^3] : a; var right = b.EndsWith("/**") ? b[..^3] : b;
+        var left = a.EndsWith("/**", StringComparison.Ordinal) ? a[..^3] : a; var right = b.EndsWith("/**", StringComparison.Ordinal) ? b[..^3] : b;
         if (left.IndexOfAny(['*', '?', '[', '{']) >= 0 || right.IndexOfAny(['*', '?', '[', '{']) >= 0) return true;
         return left == right || left.StartsWith(right + "/", StringComparison.Ordinal) || right.StartsWith(left + "/", StringComparison.Ordinal);
     }

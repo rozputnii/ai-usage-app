@@ -131,4 +131,4 @@ internal static class ClaudeConsole
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(ClaudeQuotaReading))]
-internal partial class ClaudeConsoleJson : JsonSerializerContext;
+internal sealed partial class ClaudeConsoleJson : JsonSerializerContext;

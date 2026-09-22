@@ -60,7 +60,7 @@ public sealed class DashboardWorkflow(IProviderSession session) : IDisposable
         }
     }
 
-    private async Task<ProviderSessionState> ExecuteAsync(Func<CancellationToken, Task<ProviderSessionState>> operation,
+    private static async Task<ProviderSessionState> ExecuteAsync(Func<CancellationToken, Task<ProviderSessionState>> operation,
         CancellationToken lifetimeToken, CancellationToken token)
     {
         // Publish active before a browser callback or a reentrant shutdown can run.

@@ -51,7 +51,7 @@ internal sealed class DemoHistorySource(DemoState state) : IHistorySource
         var partial = RetentionDays(world.Retention) is { } days && query.From < t0 - TimeSpan.FromDays(days);
         if (partial)
             points.RemoveAll(p => p.At < t0 - TimeSpan.FromDays(RetentionDays(world.Retention)!.Value));
-        return new(points.Count(p => p.Coverage == HistoryCoverage.Observed) == 0 ? HistoryOutcome.Empty : HistoryOutcome.Points, points, world.HistoryEnabled, partial);
+        return new(points.Any(p => p.Coverage == HistoryCoverage.Observed) ? HistoryOutcome.Points : HistoryOutcome.Empty, points, world.HistoryEnabled, partial);
     }
 
     private static int? RetentionDays(HistoryRetention retention) => retention switch

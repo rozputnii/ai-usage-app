@@ -123,4 +123,4 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
 // Preferences keep [JsonExtensionData] and deliberately do not set UnmappedMemberHandling.Disallow,
 // unlike the credential stores: a file written by a newer build must survive a round-trip here.
 [JsonSerializable(typeof(LivePreferenceStore.State))]
-internal partial class PreferenceStateJson : JsonSerializerContext;
+internal sealed partial class PreferenceStateJson : JsonSerializerContext;

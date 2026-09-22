@@ -74,14 +74,14 @@ public static class QuotaRules
         var available = account.Contexts.Where(context => context.Available).ToArray();
         if (preferences.ContextSelection.TryGetValue(account.Id, out var selected) && available.FirstOrDefault(c => c.Id == selected) is { } match)
             return match;
-        return available.FirstOrDefault() ?? account.Contexts.FirstOrDefault();
+        return available.FirstOrDefault() ?? (account.Contexts.Count == 0 ? null : account.Contexts[0]);
     }
 
     public static WindowItem? PrimaryWindow(AccountItem account, Preferences preferences)
     {
         var groups = VisibleGroups(SelectedContext(account, preferences), preferences).ToArray();
         return groups.SelectMany(group => group.Windows).FirstOrDefault(window => window.Primary)
-            ?? groups.FirstOrDefault()?.Windows.FirstOrDefault();
+            ?? (groups.Length == 0 || groups[0].Windows.Count == 0 ? null : groups[0].Windows[0]);
     }
 
     /// <param name="includeFailures">False ranks by quota state only, as notification previews do; the tray includes refresh failures.</param>

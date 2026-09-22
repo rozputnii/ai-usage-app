@@ -10,6 +10,67 @@ trim_trailing_whitespace = true
 
 [*.cs]
 indent_size = 4
+csharp_style_namespace_declarations = file_scoped:warning
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_diagnostic.IDE0161.severity = warning
+dotnet_diagnostic.IDE0065.severity = warning
+
+# The SDK build analyzer does not emit IDE0003/IDE0049; these remain editor conventions.
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+dotnet_diagnostic.IDE0003.severity = suggestion
+dotnet_diagnostic.IDE0049.severity = suggestion
+
+# Preserve interface/read-only contracts and command Task signatures; specialize only
+# after measuring a relevant hot path, rather than exposing concrete implementation types.
+dotnet_diagnostic.CA1859.severity = suggestion
+
+[src/windows/AiUsage.Windows/**.cs]
+# WinUI Binding/x:Bind and formatter APIs are intentionally instance surfaces.
+# Keep static-member suggestions visible in the editor without changing those contracts.
+dotnet_diagnostic.CA1822.severity = suggestion
+
+[spikes/windows/AIU-002-routing/*ViewModel.cs]
+# Runtime-evidence properties are consumed through instance Binding paths.
+dotnet_diagnostic.CA1822.severity = suggestion
+
+[src/windows/AiUsage.Infrastructure/Providers/Codex/CodexDeviceAuthorization.cs]
+# VerificationUri belongs to the public challenge instance alongside UserCode/ExpiresAt.
+dotnet_diagnostic.CA1822.severity = suggestion
+
+[src/windows/AiUsage.Windows/Features/Presentation/HostAbstractions.cs]
+# This C# resource port intentionally uses Get; cross-language override naming is not a goal.
+dotnet_diagnostic.CA1716.severity = suggestion
+
+[src/windows/AiUsage.Windows/{Platform/DialogService,Adapters/Live/LivePreferenceStore}.cs]
+# App-lifetime async-only semaphores never expose AvailableWaitHandle. Adding Dispose
+# requires a separate drain/late-caller contract; keep the lifetime review visible.
+dotnet_diagnostic.CA1001.severity = suggestion
+
+[src/windows/AiUsage.Windows/Features/{Accounts/AccountDetailViewModel,Overview/AccountRowViewModel}.cs]
+# Existing sparkline cancellation sources lack deterministic disposal. Deferred lifecycle
+# work must cover replacement, in-flight queries and view removal together; T-07 does not
+# change that behavior. Retain the diagnostic as an explicit, file-scoped suggestion.
+dotnet_diagnostic.CA1001.severity = suggestion
+
+[tests/**.cs]
+# Scenario names may encode thresholds with underscores; local expected arrays keep
+# each test independent and readable instead of sharing mutable static fixture arrays.
+dotnet_diagnostic.CA1707.severity = suggestion
+dotnet_diagnostic.CA1861.severity = suggestion
+
+[tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs]
+# Deliberately inject System.Exception to exercise the unknown-failure boundary.
+dotnet_diagnostic.CA2201.severity = suggestion
+
+[tests/windows/AiUsage.Windows.Tests/ShellSmoke.cs]
+# Existing GetWindowText interop is a bounded smoke-only buffer; buffer-marshalling
+# optimization is outside the analyzer-policy task and remains an editor suggestion.
+dotnet_diagnostic.CA1838.severity = suggestion
 
 [*.md]
 trim_trailing_whitespace = false

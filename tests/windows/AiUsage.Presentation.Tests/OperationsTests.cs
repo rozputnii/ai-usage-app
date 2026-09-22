@@ -140,7 +140,7 @@ public sealed class OperationsTests
         host.Delays.Auto = true;
         await data.PrepareExportCommand.ExecuteAsync(null);
         Assert.True(data.IsExportReady);
-        Assert.Contains(data.ExportItems, i => i.StartsWith("Excluded: credentials"));
+        Assert.Contains(data.ExportItems, i => i.StartsWith("Excluded: credentials", StringComparison.Ordinal));
         Assert.StartsWith("Live only", data.SaveDisabledReason);
     }
 

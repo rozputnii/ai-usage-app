@@ -83,7 +83,7 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
         finally { authorization.Gate.Release(); }
     }
 
-    private async Task<string> ReadCodeAsync(ClaudeBrowserAuthorization authorization, CancellationToken cancellationToken)
+    private static async Task<string> ReadCodeAsync(ClaudeBrowserAuthorization authorization, CancellationToken cancellationToken)
     {
         if (authorization.ManualCode.Task.IsCompletedSuccessfully)
             return await authorization.ManualCode.Task.ConfigureAwait(false);
@@ -103,7 +103,7 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
         }
     }
 
-    private async Task<string> ReadBrowserCodeAsync(ClaudeBrowserAuthorization authorization, CancellationToken cancellationToken)
+    private static async Task<string> ReadBrowserCodeAsync(ClaudeBrowserAuthorization authorization, CancellationToken cancellationToken)
     {
         while (true)
         {

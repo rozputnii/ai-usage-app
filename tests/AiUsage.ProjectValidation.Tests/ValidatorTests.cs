@@ -5,6 +5,22 @@ namespace AiUsage.ProjectValidation.Tests;
 
 public sealed class ValidatorTests
 {
+    [Theory]
+    [InlineData("docs/custom/tasks.md\u00ad")]
+    [InlineData(".\u00adagents/custom.md")]
+    public void PrimaryOwnershipUsesLiteralPathSegments(string path)
+    {
+        var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+            using var root = new Fixture();
+            root.Replace(Fixture.Tasks, "src/one/**", path);
+            Assert.Empty(ProjectValidator.Validate(root.Path));
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture = previousCulture; }
+    }
+
     [Fact]
     public void SharedSkillDoesNotRequireAnOmpCopy()
     {

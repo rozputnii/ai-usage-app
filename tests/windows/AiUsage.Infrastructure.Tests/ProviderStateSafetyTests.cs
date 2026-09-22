@@ -17,7 +17,7 @@ public sealed class ProviderStateSafetyTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "AiUsage.StateSafety.Tests", Guid.NewGuid().ToString("N"));
     private static readonly byte[] Entropy = "AiUsage.Codex.Grant.v1"u8.ToArray();
-    private CancellationToken Token => TestContext.Current.CancellationToken;
+    private static CancellationToken Token => TestContext.Current.CancellationToken;
     private string StoreDirectory => Path.Combine(root, "state");
     private string GrantPath => Path.Combine(StoreDirectory, "codex.grant");
 
@@ -203,7 +203,7 @@ public sealed class ProviderStateSafetyTests : IDisposable
         finally { CryptographicOperations.ZeroMemory(plaintext); }
     }
 
-    private async Task<IAsyncDisposable> AcquireAsync(string provider, string directory) => provider switch
+    private static async Task<IAsyncDisposable> AcquireAsync(string provider, string directory) => provider switch
     {
         "Claude" => await new ClaudeStateStore(directory).AcquireAsync(Token),
         "Copilot" => await new CopilotStateStore(directory).AcquireAsync(Token),
@@ -212,7 +212,7 @@ public sealed class ProviderStateSafetyTests : IDisposable
         _ => throw new ArgumentException("Unknown synthetic provider.")
     };
 
-    private async Task CreateJunctionAsync(string link, string target)
+    private static async Task CreateJunctionAsync(string link, string target)
     {
         var start = new ProcessStartInfo("cmd.exe") { CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };
         foreach (var argument in new[] { "/c", "mklink", "/J", link, target }) start.ArgumentList.Add(argument);

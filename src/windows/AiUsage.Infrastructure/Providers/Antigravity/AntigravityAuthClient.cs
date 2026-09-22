@@ -157,7 +157,7 @@ public sealed class AntigravityAuthClient
         return new(access!, refresh!, identity, clock.GetUtcNow().AddSeconds(Math.Max(0, seconds - 300)));
     }
 
-    private async Task<string> ReadBrowserCodeAsync(AntigravityBrowserAuthorization authorization, CancellationToken cancellationToken)
+    private static async Task<string> ReadBrowserCodeAsync(AntigravityBrowserAuthorization authorization, CancellationToken cancellationToken)
     {
         while (true)
         {

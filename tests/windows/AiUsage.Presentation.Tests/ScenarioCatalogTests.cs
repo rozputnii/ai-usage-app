@@ -19,7 +19,7 @@ public sealed class ScenarioCatalogTests
     {
         using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(Repository.Root(), "docs/specs/AIU-010-ui-ux/fixtures.json")));
         Assert.True(document.RootElement.GetProperty("synthetic").GetBoolean());
-        Assert.Equal(DemoScenarioCatalog.T0, DateTimeOffset.Parse(document.RootElement.GetProperty("clock").GetString()!));
+        Assert.Equal(DemoScenarioCatalog.T0, DateTimeOffset.Parse(document.RootElement.GetProperty("clock").GetString()!, System.Globalization.CultureInfo.InvariantCulture));
         var fixtureIds = document.RootElement.GetProperty("scenarios").EnumerateArray().Select(s => s.GetProperty("id").GetString()!).ToArray();
         Assert.Equal(15, fixtureIds.Length);
         foreach (var id in fixtureIds)
@@ -47,7 +47,7 @@ public sealed class ScenarioCatalogTests
             else
                 Assert.Equal(remaining.GetDouble(), primary.ToItem().RemainingPercent);
             if (expected.TryGetProperty("resetsAt", out var reset))
-                Assert.Equal(DateTimeOffset.Parse(reset.GetString()!), primary.ResetsAt);
+                Assert.Equal(DateTimeOffset.Parse(reset.GetString()!, System.Globalization.CultureInfo.InvariantCulture), primary.ResetsAt);
         }
     }
 
@@ -55,12 +55,12 @@ public sealed class ScenarioCatalogTests
     public void F04F06F08F09F11F15SeedsMatchPinnedFixtureValues()
     {
         var f04 = DemoScenarioCatalog.Build("F04").Accounts.Single(a => a.Id == "demo-codex-2");
-        Assert.Equal(DateTimeOffset.Parse(Fixture("F04").GetProperty("fetchedAt").GetString()!), f04.FetchedAt);
+        Assert.Equal(DateTimeOffset.Parse(Fixture("F04").GetProperty("fetchedAt").GetString()!, System.Globalization.CultureInfo.InvariantCulture), f04.FetchedAt);
         Assert.Equal(Freshness.Stale, f04.Freshness);
         Assert.Equal(Fixture("F04").GetProperty("remainingPercent").GetDouble(), f04.AllWindows.First().Remaining);
 
         var f06 = DemoScenarioCatalog.Build("F06");
-        Assert.Equal(DateTimeOffset.Parse(Fixture("F06").GetProperty("retryAt").GetString()!), f06.Accounts[1].Failure!.RetryAt);
+        Assert.Equal(DateTimeOffset.Parse(Fixture("F06").GetProperty("retryAt").GetString()!, System.Globalization.CultureInfo.InvariantCulture), f06.Accounts[1].Failure!.RetryAt);
         Assert.Equal(ConnectionState.ReauthRequired, f06.Accounts[0].Connection);
 
         var f07 = DemoScenarioCatalog.Build("F07").Accounts.Single(a => a.Id == "demo-claude-1");
@@ -68,7 +68,7 @@ public sealed class ScenarioCatalogTests
         Assert.All(f07.Contexts, c => Assert.Contains(c.Groups, g => g.SharedPoolId == Fixture("F07").GetProperty("sharedPoolId").GetString()));
 
         var f08 = DemoScenarioCatalog.Build("F08").Accounts.Single(a => a.Id == "demo-antigravity-1").AllWindows.Single();
-        Assert.Equal(DateTimeOffset.Parse(Fixture("F08").GetProperty("resetsAt").GetString()!), f08.ResetsAt);
+        Assert.Equal(DateTimeOffset.Parse(Fixture("F08").GetProperty("resetsAt").GetString()!, System.Globalization.CultureInfo.InvariantCulture), f08.ResetsAt);
         Assert.Equal(ValueState.Exhausted, f08.State);
         var money = Fixture("F08").GetProperty("moneyCases").EnumerateArray().ToArray();
         var extensions = DemoScenarioCatalog.Build("F08").Accounts.Single(a => a.Id == "demo-claude-1").Extensions;
@@ -79,7 +79,7 @@ public sealed class ScenarioCatalogTests
         var expected = Fixture("F09").GetProperty("points").EnumerateArray().ToArray();
         for (var i = 0; i < expected.Length; i++)
         {
-            Assert.Equal(DateTimeOffset.Parse(expected[i].GetProperty("at").GetString()!), points[i].At);
+            Assert.Equal(DateTimeOffset.Parse(expected[i].GetProperty("at").GetString()!, System.Globalization.CultureInfo.InvariantCulture), points[i].At);
             Assert.Equal(expected[i].GetProperty("coverage").GetString(), points[i].Coverage.ToString());
             Assert.Equal(expected[i].GetProperty("segmentId").GetString(), points[i].SegmentId);
             var value = expected[i].GetProperty("remainingPercent");

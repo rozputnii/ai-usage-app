@@ -36,7 +36,7 @@ public sealed class LiveAdapterTests
     public void InternalErrorDoesNotOfferRetryOrReconnection(ConnectionState connection)
     {
         using var host = new TestHost();
-        var account = host.Usage.Current.Accounts.First() with
+        var account = host.Usage.Current.Accounts[0] with
         {
             Connection = connection,
             Failure = new("InternalError", "Failure_InternalError", null, false)
@@ -357,7 +357,7 @@ public sealed class LiveAdapterTests
     [Fact]
     public void MappingPreservesUnknownAndCachedObservation()
     {
-        var at = DateTimeOffset.Parse("2026-09-15T12:00:00Z");
+        var at = DateTimeOffset.Parse("2026-09-15T12:00:00Z", System.Globalization.CultureInfo.InvariantCulture);
         var quota = new QuotaSnapshot(at, "plan", [new("opaque", "Name", null, null, null, null,
             [new("unknown", null, null, null, at), new("empty", 100, 0, TimeSpan.FromHours(5), at)])],
             new(null, true, null), 2, null, null);

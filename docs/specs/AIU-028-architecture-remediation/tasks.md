@@ -150,7 +150,7 @@ All four suites and primary integrated acceptance review pass; AC-07 is complete
 commands, observed results and limits are recorded in verification.md.
 
 ### T-07 - Explicit analyzer level and code-style enforcement
-- status: pending
+- status: in-progress
 - depends_on: [T-06]
 - acceptance: AC-08
 - evidence: not-run
@@ -165,6 +165,19 @@ commands, observed results and limits are recorded in verification.md.
 - [ ] Check: `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug
       -p:Platform=x64 -p:WindowsPackageType=None --no-restore` with zero warnings, plus all four
       suites.
+
+Implementation plan (2026-09-22, base `0cd297b`): keep `Recommended`, pin analysis to
+the current SDK's `10.0` rule set, and enable build-time C# style checks in the shared
+props. Inventory diagnostics across all ten projects before choosing documented,
+rule-specific severities; enforce the existing file-scoped namespace, using placement,
+qualification and intrinsic-type conventions. Verify a warnings-visible desktop build,
+all four suites, the other project builds, document validation and primary diff review.
+Use this task record as the execution ledger and work directly on main under CONTRIBUTING.
+Ruling: the plan supplies no numeric time box; use a 30-minute triage limit for this
+bounded policy task, stopping with remaining diagnostics recorded if it is exceeded.
+This is the primary's execution budget, not a claimed owner-approved duration. No new
+runtime behavior tests are needed for configuration; existing suites guard behavior.
+Only T-07 is selected, and routine primary review applies under repository policy.
 
 ### T-08 - Non-throwing disposal and lock-free publication
 - status: done

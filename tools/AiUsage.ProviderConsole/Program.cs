@@ -155,4 +155,4 @@ internal static class Program
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(QuotaSnapshot))]
-internal partial class ConsoleJson : JsonSerializerContext;
+internal sealed partial class ConsoleJson : JsonSerializerContext;

@@ -567,3 +567,62 @@ Smoke used `AIU_SMOKE_EXE` pointing to the rebuilt local executable and fresh
 `AIU_DEVELOPMENT_STATE_DIRECTORY` set to its initially empty `state` subdirectory. Inspected
 all seven final scenario records and the actual provider-choice screenshot. No source CLI
 credentials were read and no sign-in was started. AC-07 is PASS; T-07 remains a separate task.
+
+## T-07 - Explicit analyzer and style policy - 2026-09-22
+
+Base `0cd297b` on `main`; SDK 10.0.401 on Windows 10.0.26200.0 x64. Evidence collected
+at 14:54-15:06 UTC is retained under `.ai-usage-local/AIU-028/t07/`. Triage completed
+within the primary-selected 30-minute limit. No SDK, analyzer package or dependency changed.
+
+The shared props now set `AnalysisLevel=10.0`, `AnalysisMode=Recommended` and
+`EnforceCodeStyleInBuild=true`, retaining `TreatWarningsAsErrors=true`. EditorConfig
+enforces file-scoped namespaces (IDE0161) and using directives outside namespaces
+(IDE0065). Qualification and intrinsic-type preferences remain explicit editor suggestions:
+the bundled build analyzer does not emit IDE0003/IDE0049, so build enforcement is not claimed.
+
+The initial ten-project inventory used command-line `TreatWarningsAsErrors=false` only
+to collect all diagnostics without stopping at the first referenced project. It found
+77 distinct source-location diagnostics across 13 rules (90 when linked-source project
+instances are counted). No reduced warning setting was written into the repository.
+The first ordinary raised-level build failed on CA1822 as expected.
+
+Adopted fixes keep private stateless helpers static, seal three internal generated-JSON
+context declarations, replace collection enumeration with equivalent indexed/existence
+checks, parse fixed test timestamps invariantly, and compare validator path markers
+ordinally. Both new soft-hyphen path cases failed with PRIMARY_SHARED before the ordinal
+fix and pass afterward; existing path/ownership tests remain green. Provider protocols,
+credential lifecycle, serialized data and UI behavior are unchanged.
+
+Explicit rule choices are documented beside their severities in `.editorconfig`:
+
+| Rule | Scope and reason for suggestion severity |
+| --- | --- |
+| CA1822 | Windows presentation/desktop source, routing view models and the Codex challenge instance retain instance binding, formatter and public challenge contracts. Core/Infrastructure private helpers and test helpers are fixed instead. |
+| CA1859 | Preserve interface/read-only contracts and command Task signatures; concrete-type specialization requires a measured benefit. |
+| CA1716 | Only HostAbstractions.cs: the C# text-resource port intentionally uses Get; cross-language override naming is not a product requirement. |
+| CA1001 | Only DialogService, LivePreferenceStore and the two account view models. Async-only app-lifetime semaphores never expose AvailableWaitHandle; safe disposal needs a drain/late-caller contract. Sparkline cancellation-source replacement and view removal still lack deterministic disposal and are explicit deferred lifetime debt, not declared false positives. |
+| CA1707, CA1861 | Test sources only: threshold-bearing scenario names and independent local expected arrays remain readable and isolated. |
+| CA2201 | Only LiveAdapterTests.cs: System.Exception deliberately exercises the unknown-failure boundary. |
+| CA1838 | Only ShellSmoke.cs: retain the existing bounded GetWindowText smoke buffer; marshalling optimization remains an editor suggestion. |
+
+These are rule-specific adoption decisions, not a claim that every Recommended rule is a
+build warning. CA1001 remains enabled outside the four named files. Resolving the deferred
+sparkline lifetime debt requires a separately selected task covering cancellation, completion,
+replacement and view removal; changing it here would expand the behavior scope of T-07.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Effective shared properties | PASS | `dotnet msbuild <project> -getProperty:AnalysisLevel,AnalysisMode,EnforceCodeStyleInBuild,TreatWarningsAsErrors` returned 10.0/Recommended/true/true for all ten tracked projects. |
+| Analyzer/style enforcement probe | PASS | An isolated ignored net10.0 project inheriting the shared policy failed with CA1822, IDE0161 and IDE0065 on deliberate violations; correcting them produced zero warnings/errors. Offline restore used cleared package/audit sources. The probe also confirmed IDE0003/IDE0049 are not emitted during build. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: zero warnings/errors, with the final policy and no command-line warning override. |
+| Validator regressions | PASS | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo`: 80/80, including both new cases observed failing before the fix. |
+| Infrastructure Release | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261. |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 142/142. |
+| Actual Windows product smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7; all seven scenario JSON records report passed=true, exited=true and exitCode=0. Inspected the actual provider-choice screenshot. |
+| Routing and ProviderConsole builds | PASS | `dotnet build <project> -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` for the routing spike and ProviderConsole: zero warnings/errors. |
+| MSIX, packaged lifecycle and live-provider checks | NOT_RUN | No UI, activation, packaging or provider-contract behavior changed. No source CLI credentials, sign-in, host trust change or package installation was needed or performed. |
+
+All four suites report zero errors, failures, skips and not-run tests. Smoke used the local
+unpackaged Debug executable, a fresh `product-smoke/` evidence directory, and its initially
+empty `state/` subdirectory through `AIU_DEVELOPMENT_STATE_DIRECTORY`. The final desktop rebuild
+followed only an editor-suggestion clarification; no product source changed after smoke.
