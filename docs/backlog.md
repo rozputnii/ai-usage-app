@@ -133,10 +133,13 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-014 - Trusted direct Preview/Stable distribution
 - goal: G-004
-- status: research-needed
+- status: in-progress
 - depends_on: [AIU-006]
 - trigger: before-public
 - outcome: Verify signing eligibility/identity and runtime prerequisite delivery. Implement monotonic version allocation, Releases/Pages/App Installer, channel switching and nonblocking updates.
+- scope-note: Owner selected an initial development-only phase on 2026-09-22: publish every successful main push and automatically update the owner's test installations. Use self-signed CI packages with one-time explicit tester trust; official signing/public distribution and Stable remain deferred. See docs/specs/AIU-014-preview-updates/spec.md.
+- specification: docs/specs/AIU-014-preview-updates/spec.md
+- evidence: docs/specs/AIU-014-preview-updates/verification.md
 
 ## AIU-015 - Signed compatibility manifest and release authority
 - goal: G-004
