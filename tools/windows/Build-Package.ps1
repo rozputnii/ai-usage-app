@@ -37,7 +37,7 @@ $buildManifest = Join-Path $versionOutput 'Package.appxmanifest'
 $sourceManifest.Save($buildManifest)
 $report = [ordered]@{ version = $MsixVersion; identity = 'AiUsage.Dev'; publisher = 'CN=AI Usage Development'; status = 'unsigned-build-incomplete'; package = $null; sha256 = $null; utc = [DateTime]::UtcNow.ToString('o') }
 try {
-    $restoreArguments = if ($NoRestore) { @() } else { @('/restore') }
+    $restoreArguments = @(if (!$NoRestore) { '/restore' })
     & $msbuild[0] (Join-Path $root 'src/windows/AiUsage.Windows/AiUsage.Windows.csproj') @restoreArguments /v:minimal /p:Configuration=Release /p:Platform=x64 /p:RuntimeIdentifier=win-x64 /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Never /p:UapAppxPackageBuildMode=SideloadOnly /p:AppxPackageSigningEnabled=false "/p:AppxPackageVersion=$MsixVersion" "/p:AiUsagePackageManifest=$buildManifest" "/p:AppxPackageDir=$versionOutput/"
     if ($LASTEXITCODE -ne 0) { throw "MSBuild failed with exit $LASTEXITCODE." }
     $packages = @(Get-ChildItem -LiteralPath $versionOutput -Recurse -File -Filter '*.msix' | Where-Object { $_.Name -like 'AiUsage*' })
