@@ -117,7 +117,7 @@ Unselected tasks remain NOT_RUN.
 | T-04 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | NOT_RUN |
 | T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | NOT_RUN |
 | T-06 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | PASS, see T-06 closure below |
-| T-07 | AC-08 | Warnings-visible desktop build at the raised analysis level with zero warnings; all four suites | NOT_RUN |
+| T-07 | AC-08 | Warnings-visible desktop build at the raised analysis level with zero warnings; all four suites | PASS |
 | T-08 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
 | T-09 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
 | T-10 | AC-12 | Presentation visibility-gate test **and** interactive Windows smoke | NOT_RUN |
@@ -570,7 +570,7 @@ credentials were read and no sign-in was started. AC-07 is PASS; T-07 remains a 
 
 ## T-07 - Explicit analyzer and style policy - 2026-09-22
 
-Base `0cd297b` on `main`; SDK 10.0.401 on Windows 10.0.26200.0 x64. Evidence collected
+Base `0cd297b`, implementation `c9cdd6a` on `main`; SDK 10.0.401 on Windows 10.0.26200.0 x64. Evidence collected
 at 14:54-15:06 UTC is retained under `.ai-usage-local/AIU-028/t07/`. Triage completed
 within the primary-selected 30-minute limit. No SDK, analyzer package or dependency changed.
 
@@ -626,3 +626,13 @@ All four suites report zero errors, failures, skips and not-run tests. Smoke use
 unpackaged Debug executable, a fresh `product-smoke/` evidence directory, and its initially
 empty `state/` subdirectory through `AIU_DEVELOPMENT_STATE_DIRECTORY`. The final desktop rebuild
 followed only an editor-suggestion clarification; no product source changed after smoke.
+
+Primary integrated review of `0cd297b..c9cdd6a` against AC-08: PASS. Checked shared-property
+coverage, rule-specific exception scopes and reasons, unchanged dependency/SDK versions,
+equivalence of collection and static-helper edits, preserved public/binding contracts,
+invariant fixtures, ordinal ownership regression evidence and the complete authored diff.
+No additional actionable finding; the four CA1001 exceptions retain the explicitly documented
+lifetime debt above. CONTRIBUTING requires primary review for this task; no material
+credential, destructive-data or privilege behavior changed, and no independent review is claimed.
+Document validation returned `valid=true, diagnostics=[]`; `git diff --check` passed.
+Closure links and task/acceptance status were inspected. AC-08 is PASS; T-07 is complete.

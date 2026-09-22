@@ -150,19 +150,19 @@ All four suites and primary integrated acceptance review pass; AC-07 is complete
 commands, observed results and limits are recorded in verification.md.
 
 ### T-07 - Explicit analyzer level and code-style enforcement
-- status: in-progress
+- status: done
 - depends_on: [T-06]
 - acceptance: AC-08
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; code c9cdd6a; Recommended/10.0 and build style enforcement verified across ten projects, desktop build zero warnings/errors, four suites 80/261/142/7 PASS; analyzer negative/positive probe, document validation and primary integrated review PASS
 
-- [ ] Set `AnalysisMode` to `Recommended`, pin `AnalysisLevel` so an SDK upgrade is deliberate,
+- [x] Set `AnalysisMode` to `Recommended`, pin `AnalysisLevel` so an SDK upgrade is deliberate,
       and set `EnforceCodeStyleInBuild` in the shared props.
-- [ ] Move the intended C# style rules into `.editorconfig`, which today carries whitespace only.
-- [ ] Triage the resulting diagnostics within an agreed time box. Where a rule is not adopted,
+- [x] Move the intended C# style rules into `.editorconfig`, which today carries whitespace only.
+- [x] Triage the resulting diagnostics within an agreed time box. Where a rule is not adopted,
       record an explicit severity with a reason rather than lowering the level silently.
-- [ ] If the triage exceeds the box, stop and report; do not weaken the level to obtain a green
+- [x] If the triage exceeds the box, stop and report; do not weaken the level to obtain a green
       build.
-- [ ] Check: `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug
+- [x] Check: `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug
       -p:Platform=x64 -p:WindowsPackageType=None --no-restore` with zero warnings, plus all four
       suites.
 
@@ -178,6 +178,13 @@ bounded policy task, stopping with remaining diagnostics recorded if it is excee
 This is the primary's execution budget, not a claimed owner-approved duration. No new
 runtime behavior tests are needed for configuration; existing suites guard behavior.
 Only T-07 is selected, and routine primary review applies under repository policy.
+Implementation `c9cdd6a` is committed and pushed to main. Triage completed within the limit;
+Recommended remains enabled. Rule-specific suggestions and their reasons are recorded in
+EditorConfig and verification.md, including deferred sparkline cancellation-source disposal.
+Two new validator path cases failed before the ordinal-comparison fix and now pass.
+All four suites, final desktop/routing/console builds, effective-property checks, the
+negative/positive analyzer probe and primary integrated review pass. AC-08 is complete.
+No remaining action for T-07; T-10, T-11 and T-12 remain pending and unselected.
 
 ### T-08 - Non-throwing disposal and lock-free publication
 - status: done
