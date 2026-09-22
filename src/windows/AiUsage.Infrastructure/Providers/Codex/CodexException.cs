@@ -3,7 +3,7 @@ using System.Net;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-public sealed class CodexException : Exception
+internal sealed class CodexException : Exception
 {
     /// <summary>
     /// Reviewed OAuth/OpenID error codes that may be reported verbatim. Anything else is an

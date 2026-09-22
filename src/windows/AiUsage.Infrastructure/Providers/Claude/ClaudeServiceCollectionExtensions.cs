@@ -5,7 +5,7 @@ namespace AiUsage.Infrastructure.Providers.Claude;
 
 public static class ClaudeServiceCollectionExtensions
 {
-    public static IServiceCollection AddClaudeIntegration(this IServiceCollection services)
+    internal static IServiceCollection AddClaudeIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpClient<ClaudeAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
@@ -18,7 +18,7 @@ public static class ClaudeServiceCollectionExtensions
     {
         services.AddClaudeIntegration();
         services.TryAddSingleton(new ClaudeStateStore(ownedStateDirectory));
-        services.TryAddSingleton<ClaudeSession>();
+        services.TryAddSingleton(p => new ClaudeSession(p.GetRequiredService<ClaudeAuthClient>(), p.GetRequiredService<ClaudeQuotaClient>(), p.GetRequiredService<ClaudeStateStore>(), p.GetRequiredService<TimeProvider>()));
         return services;
     }
 

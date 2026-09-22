@@ -7,7 +7,7 @@ namespace AiUsage.Infrastructure.Providers.Codex;
 public static class CodexServiceCollectionExtensions
 {
     /// <summary>Registers the Codex auth and quota clients with hardened transports.</summary>
-    public static IServiceCollection AddCodexIntegration(this IServiceCollection services)
+    internal static IServiceCollection AddCodexIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpClient<CodexAuthClient>(ProviderTransport.ConfigureClient)
@@ -27,7 +27,7 @@ public static class CodexServiceCollectionExtensions
         services.AddCodexIntegration();
         services.TryAddSingleton(new CodexGrantStore(ownedStateDirectory));
         services.TryAddSingleton(new CodexQuotaCache(ownedStateDirectory));
-        services.TryAddSingleton<CodexSession>();
+        services.TryAddSingleton(p => new CodexSession(p.GetRequiredService<CodexAuthClient>(), p.GetRequiredService<CodexQuotaClient>(), p.GetRequiredService<CodexGrantStore>(), p.GetRequiredService<CodexQuotaCache>()));
         services.TryAddSingleton(services => new DashboardWorkflow(services.GetRequiredService<CodexSession>()));
         return services;
     }

@@ -5,7 +5,7 @@ using AiUsage.Core.Usage;
 namespace AiUsage.Infrastructure.Providers.Codex;
 
 /// <summary>A cached quota reading and the moment it was actually retrieved from the provider.</summary>
-public sealed record CachedQuota(QuotaSnapshot Quota, DateTimeOffset RetrievedAt);
+internal sealed record CachedQuota(QuotaSnapshot Quota, DateTimeOffset RetrievedAt);
 
 /// <summary>
 /// Stores the last quota reading in the app-owned directory so a relaunch or an unavailable
@@ -13,7 +13,7 @@ public sealed record CachedQuota(QuotaSnapshot Quota, DateTimeOffset RetrievedAt
 /// only: no token, no refresh token and no account identifier, so it needs no encryption and
 /// must never be treated as proof of current entitlement.
 /// </summary>
-public sealed class CodexQuotaCache
+internal sealed class CodexQuotaCache
 {
     private const int MaximumRecordBytes = 512 * 1024;
     private readonly string path;

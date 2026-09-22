@@ -244,19 +244,37 @@ AC-12 and T-10 are complete. No remaining action for T-10; T-11 and T-12 remain 
 and unselected. AIU-028 remains incomplete.
 
 ### T-11 - Close CR-AIU-003-01: hardening at the library boundary
-- status: pending
+- status: done
 - depends_on: [T-01, T-03]
 - acceptance: AC-01
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; Infrastructure 271/271, Presentation 147/147, console Release and Windows Debug builds, document validation and primary review PASS
 
-- [ ] Make the eight auth and quota clients `internal`, widening `InternalsVisibleTo` for
+- [x] Make the eight auth and quota clients `internal`, widening `InternalsVisibleTo` for
       `tools/AiUsage.ProviderConsole` as already done for the test assembly, or construct the
       hardened primary handler inside the clients.
-- [ ] Reduce the remaining Infrastructure public surface to what `AiUsage.Windows` and the
+- [x] Reduce the remaining Infrastructure public surface to what `AiUsage.Windows` and the
       console actually consume.
-- [ ] Update the CR-AIU-003-01 row in [the backlog](../../backlog.md) to resolved, with the
+- [x] Update the CR-AIU-003-01 row in [the backlog](../../backlog.md) to resolved, with the
       evidence reference.
-- [ ] Check: Infrastructure Release suite and a Release build of `tools/AiUsage.ProviderConsole`.
+- [x] Check: Infrastructure Release suite and a Release build of `tools/AiUsage.ProviderConsole`.
+
+Relevance check and implementation plan (2026-09-22, base `72cc323`): all eight raw
+HTTP clients remain public, so F-14 and CR-AIU-003-01 still apply. Internalize provider
+implementation types and integration-only registration; keep the four public sessions with
+internal constructors and DI factories, the public product-registration extensions, and the
+two persistence services consumed by Windows. Grant friend access only to ProviderConsole,
+in addition to the existing Infrastructure tests. Preserve all protocol, handler, storage and
+session behavior. Verify the public construction boundary, eight hardened handler pipelines,
+session resolution, Infrastructure/Presentation Release suites, console/Windows builds,
+document validation and primary integrated review. The boundary regression failed against
+the original code as expected; existing registration checks passed.
+
+Ruling: use this task document as the execution ledger, work on main and do not dispatch
+any subagents, following the owner's explicit instructions. This is an accessibility-only
+reduction inside the existing Infrastructure boundary; no authentication protocol, credential
+lifecycle, durable-data or privilege behavior changes. Primary review applies under CONTRIBUTING;
+no independent review or live-provider evidence will be claimed. T-12 is assessed only after
+T-11 is completed, using its explicit drop condition.
 
 ### T-12 - Transport options
 - status: pending

@@ -5,7 +5,7 @@ namespace AiUsage.Infrastructure.Providers.Copilot;
 
 public static class CopilotServiceCollectionExtensions
 {
-    public static IServiceCollection AddCopilotIntegration(this IServiceCollection services)
+    internal static IServiceCollection AddCopilotIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpClient<CopilotAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
@@ -18,7 +18,7 @@ public static class CopilotServiceCollectionExtensions
     {
         services.AddCopilotIntegration();
         services.TryAddSingleton(new CopilotStateStore(ownedStateDirectory));
-        services.TryAddSingleton<CopilotSession>();
+        services.TryAddSingleton(p => new CopilotSession(p.GetRequiredService<CopilotAuthClient>(), p.GetRequiredService<CopilotQuotaClient>(), p.GetRequiredService<CopilotStateStore>(), p.GetRequiredService<TimeProvider>()));
         return services;
     }
 

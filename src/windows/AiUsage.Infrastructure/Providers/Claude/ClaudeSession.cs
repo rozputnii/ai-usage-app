@@ -5,8 +5,21 @@ namespace AiUsage.Infrastructure.Providers.Claude;
 
 /// <summary>One app-owned connection. No source CLI credentials are read or imported.</summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota, ClaudeStateStore store, TimeProvider clock) : IProviderSession, IDisposable
+public sealed class ClaudeSession : IProviderSession, IDisposable
 {
+    private readonly ClaudeAuthClient auth;
+    private readonly ClaudeQuotaClient quota;
+    private readonly ClaudeStateStore store;
+    private readonly TimeProvider clock;
+
+    internal ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota, ClaudeStateStore store, TimeProvider clock)
+    {
+        this.auth = auth;
+        this.quota = quota;
+        this.store = store;
+        this.clock = clock;
+    }
+
     private readonly SemaphoreSlim gate = new(1, 1);
     private ClaudeStoredState? stored;
     private ClaudeCredentials? credentials;

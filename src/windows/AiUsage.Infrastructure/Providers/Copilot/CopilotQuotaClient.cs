@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 
 namespace AiUsage.Infrastructure.Providers.Copilot;
 
-public sealed class CopilotQuotaClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class CopilotQuotaClient(HttpClient client, TimeProvider? timeProvider = null)
 {
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private readonly object sync = new();

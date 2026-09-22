@@ -7,9 +7,21 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 /// tier on an account that has none, which is a provider-side write; refresh and resume never can.
 /// </summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class AntigravitySession(AntigravityAuthClient auth, AntigravityQuotaClient quota,
-    AntigravityStateStore store, TimeProvider clock) : IProviderSession, IDisposable
+public sealed class AntigravitySession : IProviderSession, IDisposable
 {
+    private readonly AntigravityAuthClient auth;
+    private readonly AntigravityQuotaClient quota;
+    private readonly AntigravityStateStore store;
+    private readonly TimeProvider clock;
+
+    internal AntigravitySession(AntigravityAuthClient auth, AntigravityQuotaClient quota, AntigravityStateStore store, TimeProvider clock)
+    {
+        this.auth = auth;
+        this.quota = quota;
+        this.store = store;
+        this.clock = clock;
+    }
+
     private readonly SemaphoreSlim gate = new(1, 1);
     private AntigravityStoredState? stored;
     private AntigravityCredentials? credentials;

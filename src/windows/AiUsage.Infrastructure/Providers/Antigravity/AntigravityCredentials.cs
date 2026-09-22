@@ -6,7 +6,7 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 /// One app-owned Google grant plus the workspace it was discovered against. No source CLI
 /// credential is read, and the access token never leaves this process.
 /// </summary>
-public sealed class AntigravityCredentials
+internal sealed class AntigravityCredentials
 {
     internal AntigravityCredentials(string accessToken, string refreshToken, string accountId, string projectId,
         string? tier, DateTimeOffset refreshAt)

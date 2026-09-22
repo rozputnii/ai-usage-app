@@ -7,7 +7,7 @@ using static AiUsage.Infrastructure.Providers.Codex.CodexQuotaParser;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvider = null)
 {
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
 

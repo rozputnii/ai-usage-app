@@ -5,7 +5,7 @@ using System.Web;
 
 namespace AiUsage.Infrastructure.Providers.Claude;
 
-public sealed class ClaudeBrowserAuthorization : IDisposable
+internal sealed class ClaudeBrowserAuthorization : IDisposable
 {
     internal ClaudeBrowserAuthorization(LoopbackCallback callback, Uri url, string redirect, string state, string verifier, DateTimeOffset expires)
     {

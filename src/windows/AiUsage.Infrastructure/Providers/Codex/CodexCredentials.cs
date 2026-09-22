@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-public sealed class CodexCredentials : IDisposable
+internal sealed class CodexCredentials : IDisposable
 {
     private bool disposed;
 

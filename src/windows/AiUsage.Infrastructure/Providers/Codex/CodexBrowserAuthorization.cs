@@ -6,7 +6,7 @@ namespace AiUsage.Infrastructure.Providers.Codex;
 /// One pending browser sign-in. The loopback listener, PKCE verifier and state stay
 /// process-local; only the authorization URL is shown to the user.
 /// </summary>
-public sealed class CodexBrowserAuthorization : IDisposable
+internal sealed class CodexBrowserAuthorization : IDisposable
 {
     internal CodexBrowserAuthorization(LoopbackCallback callback, Uri authorizationUrl, string redirectUri, string state, string codeVerifier, DateTimeOffset expiresAt)
     {

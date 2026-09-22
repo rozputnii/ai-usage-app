@@ -3,7 +3,7 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 
 /// <summary>Provider policy over the shared app-owned DPAPI state lease.</summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class AntigravityStateStore
+internal sealed class AntigravityStateStore
 {
     private readonly string directory;
     private readonly Action? afterStage;

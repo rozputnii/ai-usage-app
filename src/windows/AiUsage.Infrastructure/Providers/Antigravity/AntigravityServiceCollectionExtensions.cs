@@ -5,7 +5,7 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 
 public static class AntigravityServiceCollectionExtensions
 {
-    public static IServiceCollection AddAntigravityIntegration(this IServiceCollection services)
+    internal static IServiceCollection AddAntigravityIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpClient<AntigravityAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
@@ -18,7 +18,7 @@ public static class AntigravityServiceCollectionExtensions
     {
         services.AddAntigravityIntegration();
         services.TryAddSingleton(new AntigravityStateStore(ownedStateDirectory));
-        services.TryAddSingleton<AntigravitySession>();
+        services.TryAddSingleton(p => new AntigravitySession(p.GetRequiredService<AntigravityAuthClient>(), p.GetRequiredService<AntigravityQuotaClient>(), p.GetRequiredService<AntigravityStateStore>(), p.GetRequiredService<TimeProvider>()));
         return services;
     }
 

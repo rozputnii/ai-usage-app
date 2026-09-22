@@ -3,7 +3,7 @@ namespace AiUsage.Infrastructure.Providers.Claude;
 
 /// <summary>Provider policy over the shared app-owned DPAPI state lease.</summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class ClaudeStateStore
+internal sealed class ClaudeStateStore
 {
     private readonly string directory;
     private readonly Action? afterStage;

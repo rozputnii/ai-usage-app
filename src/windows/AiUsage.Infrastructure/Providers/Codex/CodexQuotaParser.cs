@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-public static class CodexQuotaParser
+internal static class CodexQuotaParser
 {
     public static QuotaSnapshot Parse(ReadOnlyMemory<byte> utf8, DateTimeOffset fetchedAt)
     {

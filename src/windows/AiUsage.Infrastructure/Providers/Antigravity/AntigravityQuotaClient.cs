@@ -11,7 +11,7 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 /// host or legacy model-catalog endpoint is used. Connecting an account with no workspace
 /// provisions the free tier, which the owner selected on 2026-09-20 to match OMP.
 /// </summary>
-public sealed class AntigravityQuotaClient
+internal sealed class AntigravityQuotaClient
 {
     private const string Metadata = """{"ideType":"ANTIGRAVITY"}""";
     private const string FreeTier = "free-tier";

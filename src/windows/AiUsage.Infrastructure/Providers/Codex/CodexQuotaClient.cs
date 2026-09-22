@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-public sealed class CodexQuotaClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class CodexQuotaClient(HttpClient client, TimeProvider? timeProvider = null)
 {
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
 

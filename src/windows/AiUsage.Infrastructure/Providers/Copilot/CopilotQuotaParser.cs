@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace AiUsage.Infrastructure.Providers.Copilot;
 
-public static class CopilotQuotaParser
+internal static class CopilotQuotaParser
 {
     public static QuotaSnapshot Parse(ReadOnlyMemory<byte> json, DateTimeOffset fetchedAt)
     {

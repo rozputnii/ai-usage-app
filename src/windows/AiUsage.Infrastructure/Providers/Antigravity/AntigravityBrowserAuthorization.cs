@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 namespace AiUsage.Infrastructure.Providers.Antigravity;
 
 /// <summary>One browser sign-in attempt. The verifier and state are transient and never persisted.</summary>
-public sealed class AntigravityBrowserAuthorization : IDisposable
+internal sealed class AntigravityBrowserAuthorization : IDisposable
 {
     internal AntigravityBrowserAuthorization(LoopbackCallback callback, Uri url, string redirect, string state,
         string verifier, AntigravityRegistration registration, DateTimeOffset expires)

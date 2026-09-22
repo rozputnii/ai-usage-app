@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace AiUsage.Infrastructure.Providers.Copilot;
 
 /// <summary>OMP's GitHub OAuth grant, not a Copilot inference token or a CLI import.</summary>
-public sealed class CopilotCredentials
+internal sealed class CopilotCredentials
 {
     internal CopilotCredentials(string accessToken, string accountId, DateTimeOffset? expiresAt = null)
     { AccessToken = accessToken; AccountId = accountId; ExpiresAt = expiresAt; }

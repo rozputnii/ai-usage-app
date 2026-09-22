@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-public sealed class CodexDeviceAuthorization
+internal sealed class CodexDeviceAuthorization
 {
     private static readonly Uri DeviceVerificationUri = new("https://auth.openai.com/codex/device");
     internal CodexDeviceAuthorization(string deviceAuthId, string userCode, TimeSpan interval, DateTimeOffset expiresAt)

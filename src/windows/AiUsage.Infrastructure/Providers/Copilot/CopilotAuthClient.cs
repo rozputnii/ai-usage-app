@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace AiUsage.Infrastructure.Providers.Copilot;
 
-public sealed class CopilotAuthClient
+internal sealed class CopilotAuthClient
 {
     private readonly HttpClient client;
     private readonly TimeProvider clock;

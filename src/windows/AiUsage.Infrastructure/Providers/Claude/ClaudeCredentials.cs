@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace AiUsage.Infrastructure.Providers.Claude;
 
 /// <summary>Immutable, in-memory credentials. Only the session owns refresh and durable cutover.</summary>
-public sealed class ClaudeCredentials
+internal sealed class ClaudeCredentials
 {
     internal ClaudeCredentials(string accessToken, string refreshToken, ClaudeIdentity identity, DateTimeOffset refreshAt)
     {

@@ -9,7 +9,7 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 /// re-attributed to model families, a shared group is never duplicated into per-family quotas, and
 /// a missing field stays unknown rather than becoming zero, unlimited or exhausted.
 /// </summary>
-public static class AntigravityQuotaParser
+internal static class AntigravityQuotaParser
 {
     private const int MaximumGroups = 64;
     private const int MaximumWindows = 256;

@@ -6,14 +6,14 @@ using System.Text.Json.Serialization;
 namespace AiUsage.Infrastructure.Providers.Codex;
 
 /// <summary>One stored Codex grant: its opaque workspace and refresh token.</summary>
-public sealed record CodexStoredGrant(string AccountId, string RefreshToken)
+internal sealed record CodexStoredGrant(string AccountId, string RefreshToken)
 {
     public override string ToString() => "CodexStoredGrant (redacted)";
 }
 
 /// <summary>App-owned DPAPI CurrentUser grant using the shared exclusive, recoverable state lease.</summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class CodexGrantStore
+internal sealed class CodexGrantStore
 {
     private readonly Action? afterStage;
     private static readonly ProviderStatePolicy<StoredRecord> Policy = new(

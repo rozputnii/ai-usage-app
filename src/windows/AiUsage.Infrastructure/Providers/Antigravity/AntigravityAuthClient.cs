@@ -13,7 +13,7 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 /// registration. Using a third party for Antigravity is restricted by the provider; see
 /// docs/providers/antigravity.md. No inference, onboarding or CLI credential access happens here.
 /// </summary>
-public sealed class AntigravityAuthClient
+internal sealed class AntigravityAuthClient
 {
     private readonly HttpClient client;
     private readonly TimeProvider clock;

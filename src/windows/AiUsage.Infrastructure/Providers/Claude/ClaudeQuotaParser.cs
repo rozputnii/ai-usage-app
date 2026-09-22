@@ -10,7 +10,7 @@ namespace AiUsage.Infrastructure.Providers.Claude;
 /// Parses the subscription usage payload returned by Claude's OAuth usage endpoint.
 /// The parser is deliberately independent of transport and never retains the input.
 /// </summary>
-public static class ClaudeQuotaParser
+internal static class ClaudeQuotaParser
 {
     private const int MaxPayloadBytes = 1024 * 1024;
     private const int MaxJsonDepth = 32;

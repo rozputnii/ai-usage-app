@@ -11,7 +11,7 @@ using System.Web;
 namespace AiUsage.Infrastructure.Providers.Claude;
 
 /// <summary>Private, unsupported OMP-style OAuth flow. See docs/providers/claude.md for the restriction.</summary>
-public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvider = null)
 {
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private const string CallbackPath = "/callback";

@@ -121,7 +121,7 @@ Unselected tasks remain NOT_RUN.
 | T-08 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
 | T-09 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
 | T-10 | AC-12 | Presentation visibility-gate test **and** interactive Windows smoke | NOT_RUN |
-| T-11 | AC-01 | Infrastructure Release suite; `tools/AiUsage.ProviderConsole` Release build | NOT_RUN |
+| T-11 | AC-01 | Infrastructure Release suite; `tools/AiUsage.ProviderConsole` Release build | PASS; see T-11 library-boundary evidence below |
 | T-12 | AC-01 | Infrastructure Release suite | NOT_RUN |
 
 ## T-08 and T-09 - 2026-09-20
@@ -702,3 +702,33 @@ the original smoke harness. The targeted restore screenshot was inspected; it di
 the updated `in 9 m` summary and unchanged 37% quota. Primary review includes the final
 hidden-quota regression refinement. AC-12 is PASS and T-10 is complete. Final document
 validation and diff checks are recorded with the closure commit.
+
+## T-11 library boundary - 2026-09-22
+
+Relevance at base 72cc323: all eight auth/quota clients exposed constructors accepting arbitrary
+HttpClient instances. T-01 centralized handler policy but left the public bypass intact; T-03
+completed the prerequisite session contract. T-11 therefore remained necessary.
+
+The eight clients, credential/authorization models, parsers, stores and provider exceptions are
+now internal. The four sessions remain public for existing Windows resolution, with internal
+constructors invoked by explicit singleton DI factories. The only ten exported top-level types
+are those sessions, four product-registration extension classes and the two Windows-consumed
+persistence services. ProviderConsole receives explicit friend access; Windows does not.
+All eight pipelines retain disabled redirects, cookies and logging, and five-minute pooling.
+No HTTP, OAuth, serialization or session-operation body changed.
+
+| Check | Verdict | Observed result |
+| --- | --- | --- |
+| New public-construction regression before implementation | PASS (expected RED) | Targeted boundary run: 10 tests, exactly 1 failure, because exported constructors accepted HttpClient. The eight handler-policy cases and session-resolution case already passed. |
+| Infrastructure Release suite | PASS | Standard README command: 271 tests, 0 failed, skipped or not run; includes all ten boundary/registration cases. |
+| Presentation Release suite | PASS | Standard README command: 147 tests, 0 failed, skipped or not run. |
+| ProviderConsole Release build | PASS | `dotnet build tools/AiUsage.ProviderConsole -c Release --no-restore`; 0 warnings/errors. |
+| Windows unpackaged Debug build | PASS | Standard README x64/WindowsPackageType=None command; 0 warnings/errors. Confirms the non-friend desktop consumer still compiles. |
+| Canonical document validation / diff check | PASS | Standard README validator command and `git diff --check`; valid with no diagnostics and no whitespace errors. |
+| Primary integrated acceptance review | PASS | Reviewed accessibility diff, unchanged transport and data-operation bodies, friend assembly scope, factory dependencies, singleton ownership and consumer compatibility. No actionable findings. |
+| Independent review / live providers / interactive UI / package build | NOT_RUN | Primary-only as requested. This task reduces compile-time accessibility within Infrastructure; authentication, credential lifecycle, durable-data, privilege and UI behavior are unchanged. No independent review, live account or interactive Windows success is inferred from these checks. |
+
+The regression catches a future public raw-pipeline constructor; registration tests exercise
+real DI and all eight actual handler configurations without network requests or state-file
+access. This closes F-14 / CR-AIU-003-01. Friend access is an intentional internal testing/console
+escape hatch, not a security sandbox against arbitrary code or reflection in the same process.
