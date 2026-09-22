@@ -23,6 +23,7 @@ try {
     $certificate = New-Object Security.Cryptography.X509Certificates.X509Certificate2($cer)
     $versions = @()
     foreach ($package in @($old, $next)) {
+        $report.stage = 'Inspecting ' + [IO.Path]::GetFileName($package); Save-Report
         $zip = [IO.Compression.ZipFile]::OpenRead($package)
         try {
             $reader = New-Object IO.StreamReader($zip.GetEntry('AppxManifest.xml').Open())
@@ -38,13 +39,26 @@ try {
     if ($dependencies.Count -eq 0) { throw 'Offline framework dependencies are required.' }
     $runtime = Join-Path $InputDirectory 'dotnet-runtime-10.0.12-win-x64.exe'
     foreach ($path in @($runtime) + @($dependencies.FullName)) {
+        $report.stage = 'Verifying ' + [IO.Path]::GetFileName($path); Save-Report
         $signature = Get-AuthenticodeSignature -LiteralPath $path
         if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'Official prerequisite signature invalid.' }
     }
+    $report.stage = 'Guest trust'; Save-Report
     Import-Certificate -FilePath $cer -CertStoreLocation Cert:/LocalMachine/TrustedPeople | Out-Null
     foreach ($package in @($old, $next)) { if ((Get-AuthenticodeSignature -LiteralPath $package).Status -ne 'Valid') { throw 'Guest package trust verification failed.' } }
-    $installer = Start-Process $runtime -ArgumentList '/install','/quiet','/norestart' -WindowStyle Hidden -Wait -PassThru
-    if ($installer.ExitCode -ne 0) { throw 'Runtime installation failed.' }
+    $report.stage = 'Runtime installation'; Save-Report
+    $dotnet = Join-Path $env:ProgramFiles 'dotnet/dotnet.exe'
+    $runtimes = @(if (Test-Path -LiteralPath $dotnet) { & $dotnet --list-runtimes })
+    if ($runtimes -notmatch '^Microsoft.NETCore.App 10\.0\.12 ') {
+        # Start-Process -Wait also waits for descendants, including long-lived MSI service processes.
+        # Hold and wait for this installer's own handle instead.
+        $installer = Start-Process $runtime -ArgumentList '/install','/quiet','/norestart' -WindowStyle Hidden -PassThru
+        $null = $installer.Handle
+        if (!$installer.WaitForExit(600000)) { throw 'Runtime installer exceeded ten minutes.' }
+        if ($installer.ExitCode -ne 0) { throw 'Runtime installation failed.' }
+        $installer.Dispose()
+    }
+    $report.stage = 'Old package installation'; Save-Report
     Add-AppxPackage -Path $old -DependencyPath @($dependencies.FullName)
     $installed = Get-AppxPackage -Name AiUsage.Dev
     if ([version]$installed.Version -ne $versions[0]) { throw 'Old version was not installed.' }
@@ -68,7 +82,7 @@ try {
     $env:AIU_UPGRADE_PHASE = 'old'
     $env:AIU_SMOKE_EVIDENCE_DIRECTORY = Join-Path $EvidenceDirectory 'old'
     $smoke = Join-Path $InputDirectory 'smoke/AiUsage.Windows.Tests.exe'
-    & $smoke -noLogo -method '*UpgradeRecovery' *> (Join-Path $EvidenceDirectory 'old-ui.log')
+    & $smoke -noLogo -explicit on -method '*UpgradeRecovery' *> (Join-Path $EvidenceDirectory 'old-ui.log')
     if ($LASTEXITCODE -ne 0) { throw 'Old package UI failed.' }
     $report.oldUi = 'PASS'
     Add-AppxPackage -Path $next
@@ -80,7 +94,7 @@ try {
     Save-Report
     $env:AIU_UPGRADE_PHASE = 'new'
     $env:AIU_SMOKE_EVIDENCE_DIRECTORY = Join-Path $EvidenceDirectory 'new'
-    & $smoke -noLogo -method '*UpgradeRecovery' *> (Join-Path $EvidenceDirectory 'new-ui.log')
+    & $smoke -noLogo -explicit on -method '*UpgradeRecovery' *> (Join-Path $EvidenceDirectory 'new-ui.log')
     if ($LASTEXITCODE -ne 0) { throw 'New package recovery UI failed.' }
     $report.recovery = 'PASS'
     if ((Get-FileHash -LiteralPath $grantPath).Hash -ne $beforeGrant -or (Get-FileHash -LiteralPath (Join-Path $state 'preferences/appearance.v1.json')).Hash -ne $beforePreferences) { throw 'Recovery changed protected credentials or preferences.' }

@@ -76,6 +76,7 @@ internal sealed partial class RecoveryViewModel : SnapshotViewModel
         CheckpointText = details.CheckpointId;
         FolderText = snapshot.Mode == UiMode.Live ? details.DataFolderPreview : format.F("Recovery_FolderPreview", details.DataFolderPreview);
         RetryAvailable = state != RecoveryState.NewerSchema;
+        ToggleCheckpointsCommand.NotifyCanExecuteChanged();
         RetryLabel = format.T(state == RecoveryState.RestoreFailed ? "Recovery_RetryRestore" : "Recovery_RetryMigration");
         DisabledNote = state == RecoveryState.NewerSchema ? format.T(snapshot.Mode == UiMode.Live ? "RecoveryLive_NewerSchemaNote" : "Recovery_NewerSchemaNote") : string.Empty;
     }

@@ -13,7 +13,7 @@ public sealed partial class ShellSmoke
 {
     private const string UpgradePreferences = "{\"Version\":1,\"Theme\":2,\"Labels\":{\"opaque/provider\":\"Synthetic checkpoint\"},\"future\":{\"raw\":[null,7]}}";
 
-    [Fact]
+    [Fact(Explicit = true)]
     public void UpgradeRecovery()
     {
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
@@ -100,6 +100,9 @@ public sealed partial class ShellSmoke
                 Capture(window, evidence, "restore-confirmation");
                 FindAllInProcess(automation, pid, "ConfirmAccept").Single().AsButton().Invoke();
                 WaitForDashboard(window);
+                Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "ConfirmAccept").Count == 0, TimeSpan.FromSeconds(10)));
+                // UIA removes popup children before WinUI completes its closing animation and releases the dialog gate.
+                Thread.Sleep(500);
                 Assert.Equal(original, File.ReadAllBytes(target));
                 Capture(window, evidence, "restored-dashboard");
             });
@@ -164,7 +167,7 @@ public sealed partial class ShellSmoke
         {
             var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
             return handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == (uint)pid &&
-                (element.FindFirstDescendant(cf => cf.ByAutomationId("RecoverySurface")) is not null ||
+                (element.FindFirstDescendant(cf => cf.ByAutomationId("RecoveryTitle")) is not null ||
                  element.FindFirstDescendant(cf => cf.ByAutomationId("MainNavigation")) is not null);
         })?.AsWindow();
 

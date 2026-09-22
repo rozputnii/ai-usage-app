@@ -213,6 +213,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
             var text = $"AI Usage recovery\nCondition: {Current.Condition}\nLayout: {Current.LayoutVersion}\nCheckpoint available: {Current.Checkpoint is not null}\n";
             await Task.Run(() => Write(Path.Combine(root, "recovery-diagnostics.txt"), System.Text.Encoding.UTF8.GetBytes(text)), token).ConfigureAwait(false);
         }
+        catch (ProviderException) { throw new IOException("Recovery diagnostic path is unavailable."); }
         finally { gate.Release(); }
     }
 

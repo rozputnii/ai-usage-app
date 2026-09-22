@@ -233,5 +233,23 @@ public sealed class StateMaintenanceTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task DiagnosticExportContainsOnlyStatusAndNormalizesUnsafePathFailure()
+    {
+        await File.WriteAllTextAsync(Legacy, Preferences, Token);
+        using var maintenance = new StateMaintenance(root);
+        await maintenance.InitializeAsync(Token);
+        await maintenance.ExportDiagnosticsAsync(Token);
+        var path = Path.Combine(root, "recovery-diagnostics.txt");
+        var text = await File.ReadAllTextAsync(path, Token);
+        Assert.Contains("Condition: Ready", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("opaque/provider", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(root, text, StringComparison.Ordinal);
+        File.Delete(path);
+        Directory.CreateDirectory(path);
+        await Assert.ThrowsAsync<IOException>(() => maintenance.ExportDiagnosticsAsync(Token));
+        Assert.True(Directory.Exists(path));
+    }
+
     public void Dispose() => Directory.Delete(root, recursive: true);
 }

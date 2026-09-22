@@ -2,6 +2,7 @@ using AiUsage.Adapters.Live;
 using AiUsage.Core.Persistence;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Presentation;
+using AiUsage.Features.Recovery;
 using Xunit;
 
 namespace AiUsage.Presentation.Tests;
@@ -64,7 +65,13 @@ public sealed class LiveRecoveryTests
         using var source = new LiveUsageSource(new Dictionary<string, IProviderSession>());
         var recovery = new LiveRecoveryService(maintenance, source, "owned data", () => Task.CompletedTask);
         var preferences = new LivePreferenceStore(source, _ => Task.FromResult<string?>(null), (_, _) => Task.CompletedTask);
+        using var host = new TestHost();
+        using var viewModel = new RecoveryViewModel(new PresentationContext(source, host.Dispatcher, host.Clock, host.Text,
+            host.Announcer, host.Navigation, host.Dialogs, host.Motion), recovery);
+        var restoreEnabled = viewModel.ToggleCheckpointsCommand.CanExecute(null);
+        viewModel.ToggleCheckpointsCommand.CanExecuteChanged += (_, _) => restoreEnabled = viewModel.ToggleCheckpointsCommand.CanExecute(null);
         await new ProductLifecycle(source, preferences, recovery).InitializeAsync();
+        Assert.False(restoreEnabled);
         Assert.Equal(RecoveryState.NewerSchema, source.Current.System.Recovery);
         Assert.Empty(await recovery.ListCheckpointsAsync(TestContext.Current.CancellationToken));
         Assert.Equal(CommandStatus.Unsupported, (await recovery.RestoreCheckpointAsync("last-good", new Progress<double>(), TestContext.Current.CancellationToken)).Status);
