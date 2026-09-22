@@ -8,8 +8,8 @@ public static class CopilotServiceCollectionExtensions
     public static IServiceCollection AddCopilotIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
-        services.AddHttpClient<CopilotAuthClient>(ConfigureClient).ConfigurePrimaryHttpMessageHandler(CreateHandler).RemoveAllLoggers();
-        services.AddHttpClient<CopilotQuotaClient>(ConfigureClient).ConfigurePrimaryHttpMessageHandler(CreateHandler).RemoveAllLoggers();
+        services.AddHttpClient<CopilotAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
+        services.AddHttpClient<CopilotQuotaClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
         return services;
     }
 
@@ -22,11 +22,4 @@ public static class CopilotServiceCollectionExtensions
         return services;
     }
 
-    private static void ConfigureClient(HttpClient client) => client.Timeout = Timeout.InfiniteTimeSpan;
-    private static HttpMessageHandler CreateHandler() => new SocketsHttpHandler
-    {
-        AllowAutoRedirect = false,
-        UseCookies = false,
-        PooledConnectionLifetime = TimeSpan.FromMinutes(5)
-    };
 }

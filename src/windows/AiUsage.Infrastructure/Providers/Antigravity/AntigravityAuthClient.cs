@@ -41,7 +41,7 @@ public sealed class AntigravityAuthClient
         var state = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
         LoopbackCallback callback;
         try { callback = LoopbackCallback.Start([PreferredPort, 0]); }
-        catch (IOException) { throw new AntigravityException(ProviderFailureKind.BrowserCallbackUnavailable); }
+        catch (IOException) { throw new ProviderException(ProviderFailureKind.BrowserCallbackUnavailable); }
         try
         {
             var redirect = $"http://127.0.0.1:{callback.Port}{CallbackPath}";
@@ -70,10 +70,10 @@ public sealed class AntigravityAuthClient
         try
         {
             if (authorization.Completed)
-                throw new AntigravityException(ProviderFailureKind.AuthenticationRequired);
+                throw new ProviderException(ProviderFailureKind.AuthenticationRequired);
             var remaining = authorization.ExpiresAt - clock.GetUtcNow();
             if (remaining <= TimeSpan.Zero)
-                throw new AntigravityException(ProviderFailureKind.LoginAttemptExpired);
+                throw new ProviderException(ProviderFailureKind.LoginAttemptExpired);
             using var deadline = new CancellationTokenSource(remaining, clock);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
             try
@@ -81,7 +81,7 @@ public sealed class AntigravityAuthClient
                 var code = await ReadBrowserCodeAsync(authorization, linked.Token).ConfigureAwait(false);
                 linked.Token.ThrowIfCancellationRequested();
                 if (clock.GetUtcNow() >= authorization.ExpiresAt)
-                    throw new AntigravityException(ProviderFailureKind.LoginAttemptExpired);
+                    throw new ProviderException(ProviderFailureKind.LoginAttemptExpired);
                 authorization.Completed = true;
                 using var request = Post(new Dictionary<string, string>
                 {
@@ -89,7 +89,7 @@ public sealed class AntigravityAuthClient
                     ["client_id"] = authorization.Registration.ClientId, ["client_secret"] = authorization.Registration.ClientSecret,
                     ["redirect_uri"] = authorization.RedirectUri, ["code_verifier"] = authorization.CodeVerifier
                 });
-                using var response = await AntigravityHttp.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
+                using var response = await ProviderTransport.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
                 if (!response.IsSuccess)
                     throw TokenFailure(response);
                 // A returned grant reaches the caller even if later discovery or quota work is cancelled.
@@ -97,7 +97,7 @@ public sealed class AntigravityAuthClient
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
             {
-                throw new AntigravityException(ProviderFailureKind.LoginAttemptExpired);
+                throw new ProviderException(ProviderFailureKind.LoginAttemptExpired);
             }
         }
         finally { authorization.Gate.Release(); }
@@ -115,7 +115,7 @@ public sealed class AntigravityAuthClient
             ["grant_type"] = "refresh_token", ["refresh_token"] = refreshToken,
             ["client_id"] = current.ClientId, ["client_secret"] = current.ClientSecret
         });
-        using var response = await AntigravityHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
             throw TokenFailure(response);
         return await ParseGrantAsync(response.Body!.RootElement, new(refreshToken, accountId), CancellationToken.None).ConfigureAwait(false);
@@ -126,12 +126,12 @@ public sealed class AntigravityAuthClient
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, AntigravityHttp.IdentityUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        using var response = await AntigravityHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
-            throw AntigravityHttp.Failure(response);
+            throw ProviderTransport.Failure(response);
         var subject = Text(Property(response.Body!.RootElement, "id"));
         if (!SafeIdentity(subject))
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return subject!;
     }
 
@@ -149,10 +149,10 @@ public sealed class AntigravityAuthClient
             // A consent screen that dropped the control-plane scope yields a grant that cannot read quota.
             (scope.ValueKind != JsonValueKind.Undefined && (Text(scope) is not { } granted ||
                 !granted.Split(' ').Contains(AntigravityHttp.RequiredScope, StringComparer.Ordinal))))
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         var identity = await GetIdentityAsync(access!, cancellationToken).ConfigureAwait(false);
         if (previous is not null && identity != previous.AccountId)
-            throw new AntigravityException(ProviderFailureKind.AccountMismatch);
+            throw new ProviderException(ProviderFailureKind.AccountMismatch);
         // The rule's five-minute skew keeps a renewal ahead of the provider's own expiry.
         return new(access!, refresh!, identity, clock.GetUtcNow().AddSeconds(Math.Max(0, seconds - 300)));
     }
@@ -179,10 +179,10 @@ public sealed class AntigravityAuthClient
             }
             await request.RespondAsync(HttpStatusCode.OK, "Sign-in response received. Return to AI Usage for the result.", cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(query["error"]))
-                throw new AntigravityException(ProviderFailureKind.AccessDenied);
+                throw new ProviderException(ProviderFailureKind.AccessDenied);
             var code = query["code"];
             if (!SafeToken(code))
-                throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+                throw new ProviderException(ProviderFailureKind.InvalidResponse);
             return code!;
         }
     }
@@ -191,14 +191,14 @@ public sealed class AntigravityAuthClient
         new(HttpMethod.Post, AntigravityHttp.TokenUrl) { Content = new FormUrlEncodedContent(values) };
 
     /// <summary>A rejected grant needs a new sign-in; other token errors keep their transport meaning.</summary>
-    private static AntigravityException TokenFailure(ProviderHttpResponse response)
+    private static ProviderException TokenFailure(ProviderHttpResponse response)
     {
         var error = Text(Property(response.Body?.RootElement ?? default, "error"));
         return error switch
         {
             "invalid_grant" => new(ProviderFailureKind.AuthenticationRequired, response.StatusCode),
             "access_denied" => new(ProviderFailureKind.AccessDenied, response.StatusCode),
-            _ => AntigravityHttp.Failure(response)
+            _ => ProviderTransport.Failure(response)
         };
     }
 

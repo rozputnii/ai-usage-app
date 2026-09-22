@@ -23,13 +23,13 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotQuotaClient qu
         {
             // Revalidate the stable identity before accepting a quota under the durable account binding.
             var identity = await auth.GetIdentityAsync(stored.AccessToken, token).ConfigureAwait(false);
-            if (identity != stored.AccountId) throw new CopilotException(ProviderFailureKind.AccountMismatch);
+            if (identity != stored.AccountId) throw new ProviderException(ProviderFailureKind.AccountMismatch);
             var reading = await quota.GetQuotaAsync(new(stored.AccessToken, stored.AccountId, stored.ExpiresAt), token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
             stored = await lease.SaveAsync(stored with { CachedQuota = reading }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
             return Available(reading);
         }
-        catch (CopilotException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
+        catch (ProviderException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
         {
             stored = await lease.SaveAsync(stored with { NeedsReauthentication = true }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
             return Cached(error.Kind);
@@ -38,18 +38,18 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotQuotaClient qu
 
     // Consumers needing device flow must display the transient challenge rather than lose its code.
     public Task<ProviderSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default) =>
-        Task.FromException<ProviderSessionState>(new CopilotException(ProviderFailureKind.DeviceLoginUnavailable));
+        Task.FromException<ProviderSessionState>(new ProviderException(ProviderFailureKind.DeviceLoginUnavailable));
 
     public Task<ProviderSessionState> ConnectWithChallengeAsync(Action<AuthorizationChallenge> authorize, CancellationToken cancellationToken = default) =>
         RunAsync(async (lease, token) =>
         {
             var next = await auth.LoginAsync(authorize, token).ConfigureAwait(false);
             if (stored is not null && next.AccountId != stored.AccountId)
-                throw new CopilotException(ProviderFailureKind.AccountMismatch);
+                throw new ProviderException(ProviderFailureKind.AccountMismatch);
             QuotaSnapshot? reading = null;
             ProviderFailureKind? failure = null;
             try { reading = await quota.GetQuotaAsync(next, token).ConfigureAwait(false); }
-            catch (CopilotException error) when (stored is null && error.Kind is not (ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch))
+            catch (ProviderException error) when (stored is null && error.Kind is not (ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch))
             { failure = error.Kind; }
             // A replacement must prove quota access; failure never replaces the previous connection.
             token.ThrowIfCancellationRequested();
@@ -76,7 +76,7 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotQuotaClient qu
             stored?.CachedQuota, failure ?? (needsLogin ? ProviderFailureKind.AuthenticationRequired : null),
             stored?.CachedQuota?.FetchedAt, FromCache: stored?.CachedQuota is not null);
     }
-    private Task<ProviderSessionState> RunAsync(Func<CopilotStateLease, CancellationToken, Task<ProviderSessionState>> operation,
+    private Task<ProviderSessionState> RunAsync(Func<ProviderStateLease<CopilotStoredState>, CancellationToken, Task<ProviderSessionState>> operation,
         CancellationToken token, bool load = true) => Task.Run(async () =>
     {
         ObjectDisposedException.ThrowIf(disposed, this);
@@ -92,7 +92,7 @@ public sealed class CopilotSession(CopilotAuthClient auth, CopilotQuotaClient qu
             }
             return State = await operation(lease, token).ConfigureAwait(false);
         }
-        catch (CopilotException error)
+        catch (ProviderException error)
         {
             if (error.Kind is ProviderFailureKind.StorageUnavailable or ProviderFailureKind.RecoveryRequired or ProviderFailureKind.GrantNotRemoved)
             {

@@ -1,3 +1,4 @@
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers.Copilot;
 using System.Net;
@@ -66,7 +67,7 @@ public sealed class CopilotProtocolTests
             ? Device : JsonSerializer.Serialize(new { error, error_description = "synthetic-secret" }))));
         using var http = new HttpClient(server);
         var auth = new CopilotAuthClient(http, new CodexTestServer.Clock(), (_, _) => Task.CompletedTask);
-        var failure = await Assert.ThrowsAsync<CopilotException>(() => auth.LoginAsync(_ => { }, TestContext.Current.CancellationToken));
+        var failure = await Assert.ThrowsAsync<ProviderException>(() => auth.LoginAsync(_ => { }, TestContext.Current.CancellationToken));
         Assert.Equal(expected, failure.Kind);
         Assert.DoesNotContain("synthetic-secret", failure.ToString());
         Assert.Equal(2, server.Calls);
@@ -79,7 +80,7 @@ public sealed class CopilotProtocolTests
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(Device)));
         using var http = new HttpClient(server);
         var auth = new CopilotAuthClient(http, clock, (_, token) => { token.ThrowIfCancellationRequested(); clock.Current += TimeSpan.FromHours(1); return Task.CompletedTask; });
-        Assert.Equal(ProviderFailureKind.DeviceCodeExpired, (await Assert.ThrowsAsync<CopilotException>(() => auth.LoginAsync(_ => { }, TestContext.Current.CancellationToken))).Kind);
+        Assert.Equal(ProviderFailureKind.DeviceCodeExpired, (await Assert.ThrowsAsync<ProviderException>(() => auth.LoginAsync(_ => { }, TestContext.Current.CancellationToken))).Kind);
         Assert.Equal(1, server.Calls);
         using var cancel = new CancellationTokenSource();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => auth.LoginAsync(_ => cancel.Cancel(), cancel.Token));
@@ -93,7 +94,7 @@ public sealed class CopilotProtocolTests
         using var http = new HttpClient(server);
         var auth = new CopilotAuthClient(http);
         var opened = false;
-        Assert.Equal(ProviderFailureKind.InvalidResponse, (await Assert.ThrowsAsync<CopilotException>(() => auth.LoginAsync(_ => opened = true, TestContext.Current.CancellationToken))).Kind);
+        Assert.Equal(ProviderFailureKind.InvalidResponse, (await Assert.ThrowsAsync<ProviderException>(() => auth.LoginAsync(_ => opened = true, TestContext.Current.CancellationToken))).Kind);
         Assert.False(opened);
     }
 
@@ -112,7 +113,7 @@ public sealed class CopilotProtocolTests
         using var http = new HttpClient(server);
         var auth = new CopilotAuthClient(http, new CodexTestServer.Clock(), (_, _) => Task.CompletedTask);
         if (valid) Assert.Equal("123", (await auth.LoginAsync(_ => { }, TestContext.Current.CancellationToken)).AccountId);
-        else Assert.Equal(ProviderFailureKind.InvalidResponse, (await Assert.ThrowsAsync<CopilotException>(() => auth.LoginAsync(_ => { }, TestContext.Current.CancellationToken))).Kind);
+        else Assert.Equal(ProviderFailureKind.InvalidResponse, (await Assert.ThrowsAsync<ProviderException>(() => auth.LoginAsync(_ => { }, TestContext.Current.CancellationToken))).Kind);
         Assert.Equal(valid ? 3 : 2, server.Calls);
     }
 
@@ -155,7 +156,7 @@ public sealed class CopilotProtocolTests
     [InlineData("{\"quota_snapshots\":{\"chat\":{},\"chat\":{}}}")]
     public void InvalidQuotasFailWithoutPayloadDisclosure(string json)
     {
-        var error = Assert.Throws<CopilotException>(() => CopilotQuotaParser.Parse(Encoding.UTF8.GetBytes(json), CodexTestServer.Clock.Now));
+        var error = Assert.Throws<ProviderException>(() => CopilotQuotaParser.Parse(Encoding.UTF8.GetBytes(json), CodexTestServer.Clock.Now));
         Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
         Assert.DoesNotContain("secret", error.ToString());
     }
@@ -173,7 +174,7 @@ public sealed class CopilotProtocolTests
         using var http = new HttpClient(server);
         var quota = new CopilotQuotaClient(http, new CodexTestServer.Clock());
         for (var attempt = 0; attempt < 2; attempt++)
-            Assert.Equal(ProviderFailureKind.RateLimited, (await Assert.ThrowsAsync<CopilotException>(() => quota.GetQuotaAsync(new("synthetic-access", "123"), TestContext.Current.CancellationToken))).Kind);
+            Assert.Equal(ProviderFailureKind.RateLimited, (await Assert.ThrowsAsync<ProviderException>(() => quota.GetQuotaAsync(new("synthetic-access", "123"), TestContext.Current.CancellationToken))).Kind);
         Assert.Equal(1, server.Calls);
     }
 }

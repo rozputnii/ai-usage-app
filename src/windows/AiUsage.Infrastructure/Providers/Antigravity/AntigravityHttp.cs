@@ -19,7 +19,7 @@ internal sealed record AntigravityRegistration(string ClientId, string ClientSec
         var secret = Environment.GetEnvironmentVariable(ClientSecretVariable);
         // A partial or unusable registration is reported as unconfigured, never sent to the provider.
         if (!AntigravityAuthClient.SafeIdentity(id) || !AntigravityAuthClient.SafeToken(secret))
-            throw new AntigravityException(ProviderFailureKind.RegistrationUnavailable);
+            throw new ProviderException(ProviderFailureKind.RegistrationUnavailable);
         return new(id!, secret!);
     }
 
@@ -61,27 +61,4 @@ internal static class AntigravityHttp
         "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/experimentsandconfigs";
     internal const string RequiredScope = "https://www.googleapis.com/auth/cloud-platform";
 
-    internal static async Task<ProviderHttpResponse> SendAsync(HttpClient client, HttpRequestMessage request,
-        TimeProvider clock, CancellationToken cancellationToken)
-    {
-        try { return await ProviderHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false); }
-        catch (ProviderHttpException error)
-        {
-            throw new AntigravityException(error.Kind switch
-            {
-                TransportFailure.InvalidResponse => ProviderFailureKind.InvalidResponse,
-                TransportFailure.Timeout => ProviderFailureKind.Timeout,
-                _ => ProviderFailureKind.NetworkFailure
-            }, error.StatusCode);
-        }
-    }
-
-    internal static AntigravityException Failure(ProviderHttpResponse response) => new(response.StatusCode switch
-    {
-        HttpStatusCode.Unauthorized => ProviderFailureKind.AuthenticationRequired,
-        HttpStatusCode.Forbidden => ProviderFailureKind.AccessDenied,
-        HttpStatusCode.TooManyRequests => ProviderFailureKind.RateLimited,
-        >= HttpStatusCode.InternalServerError => ProviderFailureKind.ProviderUnavailable,
-        _ => ProviderFailureKind.RequestRejected
-    }, response.StatusCode, response.RetryAfter);
 }

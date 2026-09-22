@@ -21,15 +21,15 @@ public sealed class CopilotAuthClient
     public async Task<CopilotCredentials> LoginAsync(Action<AuthorizationChallenge> authorize, CancellationToken cancellationToken = default)
     {
         using var start = Post(CopilotHttp.DeviceUrl, new() { ["client_id"] = CopilotHttp.ClientId, ["scope"] = "read:user" });
-        using var device = await CopilotHttp.SendAsync(client, start, clock, cancellationToken).ConfigureAwait(false);
-        if (!device.IsSuccess) throw CopilotHttp.Failure(device);
+        using var device = await ProviderTransport.SendAsync(client, start, clock, cancellationToken).ConfigureAwait(false);
+        if (!device.IsSuccess) throw ProviderTransport.Failure(device);
         var body = device.Body!.RootElement;
         var code = Text(body, "device_code");
         var userCode = Text(body, "user_code");
         if (!SafeToken(code) || userCode is not { Length: > 0 and <= 32 } || userCode.Any(c => !char.IsAsciiLetterOrDigit(c) && c != '-') ||
             Text(body, "verification_uri") != "https://github.com/login/device" ||
             !Seconds(body, "interval", out var interval) || !Seconds(body, "expires_in", out var expires))
-            throw new CopilotException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         var deadline = clock.GetUtcNow().AddSeconds(expires);
         cancellationToken.ThrowIfCancellationRequested();
         authorize(new(new Uri("https://github.com/login/device"), userCode, deadline));
@@ -46,18 +46,18 @@ public sealed class CopilotAuthClient
                 ["client_id"] = CopilotHttp.ClientId, ["device_code"] = code!,
                 ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code"
             });
-            using var response = await CopilotHttp.SendAsync(client, poll, clock, cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccess) throw CopilotHttp.Failure(response);
+            using var response = await ProviderTransport.SendAsync(client, poll, clock, cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccess) throw ProviderTransport.Failure(response);
             var root = response.Body!.RootElement;
             if (Text(root, "access_token") is { } access)
             {
                 if (!SafeToken(access) || (root.TryGetProperty("token_type", out _) &&
                     !string.Equals(Text(root, "token_type"), "bearer", StringComparison.OrdinalIgnoreCase)))
-                    throw new CopilotException(ProviderFailureKind.InvalidResponse);
+                    throw new ProviderException(ProviderFailureKind.InvalidResponse);
                 DateTimeOffset? expiresAt = null;
                 if (root.TryGetProperty("expires_in", out _))
                 {
-                    if (!Seconds(root, "expires_in", out var lifetime)) throw new CopilotException(ProviderFailureKind.InvalidResponse);
+                    if (!Seconds(root, "expires_in", out var lifetime)) throw new ProviderException(ProviderFailureKind.InvalidResponse);
                     expiresAt = clock.GetUtcNow().AddSeconds(lifetime);
                 }
                 // OMP performs no OAuth refresh. Do not invent renewal from its alias named 'refresh'.
@@ -71,13 +71,13 @@ public sealed class CopilotAuthClient
                     interval = Seconds(root, "interval", out var next) ? Math.Max(interval + 5, next) : interval + 5;
                     multiplier = 1.4;
                     break;
-                case "access_denied": throw new CopilotException(ProviderFailureKind.AccessDenied);
-                case "expired_token": throw new CopilotException(ProviderFailureKind.DeviceCodeExpired);
-                case "device_flow_disabled": throw new CopilotException(ProviderFailureKind.DeviceLoginUnavailable);
-                default: throw new CopilotException(ProviderFailureKind.InvalidResponse);
+                case "access_denied": throw new ProviderException(ProviderFailureKind.AccessDenied);
+                case "expired_token": throw new ProviderException(ProviderFailureKind.DeviceCodeExpired);
+                case "device_flow_disabled": throw new ProviderException(ProviderFailureKind.DeviceLoginUnavailable);
+                default: throw new ProviderException(ProviderFailureKind.InvalidResponse);
             }
         }
-        throw new CopilotException(ProviderFailureKind.DeviceCodeExpired);
+        throw new ProviderException(ProviderFailureKind.DeviceCodeExpired);
     }
 
     internal async Task<string> GetIdentityAsync(string accessToken, CancellationToken token)
@@ -85,11 +85,11 @@ public sealed class CopilotAuthClient
         using var request = new HttpRequestMessage(HttpMethod.Get, CopilotHttp.IdentityUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
-        using var response = await CopilotHttp.SendAsync(client, request, clock, token).ConfigureAwait(false);
-        if (!response.IsSuccess) throw CopilotHttp.Failure(response);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, token).ConfigureAwait(false);
+        if (!response.IsSuccess) throw ProviderTransport.Failure(response);
         var root = response.Body!.RootElement;
         if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.Number || !id.TryGetInt64(out var value) || value <= 0)
-            throw new CopilotException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return value.ToString(CultureInfo.InvariantCulture);
     }
     private static HttpRequestMessage Post(string url, Dictionary<string, string> values) =>

@@ -1,3 +1,5 @@
+using AiUsage.Core.Usage;
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Providers.Claude;
 using AiUsage.Infrastructure.Providers.Claude;
 using System.Net;
@@ -49,7 +51,7 @@ public sealed class ClaudeAuthClientTests
         Assert.DoesNotContain("synthetic", page);
         Assert.DoesNotContain("synthetic", credentials.ToString());
         Assert.Equal("{}", JsonSerializer.Serialize(credentials));
-        await Assert.ThrowsAsync<ClaudeException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
         Assert.Equal(1, server.Calls);
     }
 
@@ -67,8 +69,8 @@ public sealed class ClaudeAuthClientTests
         Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
         Assert.False(login.IsCompleted);
         await callback.GetStringAsync(query["redirect_uri"] + "?error=synthetic-secret&state=" + query["state"], TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => login);
-        Assert.Equal(ClaudeFailureKind.AccessDenied, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => login);
+        Assert.Equal(ProviderFailureKind.AccessDenied, error.Kind);
         Assert.DoesNotContain("synthetic-secret", error.ToString());
         Assert.Equal(0, server.Calls);
     }
@@ -146,8 +148,8 @@ public sealed class ClaudeAuthClientTests
         var auth = new ClaudeAuthClient(http);
         using var attempt = auth.BeginBrowserLogin();
         Assert.True(attempt.TrySubmitCode("synthetic-code"));
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.AccountMismatch, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.AccountMismatch, error.Kind);
         Assert.Equal(2, server.Calls);
     }
 
@@ -163,8 +165,8 @@ public sealed class ClaudeAuthClientTests
         var auth = new ClaudeAuthClient(http);
         using var attempt = auth.BeginBrowserLogin();
         Assert.True(attempt.TrySubmitCode("synthetic-code"));
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.InvalidResponse, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
         Assert.Equal(1, server.Calls);
     }
@@ -184,8 +186,8 @@ public sealed class ClaudeAuthClientTests
         var next = await auth.RefreshAsync(old, TestContext.Current.CancellationToken);
         Assert.Equal(old.Identity, next.Identity);
         Assert.Equal(old.RefreshToken, next.RefreshToken);
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => auth.RefreshAsync(next, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.AccountMismatch, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => auth.RefreshAsync(next, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.AccountMismatch, error.Kind);
         Assert.Equal(2, server.Calls);
     }
 
@@ -195,8 +197,8 @@ public sealed class ClaudeAuthClientTests
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json("{\"error\":\"invalid_grant\",\"message\":\"synthetic-refresh\"}", HttpStatusCode.BadRequest)));
         using var http = new HttpClient(server);
         var old = new ClaudeCredentials("synthetic-access", "synthetic-refresh", new("synthetic-account", "synthetic-organization"), DateTimeOffset.MinValue);
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => new ClaudeAuthClient(http).RefreshAsync(old, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.AuthenticationRequired, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => new ClaudeAuthClient(http).RefreshAsync(old, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
         Assert.Equal(1, server.Calls);
     }
@@ -212,8 +214,8 @@ public sealed class ClaudeAuthClientTests
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(payload)));
         using var http = new HttpClient(server);
         var old = new ClaudeCredentials("synthetic-access", "synthetic-refresh", new("synthetic-account", "synthetic-organization"), DateTimeOffset.MinValue);
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => new ClaudeAuthClient(http).RefreshAsync(old, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.InvalidResponse, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => new ClaudeAuthClient(http).RefreshAsync(old, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
         Assert.Equal(1, server.Calls);
     }

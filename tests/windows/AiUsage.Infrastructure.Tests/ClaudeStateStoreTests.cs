@@ -1,3 +1,5 @@
+using AiUsage.Core.Usage;
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Providers.Claude;
 using AiUsage.Infrastructure.Providers.Claude;
 using System.Security.Cryptography;
@@ -47,8 +49,8 @@ public sealed class ClaudeStateStoreTests : IDisposable
         {
             var old = await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
             interrupt = true;
-            var error = await Assert.ThrowsAsync<ClaudeException>(() => lease.SaveAsync(State("synthetic-rotated"), old.Revision, TestContext.Current.CancellationToken));
-            Assert.Equal(ClaudeFailureKind.StorageUnavailable, error.Kind);
+            var error = await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State("synthetic-rotated"), old.Revision, TestContext.Current.CancellationToken));
+            Assert.Equal(ProviderFailureKind.StorageUnavailable, error.Kind);
         }
         await using var recovered = await new ClaudeStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken);
         Assert.Equal("synthetic-rotated", (await recovered.LoadAsync(TestContext.Current.CancellationToken))!.RefreshToken);
@@ -67,9 +69,9 @@ public sealed class ClaudeStateStoreTests : IDisposable
         var path = Path.Combine(directory, "claude.state");
         await File.WriteAllBytesAsync(path, bytes, TestContext.Current.CancellationToken);
         await using var lease = await new ClaudeStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => lease.LoadAsync(TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.RecoveryRequired, error.Kind);
-        await Assert.ThrowsAsync<ClaudeException>(() => lease.SaveAsync(State(), null, TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
+        await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State(), null, TestContext.Current.CancellationToken));
         Assert.Equal(bytes, await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken));
     }
 
@@ -80,8 +82,8 @@ public sealed class ClaudeStateStoreTests : IDisposable
         await using var lease = await store.AcquireAsync(TestContext.Current.CancellationToken);
         await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
         await File.WriteAllBytesAsync(Path.Combine(directory, "claude.state.pending"), [1, 2, 3], TestContext.Current.CancellationToken);
-        Assert.Equal(ClaudeFailureKind.RecoveryRequired,
-            (await Assert.ThrowsAsync<ClaudeException>(() => lease.LoadAsync(TestContext.Current.CancellationToken))).Kind);
+        Assert.Equal(ProviderFailureKind.RecoveryRequired,
+            (await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(TestContext.Current.CancellationToken))).Kind);
         Assert.True(File.Exists(Path.Combine(directory, "claude.state.pending")));
     }
 
@@ -90,11 +92,11 @@ public sealed class ClaudeStateStoreTests : IDisposable
     {
         var store = new ClaudeStateStore(directory);
         await using var lease = await store.AcquireAsync(TestContext.Current.CancellationToken);
-        await Assert.ThrowsAsync<ClaudeException>(() => store.AcquireAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => store.AcquireAsync(TestContext.Current.CancellationToken));
         var old = await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
         var next = await lease.SaveAsync(State("synthetic-next"), old.Revision, TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => lease.SaveAsync(State("synthetic-obsolete"), old.Revision, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.RecoveryRequired, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State("synthetic-obsolete"), old.Revision, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
         Assert.Equal(next.Revision, (await lease.LoadAsync(TestContext.Current.CancellationToken))!.Revision);
     }
 
@@ -115,8 +117,8 @@ public sealed class ClaudeStateStoreTests : IDisposable
         Assert.Equal(0, process.ExitCode);
         try
         {
-            var error = await Assert.ThrowsAsync<ClaudeException>(() => new ClaudeStateStore(junction).AcquireAsync(TestContext.Current.CancellationToken));
-            Assert.Equal(ClaudeFailureKind.RecoveryRequired, error.Kind);
+            var error = await Assert.ThrowsAsync<ProviderException>(() => new ClaudeStateStore(junction).AcquireAsync(TestContext.Current.CancellationToken));
+            Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
             Assert.Empty(Directory.EnumerateFiles(destination));
         }
         finally { Directory.Delete(junction); }

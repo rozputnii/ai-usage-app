@@ -49,12 +49,12 @@ public sealed class AntigravitySession(AntigravityAuthClient auth, AntigravityQu
         {
             using var attempt = auth.BeginBrowserLogin();
             try { openAuthorizationUrl(attempt.AuthorizationUrl); }
-            catch (InvalidOperationException) { throw new AntigravityException(ProviderFailureKind.BrowserCallbackUnavailable); }
-            catch (System.ComponentModel.Win32Exception) { throw new AntigravityException(ProviderFailureKind.BrowserCallbackUnavailable); }
+            catch (InvalidOperationException) { throw new ProviderException(ProviderFailureKind.BrowserCallbackUnavailable); }
+            catch (System.ComponentModel.Win32Exception) { throw new ProviderException(ProviderFailureKind.BrowserCallbackUnavailable); }
             var grant = await auth.CompleteBrowserLoginAsync(attempt, token).ConfigureAwait(false);
             // One slot per provider: a different account must be disconnected deliberately first.
             if (stored is not null && grant.AccountId != stored.AccountId)
-                throw new AntigravityException(ProviderFailureKind.AccountMismatch);
+                throw new ProviderException(ProviderFailureKind.AccountMismatch);
             var workspace = await quota.DiscoverWorkspaceAsync(grant.AccessToken, token).ConfigureAwait(false);
             var connected = new AntigravityCredentials(grant.AccessToken, grant.RefreshToken, grant.AccountId,
                 workspace.ProjectId, workspace.Tier, grant.RefreshAt);
@@ -89,7 +89,7 @@ public sealed class AntigravitySession(AntigravityAuthClient auth, AntigravityQu
         Tier = next.Tier, CachedQuota = reading
     };
 
-    private async Task<ProviderSessionState> ReadQuotaAsync(AntigravityStateLease lease, CancellationToken token)
+    private async Task<ProviderSessionState> ReadQuotaAsync(ProviderStateLease<AntigravityStoredState> lease, CancellationToken token)
     {
         try
         {
@@ -98,7 +98,7 @@ public sealed class AntigravitySession(AntigravityAuthClient auth, AntigravityQu
             stored = await lease.SaveAsync(stored! with { CachedQuota = reading }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
             return Available(reading);
         }
-        catch (AntigravityException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
+        catch (ProviderException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
         {
             credentials = null;
             stored = await lease.SaveAsync(stored! with { NeedsReauthentication = true }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
@@ -117,7 +117,7 @@ public sealed class AntigravitySession(AntigravityAuthClient auth, AntigravityQu
         return new(status, reading, failure, reading?.FetchedAt, FromCache: reading is not null);
     }
 
-    private Task<ProviderSessionState> RunAsync(Func<AntigravityStateLease, CancellationToken, Task<ProviderSessionState>> operation,
+    private Task<ProviderSessionState> RunAsync(Func<ProviderStateLease<AntigravityStoredState>, CancellationToken, Task<ProviderSessionState>> operation,
         CancellationToken cancellationToken, bool load = true) => Task.Run(async () =>
     {
         ObjectDisposedException.ThrowIf(disposed, this);
@@ -137,7 +137,7 @@ public sealed class AntigravitySession(AntigravityAuthClient auth, AntigravityQu
             }
             return State = await operation(lease, cancellationToken).ConfigureAwait(false);
         }
-        catch (AntigravityException error)
+        catch (ProviderException error)
         {
             if (error.Kind is ProviderFailureKind.StorageUnavailable or ProviderFailureKind.RecoveryRequired or ProviderFailureKind.GrantNotRemoved)
             {

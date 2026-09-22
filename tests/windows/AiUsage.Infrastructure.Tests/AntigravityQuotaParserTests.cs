@@ -1,3 +1,4 @@
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers.Antigravity;
 using System.Text;
@@ -127,7 +128,7 @@ public sealed class AntigravityQuotaParserTests
     public void MalformedSummariesAreRejectedRatherThanPartiallyInterpreted(string json)
     {
         Assert.Equal(ProviderFailureKind.InvalidResponse,
-            Assert.Throws<AntigravityException>(() => Parse(json)).Kind);
+            Assert.Throws<ProviderException>(() => Parse(json)).Kind);
     }
 
     [Fact]

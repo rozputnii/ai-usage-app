@@ -228,7 +228,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-028 - Architecture and clean-code remediation
 - goal: G-003
-- status: ready
+- status: in-progress
 - depends_on: [AIU-027]
 - trigger: after-audit
 - outcome: Fix the evidence-backed defects and duplication recorded by the 2026-09-20 architecture and clean-code audit, so that adding a fifth provider is an additive change and a failure is distinguishable from a provider outage.

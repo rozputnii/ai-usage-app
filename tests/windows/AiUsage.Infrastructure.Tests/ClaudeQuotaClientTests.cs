@@ -1,3 +1,5 @@
+using AiUsage.Core.Usage;
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Providers.Claude;
 using AiUsage.Infrastructure.Providers.Claude;
 using System.Net;
@@ -26,13 +28,13 @@ public sealed class ClaudeQuotaClientTests
         using var http = new HttpClient(server);
         var client = new ClaudeQuotaClient(http, clock);
         var credentials = new ClaudeCredentials("synthetic-access", "synthetic-refresh", new("synthetic-account", "synthetic-org"), clock.GetUtcNow().AddHours(1));
-        var first = await Assert.ThrowsAsync<ClaudeException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.RateLimited, first.Kind);
+        var first = await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.RateLimited, first.Kind);
         Assert.DoesNotContain("synthetic-secret", first.ToString());
-        await Assert.ThrowsAsync<ClaudeException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
         Assert.Equal(1, server.Calls);
         clock.Current = clock.Current.AddSeconds(31);
-        await Assert.ThrowsAsync<ClaudeException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
         Assert.Equal(2, server.Calls);
     }
 
@@ -45,8 +47,8 @@ public sealed class ClaudeQuotaClientTests
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(payload)));
         using var http = new HttpClient(server);
         var credentials = new ClaudeCredentials("synthetic-access", "synthetic-refresh", new("synthetic-account", "synthetic-org"), DateTimeOffset.MaxValue);
-        var error = await Assert.ThrowsAsync<ClaudeException>(() => new ClaudeQuotaClient(http).GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(ClaudeFailureKind.InvalidResponse, error.Kind);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => new ClaudeQuotaClient(http).GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
         Assert.DoesNotContain("synthetic-secret", error.ToString());
         Assert.Equal(1, server.Calls);
     }

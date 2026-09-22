@@ -1,3 +1,4 @@
+using AiUsage.Core.Usage;
 using AiUsage.Core.Providers.Claude;
 using System.Net.Http.Headers;
 
@@ -18,16 +19,16 @@ public sealed class ClaudeQuotaClient(HttpClient client, TimeProvider? timeProvi
         lock (sync)
         {
             if (credentials.Identity == throttledIdentity && clock.GetUtcNow() < retryAt)
-                throw new ClaudeException(ClaudeFailureKind.RateLimited, retryAfter: retryAt - clock.GetUtcNow());
+                throw new ProviderException(ProviderFailureKind.RateLimited, retryAfter: retryAt - clock.GetUtcNow());
         }
         using var request = new HttpRequestMessage(HttpMethod.Get, ClaudeHttp.UsageUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials.AccessToken);
         request.Headers.Add("anthropic-beta", "oauth-2025-04-20");
-        using var response = await ClaudeHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
-            var error = ClaudeHttp.Failure(response);
-            if (error.Kind == ClaudeFailureKind.RateLimited)
+            var error = ProviderTransport.Failure(response);
+            if (error.Kind == ProviderFailureKind.RateLimited)
             {
                 lock (sync)
                 {
@@ -39,7 +40,7 @@ public sealed class ClaudeQuotaClient(HttpClient client, TimeProvider? timeProvi
             throw error;
         }
         if (!ClaudeQuotaParser.TryParse(response.Body!.RootElement, clock.GetUtcNow(), out var reading))
-            throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return reading;
     }
 }

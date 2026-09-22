@@ -47,8 +47,8 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
         try
         {
             try { openAuthorizationUrl(attempt.AuthorizationUrl); }
-            catch (InvalidOperationException) { throw new ClaudeException(ClaudeFailureKind.BrowserCallbackUnavailable); }
-            catch (System.ComponentModel.Win32Exception) { throw new ClaudeException(ClaudeFailureKind.BrowserCallbackUnavailable); }
+            catch (InvalidOperationException) { throw new ProviderException(ProviderFailureKind.BrowserCallbackUnavailable); }
+            catch (System.ComponentModel.Win32Exception) { throw new ProviderException(ProviderFailureKind.BrowserCallbackUnavailable); }
             var connected = await auth.CompleteBrowserLoginAsync(attempt, token).ConfigureAwait(false);
             if (stored is not null)
             {
@@ -83,7 +83,7 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
         return ProviderSessionState.NotConnected;
     }, cancellationToken, load: false);
 
-    private async Task PromoteAsync(ClaudeStateLease lease, ClaudeCredentials next)
+    private async Task PromoteAsync(ProviderStateLease<ClaudeStoredState> lease, ClaudeCredentials next)
     {
         var record = new ClaudeStoredState
         {
@@ -97,7 +97,7 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
         HasStoredGrant = true;
     }
 
-    private async Task<ProviderSessionState> ReadQuotaAsync(ClaudeStateLease lease, CancellationToken token)
+    private async Task<ProviderSessionState> ReadQuotaAsync(ProviderStateLease<ClaudeStoredState> lease, CancellationToken token)
     {
         try
         {
@@ -106,7 +106,7 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
             stored = await lease.SaveAsync(stored! with { CachedQuota = reading }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
             return new(ProviderSessionStatus.QuotaAvailable, reading.Quota, RetrievedAt: reading.Quota.FetchedAt, ExtraUsage: reading.ExtraUsage);
         }
-        catch (ClaudeException error) when (error.Kind == ClaudeFailureKind.AuthenticationRequired)
+        catch (ProviderException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired)
         {
             credentials = null;
             stored = await lease.SaveAsync(stored! with { NeedsReauthentication = true }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
@@ -122,7 +122,7 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
         return new(status, reading?.Quota, failure, reading?.Quota.FetchedAt, FromCache: reading is not null, ExtraUsage: reading?.ExtraUsage);
     }
 
-    private Task<ProviderSessionState> RunAsync(Func<ClaudeStateLease, CancellationToken, Task<ProviderSessionState>> operation,
+    private Task<ProviderSessionState> RunAsync(Func<ProviderStateLease<ClaudeStoredState>, CancellationToken, Task<ProviderSessionState>> operation,
         CancellationToken cancellationToken, bool load = true) => Task.Run(async () =>
     {
         ObjectDisposedException.ThrowIf(disposed, this);
@@ -142,10 +142,10 @@ public sealed class ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota
             }
             return State = await operation(lease, cancellationToken).ConfigureAwait(false);
         }
-        catch (ClaudeException error)
+        catch (ProviderException error)
         {
-            var failure = Enum.Parse<ProviderFailureKind>(error.Kind.ToString());
-            if (error.Kind is ClaudeFailureKind.StorageUnavailable or ClaudeFailureKind.RecoveryRequired or ClaudeFailureKind.GrantNotRemoved)
+            var failure = error.Kind;
+            if (error.Kind is ProviderFailureKind.StorageUnavailable or ProviderFailureKind.RecoveryRequired or ProviderFailureKind.GrantNotRemoved)
             {
                 credentials = null;
                 HasStoredGrant = true;

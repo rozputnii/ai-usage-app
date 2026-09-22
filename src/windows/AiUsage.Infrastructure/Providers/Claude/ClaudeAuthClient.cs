@@ -1,3 +1,4 @@
+using AiUsage.Core.Usage;
 using AiUsage.Core.Providers.Claude;
 using System.Net;
 using System.Net.Http.Headers;
@@ -22,7 +23,7 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
         var state = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(16));
         LoopbackCallback callback;
         try { callback = LoopbackCallback.Start([54545, 0]); }
-        catch (IOException) { throw new ClaudeException(ClaudeFailureKind.BrowserCallbackUnavailable); }
+        catch (IOException) { throw new ProviderException(ProviderFailureKind.BrowserCallbackUnavailable); }
         try
         {
             var redirect = $"http://localhost:{callback.Port}{CallbackPath}";
@@ -47,10 +48,10 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
         try
         {
             if (authorization.Completed)
-                throw new ClaudeException(ClaudeFailureKind.AuthenticationRequired);
+                throw new ProviderException(ProviderFailureKind.AuthenticationRequired);
             var remaining = authorization.ExpiresAt - clock.GetUtcNow();
             if (remaining <= TimeSpan.Zero)
-                throw new ClaudeException(ClaudeFailureKind.LoginAttemptExpired);
+                throw new ProviderException(ProviderFailureKind.LoginAttemptExpired);
             using var deadline = new CancellationTokenSource(remaining, clock);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
             try
@@ -58,7 +59,7 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
                 var code = await ReadCodeAsync(authorization, linked.Token).ConfigureAwait(false);
                 linked.Token.ThrowIfCancellationRequested();
                 if (clock.GetUtcNow() >= authorization.ExpiresAt)
-                    throw new ClaudeException(ClaudeFailureKind.LoginAttemptExpired);
+                    throw new ProviderException(ProviderFailureKind.LoginAttemptExpired);
                 authorization.Completed = true;
                 using var request = new HttpRequestMessage(HttpMethod.Post, ClaudeHttp.TokenUrl)
                 {
@@ -68,15 +69,15 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
                         RedirectUri = authorization.RedirectUri, State = authorization.State
                     }, ClaudeAuthJson.Default.ClaudeTokenRequest)
                 };
-                using var response = await ClaudeHttp.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
+                using var response = await ProviderTransport.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
                 if (!response.IsSuccess)
-                    throw ClaudeHttp.Failure(response);
+                    throw ProviderTransport.Failure(response);
                 // A returned pair reaches the session even if later quota work is canceled.
                 return await ParseTokensAsync(response.Body!.RootElement, null, CancellationToken.None).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
             {
-                throw new ClaudeException(ClaudeFailureKind.LoginAttemptExpired);
+                throw new ProviderException(ProviderFailureKind.LoginAttemptExpired);
             }
         }
         finally { authorization.Gate.Release(); }
@@ -124,10 +125,10 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
             }
             await request.RespondAsync(HttpStatusCode.OK, "Sign-in response received. Return to AI Usage for the result.", cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(query["error"]))
-                throw new ClaudeException(ClaudeFailureKind.AccessDenied);
+                throw new ProviderException(ProviderFailureKind.AccessDenied);
             var code = query["code"];
             if (!SafeToken(code))
-                throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
+                throw new ProviderException(ProviderFailureKind.InvalidResponse);
             return code!;
         }
     }
@@ -144,13 +145,13 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
             Content = JsonContent.Create(new ClaudeTokenRequest { GrantType = "refresh_token", RefreshToken = previous.RefreshToken }, ClaudeAuthJson.Default.ClaudeTokenRequest)
         };
         request.Headers.Add("anthropic-beta", "oauth-2025-04-20");
-        using var response = await ClaudeHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
             var error = Property(response.Body?.RootElement ?? default, "error");
             if (Text(error) == "invalid_grant" || Text(Property(error, "type")) == "invalid_grant")
-                throw new ClaudeException(ClaudeFailureKind.AuthenticationRequired, response.StatusCode);
-            throw ClaudeHttp.Failure(response);
+                throw new ProviderException(ProviderFailureKind.AuthenticationRequired, response.StatusCode);
+            throw ProviderTransport.Failure(response);
         }
         return await ParseTokensAsync(response.Body!.RootElement, previous, CancellationToken.None).ConfigureAwait(false);
     }
@@ -165,14 +166,14 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
         if (!SafeToken(access) || !SafeToken(refresh) || expiry.ValueKind != JsonValueKind.Number ||
             !expiry.TryGetDouble(out var seconds) || !double.IsFinite(seconds) || seconds <= 0 || seconds > TimeSpan.FromDays(365).TotalSeconds ||
             (scope.ValueKind != JsonValueKind.Undefined && (Text(scope) is not { } granted || !granted.Split(' ').Contains("user:profile", StringComparer.Ordinal))))
-            throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         var account = IdentityField(root, "account", "uuid");
         var organization = IdentityField(root, "organization", "uuid");
         if (previous is not null)
         {
             if ((account is not null && account != previous.Identity.AccountId) ||
                 (organization is not null && organization != previous.Identity.OrganizationId))
-                throw new ClaudeException(ClaudeFailureKind.AccountMismatch);
+                throw new ProviderException(ProviderFailureKind.AccountMismatch);
             account ??= previous.Identity.AccountId;
             organization ??= previous.Identity.OrganizationId;
         }
@@ -181,20 +182,20 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
             using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.anthropic.com/api/claude_cli/bootstrap?entrypoint=cli&model=claude-opus-4-8");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
             request.Headers.Add("anthropic-beta", "oauth-2025-04-20");
-            using var response = await ClaudeHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+            using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccess)
-                throw ClaudeHttp.Failure(response);
+                throw ProviderTransport.Failure(response);
             var identity = Property(response.Body!.RootElement, "oauth_account");
             var fallbackAccount = Text(Property(identity, "account_uuid"));
             var fallbackOrganization = Text(Property(identity, "organization_uuid"));
             if ((account is not null && fallbackAccount is not null && account != fallbackAccount) ||
                 (organization is not null && fallbackOrganization is not null && organization != fallbackOrganization))
-                throw new ClaudeException(ClaudeFailureKind.AccountMismatch);
+                throw new ProviderException(ProviderFailureKind.AccountMismatch);
             account ??= fallbackAccount;
             organization ??= fallbackOrganization;
         }
         if (!SafeIdentity(account) || !SafeIdentity(organization))
-            throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return new(access!, refresh!, new(account!, organization!), clock.GetUtcNow().AddSeconds(Math.Max(0, seconds - 300)));
     }
 
@@ -204,11 +205,11 @@ public sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvid
         if (parent.ValueKind == JsonValueKind.Undefined)
             return null;
         if (parent.ValueKind != JsonValueKind.Object)
-            throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         var field = Property(parent, name);
         var value = Text(field);
         if (!SafeIdentity(value))
-            throw new ClaudeException(ClaudeFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return value;
     }
 

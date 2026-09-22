@@ -8,8 +8,8 @@ public static class AntigravityServiceCollectionExtensions
     public static IServiceCollection AddAntigravityIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
-        services.AddHttpClient<AntigravityAuthClient>(ConfigureClient).ConfigurePrimaryHttpMessageHandler(CreateHandler).RemoveAllLoggers();
-        services.AddHttpClient<AntigravityQuotaClient>(ConfigureClient).ConfigurePrimaryHttpMessageHandler(CreateHandler).RemoveAllLoggers();
+        services.AddHttpClient<AntigravityAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
+        services.AddHttpClient<AntigravityQuotaClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
         return services;
     }
 
@@ -22,11 +22,4 @@ public static class AntigravityServiceCollectionExtensions
         return services;
     }
 
-    private static void ConfigureClient(HttpClient client) => client.Timeout = Timeout.InfiniteTimeSpan;
-    private static HttpMessageHandler CreateHandler() => new SocketsHttpHandler
-    {
-        AllowAutoRedirect = false,
-        UseCookies = false,
-        PooledConnectionLifetime = TimeSpan.FromMinutes(5)
-    };
 }

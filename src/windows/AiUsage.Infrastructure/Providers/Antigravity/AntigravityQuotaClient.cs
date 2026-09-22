@@ -50,7 +50,7 @@ public sealed class AntigravityQuotaClient
         await OnboardAsync(accessToken, cancellationToken).ConfigureAwait(false);
         var provisioned = await LoadAsync(accessToken, cancellationToken).ConfigureAwait(false);
         // Provisioning that reports success without yielding a workspace is still no workspace.
-        return Workspace(provisioned) ?? throw new AntigravityException(ProviderFailureKind.ProjectUnavailable);
+        return Workspace(provisioned) ?? throw new ProviderException(ProviderFailureKind.ProjectUnavailable);
     }
 
     private async Task<JsonElement> LoadAsync(string accessToken, CancellationToken cancellationToken)
@@ -70,11 +70,11 @@ public sealed class AntigravityQuotaClient
             ? $$"""{"metadata":{{Metadata}}}"""
             : $$"""{"cloudaicompanionProject":"{{JsonEncodedText.Encode(project)}}","metadata":{{Metadata}}}""";
         using var request = Post(AntigravityHttp.LoadCodeAssistUrl, body, accessToken);
-        using var response = await AntigravityHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
-            throw AntigravityHttp.Failure(response);
+            throw ProviderTransport.Failure(response);
         if (response.Body!.RootElement.ValueKind != JsonValueKind.Object)
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         // The document is disposed with the response, so the caller gets an independent copy.
         return response.Body.RootElement.Clone();
     }
@@ -92,14 +92,14 @@ public sealed class AntigravityQuotaClient
                 var error = AntigravityAuthClient.Property(operation, "error");
                 // The provider's reason is not echoed; a failed provisioning is simply no workspace.
                 if (error.ValueKind is not (JsonValueKind.Undefined or JsonValueKind.Null))
-                    throw new AntigravityException(ProviderFailureKind.ProjectUnavailable);
+                    throw new ProviderException(ProviderFailureKind.ProjectUnavailable);
                 if (AntigravityAuthClient.Property(operation, "response").ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
-                    throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+                    throw new ProviderException(ProviderFailureKind.InvalidResponse);
                 return;
             }
             var remaining = deadline - clock.GetUtcNow();
             if (remaining <= TimeSpan.Zero)
-                throw new AntigravityException(ProviderFailureKind.Timeout);
+                throw new ProviderException(ProviderFailureKind.Timeout);
             await delay(remaining < OnboardInterval ? remaining : OnboardInterval, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             // The operation name is a provider path segment, so it is constrained rather than escaped:
@@ -108,7 +108,7 @@ public sealed class AntigravityQuotaClient
             var name = AntigravityAuthClient.Text(AntigravityAuthClient.Property(operation, "name"));
             if (name is not { Length: > 0 and <= 512 } || name.StartsWith('/') || name.Contains("..", StringComparison.Ordinal) ||
                 !name.All(character => char.IsAsciiLetterOrDigit(character) || character is '/' or '-' or '_' or '.' or '~'))
-                throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+                throw new ProviderException(ProviderFailureKind.InvalidResponse);
             operation = await GetAsync($"{AntigravityHttp.OperationsUrl}/{name}", accessToken, cancellationToken).ConfigureAwait(false);
         }
     }
@@ -137,7 +137,7 @@ public sealed class AntigravityQuotaClient
         var allowed = AntigravityAuthClient.Property(loaded, "allowedTiers");
         if (allowed.ValueKind != JsonValueKind.Array || !allowed.EnumerateArray().Any(tier =>
                 AntigravityAuthClient.Text(AntigravityAuthClient.Property(tier, "id")) == FreeTier))
-            throw new AntigravityException(ProviderFailureKind.ProjectUnavailable);
+            throw new ProviderException(ProviderFailureKind.ProjectUnavailable);
     }
 
     private static bool? Boolean(JsonElement root, string key) =>
@@ -163,11 +163,11 @@ public sealed class AntigravityQuotaClient
 
     private async Task<JsonElement> ReadAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        using var response = await AntigravityHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
-            throw AntigravityHttp.Failure(response);
+            throw ProviderTransport.Failure(response);
         if (response.Body!.RootElement.ValueKind != JsonValueKind.Object)
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return response.Body.RootElement.Clone();
     }
 
@@ -179,15 +179,15 @@ public sealed class AntigravityQuotaClient
         lock (sync)
         {
             if (credentials.AccountId == throttledIdentity && clock.GetUtcNow() < retryAt)
-                throw new AntigravityException(ProviderFailureKind.RateLimited, retryAfter: retryAt - clock.GetUtcNow());
+                throw new ProviderException(ProviderFailureKind.RateLimited, retryAfter: retryAt - clock.GetUtcNow());
         }
         // JsonEncodedText escapes the opaque project identifier without a reflection serializer.
         var body = $$"""{"project":"{{JsonEncodedText.Encode(credentials.ProjectId)}}"}""";
         using var request = Post(AntigravityHttp.QuotaSummaryUrl, body, credentials.AccessToken);
-        using var response = await AntigravityHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
-            var error = AntigravityHttp.Failure(response);
+            var error = ProviderTransport.Failure(response);
             if (error.Kind == ProviderFailureKind.RateLimited)
             {
                 lock (sync)

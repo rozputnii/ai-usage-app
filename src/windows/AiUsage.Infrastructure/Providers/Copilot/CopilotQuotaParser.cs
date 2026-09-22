@@ -8,18 +8,18 @@ public static class CopilotQuotaParser
 {
     public static QuotaSnapshot Parse(ReadOnlyMemory<byte> json, DateTimeOffset fetchedAt)
     {
-        if (json.Length > 1024 * 1024) throw new CopilotException(ProviderFailureKind.InvalidResponse);
+        if (json.Length > 1024 * 1024) throw new ProviderException(ProviderFailureKind.InvalidResponse);
         try
         {
             using var doc = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 32 });
             return Parse(doc.RootElement, fetchedAt);
         }
-        catch (JsonException) { throw new CopilotException(ProviderFailureKind.InvalidResponse); }
+        catch (JsonException) { throw new ProviderException(ProviderFailureKind.InvalidResponse); }
     }
     internal static QuotaSnapshot Parse(JsonElement root, DateTimeOffset fetchedAt)
     {
         if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("quota_snapshots", out var snapshots) || snapshots.ValueKind != JsonValueKind.Object)
-            throw new CopilotException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         var resetText = CopilotAuthClient.Text(root, "quota_reset_date");
         DateTimeOffset? reset = DateTimeOffset.TryParse(resetText, CultureInfo.InvariantCulture,
             DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var parsed) ? parsed : null;
@@ -28,10 +28,10 @@ public static class CopilotQuotaParser
         foreach (var property in snapshots.EnumerateObject().OrderBy(p => p.Name switch
         { "premium_interactions" => 0, "chat" => 1, "completions" => 2, _ => 3 }))
         {
-            if (!keys.Add(property.Name) || keys.Count > 128) throw new CopilotException(ProviderFailureKind.InvalidResponse);
+            if (!keys.Add(property.Name) || keys.Count > 128) throw new ProviderException(ProviderFailureKind.InvalidResponse);
             var value = property.Value;
             if (value.ValueKind == JsonValueKind.Null) continue;
-            if (value.ValueKind != JsonValueKind.Object) throw new CopilotException(ProviderFailureKind.InvalidResponse);
+            if (value.ValueKind != JsonValueKind.Object) throw new ProviderException(ProviderFailureKind.InvalidResponse);
             var unlimited = Boolean(value, "unlimited");
             var entitlement = Number(value, "entitlement");
             var remaining = Number(value, "remaining");
@@ -60,12 +60,12 @@ public static class CopilotQuotaParser
     private static decimal? Number(JsonElement root, string key)
     {
         if (!root.TryGetProperty(key, out var value) || value.ValueKind == JsonValueKind.Null) return null;
-        if (value.ValueKind != JsonValueKind.Number || !value.TryGetDecimal(out var number)) throw new CopilotException(ProviderFailureKind.InvalidResponse);
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetDecimal(out var number)) throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return number;
     }
     private static bool? Boolean(JsonElement root, string key)
     {
         if (!root.TryGetProperty(key, out var value) || value.ValueKind == JsonValueKind.Null) return null;
-        return value.ValueKind switch { JsonValueKind.True => true, JsonValueKind.False => false, _ => throw new CopilotException(ProviderFailureKind.InvalidResponse) };
+        return value.ValueKind switch { JsonValueKind.True => true, JsonValueKind.False => false, _ => throw new ProviderException(ProviderFailureKind.InvalidResponse) };
     }
 }

@@ -1,3 +1,4 @@
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers.Copilot;
 using System.Security.Cryptography;
@@ -50,7 +51,7 @@ public sealed class CopilotStateStoreTests : IDisposable
         {
             var old = await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
             interrupt = true;
-            var error = await Assert.ThrowsAsync<CopilotException>(() => lease.SaveAsync(State("synthetic-rotated"), old.Revision, TestContext.Current.CancellationToken));
+            var error = await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State("synthetic-rotated"), old.Revision, TestContext.Current.CancellationToken));
             Assert.Equal(ProviderFailureKind.StorageUnavailable, error.Kind);
         }
         await using var recovered = await new CopilotStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken);
@@ -70,9 +71,9 @@ public sealed class CopilotStateStoreTests : IDisposable
         var path = Path.Combine(directory, "copilot.state");
         await File.WriteAllBytesAsync(path, bytes, TestContext.Current.CancellationToken);
         await using var lease = await new CopilotStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<CopilotException>(() => lease.LoadAsync(TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
-        await Assert.ThrowsAsync<CopilotException>(() => lease.SaveAsync(State(), null, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State(), null, TestContext.Current.CancellationToken));
         Assert.Equal(bytes, await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken));
     }
 
@@ -84,7 +85,7 @@ public sealed class CopilotStateStoreTests : IDisposable
         await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
         await File.WriteAllBytesAsync(Path.Combine(directory, "copilot.state.pending"), [1, 2, 3], TestContext.Current.CancellationToken);
         Assert.Equal(ProviderFailureKind.RecoveryRequired,
-            (await Assert.ThrowsAsync<CopilotException>(() => lease.LoadAsync(TestContext.Current.CancellationToken))).Kind);
+            (await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(TestContext.Current.CancellationToken))).Kind);
         Assert.True(File.Exists(Path.Combine(directory, "copilot.state.pending")));
     }
 
@@ -93,10 +94,10 @@ public sealed class CopilotStateStoreTests : IDisposable
     {
         var store = new CopilotStateStore(directory);
         await using var lease = await store.AcquireAsync(TestContext.Current.CancellationToken);
-        await Assert.ThrowsAsync<CopilotException>(() => store.AcquireAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => store.AcquireAsync(TestContext.Current.CancellationToken));
         var old = await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
         var next = await lease.SaveAsync(State("synthetic-next"), old.Revision, TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<CopilotException>(() => lease.SaveAsync(State("synthetic-obsolete"), old.Revision, TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State("synthetic-obsolete"), old.Revision, TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
         Assert.Equal(next.Revision, (await lease.LoadAsync(TestContext.Current.CancellationToken))!.Revision);
     }
@@ -118,7 +119,7 @@ public sealed class CopilotStateStoreTests : IDisposable
         Assert.Equal(0, process.ExitCode);
         try
         {
-            var error = await Assert.ThrowsAsync<CopilotException>(() => new CopilotStateStore(junction).AcquireAsync(TestContext.Current.CancellationToken));
+            var error = await Assert.ThrowsAsync<ProviderException>(() => new CopilotStateStore(junction).AcquireAsync(TestContext.Current.CancellationToken));
             Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
             Assert.Empty(Directory.EnumerateFiles(destination));
         }

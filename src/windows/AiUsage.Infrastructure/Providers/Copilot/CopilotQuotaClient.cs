@@ -18,15 +18,15 @@ public sealed class CopilotQuotaClient(HttpClient client, TimeProvider? timeProv
         lock (sync)
         {
             if (credentials.AccountId == throttledIdentity && clock.GetUtcNow() < retryAt)
-                throw new CopilotException(ProviderFailureKind.RateLimited, retryAfter: retryAt - clock.GetUtcNow());
+                throw new ProviderException(ProviderFailureKind.RateLimited, retryAfter: retryAt - clock.GetUtcNow());
         }
         using var request = new HttpRequestMessage(HttpMethod.Get, CopilotHttp.UsageUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials.AccessToken);
 
-        using var response = await CopilotHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
-            var error = CopilotHttp.Failure(response);
+            var error = ProviderTransport.Failure(response);
             if (error.Kind == ProviderFailureKind.RateLimited)
             {
                 lock (sync)

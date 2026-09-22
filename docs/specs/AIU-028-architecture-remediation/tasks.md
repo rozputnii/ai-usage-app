@@ -18,7 +18,7 @@ T-04 small. T-03 and T-04 close the "a defect looks like a provider outage" pair
 makes every later task diagnosable. Polish is last.
 
 ### T-01 - Shared provider transport, exception and state lease
-- status: pending
+- status: in-progress
 - depends_on: []
 - acceptance: AC-01, AC-02
 - evidence: not-run
@@ -221,14 +221,10 @@ for them later by accident.
 
 ## Handoff
 
-Base: `6681b7a` on `main`. The audit session that produced these documents changed no file
-outside `docs/`. No task below has been started, and no production code has been modified.
+The owner selected T-01 and T-02 on 2026-09-22. Base: `cfb9ceb` on `main`.
+T-08 and T-09 were already complete. T-01 extraction is implemented with its compatibility
+checks; focused independent review remains pending for the combined T-01/T-02 changes.
 
-Exact next action: none is authorized. Selecting AIU-028 is an owner decision under
-CONTRIBUTING.md; a `ready` backlog status does not start work. When it is selected, begin with
-T-01, and note that T-02 and T-04 each require the security-lifecycle skill before
-implementation and that T-02 requires focused independent review.
-
-Blockers: none. Known limitations carried from the audit: interactive Windows smoke, packaged
-activation and live-provider verification were NOT_RUN during the audit by design, so T-10's
-acceptance cannot be satisfied from the audit evidence and needs its own interactive run.
+Exact next action: implement T-02's Codex adoption, recovery and path-safety tests, then obtain
+focused independent review of the integrated diff. T-03 and the remaining tasks are not selected.
+Blockers: none. Live provider and interactive/package checks have not been run for this change.

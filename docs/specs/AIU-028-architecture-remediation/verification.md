@@ -202,3 +202,18 @@ measured. Three findings say so explicitly rather than implying evidence that do
 F-03 and F-14 are latent, with no currently reachable failure; F-11 is structural, with no
 observed misbehaviour in the present subscribers; and F-13's battery and CPU claim follows from
 the code path but was not profiled, which is one reason T-10 requires interactive evidence.
+
+## T-01 / T-02 work in progress - 2026-09-22
+
+Owner-selected scope: T-01 and T-02 only, base `cfb9ceb`. The security-lifecycle skill and
+Windows lifecycle policy were read before implementation; the design records the boundaries.
+T-01 extracts the common state lease, transport/status translator and handler policy, replaces
+the three duplicate exceptions and Claude's duplicate failure enum, and retains a temporary
+explicit Codex transport adapter until T-03. Provider URLs, flow, quota parsing, transport logger
+suppression, protected record shapes and entropy remain unchanged. No dependency versions change.
+
+Observed: pre-change Infrastructure 226/226 PASS; post-extraction Infrastructure 226/226 PASS;
+Presentation 129/129 PASS; ProviderConsole Release build PASS (zero warnings/errors).
+The new compatibility test initially used a nonnumeric synthetic Copilot identity and correctly
+failed validation; corrected to a numeric synthetic identity. Final expanded checks and focused
+independent review are pending. This checkpoint is not task completion.

@@ -1,3 +1,4 @@
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers.Antigravity;
 using System.Net;
@@ -78,7 +79,7 @@ public sealed class AntigravityProtocolTests
         Assert.DoesNotContain("synthetic", grant.ToString());
         // One exchange plus one identity read; the attempt cannot be replayed.
         Assert.Equal(2, server.Calls);
-        await Assert.ThrowsAsync<AntigravityException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -95,7 +96,7 @@ public sealed class AntigravityProtocolTests
         Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
         Assert.False(login.IsCompleted);
         await callback.GetStringAsync(query["redirect_uri"] + "?error=synthetic-secret&state=" + query["state"], TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => login);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => login);
         Assert.Equal(ProviderFailureKind.AccessDenied, error.Kind);
         Assert.DoesNotContain("synthetic-secret", error.ToString());
         Assert.Equal(0, server.Calls);
@@ -136,7 +137,7 @@ public sealed class AntigravityProtocolTests
         var login = auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken);
         using var callback = new HttpClient();
         await callback.GetStringAsync(query["redirect_uri"] + "?code=synthetic-code&state=" + query["state"], TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => login);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => login);
         Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
         // A malformed grant is rejected before any identity or control-plane request.
@@ -156,7 +157,7 @@ public sealed class AntigravityProtocolTests
         var next = await auth.RefreshAsync("synthetic-refresh", "104729", TestContext.Current.CancellationToken);
         Assert.Equal("synthetic-refresh", next.RefreshToken);
         identity = "999";
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => auth.RefreshAsync("synthetic-refresh", "104729", TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ProviderException>(() => auth.RefreshAsync("synthetic-refresh", "104729", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.AccountMismatch, error.Kind);
     }
 
@@ -166,7 +167,7 @@ public sealed class AntigravityProtocolTests
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(
             """{"error":"invalid_grant","error_description":"synthetic-refresh"}""", HttpStatusCode.BadRequest)));
         using var http = new HttpClient(server);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() =>
+        var error = await Assert.ThrowsAsync<ProviderException>(() =>
             Auth(http).RefreshAsync("synthetic-refresh", "104729", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.AuthenticationRequired, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
@@ -287,7 +288,7 @@ public sealed class AntigravityProtocolTests
     {
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json(payload)));
         using var http = new HttpClient(server);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
+        var error = await Assert.ThrowsAsync<ProviderException>(() => Quota(http)
             .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.ProjectUnavailable, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
@@ -306,7 +307,7 @@ public sealed class AntigravityProtocolTests
         using var attempt = auth.BeginBrowserLogin();
         var query = HttpUtility.ParseQueryString(attempt.AuthorizationUrl.Query);
         clock.Current = attempt.ExpiresAt;
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ProviderException>(() => auth.CompleteBrowserLoginAsync(attempt, TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.LoginAttemptExpired, error.Kind);
         Assert.Equal(0, server.Calls);
     }
@@ -335,7 +336,7 @@ public sealed class AntigravityProtocolTests
             _ => CodexTestServer.Json("""{"name":"operations/synthetic-op","done":true,"error":{"code":7,"message":"synthetic-reason"}}""")
         }));
         using var http = new HttpClient(server);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
+        var error = await Assert.ThrowsAsync<ProviderException>(() => Quota(http)
             .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.ProjectUnavailable, error.Kind);
         Assert.DoesNotContain("synthetic", error.ToString());
@@ -352,7 +353,7 @@ public sealed class AntigravityProtocolTests
         }));
         using var http = new HttpClient(server);
         var client = new AntigravityQuotaClient(http, clock, (duration, _) => { clock.Current += duration; return Task.CompletedTask; });
-        var error = await Assert.ThrowsAsync<AntigravityException>(() =>
+        var error = await Assert.ThrowsAsync<ProviderException>(() =>
             client.DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.Timeout, error.Kind);
         Assert.Equal(TimeSpan.FromSeconds(30), clock.Current - CodexTestServer.Clock.Now);
@@ -371,7 +372,7 @@ public sealed class AntigravityProtocolTests
             _ => throw new InvalidOperationException("The poll must not leave the operations path.")
         }));
         using var http = new HttpClient(server);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
+        var error = await Assert.ThrowsAsync<ProviderException>(() => Quota(http)
             .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
     }
@@ -385,7 +386,7 @@ public sealed class AntigravityProtocolTests
             _ => CodexTestServer.Json(Onboarded(null))
         }));
         using var http = new HttpClient(server);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => Quota(http)
+        var error = await Assert.ThrowsAsync<ProviderException>(() => Quota(http)
             .DiscoverWorkspaceAsync("synthetic-access", TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.ProjectUnavailable, error.Kind);
     }
@@ -426,13 +427,13 @@ public sealed class AntigravityProtocolTests
         using var http = new HttpClient(server);
         var clock = new CodexTestServer.Clock();
         var client = new AntigravityQuotaClient(http, clock);
-        var first = await Assert.ThrowsAsync<AntigravityException>(() => client.GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken));
+        var first = await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.RateLimited, first.Kind);
-        var second = await Assert.ThrowsAsync<AntigravityException>(() => client.GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken));
+        var second = await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.RateLimited, second.Kind);
         Assert.Equal(1, server.Calls);
         clock.Current = clock.Current.AddMinutes(6);
-        await Assert.ThrowsAsync<AntigravityException>(() => client.GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(Credentials(), TestContext.Current.CancellationToken));
         Assert.Equal(2, server.Calls);
     }
 
@@ -465,7 +466,7 @@ public sealed class AntigravityProtocolTests
             {
                 Environment.SetEnvironmentVariable(AntigravityRegistration.ClientIdVariable, candidateId);
                 Environment.SetEnvironmentVariable(AntigravityRegistration.ClientSecretVariable, candidateSecret);
-                var error = Assert.Throws<AntigravityException>(AntigravityRegistration.FromEnvironment);
+                var error = Assert.Throws<ProviderException>(AntigravityRegistration.FromEnvironment);
                 Assert.Equal(ProviderFailureKind.RegistrationUnavailable, error.Kind);
                 Assert.DoesNotContain("synthetic", error.ToString());
             }

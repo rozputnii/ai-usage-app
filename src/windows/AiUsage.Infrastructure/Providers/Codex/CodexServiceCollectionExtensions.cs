@@ -11,10 +11,10 @@ public static class CodexServiceCollectionExtensions
     public static IServiceCollection AddCodexIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
-        services.AddHttpClient<CodexAuthClient>(ConfigureClient)
-            .ConfigurePrimaryHttpMessageHandler(CreateHandler).RemoveAllLoggers();
-        services.AddHttpClient<CodexQuotaClient>(ConfigureClient)
-            .ConfigurePrimaryHttpMessageHandler(CreateHandler).RemoveAllLoggers();
+        services.AddHttpClient<CodexAuthClient>(ProviderTransport.ConfigureClient)
+            .ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
+        services.AddHttpClient<CodexQuotaClient>(ProviderTransport.ConfigureClient)
+            .ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
         return services;
     }
 
@@ -34,11 +34,4 @@ public static class CodexServiceCollectionExtensions
         return services;
     }
 
-    private static void ConfigureClient(HttpClient client) => client.Timeout = Timeout.InfiniteTimeSpan;
-    private static HttpMessageHandler CreateHandler() => new SocketsHttpHandler
-    {
-        AllowAutoRedirect = false,
-        UseCookies = false,
-        PooledConnectionLifetime = TimeSpan.FromMinutes(5)
-    };
 }

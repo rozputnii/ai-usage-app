@@ -56,6 +56,24 @@ variation in the four session files where it belongs.
 
 ## Removing the Codex contract
 
+### T-01 / T-02 lifecycle refinement (2026-09-22)
+
+The owner selected T-01 and T-02. The shared lease retains DPAPI CurrentUser, exclusive
+operation ownership, bounded records, reparse checks, flushed pending writes and fail-closed
+recovery. The existing Claude, Copilot and Antigravity records, names and entropy stay unchanged.
+Codex's committed `codex.grant` remains the exact v/account/refresh record with its existing
+entropy. Its new encrypted pending journal carries parent/next identity and the original-format
+record; promotion writes only the original-format committed payload. Recovery accepts only a
+matching predecessor or an already promoted successor. An unjournaled legacy `.new` file is
+ambiguous and blocks use until explicit disconnect. No cross-file or provider-rotation atomicity
+is claimed. The Codex session holds the lease across read/renew/persist, and persists a returned
+rotating grant despite request cancellation. Cache files retain their original JSON format and
+receive owned-path checks and exclusive, flushed I/O. Tests use synthetic data in isolated local
+temporary directories; no source CLI or existing account credentials are read.
+
+Focused independent review covers both the shared lease extraction and Codex adoption before
+integration. T-03's session-contract removal and the remaining remediation tasks are excluded.
+
 `ICodexSession`, `CodexSessionState` and `CodexFailureKind` are a pre-AIU-027 contract that
 survived because AIU-027 adapted Codex rather than migrating it. Three providers have since been
 built directly on `IProviderSession`, so the Codex-only contract has no remaining purpose and

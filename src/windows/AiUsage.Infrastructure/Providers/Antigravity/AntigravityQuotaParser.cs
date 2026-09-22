@@ -16,24 +16,24 @@ public static class AntigravityQuotaParser
 
     public static QuotaSnapshot Parse(ReadOnlyMemory<byte> json, DateTimeOffset fetchedAt, string? planType = null)
     {
-        if (json.Length > 1024 * 1024) throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+        if (json.Length > 1024 * 1024) throw new ProviderException(ProviderFailureKind.InvalidResponse);
         try
         {
             using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 32 });
             return Parse(document.RootElement, fetchedAt, planType);
         }
-        catch (JsonException) { throw new AntigravityException(ProviderFailureKind.InvalidResponse); }
+        catch (JsonException) { throw new ProviderException(ProviderFailureKind.InvalidResponse); }
     }
 
     internal static QuotaSnapshot Parse(JsonElement root, DateTimeOffset fetchedAt, string? planType)
     {
         if (root.ValueKind != JsonValueKind.Object)
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         var groupsField = AntigravityAuthClient.Property(root, "groups");
         var bucketsField = AntigravityAuthClient.Property(root, "buckets");
         // Neither shape present means this is not a quota summary at all; an empty one is reported as empty.
         if (groupsField.ValueKind == JsonValueKind.Undefined && bucketsField.ValueKind == JsonValueKind.Undefined)
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
 
         List<QuotaGroup> groups = [];
         var windowCount = 0;
@@ -43,11 +43,11 @@ public static class AntigravityQuotaParser
             foreach (var group in grouped.EnumerateArray())
             {
                 if (group.ValueKind != JsonValueKind.Object)
-                    throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+                    throw new ProviderException(ProviderFailureKind.InvalidResponse);
                 var name = Label(group, "displayName") ?? Label(group, "description");
                 groups.Add(Group(Identifier(identifiers, name, groups.Count), name,
                     AntigravityAuthClient.Property(group, "buckets"), ref windowCount));
-                if (groups.Count > MaximumGroups) throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+                if (groups.Count > MaximumGroups) throw new ProviderException(ProviderFailureKind.InvalidResponse);
             }
         }
         // A grouped response is authoritative; top-level buckets carry the limits only without groups.
@@ -72,16 +72,16 @@ public static class AntigravityQuotaParser
             foreach (var bucket in array.EnumerateArray())
             {
                 if (bucket.ValueKind != JsonValueKind.Object)
-                    throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+                    throw new ProviderException(ProviderFailureKind.InvalidResponse);
                 present++;
-                if (++windowCount > MaximumWindows) throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+                if (++windowCount > MaximumWindows) throw new ProviderException(ProviderFailureKind.InvalidResponse);
                 // A disabled bucket does not apply to this account; it is dropped rather than shown as zero.
                 if (Boolean(bucket, "disabled") == true) { disabled++; continue; }
                 windows.Add(Window(bucket, identifiers, windows.Count));
             }
         }
         else if (buckets.ValueKind is not (JsonValueKind.Undefined or JsonValueKind.Null))
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         // Only a group the provider disabled outright is reported as not allowed; nothing else is inferred.
         var allowed = present > 0 && disabled == present ? false : (bool?)null;
         return new(id, name ?? id, null, null, allowed, null, windows);
@@ -154,7 +154,7 @@ public static class AntigravityQuotaParser
         if (value.ValueKind == JsonValueKind.String)
             return decimal.TryParse(value.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var text) ? text : null;
         if (value.ValueKind != JsonValueKind.Number || !value.TryGetDecimal(out var number))
-            throw new AntigravityException(ProviderFailureKind.InvalidResponse);
+            throw new ProviderException(ProviderFailureKind.InvalidResponse);
         return number;
     }
 
@@ -166,7 +166,7 @@ public static class AntigravityQuotaParser
             JsonValueKind.True => true,
             JsonValueKind.False => false,
             JsonValueKind.Undefined or JsonValueKind.Null => null,
-            _ => throw new AntigravityException(ProviderFailureKind.InvalidResponse)
+            _ => throw new ProviderException(ProviderFailureKind.InvalidResponse)
         };
     }
 }

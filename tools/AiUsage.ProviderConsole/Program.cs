@@ -1,3 +1,4 @@
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Providers.Codex;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -111,14 +112,9 @@ internal static class Program
             PrintFailure(error);
             return 3;
         }
-        catch (CopilotException error)
+        catch (ProviderException error)
         {
-            Console.Error.WriteLine($"Copilot: {error.Kind}.");
-            return 3;
-        }
-        catch (AiUsage.Infrastructure.Providers.Antigravity.AntigravityException error)
-        {
-            Console.Error.WriteLine($"Antigravity: {error.Kind}.");
+            Console.Error.WriteLine($"Provider: {error.Kind}.");
             return 3;
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException)

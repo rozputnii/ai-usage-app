@@ -1,3 +1,4 @@
+using AiUsage.Infrastructure.Providers;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers.Antigravity;
 using System.Security.Cryptography;
@@ -48,7 +49,7 @@ public sealed class AntigravityStateStoreTests : IDisposable
         {
             var old = await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
             interrupt = true;
-            var error = await Assert.ThrowsAsync<AntigravityException>(() => lease.SaveAsync(State("synthetic-rotated"), old.Revision, TestContext.Current.CancellationToken));
+            var error = await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State("synthetic-rotated"), old.Revision, TestContext.Current.CancellationToken));
             Assert.Equal(ProviderFailureKind.StorageUnavailable, error.Kind);
         }
         await using var recovered = await new AntigravityStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken);
@@ -68,9 +69,9 @@ public sealed class AntigravityStateStoreTests : IDisposable
         var path = Path.Combine(directory, "antigravity.state");
         await File.WriteAllBytesAsync(path, bytes, TestContext.Current.CancellationToken);
         await using var lease = await new AntigravityStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => lease.LoadAsync(TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
-        await Assert.ThrowsAsync<AntigravityException>(() => lease.SaveAsync(State(), null, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State(), null, TestContext.Current.CancellationToken));
         Assert.Equal(bytes, await File.ReadAllBytesAsync(path, TestContext.Current.CancellationToken));
     }
 
@@ -87,7 +88,7 @@ public sealed class AntigravityStateStoreTests : IDisposable
         })
         {
             Assert.Equal(ProviderFailureKind.RecoveryRequired,
-                (await Assert.ThrowsAsync<AntigravityException>(() => lease.SaveAsync(invalid, null, TestContext.Current.CancellationToken))).Kind);
+                (await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(invalid, null, TestContext.Current.CancellationToken))).Kind);
         }
         Assert.False(File.Exists(Path.Combine(directory, "antigravity.state")));
     }
@@ -97,10 +98,10 @@ public sealed class AntigravityStateStoreTests : IDisposable
     {
         var store = new AntigravityStateStore(directory);
         await using var lease = await store.AcquireAsync(TestContext.Current.CancellationToken);
-        await Assert.ThrowsAsync<AntigravityException>(() => store.AcquireAsync(TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ProviderException>(() => store.AcquireAsync(TestContext.Current.CancellationToken));
         var old = await lease.SaveAsync(State(), null, TestContext.Current.CancellationToken);
         var next = await lease.SaveAsync(State("synthetic-next"), old.Revision, TestContext.Current.CancellationToken);
-        var error = await Assert.ThrowsAsync<AntigravityException>(() => lease.SaveAsync(State("synthetic-obsolete"), old.Revision, TestContext.Current.CancellationToken));
+        var error = await Assert.ThrowsAsync<ProviderException>(() => lease.SaveAsync(State("synthetic-obsolete"), old.Revision, TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
         Assert.Equal(next.Revision, (await lease.LoadAsync(TestContext.Current.CancellationToken))!.Revision);
     }
@@ -122,7 +123,7 @@ public sealed class AntigravityStateStoreTests : IDisposable
         Assert.Equal(0, process.ExitCode);
         try
         {
-            var error = await Assert.ThrowsAsync<AntigravityException>(() => new AntigravityStateStore(junction).AcquireAsync(TestContext.Current.CancellationToken));
+            var error = await Assert.ThrowsAsync<ProviderException>(() => new AntigravityStateStore(junction).AcquireAsync(TestContext.Current.CancellationToken));
             Assert.Equal(ProviderFailureKind.RecoveryRequired, error.Kind);
             Assert.Empty(Directory.EnumerateFiles(destination));
         }
