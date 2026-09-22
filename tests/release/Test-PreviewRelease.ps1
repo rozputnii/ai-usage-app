@@ -31,7 +31,9 @@ $args.Dependencies[0].Uri = 'file:///C:/untrusted.msix'
 Reject { New-PreviewFeed @args }
 Write-Output "PASS: $script:count release policy assertions"
 $head = git rev-parse HEAD
+if ($LASTEXITCODE -ne 0) { throw 'Release ancestry tests require a Git checkout.' }
 $parent = git rev-parse HEAD~1
+if ($LASTEXITCODE -ne 0) { throw 'Release ancestry tests require checkout depth >= 2.' }
 Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($parent)) $true
 Equal (Test-PreviewPromotion -Candidate $parent -PublishedCommits @($head, $parent)) $false
 Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($head)) $true
