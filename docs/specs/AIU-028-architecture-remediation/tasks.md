@@ -18,10 +18,10 @@ T-04 small. T-03 and T-04 close the "a defect looks like a provider outage" pair
 makes every later task diagnosable. Polish is last.
 
 ### T-01 - Shared provider transport, exception and state lease
-- status: in-progress
+- status: blocked
 - depends_on: []
 - acceptance: AC-01, AC-02
-- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review pending
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review BLOCKED (two attempts returned no result)
 
 - [x] Extract one transport-failure and HTTP-status translator and one handler-configuration
       helper; delete the four per-provider copies.
@@ -35,10 +35,10 @@ makes every later task diagnosable. Polish is last.
       --no-restore -- -noLogo` passes with no reduction in test count.
 
 ### T-02 - Codex grant store onto the hardened lease
-- status: in-progress
+- status: blocked
 - depends_on: [T-01]
 - acceptance: AC-02
-- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review pending
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review BLOCKED (two attempts returned no result)
 
 - [x] Move `CodexGrantStore` onto the shared lease: exclusive lock, reparse-point checks on
       directory and file, pending/committed generation, flush-to-disk, asynchronous I/O.
@@ -222,13 +222,15 @@ for them later by accident.
 ## Handoff
 
 The owner selected T-01 and T-02 on 2026-09-22. Base: `cfb9ceb` on `main`.
-T-08 and T-09 were already complete. T-01/T-02 implementation and acceptance checks are complete
-at `2ddcc7f`; focused independent review remains pending. The first reviewer did not return a
-result and was interrupted; a replacement fresh read-only review uses the same required model.
+T-08 and T-09 were already complete. T-01/T-02 implementation and primary acceptance checks are
+complete at code reference `2ddcc7f`, but neither task is closed: required independent review
+is BLOCKED. Two fresh read-only GPT-5.6 Luna / max review attempts returned no progress or
+verdict; the first was interrupted after about 20 minutes and the replacement after its bounded
+10-minute window. No other model was substituted and no reviewer finding or PASS is invented.
 
-Exact next action: obtain the focused independent review result for T-01/T-02, resolve any
-material findings and record its verdict before closing these tasks. T-03 and the remaining
-tasks are not selected. There are no pending worker code artifacts.
+Exact next action: obtain a focused independent review of `cfb9ceb..2ddcc7f` for T-01/T-02,
+resolve any material findings and record its actual verdict before closing these tasks.
+T-03 and all other pending tasks remain unselected. There are no pending worker code artifacts.
 
 Checks: Infrastructure 253/253 and Presentation 129/129 PASS; Windows Debug unpackaged and
 ProviderConsole Release builds PASS with zero warnings/errors; original-code writer/current-code

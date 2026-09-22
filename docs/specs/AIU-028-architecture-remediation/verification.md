@@ -106,12 +106,12 @@ repository, not secrets.
 ## Remediation checks - placeholders
 
 These are the checks each task must produce. Completed checks are recorded below; the T-01/T-02
-results are being finalized with independent review. Unselected tasks remain NOT_RUN.
+regressions passed; required independent review is BLOCKED as recorded at the end. Unselected tasks remain NOT_RUN.
 
 | Task | Acceptance | Required check | Status |
 | --- | --- | --- | --- |
-| T-01 | AC-01, AC-02 | Infrastructure Release suite, no reduction in test count | NOT_RUN |
-| T-02 | AC-02 | Infrastructure Release suite; new per-provider reparse-point refusal test; Codex record forward-compatibility test; focused independent review | NOT_RUN |
+| T-01 | AC-01, AC-02 | Infrastructure Release suite, no reduction in test count | PASS regressions/compatibility; independent review BLOCKED |
+| T-02 | AC-02 | Infrastructure Release suite; new per-provider reparse-point refusal test; Codex record forward-compatibility test; focused independent review | PASS regressions/compatibility; independent review BLOCKED |
 | T-03 | AC-03 | Infrastructure and Presentation Release suites; `tools/AiUsage.ProviderConsole` Release build | NOT_RUN |
 | T-04 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | NOT_RUN |
 | T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | NOT_RUN |
@@ -284,3 +284,24 @@ class then passed 15/15, including no further provider traffic after the cancell
 The quota-cache internal constructor supplies a synthetic cancellation hook; the public
 constructor and normal runtime behavior have no injected callback. This is a T-02 correction,
 not a new feature or authentication flow. Independent review was notified of the finding.
+
+### Required focused independent review - BLOCKED
+
+CONTRIBUTING.md requires focused independent review for material credential changes. The
+convergence-review skill was read and applied; it instructs: "Report unavailable required review
+honestly." Two fresh read-only Codex review agents were requested with GPT-5.6 Luna and reasoning
+max, as required by AGENTS.md. The first received frozen `5462057` against `cfb9ceb`, then the
+bounded cancellation correction `2ddcc7f`; it returned no progress, findings or verdict despite
+status requests and a resumed request for its accumulated result. It was interrupted after about
+20 minutes. A replacement received final code `2ddcc7f` against `cfb9ceb`, the same evidence and
+a focused storage-only boundary, with an approximately ten-minute limit; it also returned no
+progress or verdict before interruption. Tool acceptance established dispatch, not a completed
+review. This record does not infer that the model itself is unavailable, only that no review
+result was obtainable in these attempts. No substitute model was used.
+
+Verdict: BLOCKED, not PASS or FAIL. No independent findings were delivered. Primary inspection,
+regressions and cross-version compatibility checks are successful but do not replace independent
+review. T-01 and T-02 remain blocked rather than done, and AIU-028 remains incomplete. The code
+and evidence are committed and pushed under the standing save-point policy; publication does not
+claim completion. Exact next action is a focused read-only review of `cfb9ceb..2ddcc7f`, followed
+by targeted fixes/checks if needed and actual review evidence before task closure.
