@@ -72,10 +72,10 @@ makes every later task diagnosable. Polish is last.
       `tools/AiUsage.ProviderConsole`.
 
 ### T-04 - Classify unclassified failures and add redacted diagnostics
-- status: blocked
+- status: done
 - depends_on: [T-03]
 - acceptance: AC-04, AC-05
-- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation 9bbf13e; Infrastructure 261/261, Presentation 136/136, Windows smoke 7/7 PASS; focused independent review NOT_RUN
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; independent review of 56d6315..55bb169 PASS in a fresh primary session on 2026-09-22, no actionable findings; fresh Infrastructure 261/261 and Presentation 136/136 PASS; unchanged production implementation 9bbf13e retains Windows smoke 7/7 and unsigned MSIX evidence
 
 - [x] Stop returning `ProviderUnavailable` for exceptions that are not classified provider
       failures; introduce a distinct failure kind whose presentation does not offer a retry that
@@ -267,13 +267,17 @@ Ruling: typed provider failures already reach the Core port as `ProviderSessionS
 through the concrete sessions' typed catches. Preserve that path and test it; do not introduce
 an Infrastructure exception dependency into presentation. No provider protocol changes are made.
 
-Required focused independent review is NOT_RUN: the owner prohibited subagents and this author
-cannot supply fresh independent review. T-04 remains blocked only on that requirement, despite
-completed implementation and successful local checks. No independent-review waiver is inferred.
+The implementation session could not supply independent review; that historical NOT_RUN result
+is retained in verification.md. A separate fresh primary session on 2026-09-22 completed the
+owner-requested read-only review of the full `56d6315..55bb169` range without subagents:
+PASS, no actionable findings. Its verdict was recorded before closure edits. No production or
+test fixes were needed. Fresh Infrastructure 261/261 and Presentation 136/136 checks passed.
+Existing Windows build, product smoke 7/7 and unsigned MSIX evidence remain applicable because
+production code is unchanged; the retained smoke results and package hash were checked again.
 
-Exact next action: in a separate fresh primary review session, review `56d6315..9bbf13e` against
-AC-04/AC-05 and the diagnostic lifecycle design, include the final classified-provider regression
-tests, and record the verdict before closing T-04. Other pending tasks remain unselected.
+T-04 is done after AC-04/AC-05 acceptance and required independent review. AIU-028 remains
+incomplete. No blocker remains for T-04; other pending tasks remain unselected. Exact next
+action: obtain the owner's selection of a remaining AIU-028 task before starting further work.
 
 Earlier T-01/T-02 review checks: Infrastructure 254/254 and Presentation 129/129 PASS on that code, including
 the disconnect cancellation correction. Earlier Windows Debug unpackaged and ProviderConsole

@@ -439,3 +439,48 @@ storage failure or a torn write may lose records. Path checks do not promise pro
 all same-user check/use races. No generic exception/payload logging, export, network telemetry,
 recursive deletion, credential migration or live-provider success is claimed. The next action
 is fresh independent review of the frozen implementation and final regression tests.
+
+### Independent review and T-04 closure - 2026-09-22
+
+Verdict: **PASS**, no actionable findings in `56d6315..55bb169`. AC-04 and AC-05 are
+satisfied. This completed review supersedes the earlier unavailable-review blocker; it does
+not close AIU-028 or select another task.
+
+Reviewer independence: this fresh primary Codex session did not author the implementation or
+its tests and had no implementation conversation transcript. It used convergence-review and
+security-lifecycle, reviewed the entire frozen range and relevant callers read-only, and
+recorded its verdict before editing these closure documents. No subagents were used. No
+production or test fixes were necessary or authored; subsequent changes are documentation only.
+
+Frozen base: `56d6315e8fc2c44749618100bb7eb836763342d5`.
+Production implementation: `9bbf13e2e47980884507eeb003a7a3c0f650c488`.
+Frozen candidate and clean `main` at review start:
+`55bb169fa5b0d799e2ce5a32a25a64fd821bb550`.
+Review and fresh checks ran on local Windows on 2026-09-22, approximately 14:00 Europe/Lisbon,
+using the README-documented user-local SDK and existing restored assets.
+
+Paths in the boundary table are relative to `src/windows/` unless stated otherwise.
+
+| Boundary | Independent assessment |
+| --- | --- |
+| AC-04 classification | `AiUsage.Windows/Adapters/Live/LiveUsageSource.ExecuteCoreAsync` maps unclassified operation exceptions to `InternalError` in both the command result and snapshot, while preserving cancellation. The concrete provider sessions classify failures into `ProviderSessionState.Failure` before the live adapter receives them; returned classifications pass through unchanged. The actual connection flow uses `ConnectWithChallengeAsync`, including Copilot. `LiveMapping.Failure` supplies the dedicated message and sets Recoverable=false. PASS. |
+| Internal-error presentation | `AiUsage.Windows/Features/Presentation/ViewModelSupport.cs`, `FailureViewModel.Update`, resets ActionEnabled and handles InternalError before reauthentication, clearing action, label and wait text. Overview and account-detail XAML bind action visibility/enabled state to this model. Dedicated full/short English resources exist. The distinct-kind/message, connected/reauthentication and classified-failure regressions exercise these boundaries. PASS. |
+| AC-05 lifetime wiring | `AiUsage.Windows/App.xaml.cs` initializes diagnostics before host construction and records all three existing startup/shutdown/disposal catches. `Adapters/Live/Windows/ApplicationDiagnostics` owns the sink outside host disposal, registers that same wrapper for operations, and resolves the existing owned state root with isolated demo/override behavior. The adapter records OperationFailure before presenting InternalError. PASS by source inspection; desktop fault injection remains NOT_RUN. |
+| Allowlist and layer boundaries | `AiUsage.Core/Diagnostics/IDiagnosticSink` accepts only event/category enums. `DiagnosticProjection.Category` uses fixed type patterns, without reading messages, runtime names, stacks, inner exceptions or Data. `AiUsage.Infrastructure/Persistence/LocalDiagnosticSink.Record` rejects undefined codes. File records contain only UTC time and enum names, with no arbitrary fields, nested payloads, token values or provider/account identifiers. Synthetic nested-data tests cover projection and retained-file rejection. Core stays credential-free, Infrastructure owns I/O, and Windows owns desktop wiring. PASS. |
+| Retention and bounds | `LocalDiagnosticSink.Rewrite` bounds input to 64 KiB, validates exactly three fields, time range and defined codes, then reconstructs canonical ASCII records. Oversized input is discarded rather than read; generated output evicts earliest queued records to remain within 64 KiB. Startup and writes remove records older than seven days and reject future dates. Closed-app pruning and crash durability are not promised. PASS. |
+| Paths, concurrency and failure containment | `LocalDiagnosticSink.CheckPath` checks existing ancestors and the fixed file for reparse points before access and again after directory creation; the file check also handles dangling links. No provider-supplied filename or recursive cleanup is used. FileShare.None covers the complete read/prune/write operation; contention drops output rather than interleaving writes. Rewrite catches storage failures. Existing tests exercise actual Windows junction refusal, exclusive-handle contention, invalid storage, retention and size. Other reparse variants are source-inspected, not separately executed. Same-user check/use races and torn-write record loss remain explicit limitations. PASS. |
+| Provider logging and scope | All eight auth/quota registrations retain `RemoveAllLoggers()`; host defaults remain disabled. No provider transport, authentication, credential format, dependency, telemetry or export change is present. PASS. |
+
+Fresh verification on the unchanged candidate:
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 261/261; 0 errors, failures, skips or not-run cases; 6.860 seconds test execution. |
+| `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 136/136; 0 errors, failures, skips or not-run cases; 0.632 seconds test execution. |
+| Windows unpackaged build, actual product smoke and unsigned MSIX | PASS (existing evidence reused) | No production changes since 9bbf13e. Inspected the retained seven scenario JSON results: all passed, exited=true, exitCode=0; inspected launch.png. Recomputed the retained 2026.9.2201.0 package SHA-256, matching the value above. Existing build evidence and its single missing-mspdbcmf.exe tooling warning remain applicable; no new build or UI execution is claimed. |
+| Live providers, desktop fault injection, packaged install/update | NOT_RUN | Neither executed nor inferred from deterministic tests or normal desktop smoke. No existing credentials were read, no sign-in or trust change occurred, and no packages were installed. |
+
+The closure changes only verification, tasks, backlog and the obsolete review-blocker note in
+design. `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`
+returned `valid=true, diagnostics=[]`: PASS. `git diff --check`: PASS. Final closure diff and
+links inspected; T-04 is done, AIU-028 remains incomplete, and no other task was selected.

@@ -137,9 +137,9 @@ write may lose diagnostics; no credential-style atomicity or crash durability is
 this fixed owned file is rewritten; no recursive cleanup, provider-state changes or source CLI
 access occurs. Future factory reset removes it as app-owned mutable state.
 
-The owner requested no subagents. Primary acceptance/diff review will run; required focused
-independent review is recorded as unavailable until a fresh independent session reviews the
-frozen code. This does not turn primary review into independent review.
+Required independent review covers the frozen implementation and tests against this lifecycle
+boundary. The separate fresh primary review of `56d6315..55bb169`, performed without subagents,
+is recorded in [verification.md](verification.md#independent-review-and-t-04-closure---2026-09-22).
 
 ## Build policy
 
