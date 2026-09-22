@@ -13,10 +13,17 @@ history method. Stable OMP v18.2.8 was inspected at
 its history is recorded locally. No eligible remote-history method was found, so no
 product implementation plan was selected and no production code was changed.
 
-Exact next action on an owner-selected resumption: inspect a specifically identified new
-OMP provider-history method and confirm it uses the existing AI Usage authorization
-before planning implementation. With the inspected revision there is no executable
-history-fetch task. Do not repeat the same broad search, add an unavailable-only feature,
-introduce additional credentials or start AIU-029 to bypass this scope boundary.
+The owner then requested broader feasibility analysis. Official Codex development source
+at `2c2a42e65de077c5518ea5b4c3999633ef6a12fc` contains ChatGPT-authenticated historical
+analytics requests. Copilot has documented reports with unresolved existing-grant access;
+Claude and Antigravity describe credit history but no compatible transport was established.
+See research.md for pinned source, release distinction and remaining uncertainties.
+
+Exact next action on resumption: prepare a bounded read of Codex
+`/backend-api/wham/usage/daily-token-usage-breakdown` through AI Usage's existing session
+authority, using a short date range and sanitized outcome evidence, to establish actual
+grant/plan eligibility before history implementation. This research did not execute a
+live read. Do not import CLI credentials, introduce additional authorization, promise
+universal coverage or start AIU-029 to bypass missing remote capabilities.
 
 Actual checks and limitations are in [verification.md](verification.md).

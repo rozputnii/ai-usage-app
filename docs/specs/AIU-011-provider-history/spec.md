@@ -3,8 +3,8 @@ id: AIU-011
 type: spec
 status: draft
 goal: G-003
-scope_version: 2
-approval_basis: The owner selected provider-supplied history on 2026-09-22, deferred local collection until product stability, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The subsequent owner amendment restricts access to existing authorization and selects OMP's provider-history method if present. The interaction proposal remains a draft; implementation requires an eligible upstream method.
+scope_version: 3
+approval_basis: The owner selected provider-supplied history on 2026-09-22, deferred local collection until product stability, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The subsequent owner amendment restricts access to existing authorization and selects OMP's provider-history method if present. The follow-up asks for general feasibility analysis beyond OMP; it does not select an alternate implementation. The interaction proposal remains a draft; implementation requires an eligible upstream method.
 ---
 # Provider-supplied usage history
 
@@ -16,11 +16,12 @@ tokens, credits, costs or percentages when available, with their original meanin
 Provider coverage is capability-dependent; researching all four does not promise that
 each provider exposes history for the user's plan and current connection.
 
-The selected reference is OMP. Implement the same provider-history retrieval method
-only where OMP supplies one using the authorization already available in AI Usage.
+The preferred reference is OMP. Reproduce its provider-history retrieval method
+where OMP supplies one using the authorization already available in AI Usage.
 The source assessment of stable OMP v18.2.8 found no such path for any of the four
-providers. This blocks implementation under the selected scope; it does not prove that
-the providers could never expose history through other methods. See [research.md](research.md).
+providers. The owner's subsequent feasibility question reopens research beyond OMP;
+official Codex OAuth analytics is now a concrete candidate. No alternate implementation
+has yet been selected or live verified. See [research.md](research.md).
 
 This is an architectural change to history contracts: the current presentation contract
 only represents remaining percentages, and the live adapter returns an empty placeholder.
@@ -76,11 +77,13 @@ broker's stored observations. Both are local collection from the recorder's pers
 not a history service supplied by Codex, Claude, Copilot or Antigravity. Reproducing that
 mechanism belongs to deferred AIU-029 and is not authorized now. The earlier CodexBar web
 and official administrator/reporting API candidates remain research context only.
+The subsequent broader feasibility request includes alternate methods that might work
+with existing authorization; it does not permit extra access or select an implementation.
 
 ## Acceptance criteria
 
-- AC-01: Record a source-backed history capability assessment of the selected OMP
-  implementation for all four providers using existing authorization,
+- AC-01: Record a source-backed history capability assessment of OMP and relevant
+  alternate provider methods for all four providers using existing authorization,
   including method, authentication, account/plan restrictions, units, period, coverage,
   paging and failures where known. Separate source verification from live verification;
   a bounded search without a method is unverified, not proof of impossibility.

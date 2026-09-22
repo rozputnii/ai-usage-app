@@ -101,12 +101,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-011 - Provider-supplied usage history
 - goal: G-003
-- status: blocked
+- status: research-needed
 - depends_on: [AIU-004, AIU-007, AIU-008, AIU-009, AIU-010]
 - trigger: owner-selected
 - outcome: Retrieve and display available historical usage supplied by Codex, Claude, Copilot and Antigravity, preserving native metrics, units, periods and access limitations. Open History with automatic loading and useful defaults; account/range selection is optional refinement, not a required sequence before seeing data.
 - scope-note: Owner selected and narrowed this feature on 2026-09-22 to provider-supplied history, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The subsequent owner amendment permits only existing authorization and directs matching OMP's provider-history method if one exists. No new sign-in, browser session, API key or reporting permission is in scope. Local sample collection, retention, rollups and persistent history remain deferred to AIU-029 with low priority after product stability.
-- blocker: Source inspection of OMP v18.2.8 (5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c) found current-quota reads for all four existing OAuth paths, not provider-history retrieval. OMP builds its history from locally persisted snapshots; its broker history endpoint reads those same stored observations. Copilot's separate billing branch requires api_key credentials and is excluded. No eligible historical dataset exists in the inspected OMP paths, so product implementation has not started and AIU-011 is not done.
+- research-note: The owner's subsequent broader feasibility request reopens research beyond OMP. OMP v18.2.8 has only local snapshot history, but official Codex development source exposes ChatGPT-authenticated analytics and GitHub documents historical Copilot reports. Codex existing-session access and Copilot read:user eligibility remain unverified; Claude and Antigravity describe credit history without an established compatible transport. The previous OMP-specific blocker is not proof of global unavailability. No live read or product implementation has started; see the pinned assessment and exact next action.
 - specification: docs/specs/AIU-011-provider-history/spec.md
 - evidence: docs/specs/AIU-011-provider-history/verification.md
 

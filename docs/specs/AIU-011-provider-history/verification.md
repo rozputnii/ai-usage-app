@@ -33,3 +33,21 @@ matching OMP's history retrieval for each provider if it exists.
 
 AIU-011 is blocked, not completed or silently expanded. Local sampling remains deferred
 in AIU-029, whose unnecessary dependency on remote-history completion was removed.
+
+## Broader provider-history feasibility - 2026-09-22
+
+Base: `c46e708` on clean `main`. Documentation-only follow-up to the owner's question
+about general feasibility; existing authorization remains the boundary.
+
+| Check | Verdict | Evidence or limitation |
+| --- | --- | --- |
+| Codex historical transport | PASS | Inspected official development source at 2c2a42e65de077c5518ea5b4c3999633ef6a12fc: analytics routes, shared auth headers, account/user-bound session, dated response models and upstream test source. Also inspected the pinned Codex Watch client. This establishes a candidate, not live access. |
+| Release distinction | PASS | GitHub latest release returned rust-v0.155.1, published 2026-09-18T20:03:04Z; annotated tag resolved to be2951ea34f0d295ed0becf97079f92fa5f6950e. The specific analytics client file returned 404 at that tag. No claim that the development feature shipped in that release. |
+| Other provider evidence | PASS | GitHub documents historical reports and fine-grained access; current OAuth eligibility is unresolved. Official Claude and Antigravity help pages describe credit history but do not establish compatible historical transport. See research.md for references and limits. |
+| Credentials, provider reads, product code and upstream tests | NOT_RUN | No real credential reads, authenticated requests, source-CLI execution, production edits or upstream test execution. Public code and documentation inspection only. |
+| AC-02 real dataset through AI Usage | NOT_RUN | No live history dataset fetched. Candidate source code does not complete the feature. |
+| Document validation and diff review | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`: valid=true, diagnostics=[], exit 0. `git diff --check`: exit 0. Primary review checked source provenance, development/release distinction, conditional OMP preference, unchanged authorization boundary and absence of live-success claims. |
+
+The OMP-specific result remains true. It no longer justifies treating all remote history
+as unavailable; the backlog returns to research-needed with Codex as the first concrete
+existing-session candidate. The low-click UX and local-history deferral are unchanged.

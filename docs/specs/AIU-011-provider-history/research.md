@@ -1,6 +1,109 @@
 # Provider-history assessment
 
-## Selected OMP-only scope: result on 2026-09-22
+## Broader feasibility assessment - 2026-09-22
+
+The owner's follow-up asks whether provider history can be retrieved at all, reopening
+research beyond OMP. Existing authorization remains mandatory. OMP's local implementation
+does not establish global unavailability. No alternate implementation or additional access
+is selected by this research. No real credentials or authenticated responses were read.
+
+All entries in this assessment have source_verified_at=2026-09-22 and
+live_verified_at=null. Authentication and current-quota classifications remain in the
+existing provider records; the classifications below concern historical reporting.
+
+| Provider | History classification and confidence | Existing-authorization conclusion |
+| --- | --- | --- |
+| Codex | Official development-source internal analytics client; source-verified candidate. | Concrete ChatGPT OAuth candidate exists. Eligibility with AI Usage's stored grant, plan coverage and retention are not live verified. |
+| Copilot | Documented public historical billing reports; source-verified contract. | Access using AI Usage's existing read:user OAuth grant remains unverified. A fine-grained Plan-read credential is not interchangeable evidence. |
+| Claude | Official product documentation describes credit-consumption history; no compatible transport contract established. | Personal subscription history retrieval with the existing OAuth grant remains unverified. Console/Enterprise reporting is a separate credential/product boundary. |
+| Antigravity | Official CLI documentation describes a credit-consumption history panel; no compatible transport contract established. | Existing Google OAuth eligibility and a remote history endpoint remain unverified. Current quota summaries and local logs do not establish that contract. |
+
+### Codex: a concrete OAuth candidate outside OMP
+
+Official `openai/codex` development source was inspected at immutable commit
+`2c2a42e65de077c5518ea5b4c3999633ef6a12fc`:
+
+- [Analytics request implementation](https://github.com/openai/codex/blob/2c2a42e65de077c5518ea5b4c3999633ef6a12fc/codex-rs/backend-client/src/client/analytics.rs)
+  issues GET requests beneath `/backend-api/wham/`. Relevant routes include
+  `usage/daily-token-usage-breakdown`, `usage/credit-usage-events` and
+  `analytics/daily-workspace-usage-counts`. Separate workspace token/credit, plugin and
+  skill reports exist; their availability must not be generalized to every plan.
+- [Analytics session](https://github.com/openai/codex/blob/2c2a42e65de077c5518ea5b4c3999633ef6a12fc/codex-rs/backend-client/src/analytics_session.rs)
+  requires ChatGPT authentication, binds account and user identity, and discovers the
+  server plan. The [shared client](https://github.com/openai/codex/blob/2c2a42e65de077c5518ea5b4c3999633ef6a12fc/codex-rs/backend-client/src/client.rs)
+  adds the existing auth provider's headers, including bearer/account context. This is
+  source evidence of OAuth analytics, not a requirement for browser cookies or an Admin
+  API key. AI Usage must reuse its own session authority, never the CLI credential store.
+- Date-based reports use inclusive UTC `start_date` / `end_date` and `group_by=day`.
+  Messages/plugins/skills additionally use `workspace_user=true`. Credit events have
+  no date parameters in this client. No paging or complete-retention guarantee was
+  established. The upstream UI's 7/30-day choices are not server retention limits.
+- [Response models](https://github.com/openai/codex/blob/2c2a42e65de077c5518ea5b4c3999633ef6a12fc/codex-rs/codex-backend-openapi-models/src/models/analytics.rs)
+  include dated usage, provider units, model/product/client attribution, credit events,
+  thread/turn counts and optional input/cache/output token and cost fields. Optional
+  amounts remain unknown when absent; credit events can be signed. These are not a
+  historical remaining-percentage curve. The upstream tests were inspected, not run.
+
+This is official **development-source evidence**, not a documented stable public API or
+proof of live backend support. The latest stable release returned by GitHub was
+`rust-v0.155.1`, published 2026-09-18, resolving to
+`be2951ea34f0d295ed0becf97079f92fa5f6950e`. The specific analytics client file above
+returned 404 at that stable tag; this check does not exclude equivalent code elsewhere.
+
+A separate [Codex Watch implementation](https://github.com/moebis/codex-watch/blob/dfd68dc5a795c3aceaebd8e5a28fe47de842beac/Sources/CodexWatch/Usage/CodexUsageClient.swift)
+uses bearer/account headers for both current quota and daily workspace usage counts.
+Its 365-day query is a client choice, not proof of provider retention. Its CLI credential
+import and any local-history mechanisms are not selected for AI Usage.
+
+**Next evidence needed:** a bounded read through AI Usage's existing Codex session,
+starting with a short daily-usage range, recording only sanitized status/schema/coverage.
+Confirm account binding, plan-specific fields, missing-data behavior and range limits
+before promising all available history. No new sign-in is implied.
+
+### Copilot: history exists, current OAuth access is unresolved
+
+The [official billing reference](https://docs.github.com/en/rest/billing/usage)
+documents user AI-credit and premium-request reports, up to 24 months, with date filters
+and provider quantities/amounts per model/product. User reports apply to personally
+billed plans; organization-paid usage requires the relevant organization/enterprise
+report. The documented fine-grained permission is Plan read. The existing read:user
+OAuth grant must be evaluated separately: neither this documentation nor OMP's api_key
+branch proves that the current grant succeeds or that it is impossible. Reports are
+period aggregates; request-per-day costs and throttling need verification for daily charts.
+No new PAT or permission expansion is permitted to work around an access denial.
+
+### Claude: credit history is described, compatible retrieval is unknown
+
+[Claude's official paid-plan credit guide](https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans)
+explicitly describes reviewing past credit-consumption patterns. This is evidence of a
+product history surface, not an OAuth endpoint, retention policy or historical base-plan
+quota curve. The existing `/api/oauth/usage` path remains a current-window snapshot.
+The [Console usage/cost API](https://platform.claude.com/docs/en/manage-claude/usage-cost-api)
+has separate reporting authorization and does not establish personal subscription
+history with the existing grant. No suitable personal OAuth history endpoint was found
+in the inspected sources; that is an unresolved capability, not a proof of impossibility.
+
+### Antigravity: credit history is described, compatible retrieval is unknown
+
+The official [/credits command documentation](https://antigravity.google/docs/cli/commands/credits)
+describes credit-consumption history and a current-billing-cycle summary. It does not
+specify an HTTP endpoint, retention, paging or whether the history is remotely fetched.
+The public `google-antigravity/antigravity-cli` tree inspected at
+`ad7d70342a108687a1b36db7573050de3e9c2c3e` did not expose the corresponding client source.
+OMP's current `retrieveUserQuotaSummary` therefore remains insufficient, but the earlier
+absence of a history method in OMP must not become a claim that no history exists.
+Do not substitute local databases or unrelated Gemini API billing.
+
+### Revised disposition
+
+Provider history is feasible in principle, with a strong Codex OAuth candidate and a
+documented Copilot reporting API. Universal coverage under existing authorization is
+not established. AIU-011 returns to research-needed; the previous OMP-specific blocker
+is not a global conclusion. Prioritize Codex existing-session validation, then Copilot
+eligibility. Claude and Antigravity need transport evidence. Implementation remains
+unstarted, and local collection stays deferred to AIU-029.
+
+## Earlier OMP reference assessment: result on 2026-09-22
 
 The owner resolved PD-011-01: existing authorization only, and the same provider-history
 retrieval as OMP if present. GitHub's public latest-release API returned
@@ -43,7 +146,7 @@ describe local snapshot recording and hourly replacement. Those tests were inspe
 not executed. No personal OMP databases or credentials were opened and no live provider
 requests were made.
 
-**Disposition:** No eligible OMP provider-history method was found for the four existing
+**Disposition at that stage:** No eligible OMP provider-history method was found for the four existing
 authorization paths. AIU-011 implementation is blocked by that missing capability.
 An empty-history implementation would not meet AC-02. The owner's deferred local-history
 decision remains intact; AIU-029 is independent of remote-history availability.
@@ -142,6 +245,6 @@ global unavailability. Gemini API billing must not be substituted.
 
 ## Product consequence
 
-PD-011-01 is resolved in [spec.md](spec.md). The selected OMP-only result above supersedes
-the earlier access proposal. Additional web/reporting credentials and unrelated provider
-APIs are outside scope. No product implementation was started.
+PD-011-01 is resolved in [spec.md](spec.md). The broader follow-up at the top of this
+document supersedes the OMP-only research conclusion. Additional web/reporting credentials
+and unrelated provider products remain outside scope. No product implementation was started.
