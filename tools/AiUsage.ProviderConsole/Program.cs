@@ -21,6 +21,8 @@ internal static class Program
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
         try
         {
+            if (args is ["history", var historyProvider, var ownedDirectory])
+                return OperatingSystem.IsWindows() ? await HistoryConsole.RunAsync(historyProvider, ownedDirectory, cancellation.Token) : 2;
             if (args is ["inspect-antigravity", var antigravityPath])
                 return await AntigravityConsole.InspectAsync(antigravityPath, cancellation.Token);
             if (args is ["antigravity"])

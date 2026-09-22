@@ -8,19 +8,21 @@ namespace AiUsage.Infrastructure.Providers.Codex;
 /// endpoint, header or parsing of its own.
 /// </summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class CodexSession : IProviderSession, IDisposable
+public sealed partial class CodexSession : IProviderSession, IDisposable
 {
     private readonly CodexAuthClient auth;
     private readonly CodexQuotaClient quota;
     private readonly CodexGrantStore store;
     private readonly CodexQuotaCache cache;
+    private readonly CodexHistoryClient history;
 
-    internal CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store, CodexQuotaCache cache)
+    internal CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store, CodexQuotaCache cache, CodexHistoryClient history)
     {
         this.auth = auth;
         this.quota = quota;
         this.store = store;
         this.cache = cache;
+        this.history = history;
     }
 
     private readonly SemaphoreSlim gate = new(1, 1);

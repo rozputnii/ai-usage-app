@@ -34,7 +34,7 @@ internal sealed partial class MainWindow : Window
     private bool finalClose;
 
     public MainWindow(ShellViewModel shell, TrayViewModel tray, RecoveryViewModel recovery, OverviewViewModel overview, AccountsViewModel accounts,
-        HistoryViewModel history, SettingsViewModel settings, SystemStatusViewModel systemStatus, NavigationService navigation, ThemeService theme, DisplaySimulation display,
+        ProviderHistoryViewModel history, SettingsViewModel settings, SystemStatusViewModel systemStatus, NavigationService navigation, ThemeService theme, DisplaySimulation display,
         IUsageSource usage, IServiceProvider services)
     {
         Shell = shell;

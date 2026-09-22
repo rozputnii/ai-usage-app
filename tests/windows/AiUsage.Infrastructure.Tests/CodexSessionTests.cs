@@ -12,6 +12,37 @@ public sealed class CodexSessionTests : IDisposable
     private readonly string root = Path.Combine(Path.GetTempPath(), "aiusage-session-" + Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public async Task HistoryWithoutGrantDoesNotSignInOrRequestProviderData()
+    {
+        using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No request expected."));
+        using var session = Session(server, out _);
+        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
+        var result = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        Assert.Equal(AiUsage.Core.History.HistoryStatus.AuthenticationRequired, Assert.Single(result.Reports).Status);
+        Assert.Equal(0, server.Calls);
+    }
+
+    [Fact]
+    public async Task HistoryResumesOwnGrantAndPersistsRotationBeforeReadingWithoutChangingQuota()
+    {
+        var store = new CodexGrantStore(root);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-original"));
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (request.Method == HttpMethod.Post) return Task.FromResult(CodexTestServer.Json(CodexTestServer.Tokens()));
+            Assert.DoesNotContain("/usage?", request.RequestUri!.AbsolutePath);
+            Assert.True(File.Exists(Path.Combine(root, "codex.grant")));
+            return Task.FromResult(CodexTestServer.Json("{\"data\":[]}"));
+        });
+        using var session = Session(server, out _);
+        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
+        var result = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        Assert.All(result.Reports, report => Assert.Equal(AiUsage.Core.History.HistoryStatus.Empty, report.Status));
+        Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
+        Assert.Null(session.State.Quota);
+    }
+
+    [Fact]
     public async Task SharedSessionPortReadsCacheWithoutProviderTrafficAndHonorsCancellation()
     {
         using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider request expected."));
@@ -267,7 +298,7 @@ public sealed class CodexSessionTests : IDisposable
         using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Get
             ? CodexTestServer.Json("""{"plan_type":"synthetic"}""") : CodexTestServer.Json(CodexTestServer.Tokens())));
         using var http = new HttpClient(server);
-        using var session = new CodexSession(new(http), new(http), faulty, new(root));
+        using var session = new CodexSession(new(http), new(http), faulty, new(root), new(http));
         interrupt = true;
         var failed = await session.ResumeAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ProviderSessionStatus.RecoveryRequired, failed.Status);
@@ -324,7 +355,7 @@ public sealed class CodexSessionTests : IDisposable
         var store = new CodexGrantStore(root);
         store.Write(new("synthetic-workspace", "synthetic-stored"));
         var cache = new CodexQuotaCache(root, () => cancellation.Cancel());
-        using var session = new CodexSession(new(http), new(http), store, cache);
+        using var session = new CodexSession(new(http), new(http), store, cache, new(http));
         await session.ResumeAsync(TestContext.Current.CancellationToken);
         var calls = server.Calls;
         var disconnected = await session.DisconnectAsync(cancellation.Token);
@@ -341,7 +372,7 @@ public sealed class CodexSessionTests : IDisposable
     {
         var http = new HttpClient(server);
         store = new CodexGrantStore(root);
-        return new CodexSession(new CodexAuthClient(http), new CodexQuotaClient(http), store, new CodexQuotaCache(root));
+        return new CodexSession(new CodexAuthClient(http), new CodexQuotaClient(http), store, new CodexQuotaCache(root), new CodexHistoryClient(http));
     }
 
     public void Dispose()

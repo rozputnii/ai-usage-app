@@ -33,6 +33,9 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
     }
 
     public RenameAccountViewModel Rename { get; }
+
+    [RelayCommand]
+    private void OpenHistory() => context.Navigation.Navigate(new(PageKey.History, AccountId));
     public StatusPillViewModel Pill { get; } = new();
     public FailureViewModel Failure { get; } = new();
     public QuotaWindowViewModel Hero { get; } = new("hero");

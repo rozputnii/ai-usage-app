@@ -36,6 +36,7 @@ internal static class LiveServiceRegistration
         services.AddSingleton(p => new LiveUsageSource(p.GetRequiredService<ProviderCatalog>(),
             id => p.GetRequiredKeyedService<Func<IProviderSession>>(id)(), p.GetRequiredService<IDiagnosticSink>()));
         services.AddSingleton<IUsageSource>(p => p.GetRequiredService<LiveUsageSource>());
+        services.AddSingleton<IProviderHistorySource, LiveProviderHistorySource>();
         services.AddSingleton<IConnectionFlow>(p => new LiveConnectionFlow(p.GetRequiredService<LiveUsageSource>(),
             uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })));
         services.AddSingleton(new PresentationPreferenceFile(root));

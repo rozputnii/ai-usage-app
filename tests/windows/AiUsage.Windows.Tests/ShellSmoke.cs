@@ -213,22 +213,21 @@ public sealed class ShellSmoke
         }
     }
 
-    /// <summary>Demo pages remain reachable; product History remains disabled until its backend exists.</summary>
+    /// <summary>Both product and demo History open without an initial load action.</summary>
     private static void Navigate(Window window, string evidence, string scenario)
     {
         for (var i = 0; i < NavigationIds.Length; i++)
         {
             var tab = window.FindFirstDescendant(cf => cf.ByAutomationId(NavigationIds[i]));
             Assert.NotNull(tab);
-            if (i == 2 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") != "demo")
-            {
-                Assert.False(tab.IsEnabled);
-                continue;
-            }
+            Assert.True(tab.IsEnabled);
             tab.Click();
             var marker = i == 0 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") != "demo" ? "EmptyAddAccount" : PageMarkers[i];
             Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId(marker)) is not null, TimeSpan.FromSeconds(10)),
                 $"{NavigationIds[i]} must show the page carrying {marker}.");
+            if (i == 2 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") == "demo")
+                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderHistoryRows")) is not null,
+                    TimeSpan.FromSeconds(10)), "Provider history must load automatically.");
             if (scenario == "navigation")
                 Capture(window, evidence, "page-" + NavigationIds[i]);
         }

@@ -44,6 +44,7 @@
           <TextBlock x:Uid="Row_Updated" FontSize="11" Foreground="{ThemeResource OkBrush}" VerticalAlignment="Center" Visibility="Collapsed" controls:Motion.Acknowledge="{x:Bind Row.ShowAck, Mode=OneWay}" />
         </StackPanel>
         <TextBlock Text="{x:Bind Row.SubText, Mode=OneWay}" Style="{StaticResource CaptionText}" />
+        <Button x:Uid="ProviderHistory_Open" AutomationProperties.AutomationId="RowHistory" Command="{x:Bind Row.OpenHistoryCommand}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left" />
         <controls:StatusPill Text="{x:Bind Row.Pill.Text, Mode=OneWay}" Tone="{x:Bind Row.Pill.Tone, Mode=OneWay}" HorizontalAlignment="Left"
                              Opacity="{x:Bind PillOpacity(Row.Pill.IsQuietFresh, Row.IsHovered), Mode=OneWay}" />
         <TextBlock Text="{x:Bind Row.HiddenTag, Mode=OneWay}" Style="{StaticResource Caption11Text}" Visibility="{x:Bind controls:Bind.Visible(Row.HasHiddenTag), Mode=OneWay}" />

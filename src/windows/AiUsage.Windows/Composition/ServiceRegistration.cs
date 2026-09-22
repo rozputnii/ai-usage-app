@@ -51,7 +51,7 @@ internal static class ServiceRegistration
         collection.AddSingleton(provider => new AccountsViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IHistorySource>(),
             provider.GetRequiredService<IDataManagementService>(), provider.GetRequiredService<IPreferenceStore>()));
-        collection.AddSingleton(provider => new HistoryViewModel(provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IHistorySource>()));
+        collection.AddSingleton(provider => new ProviderHistoryViewModel(provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IProviderHistorySource>()));
         collection.AddSingleton(provider => new AppearanceSettingsViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IPreferenceStore>(), provider.GetRequiredService<IThemeService>()));
         collection.AddSingleton(provider => new MonitoringSettingsViewModel(
@@ -122,6 +122,7 @@ internal static class ServiceRegistration
         collection.AddSingleton<IUsageSource>(services => services.GetRequiredService<DemoUsageSource>());
         collection.AddSingleton<IConnectionFlow>(services => services.GetRequiredService<DemoConnectionFlow>());
         collection.AddSingleton<IHistorySource>(services => services.GetRequiredService<DemoHistorySource>());
+        collection.AddSingleton<IProviderHistorySource, DemoProviderHistorySource>();
         collection.AddSingleton<IPreferenceStore>(services => services.GetRequiredService<DemoPreferenceStore>());
         collection.AddSingleton<INotificationPreview>(services => services.GetRequiredService<DemoNotificationPreview>());
         collection.AddSingleton<ICliImportService>(services => services.GetRequiredService<DemoCliImportService>());

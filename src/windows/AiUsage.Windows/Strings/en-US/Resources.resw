@@ -2203,4 +2203,40 @@
   <data name="Failure_Short_InternalError" xml:space="preserve">
     <value>Internal app error</value>
   </data>
+  <data name="ProviderHistory_Subtitle" xml:space="preserve"><value>Usage reported by your providers. Dates are UTC; available periods and metrics vary by account.</value></data>
+  <data name="ProviderHistory_AllAccounts" xml:space="preserve"><value>All connected accounts</value></data>
+  <data name="ProviderHistory_InvalidDates" xml:space="preserve"><value>Use YYYY-MM-DD, with From no later than To, no future dates and at most two years per request.</value></data>
+  <data name="ProviderHistory_Retrieved" xml:space="preserve"><value>Retrieved {0}</value></data>
+  <data name="ProviderHistory_Stale" xml:space="preserve"><value>Previous data; refresh did not complete</value></data>
+  <data name="ProviderHistory_Unknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="ProviderHistory_UnknownUnit" xml:space="preserve"><value>(unit not supplied)</value></data>
+  <data name="ProviderHistory_Available" xml:space="preserve"><value>Provider-reported data. Coverage may be partial.</value></data>
+  <data name="ProviderHistory_Empty" xml:space="preserve"><value>The provider returned no records for this period.</value></data>
+  <data name="ProviderHistory_Unsupported" xml:space="preserve"><value>History loading is not yet supported for this provider with the current connection.</value></data>
+  <data name="ProviderHistory_AccessDenied" xml:space="preserve"><value>The current connection does not have access to this report. No additional permissions were requested.</value></data>
+  <data name="ProviderHistory_AuthenticationRequired" xml:space="preserve"><value>The current connection could not authorize this history request.</value></data>
+  <data name="ProviderHistory_RateLimited" xml:space="preserve"><value>The provider asked us to wait. Refresh will respect its retry time.</value></data>
+  <data name="ProviderHistory_Failed" xml:space="preserve"><value>This report could not be loaded. Other reports may still be available.</value></data>
+  <data name="ProviderHistory_Busy" xml:space="preserve"><value>The connection is busy. Try refreshing when it finishes.</value></data>
+  <data name="ProviderHistory_Report_history" xml:space="preserve"><value>History</value></data>
+  <data name="ProviderHistory_Report_usage" xml:space="preserve"><value>Daily usage</value></data>
+  <data name="ProviderHistory_Report_credits" xml:space="preserve"><value>Credit changes</value></data>
+  <data name="ProviderHistory_Report_activity" xml:space="preserve"><value>Daily activity</value></data>
+  <data name="ProviderHistory_Report_plugins" xml:space="preserve"><value>Plugin usage</value></data>
+  <data name="ProviderHistory_Report_skills" xml:space="preserve"><value>Skill usage</value></data>
+  <data name="ProviderHistory_Report_workspace" xml:space="preserve"><value>Workspace usage</value></data>
+  <data name="ProviderHistory_Report_workspace-models" xml:space="preserve"><value>Workspace usage by model</value></data>
+  <data name="ProviderHistory_Report_ai_credit" xml:space="preserve"><value>AI credits · personally billed plan</value></data>
+  <data name="ProviderHistory_Report_premium_request" xml:space="preserve"><value>Premium requests · personally billed plan</value></data>
+  <data name="ProviderHistory_Period.Header" xml:space="preserve"><value>Period</value></data>
+  <data name="ProviderHistory_Refresh.Content" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ProviderHistory_From.Header" xml:space="preserve"><value>From (UTC)</value></data>
+  <data name="ProviderHistory_To.Header" xml:space="preserve"><value>To (UTC)</value></data>
+  <data name="ProviderHistory_Apply.Content" xml:space="preserve"><value>Apply</value></data>
+  <data name="ProviderHistory_NoAccounts.Text" xml:space="preserve"><value>Your connected accounts will appear here.</value></data>
+  <data name="ProviderHistory_Open.Content" xml:space="preserve"><value>History</value></data>
+  <data name="ProviderHistory_Report_enterprise-product" xml:space="preserve"><value>Workspace credits by product</value></data>
+  <data name="ProviderHistory_Report_enterprise-model" xml:space="preserve"><value>Workspace credits by model</value></data>
+  <data name="ProviderHistory_Report_enterprise-speed" xml:space="preserve"><value>Workspace credits by speed</value></data>
+  <data name="ProviderHistory_Report_enterprise-reasoning" xml:space="preserve"><value>Workspace credits by reasoning effort</value></data>
 </root>

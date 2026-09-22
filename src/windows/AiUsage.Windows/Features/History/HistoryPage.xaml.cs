@@ -8,17 +8,16 @@ internal sealed partial class HistoryPage : Page
 {
     public HistoryPage() => InitializeComponent();
 
-    public HistoryViewModel ViewModel { get; private set; } = null!;
+    public ProviderHistoryViewModel ViewModel { get; private set; } = null!;
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        ViewModel = (HistoryViewModel)e.Parameter;
+        ViewModel = (ProviderHistoryViewModel)e.Parameter;
         Bindings.Update();
+        ViewModel.Activate();
         base.OnNavigatedTo(e);
     }
 
     private Thickness Gutter(bool compact) => compact ? new Thickness(18, 0, 18, 18) : new Thickness(40, 0, 40, 24);
 
-    private void OnPresetClick(object sender, RoutedEventArgs e) =>
-        _ = ViewModel.SelectPresetCommand.ExecuteAsync(((FrameworkElement)sender).Tag as RangePresetViewModel);
 }

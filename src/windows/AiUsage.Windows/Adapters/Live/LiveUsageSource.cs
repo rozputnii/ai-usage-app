@@ -7,7 +7,7 @@ using AiUsage.Features.Presentation;
 namespace AiUsage.Adapters.Live;
 
 /// <summary>One existing app-owned slot per provider. Never owns or reads credential material.</summary>
-internal sealed class LiveUsageSource : IUsageSource, IDisposable
+internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
 {
     private readonly object sync = new();
     private readonly Dictionary<string, Entry> entries;
@@ -50,7 +50,7 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
                 UiCommandKind.Disconnect or UiCommandKind.CancelOperation or UiCommandKind.SetPreference or
                 UiCommandKind.ResetSettings or UiCommandKind.Rename or UiCommandKind.Reorder or UiCommandKind.SetVisibility or UiCommandKind.SetExpansion
                 ? Availability.Available : Availability.Unavailable,
-            null, CapabilityOrigin.Existing)).ToArray();
+            null, CapabilityOrigin.Existing)).Append(new(CapabilityKeys.ViewHistory, null, Availability.Available, null, CapabilityOrigin.Existing)).ToArray();
 
     public Task InitializeAsync()
     {
@@ -121,6 +121,11 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
         {
             if (stopped) return Task.FromResult(UiCommandResult.Cancelled);
             if (!entries.TryGetValue(id, out var entry)) return Task.FromResult(UiCommandResult.Unsupported);
+            if (entry.HistoryActive && entry.Pending is { IsCompleted: false } history)
+            {
+                entry.Cancellation?.Cancel();
+                return RunAfterHistoryAsync(history, id, operation, run, token);
+            }
             if (entry.Pending is { IsCompleted: false }) return Task.FromResult(UiCommandResult.Conflict);
             entry.Cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
             return entry.Pending = ExecuteCoreAsync(id, entry, operation, run, entry.Cancellation);
@@ -252,6 +257,9 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
         public CancellationTokenSource? Cancellation { get; set; }
         public Task<UiCommandResult>? Pending { get; set; }
         public bool WasConnected { get; set; }
+        public bool HistoryActive { get; set; }
+        public AiUsage.Core.History.HistoryRange? HistoryRange { get; set; }
+        public Task<AiUsage.Core.History.ProviderHistoryResult>? HistoryTask { get; set; }
     }
     private sealed class Subscription(Action unsubscribe) : IDisposable { public void Dispose() => unsubscribe(); }
 }

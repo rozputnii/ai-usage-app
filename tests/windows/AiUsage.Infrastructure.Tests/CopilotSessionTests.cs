@@ -20,7 +20,7 @@ public sealed class CopilotSessionTests : IDisposable
         "/copilot_internal/user" => CodexTestServer.Json(CopilotProtocolTests.Usage, usageStatus),
         _ => throw new InvalidOperationException("Unexpected endpoint.")
     };
-    private CopilotSession Session(HttpClient http) => new(new(http, clock, (_, token) => { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }), new(http, clock), new(directory), clock);
+    private CopilotSession Session(HttpClient http) => new(new(http, clock, (_, token) => { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }), new(http, clock), new(directory), clock, new(http, clock));
 
     [Fact]
     public async Task ConnectResumeDisconnectAndReconnectKeepProviderOwnedState()

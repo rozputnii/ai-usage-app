@@ -103,6 +103,7 @@
             </StackPanel>
           </StackPanel>
           <StackPanel x:Name="ActionsHost" Grid.Column="1" Orientation="Horizontal" Spacing="8" Padding="0,18,0,0" VerticalAlignment="Top">
+            <Button x:Uid="ProviderHistory_Open" AutomationProperties.AutomationId="DetailHistory" Command="{x:Bind ViewModel.Detail.OpenHistoryCommand}" Style="{StaticResource SecondaryButton}" />
             <Button AutomationProperties.AutomationId="DetailRefresh" Style="{StaticResource SecondaryButton}" MinWidth="96" Command="{x:Bind ViewModel.Detail.RefreshCommand}" x:Uid="Detail_RefreshButton">
               <StackPanel Orientation="Horizontal" Spacing="7">
                 <controls:RefreshGlyph IsSpinning="{x:Bind ViewModel.Detail.IsRefreshing, Mode=OneWay}" Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center" />

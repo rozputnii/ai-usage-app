@@ -4,19 +4,21 @@ namespace AiUsage.Infrastructure.Providers.Copilot;
 
 /// <summary>One app-owned GitHub grant; OMP's direct-token path needs no inference-token exchange.</summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-public sealed class CopilotSession : IProviderSession, IDisposable
+public sealed partial class CopilotSession : IProviderSession, IDisposable
 {
     private readonly CopilotAuthClient auth;
     private readonly CopilotQuotaClient quota;
     private readonly CopilotStateStore store;
     private readonly TimeProvider clock;
+    private readonly CopilotHistoryClient history;
 
-    internal CopilotSession(CopilotAuthClient auth, CopilotQuotaClient quota, CopilotStateStore store, TimeProvider clock)
+    internal CopilotSession(CopilotAuthClient auth, CopilotQuotaClient quota, CopilotStateStore store, TimeProvider clock, CopilotHistoryClient history)
     {
         this.auth = auth;
         this.quota = quota;
         this.store = store;
         this.clock = clock;
+        this.history = history;
     }
 
     private readonly SemaphoreSlim gate = new(1, 1);

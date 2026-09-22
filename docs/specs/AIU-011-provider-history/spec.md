@@ -1,10 +1,10 @@
 ---
 id: AIU-011
 type: spec
-status: draft
+status: implementing
 goal: G-003
-scope_version: 3
-approval_basis: The owner selected provider-supplied history on 2026-09-22, deferred local collection until product stability, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The subsequent owner amendment restricts access to existing authorization and selects OMP's provider-history method if present. The follow-up asks for general feasibility analysis beyond OMP; it does not select an alternate implementation. The interaction proposal remains a draft; implementation requires an eligible upstream method.
+scope_version: 4
+approval_basis: The owner selected provider-supplied history on 2026-09-22, existing authorization only, all four providers and all available historical usage metrics, fewer clicks, and deferred local collection until product stability. After reviewing broader feasibility, the owner explicitly instructed implementation. Codex analytics and Copilot personal reports use existing sessions; unsupported providers remain explicit. Live acceptance is recorded separately.
 ---
 # Provider-supplied usage history
 
@@ -20,14 +20,14 @@ The preferred reference is OMP. Reproduce its provider-history retrieval method
 where OMP supplies one using the authorization already available in AI Usage.
 The source assessment of stable OMP v18.2.8 found no such path for any of the four
 providers. The owner's subsequent feasibility question reopens research beyond OMP;
-official Codex OAuth analytics is now a concrete candidate. No alternate implementation
-has yet been selected or live verified. See [research.md](research.md).
+official Codex OAuth analytics is now a concrete candidate. The owner selected
+implementation after that assessment. See [research.md](research.md) and [design.md](design.md).
 
 This is an architectural change to history contracts: the current presentation contract
 only represents remaining percentages, and the live adapter returns an empty placeholder.
 The existing History screen is reusable; the demo data is not evidence of provider support.
 
-## Proposed interaction
+## Selected interaction
 
 - One navigation action opens History and starts loading. No initial Load button or
   required account, metric and date-selection sequence.
@@ -59,7 +59,7 @@ Infrastructure owns remote transport, parsing and account-scoped access. Windows
 navigation and presentation. Reuse hardened provider transport and the existing session
 authority when evidence proves the same grant works; never expose grants through Core.
 
-The proposed initial storage policy is memory-only history results. Local sampling,
+The initial storage policy is memory-only history results. Local sampling,
 databases, retention, rollups, persistent history cache and offline history across restarts
 belong to AIU-029. Existing last-quota caching remains unchanged. Export, forecasts, CLI
 transcript ingestion, new billing products and organization administrator reporting are
@@ -78,7 +78,8 @@ not a history service supplied by Codex, Claude, Copilot or Antigravity. Reprodu
 mechanism belongs to deferred AIU-029 and is not authorized now. The earlier CodexBar web
 and official administrator/reporting API candidates remain research context only.
 The subsequent broader feasibility request includes alternate methods that might work
-with existing authorization; it does not permit extra access or select an implementation.
+with existing authorization. The owner subsequently selected implementation; extra access
+remains excluded.
 
 ## Acceptance criteria
 

@@ -222,6 +222,9 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     private void Open() => context.Navigation.Navigate(new(PageKey.Accounts, Id));
 
     [RelayCommand]
+    private void OpenHistory() => context.Navigation.Navigate(new(PageKey.History, Id));
+
+    [RelayCommand]
     private void ToggleExpand()
     {
         IsExpanded = !IsExpanded;
