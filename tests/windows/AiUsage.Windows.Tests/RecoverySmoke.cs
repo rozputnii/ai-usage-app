@@ -113,6 +113,24 @@ public sealed partial class ShellSmoke
                 WaitForRecovery(window, "This data was written by a newer version");
                 Assert.False(Required(window, "RecoveryRetry").IsEnabled);
                 Assert.False(Required(window, "RecoveryRestore").IsEnabled);
+                Required(window, "RecoveryExport").AsButton().Invoke();
+                var diagnostics = Path.Combine(root, "recovery-diagnostics.txt");
+                Assert.True(WaitUntil(() => File.Exists(diagnostics), TimeSpan.FromSeconds(5)));
+                var diagnosticText = File.ReadAllText(diagnostics);
+                Assert.Contains("Condition: NewerSchema", diagnosticText, StringComparison.Ordinal);
+                Assert.DoesNotContain("opaque/provider", diagnosticText, StringComparison.Ordinal);
+                Assert.DoesNotContain(root, diagnosticText, StringComparison.Ordinal);
+                Window? folder = null;
+                Assert.True(WaitUntil(() => (folder = automation.GetDesktop().FindAllChildren(cf => cf.ByClassName("CabinetWClass"))
+                    .FirstOrDefault(item => item.Name.StartsWith(Path.GetFileName(root), StringComparison.Ordinal))?.AsWindow()) is not null,
+                    TimeSpan.FromSeconds(10)), "Export must open the owned folder in File Explorer.");
+                folder!.Close();
+                Required(window, "RecoveryDataFolder").AsButton().Invoke();
+                Assert.True(WaitUntil(() => (folder = automation.GetDesktop().FindAllChildren(cf => cf.ByClassName("CabinetWClass"))
+                    .FirstOrDefault(item => item.Name.StartsWith(Path.GetFileName(root), StringComparison.Ordinal))?.AsWindow()) is not null,
+                    TimeSpan.FromSeconds(10)), "The data folder action must open File Explorer.");
+                folder!.Close();
+                window.Focus();
                 Capture(window, evidence, "newer-schema-blocked");
             });
             Assert.Equal(original, File.ReadAllBytes(target));

@@ -49,7 +49,7 @@ try {
     $report.stage = 'Runtime installation'; Save-Report
     $dotnet = Join-Path $env:ProgramFiles 'dotnet/dotnet.exe'
     $runtimes = @(if (Test-Path -LiteralPath $dotnet) { & $dotnet --list-runtimes })
-    if ($runtimes -notmatch '^Microsoft.NETCore.App 10\.0\.12 ') {
+    if (-not ($runtimes -match '^Microsoft.NETCore.App 10\.0\.12 ')) {
         # Start-Process -Wait also waits for descendants, including long-lived MSI service processes.
         # Hold and wait for this installer's own handle instead.
         $installer = Start-Process $runtime -ArgumentList '/install','/quiet','/norestart' -WindowStyle Hidden -PassThru

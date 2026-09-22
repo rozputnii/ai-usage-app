@@ -1,7 +1,7 @@
 ---
 id: AIU-006
 type: spec
-status: implementing
+status: implemented
 goal: G-002
 scope_version: 1
 approval_basis: Derived within the owner's explicit 2026-09-22 instruction to execute AIU-006 automatically.

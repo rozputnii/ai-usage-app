@@ -18,37 +18,39 @@ Preserve opaque preferences, provider files and unknown data; never downgrade. T
 - acceptance: AC-02, AC-03, AC-04, AC-05
 - evidence: docs/specs/AIU-006-upgrade-recovery/verification.md
 
-- [ ] Add failing behavioral tests in `tests/windows/AiUsage.Infrastructure.Tests/StateMaintenanceTests.cs` for byte preservation, interruption/restart/retry, explicit restore, tampering, newer schema, redirected files and lifetime exclusion.
-- [ ] Implement `IStateMaintenance` in Core and `StateMaintenance` plus bounded records in Infrastructure; run Infrastructure tests to PASS.
-- [ ] Route `PresentationPreferenceFile` to the committed preference directory in product composition. Preserve its standalone file API.
-- [ ] Review diff and save progress to main.
+- [x] Add failing behavioral tests in `tests/windows/AiUsage.Infrastructure.Tests/StateMaintenanceTests.cs` for byte preservation, interruption/restart/retry, explicit restore, tampering, newer schema, redirected files and lifetime exclusion.
+- [x] Implement `IStateMaintenance` in Core and `StateMaintenance` plus bounded records in Infrastructure; run Infrastructure tests to PASS.
+- [x] Route `PresentationPreferenceFile` to the committed preference directory in product composition. Preserve its standalone file API.
+- [x] Review diff and save progress to main.
 
 ### T-02 - Live recovery integration
-- status: in-progress
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-006-upgrade-recovery/verification.md
 
-- [ ] Add failing presentation tests for maintenance gating, retry/restore and shutdown.
-- [ ] Implement `LiveRecoveryService`; gate `ProductLifecycle`, provider actions and live preference loading; wire Windows folder/diagnostics actions.
-- [ ] Run both regression suites and build package; inspect actual recovery screen and explicit retry/restore.
+- [x] Add failing presentation tests for maintenance gating, retry/restore and shutdown.
+- [x] Implement `LiveRecoveryService`; gate `ProductLifecycle`, provider actions and live preference loading; wire Windows folder/diagnostics actions.
+- [x] Run both regression suites and build package; inspect actual recovery screen and explicit retry/restore.
 
 ### T-03 - Package proof and focused review
-- status: pending
+- status: done
 - depends_on: [T-02]
 - acceptance: AC-01, AC-03, AC-07
-- evidence: not-run
+- evidence: docs/specs/AIU-006-upgrade-recovery/verification.md
 
-- [ ] Build a fresh signed new MSIX and use retained old signed MSIX with matching family in a disposable guest; seed only synthetic DPAPI/state there.
-- [ ] Exercise upgrade, interrupted migration, retry and restore with actual product activation; retain sanitized evidence and screenshots locally.
-- [ ] Freeze candidate and obtain focused read-only independent review. The repository-required Codex Luna model is absent from the listed subagent overrides; investigate an available non-Codex review mechanism without substituting a prohibited Codex model.
-- [ ] Address material findings, run targeted checks, update verification/backlog, commit and push.
+- [x] Build a fresh signed new MSIX and use retained old signed MSIX with matching family in a disposable guest; seed only synthetic DPAPI/state there.
+- [x] Exercise upgrade, interrupted migration, retry and restore with actual product activation; retain sanitized evidence and screenshots locally.
+- [x] Freeze candidate and obtain focused read-only independent review. The repository-required Codex Luna model is absent from the listed subagent overrides; investigate an available non-Codex review mechanism without substituting a prohibited Codex model.
+- [x] Address material findings, run targeted checks, update verification/backlog, commit and push.
 
 ## Handoff
 
-Base: 9a7f3e5. Product implementation saved at 3c4e0ee. T-01 regressions pass;
-T-02 presentation regressions pass, actual UI remains in progress. Next action: inspect
-the first disposable guest's old/new package and recovery UI results under the ignored
-AIU-006 evidence root. Independent read-only Claude Code review is running against
-3c4e0ee; no Codex model substitution occurred. Required Codex Luna was unavailable in
-the tool allowlist. No write-worker artifacts exist.
+Base: 9a7f3e5. Product implementation: 3c4e0ee; final product fixes: 64d196f.
+All three tasks are complete. Infrastructure 330/330, Presentation 157/157, Release
+build and actual signed MSIX 2026.9.2222.0 upgrade/recovery checks PASS. See
+[verification](verification.md) for exact artifacts, commands and limits, and
+[review](review.md) for the independent read-only Claude Code review. Required Codex
+Luna was unavailable; no prohibited Codex model substitution occurred. No write-worker
+artifacts exist. No implementation action remains; the next feature requires owner
+selection.

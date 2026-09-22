@@ -53,13 +53,14 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-006 - First verified upgrade and recovery checkpoint
 - goal: G-002
-- status: in-progress
+- status: done
 - depends_on: [AIU-004]
 - trigger: before-external-data
 - outcome: Test real old/new development MSIX packages with durable data, a versioned journal, consistent backup, deliberately interrupted migration and recovery.
 - specification: docs/specs/AIU-006-upgrade-recovery/spec.md
 - evidence: docs/specs/AIU-006-upgrade-recovery/verification.md
 - scope-note: Owner selected automatic execution on 2026-09-22. The first migration moves existing presentation preferences into an explicitly versioned layout, with protected checkpoint and exclusive startup/recovery. Provider credential formats and locations remain unchanged; no live sign-in or source credential import is required.
+- outcome-note: Completed 2026-09-22. Real same-family MSIX update from 2026.9.2202.0 to 2026.9.2222.0 in Windows Sandbox preserves synthetic preferences and DPAPI provider records. Actual interrupted migration, restart, explicit retry, confirmed restore, newer-layout refusal, sanitized export and folder actions pass. Infrastructure 330/330, Presentation 157/157, Release build and focused independent review pass. Physical power loss, live-provider access and public distribution are not established by this evidence.
 
 ## AIU-007 - Claude end-to-end integration
 - goal: G-003

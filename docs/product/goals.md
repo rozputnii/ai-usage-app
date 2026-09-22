@@ -11,7 +11,7 @@ active_goal: G-002
 - success: Historical bootstrap adopted decisions; verified stable OMP configuration, skill and command discovery; ranked selection; pause/resume; isolated workers; validator and reviewer checks; truthful redacted verification.
 
 ## G-002 - First Windows result: runnable package and Codex end-to-end
-- status: selected
+- status: done
 - scope: AIU-002, AIU-003, AIU-004, AIU-006
 - outcome: The Windows app launches offline and subsequently supports real Codex authentication, quota, cache, tray, reauthentication and clean forward upgrades.
 - success: Installable MSIX and UI smoke; one verified authentication/quota path; fresh/cached state; safe manual/background refresh; update and recovery tests.
@@ -39,4 +39,4 @@ Owner amendment, 2026-09-14: add AIU-027 as an intermediate architecture refinem
 
 Owner amendment, 2026-09-14: connect all four providers using the OMP (omp.sh) connection style and deliver a usable UI design with UI/UX polish before CLI integrations. AIU-005 now covers Codex and other provider CLIs at lower priority under G-003, after provider connections and AIU-010. The current UI's functional completion does not mean its design or usability is accepted. This reprioritization does not select an implementation task.
 
-G-002 remains the recorded product direction. AIU-002, AIU-003 and AIU-004 are complete within their retained evidence and limitations; see [backlog](../backlog.md). No next feature is selected by this migration. Historical approvals are preserved in the [superseded register](../decisions/superseded.md) as past-task context only. Follow [CONTRIBUTING](../../CONTRIBUTING.md) for current execution authority.
+G-002 is complete as of 2026-09-22: AIU-002, AIU-003, AIU-004 and AIU-006 are complete within their retained evidence and limitations; see [backlog](../backlog.md). The active_goal reference retains the last selected product direction; no next goal or feature is selected automatically. Historical approvals are preserved in the [superseded register](../decisions/superseded.md) as past-task context only. Follow [CONTRIBUTING](../../CONTRIBUTING.md) for current execution authority.
