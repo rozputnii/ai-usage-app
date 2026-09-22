@@ -13,30 +13,31 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private CodexCredentials? credentials;
+    private CodexGrantStore.StoredRecord? stored;
     private bool disposed;
 
     public CodexSessionState State { get; private set; } = CodexSessionState.NotConnected;
 
     /// <summary>True when a grant is stored, whether or not it still works.</summary>
-    public bool HasStoredGrant => store.Read() is not null;
+    public bool HasStoredGrant { get; private set; }
 
     /// <summary>
     /// The last cached reading for a connected account, marked stale. Used to render something
     /// truthful before the first provider request of a session completes.
     /// </summary>
     public CodexSessionState ReadCachedState() =>
-        HasStoredGrant ? Stale(CodexSessionStatus.QuotaUnavailable, null) : CodexSessionState.NotConnected;
+        RunAsync((_, _) => Task.FromResult(HasStoredGrant ? Stale(CodexSessionStatus.QuotaUnavailable, null) : CodexSessionState.NotConnected), CancellationToken.None).GetAwaiter().GetResult();
 
     /// <summary>Restores the stored grant, if any, and reads quota once. Never starts a browser sign-in.</summary>
     public Task<CodexSessionState> ResumeAsync(CancellationToken cancellationToken = default) =>
-        RunAsync(async token =>
+        RunAsync(async (lease, token) =>
         {
-            if (store.Read() is not { } grant)
+            if (stored is not { } record)
                 return CodexSessionState.NotConnected;
-            var restored = await auth.ResumeAsync(grant, token).ConfigureAwait(false);
+            var restored = await auth.ResumeAsync(new CodexStoredGrant(record.AccountId!, record.RefreshToken!), token).ConfigureAwait(false);
             Adopt(restored);
             // The provider rotates the refresh token, so the stored record must follow it.
-            Persist();
+            await PersistAsync(lease).ConfigureAwait(false);
             return await ReadQuotaAsync(token).ConfigureAwait(false);
         }, cancellationToken);
 
@@ -47,27 +48,27 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
     public Task<CodexSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(openAuthorizationUrl);
-        return RunAsync(async token =>
+        return RunAsync(async (lease, token) =>
         {
             using var authorization = auth.BeginBrowserLogin();
             openAuthorizationUrl(authorization.AuthorizationUrl);
             var signedIn = await auth.CompleteBrowserLoginAsync(authorization, token).ConfigureAwait(false);
             Adopt(signedIn);
-            Persist();
+            await PersistAsync(lease).ConfigureAwait(false);
             return await ReadQuotaAsync(token).ConfigureAwait(false);
         }, cancellationToken);
     }
 
     /// <summary>Reads quota again, refreshing the grant first when the access token has expired.</summary>
     public Task<CodexSessionState> RefreshAsync(CancellationToken cancellationToken = default) =>
-        RunAsync(async token =>
+        RunAsync(async (lease, token) =>
         {
             if (credentials is null)
-                return await ResumeCoreAsync(token).ConfigureAwait(false);
+                return await ResumeCoreAsync(lease, token).ConfigureAwait(false);
             if (credentials.ExpiresAt <= DateTimeOffset.UtcNow)
             {
                 await auth.RefreshAsync(credentials, token).ConfigureAwait(false);
-                Persist();
+                await PersistAsync(lease).ConfigureAwait(false);
             }
             return await ReadQuotaAsync(token).ConfigureAwait(false);
         }, cancellationToken);
@@ -77,21 +78,23 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
     /// provider; the account must be disconnected there separately if that is wanted.
     /// </summary>
     public Task<CodexSessionState> DisconnectAsync(CancellationToken cancellationToken = default) =>
-        RunAsync(token =>
+        RunAsync(async (lease, token) =>
         {
-            store.Delete();
-            cache.Delete();
+            await lease.DeleteAsync(token).ConfigureAwait(false);
+            stored = null;
+            HasStoredGrant = false;
+            await cache.DeleteAsync(token).ConfigureAwait(false);
             credentials?.Dispose();
             credentials = null;
-            return Task.FromResult(CodexSessionState.NotConnected);
-        }, cancellationToken);
-
-    private async Task<CodexSessionState> ResumeCoreAsync(CancellationToken token)
-    {
-        if (store.Read() is not { } grant)
             return CodexSessionState.NotConnected;
-        Adopt(await auth.ResumeAsync(grant, token).ConfigureAwait(false));
-        Persist();
+        }, cancellationToken, load: false);
+
+    private async Task<CodexSessionState> ResumeCoreAsync(ProviderStateLease<CodexGrantStore.StoredRecord> lease, CancellationToken token)
+    {
+        if (stored is not { } record)
+            return CodexSessionState.NotConnected;
+        Adopt(await auth.ResumeAsync(new CodexStoredGrant(record.AccountId!, record.RefreshToken!), token).ConfigureAwait(false));
+        await PersistAsync(lease).ConfigureAwait(false);
         return await ReadQuotaAsync(token).ConfigureAwait(false);
     }
 
@@ -100,7 +103,7 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
         try
         {
             var snapshot = await quota.GetQuotaAsync(credentials!, token).ConfigureAwait(false);
-            cache.Write(new CachedQuota(snapshot, snapshot.FetchedAt));
+            await cache.WriteAsync(new CachedQuota(snapshot, snapshot.FetchedAt), token).ConfigureAwait(false);
             return new CodexSessionState(CodexSessionStatus.QuotaAvailable, snapshot, RetrievedAt: snapshot.FetchedAt);
         }
         catch (CodexException error) when (error.Kind != CodexFailureKind.AuthenticationRequired)
@@ -111,10 +114,30 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
         }
     }
 
-    private CodexSessionState Stale(CodexSessionStatus status, CodexFailureKind? failure) =>
-        cache.Read() is { } cached
-            ? new CodexSessionState(status, cached.Quota, failure, cached.RetrievedAt, FromCache: true)
-            : new CodexSessionState(status, Failure: failure);
+    private CodexSessionState Stale(CodexSessionStatus status, CodexFailureKind? failure)
+    {
+        try
+        {
+            return cache.Read() is { } cached
+                ? new CodexSessionState(status, cached.Quota, failure, cached.RetrievedAt, FromCache: true)
+                : new CodexSessionState(status, Failure: failure);
+        }
+        catch (ProviderException error) { return StorageFailure(error.Kind); }
+    }
+
+    private CodexSessionState StorageFailure(ProviderFailureKind failure)
+    {
+        credentials?.Dispose();
+        credentials = null;
+        HasStoredGrant = true; // Retain a recovery/disconnect surface when storage is unreadable.
+        return new(CodexSessionStatus.RecoveryRequired, Failure: failure switch
+        {
+            ProviderFailureKind.RecoveryRequired => CodexFailureKind.RecoveryRequired,
+            ProviderFailureKind.GrantNotRemoved => CodexFailureKind.GrantNotRemoved,
+            ProviderFailureKind.StorageUnavailable => CodexFailureKind.StorageUnavailable,
+            _ => throw new InvalidOperationException("Unexpected storage classification.")
+        });
+    }
 
     private void Adopt(CodexCredentials restored)
     {
@@ -122,16 +145,35 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
         credentials = restored;
     }
 
-    private void Persist() => store.Write(new CodexStoredGrant(credentials!.AccountId, credentials.RefreshToken));
+    private async Task PersistAsync(ProviderStateLease<CodexGrantStore.StoredRecord> lease)
+    {
+        var next = CodexGrantStore.Record(new CodexStoredGrant(credentials!.AccountId, credentials.RefreshToken));
+        stored = await lease.SaveAsync(next, stored is null ? null : CodexGrantStore.Revision(stored), CancellationToken.None).ConfigureAwait(false);
+        HasStoredGrant = true;
+    }
 
-    private async Task<CodexSessionState> RunAsync(Func<CancellationToken, Task<CodexSessionState>> operation, CancellationToken cancellationToken)
+    private Task<CodexSessionState> RunAsync(Func<ProviderStateLease<CodexGrantStore.StoredRecord>, CancellationToken, Task<CodexSessionState>> operation,
+        CancellationToken cancellationToken, bool load = true) => Task.Run(async () =>
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             State = CodexSessionState.Working;
-            return State = await operation(cancellationToken).ConfigureAwait(false);
+            await using var lease = await store.AcquireAsync(cancellationToken).ConfigureAwait(false);
+            if (load)
+            {
+                var loaded = await lease.LoadAsync(cancellationToken).ConfigureAwait(false);
+                if ((loaded is null ? (Guid?)null : CodexGrantStore.Revision(loaded)) !=
+                    (stored is null ? (Guid?)null : CodexGrantStore.Revision(stored)))
+                {
+                    credentials?.Dispose();
+                    credentials = null;
+                }
+                stored = loaded;
+                HasStoredGrant = stored is not null;
+            }
+            return State = await operation(lease, cancellationToken).ConfigureAwait(false);
         }
         catch (CodexException error) when (error.Kind == CodexFailureKind.AuthenticationRequired)
         {
@@ -145,13 +187,19 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
             return State = Stale(
                 credentials is null ? CodexSessionStatus.NotConnected : CodexSessionStatus.QuotaUnavailable, error.Kind);
         }
+        catch (ProviderException error)
+        {
+            return State = StorageFailure(error.Kind);
+        }
+        catch (IOException) { return State = StorageFailure(ProviderFailureKind.StorageUnavailable); }
+        catch (UnauthorizedAccessException) { return State = StorageFailure(ProviderFailureKind.StorageUnavailable); }
         catch (OperationCanceledException)
         {
             State = credentials is null ? CodexSessionState.NotConnected : new CodexSessionState(CodexSessionStatus.QuotaUnavailable);
             throw;
         }
         finally { gate.Release(); }
-    }
+    }, CancellationToken.None);
 
     public void Dispose()
     {

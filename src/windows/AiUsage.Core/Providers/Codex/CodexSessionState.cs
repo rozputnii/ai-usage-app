@@ -8,7 +8,8 @@ public enum CodexSessionStatus
     Working,
     QuotaAvailable,
     QuotaUnavailable,
-    ReauthenticationRequired
+    ReauthenticationRequired,
+    RecoveryRequired
 }
 
 /// <summary>

@@ -1,10 +1,10 @@
 ---
 id: AIU-028
 type: spec
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: Derived within the owner's 2026-09-20 request to audit the repository against modern .NET and WinUI 3 / MSIX practice and land the remediation as project documents. The audit session changed no production code; selecting this remediation remains an owner decision under CONTRIBUTING.md.
+approval_basis: Derived within the owner's 2026-09-20 request to audit the repository against modern .NET and WinUI 3 / MSIX practice and land the remediation as project documents. The audit session changed no production code; the owner subsequently selected T-01 and T-02 on 2026-09-22. Other pending tasks remain unselected.
 ---
 # Architecture and clean-code remediation
 

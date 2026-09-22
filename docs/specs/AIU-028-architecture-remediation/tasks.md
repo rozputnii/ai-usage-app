@@ -35,7 +35,7 @@ makes every later task diagnosable. Polish is last.
       --no-restore -- -noLogo` passes with no reduction in test count.
 
 ### T-02 - Codex grant store onto the hardened lease
-- status: pending
+- status: in-progress
 - depends_on: [T-01]
 - acceptance: AC-02
 - evidence: not-run
@@ -225,6 +225,6 @@ The owner selected T-01 and T-02 on 2026-09-22. Base: `cfb9ceb` on `main`.
 T-08 and T-09 were already complete. T-01 extraction is implemented with its compatibility
 checks; focused independent review remains pending for the combined T-01/T-02 changes.
 
-Exact next action: implement T-02's Codex adoption, recovery and path-safety tests, then obtain
+Exact next action: obtain
 focused independent review of the integrated diff. T-03 and the remaining tasks are not selected.
 Blockers: none. Live provider and interactive/package checks have not been run for this change.

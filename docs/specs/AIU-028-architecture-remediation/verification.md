@@ -217,3 +217,24 @@ Presentation 129/129 PASS; ProviderConsole Release build PASS (zero warnings/err
 The new compatibility test initially used a nonnumeric synthetic Copilot identity and correctly
 failed validation; corrected to a numeric synthetic identity. Final expanded checks and focused
 independent review are pending. This checkpoint is not task completion.
+
+### T-02 candidate for focused review
+
+Codex now holds the shared exclusive lease over the entire read/renew/persist operation; a
+storage failure invalidates its in-memory credentials. Its original committed payload and
+entropy are preserved. A DPAPI-protected pending journal holds the predecessor's content identity
+and the successor ciphertext. Recovery handles interruption before and after promotion, refuses
+torn/unrelated/legacy unjournaled records, and keeps evidence until explicit disconnect. The
+truncated SHA-256 content identity stays inside encrypted state and is not an authentication
+primitive. It does not promise server-side rotation rollback or eliminate same-user filesystem
+check/use races. The cache retains its JSON format and now uses checked paths, exclusive access,
+asynchronous I/O and flushed writes. Synchronous compatibility entry points remain until T-03;
+product operations run off the UI dispatcher. Existing recovery presentation is reused.
+
+Observed candidate checks: Infrastructure 252/252 PASS, Presentation 129/129 PASS, Windows Debug
+unpackaged build PASS with zero warnings/errors. One added recovery test initially used an invalid
+empty quota response and failed; using a valid synthetic quota response made it pass. Old tests
+expecting silent absence for corrupt Codex data now assert recovery and no overwrite, as required
+by the hardened lifecycle. Old single-file assertions now explicitly permit the empty lock file.
+A final targeted regression additionally checks failed deletion retains a pending successor.
+Focused independent review, final check recording and task closure remain pending.

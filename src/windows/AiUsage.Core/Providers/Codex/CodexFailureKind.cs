@@ -15,5 +15,7 @@ public enum CodexFailureKind
     InvalidResponse,
     AccountMismatch,
     ProviderUnavailable,
-    RequestRejected
+    RequestRejected,
+    StorageUnavailable,
+    RecoveryRequired
 }

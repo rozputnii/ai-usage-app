@@ -1,6 +1,8 @@
 using AiUsage.Core.Providers.Codex;
 using System.Net;
 using AiUsage.Infrastructure.Providers.Codex;
+using AiUsage.Infrastructure.Providers;
+using AiUsage.Core.Usage;
 using Xunit;
 
 namespace AiUsage.Infrastructure.Tests;
@@ -182,6 +184,93 @@ public sealed class CodexSessionTests : IDisposable
         Assert.DoesNotContain("synthetic-rotated", text);
         Assert.DoesNotContain("synthetic-workspace", text);
         Assert.DoesNotContain("synthetic-access", text);
+    }
+
+    [Fact]
+    public async Task LeaseCoversTheEntireRenewalAndRejectsAnotherSessionBeforeProviderTraffic()
+    {
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var server = new CodexTestServer(async (request, token) =>
+        {
+            if (request.Method != HttpMethod.Get)
+            {
+                entered.SetResult();
+                await release.Task.WaitAsync(token);
+            }
+            return request.Method == HttpMethod.Get ? CodexTestServer.Json("""{"plan_type":"synthetic"}""") : CodexTestServer.Json(CodexTestServer.Tokens());
+        });
+        using var first = Session(server, out var store);
+        store.Write(new("synthetic-workspace", "synthetic-stored"));
+        var work = first.ResumeAsync(TestContext.Current.CancellationToken);
+        try
+        {
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+            using var second = Session(server, out _);
+            var blocked = await second.ResumeAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(CodexSessionStatus.RecoveryRequired, blocked.Status);
+            Assert.Equal(CodexFailureKind.StorageUnavailable, blocked.Failure);
+            Assert.Equal(1, server.Calls);
+            Assert.Equal(ProviderFailureKind.StorageUnavailable, (await Assert.ThrowsAsync<ProviderException>(() => store.DeleteAsync(TestContext.Current.CancellationToken))).Kind);
+        }
+        finally { release.TrySetResult(); await work; }
+        Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
+    }
+
+    [Fact]
+    public async Task PendingRotationFailureNeverReusesInMemoryCredentialsBeforeRecovery()
+    {
+        var interrupt = false;
+        var faulty = new CodexGrantStore(root, () => { if (interrupt) throw new IOException("Synthetic interruption."); });
+        faulty.Write(new("synthetic-workspace", "synthetic-stored"));
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Get
+            ? CodexTestServer.Json("""{"plan_type":"synthetic"}""") : CodexTestServer.Json(CodexTestServer.Tokens())));
+        using var http = new HttpClient(server);
+        using var session = new CodexSession(new(http), new(http), faulty, new(root));
+        interrupt = true;
+        var failed = await session.ResumeAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(CodexSessionStatus.RecoveryRequired, failed.Status);
+        Assert.Equal(CodexFailureKind.StorageUnavailable, failed.Failure);
+        Assert.Equal(1, server.Calls); // No quota request after failed durable cutover.
+        interrupt = false;
+        var recovered = await session.RefreshAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(CodexSessionStatus.QuotaAvailable, recovered.Status);
+        Assert.Equal(3, server.Calls); // Renewal from the recovered grant, then quota.
+    }
+
+    [Fact]
+    public async Task CorruptStorageMapsToRecoveryAndDisconnectCanRemoveItWithoutProviderTraffic()
+    {
+        Directory.CreateDirectory(root);
+        await File.WriteAllTextAsync(Path.Combine(root, "codex.grant"), "synthetic-corrupt", TestContext.Current.CancellationToken);
+        using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider request expected."));
+        using var session = Session(server, out _);
+        var cached = session.ReadCachedState();
+        Assert.Equal(CodexSessionStatus.RecoveryRequired, cached.Status);
+        Assert.Equal(CodexFailureKind.RecoveryRequired, cached.Failure);
+        Assert.True(session.HasStoredGrant);
+        Assert.Equal(CodexSessionStatus.NotConnected, (await session.DisconnectAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.False(session.HasStoredGrant);
+        Assert.Equal(0, server.Calls);
+    }
+
+    [Fact]
+    public async Task CancellationDuringQuotaDoesNotDiscardTheReturnedRotatingGrant()
+    {
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (request.Method == HttpMethod.Get)
+            {
+                cancellation.Cancel();
+                throw new OperationCanceledException(cancellation.Token);
+            }
+            return Task.FromResult(CodexTestServer.Json(CodexTestServer.Tokens()));
+        });
+        using var session = Session(server, out var store);
+        store.Write(new("synthetic-workspace", "synthetic-stored"));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.ResumeAsync(cancellation.Token));
+        Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
     }
 
     private CodexSession Session(CodexTestServer server, out CodexGrantStore store)

@@ -29,14 +29,19 @@ public sealed class CodexQuotaCache
     public string Directory { get; }
 
     /// <summary>Returns the cached reading, or null when none is stored or the record is unusable.</summary>
-    public CachedQuota? Read()
+    public CachedQuota? Read() => ReadAsync().GetAwaiter().GetResult();
+
+    public Task<CachedQuota?> ReadAsync(CancellationToken cancellationToken = default) => Task.Run(async () =>
     {
         try
         {
-            var file = new FileInfo(path);
-            if (!file.Exists || file.Length == 0 || file.Length > MaximumRecordBytes)
+            await using var lease = ProviderStatePaths.Acquire(Directory, "codex.quota.json.lock");
+            CheckPaths();
+            if (!File.Exists(path))
                 return null;
-            var record = JsonSerializer.Deserialize(File.ReadAllBytes(path), CodexCacheJson.Default.CachedQuotaRecord);
+            await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
+            if (stream.Length == 0 || stream.Length > MaximumRecordBytes) return null;
+            var record = await JsonSerializer.DeserializeAsync(stream, CodexCacheJson.Default.CachedQuotaRecord, cancellationToken).ConfigureAwait(false);
             if (record?.Version != 1 || record.Quota is null || record.RetrievedAt is not { } retrievedAt)
                 return null;
             return new CachedQuota(record.Quota, retrievedAt);
@@ -45,30 +50,53 @@ public sealed class CodexQuotaCache
         catch (JsonException) { return null; }
         catch (NotSupportedException) { return null; }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return null; }
-    }
+    }, cancellationToken);
 
     /// <summary>Replaces the cached reading. A failed write leaves the previous record intact.</summary>
-    public void Write(CachedQuota cached)
+    public void Write(CachedQuota cached) => WriteAsync(cached).GetAwaiter().GetResult();
+
+    public Task WriteAsync(CachedQuota cached, CancellationToken cancellationToken = default) => Task.Run(async () =>
     {
         ArgumentNullException.ThrowIfNull(cached);
-        System.IO.Directory.CreateDirectory(Directory);
+        await using var lease = ProviderStatePaths.Acquire(Directory, "codex.quota.json.lock");
+        CheckPaths();
         var staged = path + ".new";
-        File.WriteAllBytes(staged, JsonSerializer.SerializeToUtf8Bytes(
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(
             new CachedQuotaRecord { Version = 1, Quota = cached.Quota, RetrievedAt = cached.RetrievedAt },
-            CodexCacheJson.Default.CachedQuotaRecord));
+            CodexCacheJson.Default.CachedQuotaRecord);
+        if (bytes.Length > MaximumRecordBytes) throw new IOException("Quota cache exceeds its size limit.");
+        await using (var stream = new FileStream(staged, FileMode.Create, FileAccess.Write, FileShare.None,
+            4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
+        {
+            await stream.WriteAsync(bytes, cancellationToken).ConfigureAwait(false);
+            await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            stream.Flush(flushToDisk: true);
+        }
+        CheckPaths();
         File.Move(staged, path, overwrite: true);
-    }
+    }, cancellationToken);
 
     /// <summary>Removes the cached reading; used when the account is disconnected.</summary>
-    public void Delete()
+    public void Delete() => DeleteAsync().GetAwaiter().GetResult();
+
+    public Task DeleteAsync(CancellationToken cancellationToken = default) => Task.Run(() =>
     {
         try
         {
+            using var lease = ProviderStatePaths.Acquire(Directory, "codex.quota.json.lock");
+            CheckPaths();
             File.Delete(path);
             File.Delete(path + ".new");
         }
         // A stale cache is not a credential; failing to remove it must not block disconnecting.
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
+    }, cancellationToken);
+
+    private void CheckPaths()
+    {
+        ProviderStatePaths.CheckDirectory(Directory);
+        ProviderStatePaths.CheckFile(path);
+        ProviderStatePaths.CheckFile(path + ".new");
     }
 
     internal sealed class CachedQuotaRecord

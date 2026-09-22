@@ -1,4 +1,6 @@
 using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
+using AiUsage.Infrastructure.Providers;
 using System.Net;
 using System.Text;
 using AiUsage.Infrastructure.Providers.Codex;
@@ -26,7 +28,7 @@ public sealed class CodexGrantStoreTests : IDisposable
         Assert.DoesNotContain("synthetic-refresh-secret", restored.ToString());
 
         var files = Directory.GetFiles(root, "*", SearchOption.AllDirectories);
-        Assert.Single(files);
+        Assert.Equal(new[] { "codex.grant", "codex.grant.lock" }, files.Select(Path.GetFileName).Order());
         foreach (var file in files)
         {
             Assert.DoesNotContain("synthetic-refresh-secret", Path.GetFileName(file));
@@ -45,7 +47,7 @@ public sealed class CodexGrantStoreTests : IDisposable
         store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-second"));
 
         Assert.Equal("synthetic-second", store.Read()!.RefreshToken);
-        Assert.Single(Directory.GetFiles(root));
+        Assert.Equal(new[] { "codex.grant", "codex.grant.lock" }, Directory.GetFiles(root).Select(Path.GetFileName).Order());
     }
 
     [Fact]
@@ -66,12 +68,14 @@ public sealed class CodexGrantStoreTests : IDisposable
     [Theory]
     [InlineData("")]
     [InlineData("not-a-protected-record")]
-    public void UnusableRecordReadsAsAbsentRatherThanFailing(string content)
+    public void UnusableRecordRequiresRecoveryAndCannotBeOverwritten(string content)
     {
         var store = new CodexGrantStore(root);
         Directory.CreateDirectory(root);
         File.WriteAllText(Path.Combine(root, "codex.grant"), content);
-        Assert.Null(store.Read());
+        Assert.Equal(ProviderFailureKind.RecoveryRequired, Assert.Throws<ProviderException>(() => store.Read()).Kind);
+        Assert.Throws<ProviderException>(() => store.Write(new("synthetic-workspace", "synthetic-new")));
+        Assert.Equal(content, File.ReadAllText(Path.Combine(root, "codex.grant")));
     }
 
     [Fact]
