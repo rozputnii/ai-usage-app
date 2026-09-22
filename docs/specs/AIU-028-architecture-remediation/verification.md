@@ -391,3 +391,51 @@ internals or interactive responsiveness measurement is claimed.
 No dependency versions, provider URLs/scopes, serialized formats, state-store implementation,
 quota meanings or close-to-tray behavior changed. T-04 and all other pending remediation tasks
 remain outside this closure.
+
+## T-04 implementation and verification - 2026-09-22
+
+Base: `56d6315`; production implementation: `9bbf13e`. The final evidence commit also adds
+three classified-provider regression cases; it does not change production bytes. The owner
+requested T-04 without subagents. Work used the local Windows desktop, the README-documented
+user-local .NET SDK and existing restored packages. No source CLI credentials or existing
+account state was read. Test data and package/smoke output stayed in synthetic temporary roots
+and `.ai-usage-local/AIU-028/`.
+
+Unclassified operation exceptions now produce `InternalError` and dedicated full/short resource
+keys. The failure view model offers no retry/reconnect even when a preceding provider state
+required reauthentication. Existing classified provider states retain their meaning. The Core
+diagnostic port accepts only event/category enums; exception projection reads no payload fields.
+Infrastructure owns the local 64 KiB file, seven-day pruning and strict reconstruction of retained
+records. Windows wires the pre-host/post-disposal sink to startup, shutdown, disposal and live
+operation catches. All eight auth/quota HTTP registrations retain `RemoveAllLoggers()`.
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| Regression before fix | PASS (expected red) | Non-provider exception returned ProviderUnavailable instead of InternalError. Redaction-through-operation test recorded no event before wiring. Three sink tests failed against the no-op contract skeleton: no file/retention and unknown fields left intact. ReauthRequired presentation offered Reconnect before the priority fix. |
+| Infrastructure Release suite | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261, 0 failed/errors/skipped; 5.403 s. New tests exercise actual file output, undefined enums, nested unknown fields, token-shaped data, opaque identifier, expiry on restart, size eviction, exclusive-handle contention, invalid root and junction refusal. |
+| Presentation Release suite | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: final 136/136, 0 failed/errors/skipped; 0.626 s. Includes exception projection, non-recoverable UI, full/short resource keys and preservation of three existing provider-failure kinds without internal-error records. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: 0 warnings/errors; 40.16 s. Compiles real composition and all App catches. |
+| Actual local product Windows smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-build --no-restore -- -noLogo`: 7/7, 0 failed/errors/skipped; 50.885 s. Launch, navigation, themes, close/restore through tray, tray Exit, repeated Exit and unavailable capabilities all passed. Each process exited with code 0. |
+| Unsigned MSIX build | PASS | VS MSBuild Release/x64 with GenerateAppxPackageOnBuild=true, signing disabled, generated manifest and no restore. Produced AiUsage.Dev 2026.9.2201.0 x64. One tooling warning: `mspdbcmf.exe` missing, so no symbols package was generated; no owned-code warnings or errors. |
+| Primary integrated acceptance/diff review | PASS | Reviewed the complete implementation against AC-04/AC-05, data allowlist, retention/size, path checks, failure containment, DI lifetime and failure presentation. No actionable findings. Provider authentication, grant/cache formats, dependencies and quota semantics are unchanged. |
+| Document validation and diff check | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` returns valid=true; `git diff --check` passes. Rechecked after final evidence edits. |
+| Focused independent review | NOT_RUN | Required for the diagnostics boundary by CONTRIBUTING and the existing T-04 verification plan. The owner prohibited subagents; the implementation author cannot provide a fresh independent review. T-04 remains blocked on this requirement, not on a failing implementation check. |
+| Live provider, packaged install/update and desktop fault injection | NOT_RUN | No sign-in, provider traffic or package installation requested. The normal desktop smoke does not prove injected startup/shutdown/disposal failures; their wiring is inspected and compiled, and sink/projection behavior is covered by deterministic tests. |
+
+Smoke used `AIU_SMOKE_MODE=product`, `AIU_SMOKE_EXE` pointing at the current Debug executable,
+`AIU_SMOKE_EVIDENCE_DIRECTORY=.ai-usage-local/AIU-028/t04-product-smoke` (absolute at runtime),
+and a fresh `state` subdirectory through `AIU_DEVELOPMENT_STATE_DIRECTORY`. The actual
+`launch.png` was inspected: the product empty state, disabled CLI import and expected navigation
+are visible. Scenario JSON records and screenshots remain in that local evidence directory.
+
+The package is retained under `.ai-usage-local/AIU-028/t04-package/2026.9.2201.0/`.
+Its SHA-256 is `655C94335E3001A2EF1ED53690A32783B7A99CD012D4C026D42D6777D5D6C3C1`.
+The package identity/version/architecture were read back from its embedded manifest. A first
+inspection selected dependency packages as well as the product and failed; filtering to the
+single AiUsage package corrected that inspection without rebuilding or modifying the package.
+
+Retention runs on startup/write, not while the app is closed. Diagnostics are best effort:
+storage failure or a torn write may lose records. Path checks do not promise protection against
+all same-user check/use races. No generic exception/payload logging, export, network telemetry,
+recursive deletion, credential migration or live-provider success is claimed. The next action
+is fresh independent review of the frozen implementation and final regression tests.

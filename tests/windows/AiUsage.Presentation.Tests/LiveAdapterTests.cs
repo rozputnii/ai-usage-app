@@ -12,6 +12,25 @@ namespace AiUsage.Presentation.Tests;
 public sealed class LiveAdapterTests
 {
     [Theory]
+    [InlineData(ProviderFailureKind.ProviderUnavailable)]
+    [InlineData(ProviderFailureKind.NetworkFailure)]
+    [InlineData(ProviderFailureKind.InvalidResponse)]
+    public async Task ClassifiedProviderFailureKeepsItsMeaningWithoutAnInternalDiagnostic(ProviderFailureKind kind)
+    {
+        var diagnostics = new DiagnosticCapture();
+        var session = new Session { RefreshFailure = kind };
+        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { ["codex"] = session }, diagnostics);
+        await source.InitializeAsync();
+        var result = await source.ExecuteAsync(new(UiCommandKind.RefreshAccount, "codex", null,
+            source.Current.Revision), TestContext.Current.CancellationToken);
+        Assert.Equal(CommandStatus.Failed, result.Status);
+        Assert.Equal(kind.ToString(), result.Failure?.Kind);
+        Assert.True(result.Failure?.Recoverable);
+        Assert.Empty(diagnostics.Records);
+        await source.StopAsync();
+    }
+
+    [Theory]
     [InlineData(ConnectionState.Connected)]
     [InlineData(ConnectionState.ReauthRequired)]
     public void InternalErrorDoesNotOfferRetryOrReconnection(ConnectionState connection)
@@ -406,6 +425,7 @@ public sealed class LiveAdapterTests
         public int Disconnects { get; private set; }
         public bool BlockRefresh { get; init; }
         public Exception? RefreshError { get; init; }
+        public ProviderFailureKind? RefreshFailure { get; init; }
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Task<ProviderSessionState> ReadCachedStateAsync(CancellationToken cancellationToken = default) => Task.FromResult(State);
         public Task<ProviderSessionState> ResumeAsync(CancellationToken cancellationToken = default) { Resumes++; return Task.FromResult(State); }
@@ -413,6 +433,7 @@ public sealed class LiveAdapterTests
         public async Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default)
         {
             if (RefreshError is not null) throw RefreshError;
+            if (RefreshFailure is not null) return State = State with { Failure = RefreshFailure };
             Started.TrySetResult();
             try { if (BlockRefresh) await Task.Delay(Timeout.Infinite, cancellationToken); }
             catch (OperationCanceledException) { State = new(ProviderSessionStatus.ReauthenticationRequired); throw; }

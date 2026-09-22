@@ -72,23 +72,23 @@ makes every later task diagnosable. Polish is last.
       `tools/AiUsage.ProviderConsole`.
 
 ### T-04 - Classify unclassified failures and add redacted diagnostics
-- status: in-progress
+- status: blocked
 - depends_on: [T-03]
 - acceptance: AC-04, AC-05
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation 9bbf13e; Infrastructure 261/261, Presentation 136/136, Windows smoke 7/7 PASS; focused independent review NOT_RUN
 
-- [ ] Stop returning `ProviderUnavailable` for exceptions that are not classified provider
+- [x] Stop returning `ProviderUnavailable` for exceptions that are not classified provider
       failures; introduce a distinct failure kind whose presentation does not offer a retry that
       cannot succeed, and add its resource keys to the existing failure families.
-- [ ] Add the local, size-bounded, allowlisted, redacted diagnostics sink described in
+- [x] Add the local, size-bounded, allowlisted, redacted diagnostics sink described in
       [design.md](design.md), wired to the three catches in `App.xaml.cs` and to the new
       classified catch. Keep `RemoveAllLoggers()` on all four provider transports.
-- [ ] Record the sink's location, retention and redaction rules against
+- [x] Record the sink's location, retention and redaction rules against
       [security and lifecycle](../../platforms/windows/security-and-lifecycle.md) before
       implementing, using the security-lifecycle skill.
-- [ ] Add a redaction test covering nested unknown fields, a token-shaped value and an opaque
+- [x] Add a redaction test covering nested unknown fields, a token-shaped value and an opaque
       provider identifier; assert none reaches a record.
-- [ ] Check: Presentation Release suite with a test injecting a non-provider exception, plus the
+- [x] Check: Presentation Release suite with a test injecting a non-provider exception, plus the
       redaction test.
 
 ### T-05 - One provider descriptor table
@@ -255,14 +255,25 @@ implement the bounded sink and desktop wiring, then run Infrastructure/Presentat
 Windows build/smoke, document validation and primary integrated review. Use this task record
 as the execution ledger; no new branch or agent workspace is needed under CONTRIBUTING.
 
-T-04 implementation checkpoint: classification/redaction tests observed failing before the
+T-04 implementation is saved in `9bbf13e`. Classification/redaction tests failed before the
 fix; the reauthentication-priority case also failed before its correction. Infrastructure
-261/261 and Presentation 133/133 PASS. Desktop build/smoke and primary integrated review are
-still pending. Required focused independent review is NOT_RUN under the no-subagent request.
+261/261, final Presentation 136/136, Windows Debug build and actual product UI smoke 7/7 PASS.
+Unsigned MSIX 2026.9.2201.0 built successfully with one tooling warning about the missing optional
+symbols-package utility. Primary integrated acceptance/diff review PASS; no actionable findings.
+Production bytes are unchanged after that build; the final tests additionally confirm existing
+provider-failure classifications remain recoverable and do not emit internal-error diagnostics.
 
-Exact next action: finish the Windows build, run isolated desktop smoke and package validation,
-then record primary review and the frozen reference for independent review. Other pending tasks
-remain unselected.
+Ruling: typed provider failures already reach the Core port as `ProviderSessionState.Failure`
+through the concrete sessions' typed catches. Preserve that path and test it; do not introduce
+an Infrastructure exception dependency into presentation. No provider protocol changes are made.
+
+Required focused independent review is NOT_RUN: the owner prohibited subagents and this author
+cannot supply fresh independent review. T-04 remains blocked only on that requirement, despite
+completed implementation and successful local checks. No independent-review waiver is inferred.
+
+Exact next action: in a separate fresh primary review session, review `56d6315..9bbf13e` against
+AC-04/AC-05 and the diagnostic lifecycle design, include the final classified-provider regression
+tests, and record the verdict before closing T-04. Other pending tasks remain unselected.
 
 Earlier T-01/T-02 review checks: Infrastructure 254/254 and Presentation 129/129 PASS on that code, including
 the disconnect cancellation correction. Earlier Windows Debug unpackaged and ProviderConsole
