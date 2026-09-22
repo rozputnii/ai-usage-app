@@ -113,7 +113,7 @@ Unselected tasks remain NOT_RUN.
 | --- | --- | --- | --- |
 | T-01 | AC-01, AC-02 | Infrastructure Release suite, no reduction in test count | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
 | T-02 | AC-02 | Infrastructure Release suite; new per-provider reparse-point refusal test; Codex record forward-compatibility test; focused independent review | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
-| T-03 | AC-03 | Infrastructure and Presentation Release suites; `tools/AiUsage.ProviderConsole` Release build | NOT_RUN |
+| T-03 | AC-03 | Infrastructure and Presentation Release suites; `tools/AiUsage.ProviderConsole` Release build | PASS, see T-03 closure below |
 | T-04 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | NOT_RUN |
 | T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | NOT_RUN |
 | T-06 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | NOT_RUN |
@@ -352,3 +352,42 @@ junctions were confined to the test suites' temporary directories. The review do
 rollback of server-side token rotation, atomicity across grant/cache/provider state, or protection
 against all same-user filesystem check/use races; those are explicit existing design limits.
 T-03's legacy-contract removal and other unselected remediation remain outside this closure.
+
+## T-03 closure - 2026-09-22
+
+Base: `11902a7`. Implementation: `13d45a7`, committed and pushed to `main`. The owner selected
+T-03 and prohibited subagents. This session implemented and reviewed T-03 only; AIU-028 remains
+incomplete. Commands ran on local Windows with the README-documented user-local .NET SDK and
+existing restored packages. No existing account store or source CLI credentials were read.
+
+`CodexSession` now implements `IProviderSession` directly and returns `ProviderSessionState`.
+The old interface, state/status/failure types and `CodexDashboardSession` are removed. The
+composition root and dashboard resolve the same concrete singleton, matching the other provider
+registrations. ProviderConsole and Codex protocol code use `ProviderFailureKind` directly.
+`CodexException` retains its allowlisted OAuth error metadata and distinct transport exception
+identity; its wrapper forwards the shared failure kind without an enum conversion.
+
+Browser-launch `InvalidOperationException` and `Win32Exception` classification moved from the
+removed adapter into the session. Cached reads expose the asynchronous, cancellable shared port.
+The existing session `Task.Run` boundary still covers lock acquisition, cache access and browser
+launch; the shared state lease still performs asynchronous I/O. The synchronous cache convenience
+reader remains inside that worker boundary, never on the dispatcher. No fully asynchronous cache
+internals or interactive responsiveness measurement is claimed.
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| New tests before implementation | PASS (expected red) | Targeted Codex session run: 18 cases, 3 failed. Direct shared-port assignment failed; both browser-launch failures escaped the original direct session. The existing 15 cases passed. |
+| Targeted Codex session tests after implementation | PASS | 18/18, no errors, failures, skips or not-run cases. New cases cover the shared cache port, pre-cancelled reads preserving state, unsupported manual code, both browser-launch failure types and absence of provider traffic. |
+| `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 257/257, 0 errors/failed/skipped/not-run; 6.511 seconds test execution. Existing renewal, stale-cache, recovery, exclusive-lease and cancellation regressions remain present. |
+| `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 129/129, 0 errors/failed/skipped/not-run; 0.649 seconds test execution. |
+| `dotnet build tools/AiUsage.ProviderConsole -c Release --no-restore` | PASS | Zero warnings/errors; 2.52 seconds. |
+| `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS | Zero warnings/errors; 37.31 seconds. Verifies the actual Windows composition source, which the neutral Presentation suite does not compile. |
+| Removed-contract and enum-bridge scan | PASS | No legacy session/failure type references in src/tests/tools and no `Enum.Parse` in Infrastructure. |
+| Primary integrated acceptance/diff review | PASS | No actionable findings. Compared with the base, auth, credentials, exception metadata, quota clients/parsers, related protocol tests and ProviderConsole differ only in failure type/imports. Session changes preserve the existing persistence/rotation/cancellation branches and transfer adapter browser handling. DI resolves one Codex singleton for both consumers. |
+| `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` and `git diff --check` | PASS | Document validator returned valid=true with no diagnostics; diff check passed. Rechecked after the closure documentation edits. |
+| Independent review | NOT_RUN | No subagents, per owner instruction. This is primary self-review. No material credential-storage, destructive-data, privilege or authentication-boundary change was introduced, so focused independent review is not required by CONTRIBUTING for T-03. |
+| Live provider, interactive Windows and package lifecycle checks | NOT_RUN | No live sign-in or UI/package execution in this task. T-03 acceptance requires deterministic suites and the console build; Windows build evidence is not recast as interactive evidence. |
+
+No dependency versions, provider URLs/scopes, serialized formats, state-store implementation,
+quota meanings or close-to-tray behavior changed. T-04 and all other pending remediation tasks
+remain outside this closure.

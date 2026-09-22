@@ -55,21 +55,20 @@ makes every later task diagnosable. Polish is last.
 - [x] Check: Infrastructure Release suite, plus the new forward-compatibility and reparse tests.
 
 ### T-03 - Retire the Codex-only session contract
-- status: in-progress
+- status: done
 - depends_on: [T-01, T-02]
 - acceptance: AC-03
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; code 13d45a7; Infrastructure 257/257 and Presentation 129/129 PASS; ProviderConsole Release and Windows Debug unpackaged builds PASS; primary review PASS
 
-- [ ] Implement `IProviderSession` on `CodexSession`; delete `ICodexSession`,
+- [x] Implement `IProviderSession` on `CodexSession`; delete `ICodexSession`,
       `CodexSessionState`, `CodexFailureKind` and `CodexDashboardSession`.
-- [ ] Update `LiveServiceRegistration` and `tools/AiUsage.ProviderConsole` to the single
+- [x] Update `LiveServiceRegistration` and `tools/AiUsage.ProviderConsole` to the single
       contract; no `Enum.Parse` remains in Infrastructure.
-- [ ] Confirm the off-dispatcher execution the deleted adapter provided is preserved by the
+- [x] Confirm the off-dispatcher execution the deleted adapter provided is preserved by the
       asynchronous lease from T-01.
-- [ ] If this task is deferred by the owner, the fallback is mandatory rather than optional:
-      replace both `Enum.Parse` calls with an explicit `switch` and add a test asserting
-      `CodexFailureKind` and `CodexSessionStatus` member containment, so F-03 does not stay open.
-- [ ] Check: Infrastructure and Presentation Release suites, plus a Release build of
+- [x] Deferral fallback is not applicable: the legacy contract and both `Enum.Parse` calls
+      were removed, closing F-03 without a compatibility mapping.
+- [x] Check: Infrastructure and Presentation Release suites, plus a Release build of
       `tools/AiUsage.ProviderConsole`.
 
 ### T-04 - Classify unclassified failures and add redacted diagnostics
@@ -247,11 +246,14 @@ Presentation 129/129 PASS; ProviderConsole Release and unpackaged Windows Debug 
 with zero warnings/errors; document validation and diff check PASS. Primary integrated review
 found no actionable issues; no independent review or interactive/live run is claimed.
 
-Exact next action: publish the verified T-03 implementation, then record its code reference
-and close T-03 in the canonical task/evidence records. Other pending tasks remain unselected.
-There are no worker artifacts.
+T-03 is done at `13d45a7`, committed and pushed to main. T-01, T-02, T-03, T-08 and T-09
+are complete; AIU-028 as a whole remains incomplete.
 
-Fresh review checks: Infrastructure 254/254 and Presentation 129/129 PASS on final code, including
+Exact next action: obtain the owner's selection of the next pending task, with T-04 recommended,
+before starting further implementation. Other pending tasks remain unselected. There are no
+worker artifacts.
+
+Earlier T-01/T-02 review checks: Infrastructure 254/254 and Presentation 129/129 PASS on that code, including
 the disconnect cancellation correction. Earlier Windows Debug unpackaged and ProviderConsole
 Release builds PASS with zero warnings/errors; original-code writer/current-code reader
 compatibility PASS for all four providers plus the cache. Document validation and diff check PASS.
