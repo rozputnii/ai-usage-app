@@ -51,6 +51,9 @@ internal sealed partial class TrayViewModel : SnapshotViewModel
 
     public ObservableCollection<TrayRowViewModel> Rows { get; } = [];
 
+    /// <summary>The visible popup refreshes its own relative text even while the main clock is stopped.</summary>
+    public void RefreshTime() => RefreshSnapshot();
+
     [ObservableProperty] public partial string CountText { get; private set; } = string.Empty;
     [ObservableProperty] public partial string ToolTip { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool IsRefreshingAll { get; set; }

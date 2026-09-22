@@ -60,7 +60,9 @@ internal abstract class SnapshotViewModel : ObservableObject, IDisposable
 
     protected abstract void OnSnapshot(UiSnapshot snapshot);
 
-    private void OnClockChanged(object? sender, EventArgs e) => Dispatch(() => Apply(Context.Usage.Current));
+    protected void RefreshSnapshot() => Dispatch(() => Apply(Context.Usage.Current));
+
+    private void OnClockChanged(object? sender, EventArgs e) => RefreshSnapshot();
 
     protected void Dispatch(Action action)
     {

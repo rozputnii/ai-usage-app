@@ -211,7 +211,7 @@ No remaining action for T-07; T-10, T-11 and T-12 remain pending and unselected.
 - [x] Check: Presentation Release suite.
 
 ### T-10 - Gate the UI clock on window visibility
-- status: pending
+- status: in-progress
 - depends_on: [T-05]
 - acceptance: AC-12
 - evidence: not-run
@@ -223,6 +223,19 @@ No remaining action for T-07; T-10, T-11 and T-12 remain pending and unselected.
 - [ ] Check: Presentation test over the visibility gate, **plus** interactive Windows smoke per
       [the verification policy](../../workflow/verification.md). Compilation and unit tests are
       not sufficient evidence for this task.
+
+Implementation plan (2026-09-22, base `bf811fb`): stop the live presentation timer using
+`WindowVisible`, invalidate queued ticks across hide/restore/disposal, and reapply once on
+restore. Keep snapshot delivery active; refresh tray relative text on popup open and with a
+popup-owned timer while it is visible. Verify deterministic visibility/restore/tray regressions,
+Infrastructure and Presentation suites, unpackaged Windows smoke including clock observations,
+unsigned MSIX, document validation and primary integrated review. Work on main without
+subagents as requested. No credential or provider-contract change is in scope.
+Four visibility/dispatch/relative-text regressions failed before the gate implementation.
+The tray refresh test also failed before its fix; a late retired-timer callback regression
+then exposed a duplicate restore notification and now passes. Presentation 147/147,
+Infrastructure 261/261 and unpackaged Windows Debug build (zero warnings/errors) pass.
+Exact next action: run interactive clock/tray/restore smoke and the unsigned MSIX build.
 
 ### T-11 - Close CR-AIU-003-01: hardening at the library boundary
 - status: pending
