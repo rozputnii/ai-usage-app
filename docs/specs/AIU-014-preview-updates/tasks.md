@@ -22,12 +22,12 @@ appear in output. First install must establish feed association and prerequisite
 - acceptance: AC-01, AC-02, AC-04
 - evidence: not-run
 
-- [ ] Add `tests/release/Test-PreviewRelease.ps1` behavioral assertions against
+- [x] Add `tests/release/Test-PreviewRelease.ps1` behavioral assertions against
   `tools/windows/PreviewRelease.psm1`: same-day increments, calendar rollover,
   floor, overflow, invalid inputs, feed identity/URLs and nonblocking forward policy.
-- [ ] Run `pwsh -File tests/release/Test-PreviewRelease.ps1` and observe RED; implement
+- [x] Run `pwsh -File tests/release/Test-PreviewRelease.ps1` and observe RED; implement
   module and artifact writer; rerun to PASS.
-- [ ] Add `Publish-Preview.ps1` with draft reservation, signing, immutable uploads and
+- [x] Add `Publish-Preview.ps1` with draft reservation, signing, immutable uploads and
   feed generation; guard older source ancestry. Add gated job to validation.yml with
   queue:max. Inspect workflow privileges and parse scripts before commit/push.
 
@@ -37,10 +37,11 @@ appear in output. First install must establish feed association and prerequisite
 - acceptance: AC-03, AC-05
 - evidence: not-run
 
-- [ ] Prepare a dedicated-certificate provisioning script and public-CER installation
+- [x] Prepare a dedicated-certificate provisioning script and public-CER installation
   instructions. Do not execute secret/trust provisioning without explicit authority.
-- [ ] Describe OS-managed updates in the live product and README; exercise applicable
-  presentation/build checks and include runtime prerequisites in the first install.
+- [x] Document OS-managed updates and first-install runtime prerequisites in README.
+  Existing live product copy already says updates are managed outside the app; no
+  product behavior or UI was changed by this phase.
 - [ ] Freeze code, obtain required fresh read-only independent review, address material
   findings and commit/push. Codex Luna is unavailable; use existing non-Codex reviewer.
 
@@ -59,5 +60,10 @@ appear in output. First install must establish feed association and prerequisite
 
 ## Handoff
 
-Base f708954. Selected development-only phase; host trust and CI signing provisioning
-not performed. Next action: add and run release-policy tests before implementation.
+Base f708954. Prepared implementation dc0548e; CI fixes 55286df, 9064d76, ff30d80.
+23 release-policy assertions, script syntax and full hosted CI at ff30d80 PASS.
+Independent review's shallow-checkout defect is resolved. No signing key was created/uploaded and no host
+trust changed. Automatic approval review blocked the proposed Sandbox feed proof.
+Next action: obtain explicit confirmation for the prepared
+`Initialize-PreviewSigning.ps1 -Apply` action (dedicated CI key/secrets, Pages and
+publication enablement), then execute it if authorized. See verification.md for limits.
