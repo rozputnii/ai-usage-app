@@ -106,12 +106,13 @@ repository, not secrets.
 ## Remediation checks - placeholders
 
 These are the checks each task must produce. Completed checks are recorded below; the T-01/T-02
-regressions passed; required independent review is BLOCKED as recorded at the end. Unselected tasks remain NOT_RUN.
+regressions, compatibility checks and independent review passed as recorded at the end.
+Unselected tasks remain NOT_RUN.
 
 | Task | Acceptance | Required check | Status |
 | --- | --- | --- | --- |
-| T-01 | AC-01, AC-02 | Infrastructure Release suite, no reduction in test count | PASS regressions/compatibility; independent review BLOCKED |
-| T-02 | AC-02 | Infrastructure Release suite; new per-provider reparse-point refusal test; Codex record forward-compatibility test; focused independent review | PASS regressions/compatibility; independent review BLOCKED |
+| T-01 | AC-01, AC-02 | Infrastructure Release suite, no reduction in test count | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
+| T-02 | AC-02 | Infrastructure Release suite; new per-provider reparse-point refusal test; Codex record forward-compatibility test; focused independent review | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
 | T-03 | AC-03 | Infrastructure and Presentation Release suites; `tools/AiUsage.ProviderConsole` Release build | NOT_RUN |
 | T-04 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | NOT_RUN |
 | T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | NOT_RUN |
@@ -285,7 +286,7 @@ The quota-cache internal constructor supplies a synthetic cancellation hook; the
 constructor and normal runtime behavior have no injected callback. This is a T-02 correction,
 not a new feature or authentication flow. Independent review was notified of the finding.
 
-### Required focused independent review - BLOCKED
+### Earlier focused independent review attempts - BLOCKED (superseded below)
 
 CONTRIBUTING.md requires focused independent review for material credential changes. The
 convergence-review skill was read and applied; it instructs: "Report unavailable required review
@@ -305,3 +306,49 @@ review. T-01 and T-02 remain blocked rather than done, and AIU-028 remains incom
 and evidence are committed and pushed under the standing save-point policy; publication does not
 claim completion. Exact next action is a focused read-only review of `cfb9ceb..2ddcc7f`, followed
 by targeted fixes/checks if needed and actual review evidence before task closure.
+
+### Independent review and T-01 / T-02 closure - 2026-09-22
+
+Verdict: **PASS**, no actionable findings in the selected diff. The earlier BLOCKED result
+describes unavailable review attempts, not a code defect, and is superseded by this completed
+review. T-01 and T-02 are done; this does not close the remaining AIU-028 tasks.
+
+Reviewer independence: the owner requested a new independent review and prohibited subagents.
+This separate primary Codex session did not implement the changes and had no implementation
+conversation transcript. It applied convergence-review and security-lifecycle, inspected the
+frozen source diff and relevant repository specifications/evidence, and made no production or
+test source changes. No subagent, delegated task or external browser reviewer was used. After
+completing the read-only code review, the primary updated only the canonical closure records.
+
+Frozen base: `cfb9ceb6324051823d42dbd36c15d9136f853ec9`.
+Frozen candidate: `2ddcc7fc8be25cf7e7003a190a07987a30eb43dc`.
+Checkout at review start: `4ff6a69f5f9e85b19245794519f5f76643cff3ab`, clean `main`.
+`git diff --exit-code 2ddcc7f HEAD -- src tests tools` returned 0, establishing that the
+locally executed source/tests match the frozen candidate. Review completed on local Windows,
+2026-09-22 (Europe/Lisbon), with the repository-pinned SDK and existing restored packages.
+
+| Boundary | Reviewed evidence and result |
+| --- | --- |
+| AC-01 transport and exceptions | `ProviderTransport.SendAsync`, `Failure`, `ConfigureClient` and `CreateHandler` own the shared translation and handler policy. The retained `CodexHttp.Translate` adapts only the legacy enum. All eight `RemoveAllLoggers()` registrations remain; timeout, redirects, cookies, pooled lifetime, status codes and retry-after retain their prior meaning. PASS. |
+| Provider behavior and scope | Auth/quota clients and parsers were compared with the base; the changed files are identical after substituting shared exception/transport names and imports. The corresponding changed protocol/parser/auth/store regression files also retain their assertions after those substitutions. No endpoint, scope, parser, dependency or Windows UI/lifetime change was introduced. PASS. |
+| AC-02 protected records | `ProviderStatePolicy`, each provider's policy/validation, `CodexGrantStore.Record`/`Revision` and the unchanged serialized types retain file names, entropy, CurrentUser protection and committed shapes. Frozen-shape tests passed for all four providers. The previously observed actual original-writer/current-reader harness remains separate compatibility evidence and was not rerun in this review. PASS. |
+| Exclusive ownership and paths | `ProviderStatePaths.Acquire`/`CheckDirectory`/`CheckFile` and `ProviderStateLease.CheckPaths` reject redirected roots, ancestors, lock files and owned data paths. The lease spans Codex load/renew/persist; revisions reject stale writes. Actual Windows junction tests cover all four provider roots and Codex grant/cache paths, with outside sentinels preserved. PASS. |
+| Interrupted state and cleanup | `ProviderStateLease.SaveAsync`, `RecoverJournalAsync`, `PromoteJournalAsync` and `DeleteAsync` were inspected for staged, promoted, torn, unrelated and failed-delete states. The protected Codex journal retains a recoverable successor; ambiguous evidence blocks replay; deletion removes the predecessor first and touches only named owned files. The recovery and failed-deletion regressions passed. PASS. |
+| Cancellation and session boundary | `CodexSession.PersistAsync` saves a returned rotating grant without request cancellation. Storage failures clear usable in-memory credentials, and a changed durable record invalidates them before provider traffic. `DisconnectAsync` clears them after durable deletion and completes cache cleanup without request cancellation. The full final-code suite includes both cancellation regressions. Existing recovery enum names map through `CodexDashboardSession.Map` to the existing presentation surface. PASS. |
+
+Fresh observed checks (no source edits between these checks and the verdict):
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 254 tests, 0 errors/failed/skipped/not-run; 5.441 seconds test execution. This is 28 above the recorded 226 baseline and includes the final disconnect correction. |
+| `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 129 tests, 0 errors/failed/skipped/not-run; 0.664 seconds test execution. |
+| `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS | Closure records validated: valid=true, diagnostics=[]. |
+| `git diff --check` | PASS | No whitespace errors in the closure diff. |
+| New live-provider/browser-account check | NOT_RUN | Not required by T-01/T-02 acceptance or the change-based matrix; browser-account permission was available but unused. No source CLI credentials or existing account stores were read. |
+| New interactive Windows or packaged lifecycle check | NOT_RUN | No UI/lifetime change in this scope; previous build results are retained above, not recast as interactive or packaged execution. |
+
+Commands used the README-documented user-local SDK executable. Synthetic DPAPI records and
+junctions were confined to the test suites' temporary directories. The review does not claim
+rollback of server-side token rotation, atomicity across grant/cache/provider state, or protection
+against all same-user filesystem check/use races; those are explicit existing design limits.
+T-03's legacy-contract removal and other unselected remediation remain outside this closure.

@@ -18,10 +18,10 @@ T-04 small. T-03 and T-04 close the "a defect looks like a provider outage" pair
 makes every later task diagnosable. Polish is last.
 
 ### T-01 - Shared provider transport, exception and state lease
-- status: blocked
+- status: done
 - depends_on: []
 - acceptance: AC-01, AC-02
-- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review BLOCKED (two attempts returned no result)
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; independent review of cfb9ceb..2ddcc7f PASS in a fresh primary session on 2026-09-22; Infrastructure 254/254 and Presentation 129/129 PASS; original-writer compatibility PASS
 
 - [x] Extract one transport-failure and HTTP-status translator and one handler-configuration
       helper; delete the four per-provider copies.
@@ -35,10 +35,10 @@ makes every later task diagnosable. Polish is last.
       --no-restore -- -noLogo` passes with no reduction in test count.
 
 ### T-02 - Codex grant store onto the hardened lease
-- status: blocked
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-02
-- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review BLOCKED (two attempts returned no result)
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; independent review of cfb9ceb..2ddcc7f PASS in a fresh primary session on 2026-09-22; Infrastructure 254/254 and Presentation 129/129 PASS; original-writer compatibility PASS
 
 - [x] Move `CodexGrantStore` onto the shared lease: exclusive lock, reparse-point checks on
       directory and file, pending/committed generation, flush-to-disk, asynchronous I/O.
@@ -49,7 +49,7 @@ makes every later task diagnosable. Polish is last.
       `File.WriteAllBytes` and `File.Delete` shape.
 - [x] Add a test, for all four providers including Codex, asserting a reparse point on the state
       directory is refused rather than followed.
-- [ ] Use the security-lifecycle skill and record the data-lifecycle reasoning before
+- [x] Use the security-lifecycle skill and record the data-lifecycle reasoning before
       implementing. This task needs focused independent review under CONTRIBUTING.md, because it
       is a credential-storage change.
 - [x] Check: Infrastructure Release suite, plus the new forward-compatibility and reparse tests.
@@ -222,18 +222,18 @@ for them later by accident.
 ## Handoff
 
 The owner selected T-01 and T-02 on 2026-09-22. Base: `cfb9ceb` on `main`.
-T-08 and T-09 were already complete. T-01/T-02 implementation and primary acceptance checks are
-complete at code reference `2ddcc7f`, but neither task is closed: required independent review
-is BLOCKED. Two fresh read-only GPT-5.6 Luna / max review attempts returned no progress or
-verdict; the first was interrupted after about 20 minutes and the replacement after its bounded
-10-minute window. No other model was substituted and no reviewer finding or PASS is invented.
+T-01 and T-02 are now done at code reference `2ddcc7f`. A separate, fresh primary Codex session
+performed the owner-requested independent review of `cfb9ceb..2ddcc7f`, with no implementation
+participation, source changes or subagents: PASS, no actionable findings. This resolves the
+earlier unavailable-review blocker; its historical evidence remains in verification.md.
+T-08 and T-09 were already complete. AIU-028 as a whole remains incomplete.
 
-Exact next action: obtain a focused independent review of `cfb9ceb..2ddcc7f` for T-01/T-02,
-resolve any material findings and record its actual verdict before closing these tasks.
+Exact next action: obtain the owner's selection of the next pending remediation task before
+starting further implementation.
 T-03 and all other pending tasks remain unselected. There are no pending worker code artifacts.
 
-Checks: Infrastructure 253/253 and Presentation 129/129 PASS; Windows Debug unpackaged and
-ProviderConsole Release builds PASS with zero warnings/errors; original-code writer/current-code
-reader compatibility PASS for all four providers plus the cache. The final disconnect cancellation
-fix has targeted CodexSessionTests 15/15 PASS after observing the new regression fail before the
-fix. Document validation and diff check PASS. Live provider and interactive/package checks NOT_RUN.
+Fresh review checks: Infrastructure 254/254 and Presentation 129/129 PASS on final code, including
+the disconnect cancellation correction. Earlier Windows Debug unpackaged and ProviderConsole
+Release builds PASS with zero warnings/errors; original-code writer/current-code reader
+compatibility PASS for all four providers plus the cache. Document validation and diff check PASS.
+Live provider and interactive/package checks NOT_RUN.

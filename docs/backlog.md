@@ -228,7 +228,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-028 - Architecture and clean-code remediation
 - goal: G-003
-- status: blocked
+- status: in-progress
 - depends_on: [AIU-027]
 - trigger: after-audit
 - outcome: Fix the evidence-backed defects and duplication recorded by the 2026-09-20 architecture and clean-code audit, so that adding a fifth provider is an additive change and a failure is distinguishable from a provider outage.
@@ -238,7 +238,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - acceptance: See docs/specs/AIU-028-architecture-remediation/spec.md AC-01 onward. Existing deterministic regressions, document validation and a warnings-visible desktop build continue to pass; interactive Windows smoke is required for the clock-gating task.
 - evidence: docs/specs/AIU-028-architecture-remediation/verification.md
 - audit-note: Recorded 2026-09-20 against `main` at `6681b7a` by an analysis-only session under docs/workflow/architecture-audit-plan.md, which changed no production code. Fifteen findings F-01..F-15 with `path:line` evidence are in the specification; areas verified clean, including `x:Bind` coverage, handler symmetry and the mitigated typed-`HttpClient` singleton capture, are recorded as accepted-as-is rather than as findings. AIU-027 settled the Core/Infrastructure/Windows split and the source-linked presentation test project; this entry reports drift and debt accumulated since, and does not re-propose that structure.
-- selection-note: Owner selected only T-01 and T-02 on 2026-09-22. Their implementation and primary checks are complete, but required independent review is BLOCKED: two GPT-5.6 Luna/max attempts returned no result. See tasks and verification for the frozen review scope. Remaining pending remediation tasks require separate selection.
+- selection-note: Owner selected T-01 and T-02 on 2026-09-22; both are done after independent review of cfb9ceb..2ddcc7f in a separate fresh primary session, with no subagents, returned PASS and final-code regressions passed (Infrastructure 254/254, Presentation 129/129). See tasks and verification for scope and evidence. AIU-028 remains incomplete; remaining pending remediation tasks require separate selection.
 - prior-work: AIU-027 (.NET architecture refinement and cleanup); F-14 resumes the deferred non-blocking finding CR-AIU-003-01, whose "before UI/persistent consumption" boundary is now crossed.
 
 ## Deferred clarifications, not forgotten
