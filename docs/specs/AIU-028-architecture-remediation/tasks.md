@@ -21,38 +21,38 @@ makes every later task diagnosable. Polish is last.
 - status: in-progress
 - depends_on: []
 - acceptance: AC-01, AC-02
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review pending
 
-- [ ] Extract one transport-failure and HTTP-status translator and one handler-configuration
+- [x] Extract one transport-failure and HTTP-status translator and one handler-configuration
       helper; delete the four per-provider copies.
-- [ ] Introduce `ProviderException` over `ProviderFailureKind`; delete `ClaudeException`,
+- [x] Introduce `ProviderException` over `ProviderFailureKind`; delete `ClaudeException`,
       `CopilotException` and `AntigravityException`.
-- [ ] Extract `ProviderStateLease<TState>` from the three identical stores, parameterised by
+- [x] Extract `ProviderStateLease<TState>` from the three identical stores, parameterised by
       file names, entropy, serializer context and validation predicate.
-- [ ] Confirm each provider keeps its existing file names, entropy string and record shape by
+- [x] Confirm each provider keeps its existing file names, entropy string and record shape by
       loading a record written by the pre-change code in a test.
-- [ ] Check: `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release
+- [x] Check: `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release
       --no-restore -- -noLogo` passes with no reduction in test count.
 
 ### T-02 - Codex grant store onto the hardened lease
 - status: in-progress
 - depends_on: [T-01]
 - acceptance: AC-02
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; implementation, regressions and original-writer compatibility PASS; focused independent review pending
 
-- [ ] Move `CodexGrantStore` onto the shared lease: exclusive lock, reparse-point checks on
+- [x] Move `CodexGrantStore` onto the shared lease: exclusive lock, reparse-point checks on
       directory and file, pending/committed generation, flush-to-disk, asynchronous I/O.
-- [ ] Keep the `codex.grant` name, the `AiUsage.Codex.Grant.v1` entropy and the `v`/`account`/
+- [x] Keep the `codex.grant` name, the `AiUsage.Codex.Grant.v1` entropy and the `v`/`account`/
       `refresh` field names; read an existing record written by the current code without
       requiring reconnection.
-- [ ] Apply the same treatment to `CodexQuotaCache` path handling, which shares the unchecked
+- [x] Apply the same treatment to `CodexQuotaCache` path handling, which shares the unchecked
       `File.WriteAllBytes` and `File.Delete` shape.
-- [ ] Add a test, for all four providers including Codex, asserting a reparse point on the state
+- [x] Add a test, for all four providers including Codex, asserting a reparse point on the state
       directory is refused rather than followed.
 - [ ] Use the security-lifecycle skill and record the data-lifecycle reasoning before
       implementing. This task needs focused independent review under CONTRIBUTING.md, because it
       is a credential-storage change.
-- [ ] Check: Infrastructure Release suite, plus the new forward-compatibility and reparse tests.
+- [x] Check: Infrastructure Release suite, plus the new forward-compatibility and reparse tests.
 
 ### T-03 - Retire the Codex-only session contract
 - status: pending
@@ -222,9 +222,16 @@ for them later by accident.
 ## Handoff
 
 The owner selected T-01 and T-02 on 2026-09-22. Base: `cfb9ceb` on `main`.
-T-08 and T-09 were already complete. T-01 extraction is implemented with its compatibility
-checks; focused independent review remains pending for the combined T-01/T-02 changes.
+T-08 and T-09 were already complete. T-01/T-02 implementation and acceptance checks are complete
+at `2ddcc7f`; focused independent review remains pending. The first reviewer did not return a
+result and was interrupted; a replacement fresh read-only review uses the same required model.
 
-Exact next action: obtain
-focused independent review of the integrated diff. T-03 and the remaining tasks are not selected.
-Blockers: none. Live provider and interactive/package checks have not been run for this change.
+Exact next action: obtain the focused independent review result for T-01/T-02, resolve any
+material findings and record its verdict before closing these tasks. T-03 and the remaining
+tasks are not selected. There are no pending worker code artifacts.
+
+Checks: Infrastructure 253/253 and Presentation 129/129 PASS; Windows Debug unpackaged and
+ProviderConsole Release builds PASS with zero warnings/errors; original-code writer/current-code
+reader compatibility PASS for all four providers plus the cache. The final disconnect cancellation
+fix has targeted CodexSessionTests 15/15 PASS after observing the new regression fail before the
+fix. Document validation and diff check PASS. Live provider and interactive/package checks NOT_RUN.
