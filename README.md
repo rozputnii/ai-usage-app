@@ -41,6 +41,15 @@ The Antigravity provider ships without an OAuth client registration, because the
 
 Product startup uses live adapters. Pass `--demo` for the isolated synthetic frontend. Unpackaged product data lives under `%LOCALAPPDATA%/AiUsage/Development`; `AIU_DEVELOPMENT_STATE_DIRECTORY` can select an empty directory for offline development checks. Packaged startup keeps its existing package-local provider store. Never point smoke checks at a credential-bearing directory without authorization.
 
+AIU-006 adds an exclusive startup lease and layout manifest. On the first upgrade,
+`appearance.v1.json` moves to `preferences/appearance.v1.json`, preserving its contents.
+A DPAPI CurrentUser checkpoint covers presentation preferences only; provider credentials
+retain their existing location and rotation journal and are never rolled back by restore.
+An interrupted migration opens the recovery screen before provider services start.
+Retry completes the pending operation; confirmed Restore replaces preferences from the
+verified checkpoint. Newer layouts refuse downgrade. Recovery diagnostics export contains
+fixed status fields only and is saved as `recovery-diagnostics.txt` in the owned data folder.
+
 History opens with automatic loading for connected accounts, or one selected account from
 its card. Codex analytics and Copilot personal billing reports use existing AI Usage
 sessions; availability depends on the provider, plan and current permissions. Claude and
@@ -69,6 +78,16 @@ $env:DOTNET_GENERATE_ASPNET_CERTIFICATE = 'false'
 ```
 
 This command was exercised with earlier reserved versions. Choose a fresh UTC `YYYY.M.DDNN.0` version, counter 01..99, for changed installable bytes; existing output is rejected without overwrite. Without `-CertificateThumbprint`, output is explicitly unsigned-validation-only. Signing requires an exact owned CurrentUser/My development code-signing certificate. No host trust is installed: verification fails closed if the self-signed root is untrusted, preserving bytes and public CER for guest-only verification. Never export the private key.
+
+Pass `-NoRestore` when using existing restored assets without network restoration.
+`tools/windows/Invoke-UpgradeSmoke.ps1` is a separate Windows Sandbox-only upgrade harness.
+Its input directory contains `old.msix`, `new.msix`, the matching public
+`AiUsage.Development.cer`, official offline `dependencies`, the existing .NET 10 runtime
+installer and the published `smoke` suite. With `-InputDirectory` and an empty
+`-EvidenceDirectory`, it installs the old package, seeds guest-only synthetic state,
+checks the old UI, updates in place and exercises real recovery UI through a deliberate
+filesystem sharing failure and process termination. Use a network-disabled Sandbox with
+only those artifacts mapped read-only and an empty evidence folder mapped writable.
 
 The separate executable UI suite publishes with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`. It accepts `AIU_SMOKE_EXE` for local unpackaged checks or an installed `AIU_SMOKE_AUMID` for packaged checks, and requires an unlocked interactive desktop and `AIU_SMOKE_EVIDENCE_DIRECTORY`; missing prerequisites fail, never silently skip. Do not run it as part of platform-neutral checks.
 

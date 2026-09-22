@@ -16,3 +16,11 @@ Journal phases distinguish migration and restore. A verified checkpoint is publi
 Keep the lifetime lease through shutdown, preventing concurrent new product instances from writing preferences during maintenance. Pre-AIU-006 binaries do not understand the lease: package update must stop the old process first; cross-version unpackaged concurrent access is unsupported. Provider files are never read or written by migration and retain their own locks.
 
 Same-user malicious concurrent filesystem mutation is outside the DPAPI threat boundary; reparse checks prevent static path redirection, not an adversarial TOCTOU guarantee. Fixed allowlists, bounded reads, authenticated checkpoint encryption and content hashes prevent using a checkpoint as an arbitrary file operation. No recursive cleanup exists in product maintenance.
+
+An empty legacy state materializes `{}` as the layout-1 preference file. Every committed
+layout therefore requires that exact known file to exist; unexpected deletion enters
+recovery rather than silently reverting to defaults. The checkpoint records explicit
+presence independently of content bytes. Normal startup reads the bounded manifest,
+journal and single preference document (including the existing presentation validator),
+not a tree scan or backup decryption. A damaged journal can be replaced only by explicit
+restore from a verified checkpoint; a damaged checkpoint cannot authorize writes.

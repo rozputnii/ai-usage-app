@@ -18,7 +18,7 @@ namespace AiUsage.Windows.Tests;
 /// from <c>AIU_SMOKE_EXE</c>, or from an installed package when <c>AIU_SMOKE_AUMID</c> is set instead. Nothing here
 /// installs, registers or uninstalls anything.
 /// </summary>
-public sealed class ShellSmoke
+public sealed partial class ShellSmoke
 {
     /// <summary>One element per page that only that page contributes to the automation tree.</summary>
     private static readonly string[] PageMarkers =

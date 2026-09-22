@@ -13,10 +13,10 @@ Spec: [spec.md](spec.md). Execute sequentially in the primary session using exec
 Preserve opaque preferences, provider files and unknown data; never downgrade. Test partial publication, malformed/tampered checkpoint, newer schema with old journal, redirected paths and concurrent processes. No source credential reads or host trust changes.
 
 ### T-01 - Durable maintenance state machine
-- status: in-progress
+- status: done
 - depends_on: []
 - acceptance: AC-02, AC-03, AC-04, AC-05
-- evidence: not-run
+- evidence: docs/specs/AIU-006-upgrade-recovery/verification.md
 
 - [ ] Add failing behavioral tests in `tests/windows/AiUsage.Infrastructure.Tests/StateMaintenanceTests.cs` for byte preservation, interruption/restart/retry, explicit restore, tampering, newer schema, redirected files and lifetime exclusion.
 - [ ] Implement `IStateMaintenance` in Core and `StateMaintenance` plus bounded records in Infrastructure; run Infrastructure tests to PASS.
@@ -24,7 +24,7 @@ Preserve opaque preferences, provider files and unknown data; never downgrade. T
 - [ ] Review diff and save progress to main.
 
 ### T-02 - Live recovery integration
-- status: pending
+- status: in-progress
 - depends_on: [T-01]
 - acceptance: AC-06
 - evidence: not-run
@@ -46,4 +46,9 @@ Preserve opaque preferences, provider files and unknown data; never downgrade. T
 
 ## Handoff
 
-Base: main at task selection. No prior implementation. Next action: add and run failing maintenance tests. Checks: Git clean before task; other checks NOT_RUN.
+Base: 9a7f3e5. Product implementation saved at 3c4e0ee. T-01 regressions pass;
+T-02 presentation regressions pass, actual UI remains in progress. Next action: inspect
+the first disposable guest's old/new package and recovery UI results under the ignored
+AIU-006 evidence root. Independent read-only Claude Code review is running against
+3c4e0ee; no Codex model substitution occurred. Required Codex Luna was unavailable in
+the tool allowlist. No write-worker artifacts exist.
