@@ -92,19 +92,19 @@ makes every later task diagnosable. Polish is last.
       redaction test.
 
 ### T-05 - One provider descriptor table
-- status: in-progress
+- status: done
 - depends_on: [T-03]
 - acceptance: AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; code fc402dd; Presentation 142/142 and Infrastructure 261/261 PASS; Windows Debug build, product and demo smoke 7/7 each, unsigned MSIX and primary integrated review PASS
 
-- [ ] Replace the six declarations with one descriptor table read by the composition root and by
+- [x] Replace the six declarations with one descriptor table read by the composition root and by
       presentation; keep provider ids untranslated protocol values.
-- [ ] Drive manual-code capability from `IProviderSession.TrySubmitCode` rather than the
+- [x] Drive manual-code capability from `IProviderSession.TrySubmitCode` rather than the
       `request.ProviderId == "claude"` literal.
-- [ ] Add a Presentation test that registers a synthetic fifth descriptor and asserts it reaches
+- [x] Add a Presentation test that registers a synthetic fifth descriptor and asserts it reaches
       every derived surface, so a missed registry is a failing test rather than a fallback
       monogram.
-- [ ] Check: Presentation Release suite including `DependencyBoundaryTests`.
+- [x] Check: Presentation Release suite including `DependencyBoundaryTests`.
 
 Implementation plan (2026-09-22, base `d90e90d`): introduce an immutable Windows-owned
 descriptor catalog carrying identity, connection methods, brand styling and the existing
@@ -115,9 +115,9 @@ Copilot labels, opaque ordinal provider identifiers, demo behavior and neutral/h
 tile styling. Forward manual-code submission to the active session port. Add synthetic fifth
 provider coverage across derived surfaces and negative submission cases, then run Infrastructure
 and Presentation Release, document validation, Windows build/package and applicable local smoke.
-Only T-05 is selected. Implementation and primary integrated review are complete; Presentation
-142/142, Infrastructure 261/261, Windows Debug build, product smoke 7/7 and unsigned package
-build pass. Exact next action: finish the demo smoke and record final AC-06 evidence before closure.
+Only T-05 was selected. Implementation and primary integrated review are complete; Presentation
+142/142, Infrastructure 261/261, Windows Debug build, product/demo smoke 7/7 each and unsigned
+package build pass. AC-06 is complete; evidence is recorded in verification.md.
 
 ### T-06 - Shared MSBuild and central package version roots
 - status: pending
@@ -297,3 +297,16 @@ the disconnect cancellation correction. Earlier Windows Debug unpackaged and Pro
 Release builds PASS with zero warnings/errors; original-code writer/current-code reader
 compatibility PASS for all four providers plus the cache. Document validation and diff check PASS.
 Live provider and interactive/package checks NOT_RUN.
+
+### T-05 closure (2026-09-22)
+
+The owner selected T-05. Base `d90e90d`; implementation and tests `fc402dd`, committed and
+pushed to `main`. AC-06 and routine primary integrated review pass. No Core/Infrastructure,
+credential format, quota semantics, dependency version or close-to-tray changes were made.
+Presentation 142/142, Infrastructure 261/261, Windows Debug, product/demo smoke 7/7 each,
+unsigned MSIX 2026.9.2202.0, document validation and diff check pass. Live-provider and packaged
+installation checks were not run. No blockers or worker artifacts remain.
+
+T-05 is done. AIU-028 remains incomplete: T-06, T-07, T-10, T-11 and T-12 remain pending and
+unselected. Exact next action: obtain the owner's selection of a remaining task before starting
+further implementation.

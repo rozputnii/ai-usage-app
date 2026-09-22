@@ -487,7 +487,7 @@ links inspected; T-04 is done, AIU-028 remains incomplete, and no other task was
 
 ## T-05 provider descriptor catalog - 2026-09-22
 
-Base: `d90e90d` on `main`. The owner selected T-05 only. The immutable Windows-owned
+Base: `d90e90d` on `main`; implementation and tests: `fc402dd`. The owner selected T-05 only. The immutable Windows-owned
 `ProviderCatalog` now supplies composition, live mapping, live/demo connection lists, all
 presentation identity lookups and the neutral/brand/high-contrast tile projection. The table
 preserves the full and compact Copilot names and the demo-only method/origin differences.
@@ -510,9 +510,10 @@ descriptor, tests unsupported/unknown/stopped sessions, and retains cancellation
 | Infrastructure Release | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261, 0 failed/errors/skipped/not-run. No Infrastructure or Core source changed. |
 | Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: 0 warnings/errors. |
 | Actual product Windows smoke | PASS | Final `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7; all launched processes exited with code 0. Provider choices, availability and browser/manual methods are asserted without starting authorization. |
-| Actual demo Windows smoke | NOT_RUN | Running at the implementation checkpoint; final result will be recorded before closure. |
+| Actual demo Windows smoke | PASS | Same smoke command with `--no-build` and `AIU_SMOKE_MODE=demo`: 7/7, 0 failed/errors/skipped/not-run; all launched processes exited with code 0. Existing demo-specific provider names, availability and methods are preserved. |
 | Unsigned MSIX | PASS | VS MSBuild Release/x64 with signing disabled and no restore; embedded manifest confirms AiUsage.Dev 2026.9.2202.0 x64. One tooling warning for missing `mspdbcmf.exe` (no symbols package), no owned-code warnings/errors. |
 | Primary integrated review | PASS | Reviewed AC-06, every former identity registry and caller, ordinal IDs/fallbacks, existing labels/methods/colors, dependency boundaries, DI ownership and complete test diff. No actionable findings. Routine primary review applies under CONTRIBUTING; no credential, durable-state or privilege boundary changes. |
+| Document validation and diff check | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`: valid=true, diagnostics=[]; `git diff --check` passes. Closure links/statuses inspected. |
 | Live provider and packaged install/update | NOT_RUN | Not needed for this metadata/refactoring task. No source CLI credentials, sign-in, host trust changes or package installation. |
 
 The first product smoke run was 6/7: the newly added assertion targeted an `ItemsRepeater`
@@ -521,3 +522,10 @@ buttons correctly. The test now inspects actual buttons/radio buttons; the final
 retained separately. Product evidence: `.ai-usage-local/AIU-028/t05-product-smoke-final/`, with
 an empty isolated `state` directory selected through `AIU_DEVELOPMENT_STATE_DIRECTORY`.
 Package and build log: `.ai-usage-local/AIU-028/t05-package/2026.9.2202.0/`.
+
+Demo evidence: `.ai-usage-local/AIU-028/t05-demo-smoke/`. Inspected the actual product and demo
+connection-dialog screenshots and all fourteen final scenario JSON results. The MSIX SHA-256 is
+`798D31869DCFF57F2449B6EC35888A5CACF77739D2BB40E22286FEEAAECB20E0`.
+High-contrast/brand projections are covered by deterministic tests; smoke verifies ordinary
+light/dark UI, not an interactive system-high-contrast toggle. No live-provider success or
+packaged installation is inferred. AC-06 is PASS and T-05 is complete; other tasks remain open.
