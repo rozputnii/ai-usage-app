@@ -105,8 +105,8 @@ repository, not secrets.
 
 ## Remediation checks - placeholders
 
-These are the checks each task must produce. T-08 and T-09 have since been executed and are
-recorded below; every other task is still NOT_RUN and none has been started.
+These are the checks each task must produce. Completed checks are recorded below; the T-01/T-02
+results are being finalized with independent review. Unselected tasks remain NOT_RUN.
 
 | Task | Acceptance | Required check | Status |
 | --- | --- | --- | --- |
@@ -193,9 +193,9 @@ state-lease file was touched: that work belongs to T-01.
 
 ## Limitations
 
-This is an audit and a plan. Nothing here establishes that any finding has been fixed, and the
-`ready` status on the AIU-028 backlog entry does not authorize execution; selecting it remains an
-owner decision under CONTRIBUTING.md.
+The original audit established findings, not fixes. Later remediation evidence is recorded in
+the task-specific sections; the owner selected T-01 and T-02 on 2026-09-22. Remaining pending
+tasks require separate selection under CONTRIBUTING.md.
 
 Severity and cost in [spec.md](spec.md) are the auditor's judgement from static reading, not
 measured. Three findings say so explicitly rather than implying evidence that does not exist:
@@ -238,3 +238,36 @@ expecting silent absence for corrupt Codex data now assert recovery and no overw
 by the hardened lifecycle. Old single-file assertions now explicitly permit the empty lock file.
 A final targeted regression additionally checks failed deletion retains a pending successor.
 Focused independent review, final check recording and task closure remain pending.
+
+### Additional observed acceptance evidence - 2026-09-22
+
+- Infrastructure Release at `5462057`: PASS, 253 tests, 0 failed/errors/skipped/not-run.
+  Includes 27 additional cases over the 226-test baseline: three frozen record-shape cases,
+  twenty storage safety/recovery cases and four session boundary cases. The failed-disconnect
+  case proves a pending successor survives when Windows refuses to delete the predecessor.
+- Presentation Release: PASS, 129 tests, 0 failed/errors/skipped/not-run. Existing recovery
+  rendering is reused; no view, activation, clock or tray code changed.
+- ProviderConsole Release at `5462057`: PASS, zero warnings/errors.
+- Canonical document validation: PASS, valid=true and diagnostics=[] at the candidate checkpoint.
+- `git diff --check`: PASS.
+
+A separate compatibility harness was built from the actual pre-change source archived by
+`git archive cfb9ceb src/windows/AiUsage.Core src/windows/AiUsage.Infrastructure`. It restored
+only from the local package cache using a configuration with all package sources cleared.
+The original Claude/Copilot/Antigravity state stores and original Codex grant/cache writers
+created synthetic records in an isolated temporary directory. A second harness referencing
+candidate Infrastructure read and rewrote all four protected records and the quota cache,
+checking their synthetic identities, grants and cached quota values: PASS, exit 0. This is
+observed cross-version code execution, in addition to the committed frozen-shape regression
+cases. Harnesses and encrypted synthetic output remain outside Git under
+`%TEMP%/aiu028-compat-cfb9ceb`; no actual user credential store was read.
+
+Live-provider requests, real credential reads, packaged install/update/recovery and interactive
+Windows smoke: NOT_RUN. They are not established by these deterministic persistence checks.
+The selected tasks change no Windows UI/lifetime behavior and require the relevant regression,
+build, compatibility and focused-review evidence, not T-10's interactive clock acceptance.
+
+The final warnings-visible unpackaged Windows Debug build at `5462057` also passed, with
+zero warnings/errors (30.41 seconds). Primary diff/acceptance inspection confirmed one shared
+transport/status map and handler configuration, unchanged provider-specific requests/parsers,
+and all eight `RemoveAllLoggers()` registrations retained. Independent review is still pending.
