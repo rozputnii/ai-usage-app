@@ -2,14 +2,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="xunit.v3" Version="3.2.2" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
     <!-- Retained for DashboardWorkflowTests, which cover the Core workflow Codex will adapt. -->
     <ProjectReference Include="../../../src/windows/AiUsage.Core/AiUsage.Core.csproj" />
     <!-- Platform-neutral presentation sources: view models, contracts and demo services. Views and code-behind stay in the Windows project. -->

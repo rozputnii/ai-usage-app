@@ -120,19 +120,33 @@ Only T-05 was selected. Implementation and primary integrated review are complet
 package build pass. AC-06 is complete; evidence is recorded in verification.md.
 
 ### T-06 - Shared MSBuild and central package version roots
-- status: pending
+- status: in-progress
 - depends_on: []
 - acceptance: AC-07
 - evidence: not-run
 
-- [ ] Add `Directory.Build.props` with the shared language and warning properties; remove the
+- [x] Add `Directory.Build.props` with the shared language and warning properties; remove the
       per-project copies.
-- [ ] Add `Directory.Packages.props` with `ManagePackageVersionsCentrally` pinning every package
+- [x] Add `Directory.Packages.props` with `ManagePackageVersionsCentrally` pinning every package
       at its **current** version; strip `Version` attributes from `PackageReference` items.
-- [ ] Confirm no version string changed, by diff inspection, before running anything.
+- [x] Confirm no version string changed, by diff inspection, before running anything.
 - [ ] Check: full offline restore from the local package cache, then all four suites and
       `git diff --check`. This task is independent of T-01..T-05 and may be sequenced earlier if
       convenient, but must not be combined with T-07.
+
+Implementation plan (2026-09-22, base `34ee90b`): relocate the identical `ImplicitUsings`,
+`Nullable` and `TreatWarningsAsErrors` properties from all ten projects, including the routing
+spike, into the root build props. Centralize all ten distinct package versions without changing
+project membership or values. Inspect the diff before restore/build, compare evaluated properties
+and restored package graphs against the baseline, force an offline restore of every project,
+then run all four test suites (including actual local Windows smoke), document validation and
+diff checks. Use the existing task record as the execution ledger and work directly on main
+under CONTRIBUTING. This configuration relocation needs no new behavior tests or independent
+review under the project policy; primary integrated review applies. T-07 remains unselected.
+Relocation, pre-restore version inspection, evaluated-property comparison and all ten offline
+restores pass. A stale ProviderConsole assets file omitted an existing transitive package;
+fresh offline restore of the original project files reproduces the current package graph.
+Exact next action: finish the four suites and primary integrated acceptance review.
 
 ### T-07 - Explicit analyzer level and code-style enforcement
 - status: pending

@@ -15,16 +15,13 @@
     <PublishAot>false</PublishAot>
     <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="H.NotifyIcon.WinUI" Version="2.4.1" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="H.NotifyIcon.WinUI" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
     <ProjectReference Include="../AiUsage.Core/AiUsage.Core.csproj" />
     <ProjectReference Include="../AiUsage.Infrastructure/AiUsage.Infrastructure.csproj" />
     <Content Include="Assets/*.png" />

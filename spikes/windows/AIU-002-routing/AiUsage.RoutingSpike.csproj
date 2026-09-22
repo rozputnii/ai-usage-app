@@ -15,16 +15,13 @@
     <PublishAot>false</PublishAot>
     <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Uno.Extensions.Navigation.WinUI" Version="7.3.6" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.4654" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Uno.Extensions.Navigation.WinUI" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
     <Content Include="../../../src/windows/AiUsage.Windows/Assets/*.png" Link="Assets/%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup Condition="'$(AiUsagePackageManifest)' != ''">
