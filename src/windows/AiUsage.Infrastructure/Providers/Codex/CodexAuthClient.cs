@@ -1,4 +1,4 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
@@ -25,7 +25,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
         var state = RandomUrlSafe(32);
         LoopbackCallback callback;
         try { callback = LoopbackCallback.Start(CallbackPorts); }
-        catch (IOException) { throw new CodexException(CodexFailureKind.BrowserCallbackUnavailable); }
+        catch (IOException) { throw new CodexException(ProviderFailureKind.BrowserCallbackUnavailable); }
         try
         {
             // Official source binds the same loopback ports and allow-listed callback path.
@@ -67,10 +67,10 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
         try
         {
             if (authorization.Completed)
-                throw new CodexException(CodexFailureKind.AuthenticationRequired);
+                throw new CodexException(ProviderFailureKind.AuthenticationRequired);
             var lifetime = authorization.ExpiresAt - clock.GetUtcNow();
             if (lifetime <= TimeSpan.Zero)
-                throw new CodexException(CodexFailureKind.LoginAttemptExpired);
+                throw new CodexException(ProviderFailureKind.LoginAttemptExpired);
             using var deadline = new CancellationTokenSource(lifetime, clock);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
             try
@@ -98,18 +98,18 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
                     if (clock.GetUtcNow() >= authorization.ExpiresAt)
                     {
                         await request.RespondAsync(HttpStatusCode.OK, "This sign-in attempt expired. Start a new one from the console.", CancellationToken.None).ConfigureAwait(false);
-                        throw new CodexException(CodexFailureKind.LoginAttemptExpired);
+                        throw new CodexException(ProviderFailureKind.LoginAttemptExpired);
                     }
                     if (!string.IsNullOrEmpty(parameters["error"]))
                     {
                         await request.RespondAsync(HttpStatusCode.OK, "Sign-in was refused. Return to the console.", linked.Token).ConfigureAwait(false);
-                        throw new CodexException(CodexFailureKind.AccessDenied, providerErrorCode: parameters["error"]);
+                        throw new CodexException(ProviderFailureKind.AccessDenied, providerErrorCode: parameters["error"]);
                     }
                     var code = parameters["code"];
                     if (string.IsNullOrEmpty(code) || code.Length > 65536 || !SafeHeaderValue(code))
                     {
                         await request.RespondAsync(HttpStatusCode.BadRequest, "Sign-in response was incomplete.", linked.Token).ConfigureAwait(false);
-                        throw new CodexException(CodexFailureKind.InvalidResponse);
+                        throw new CodexException(ProviderFailureKind.InvalidResponse);
                     }
                     // The code is single-use from here on, whether or not the exchange below succeeds.
                     authorization.Completed = true;
@@ -131,7 +131,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
                             throw CodexHttp.Failure(tokens);
                         var exchanged = ParseTokens(tokens.Body!.RootElement, null);
                         if (clock.GetUtcNow() >= authorization.ExpiresAt)
-                            throw new CodexException(CodexFailureKind.LoginAttemptExpired);
+                            throw new CodexException(ProviderFailureKind.LoginAttemptExpired);
                         await request.RespondAsync(HttpStatusCode.OK, "Sign-in complete. Return to the console; this page carries no credentials.", linked.Token).ConfigureAwait(false);
                         return new CodexCredentials(exchanged.Access, exchanged.Refresh, exchanged.AccountId, exchanged.ExpiresAt);
                     }
@@ -144,7 +144,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
             {
-                throw new CodexException(CodexFailureKind.LoginAttemptExpired);
+                throw new CodexException(ProviderFailureKind.LoginAttemptExpired);
             }
         }
         finally { authorization.Gate.Release(); }
@@ -161,14 +161,14 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
         };
         using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
         if (response.StatusCode == HttpStatusCode.NotFound)
-            throw new CodexException(CodexFailureKind.DeviceLoginUnavailable, response.StatusCode);
+            throw new CodexException(ProviderFailureKind.DeviceLoginUnavailable, response.StatusCode);
         if (!response.IsSuccess)
             throw CodexHttp.Failure(response);
         var root = response.Body!.RootElement;
         var id = RequiredText(root, "device_auth_id");
         var userCode = Text(Property(root, "user_code")) ?? Text(Property(root, "usercode"));
         if (string.IsNullOrWhiteSpace(userCode) || userCode.Length > 128 || userCode.Any(c => c is < ' ' or > '~'))
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         var intervalValue = Property(root, "interval");
         double interval = 5;
         if (intervalValue.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined))
@@ -178,7 +178,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
                 double.TryParse(intervalValue.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var textNumber))
                 parsed = textNumber;
             if (parsed is null || !double.IsFinite(parsed.Value) || parsed < 0 || parsed > 900)
-                throw new CodexException(CodexFailureKind.InvalidResponse);
+                throw new CodexException(ProviderFailureKind.InvalidResponse);
             interval = Math.Max(1, parsed.Value);
         }
         return new CodexDeviceAuthorization(id, userCode, TimeSpan.FromSeconds(interval), clock.GetUtcNow().AddMinutes(15));
@@ -191,10 +191,10 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
         try
         {
             if (authorization.Completed)
-                throw new CodexException(CodexFailureKind.AuthenticationRequired);
+                throw new CodexException(ProviderFailureKind.AuthenticationRequired);
             var lifetime = authorization.ExpiresAt - clock.GetUtcNow();
             if (lifetime <= TimeSpan.Zero)
-                throw new CodexException(CodexFailureKind.DeviceCodeExpired);
+                throw new CodexException(ProviderFailureKind.DeviceCodeExpired);
             using var deadline = new CancellationTokenSource(lifetime, clock);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
             try
@@ -204,17 +204,17 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
                     cancellationToken.ThrowIfCancellationRequested();
                     var remaining = authorization.ExpiresAt - clock.GetUtcNow();
                     if (remaining <= TimeSpan.Zero)
-                        throw new CodexException(CodexFailureKind.DeviceCodeExpired);
+                        throw new CodexException(ProviderFailureKind.DeviceCodeExpired);
                     await Task.Delay(authorization.PollInterval < remaining ? authorization.PollInterval : remaining, clock, linked.Token).ConfigureAwait(false);
                     if (clock.GetUtcNow() >= authorization.ExpiresAt)
-                        throw new CodexException(CodexFailureKind.DeviceCodeExpired);
+                        throw new CodexException(ProviderFailureKind.DeviceCodeExpired);
                     using var request = new HttpRequestMessage(HttpMethod.Post, CodexHttp.AuthOrigin + "/api/accounts/deviceauth/token")
                     {
                         Content = JsonContent.Create(new DevicePollRequest { DeviceAuthId = authorization.DeviceAuthId, UserCode = authorization.UserCode }, CodexAuthJson.Default.DevicePollRequest)
                     };
                     using var response = await CodexHttp.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
                     if (clock.GetUtcNow() >= authorization.ExpiresAt)
-                        throw new CodexException(CodexFailureKind.DeviceCodeExpired);
+                        throw new CodexException(ProviderFailureKind.DeviceCodeExpired);
                     if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.NotFound)
                         continue;
                     if (!response.IsSuccess)
@@ -243,7 +243,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
             {
-                throw new CodexException(CodexFailureKind.DeviceCodeExpired);
+                throw new CodexException(ProviderFailureKind.DeviceCodeExpired);
             }
         }
         finally { authorization.Gate.Release(); }
@@ -270,12 +270,12 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
             var code = Text(error) ?? Text(Property(error, "code"));
             if (response.StatusCode == HttpStatusCode.Unauthorized ||
                 code is "invalid_grant" or "refresh_token_expired" or "refresh_token_reused" or "refresh_token_invalidated")
-                throw new CodexException(CodexFailureKind.AuthenticationRequired, response.StatusCode);
+                throw new CodexException(ProviderFailureKind.AuthenticationRequired, response.StatusCode);
             throw CodexHttp.Failure(response);
         }
         var parsed = ParseTokens(response.Body!.RootElement, null);
         if (!StringComparer.Ordinal.Equals(parsed.AccountId, grant.AccountId))
-            throw new CodexException(CodexFailureKind.AccountMismatch);
+            throw new CodexException(ProviderFailureKind.AccountMismatch);
         return new CodexCredentials(parsed.Access, parsed.Refresh, parsed.AccountId, parsed.ExpiresAt);
     }
 
@@ -309,7 +309,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
                 if (response.StatusCode == HttpStatusCode.Unauthorized || code is "invalid_grant" or "refresh_token_expired" or "refresh_token_reused" or "refresh_token_invalidated")
                 {
                     credentials.RequireReauthentication();
-                    throw new CodexException(CodexFailureKind.AuthenticationRequired, response.StatusCode);
+                    throw new CodexException(ProviderFailureKind.AuthenticationRequired, response.StatusCode);
                 }
                 throw CodexHttp.Failure(response);
             }
@@ -321,7 +321,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
             credentials.RequireReauthentication();
             throw;
         }
-        catch (CodexException error) when (sent && error.Kind is not CodexFailureKind.RateLimited)
+        catch (CodexException error) when (sent && error.Kind is not ProviderFailureKind.RateLimited)
         {
             // A failed refresh response cannot prove that the server did not rotate its grant.
             credentials.RequireReauthentication();
@@ -335,19 +335,19 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
         var access = RequiredText(root, "access_token");
         var refresh = Text(Property(root, "refresh_token")) ?? previous?.RefreshToken;
         if (string.IsNullOrEmpty(refresh) || !SafeHeaderValue(access) || !SafeHeaderValue(refresh))
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         var accessClaims = ReadClaims(access);
         var idToken = Text(Property(root, "id_token"));
         var idClaims = idToken is null ? default : ReadClaims(idToken);
         // Parity with the inspected OMP client: account context claims are recorded, not used to
         // refuse a token the provider issued. Only provider responses decide access.
         if (accessClaims.AccountId is not null && idClaims.AccountId is not null && accessClaims.AccountId != idClaims.AccountId)
-            throw new CodexException(CodexFailureKind.AccountMismatch);
+            throw new CodexException(ProviderFailureKind.AccountMismatch);
         var account = accessClaims.AccountId ?? idClaims.AccountId ?? previous?.AccountId;
         if (account is null || account.Length > 1024 || !SafeHeaderValue(account))
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         if (previous is not null && account != previous.AccountId)
-            throw new CodexException(CodexFailureKind.AccountMismatch);
+            throw new CodexException(ProviderFailureKind.AccountMismatch);
         DateTimeOffset? expires = accessClaims.ExpiresAt;
         var seconds = Number(Property(root, "expires_in"));
         if (seconds is > 0 && seconds < (DateTimeOffset.MaxValue - clock.GetUtcNow()).TotalSeconds)
@@ -356,7 +356,7 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
             expires = expires is { } jwtExpiry && jwtExpiry < fromResponse ? jwtExpiry : fromResponse;
         }
         if (expires is null || expires <= clock.GetUtcNow())
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         return new TokenValues(access, refresh, account, expires.Value);
     }
 
@@ -380,15 +380,15 @@ public sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvide
                 ? DateTimeOffset.FromUnixTimeSeconds((long)exp.Value) : null;
             return new TokenClaims(account, expiry);
         }
-        catch (FormatException) { throw new CodexException(CodexFailureKind.InvalidResponse); }
-        catch (JsonException) { throw new CodexException(CodexFailureKind.InvalidResponse); }
+        catch (FormatException) { throw new CodexException(ProviderFailureKind.InvalidResponse); }
+        catch (JsonException) { throw new CodexException(ProviderFailureKind.InvalidResponse); }
     }
 
     private static string RequiredText(JsonElement root, string name)
     {
         var value = Text(Property(root, name));
         if (string.IsNullOrEmpty(value) || value.Length > 65536)
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         return value;
     }
 

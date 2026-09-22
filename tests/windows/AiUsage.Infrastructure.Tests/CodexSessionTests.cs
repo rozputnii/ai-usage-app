@@ -1,8 +1,7 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Net;
 using AiUsage.Infrastructure.Providers.Codex;
 using AiUsage.Infrastructure.Providers;
-using AiUsage.Core.Usage;
 using Xunit;
 
 namespace AiUsage.Infrastructure.Tests;
@@ -13,12 +12,53 @@ public sealed class CodexSessionTests : IDisposable
     private readonly string root = Path.Combine(Path.GetTempPath(), "aiusage-session-" + Guid.NewGuid().ToString("N"));
 
     [Fact]
+    public async Task SharedSessionPortReadsCacheWithoutProviderTrafficAndHonorsCancellation()
+    {
+        using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider request expected."));
+        using var session = Session(server, out _);
+        var port = Assert.IsAssignableFrom<IProviderSession>(session);
+
+        var state = await port.ReadCachedStateAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(ProviderSessionStatus.NotConnected, state.Status);
+        Assert.Same(state, port.State);
+        Assert.False(port.HasStoredGrant);
+        Assert.False(port.TrySubmitCode("synthetic-code"));
+
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => port.ReadCachedStateAsync(cancelled.Token));
+        Assert.Same(state, port.State);
+        Assert.Equal(0, server.Calls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BrowserLaunchFailureReturnsAnActionableStateWithoutProviderTraffic(bool win32Failure)
+    {
+        using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider request expected."));
+        using var session = Session(server, out _);
+        var state = await session.ConnectAsync(_ =>
+        {
+            if (win32Failure)
+                throw new System.ComponentModel.Win32Exception();
+            throw new InvalidOperationException("Synthetic browser launch failure.");
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProviderSessionStatus.NotConnected, state.Status);
+        Assert.Equal(ProviderFailureKind.BrowserCallbackUnavailable, state.Failure);
+        Assert.Same(state, session.State);
+        Assert.False(session.HasStoredGrant);
+        Assert.Equal(0, server.Calls);
+    }
+
+    [Fact]
     public async Task AFirstRunWithoutAStoredGrantStaysNotConnected()
     {
         using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider request expected."));
         using var session = Session(server, out _);
         var state = await session.ResumeAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(CodexSessionStatus.NotConnected, state.Status);
+        Assert.Equal(ProviderSessionStatus.NotConnected, state.Status);
         Assert.Null(state.Quota);
         Assert.Equal(0, server.Calls);
     }
@@ -34,7 +74,7 @@ public sealed class CodexSessionTests : IDisposable
 
         var state = await session.ResumeAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(CodexSessionStatus.QuotaAvailable, state.Status);
+        Assert.Equal(ProviderSessionStatus.QuotaAvailable, state.Status);
         Assert.Equal(60, state.Quota!.Groups.Single().Windows.Single().RemainingPercent);
         Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
     }
@@ -50,8 +90,8 @@ public sealed class CodexSessionTests : IDisposable
 
         var state = await session.ResumeAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(CodexSessionStatus.QuotaUnavailable, state.Status);
-        Assert.Equal(CodexFailureKind.ProviderUnavailable, state.Failure);
+        Assert.Equal(ProviderSessionStatus.QuotaUnavailable, state.Status);
+        Assert.Equal(ProviderFailureKind.ProviderUnavailable, state.Failure);
         Assert.Null(state.Quota);
         Assert.True(session.HasStoredGrant);
     }
@@ -66,7 +106,7 @@ public sealed class CodexSessionTests : IDisposable
 
         var state = await session.ResumeAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(CodexSessionStatus.ReauthenticationRequired, state.Status);
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
         Assert.Null(state.Quota);
         Assert.NotNull(store.Read());
     }
@@ -83,7 +123,7 @@ public sealed class CodexSessionTests : IDisposable
 
         var state = await session.DisconnectAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(CodexSessionStatus.NotConnected, state.Status);
+        Assert.Equal(ProviderSessionStatus.NotConnected, state.Status);
         Assert.False(session.HasStoredGrant);
     }
 
@@ -105,7 +145,7 @@ public sealed class CodexSessionTests : IDisposable
 
         var state = await session.RefreshAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(CodexSessionStatus.QuotaAvailable, state.Status);
+        Assert.Equal(ProviderSessionStatus.QuotaAvailable, state.Status);
         Assert.Equal(1, refreshes);
     }
 
@@ -126,7 +166,7 @@ public sealed class CodexSessionTests : IDisposable
         failQuota = true;
         var stale = await session.RefreshAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(CodexSessionStatus.QuotaUnavailable, stale.Status);
+        Assert.Equal(ProviderSessionStatus.QuotaUnavailable, stale.Status);
         Assert.True(stale.FromCache);
         Assert.Equal(70, stale.Quota!.Groups.Single().Windows.Single().RemainingPercent);
         Assert.Equal(fresh.RetrievedAt, stale.RetrievedAt);
@@ -144,7 +184,7 @@ public sealed class CodexSessionTests : IDisposable
         var callsAfterFirstRun = server.Calls;
 
         using var relaunched = Session(server, out _);
-        var cached = relaunched.ReadCachedState();
+        var cached = await relaunched.ReadCachedStateAsync(TestContext.Current.CancellationToken);
 
         Assert.True(cached.FromCache);
         Assert.Equal(90, cached.Quota!.Groups.Single().Windows.Single().RemainingPercent);
@@ -163,8 +203,9 @@ public sealed class CodexSessionTests : IDisposable
 
         await session.DisconnectAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(CodexSessionStatus.NotConnected, session.ReadCachedState().Status);
-        Assert.Null(session.ReadCachedState().Quota);
+        var cached = await session.ReadCachedStateAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(ProviderSessionStatus.NotConnected, cached.Status);
+        Assert.Null(cached.Quota);
     }
 
     [Fact]
@@ -208,8 +249,8 @@ public sealed class CodexSessionTests : IDisposable
             await entered.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
             using var second = Session(server, out _);
             var blocked = await second.ResumeAsync(TestContext.Current.CancellationToken);
-            Assert.Equal(CodexSessionStatus.RecoveryRequired, blocked.Status);
-            Assert.Equal(CodexFailureKind.StorageUnavailable, blocked.Failure);
+            Assert.Equal(ProviderSessionStatus.RecoveryRequired, blocked.Status);
+            Assert.Equal(ProviderFailureKind.StorageUnavailable, blocked.Failure);
             Assert.Equal(1, server.Calls);
             Assert.Equal(ProviderFailureKind.StorageUnavailable, (await Assert.ThrowsAsync<ProviderException>(() => store.DeleteAsync(TestContext.Current.CancellationToken))).Kind);
         }
@@ -229,12 +270,12 @@ public sealed class CodexSessionTests : IDisposable
         using var session = new CodexSession(new(http), new(http), faulty, new(root));
         interrupt = true;
         var failed = await session.ResumeAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(CodexSessionStatus.RecoveryRequired, failed.Status);
-        Assert.Equal(CodexFailureKind.StorageUnavailable, failed.Failure);
+        Assert.Equal(ProviderSessionStatus.RecoveryRequired, failed.Status);
+        Assert.Equal(ProviderFailureKind.StorageUnavailable, failed.Failure);
         Assert.Equal(1, server.Calls); // No quota request after failed durable cutover.
         interrupt = false;
         var recovered = await session.RefreshAsync(TestContext.Current.CancellationToken);
-        Assert.Equal(CodexSessionStatus.QuotaAvailable, recovered.Status);
+        Assert.Equal(ProviderSessionStatus.QuotaAvailable, recovered.Status);
         Assert.Equal(3, server.Calls); // Renewal from the recovered grant, then quota.
     }
 
@@ -245,11 +286,11 @@ public sealed class CodexSessionTests : IDisposable
         await File.WriteAllTextAsync(Path.Combine(root, "codex.grant"), "synthetic-corrupt", TestContext.Current.CancellationToken);
         using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider request expected."));
         using var session = Session(server, out _);
-        var cached = session.ReadCachedState();
-        Assert.Equal(CodexSessionStatus.RecoveryRequired, cached.Status);
-        Assert.Equal(CodexFailureKind.RecoveryRequired, cached.Failure);
+        var cached = await session.ReadCachedStateAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(ProviderSessionStatus.RecoveryRequired, cached.Status);
+        Assert.Equal(ProviderFailureKind.RecoveryRequired, cached.Failure);
         Assert.True(session.HasStoredGrant);
-        Assert.Equal(CodexSessionStatus.NotConnected, (await session.DisconnectAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(ProviderSessionStatus.NotConnected, (await session.DisconnectAsync(TestContext.Current.CancellationToken)).Status);
         Assert.False(session.HasStoredGrant);
         Assert.Equal(0, server.Calls);
     }
@@ -288,11 +329,11 @@ public sealed class CodexSessionTests : IDisposable
         var calls = server.Calls;
         var disconnected = await session.DisconnectAsync(cancellation.Token);
         Assert.True(cancellation.IsCancellationRequested);
-        Assert.Equal(CodexSessionStatus.NotConnected, disconnected.Status);
+        Assert.Equal(ProviderSessionStatus.NotConnected, disconnected.Status);
         Assert.False(session.HasStoredGrant);
         Assert.Null(store.Read());
         Assert.Null(cache.Read());
-        Assert.Equal(CodexSessionStatus.NotConnected, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(ProviderSessionStatus.NotConnected, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
         Assert.Equal(calls, server.Calls);
     }
 

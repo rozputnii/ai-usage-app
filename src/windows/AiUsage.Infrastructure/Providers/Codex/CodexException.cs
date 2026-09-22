@@ -1,4 +1,4 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Net;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
@@ -18,7 +18,7 @@ public sealed class CodexException : Exception
         "invalid_target", "slow_down", "authorization_pending", "expired_token"
     };
 
-    public CodexException(CodexFailureKind kind, HttpStatusCode? statusCode = null, TimeSpan? retryAfter = null,
+    public CodexException(ProviderFailureKind kind, HttpStatusCode? statusCode = null, TimeSpan? retryAfter = null,
         string? providerErrorCode = null)
         : base($"Codex operation failed: {kind}.")
     {
@@ -34,7 +34,7 @@ public sealed class CodexException : Exception
         }
     }
 
-    public CodexFailureKind Kind { get; }
+    public ProviderFailureKind Kind { get; }
     public HttpStatusCode? StatusCode { get; }
     public TimeSpan? RetryAfter { get; }
 

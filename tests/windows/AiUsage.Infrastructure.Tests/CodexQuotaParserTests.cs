@@ -1,4 +1,4 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Text;
 using AiUsage.Infrastructure.Providers.Codex;
 using Xunit;
@@ -86,7 +86,7 @@ public sealed class CodexQuotaParserTests
     public void InvalidPayloadFailureDoesNotEchoInput(string payload)
     {
         var error = Assert.Throws<CodexException>(() => Parse(payload));
-        Assert.Equal(CodexFailureKind.InvalidResponse, error.Kind);
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
         Assert.DoesNotContain("synthetic-secret", error.ToString());
     }
 

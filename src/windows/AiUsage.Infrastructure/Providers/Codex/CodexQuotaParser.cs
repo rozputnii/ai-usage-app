@@ -1,7 +1,6 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Globalization;
 using System.Text.Json;
-using AiUsage.Core.Usage;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
@@ -10,13 +9,13 @@ public static class CodexQuotaParser
     public static QuotaSnapshot Parse(ReadOnlyMemory<byte> utf8, DateTimeOffset fetchedAt)
     {
         if (utf8.Length > 1024 * 1024)
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         try
         {
             using var document = JsonDocument.Parse(utf8, new JsonDocumentOptions { MaxDepth = 32 });
             return Parse(document.RootElement, fetchedAt);
         }
-        catch (JsonException) { throw new CodexException(CodexFailureKind.InvalidResponse); }
+        catch (JsonException) { throw new CodexException(ProviderFailureKind.InvalidResponse); }
     }
 
     internal static QuotaSnapshot Parse(JsonElement root, DateTimeOffset fetchedAt)
@@ -25,17 +24,17 @@ public static class CodexQuotaParser
             !(root.TryGetProperty("plan_type", out _) || root.TryGetProperty("rate_limit", out _) ||
               root.TryGetProperty("credits", out _) || root.TryGetProperty("additional_rate_limits", out _) ||
               root.TryGetProperty("spend_control", out _) || root.TryGetProperty("rate_limit_reset_credits", out _)))
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         var groups = new List<QuotaGroup>();
         var ids = new HashSet<string>(StringComparer.Ordinal) { "codex" };
         var main = Property(root, "rate_limit");
         if (main.ValueKind is not (JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined))
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         if (main.ValueKind == JsonValueKind.Object)
             groups.Add(ParseGroup(main, "codex", "Codex", null, null, fetchedAt));
         var additional = Property(root, "additional_rate_limits");
         if (additional.ValueKind is not (JsonValueKind.Array or JsonValueKind.Null or JsonValueKind.Undefined))
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         if (additional.ValueKind == JsonValueKind.Array)
         {
             var index = 0;
@@ -43,7 +42,7 @@ public static class CodexQuotaParser
             {
                 index++;
                 if (item.ValueKind != JsonValueKind.Object)
-                    throw new CodexException(CodexFailureKind.InvalidResponse);
+                    throw new CodexException(ProviderFailureKind.InvalidResponse);
                 var name = Text(Property(item, "limit_name"));
                 var feature = Text(Property(item, "metered_feature"));
                 var idBase = "codex:" + (feature ?? name ?? "additional-" + index.ToString(CultureInfo.InvariantCulture));
@@ -69,7 +68,7 @@ public static class CodexQuotaParser
     private static QuotaGroup ParseGroup(JsonElement limit, string id, string? name, string? feature, string? normalModel, DateTimeOffset fetchedAt)
     {
         if (limit.ValueKind is not (JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined))
-            throw new CodexException(CodexFailureKind.InvalidResponse);
+            throw new CodexException(ProviderFailureKind.InvalidResponse);
         var windows = new List<QuotaWindow>(2);
         AddWindow("primary", Property(limit, "primary_window"));
         AddWindow("secondary", Property(limit, "secondary_window"));
@@ -81,7 +80,7 @@ public static class CodexQuotaParser
             if (value.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
                 return;
             if (value.ValueKind != JsonValueKind.Object)
-                throw new CodexException(CodexFailureKind.InvalidResponse);
+                throw new CodexException(ProviderFailureKind.InvalidResponse);
             var used = Number(Property(value, "used_percent"));
             if (used is < 0 or > 100)
                 used = null;

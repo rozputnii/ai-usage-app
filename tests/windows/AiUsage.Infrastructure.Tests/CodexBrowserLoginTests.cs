@@ -1,4 +1,4 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Net;
 using System.Web;
 using AiUsage.Infrastructure.Providers.Codex;
@@ -70,7 +70,7 @@ public sealed class CodexBrowserLoginTests
         var login = auth.CompleteBrowserLoginAsync(authorization, TestContext.Current.CancellationToken);
         await CallbackAsync(query["redirect_uri"]!, "error=access_denied&state=" + Uri.EscapeDataString(query["state"]!));
         var error = await Assert.ThrowsAsync<CodexException>(() => login);
-        Assert.Equal(CodexFailureKind.AccessDenied, error.Kind);
+        Assert.Equal(ProviderFailureKind.AccessDenied, error.Kind);
         Assert.Equal(0, server.Calls);
     }
 
@@ -108,7 +108,7 @@ public sealed class CodexBrowserLoginTests
             clock.Current = CodexTestServer.Clock.Now.AddMinutes(16);
         await CallbackAsync(query["redirect_uri"]!, "code=synthetic-code&state=" + Uri.EscapeDataString(query["state"]!));
         var error = await Assert.ThrowsAsync<CodexException>(() => login);
-        Assert.Equal(CodexFailureKind.LoginAttemptExpired, error.Kind);
+        Assert.Equal(ProviderFailureKind.LoginAttemptExpired, error.Kind);
         Assert.Equal(lateDuringExchange ? 1 : 0, server.Calls);
     }
 
@@ -153,7 +153,7 @@ public sealed class CodexBrowserLoginTests
         using var authorization = auth.BeginBrowserLogin();
         clock.Current = authorization.ExpiresAt - TimeSpan.FromMilliseconds(250);
         var error = await Assert.ThrowsAsync<CodexException>(() => auth.CompleteBrowserLoginAsync(authorization, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.LoginAttemptExpired, error.Kind);
+        Assert.Equal(ProviderFailureKind.LoginAttemptExpired, error.Kind);
         Assert.Equal(0, server.Calls);
     }
 

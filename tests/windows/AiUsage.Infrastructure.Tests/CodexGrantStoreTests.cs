@@ -1,4 +1,3 @@
-using AiUsage.Core.Providers.Codex;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers;
 using System.Net;
@@ -85,7 +84,7 @@ public sealed class CodexGrantStoreTests : IDisposable
         using var http = new HttpClient(server);
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexAuthClient(http, new CodexTestServer.Clock())
             .ResumeAsync(new CodexStoredGrant("other-workspace", "synthetic-refresh"), TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AccountMismatch, error.Kind);
+        Assert.Equal(ProviderFailureKind.AccountMismatch, error.Kind);
     }
 
     [Fact]
@@ -111,7 +110,7 @@ public sealed class CodexGrantStoreTests : IDisposable
         using var http = new HttpClient(server);
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexAuthClient(http, new CodexTestServer.Clock())
             .ResumeAsync(new CodexStoredGrant("synthetic-workspace", "synthetic-stale"), TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AuthenticationRequired, error.Kind);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, error.Kind);
     }
 
     public void Dispose()

@@ -1,4 +1,4 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Text.Json.Serialization;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
@@ -27,7 +27,7 @@ public sealed class CodexCredentials : IDisposable
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         if (RequiresReauthentication)
-            throw new CodexException(CodexFailureKind.AuthenticationRequired);
+            throw new CodexException(ProviderFailureKind.AuthenticationRequired);
     }
 
     internal void Update(string accessToken, string refreshToken, DateTimeOffset expiresAt)

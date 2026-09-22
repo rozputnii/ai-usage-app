@@ -1,5 +1,4 @@
 using AiUsage.Core.Dashboard;
-using AiUsage.Core.Providers.Codex;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -28,9 +27,8 @@ public static class CodexServiceCollectionExtensions
         services.AddCodexIntegration();
         services.TryAddSingleton(new CodexGrantStore(ownedStateDirectory));
         services.TryAddSingleton(new CodexQuotaCache(ownedStateDirectory));
-        services.TryAddSingleton<ICodexSession, CodexSession>();
-        services.TryAddSingleton<CodexDashboardSession>();
-        services.TryAddSingleton(services => new DashboardWorkflow(services.GetRequiredService<CodexDashboardSession>()));
+        services.TryAddSingleton<CodexSession>();
+        services.TryAddSingleton(services => new DashboardWorkflow(services.GetRequiredService<CodexSession>()));
         return services;
     }
 

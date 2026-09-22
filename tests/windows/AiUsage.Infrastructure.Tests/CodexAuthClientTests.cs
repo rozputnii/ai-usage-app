@@ -1,4 +1,4 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Net;
 using System.Text.Json;
 using AiUsage.Infrastructure.Providers.Codex;
@@ -61,7 +61,7 @@ public sealed class CodexAuthClientTests
         using var http = new HttpClient(server);
         var device = new CodexDeviceAuthorization("synthetic", "synthetic", TimeSpan.FromSeconds(1), CodexTestServer.Clock.Now);
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexAuthClient(http, new CodexTestServer.Clock()).CompleteDeviceLoginAsync(device, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.DeviceCodeExpired, error.Kind);
+        Assert.Equal(ProviderFailureKind.DeviceCodeExpired, error.Kind);
         Assert.Equal(0, server.Calls);
     }
 
@@ -76,7 +76,7 @@ public sealed class CodexAuthClientTests
         using var http = new HttpClient(server);
         var device = new CodexDeviceAuthorization("synthetic", "synthetic", TimeSpan.Zero, DateTimeOffset.UtcNow.AddSeconds(1));
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexAuthClient(http).CompleteDeviceLoginAsync(device, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.DeviceCodeExpired, error.Kind);
+        Assert.Equal(ProviderFailureKind.DeviceCodeExpired, error.Kind);
         Assert.Equal(1, server.Calls);
     }
 
@@ -92,7 +92,7 @@ public sealed class CodexAuthClientTests
         using var http = new HttpClient(server);
         var device = new CodexDeviceAuthorization("synthetic", "synthetic", TimeSpan.Zero, CodexTestServer.Clock.Now.AddMinutes(15));
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexAuthClient(http, clock).CompleteDeviceLoginAsync(device, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.DeviceCodeExpired, error.Kind);
+        Assert.Equal(ProviderFailureKind.DeviceCodeExpired, error.Kind);
         Assert.Equal(1, server.Calls);
     }
 
@@ -102,7 +102,7 @@ public sealed class CodexAuthClientTests
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json("{}", HttpStatusCode.NotFound)));
         using var http = new HttpClient(server);
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexAuthClient(http).BeginDeviceLoginAsync(TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.DeviceLoginUnavailable, error.Kind);
+        Assert.Equal(ProviderFailureKind.DeviceLoginUnavailable, error.Kind);
         Assert.Equal(1, server.Calls);
     }
 
@@ -170,7 +170,7 @@ public sealed class CodexAuthClientTests
         using var credentials = CodexTestServer.Credentials();
         var auth = new CodexAuthClient(http, new CodexTestServer.Clock());
         var error = await Assert.ThrowsAsync<CodexException>(() => auth.RefreshAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AuthenticationRequired, error.Kind);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, error.Kind);
         await Assert.ThrowsAsync<CodexException>(() => auth.RefreshAsync(credentials, TestContext.Current.CancellationToken));
         Assert.Equal(1, server.Calls);
         Assert.DoesNotContain("synthetic-secret", error.ToString());
@@ -184,9 +184,9 @@ public sealed class CodexAuthClientTests
         using var credentials = CodexTestServer.Credentials();
         var auth = new CodexAuthClient(http, new CodexTestServer.Clock());
         var error = await Assert.ThrowsAsync<CodexException>(() => auth.RefreshAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.NetworkFailure, error.Kind);
+        Assert.Equal(ProviderFailureKind.NetworkFailure, error.Kind);
         var retry = await Assert.ThrowsAsync<CodexException>(() => auth.RefreshAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AuthenticationRequired, retry.Kind);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, retry.Kind);
         Assert.Equal(1, server.Calls);
     }
 
@@ -231,7 +231,7 @@ public sealed class CodexAuthClientTests
         using var http = new HttpClient(server);
         using var credentials = CodexTestServer.Credentials();
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexAuthClient(http, new CodexTestServer.Clock()).RefreshAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AccountMismatch, error.Kind);
+        Assert.Equal(ProviderFailureKind.AccountMismatch, error.Kind);
         Assert.True(credentials.RequiresReauthentication);
         Assert.Equal("synthetic-workspace", credentials.AccountId);
     }

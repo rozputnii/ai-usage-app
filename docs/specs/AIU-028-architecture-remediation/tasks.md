@@ -55,7 +55,7 @@ makes every later task diagnosable. Polish is last.
 - [x] Check: Infrastructure Release suite, plus the new forward-compatibility and reparse tests.
 
 ### T-03 - Retire the Codex-only session contract
-- status: pending
+- status: in-progress
 - depends_on: [T-01, T-02]
 - acceptance: AC-03
 - evidence: not-run
@@ -228,9 +228,28 @@ participation, source changes or subagents: PASS, no actionable findings. This r
 earlier unavailable-review blocker; its historical evidence remains in verification.md.
 T-08 and T-09 were already complete. AIU-028 as a whole remains incomplete.
 
-Exact next action: obtain the owner's selection of the next pending remediation task before
-starting further implementation.
-T-03 and all other pending tasks remain unselected. There are no pending worker code artifacts.
+The owner selected T-03 on 2026-09-22 and prohibited subagents. Base: `11902a7` on `main`.
+Plan: migrate Codex session state/failure types and consumers to the existing shared port,
+transfer browser-launch classification from the removed adapter, preserve off-dispatcher
+execution and lifecycle behavior, then run Infrastructure/Presentation Release suites,
+ProviderConsole Release and Windows composition builds, document validation and diff review.
+The new shared-port/cache-cancellation case and both browser-launch failure cases failed against
+the original implementation as expected (18 Codex session cases, 3 failed).
+
+Ruling: retain `CodexException` and its thin transport exception wrapper using the shared
+`ProviderFailureKind`. Its allowlisted OAuth error metadata is consumed by ProviderConsole;
+removing it would change protocol reporting outside T-03. No enum conversion remains.
+Ruling: use this task document as the execution record, work directly on main under
+CONTRIBUTING, and perform primary review without subagents as the owner requested.
+
+T-03 checks: targeted Codex session tests 18/18 PASS; Infrastructure 257/257 PASS;
+Presentation 129/129 PASS; ProviderConsole Release and unpackaged Windows Debug builds PASS
+with zero warnings/errors; document validation and diff check PASS. Primary integrated review
+found no actionable issues; no independent review or interactive/live run is claimed.
+
+Exact next action: publish the verified T-03 implementation, then record its code reference
+and close T-03 in the canonical task/evidence records. Other pending tasks remain unselected.
+There are no worker artifacts.
 
 Fresh review checks: Infrastructure 254/254 and Presentation 129/129 PASS on final code, including
 the disconnect cancellation correction. Earlier Windows Debug unpackaged and ProviderConsole

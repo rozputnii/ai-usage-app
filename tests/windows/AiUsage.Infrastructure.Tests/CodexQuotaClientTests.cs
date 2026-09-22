@@ -1,4 +1,4 @@
-using AiUsage.Core.Providers.Codex;
+using AiUsage.Core.Usage;
 using System.Net;
 using System.Net.Http.Headers;
 using AiUsage.Infrastructure.Providers.Codex;
@@ -33,8 +33,8 @@ public sealed class CodexQuotaClientTests
         var quota = new CodexQuotaClient(http, new CodexTestServer.Clock());
         var first = await Assert.ThrowsAsync<CodexException>(() => quota.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
         var second = await Assert.ThrowsAsync<CodexException>(() => quota.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AuthenticationRequired, first.Kind);
-        Assert.Equal(CodexFailureKind.AuthenticationRequired, second.Kind);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, first.Kind);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, second.Kind);
         Assert.True(credentials.RequiresReauthentication);
         Assert.Equal(1, server.Calls);
         Assert.DoesNotContain("synthetic-secret", first.ToString());
@@ -47,7 +47,7 @@ public sealed class CodexQuotaClientTests
         using var http = new HttpClient(server);
         using var credentials = CodexTestServer.Credentials();
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexQuotaClient(http, new CodexTestServer.Clock()).GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AccountMismatch, error.Kind);
+        Assert.Equal(ProviderFailureKind.AccountMismatch, error.Kind);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class CodexQuotaClientTests
         using var http = new HttpClient(server);
         using var credentials = CodexTestServer.Credentials();
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexQuotaClient(http, new CodexTestServer.Clock()).GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.InvalidResponse, error.Kind);
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
     }
 
     [Theory]
@@ -69,7 +69,7 @@ public sealed class CodexQuotaClientTests
         using var http = new HttpClient(server);
         using var credentials = CodexTestServer.Credentials();
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexQuotaClient(http, new CodexTestServer.Clock()).GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.InvalidResponse, error.Kind);
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
         Assert.DoesNotContain("synthetic-secret", error.ToString());
     }
 
@@ -85,17 +85,17 @@ public sealed class CodexQuotaClientTests
         using var http = new HttpClient(server);
         using var credentials = CodexTestServer.Credentials();
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexQuotaClient(http, new CodexTestServer.Clock()).GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.RateLimited, error.Kind);
+        Assert.Equal(ProviderFailureKind.RateLimited, error.Kind);
         Assert.Equal(TimeSpan.FromSeconds(37), error.RetryAfter);
         Assert.False(credentials.RequiresReauthentication);
         Assert.Equal(1, server.Calls);
     }
 
     [Theory]
-    [InlineData(403, CodexFailureKind.AccessDenied)]
-    [InlineData(503, CodexFailureKind.ProviderUnavailable)]
-    [InlineData(302, CodexFailureKind.RequestRejected)]
-    public async Task NonSuccessIsNotParsedAsQuota(int status, CodexFailureKind expected)
+    [InlineData(403, ProviderFailureKind.AccessDenied)]
+    [InlineData(503, ProviderFailureKind.ProviderUnavailable)]
+    [InlineData(302, ProviderFailureKind.RequestRejected)]
+    public async Task NonSuccessIsNotParsedAsQuota(int status, ProviderFailureKind expected)
     {
         using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json("synthetic-secret", (HttpStatusCode)status)));
         using var http = new HttpClient(server);
@@ -112,7 +112,7 @@ public sealed class CodexQuotaClientTests
         using var http = new HttpClient(server);
         using var credentials = new CodexCredentials("synthetic-access", "synthetic-refresh", "synthetic-workspace", CodexTestServer.Clock.Now);
         var error = await Assert.ThrowsAsync<CodexException>(() => new CodexQuotaClient(http, new CodexTestServer.Clock()).GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.AuthenticationRequired, error.Kind);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, error.Kind);
         Assert.Equal(0, server.Calls);
     }
 
@@ -124,7 +124,7 @@ public sealed class CodexQuotaClientTests
         using var credentials = CodexTestServer.Credentials();
         var quota = new CodexQuotaClient(http, new CodexTestServer.Clock());
         var error = await Assert.ThrowsAsync<CodexException>(() => quota.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
-        Assert.Equal(CodexFailureKind.NetworkFailure, error.Kind);
+        Assert.Equal(ProviderFailureKind.NetworkFailure, error.Kind);
         Assert.DoesNotContain("synthetic-secret", error.ToString());
         using var cancelled = new CancellationTokenSource();
         cancelled.Cancel();

@@ -1,8 +1,7 @@
+using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers;
-using AiUsage.Core.Providers.Codex;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers.Codex;
 using AiUsage.Infrastructure.Providers.Copilot;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,11 +37,11 @@ internal static class Program
             {
                 using var file = File.OpenRead(path);
                 if (file.Length > 1024 * 1024)
-                    throw new CodexException(CodexFailureKind.InvalidResponse);
+                    throw new CodexException(ProviderFailureKind.InvalidResponse);
                 var bytes = new byte[(int)file.Length];
                 await file.ReadExactlyAsync(bytes, cancellation.Token);
                 if (file.ReadByte() != -1)
-                    throw new CodexException(CodexFailureKind.InvalidResponse);
+                    throw new CodexException(ProviderFailureKind.InvalidResponse);
                 PrintQuota(CodexQuotaParser.Parse(bytes, DateTimeOffset.UtcNow));
                 return 0;
             }

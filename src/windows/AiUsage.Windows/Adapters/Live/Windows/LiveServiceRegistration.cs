@@ -40,7 +40,7 @@ internal static class LiveServiceRegistration
         services.AddAntigravityProductSession(Path.Combine(root, "providers"));
         services.AddSingleton(p => new LiveUsageSource(new Dictionary<string, IProviderSession>
         {
-            ["codex"] = p.GetRequiredService<CodexDashboardSession>(),
+            ["codex"] = p.GetRequiredService<CodexSession>(),
             ["claude"] = p.GetRequiredService<ClaudeSession>(),
             ["copilot"] = p.GetRequiredService<CopilotSession>(),
             ["antigravity"] = p.GetRequiredService<AntigravitySession>()
