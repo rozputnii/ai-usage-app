@@ -120,17 +120,17 @@ Only T-05 was selected. Implementation and primary integrated review are complet
 package build pass. AC-06 is complete; evidence is recorded in verification.md.
 
 ### T-06 - Shared MSBuild and central package version roots
-- status: in-progress
+- status: done
 - depends_on: []
 - acceptance: AC-07
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; code 97f0ef9; offline restore 10/10, unchanged package versions and evaluated properties, four suites 78/261/142/7 PASS; Windows, routing and console builds, document validation, diff check and primary integrated review PASS
 
 - [x] Add `Directory.Build.props` with the shared language and warning properties; remove the
       per-project copies.
 - [x] Add `Directory.Packages.props` with `ManagePackageVersionsCentrally` pinning every package
       at its **current** version; strip `Version` attributes from `PackageReference` items.
 - [x] Confirm no version string changed, by diff inspection, before running anything.
-- [ ] Check: full offline restore from the local package cache, then all four suites and
+- [x] Check: full offline restore from the local package cache, then all four suites and
       `git diff --check`. This task is independent of T-01..T-05 and may be sequenced earlier if
       convenient, but must not be combined with T-07.
 
@@ -146,7 +146,8 @@ review under the project policy; primary integrated review applies. T-07 remains
 Relocation, pre-restore version inspection, evaluated-property comparison and all ten offline
 restores pass. A stale ProviderConsole assets file omitted an existing transitive package;
 fresh offline restore of the original project files reproduces the current package graph.
-Exact next action: finish the four suites and primary integrated acceptance review.
+All four suites and primary integrated acceptance review pass; AC-07 is complete. Detailed
+commands, observed results and limits are recorded in verification.md.
 
 ### T-07 - Explicit analyzer level and code-style enforcement
 - status: pending
@@ -324,3 +325,17 @@ installation checks were not run. No blockers or worker artifacts remain.
 T-05 is done. AIU-028 remains incomplete: T-06, T-07, T-10, T-11 and T-12 remain pending and
 unselected. Exact next action: obtain the owner's selection of a remaining task before starting
 further implementation.
+
+### T-06 closure (2026-09-22)
+
+Base `34ee90b`; configuration implementation `97f0ef9`, committed and pushed to `main`.
+Shared properties now apply from one root to all ten projects, with eighteen package references
+using ten unchanged central versions. Offline restore 10/10; validator 78/78, Infrastructure
+261/261, Presentation 142/142 and actual product Windows smoke 7/7 pass. Windows and routing
+Debug unpackaged builds and ProviderConsole Release build pass with zero warnings/errors.
+Document validation, version/property/package-graph comparisons, diff check and primary
+integrated review pass. No blockers or worker artifacts remain.
+
+T-06 and AC-07 are complete. AIU-028 remains incomplete; T-07, T-10, T-11 and T-12 remain
+pending and unselected. Exact next action: obtain the owner's selection of a remaining task
+before starting further implementation.

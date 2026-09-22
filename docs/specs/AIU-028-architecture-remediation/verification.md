@@ -116,7 +116,7 @@ Unselected tasks remain NOT_RUN.
 | T-03 | AC-03 | Infrastructure and Presentation Release suites; `tools/AiUsage.ProviderConsole` Release build | PASS, see T-03 closure below |
 | T-04 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | NOT_RUN |
 | T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | NOT_RUN |
-| T-06 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | NOT_RUN |
+| T-06 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | PASS, see T-06 closure below |
 | T-07 | AC-08 | Warnings-visible desktop build at the raised analysis level with zero warnings; all four suites | NOT_RUN |
 | T-08 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
 | T-09 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
@@ -529,3 +529,41 @@ connection-dialog screenshots and all fourteen final scenario JSON results. The 
 High-contrast/brand projections are covered by deterministic tests; smoke verifies ordinary
 light/dark UI, not an interactive system-high-contrast toggle. No live-provider success or
 packaged installation is inferred. AC-06 is PASS and T-05 is complete; other tasks remain open.
+
+## T-06 - Shared build and package roots - 2026-09-22
+
+Base `34ee90b`; implementation `97f0ef9` on `main`. Windows 10.0.26200.0 x64, SDK
+10.0.401. Restore/test/build evidence was collected at 14:21-14:26 UTC; logs, baseline
+MSBuild evaluations and isolated original-project restore are retained under
+`.ai-usage-local/AIU-028/t06/`. Primary integrated review covers `34ee90b..97f0ef9` plus
+these closure records. No production source, test behavior, SDK or analyzer policy changed.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Pre-restore diff and version mapping | PASS | Inspected the full project diff and both new root files before restore/build. All 18 existing references in ten projects map to the same ten package IDs and exact version strings; no dependency added or removed. Includes the routing spike. |
+| Evaluated MSBuild properties | PASS | Before/after `dotnet msbuild <project> -getProperty:ImplicitUsings,Nullable,TreatWarningsAsErrors,TargetFramework,RuntimeIdentifier,AnalysisMode,AnalysisLevel,EnforceCodeStyleInBuild` comparisons match for all ten projects. Central management evaluates to true everywhere. Shared property copies and local package Version attributes are gone. |
+| Full offline restore | PASS | For every tracked csproj: `dotnet restore <project> --configfile <local NuGet.offline.config> --force --no-http-cache -p:NuGetAudit=false`; ten exits 0. The scratch configuration clears package and audit sources. All assets use the local cache, have central management enabled and contain no package sources. Audit disabled for this offline command only. |
+| Resolved package graphs | PASS | Nine graphs match the pre-change assets exactly. ProviderConsole matches a fresh offline restore of the original `34ee90b` project files; see the cache discrepancy below. |
+| Validator regressions | PASS | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo`: 78/78. |
+| Infrastructure Release | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261. |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 142/142. |
+| Actual Windows product smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7 on the fresh unpackaged Debug build, 14:25:08-14:25:48 UTC. All seven scenario JSON records report passed=true, exited=true and exitCode=0. All four suites report zero errors, failures, skipped or not-run tests. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: zero warnings/errors. |
+| Routing Debug unpackaged build | PASS | Same build options for `spikes/windows/AIU-002-routing/AiUsage.RoutingSpike.csproj`: zero warnings/errors. |
+| ProviderConsole Release build | PASS | `dotnet build tools/AiUsage.ProviderConsole/AiUsage.ProviderConsole.csproj -c Release --no-restore`: zero warnings/errors. |
+| Document validation and diff checks | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`: valid=true, diagnostics=[]; `git diff --check` and implementation-range whitespace check pass. Closure references and status inspected. |
+| Primary integrated review | PASS | AC-07 checked against the complete diff, project membership, exact package values, effective shared properties, SDK/target settings and unchanged analyzer policy. No actionable findings. Routine primary review applies under CONTRIBUTING; independent review is not required for this relocation. |
+| MSIX, packaged lifecycle and live-provider checks | NOT_RUN | Outside this build-configuration relocation; no package install, host trust changes or provider authorization was performed. |
+
+The first scratch source check incorrectly counted an absent JSON member as one PowerShell
+array element; explicit null handling corrected the check. The graph comparison then exposed
+stale ProviderConsole assets lacking `System.Security.Cryptography.ProtectedData/10.0.12`.
+Restoring the original console, Infrastructure and Core csproj files in an isolated scratch
+root with empty build/package props reproduced the current graph exactly. No repository fix
+or dependency change was needed for either verification issue; neither was a suite failure.
+
+Smoke used `AIU_SMOKE_EXE` pointing to the rebuilt local executable and fresh
+`AIU_SMOKE_EVIDENCE_DIRECTORY` at `.ai-usage-local/AIU-028/t06/product-smoke/`, with
+`AIU_DEVELOPMENT_STATE_DIRECTORY` set to its initially empty `state` subdirectory. Inspected
+all seven final scenario records and the actual provider-choice screenshot. No source CLI
+credentials were read and no sign-in was started. AC-07 is PASS; T-07 remains a separate task.
