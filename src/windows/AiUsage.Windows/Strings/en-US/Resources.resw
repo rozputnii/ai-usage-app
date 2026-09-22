@@ -1492,7 +1492,7 @@
     <value>Nightly</value>
   </data>
   <data name="Recovery_CheckpointsHelp.Text" xml:space="preserve">
-    <value>Synthetic checkpoints · restore replaces current data after confirmation</value>
+    <value>Restore replaces checkpoint-covered data after confirmation.</value>
   </data>
   <data name="Recovery_DataFolder.Content" xml:space="preserve">
     <value>Data folder…</value>
@@ -1522,13 +1522,13 @@
     <value>Restore checkpoint…</value>
   </data>
   <data name="Recovery_RestoreFailed" xml:space="preserve">
-    <value>Restore failed: checkpoint verification did not match. Current data unchanged.</value>
+    <value>Restore could not complete. Normal operation remains paused; inspect diagnostics or retry.</value>
   </data>
   <data name="Recovery_Restoring" xml:space="preserve">
     <value>Restoring checkpoint…</value>
   </data>
   <data name="Recovery_RetryFailed" xml:space="preserve">
-    <value>Retry failed at step 3 of 5. Data was not modified. You can restore a checkpoint or inspect diagnostics.</value>
+    <value>Recovery could not complete. You can restore a verified checkpoint or inspect diagnostics.</value>
   </data>
   <data name="Recovery_Retrying" xml:space="preserve">
     <value>Retrying migration…</value>
@@ -2240,4 +2240,12 @@
   <data name="ProviderHistory_Report_enterprise-speed" xml:space="preserve"><value>Workspace credits by speed</value></data>
   <data name="ProviderHistory_Report_enterprise-reasoning" xml:space="preserve"><value>Workspace credits by reasoning effort</value></data>
   <data name="ProviderHistory_AccountChanged" xml:space="preserve"><value>The connected account changed. Previous history was cleared; refresh to load this account.</value></data>
+  <data name="RecoveryLive_Body_Interrupted" xml:space="preserve"><value>Local data needs recovery before AI Usage can continue. Retry the migration, restore the verified checkpoint, or inspect diagnostics.</value></data>
+  <data name="RecoveryLive_Body_NewerSchema" xml:space="preserve"><value>This build cannot open the newer local data layout. Update the app to a compatible version. Migration and restore are disabled to prevent downgrade.</value></data>
+  <data name="RecoveryLive_Body_RestoreFailed" xml:space="preserve"><value>The restore could not complete. Normal operation remains paused. Retry the restore or inspect diagnostics.</value></data>
+  <data name="RecoveryLive_NewerSchemaNote" xml:space="preserve"><value>Retry and restore are unavailable for newer data. Diagnostics remain available.</value></data>
+  <data name="RecoveryLive_CheckpointMeta" xml:space="preserve"><value>Layout {0} · presentation preferences</value></data>
+  <data name="RestoreLive_Body" xml:space="preserve"><value>Restore presentation preferences from checkpoint {0}? Current preferences will be replaced. Provider authorization records will remain unchanged.</value></data>
+  <data name="RecoveryLive_Export.Content" xml:space="preserve"><value>Export diagnostics</value></data>
+  <data name="RecoveryLive_Exported" xml:space="preserve"><value>Saved recovery-diagnostics.txt in the data folder. It contains recovery status only.</value></data>
 </root>

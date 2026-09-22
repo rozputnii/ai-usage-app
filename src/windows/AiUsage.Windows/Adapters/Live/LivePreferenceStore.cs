@@ -25,18 +25,26 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
         {
             var json = await read(token);
             var loaded = json is null ? new State() : JsonSerializer.Deserialize(json, PreferenceStateJson.Default.State);
-            if (loaded is null || loaded.Version != 1 || !Enum.IsDefined(loaded.Theme) || !Enum.IsDefined(loaded.Density) ||
-                !Enum.IsDefined(loaded.UsageDisplay) || loaded.Order is null || loaded.Hidden is null || loaded.Labels is null || loaded.Expansion is null ||
-                loaded.Order.Any(id => id is null) || loaded.Hidden.Any(id => id is null) ||
-                loaded.Labels.Values.Any(label => label is null || label.Length > 100) || loaded.Expansion.Values.Any(value => !Enum.IsDefined(value)))
+            if (!IsValid(loaded))
                 return;
-            state = loaded;
+            state = loaded!;
             writable = true;
             Apply();
         }
         catch (Exception error) when (error is JsonException or IOException or UnauthorizedAccessException) { writable = false; }
         finally { gate.Release(); }
     }
+
+    internal static bool IsValidJson(string json)
+    {
+        try { return IsValid(JsonSerializer.Deserialize(json, PreferenceStateJson.Default.State)); }
+        catch (JsonException) { return false; }
+    }
+    private static bool IsValid(State? loaded) => loaded is not null && loaded.Version == 1 &&
+        Enum.IsDefined(loaded.Theme) && Enum.IsDefined(loaded.Density) && Enum.IsDefined(loaded.UsageDisplay) &&
+        loaded.Order is not null && loaded.Hidden is not null && loaded.Labels is not null && loaded.Expansion is not null &&
+        loaded.Order.All(id => id is not null) && loaded.Hidden.All(id => id is not null) &&
+        loaded.Labels.Values.All(label => label is not null && label.Length <= 100) && loaded.Expansion.Values.All(Enum.IsDefined);
     public Task<UiCommandResult> SetPreferenceAsync(PreferenceChange change, CancellationToken cancellationToken) => ChangeAsync(s => change switch
     {
         { Key: PreferenceKey.Theme, Value: ThemePreference value } when Enum.IsDefined(value) => s with { Theme = value },

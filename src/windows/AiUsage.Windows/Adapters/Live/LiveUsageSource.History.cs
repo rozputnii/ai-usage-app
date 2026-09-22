@@ -14,6 +14,7 @@ internal sealed partial class LiveUsageSource : IProviderHistorySource
         lock (sync)
         {
             if (stopped) return Task.FromCanceled<ProviderHistoryResult>(new CancellationToken(true));
+            if (maintenanceBlocked) return Task.FromResult(ProviderHistoryResult.Unavailable(range, HistoryStatus.Failed));
             if (!entries.TryGetValue(accountId, out var entry) || entry.Session is not IProviderHistorySession session)
                 return Task.FromResult(ProviderHistoryResult.Unavailable(range, HistoryStatus.Unsupported));
             if (entry.Pending is { IsCompleted: false } pending)

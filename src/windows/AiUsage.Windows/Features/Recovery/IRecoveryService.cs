@@ -21,4 +21,6 @@ public interface IRecoveryService
     Task<UiCommandResult> RestoreCheckpointAsync(string checkpointId, IProgress<double> progress, CancellationToken cancellationToken);
 
     Task<string> PreviewDiagnosticsAsync(CancellationToken cancellationToken);
+    Task<UiCommandResult> OpenDataFolderAsync(CancellationToken cancellationToken) => Task.FromResult(UiCommandResult.Unsupported);
+    Task<UiCommandResult> ExportDiagnosticsAsync(CancellationToken cancellationToken) => Task.FromResult(UiCommandResult.Unsupported);
 }

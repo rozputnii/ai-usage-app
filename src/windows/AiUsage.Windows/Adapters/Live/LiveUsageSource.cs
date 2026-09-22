@@ -13,6 +13,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
     private readonly Dictionary<string, Entry> entries;
     private readonly List<Action<UiSnapshot>> subscribers = [];
     private bool stopped;
+    private bool maintenanceBlocked;
     private Task? initialization;
     private Task? stopping;
     private UiSnapshot current;
@@ -54,7 +55,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
 
     public Task InitializeAsync()
     {
-        lock (sync) return initialization ??= InitializeCoreAsync();
+        lock (sync) return maintenanceBlocked ? Task.CompletedTask : initialization ??= InitializeCoreAsync();
     }
     private async Task InitializeCoreAsync()
     {
@@ -71,6 +72,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         lock (sync)
         {
             if (stopped) return Task.FromResult(UiCommandResult.Cancelled);
+            if (maintenanceBlocked) return Task.FromResult(UiCommandResult.Failed());
             if (!QuotaRules.IsAvailable(current, command.Kind.ToString(), command.TargetId))
                 return Task.FromResult(UiCommandResult.Unsupported);
             if (command.ExpectedRevision != current.Revision) return Task.FromResult(UiCommandResult.Conflict);
@@ -120,6 +122,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         lock (sync)
         {
             if (stopped) return Task.FromResult(UiCommandResult.Cancelled);
+            if (maintenanceBlocked) return Task.FromResult(UiCommandResult.Failed());
             if (!entries.TryGetValue(id, out var entry)) return Task.FromResult(UiCommandResult.Unsupported);
             if (entry.HistoryActive && entry.Pending is { IsCompleted: false } history)
             {
@@ -192,6 +195,17 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
     {
         Accounts = current.Accounts.Where(a => a.Id != item.Id).Append(item).OrderBy(a => a.ProviderId).ToArray()
     });
+    internal void SetRecovery(RecoveryState state)
+    {
+        Notification notification;
+        lock (sync)
+        {
+            maintenanceBlocked = state != RecoveryState.None;
+            notification = Publish(current with { System = current.System with { Recovery = state } });
+        }
+        notification.Deliver();
+    }
+
     internal void SetPreferences(Preferences preferences, IReadOnlyDictionary<string, string> accountLabels,
         IReadOnlyDictionary<string, ExpansionPreference> groupExpansions)
     {

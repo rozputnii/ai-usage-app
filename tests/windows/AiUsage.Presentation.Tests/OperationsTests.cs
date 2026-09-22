@@ -223,7 +223,7 @@ public sealed class OperationsTests
         await recovery.RetryCommand.ExecuteAsync(null);
         Assert.True(shell.IsRecovery);
         Assert.True(recovery.MessageIsCritical);
-        Assert.StartsWith("Retry failed at step 3 of 5", recovery.Message);
+        Assert.StartsWith("Recovery could not complete.", recovery.Message);
 
         await recovery.ToggleCheckpointsCommand.ExecuteAsync(null);
         Assert.Equal(2, recovery.Checkpoints.Count);
@@ -245,7 +245,7 @@ public sealed class OperationsTests
         host.Dialogs.Next(ConfirmOutcome.Confirmed);
         await recovery.RetryCommand.ExecuteAsync(null);
         Assert.True(recovery.IsActive);
-        Assert.Equal("Restore failed: checkpoint verification did not match. Current data unchanged.", recovery.Message);
+        Assert.Equal("Restore could not complete. Normal operation remains paused; inspect diagnostics or retry.", recovery.Message);
 
         using var newer = new TestHost("F13b");
         var blocked = newer.RecoveryPage();

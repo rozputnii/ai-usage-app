@@ -71,13 +71,13 @@ internal sealed partial class RecoveryViewModel : SnapshotViewModel
         var format = Format;
         var details = recovery.Details;
         Title = format.T("Recovery_Title_" + state);
-        Body = format.T("Recovery_Body_" + state);
+        Body = format.T((snapshot.Mode == UiMode.Live ? "RecoveryLive_Body_" : "Recovery_Body_") + state);
         SchemaText = details.SchemaText;
         CheckpointText = details.CheckpointId;
-        FolderText = format.F("Recovery_FolderPreview", details.DataFolderPreview);
+        FolderText = snapshot.Mode == UiMode.Live ? details.DataFolderPreview : format.F("Recovery_FolderPreview", details.DataFolderPreview);
         RetryAvailable = state != RecoveryState.NewerSchema;
         RetryLabel = format.T(state == RecoveryState.RestoreFailed ? "Recovery_RetryRestore" : "Recovery_RetryMigration");
-        DisabledNote = state == RecoveryState.NewerSchema ? format.T("Recovery_NewerSchemaNote") : string.Empty;
+        DisabledNote = state == RecoveryState.NewerSchema ? format.T(snapshot.Mode == UiMode.Live ? "RecoveryLive_NewerSchemaNote" : "Recovery_NewerSchemaNote") : string.Empty;
     }
 
     private bool CanRetry() => RetryAvailable && !IsBusy;
@@ -116,7 +116,7 @@ internal sealed partial class RecoveryViewModel : SnapshotViewModel
         }
     }
 
-    private bool CanToggleCheckpoints() => !IsBusy;
+    private bool CanToggleCheckpoints() => !IsBusy && (Snapshot.Mode != UiMode.Live || Snapshot.System.Recovery != RecoveryState.NewerSchema);
 
     [RelayCommand(CanExecute = nameof(CanToggleCheckpoints))]
     private async Task ToggleCheckpointsAsync()
@@ -127,6 +127,7 @@ internal sealed partial class RecoveryViewModel : SnapshotViewModel
         var format = Format;
         foreach (var checkpoint in await recovery.ListCheckpointsAsync(CancellationToken.None))
             Checkpoints.Add(new(checkpoint, format.F("Recovery_CheckpointLabel", format.T(checkpoint.KindKey), format.DateTime(checkpoint.CreatedAt)),
+                Snapshot.Mode == UiMode.Live ? format.F("RecoveryLive_CheckpointMeta", checkpoint.SchemaVersion) :
                 format.F("Recovery_CheckpointMeta", checkpoint.SchemaVersion, checkpoint.Accounts, format.Count(checkpoint.HistoryRows))));
     }
 
@@ -136,7 +137,7 @@ internal sealed partial class RecoveryViewModel : SnapshotViewModel
     private async Task RestoreAsync(string checkpointId)
     {
         var format = Format;
-        var outcome = await Context.Dialogs.ConfirmAsync(new(format.T("Restore_Title"), format.F("Restore_Body", checkpointId), format.T("Restore_Confirm"),
+        var outcome = await Context.Dialogs.ConfirmAsync(new(format.T("Restore_Title"), format.F(Snapshot.Mode == UiMode.Live ? "RestoreLive_Body" : "Restore_Body", checkpointId), format.T("Restore_Confirm"),
             Destructive: true, BusyLabel: format.T("Restore_Busy"),
             ConfirmAction: async token =>
             {
@@ -175,10 +176,27 @@ internal sealed partial class RecoveryViewModel : SnapshotViewModel
         DiagnosticsText = DiagnosticsText.Length > 0 ? string.Empty : await recovery.PreviewDiagnosticsAsync(CancellationToken.None);
 
     [RelayCommand]
-    private void PreviewDataFolder()
+    private async Task PreviewDataFolderAsync()
     {
+        if (Snapshot.Mode == UiMode.Live)
+        {
+            var result = await recovery.OpenDataFolderAsync(CancellationToken.None);
+            Message = result.Status == CommandStatus.Succeeded ? string.Empty : Format.T("Dialog_OperationFailed");
+            MessageIsCritical = result.Status != CommandStatus.Succeeded;
+            return;
+        }
         Message = Format.F("Recovery_FolderMessage", recovery.Details.DataFolderPreview);
         MessageIsCritical = false;
+    }
+
+    public bool CanExportDiagnostics => Snapshot.Mode == UiMode.Live;
+
+    [RelayCommand]
+    private async Task ExportDiagnosticsAsync()
+    {
+        var result = await recovery.ExportDiagnosticsAsync(CancellationToken.None);
+        Message = Format.T(result.Status == CommandStatus.Succeeded ? "RecoveryLive_Exported" : "Dialog_OperationFailed");
+        MessageIsCritical = result.Status != CommandStatus.Succeeded;
     }
 
     private sealed class InlineProgress(Action<double> report) : IProgress<double>

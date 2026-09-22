@@ -2,6 +2,7 @@ using System.Diagnostics;
 using AiUsage.Adapters.Live;
 using AiUsage.Core.Usage;
 using AiUsage.Core.Diagnostics;
+using AiUsage.Core.Persistence;
 using AiUsage.Features.Accounts;
 using AiUsage.Features.CliImport;
 using AiUsage.Features.Connection;
@@ -39,7 +40,9 @@ internal static class LiveServiceRegistration
         services.AddSingleton<IProviderHistorySource, LiveProviderHistorySource>();
         services.AddSingleton<IConnectionFlow>(p => new LiveConnectionFlow(p.GetRequiredService<LiveUsageSource>(),
             uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })));
-        services.AddSingleton(new PresentationPreferenceFile(root));
+        services.AddSingleton(new PresentationPreferenceFile(Path.Combine(root, "preferences")));
+        services.AddSingleton(new StateMaintenance(root, LivePreferenceStore.IsValidJson));
+        services.AddSingleton<IStateMaintenance>(p => p.GetRequiredService<StateMaintenance>());
         services.AddSingleton(p =>
         {
             var source = p.GetRequiredService<LiveUsageSource>();
@@ -53,7 +56,10 @@ internal static class LiveServiceRegistration
         services.AddSingleton<ICliImportService>(p => p.GetRequiredService<UnavailableServices>());
         services.AddSingleton<IDiagnosticsService>(p => p.GetRequiredService<UnavailableServices>());
         services.AddSingleton<IDataManagementService>(p => p.GetRequiredService<UnavailableServices>());
-        services.AddSingleton<IRecoveryService>(p => p.GetRequiredService<UnavailableServices>());
+        services.AddSingleton(p => new LiveRecoveryService(p.GetRequiredService<IStateMaintenance>(), p.GetRequiredService<LiveUsageSource>(), root,
+            () => { Process.Start(new ProcessStartInfo(root) { UseShellExecute = true }); return Task.CompletedTask; },
+            p.GetRequiredService<StateMaintenance>().ExportDiagnosticsAsync));
+        services.AddSingleton<IRecoveryService>(p => p.GetRequiredService<LiveRecoveryService>());
         services.AddSingleton<IUpdateService>(p => p.GetRequiredService<UnavailableServices>());
         services.AddSingleton<INotificationPreview>(p => p.GetRequiredService<UnavailableServices>());
         services.AddSingleton<IProductLifecycle, ProductLifecycle>();
