@@ -19,7 +19,7 @@ active_goal: G-002
 
 ## G-003 - Unified Windows v1
 - status: idea
-- scope: AIU-005, AIU-007, AIU-008, AIU-009, AIU-010, AIU-011, AIU-012, AIU-013, AIU-016, AIU-027, AIU-028
+- scope: AIU-005, AIU-007, AIU-008, AIU-009, AIU-010, AIU-011, AIU-012, AIU-013, AIU-016, AIU-027, AIU-028, AIU-029
 - outcome: Four providers with required contexts/groups, multiple accounts, history, notifications, diagnostics and data lifecycle.
 - success: Every completed provider has source evidence, deterministic tests and live verification. Record unavailable access as a blocker, not a completed provider. Advanced features must not displace core reliability.
 

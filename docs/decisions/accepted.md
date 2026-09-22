@@ -198,6 +198,14 @@ Implement IUiDispatcher over DispatcherQueue in the Windows layer. Manage subscr
 ### D-062 - History reads
 Use IUsageHistoryQueryService with AsNoTracking projections filtered by account, context, limit, range and resolution. Run database work off the UI thread.
 
+Owner scope amendment, 2026-09-22: [AIU-011](../specs/AIU-011-provider-history/spec.md)
+now delivers provider-supplied history for all four connected provider types, with automatic
+loading and minimal interaction. Database-backed observation collection, retention, rollups
+and offline history are deferred to AIU-029 at low priority after product stability. D-062's
+database query shape and D-135/D-136's local collection/retention rules remain future direction,
+not requirements to add persistence to AIU-011. D-063's ranges and D-122's charts apply only
+where the provider actually supplies suitable historical data; do not invent coverage.
+
 ### D-063 - History resolution
 Perform resolution-aware querying/downsampling in the query layer. Offer 24h, 7d, 30d, 90d and 1y presets plus custom ranges. Bound points to rendering needs.
 

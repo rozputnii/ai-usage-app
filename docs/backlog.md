@@ -99,12 +99,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - scope-note: Owner selected staged Codex preparation, Claude Design, Claude Code frontend and Codex integration on 2026-09-15. Prepare the complete planned Windows UI with isolated interactive mocks, including future capabilities; real backend delivery remains in its owning AIUs. See docs/specs/AIU-010-ui-ux/spec.md and tasks.md. Preparation completion does not complete the feature.
 - owner-direction: Owner amendment, 2026-09-14: the current UI is unattractive and not usable. Apply a coherent, usable UI design and polish core provider connection, quota, refresh and tray flows before CLI integrations. Existing functional smoke evidence does not establish satisfactory design or usability. All four provider connections should follow the OMP (omp.sh) connection style; exact design and provider-specific behavior will be established when that work is selected.
 
-## AIU-011 - Usage history and responsive charts
+## AIU-011 - Provider-supplied usage history
 - goal: G-003
-- status: idea
-- depends_on: [AIU-004]
-- trigger: incremental
-- outcome: Implement normalized history, reset/gap-aware retention and rollups, LiveCharts2 sparklines, History and custom ranges.
+- status: selected
+- depends_on: [AIU-004, AIU-007, AIU-008, AIU-009, AIU-010]
+- trigger: owner-selected
+- outcome: Retrieve and display available historical usage supplied by Codex, Claude, Copilot and Antigravity, preserving native metrics, units, periods and access limitations. Open History with automatic loading and useful defaults; account/range selection is optional refinement, not a required sequence before seeing data.
+- scope-note: Owner selected and narrowed this feature on 2026-09-22 to provider-supplied history, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. Local sample collection, retention, rollups and persistent history are deferred to AIU-029 with low priority after product stability. Source availability and additional-authentication scope are being established; selection is not an implementation or live-support claim.
+- specification: docs/specs/AIU-011-provider-history/spec.md
+- evidence: docs/specs/AIU-011-provider-history/verification.md
 
 ## AIU-012 - Threshold notifications and OS-aware refresh
 - goal: G-003
@@ -193,9 +196,10 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 ## AIU-024 - Experimental usage forecasting
 - goal: G-005
 - status: research-needed
-- depends_on: [AIU-011]
+- depends_on: [AIU-029]
 - trigger: after-history
 - outcome: Prove forecasting with sufficient history and reset/gap handling. Clearly label estimates; do not affect factual quota alerts.
+- sequencing-note: The AIU-011 scope split on 2026-09-22 moves the dependable local observation history prerequisite to AIU-029. Provider-supplied reports alone do not establish comparable quota samples or reset/gap coverage.
 
 ## AIU-025 - Always-on development fix runner
 - goal: G-005
@@ -240,6 +244,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - audit-note: Recorded 2026-09-20 against `main` at `6681b7a` by an analysis-only session under docs/workflow/architecture-audit-plan.md, which changed no production code. Fifteen findings F-01..F-15 with `path:line` evidence are in the specification; areas verified clean, including `x:Bind` coverage, handler symmetry and the mitigated typed-`HttpClient` singleton capture, are recorded as accepted-as-is rather than as findings. AIU-027 settled the Core/Infrastructure/Windows split and the source-linked presentation test project; this entry reports drift and debt accumulated since, and does not re-propose that structure.
 - completion-note: All twelve tasks are done. Earlier required independent review and Windows smoke evidence remain recorded in verification.md. T-11 (9f4d347) and T-12 (5095a1d) were assessed for relevance and completed sequentially without subagents on 2026-09-22; final Infrastructure 286/286, Presentation 147/147, console/Windows builds, document validation and primary review pass. No new live-provider, interactive UI or release evidence is claimed for these two tasks.
 - prior-work: AIU-027 (.NET architecture refinement and cleanup); F-14 resumes the deferred non-blocking finding CR-AIU-003-01, whose "before UI/persistent consumption" boundary is now crossed.
+
+## AIU-029 - Local usage history and retention after product stability
+- goal: G-003
+- status: idea
+- priority: low
+- depends_on: [AIU-011]
+- trigger: after-stable-product-and-owner-selection
+- outcome: Collect and persist normalized local quota observations; define retention, reset/gap-aware rollups, historical queries and offline chart access. Design any durable cache of provider-supplied history here when selected, preserving its provenance separately from local observations.
+- scope-note: Split from AIU-011 by owner direction on 2026-09-22. Defer until the product is stable; neither completion of AIU-011 nor existing history preferences starts this work. CLI transcript ingestion remains separate from local quota sampling and is not authorized by this entry.
 
 ## Deferred clarifications, not forgotten
 
