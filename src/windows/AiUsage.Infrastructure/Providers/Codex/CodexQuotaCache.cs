@@ -17,12 +17,16 @@ public sealed class CodexQuotaCache
 {
     private const int MaximumRecordBytes = 512 * 1024;
     private readonly string path;
+    private readonly Action? beforeDelete;
 
-    public CodexQuotaCache(string ownedDirectory)
+    public CodexQuotaCache(string ownedDirectory) : this(ownedDirectory, null) { }
+
+    internal CodexQuotaCache(string ownedDirectory, Action? beforeDelete)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownedDirectory);
         Directory = Path.GetFullPath(ownedDirectory);
         path = Path.Combine(Directory, "codex.quota.json");
+        this.beforeDelete = beforeDelete;
     }
 
     /// <summary>The app-owned directory this cache may write to; nothing outside it is touched.</summary>
@@ -79,18 +83,23 @@ public sealed class CodexQuotaCache
     /// <summary>Removes the cached reading; used when the account is disconnected.</summary>
     public void Delete() => DeleteAsync().GetAwaiter().GetResult();
 
-    public Task DeleteAsync(CancellationToken cancellationToken = default) => Task.Run(() =>
+    public Task DeleteAsync(CancellationToken cancellationToken = default)
     {
-        try
+        // Fault-injection seam for cancellation between grant deletion and cache cleanup.
+        beforeDelete?.Invoke();
+        return Task.Run(() =>
         {
-            using var lease = ProviderStatePaths.Acquire(Directory, "codex.quota.json.lock");
-            CheckPaths();
-            File.Delete(path);
-            File.Delete(path + ".new");
-        }
-        // A stale cache is not a credential; failing to remove it must not block disconnecting.
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
-    }, cancellationToken);
+            try
+            {
+                using var lease = ProviderStatePaths.Acquire(Directory, "codex.quota.json.lock");
+                CheckPaths();
+                File.Delete(path);
+                File.Delete(path + ".new");
+            }
+            // A stale cache is not a credential; failing to remove it must not block disconnecting.
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
+        }, cancellationToken);
+    }
 
     private void CheckPaths()
     {

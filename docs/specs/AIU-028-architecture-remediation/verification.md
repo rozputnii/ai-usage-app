@@ -271,3 +271,16 @@ The final warnings-visible unpackaged Windows Debug build at `5462057` also pass
 zero warnings/errors (30.41 seconds). Primary diff/acceptance inspection confirmed one shared
 transport/status map and handler configuration, unchanged provider-specific requests/parsers,
 and all eight `RemoveAllLoggers()` registrations retained. Independent review is still pending.
+
+### Primary review follow-up: cancellation after disconnect commit
+
+Primary inspection found a new cancellation window between successful grant deletion and cache
+cleanup: a cancelled cleanup could leave live credentials in memory after `stored` was cleared.
+The new `CancellationAfterGrantDeletionFinishesDisconnectAndCannotReuseLiveCredentials` case
+was run before the correction and failed with TaskCanceledException at that boundary (1 test,
+1 failed). Disconnect now clears in-memory credentials immediately after durable grant deletion
+and completes secondary cache cleanup with CancellationToken.None. The targeted CodexSessionTests
+class then passed 15/15, including no further provider traffic after the cancelled disconnect.
+The quota-cache internal constructor supplies a synthetic cancellation hook; the public
+constructor and normal runtime behavior have no injected callback. This is a T-02 correction,
+not a new feature or authentication flow. Independent review was notified of the finding.

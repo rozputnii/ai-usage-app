@@ -273,6 +273,29 @@ public sealed class CodexSessionTests : IDisposable
         Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
     }
 
+    [Fact]
+    public async Task CancellationAfterGrantDeletionFinishesDisconnectAndCannotReuseLiveCredentials()
+    {
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Get
+            ? CodexTestServer.Json("""{"plan_type":"synthetic"}""") : CodexTestServer.Json(CodexTestServer.Tokens())));
+        using var http = new HttpClient(server);
+        var store = new CodexGrantStore(root);
+        store.Write(new("synthetic-workspace", "synthetic-stored"));
+        var cache = new CodexQuotaCache(root, () => cancellation.Cancel());
+        using var session = new CodexSession(new(http), new(http), store, cache);
+        await session.ResumeAsync(TestContext.Current.CancellationToken);
+        var calls = server.Calls;
+        var disconnected = await session.DisconnectAsync(cancellation.Token);
+        Assert.True(cancellation.IsCancellationRequested);
+        Assert.Equal(CodexSessionStatus.NotConnected, disconnected.Status);
+        Assert.False(session.HasStoredGrant);
+        Assert.Null(store.Read());
+        Assert.Null(cache.Read());
+        Assert.Equal(CodexSessionStatus.NotConnected, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(calls, server.Calls);
+    }
+
     private CodexSession Session(CodexTestServer server, out CodexGrantStore store)
     {
         var http = new HttpClient(server);

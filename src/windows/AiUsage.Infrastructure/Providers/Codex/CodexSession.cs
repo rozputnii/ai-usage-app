@@ -83,9 +83,11 @@ public sealed class CodexSession(CodexAuthClient auth, CodexQuotaClient quota, C
             await lease.DeleteAsync(token).ConfigureAwait(false);
             stored = null;
             HasStoredGrant = false;
-            await cache.DeleteAsync(token).ConfigureAwait(false);
             credentials?.Dispose();
             credentials = null;
+            // Deleting the durable grant commits disconnect. Finish local cleanup even when
+            // the original request is cancelled, and never retain a usable in-memory grant.
+            await cache.DeleteAsync(CancellationToken.None).ConfigureAwait(false);
             return CodexSessionState.NotConnected;
         }, cancellationToken, load: false);
 
