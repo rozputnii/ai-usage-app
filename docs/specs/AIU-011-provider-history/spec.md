@@ -1,7 +1,7 @@
 ---
 id: AIU-011
 type: spec
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 4
 approval_basis: The owner selected provider-supplied history on 2026-09-22, existing authorization only, all four providers and all available historical usage metrics, fewer clicks, and deferred local collection until product stability. After reviewing broader feasibility, the owner explicitly instructed implementation. Codex analytics and Copilot personal reports use existing sessions; unsupported providers remain explicit. Live acceptance is recorded separately.
@@ -80,6 +80,12 @@ and official administrator/reporting API candidates remain research context only
 The subsequent broader feasibility request includes alternate methods that might work
 with existing authorization. The owner subsequently selected implementation; extra access
 remains excluded.
+
+Live-verification amendment, 2026-09-22: the owner explicitly authorized using the
+existing browser login automatically for verification. This permits the normal AI Usage
+Codex/Copilot sign-in flow for this run, retaining its existing access scopes. It does not
+authorize browser-cookie extraction, CLI credential import, extra billing/admin permissions
+or automatic sign-in as part of opening History in the product.
 
 ## Acceptance criteria
 

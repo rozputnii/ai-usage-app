@@ -107,3 +107,36 @@ matches AiUsage.Dev version 2026.9.2202.0. All smoke-created app processes exite
 artifacts and screenshots remain local and ignored. The final product/demo smoke verdicts
 refer to the primary-action UI Automation tray path, with the separate physical-click
 limitation retained above. No actual history connection was silently claimed as verified.
+
+## Authorized browser-login live verification - 2026-09-22
+
+Base: `d3817ed`. The owner explicitly requested verification using the existing browser
+login automatically. This run used the normal AI Usage connection UI, the existing Chrome
+OpenAI/GitHub sessions and the same implemented scopes. The normal product flows wrote
+app-owned protected grants. No browser cookie extraction, source CLI credential import,
+new billing/admin permission, provider purchase, prompt or inference call was used.
+
+| Check | Verdict | Observed result |
+| --- | --- | --- |
+| Codex browser connection | PASS | Selected the existing OpenAI browser account and normal personal-workspace sign-in flow; AI Usage displayed Connected and a real fresh quota. The authorization callback completed during browser interaction; no claim that every consent click was performed by the agent. |
+| AC-02 real Codex history in Windows | PASS | Opened History directly from the connected account detail. The default 30-day query loaded real dated usage, activity input/cached/output/total tokens, client/model breakdowns, plugin invocations and skill invocations. Nonzero historical values were observed in the accessibility tree; the rendered History page was visually inspected. No initial Load action. |
+| Codex seven-day console read | PASS | Product-session command `history codex <owned-provider-directory>` returned Available for usage (199 dated rows), activity (196), plugins (3) and skills (1); credits returned Empty. No unknown numeric values in those returned rows. Counts are a snapshot, not a promise about all periods. |
+| Codex optional workspace reports | OBSERVED_LIMITATION | A temporary status-only handler on the normal hardened typed client observed HTTP 400 for both workspace token variants and HTTP 403 for the four enterprise credit breakdowns. UI preserved the available reports and showed failures/access-denied separately. A 400 was not represented as proof of missing permission. |
+| Codex top-list limit | PASS_WITH_LIMIT | The implemented plugin/skill requests with limit 100 returned HTTP 200 for this account. This verifies acceptance of that request, not completeness, retention or applicability to every plan. |
+| Copilot browser/device connection | PASS | Used the current GitHub browser session and the device code displayed by this AI Usage connection. GitHub showed Existing access / Read all user profile data for the existing OpenCode registration. Confirmation reached device connected; AI Usage stored the grant and displayed the initial quota. No new scope. |
+| Copilot historical reports | UNAVAILABLE_WITH_CURRENT_CONNECTION | Both AI-credit and premium-request requests returned HTTP 404, while `/user` returned HTTP 200. The product UI and seven-day console probe showed failed reports and no historical rows. A 404 does not distinguish account-plan restrictions, grant eligibility or endpoint availability; no specific cause is claimed. No extra credentials or permissions were requested. |
+| Credential and evidence handling | PASS | Reads used `%LOCALAPPDATA%/AiUsage/Development/providers` through product sessions. The console printed fixed report/status/count fields only; temporary transport instrumentation printed fixed labels and HTTP status codes only. No token, raw response, identity, native private value or screenshot was added to repository evidence. The temporary handler was removed; HistoryConsole.cs has no resulting diff. |
+| Restored console build | PASS | `dotnet build tools/AiUsage.ProviderConsole --no-restore`: zero warnings/errors after removing temporary instrumentation. Product code is unchanged from the previously tested implementation. |
+
+The earlier missing-grant blocker is resolved by this explicitly authorized verification
+run. AC-02 is satisfied by a real Codex dataset fetched and displayed through the selected
+product path. This closes AIU-011's capability-dependent scope; it does not claim working
+Copilot history, every Codex workspace report, or remote history for Claude/Antigravity.
+The physical-click smoke limitation and provider coverage limits recorded above remain.
+Connections are retained for the owner; no disconnect/revocation was requested.
+
+Final live-evidence document validation: PASS (`valid=true`, diagnostics empty).
+`git diff --check`: PASS. Primary review confirmed the owner authorization amendment,
+real-data acceptance, distinct 400/403/404 outcomes, absence of private data in the diff,
+and removal of temporary instrumentation. This follow-up changes documentation only;
+the earlier deterministic/build/interactive checks remain the product-code evidence.

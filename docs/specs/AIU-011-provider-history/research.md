@@ -1,5 +1,11 @@
 # Provider-history assessment
 
+This file retains the source-only assessments made before implementation. Subsequent
+implementation and authorized browser-login verification on 2026-09-22 established real
+Codex history access and current-connection HTTP 404 responses for Copilot history.
+See [verification.md](verification.md) for those observed results; the earlier null live
+dates and research dispositions below are historical, not the current feature status.
+
 ## Broader feasibility assessment - 2026-09-22
 
 The owner's follow-up asks whether provider history can be retrieved at all, reopening

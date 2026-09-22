@@ -90,3 +90,15 @@ and Retry-After prevents immediate retries. Results are memory-only.
 
 The quota live date above does not verify analytics. No eligible stored Codex grant was
 available for the AIU-011 run; see [verification](../specs/AIU-011-provider-history/verification.md).
+
+### Live history result - 2026-09-22
+
+The owner authorized the normal browser sign-in using the existing browser session. The
+resulting AI Usage grant successfully read and displayed daily usage/activity plus plugin
+and skill history. The seven-day probe returned 199 usage, 196 activity, 3 plugin and 1
+skill dated rows, with no unknown values; credit events were empty. Plugin/skill top-limit
+100 requests were accepted on this account. Workspace token variants returned HTTP 400,
+and enterprise credit variants returned HTTP 403. No universal retention or plan support
+is inferred. History `live_verified_at` is now 2026-09-22 for the successful routes only;
+earlier null statements describe the pre-login implementation stage. See the detailed
+[verification](../specs/AIU-011-provider-history/verification.md).

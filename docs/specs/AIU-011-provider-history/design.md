@@ -1,7 +1,7 @@
 ---
 id: AIU-011
 type: design
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 4
 ---

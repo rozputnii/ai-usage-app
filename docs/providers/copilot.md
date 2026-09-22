@@ -84,3 +84,14 @@ and incomplete or top-limited coverage is never promised as complete.
 
 Earlier live quota checks do not verify historical billing access. No stored Copilot grant
 was available for this run; see [verification](../specs/AIU-011-provider-history/verification.md).
+
+### Live history access attempt - 2026-09-22
+
+The owner authorized the normal device/browser sign-in using the existing GitHub session.
+GitHub showed existing read-only profile access; no new billing scope was requested. Login
+and current quota succeeded. Both personal history routes returned HTTP 404 under that
+app-owned grant; `/user` returned HTTP 200. Product History showed failed reports and no
+rows. The cause of 404 is not established and must not be asserted as definitely a plan
+restriction or definitely an OAuth limitation. History transport was live-attempted on
+2026-09-22, but successful history `live_verified_at` remains null. See the detailed
+[verification](../specs/AIU-011-provider-history/verification.md).
