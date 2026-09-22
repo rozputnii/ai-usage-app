@@ -40,7 +40,7 @@ Extend the existing Validation workflow with a release job after both required j
 Use queue:max serialization for the publication job, with at most 100 queued runs
 (GitHub's limit). Reserve a version as a draft prerelease before build. Never overwrite
 an existing release asset. Changed bytes always need a fresh version; retries reserve
-another version. Compare candidate ancestry against the highest published Preview:
+another version. Compare candidate ancestry against every published Preview:
 late completion of an older commit cannot supersede the current feed.
 
 Use GitHub Pages deployment artifacts for the feed, without a generated Git branch.

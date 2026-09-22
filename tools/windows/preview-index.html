@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>AI Usage — Development Preview</title>
+<style>body{max-width:48rem;margin:4rem auto;padding:0 1.5rem;font:18px/1.65 system-ui;background:#14171b;color:#e5e9f0}a{color:#9fceff}h1{line-height:1.2}code{font-size:.9em}</style>
+<h1>AI Usage<br>Development Preview</h1>
+<p>Test builds for Windows 11 24H2 or later, x64. These packages use a self-signed development certificate. They are not a publicly trusted release.</p>
+<ol>
+<li>Install the <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0">.NET 10 x64 runtime</a> if missing. Windows App SDK dependencies are included in the install feed.</li>
+<li>Download the <a href="AiUsage.Development.cer">public test certificate</a>. Verify its thumbprint against <a href="release.json">release metadata</a> and the repository's recorded setup result. For a test device you control, import it into <strong>Local Machine → Trusted People</strong>. This requires administrator approval. Do not add it to Trusted Root Certification Authorities.</li>
+<li>Download and open <a href="AiUsage.appinstaller">AI Usage App Installer</a>. Install through this file to subscribe to updates.</li>
+</ol>
+<p>Each successful main push publishes a new Preview. Windows checks on launch and periodically in the background. Exit AI Usage from its tray menu to allow a pending update; closing its window only hides it. Windows does not forcibly restart the app.</p>
+<p>The unpackaged developer build is separate from the installed app and is not updated by this channel. Provider credentials are not imported from it.</p>
+<p><a href="https://github.com/rozputnii/ai-usage-app/releases">All development builds</a> · <a href="https://github.com/rozputnii/ai-usage-app">Source</a></p>
+</html>

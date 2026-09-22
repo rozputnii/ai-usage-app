@@ -95,7 +95,43 @@ The separate executable UI suite publishes with `dotnet publish tests/windows/Ai
 
 The default `-VerificationMode ProductUi` provisions the offline dependencies before the first app activation, so ordinary UI checks do not show missing-runtime dialogs. Missing-prerequisite negative checks are reported as NOT_RUN. Use `-VerificationMode InstallationContract` explicitly when testing installation failures; that mode deliberately activates without the runtime and can display the native missing-runtime dialog. ProductUi success does not claim the installation-negative contract passed.
 
-## Project state
+## Development Preview updates
+
+The owner-selected AIU-014 test channel uses a dedicated self-signed CI certificate.
+It is for explicitly trusted test devices, not public distribution. Provisioning is
+separate from ordinary build/push authority: review
+`tools/windows/Initialize-PreviewSigning.ps1` before explicitly running it with `-Apply`
+in PowerShell 7. It creates a new in-memory key, sends a password-protected PFX and its
+random password to `AIU_CI_PFX_BASE64` / `AIU_CI_PFX_PASSWORD` Actions secrets, enables
+GitHub Pages, then enables `AIU_PREVIEW_ENABLED`. It never exports the existing local
+key or changes host certificate trust. Existing secrets/setup evidence stop a repeat;
+partial setup must be inspected, not overwritten or rotated automatically.
+
+Once enabled, successful main-push validation publishes distinct development
+prereleases and deploys `https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`.
+Draft releases reserve versions before building; a failure consumes its version. The
+release queue retains up to 100 pending jobs. Only a candidate containing every prior
+published source can update the feed; a late older source may publish an artifact but
+cannot replace the feed. Published asset bytes are never overwritten. The UTC daily
+counter has 99 slots; exhaustion or a backward clock stops publication explicitly.
+
+For the first test-device installation, install the .NET 10 x64 runtime, explicitly
+trust the published CER in Local Machine / Trusted People after verifying its
+thumbprint, and open the `.appinstaller` link. Trust requires administrator consent.
+Windows App SDK dependencies are referenced by the feed. Install through App Installer
+to register the update source; directly installing an MSIX is not equivalent.
+Windows checks on launch and every eight hours in the background without blocking
+launch or forcing restart. Exit from the tray menu to allow an update; closing the
+window just hides it. The in-app Updates page currently reports externally managed
+updates; it does not implement a separate downloader or Stable channel switch.
+
+Unpackaged development runs use separate data and do not update through this channel.
+Nothing copies provider credentials into the installed app. The test certificate
+expires after two years; renewal needs a deliberate trust/rotation procedure. Stable,
+publicly trusted signing and automatic release pruning remain deferred. Current
+operational evidence: [AIU-014 verification](docs/specs/AIU-014-preview-updates/verification.md).
+
+## Project records
 
 - [Goals](docs/product/goals.md), [backlog](docs/backlog.md) and [accepted decisions](docs/decisions/accepted.md).
 - [Environment history](docs/workflow/environment.md) and [security reporting](SECURITY.md).
