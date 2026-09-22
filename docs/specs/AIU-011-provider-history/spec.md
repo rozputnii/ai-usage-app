@@ -1,7 +1,7 @@
 ---
 id: AIU-011
 type: spec
-status: implemented
+status: implementing
 goal: G-003
 scope_version: 4
 approval_basis: The owner selected provider-supplied history on 2026-09-22, existing authorization only, all four providers and all available historical usage metrics, fewer clicks, and deferred local collection until product stability. After reviewing broader feasibility, the owner explicitly instructed implementation. Codex analytics and Copilot personal reports use existing sessions; unsupported providers remain explicit. Live acceptance is recorded separately.

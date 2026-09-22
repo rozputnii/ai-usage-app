@@ -29,6 +29,9 @@ AIU-029 stays deferred. Connections remain in normal app-owned protected storage
 Temporary status-only diagnostics were removed; no private response or credential was
 committed. Detailed commands, outcomes and residual limits are in verification.md.
 
-Next action: none required for the selected scope. Any further Copilot eligibility,
-workspace-plan support, history presentation refinement or local retention work requires
-its own owner selection; no extra permissions or task start are implied by this completion.
+Follow-up verification: pending by owner direction on 2026-09-22, at low priority.
+The completed implementation and observed results above are retained; the owner requested
+further verification before treating the feature as complete. No new checks start now.
+
+Next action when selected again: review the recorded provider-access and Windows smoke
+limitations, then verify the remaining history behavior and record the actual outcomes.

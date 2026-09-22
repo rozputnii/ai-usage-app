@@ -140,3 +140,11 @@ Final live-evidence document validation: PASS (`valid=true`, diagnostics empty).
 real-data acceptance, distinct 400/403/404 outcomes, absence of private data in the diff,
 and removal of temporary instrumentation. This follow-up changes documentation only;
 the earlier deterministic/build/interactive checks remain the product-code evidence.
+
+## Owner-requested follow-up verification - 2026-09-22
+
+After the live-verification report, the owner directed that this feature remain pending
+further verification and receive lower priority. The backlog now records review / low;
+the previous completion disposition is superseded. Existing observed PASS results and
+provider limitations remain unchanged. No additional provider or UI checks were run for
+this status-only amendment.

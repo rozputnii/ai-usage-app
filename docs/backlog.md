@@ -101,7 +101,9 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-011 - Provider-supplied usage history
 - goal: G-003
-- status: done
+- status: review
+- priority: low
+- review-note: Owner direction, 2026-09-22: this feature still needs verification; lower its priority and defer further checks until selected again. Existing implementation and observed live results are retained, but the feature is no longer marked complete.
 - depends_on: [AIU-004, AIU-007, AIU-008, AIU-009, AIU-010]
 - trigger: owner-selected
 - outcome: Retrieve and display available historical usage supplied by Codex, Claude, Copilot and Antigravity, preserving native metrics, units, periods and access limitations. Open History with automatic loading and useful defaults; account/range selection is optional refinement, not a required sequence before seeing data.
