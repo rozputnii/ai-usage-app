@@ -53,10 +53,13 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-006 - First verified upgrade and recovery checkpoint
 - goal: G-002
-- status: idea
+- status: in-progress
 - depends_on: [AIU-004]
 - trigger: before-external-data
 - outcome: Test real old/new development MSIX packages with durable data, a versioned journal, consistent backup, deliberately interrupted migration and recovery.
+- specification: docs/specs/AIU-006-upgrade-recovery/spec.md
+- evidence: docs/specs/AIU-006-upgrade-recovery/verification.md
+- scope-note: Owner selected automatic execution on 2026-09-22. The first migration moves existing presentation preferences into an explicitly versioned layout, with protected checkpoint and exclusive startup/recovery. Provider credential formats and locations remain unchanged; no live sign-in or source credential import is required.
 
 ## AIU-007 - Claude end-to-end integration
 - goal: G-003
