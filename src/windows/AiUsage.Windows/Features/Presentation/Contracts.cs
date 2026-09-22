@@ -125,6 +125,7 @@ public static class FailureKinds
     public const string RateLimited = nameof(RateLimited);
     public const string InvalidGrant = nameof(InvalidGrant);
     public const string SchemaMismatch = nameof(SchemaMismatch);
+    public const string InternalError = nameof(InternalError);
 }
 
 public sealed record Preferences(

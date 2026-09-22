@@ -21,6 +21,7 @@ public partial class App : Application
     private MainWindow? window;
     private TrayPopupWindow? popup;
     private Task? stopTask;
+    private readonly ApplicationDiagnostics diagnostics = new();
 
     public App() => InitializeComponent();
 
@@ -28,11 +29,13 @@ public partial class App : Application
     {
         try
         {
+            var demo = Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal);
+            diagnostics.Initialize(demo);
             var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });
+            diagnostics.Register(builder.Services);
             builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
             builder.Services.AddSingleton(DispatcherQueue.GetForCurrentThread());
             builder.Services.AddPresentationFeatures().AddPlatformServices();
-            var demo = Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal);
             if (demo) builder.Services.AddDemoServices();
             else builder.Services.AddLiveServices();
             host = builder.Build();
@@ -53,8 +56,9 @@ public partial class App : Application
             else
                 await services.GetRequiredService<IProductLifecycle>().InitializeAsync();
         }
-        catch
+        catch (Exception error)
         {
+            diagnostics.StartupFailure(error);
             Environment.ExitCode = 1;
             await StopAsync();
         }
@@ -86,8 +90,9 @@ public partial class App : Application
                 await host.StopAsync(timeout.Token);
             }
         }
-        catch
+        catch (Exception error)
         {
+            diagnostics.ShutdownFailure(error);
             Environment.ExitCode = 1;
         }
         finally
@@ -97,8 +102,9 @@ public partial class App : Application
                 window?.CloseForExit();
                 host?.Dispose();
             }
-            catch
+            catch (Exception error)
             {
+                diagnostics.DisposalFailure(error);
                 Environment.ExitCode = 1;
             }
             Exit();

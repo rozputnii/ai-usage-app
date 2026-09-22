@@ -1,4 +1,5 @@
 using System.Text.Json;
+using AiUsage.Core.Diagnostics;
 using AiUsage.Adapters.Live;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Presentation;
@@ -10,6 +11,68 @@ namespace AiUsage.Presentation.Tests;
 
 public sealed class LiveAdapterTests
 {
+    [Theory]
+    [InlineData(ConnectionState.Connected)]
+    [InlineData(ConnectionState.ReauthRequired)]
+    public void InternalErrorDoesNotOfferRetryOrReconnection(ConnectionState connection)
+    {
+        using var host = new TestHost();
+        var account = host.Usage.Current.Accounts.First() with
+        {
+            Connection = connection,
+            Failure = new("InternalError", "Failure_InternalError", null, false)
+        };
+        var failure = new FailureViewModel();
+        failure.Update(account, host.Format);
+        Assert.True(failure.IsVisible);
+        Assert.Equal(FailureAction.None, failure.Action);
+        Assert.False(failure.ActionEnabled);
+        Assert.False(failure.HasAction);
+    }
+
+    [Fact]
+    public async Task UnexpectedOperationFailureHasDistinctMessageAndNoRetry()
+    {
+        var session = new Session { RefreshError = new InvalidOperationException("synthetic-private-value") };
+        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { ["codex"] = session });
+        await source.InitializeAsync();
+        var result = await source.ExecuteAsync(new(UiCommandKind.RefreshAccount, "codex", null,
+            source.Current.Revision), TestContext.Current.CancellationToken);
+        Assert.Equal(CommandStatus.Failed, result.Status);
+        Assert.Equal("InternalError", result.Failure?.Kind);
+        Assert.Equal("Failure_InternalError", result.Failure?.MessageKey);
+        Assert.False(result.Failure?.Recoverable);
+        Assert.Equal(result.Failure, source.Current.Accounts.Single().Failure);
+        _ = new TestText().Get("Failure_InternalError");
+        _ = new TestText().Get("Failure_Short_InternalError");
+    }
+
+    [Fact]
+    public async Task UnknownExceptionDataNeverCrossesDiagnosticBoundary()
+    {
+        const string token = "sk-synthetic-secret-value";
+        const string opaque = "opaque-provider-account-id";
+        var error = new InvalidOperationException(token, new Exception(opaque));
+        error.Data[opaque] = new { future = new { credential = token } };
+        var diagnostics = new DiagnosticCapture();
+        var session = new Session { RefreshError = error };
+        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { [opaque] = session }, diagnostics);
+        await source.InitializeAsync();
+        var result = await source.ExecuteAsync(new(UiCommandKind.RefreshAccount, opaque, null,
+            source.Current.Revision), TestContext.Current.CancellationToken);
+        Assert.Equal(CommandStatus.Failed, result.Status);
+        var record = Assert.Single(diagnostics.Records);
+        Assert.Equal("OperationFailure/InvalidOperation", record);
+        Assert.DoesNotContain(token, record);
+        Assert.DoesNotContain(opaque, record);
+    }
+
+    private sealed class DiagnosticCapture : IDiagnosticSink
+    {
+        public List<string> Records { get; } = [];
+        public void Record(DiagnosticEvent eventCode, DiagnosticCategory category) => Records.Add($"{eventCode}/{category}");
+    }
+
     [Fact]
     public async Task ExitDuringPreferenceLoadDrainsStartupBeforeReturning()
     {
@@ -342,12 +405,14 @@ public sealed class LiveAdapterTests
         public int Resumes { get; private set; }
         public int Disconnects { get; private set; }
         public bool BlockRefresh { get; init; }
+        public Exception? RefreshError { get; init; }
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public Task<ProviderSessionState> ReadCachedStateAsync(CancellationToken cancellationToken = default) => Task.FromResult(State);
         public Task<ProviderSessionState> ResumeAsync(CancellationToken cancellationToken = default) { Resumes++; return Task.FromResult(State); }
         public Task<ProviderSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default) => Task.FromResult(State);
         public async Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default)
         {
+            if (RefreshError is not null) throw RefreshError;
             Started.TrySetResult();
             try { if (BlockRefresh) await Task.Delay(Timeout.Infinite, cancellationToken); }
             catch (OperationCanceledException) { State = new(ProviderSessionStatus.ReauthenticationRequired); throw; }

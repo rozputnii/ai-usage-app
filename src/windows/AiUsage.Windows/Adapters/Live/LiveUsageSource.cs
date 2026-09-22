@@ -1,4 +1,5 @@
 using AiUsage.Core.Dashboard;
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Accounts;
 using AiUsage.Features.Presentation;
@@ -15,12 +16,14 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
     private Task? initialization;
     private Task? stopping;
     private UiSnapshot current;
+    private readonly IDiagnosticSink? diagnostics;
     internal LivePreferenceStore? PreferenceStore { get; set; }
     private IReadOnlyDictionary<string, string> labels = new Dictionary<string, string>();
     private IReadOnlyDictionary<string, ExpansionPreference> expansions = new Dictionary<string, ExpansionPreference>();
 
-    public LiveUsageSource(IReadOnlyDictionary<string, IProviderSession> sessions)
+    public LiveUsageSource(IReadOnlyDictionary<string, IProviderSession> sessions, IDiagnosticSink? diagnostics = null)
     {
+        this.diagnostics = diagnostics;
         entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value));
         current = new(0, UiMode.Live, DateTimeOffset.UtcNow, [], Capabilities(),
             new(ThemePreference.System, [], [], [], false, false, false, [Preferences.DefaultGlobalRule]),
@@ -143,10 +146,11 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
             Update(id, entry.Session.State);
             return UiCommandResult.Cancelled;
         }
-        catch (Exception)
+        catch (Exception error)
         {
-            Update(id, entry.Session.State with { Failure = ProviderFailureKind.ProviderUnavailable });
-            return UiCommandResult.Failed(LiveMapping.Failure(ProviderFailureKind.ProviderUnavailable));
+            diagnostics?.Record(DiagnosticEvent.OperationFailure, DiagnosticProjection.Category(error));
+            Update(id, entry.Session.State with { Failure = ProviderFailureKind.InternalError });
+            return UiCommandResult.Failed(LiveMapping.Failure(ProviderFailureKind.InternalError));
         }
         finally
         {

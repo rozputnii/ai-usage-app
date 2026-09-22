@@ -67,8 +67,9 @@ internal static class LiveMapping
             ProviderFailureKind.RateLimited => "Failure_RateLimited",
             ProviderFailureKind.ProjectUnavailable => "Failure_ProjectUnavailable",
             ProviderFailureKind.RegistrationUnavailable => "Failure_RegistrationUnavailable",
+            ProviderFailureKind.InternalError => "Failure_InternalError",
             _ => "Dialog_OperationFailed"
         }, null, kind is not (ProviderFailureKind.RecoveryRequired or ProviderFailureKind.StorageUnavailable or
             // Retrying cannot help until this device is configured; the action is not in the app.
-            ProviderFailureKind.RegistrationUnavailable));
+            ProviderFailureKind.RegistrationUnavailable or ProviderFailureKind.InternalError));
 }

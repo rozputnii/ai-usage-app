@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using AiUsage.Adapters.Live;
 using AiUsage.Core.Usage;
+using AiUsage.Core.Diagnostics;
 using AiUsage.Features.Accounts;
 using AiUsage.Features.CliImport;
 using AiUsage.Features.Connection;
@@ -22,18 +23,7 @@ internal static class LiveServiceRegistration
 {
     public static IServiceCollection AddLiveServices(this IServiceCollection services)
     {
-        string root;
-        try
-        {
-            _ = Windows.ApplicationModel.Package.Current.Id;
-            root = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
-        }
-        catch (InvalidOperationException)
-        {
-            root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AiUsage", "Development");
-            if (Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY") is { Length: > 0 } isolated)
-                root = Path.GetFullPath(isolated);
-        }
+        var root = ApplicationStateDirectory.Get();
         services.AddCodexProductSession(Path.Combine(root, "providers"));
         services.AddClaudeProductSession(Path.Combine(root, "providers"));
         services.AddCopilotProductSession(Path.Combine(root, "providers"));
@@ -44,7 +34,7 @@ internal static class LiveServiceRegistration
             ["claude"] = p.GetRequiredService<ClaudeSession>(),
             ["copilot"] = p.GetRequiredService<CopilotSession>(),
             ["antigravity"] = p.GetRequiredService<AntigravitySession>()
-        }));
+        }, p.GetRequiredService<IDiagnosticSink>()));
         services.AddSingleton<IUsageSource>(p => p.GetRequiredService<LiveUsageSource>());
         services.AddSingleton<IConnectionFlow>(p => new LiveConnectionFlow(p.GetRequiredService<LiveUsageSource>(),
             uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })));

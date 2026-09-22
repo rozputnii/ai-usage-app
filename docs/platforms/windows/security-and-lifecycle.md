@@ -30,6 +30,22 @@ Reset settings preserves accounts/credentials/history/labels/order. Factory rese
 ## Diagnostics
 Normal history contains normalized data only. Failure diagnostics are safe allowlisted structure (field/type info, redacted values where safe); unknown payload not blindly saved after regex substitutions. Seven-day retention; manual export re-sanitizes IDs/email/paths. Full exception objects and request/response bodies aren't generic log arguments. No automatic network telemetry.
 
+AIU-028 T-04 stores `diagnostics.v1.log` under the existing app-owned state root, separate from
+provider files. It contains UTC timestamps and fixed event/category codes only, is bounded to
+64 KiB, and prunes records older than seven days at startup and on writes. Oldest records are
+dropped when the cap is reached. Retention resumes when the app next runs; no background cleanup
+runs while it is closed. Demo uses the development root's `Demo` subdirectory. The development
+state override applies to both, keeping synthetic checks isolated.
+
+Only defined enums cross the sink boundary. Exception messages, runtime type names, stacks,
+inner exceptions, Data, provider payloads and opaque identifiers are never fields or arguments
+to the sink. Existing file records are rebuilt from validated fields before retention. The
+file and existing directory ancestors are checked for reparse points; the opened file is
+exclusive, with no recursive deletion or path supplied by provider data. Same-user race or
+tampering protection is not guaranteed. Storage failure drops diagnostic output and does not
+replace the original failure. Partial writes can lose diagnostic records. No export is enabled
+by T-04; future factory reset includes this file as app-owned mutable data.
+
 ## Security tests before relevant features merge
 - Cross-account token/grant mismatch rejected; rotating refresh pair preserved through quota cancellation.
 - Cancel/disconnect/reimport prevents old generation DB writes/store updates/alerts.

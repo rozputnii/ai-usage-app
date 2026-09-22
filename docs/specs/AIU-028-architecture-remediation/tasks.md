@@ -72,7 +72,7 @@ makes every later task diagnosable. Polish is last.
       `tools/AiUsage.ProviderConsole`.
 
 ### T-04 - Classify unclassified failures and add redacted diagnostics
-- status: pending
+- status: in-progress
 - depends_on: [T-03]
 - acceptance: AC-04, AC-05
 - evidence: not-run
@@ -249,9 +249,20 @@ found no actionable issues; no independent review or interactive/live run is cla
 T-03 is done at `13d45a7`, committed and pushed to main. T-01, T-02, T-03, T-08 and T-09
 are complete; AIU-028 as a whole remains incomplete.
 
-Exact next action: obtain the owner's selection of the next pending task, with T-04 recommended,
-before starting further implementation. Other pending tasks remain unselected. There are no
-worker artifacts.
+T-04 selected for this session with no subagents; base `56d6315` on main. Plan: record the
+diagnostic lifecycle, prove internal-failure classification and redaction with failing tests,
+implement the bounded sink and desktop wiring, then run Infrastructure/Presentation suites,
+Windows build/smoke, document validation and primary integrated review. Use this task record
+as the execution ledger; no new branch or agent workspace is needed under CONTRIBUTING.
+
+T-04 implementation checkpoint: classification/redaction tests observed failing before the
+fix; the reauthentication-priority case also failed before its correction. Infrastructure
+261/261 and Presentation 133/133 PASS. Desktop build/smoke and primary integrated review are
+still pending. Required focused independent review is NOT_RUN under the no-subagent request.
+
+Exact next action: finish the Windows build, run isolated desktop smoke and package validation,
+then record primary review and the frozen reference for independent review. Other pending tasks
+remain unselected.
 
 Earlier T-01/T-02 review checks: Infrastructure 254/254 and Presentation 129/129 PASS on that code, including
 the disconnect cancellation correction. Earlier Windows Debug unpackaged and ProviderConsole

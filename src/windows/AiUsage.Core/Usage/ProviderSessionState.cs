@@ -18,7 +18,9 @@ public enum ProviderFailureKind
     ProjectUnavailable,
     // No client registration is configured on this device for a provider that requires the operator
     // to supply one. The repository never vendors another application's OAuth registration.
-    RegistrationUnavailable
+    RegistrationUnavailable,
+    // An unclassified application defect; provider retry/reconnection is not a recovery action.
+    InternalError
 }
 
 public sealed record ProviderSessionState(

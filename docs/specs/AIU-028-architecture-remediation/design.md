@@ -115,6 +115,32 @@ sink writes a file at all, and where it sits relative to the app-owned state roo
 data-lifecycle decision that belongs to the task, and the task records it under the
 security-lifecycle skill before it is implemented.
 
+### T-04 diagnostic lifecycle (2026-09-22)
+
+The sink lives in Infrastructure behind a credential-free Core port accepting only defined
+event and failure-category enums. Call sites project exceptions to fixed categories; messages,
+type names, stacks, Data, inner exceptions and provider/account identifiers never cross the port.
+The Windows composition wrapper records startup, shutdown and disposal failures even before the
+host exists. Demo diagnostics use a separate development demo root.
+
+Product diagnostics use `diagnostics.v1.log` in the existing app-owned state root (package local
+state or the unpackaged development override). The plaintext file contains only UTC timestamps
+and allowlisted event/category codes. Maximum size is 64 KiB; records older than seven days are
+removed on startup and each write, with oldest records dropped to fit the bound. No background
+process deletes data while the app is closed. No export or network telemetry is added.
+
+All existing ancestors and the file are checked for reparse points before access. An exclusive
+file handle serializes read/prune/write; contention or storage failure drops diagnostics without
+changing the original operation result. Existing records are revalidated and reconstructed from
+the allowlist before retention, so corrupt/unknown fields cannot be copied forward. A partial
+write may lose diagnostics; no credential-style atomicity or crash durability is claimed. Only
+this fixed owned file is rewritten; no recursive cleanup, provider-state changes or source CLI
+access occurs. Future factory reset removes it as app-owned mutable state.
+
+The owner requested no subagents. Primary acceptance/diff review will run; required focused
+independent review is recorded as unavailable until a fresh independent session reviews the
+frozen code. This does not turn primary review into independent review.
+
 ## Build policy
 
 F-08 and F-09 introduce `Directory.Build.props` and `Directory.Packages.props`. These are

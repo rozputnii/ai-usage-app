@@ -173,6 +173,7 @@ internal sealed partial class FailureViewModel : ObservableObject
     public void Update(AccountItem account, PresentationFormatter format)
     {
         var failure = account.Failure;
+        ActionEnabled = false;
         IsVisible = failure is not null;
         if (failure is null)
         {
@@ -185,7 +186,13 @@ internal sealed partial class FailureViewModel : ObservableObject
         Message = format.T(failure.MessageKey);
         var now = format.Clock.UtcNow;
         var retryPending = failure.RetryAt is { } at && at > now;
-        if (account.Connection == ConnectionState.ReauthRequired)
+        if (failure.Kind == FailureKinds.InternalError)
+        {
+            Action = FailureAction.None;
+            ActionLabel = string.Empty;
+            WaitText = string.Empty;
+        }
+        else if (account.Connection == ConnectionState.ReauthRequired)
         {
             Action = FailureAction.Reconnect;
             ActionLabel = format.T("Action_Reconnect");
