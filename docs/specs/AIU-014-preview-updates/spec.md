@@ -12,6 +12,12 @@ Every successful main push produces a distinct signed development MSIX. The only
 current audience is the owner as tester; public trust and Stable promotion remain
 deferred. Existing AIU-006 forward migration/recovery applies to installed updates.
 
+Owner authorization, 2026-09-22: finish and test the update system, execute the
+prepared setup script, and perform the necessary local/browser operations to configure
+and verify automatic updates. This includes the dedicated CI key/secrets, Pages,
+development certificate trust and test installations. No provider sign-in or credential
+import is needed for this task. Preserve existing data and use synthetic test state.
+
 ## Acceptance
 
 - AC-01: Successful main push validation triggers serialized Preview publication;

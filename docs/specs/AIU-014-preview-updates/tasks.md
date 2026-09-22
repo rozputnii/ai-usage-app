@@ -62,8 +62,10 @@ appear in output. First install must establish feed association and prerequisite
 
 Base f708954. Prepared implementation dc0548e; CI fixes 55286df, 9064d76, ff30d80.
 23 release-policy assertions, script syntax and full hosted CI at ff30d80 PASS.
-Independent review's shallow-checkout defect is resolved. No signing key was created/uploaded and no host
-trust changed. Automatic approval review blocked the proposed Sandbox feed proof.
-Next action: obtain explicit confirmation for the prepared
-`Initialize-PreviewSigning.ps1 -Apply` action (dedicated CI key/secrets, Pages and
-publication enablement), then execute it if authorized. See verification.md for limits.
+Independent review's shallow-checkout defect is resolved. The owner explicitly
+authorized full setup/testing and Initialize-PreviewSigning.ps1 -Apply succeeded.
+Dedicated CI secrets and Pages are configured; AIU_PREVIEW_ENABLED is true. Public
+test certificate thumbprint: B4C73392759C80CA5D1AA4004486B6C957417609.
+Host trust is not yet changed. Next action: observe the first signed Preview job from
+this activation-record push, resolve failures, then verify actual feed installation
+and forward update. Prior Sandbox rejection preceded the owner's renewed authority.
