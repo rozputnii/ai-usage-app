@@ -103,26 +103,25 @@ token, opaque provider identifier or user data appears in these documents; the t
 constants quoted in the findings are endpoint and entropy strings already present in the
 repository, not secrets.
 
-## Remediation checks - placeholders
+## Remediation check index
 
-These are the checks each task must produce. Completed checks are recorded below; the T-01/T-02
-regressions, compatibility checks and independent review passed as recorded at the end.
-Unselected tasks remain NOT_RUN.
+All task-specific required checks have passing evidence below. Historical NOT_RUN and BLOCKED
+entries retain their original scope and are superseded only by explicitly recorded later evidence.
 
 | Task | Acceptance | Required check | Status |
 | --- | --- | --- | --- |
 | T-01 | AC-01, AC-02 | Infrastructure Release suite, no reduction in test count | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
 | T-02 | AC-02 | Infrastructure Release suite; new per-provider reparse-point refusal test; Codex record forward-compatibility test; focused independent review | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
 | T-03 | AC-03 | Infrastructure and Presentation Release suites; `tools/AiUsage.ProviderConsole` Release build | PASS, see T-03 closure below |
-| T-04 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | NOT_RUN |
-| T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | NOT_RUN |
+| T-04 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | PASS; see task-specific closure evidence below |
+| T-05 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | PASS; see task-specific closure evidence below |
 | T-06 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | PASS, see T-06 closure below |
 | T-07 | AC-08 | Warnings-visible desktop build at the raised analysis level with zero warnings; all four suites | PASS |
 | T-08 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
 | T-09 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-08 and T-09](#t-08-and-t-09---2026-09-20) |
-| T-10 | AC-12 | Presentation visibility-gate test **and** interactive Windows smoke | NOT_RUN |
+| T-10 | AC-12 | Presentation visibility-gate test **and** interactive Windows smoke | PASS; see task-specific closure evidence below |
 | T-11 | AC-01 | Infrastructure Release suite; `tools/AiUsage.ProviderConsole` Release build | PASS; see T-11 library-boundary evidence below |
-| T-12 | AC-01 | Infrastructure Release suite | NOT_RUN |
+| T-12 | AC-01 | Infrastructure Release suite | PASS; see task-specific closure evidence below |
 
 ## T-08 and T-09 - 2026-09-20
 
@@ -705,7 +704,7 @@ validation and diff checks are recorded with the closure commit.
 
 ## T-11 library boundary - 2026-09-22
 
-Relevance at base 72cc323: all eight auth/quota clients exposed constructors accepting arbitrary
+Implementation 9f4d347. Relevance at base 72cc323: all eight auth/quota clients exposed constructors accepting arbitrary
 HttpClient instances. T-01 centralized handler policy but left the public bypass intact; T-03
 completed the prerequisite session contract. T-11 therefore remained necessary.
 
@@ -732,3 +731,39 @@ The regression catches a future public raw-pipeline constructor; registration te
 real DI and all eight actual handler configurations without network requests or state-file
 access. This closes F-14 / CR-AIU-003-01. Friend access is an intentional internal testing/console
 escape hatch, not a security sandbox against arbitrary code or reflection in the same process.
+
+## T-12 transport options - 2026-09-22
+
+Relevance was assessed at 9f4d347 after T-11 was completed and pushed. T-01 had centralized
+the 15-second request deadline and five-minute pooling lifetime, but ClaudeQuotaClient,
+CopilotQuotaClient and AntigravityQuotaClient still each declared the one-minute fallback.
+The task's single-call-site drop condition was false, so T-12 was implemented at 5095a1d.
+
+ProviderTransportOptions owns the unchanged 15-second, five-minute and one-minute defaults.
+The four DI extensions bind one shared instance using TryAddSingleton. All eight client
+constructors and their transport calls receive it; non-DI internal construction uses the same
+default instance. Pooling and quota-throttle fallback read its properties. Explicit Retry-After
+values still take precedence. The existing linked deadline still covers headers and response
+body reading, and caller cancellation retains its original classification. Loopback, host/UI,
+onboarding and provider-directed polling timers remain outside these transport options.
+
+| Check | Verdict | Observed result |
+| --- | --- | --- |
+| Options regressions before wiring | PASS (expected RED) | With only the options data type added, 15 tests ran: 12 failed as expected (all eight deadline consumers, three fallback consumers and pooling); three explicit-header precedence cases passed. |
+| Infrastructure Release suite | PASS | README command, 286/286; zero errors, failures, skipped or not-run tests. Covers real DI pooling for all eight names, configured deadline cancellation for all eight clients, each fallback's exact expiration boundary and Retry-After precedence. |
+| Presentation Release suite | PASS | README command, 147/147; zero errors, failures, skipped or not-run tests. |
+| ProviderConsole Release build | PASS | `dotnet build tools/AiUsage.ProviderConsole -c Release --no-restore`: zero warnings/errors. |
+| Windows unpackaged Debug build | PASS | README x64/WindowsPackageType=None command: zero warnings/errors. |
+| Document validation / diff check | PASS | README validator command: valid=true, diagnostics=[]; `git diff --check` returned exit 0. |
+| Primary integrated review of both tasks | PASS | Reviewed 72cc323..5095a1d against T-11/T-12 and AC-01: limited public surface, DI singleton ownership, only two friend assemblies, all transport forwarding sites, unchanged defaults and cancellation/body-read scope, explicit-header precedence, tests and consumer compatibility. No actionable findings. Self-review, not independent review. |
+| Independent review / live-provider calls / interactive UI / package build | NOT_RUN | No subagents used. No protocol, credential lifecycle, durable-data, privilege or UI behavior changed; earlier task-specific independent reviews and interactive evidence retain their recorded scope. |
+
+## AIU-028 closure - 2026-09-22
+
+All twelve tasks are complete. AC-01 is supported by the shared transport work and the final
+T-11/T-12 evidence; AC-02 through AC-12 retain their task-specific passing evidence above,
+including the fresh independent reviews for T-01/T-02 and T-04 and actual T-10 Windows smoke.
+The final suites cover the integrated product changes. The check index's stale T-04, T-05 and
+T-10 placeholders now point to their already-recorded results; those checks were not rerun or
+newly claimed by this session. This closes the selected remediation feature, not a release or
+any previously unverified live-provider/packaged lifecycle scenario.

@@ -228,7 +228,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-028 - Architecture and clean-code remediation
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-027]
 - trigger: after-audit
 - outcome: Fix the evidence-backed defects and duplication recorded by the 2026-09-20 architecture and clean-code audit, so that adding a fifth provider is an additive change and a failure is distinguishable from a provider outage.
@@ -238,7 +238,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - acceptance: See docs/specs/AIU-028-architecture-remediation/spec.md AC-01 onward. Existing deterministic regressions, document validation and a warnings-visible desktop build continue to pass; interactive Windows smoke is required for the clock-gating task.
 - evidence: docs/specs/AIU-028-architecture-remediation/verification.md
 - audit-note: Recorded 2026-09-20 against `main` at `6681b7a` by an analysis-only session under docs/workflow/architecture-audit-plan.md, which changed no production code. Fifteen findings F-01..F-15 with `path:line` evidence are in the specification; areas verified clean, including `x:Bind` coverage, handler symmetry and the mitigated typed-`HttpClient` singleton capture, are recorded as accepted-as-is rather than as findings. AIU-027 settled the Core/Infrastructure/Windows split and the source-linked presentation test project; this entry reports drift and debt accumulated since, and does not re-propose that structure.
-- selection-note: T-01 and T-02 are done after independent review; T-03 is done at 13d45a7. T-04 is done after a fresh independent review of 56d6315..55bb169 without subagents: PASS, no actionable findings; fresh Infrastructure 261/261 and Presentation 136/136 PASS, with unchanged Windows smoke/package evidence retained. T-05 is done at fc402dd: shared descriptor catalog, Presentation 142/142, Infrastructure 261/261, product/demo Windows smoke 7/7 each, unsigned MSIX and primary integrated review PASS. T-08 and T-09 were already done. See tasks and verification for scope and evidence. AIU-028 remains incomplete; other pending remediation tasks require separate selection.
+- completion-note: All twelve tasks are done. Earlier required independent review and Windows smoke evidence remain recorded in verification.md. T-11 (9f4d347) and T-12 (5095a1d) were assessed for relevance and completed sequentially without subagents on 2026-09-22; final Infrastructure 286/286, Presentation 147/147, console/Windows builds, document validation and primary review pass. No new live-provider, interactive UI or release evidence is claimed for these two tasks.
 - prior-work: AIU-027 (.NET architecture refinement and cleanup); F-14 resumes the deferred non-blocking finding CR-AIU-003-01, whose "before UI/persistent consumption" boundary is now crossed.
 
 ## Deferred clarifications, not forgotten

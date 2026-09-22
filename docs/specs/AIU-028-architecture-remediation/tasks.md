@@ -277,14 +277,14 @@ no independent review or live-provider evidence will be claimed. T-12 is assesse
 T-11 is completed, using its explicit drop condition.
 
 ### T-12 - Transport options
-- status: in-progress
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-01
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; code 5095a1d; Infrastructure 286/286, Presentation 147/147, consumer builds, document validation and primary review PASS
 
-- [ ] Introduce `ProviderTransportOptions` for the request deadline, pooled-connection lifetime
+- [x] Introduce `ProviderTransportOptions` for the request deadline, pooled-connection lifetime
       and retry-after fallback, bound once in the DI extensions, keeping today's values exactly.
-- [ ] Check: Infrastructure Release suite. Lowest priority; drop it if T-01 already leaves a
+- [x] Check: Infrastructure Release suite. Lowest priority; drop it if T-01 already leaves a
       single call site per value.
 
 Relevance check and implementation plan (2026-09-22, base `9f4d347`, after T-11 was
@@ -305,6 +305,9 @@ Finish Presentation Release, consumer builds, document validation and primary in
 review; preserve the primary-only review scope from T-11. No new public configuration API,
 dependency, provider protocol, credential lifecycle or UI behavior is introduced.
 
+T-12 is complete at 5095a1d; all named checks pass. The relevance check required implementation,
+so the drop alternative was not taken.
+
 ## Accepted as-is
 
 These findings-shaped observations were examined and are deliberately not being changed. The
@@ -322,6 +325,12 @@ for them later by accident.
 - `LivePreferenceStore` fail-closed behavior on a corrupt preference file — deliberate.
 
 ## Handoff
+
+Current outcome (2026-09-22): all twelve tasks are done. T-11 (9f4d347) and T-12
+(5095a1d) were checked for relevance and completed sequentially without subagents.
+All AC-01 through AC-12 have passing evidence in verification.md; AIU-028 is complete.
+No remaining action for this feature. Earlier session notes below are historical.
+
 
 The owner selected T-01 and T-02 on 2026-09-22. Base: `cfb9ceb` on `main`.
 T-01 and T-02 are now done at code reference `2ddcc7f`. A separate, fresh primary Codex session
