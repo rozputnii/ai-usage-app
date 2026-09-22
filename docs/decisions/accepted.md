@@ -206,6 +206,11 @@ database query shape and D-135/D-136's local collection/retention rules remain f
 not requirements to add persistence to AIU-011. D-063's ranges and D-122's charts apply only
 where the provider actually supplies suitable historical data; do not invent coverage.
 
+Further owner amendment, 2026-09-22: AIU-011 may use existing authorization only and must
+match OMP's provider-history method if one exists. Additional sign-in, web sessions,
+reporting credentials and permission expansion are excluded. OMP's locally recorded
+history is not provider-supplied history and does not reopen deferred AIU-029.
+
 ### D-063 - History resolution
 Perform resolution-aware querying/downsampling in the query layer. Offer 24h, 7d, 30d, 90d and 1y presets plus custom ranges. Bound points to rendering needs.
 

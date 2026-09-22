@@ -3,8 +3,8 @@ id: AIU-011
 type: spec
 status: draft
 goal: G-003
-scope_version: 1
-approval_basis: The owner selected provider-supplied history on 2026-09-22, deferred local collection until product stability, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The interaction proposal and additional-access decision below are not yet approved implementation architecture.
+scope_version: 2
+approval_basis: The owner selected provider-supplied history on 2026-09-22, deferred local collection until product stability, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The subsequent owner amendment restricts access to existing authorization and selects OMP's provider-history method if present. The interaction proposal remains a draft; implementation requires an eligible upstream method.
 ---
 # Provider-supplied usage history
 
@@ -15,6 +15,12 @@ provider surface supplies it. Display the supplied usage metrics, including coun
 tokens, credits, costs or percentages when available, with their original meaning.
 Provider coverage is capability-dependent; researching all four does not promise that
 each provider exposes history for the user's plan and current connection.
+
+The selected reference is OMP. Implement the same provider-history retrieval method
+only where OMP supplies one using the authorization already available in AI Usage.
+The source assessment of stable OMP v18.2.8 found no such path for any of the four
+providers. This blocks implementation under the selected scope; it does not prove that
+the providers could never expose history through other methods. See [research.md](research.md).
 
 This is an architectural change to history contracts: the current presentation contract
 only represents remaining percentages, and the live adapter returns an empty placeholder.
@@ -46,7 +52,8 @@ responses are not usage history. Preserve provider identifiers and metric semant
 never sum incompatible units, synthesize a quota curve from spending, or price tokens to
 invent subscription charges. Present aggregate-only reports as aggregates.
 
-Core owns credential-free history queries, results and capability/failure states.
+If an eligible upstream history path is established, Core owns credential-free history
+queries, results and capability/failure states.
 Infrastructure owns remote transport, parsing and account-scoped access. Windows owns
 navigation and presentation. Reuse hardened provider transport and the existing session
 authority when evidence proves the same grant works; never expose grants through Core.
@@ -57,30 +64,23 @@ belong to AIU-029. Existing last-quota caching remains unchanged. Export, foreca
 transcript ingestion, new billing products and organization administrator reporting are
 not implied by this selection.
 
-## Access decision PD-011-01
+## Resolved access decision PD-011-01
 
-Initial [research](research.md) has not proven a history read with any existing AI Usage
-grant. Copilot documents separate billing permissions; a source-observed Codex web path
-uses a distinct web session. This changes connection scope and credential boundaries.
+Owner decision, 2026-09-22: existing authorization only. Inspect OMP and reproduce its
+provider-history retrieval method for each provider if present. Additional sign-in,
+browser-session access, API keys, organization reporting credentials and expanded
+permissions are excluded. No browser/CLI credential import or OMP-store import is implied.
 
-Options:
-
-1. Existing connections only. Investigate their eligibility and show unavailable history
-   where access cannot be established. This may yield little or no historical data.
-2. Also allow optional, user-initiated history access for the same subscription account
-   where required (recommended for the requested breadth): an app-owned web sign-in or
-   narrowly scoped reporting credential, selected only after verifying its contract.
-   Existing quota access remains independent. Do not import browser/CLI credentials.
-3. Extend into organization administrator/API billing integrations. This is a different
-   product/authentication scope and is not recommended for this personal quota feature.
-
-No option has been selected yet. A choice authorizes design of that path, not automatic
-sign-in, harvesting existing sessions or provider-side account changes. Any implemented
-credential lifecycle requires the security-lifecycle skill and focused independent review.
+OMP's `usage --history` reads OMP-recorded observations; the broker endpoint reads the
+broker's stored observations. Both are local collection from the recorder's perspective,
+not a history service supplied by Codex, Claude, Copilot or Antigravity. Reproducing that
+mechanism belongs to deferred AIU-029 and is not authorized now. The earlier CodexBar web
+and official administrator/reporting API candidates remain research context only.
 
 ## Acceptance criteria
 
-- AC-01: Record a source-backed history capability assessment for all four providers,
+- AC-01: Record a source-backed history capability assessment of the selected OMP
+  implementation for all four providers using existing authorization,
   including method, authentication, account/plan restrictions, units, period, coverage,
   paging and failures where known. Separate source verification from live verification;
   a bounded search without a method is unverified, not proof of impossibility.
@@ -94,9 +94,8 @@ credential lifecycle requires the security-lifecycle skill and focused independe
   actual time buckets and never fabricate observations or reset boundaries.
 - AC-05: Loading, refresh, navigation cancellation, throttling, account changes and
   disconnect preserve account isolation and responsive UI. No per-clock-tick requests.
-- AC-06: No persistent history or local collection is introduced. Existing authentication,
-  quota, cache and tray behavior regressions pass; any approved new access path has its
-  own lifecycle evidence.
+- AC-06: No persistent history, local collection or additional authorization is introduced.
+  Existing authentication, quota, cache and tray behavior regressions pass.
 - AC-07: Relevant deterministic tests, document validation, builds and actual Windows
   interaction checks pass. Live-provider claims require separately recorded real reads.
 

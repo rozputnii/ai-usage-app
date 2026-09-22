@@ -101,11 +101,12 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-011 - Provider-supplied usage history
 - goal: G-003
-- status: selected
+- status: blocked
 - depends_on: [AIU-004, AIU-007, AIU-008, AIU-009, AIU-010]
 - trigger: owner-selected
 - outcome: Retrieve and display available historical usage supplied by Codex, Claude, Copilot and Antigravity, preserving native metrics, units, periods and access limitations. Open History with automatic loading and useful defaults; account/range selection is optional refinement, not a required sequence before seeing data.
-- scope-note: Owner selected and narrowed this feature on 2026-09-22 to provider-supplied history, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. Local sample collection, retention, rollups and persistent history are deferred to AIU-029 with low priority after product stability. Source availability and additional-authentication scope are being established; selection is not an implementation or live-support claim.
+- scope-note: Owner selected and narrowed this feature on 2026-09-22 to provider-supplied history, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The subsequent owner amendment permits only existing authorization and directs matching OMP's provider-history method if one exists. No new sign-in, browser session, API key or reporting permission is in scope. Local sample collection, retention, rollups and persistent history remain deferred to AIU-029 with low priority after product stability.
+- blocker: Source inspection of OMP v18.2.8 (5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c) found current-quota reads for all four existing OAuth paths, not provider-history retrieval. OMP builds its history from locally persisted snapshots; its broker history endpoint reads those same stored observations. Copilot's separate billing branch requires api_key credentials and is excluded. No eligible historical dataset exists in the inspected OMP paths, so product implementation has not started and AIU-011 is not done.
 - specification: docs/specs/AIU-011-provider-history/spec.md
 - evidence: docs/specs/AIU-011-provider-history/verification.md
 
@@ -249,10 +250,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - goal: G-003
 - status: idea
 - priority: low
-- depends_on: [AIU-011]
+- depends_on: [AIU-004]
 - trigger: after-stable-product-and-owner-selection
 - outcome: Collect and persist normalized local quota observations; define retention, reset/gap-aware rollups, historical queries and offline chart access. Design any durable cache of provider-supplied history here when selected, preserving its provenance separately from local observations.
 - scope-note: Split from AIU-011 by owner direction on 2026-09-22. Defer until the product is stable; neither completion of AIU-011 nor existing history preferences starts this work. CLI transcript ingestion remains separate from local quota sampling and is not authorized by this entry.
+- sequencing-note: Local observation history does not technically depend on a remote history endpoint. The initial AIU-011 dependency was corrected after OMP source inspection established that these are independent data sources; the owner-selection and product-stability gates remain unchanged.
 
 ## Deferred clarifications, not forgotten
 

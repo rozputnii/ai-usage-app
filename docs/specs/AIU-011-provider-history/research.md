@@ -1,4 +1,57 @@
-# Initial provider-history assessment
+# Provider-history assessment
+
+## Selected OMP-only scope: result on 2026-09-22
+
+The owner resolved PD-011-01: existing authorization only, and the same provider-history
+retrieval as OMP if present. GitHub's public latest-release API returned
+[v18.2.8](https://github.com/can1357/oh-my-pi/releases/tag/v18.2.8), published
+2026-09-21T17:31:56Z, resolving to `5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c`.
+The complete repository tree and the relevant public sources were read at that immutable
+commit. The local OMP checkout at `10b867cb2eeb7809b883a88dfebe1919ff0c2764` was read
+only for discovery and left unchanged; it is not substituted for the newer stable source.
+
+All four rows below have source_verified_at=2026-09-22, live_verified_at=null and
+confidence=source-verified. Authentication and quota classifications retain the existing
+provider records. The history classification is **OMP-recorded local observations**, not
+a provider history endpoint. This is a conclusion about this source revision and scope,
+not a claim that every possible provider API was examined.
+
+| Provider | OMP fetch path with existing authorization | Historical provider data in that path |
+| --- | --- | --- |
+| Codex | OAuth `GET /backend-api/wham/usage`; optional reset-credit inventory detail read. [Adapter](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/usage/openai-codex.ts#L477), `openaiCodexUsageProvider.fetchUsage`. | Current quota windows and currently available reset credits. Grant/expiry timestamps of available reset credits are inventory metadata, not past usage. No history query. |
+| Claude | OAuth `GET /api/oauth/usage`, optional profile identity read. [Adapter](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/usage/claude.ts#L682), `fetchClaudeUsage`. | Current session/weekly/model windows and extra-usage period totals. No historical buckets, period traversal or backfill. |
+| Copilot | OAuth `GET /copilot_internal/user`, optional `/user` identity read. [OAuth branch](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/usage/github-copilot.ts#L389), `fetchInternalUsage`. | Current entitlement/request snapshots. The separate `fetchBillingUsage` branch is gated by `credential.type === "api_key"` at line 335. It cannot be adopted under the owner's existing-authorization-only scope or described as OMP's OAuth method. |
+| Antigravity | OAuth `POST /v1internal:retrieveUserQuotaSummary`; OMP also has a current-model-quota fallback. [Adapter](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/usage/google-antigravity.ts#L465), `fetchAntigravityUsage`. | Current quota buckets and reset timestamps. Neither the summary nor the model fallback supplies past observations. This history request does not change AIU-009's existing exclusion of the legacy fallback and sandbox host. |
+
+The providers return a current `UsageReport`. OMP adds history after the fetch:
+
+1. [AuthStorage](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/auth-storage.ts#L3663)
+   calls `#recordUsageHistory` when a fresh report succeeds. The method at line 3693
+   creates one row per current limit, timestamped with the fetch time, and calls the
+   store's `recordUsageSnapshots`.
+2. [SqliteAuthCredentialStore](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/auth/sqlite-credential-store.ts#L1653)
+   writes its own `usage_history` table and retains the latest observation within an
+   hourly account/window bucket. `listUsageHistory` at line 1693 reads that table.
+3. The [history CLI branch](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/coding-agent/src/cli/usage-cli.ts#L1068)
+   calls `authStorage.listUsageHistory`; it does not request past data from providers.
+4. The [broker history route](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/src/auth-broker/server.ts#L709)
+   also calls `opts.storage.listUsageHistory`. A network request to the OMP broker is
+   still a read of OMP-collected observations, not provider-supplied history.
+
+The upstream [history tests](https://github.com/can1357/oh-my-pi/blob/5e0fc867f8a58dfe8812b5e99b2e7b6a0313da6c/packages/ai/test/auth-storage-usage-history.test.ts)
+describe local snapshot recording and hourly replacement. Those tests were inspected,
+not executed. No personal OMP databases or credentials were opened and no live provider
+requests were made.
+
+**Disposition:** No eligible OMP provider-history method was found for the four existing
+authorization paths. AIU-011 implementation is blocked by that missing capability.
+An empty-history implementation would not meet AC-02. The owner's deferred local-history
+decision remains intact; AIU-029 is independent of remote-history availability.
+
+## Earlier broad assessment: context only
+
+The sources below were considered before the OMP-only/existing-authorization amendment.
+They do not authorize additional access or alternate implementations.
 
 Assessment date: 2026-09-22. Scope: documentation and public implementation source only.
 No personal credential stores, browser sessions or authenticated provider responses were
@@ -89,8 +142,6 @@ global unavailability. Gemini API billing must not be substituted.
 
 ## Product consequence
 
-Resolve PD-011-01 in [spec.md](spec.md) before selecting authentication architecture.
-History should load automatically, but an account cannot silently acquire new reporting
-credentials. Continue capability research within the chosen access boundary, then design
-the smallest useful provider implementation. Do not build a universal empty-history UI
-and report the feature complete.
+PD-011-01 is resolved in [spec.md](spec.md). The selected OMP-only result above supersedes
+the earlier access proposal. Additional web/reporting credentials and unrelated provider
+APIs are outside scope. No product implementation was started.
