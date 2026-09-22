@@ -211,16 +211,16 @@ No remaining action for T-07; T-10, T-11 and T-12 remain pending and unselected.
 - [x] Check: Presentation Release suite.
 
 ### T-10 - Gate the UI clock on window visibility
-- status: in-progress
+- status: done
 - depends_on: [T-05]
 - acceptance: AC-12
-- evidence: not-run
+- evidence: docs/specs/AIU-028-architecture-remediation/verification.md; production 829d38b; Presentation 147/147, Infrastructure 261/261, clock/tray observations and targeted restore smoke PASS, product/demo Windows smoke 7/7 each, unsigned MSIX 2026.9.2203.0 and primary integrated review PASS
 
-- [ ] Stop the `LiveClock` tick while the main window is hidden to the tray, using the existing
+- [x] Stop the `LiveClock` tick while the main window is hidden to the tray, using the existing
       `WindowVisible` signal, and re-apply once on restore.
-- [ ] Confirm tray quota text stays correct while hidden, since the tray view model is also a
+- [x] Confirm tray quota text stays correct while hidden, since the tray view model is also a
       `SnapshotViewModel`.
-- [ ] Check: Presentation test over the visibility gate, **plus** interactive Windows smoke per
+- [x] Check: Presentation test over the visibility gate, **plus** interactive Windows smoke per
       [the verification policy](../../workflow/verification.md). Compilation and unit tests are
       not sufficient evidence for this task.
 
@@ -235,7 +235,13 @@ Four visibility/dispatch/relative-text regressions failed before the gate implem
 The tray refresh test also failed before its fix; a late retired-timer callback regression
 then exposed a duplicate restore notification and now passes. Presentation 147/147,
 Infrastructure 261/261 and unpackaged Windows Debug build (zero warnings/errors) pass.
-Exact next action: run interactive clock/tray/restore smoke and the unsigned MSIX build.
+Actual Windows observations prove no main-clock events across 65 seconds hidden, popup-only
+relative-text updates while still hidden, and one immediate restore event. The targeted
+restore screen/exit check and final ordinary product/demo smoke (7/7 each) pass. Unsigned
+MSIX 2026.9.2203.0 and final uninstrumented Debug build pass; the local observer is absent
+from both final assemblies. Primary integrated review passes with no actionable findings.
+AC-12 and T-10 are complete. No remaining action for T-10; T-11 and T-12 remain pending
+and unselected. AIU-028 remains incomplete.
 
 ### T-11 - Close CR-AIU-003-01: hardening at the library boundary
 - status: pending

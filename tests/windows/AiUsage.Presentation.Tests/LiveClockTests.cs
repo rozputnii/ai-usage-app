@@ -107,9 +107,17 @@ public sealed class LiveClockTests
         time.Now += TimeSpan.FromHours(1);
         time.Timer.Fire();
         Assert.Equal(before, overview.SummaryReset);
-        host.State.World.Accounts[0].Label = "Changed while hidden";
+        var changed = host.State.World.Accounts.Single(a => a.Id == "demo-claude-1");
+        changed.Label = "Changed while hidden";
+        foreach (var window in changed.AllWindows)
+        {
+            window.Remaining = 37;
+            window.State = ValueState.Known;
+        }
         host.State.Publish();
-        Assert.Contains(tray.Rows, row => row.Label == "Changed while hidden");
+        var changedRow = tray.Rows.Single(row => row.Id == changed.Id);
+        Assert.Equal("Changed while hidden", changedRow.Label);
+        Assert.Equal("37 %", changedRow.ValueText);
         var afterSnapshot = overview.SummaryReset;
         time.Now += TimeSpan.FromHours(1);
         host.Motion.WindowVisible = true;

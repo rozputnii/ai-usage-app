@@ -636,3 +636,69 @@ lifetime debt above. CONTRIBUTING requires primary review for this task; no mate
 credential, destructive-data or privilege behavior changed, and no independent review is claimed.
 Document validation returned `valid=true, diagnostics=[]`; `git diff --check` passed.
 Closure links and task/acceptance status were inspected. AC-08 is PASS; T-07 is complete.
+
+## T-10 - Visibility-gated presentation clock - 2026-09-22
+
+Base `bf811fb`; production implementation `829d38b` on `main`. Windows
+10.0.26200.0 x64, .NET SDK 10.0.401. Evidence is retained under
+`.ai-usage-local/AIU-028/t10/`. No subagents were used.
+
+`LiveClock` retires its timer when `WindowVisible` becomes false, creates a new
+30-second timer on restore, and sends one immediate change notification on the UI
+thread. Each timer captures its visibility generation, so callbacks queued before hiding,
+callbacks that start after restoration, and callbacks after disposal cannot reapply stale
+work. Duplicate motion notifications are ignored. Snapshot delivery remains active.
+The tray popup refreshes its own current snapshot on opening and every 30 seconds while
+open; hiding or exiting stops its timer. Passing a reset time never invents a new quota.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Regression red/green | PASS | Four clock cases failed after introducing only the TimeProvider injection seam, before the visibility gate. The tray refresh case separately failed with stale `2 h 14 m` instead of `1 h 14 m`. A late retired callback then failed with two notifications instead of one, prompting a timer per visibility generation. All five cases now pass. `red-clock.log`, `red-tray.log`, `red-late-callback.log`. |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 147/147, zero failed/skipped/not-run. Includes initially hidden startup, reduced motion, duplicate signals, queued and late callbacks, disposal, actual relative text, hidden quota changes and independent tray refresh. `presentation.log`. |
+| Infrastructure Release | PASS | Corresponding Infrastructure command: 261/261, zero failed/skipped/not-run. `infrastructure.log`. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: zero warnings/errors before the probe and after removing its import. Confirmed final assembly has no ClockSmokeProbe type. `windows-build.log`, `windows-final-build.log`. |
+| Interactive clock/tray observation | PASS | Actual WinUI window, close button, notification-area icon and tray popup driven by FlaUI on the unlocked local desktop. The phase observations below prove visible ticks, hidden silence, popup-only time updates and one restore notification. Synthetic data only; no provider calls or credentials. |
+| Targeted restore screen/exit smoke | PASS | Corrected restore-only probe: 1/1, zero failures/skips/not-run; actual displayed summary matches updated view-model text, one restore event, process exit code 0. `restore-smoke.log` and `restore-smoke/close-to-tray.json`. |
+| Ordinary product/demo smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo` on the final build without the observer: product 7/7, demo 7/7, zero errors/failures/skips/not-run. Inspected all fourteen scenario records: passed=true, exited=true, exitCode=0. `product-smoke.log`, `demo-smoke.log` and matching evidence directories. |
+| Unsigned MSIX | PASS | Offline Visual Studio MSBuild with existing restored assets, Release/x64, GenerateAppxPackageOnBuild=true, AppxBundle=Never, UapAppxPackageBuildMode=SideloadOnly and AppxPackageSigningEnabled=false. Version 2026.9.2203.0, identity AiUsage.Dev, Authenticode NotSigned. No owned-code warnings; existing optional `mspdbcmf.exe` symbols-tool warning. `package-build.log`, `package-inspection.json`. |
+| Primary integrated review | PASS | Reviewed actual production/test diff against AC-12, construction/disposal on the UI thread, MotionSettings notifications, generation capture, unchanged provider/snapshot delivery, popup open/hide/exit ownership and disposed-view-model guards. No actionable findings. Routine primary review applies under CONTRIBUTING; no material credential, destructive-data or privilege change requires independent review. |
+| Live providers, installed-package lifecycle, CPU/allocation profiling | NOT_RUN | Outside this acceptance: no sign-in, source CLI credential access, package installation or host trust changes. Clock-event observations do not claim a CPU/allocations benchmark. |
+
+The local observation build adds an ignored compile-time probe after product startup,
+publishes one synthetic 37% quota with a reset ten minutes ahead, subscribes to the real
+`LiveClock.Changed`, and samples view-model text without triggering updates. It uses the
+unchanged production clock, lifetime, snapshot/view-model and popup code. The only shadowed
+product file is App.xaml.cs with one probe attachment call. Its sources and MSBuild import
+are in `probe/`; they are not part of ordinary builds or Git. Probe-only analyzer execution
+was disabled; ordinary builds retain the repository analyzer policy. Each activation uses
+its own empty `AIU_DEVELOPMENT_STATE_DIRECTORY` under its smoke evidence directory.
+
+Observed phases from `clock-smoke-final/` (UTC):
+
+| Phase | Clock events so far | Main reset text | Tray reset text |
+| --- | --- | --- | --- |
+| Visible, before hiding | 2 | in 9 m | Resets in 9 m |
+| Hidden start, 15:31:22 | 2 | in 9 m | Resets in 9 m |
+| Hidden end, 15:32:27 (65 seconds later) | 2 | in 9 m | Resets in 9 m |
+| Popup opened, 15:32:30 | 2 | in 9 m | Resets in 8 m |
+| Popup still open, 15:33:36 (65 seconds later) | 2 | in 9 m | Resets in 7 m |
+| Restored, 15:33:37 | 3 | in 7 m | Resets in 7 m |
+
+Quota remained 37% throughout. The popup's accessible row text matched the observed reset
+text both on opening and after its timer update. The restored screenshot also displays
+37% and `in 7 m`. The first probe run failed because its 35-second observation occurred
+after only one tick just before the formatter's minute-rounding boundary; the observation
+was extended to 65 seconds. The longer run passed every clock/tray assertion and failed
+only in its final UIA name lookup on an element that does not support Name. The targeted
+restore rerun uses the optional Name property when inspecting descendants and passes after
+another 65-second hidden interval, with zero hidden clock events and one restore event. Both original
+failed runs remain in the evidence, not relabeled as passing suites.
+
+The MSIX SHA-256 is
+`CD89C2A3EAED976F81B07E07815FA9DDE7CE837922440FB9C8187650EEC4BC39`.
+Its AiUsage.dll metadata contains no ClockSmokeProbe type. Package build success is not
+installation evidence. The final ordinary Debug build also excludes the probe and restores
+the original smoke harness. The targeted restore screenshot was inspected; it displays
+the updated `in 9 m` summary and unchanged 37% quota. Primary review includes the final
+hidden-quota regression refinement. AC-12 is PASS and T-10 is complete. Final document
+validation and diff checks are recorded with the closure commit.
