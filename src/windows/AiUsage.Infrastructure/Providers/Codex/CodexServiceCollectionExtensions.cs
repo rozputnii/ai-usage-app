@@ -10,10 +10,11 @@ public static class CodexServiceCollectionExtensions
     internal static IServiceCollection AddCodexIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton(ProviderTransportOptions.Default);
         services.AddHttpClient<CodexAuthClient>(ProviderTransport.ConfigureClient)
-            .ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
+            .ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
         services.AddHttpClient<CodexQuotaClient>(ProviderTransport.ConfigureClient)
-            .ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
+            .ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
         return services;
     }
 

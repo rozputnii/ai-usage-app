@@ -8,9 +8,9 @@ internal static class CodexHttp
 
     // Retain Codex's protocol exception metadata while sharing transport classifications.
     internal static async Task<ProviderHttpResponse> SendAsync(HttpClient client, HttpRequestMessage request,
-        TimeProvider clock, CancellationToken cancellationToken)
+        TimeProvider clock, CancellationToken cancellationToken, ProviderTransportOptions? options = null)
     {
-        try { return await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false); }
+        try { return await ProviderTransport.SendAsync(client, request, clock, cancellationToken, options).ConfigureAwait(false); }
         catch (ProviderException error) { throw Translate(error); }
     }
 

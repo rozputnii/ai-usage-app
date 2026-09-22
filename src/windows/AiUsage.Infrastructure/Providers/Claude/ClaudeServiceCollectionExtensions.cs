@@ -8,8 +8,9 @@ public static class ClaudeServiceCollectionExtensions
     internal static IServiceCollection AddClaudeIntegration(this IServiceCollection services)
     {
         services.TryAddSingleton(TimeProvider.System);
-        services.AddHttpClient<ClaudeAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
-        services.AddHttpClient<ClaudeQuotaClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(ProviderTransport.CreateHandler).RemoveAllLoggers();
+        services.TryAddSingleton(ProviderTransportOptions.Default);
+        services.AddHttpClient<ClaudeAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
+        services.AddHttpClient<ClaudeQuotaClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
         return services;
     }
 

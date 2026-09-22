@@ -7,17 +7,17 @@ internal static class ProviderTransport
 {
     internal static void ConfigureClient(HttpClient client) => client.Timeout = Timeout.InfiniteTimeSpan;
 
-    internal static HttpMessageHandler CreateHandler() => new SocketsHttpHandler
+    internal static HttpMessageHandler CreateHandler(ProviderTransportOptions options) => new SocketsHttpHandler
     {
         AllowAutoRedirect = false,
         UseCookies = false,
-        PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+        PooledConnectionLifetime = options.PooledConnectionLifetime
     };
 
     internal static async Task<ProviderHttpResponse> SendAsync(HttpClient client, HttpRequestMessage request,
-        TimeProvider clock, CancellationToken cancellationToken)
+        TimeProvider clock, CancellationToken cancellationToken, ProviderTransportOptions? options = null)
     {
-        try { return await ProviderHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false); }
+        try { return await ProviderHttp.SendAsync(client, request, clock, cancellationToken, options).ConfigureAwait(false); }
         catch (ProviderHttpException error)
         {
             throw new ProviderException(error.Kind switch

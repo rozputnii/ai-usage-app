@@ -11,8 +11,9 @@ using System.Web;
 namespace AiUsage.Infrastructure.Providers.Claude;
 
 /// <summary>Private, unsupported OMP-style OAuth flow. See docs/providers/claude.md for the restriction.</summary>
-internal sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProvider = null, ProviderTransportOptions? options = null)
 {
+    private readonly ProviderTransportOptions transport = options ?? ProviderTransportOptions.Default;
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private const string CallbackPath = "/callback";
     private const string Scopes = "org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload";
@@ -69,7 +70,7 @@ internal sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProv
                         RedirectUri = authorization.RedirectUri, State = authorization.State
                     }, ClaudeAuthJson.Default.ClaudeTokenRequest)
                 };
-                using var response = await ProviderTransport.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
+                using var response = await ProviderTransport.SendAsync(client, request, clock, linked.Token, transport).ConfigureAwait(false);
                 if (!response.IsSuccess)
                     throw ProviderTransport.Failure(response);
                 // A returned pair reaches the session even if later quota work is canceled.
@@ -145,7 +146,7 @@ internal sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProv
             Content = JsonContent.Create(new ClaudeTokenRequest { GrantType = "refresh_token", RefreshToken = previous.RefreshToken }, ClaudeAuthJson.Default.ClaudeTokenRequest)
         };
         request.Headers.Add("anthropic-beta", "oauth-2025-04-20");
-        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
             var error = Property(response.Body?.RootElement ?? default, "error");
@@ -182,7 +183,7 @@ internal sealed class ClaudeAuthClient(HttpClient client, TimeProvider? timeProv
             using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.anthropic.com/api/claude_cli/bootstrap?entrypoint=cli&model=claude-opus-4-8");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access);
             request.Headers.Add("anthropic-beta", "oauth-2025-04-20");
-            using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+            using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
             if (!response.IsSuccess)
                 throw ProviderTransport.Failure(response);
             var identity = Property(response.Body!.RootElement, "oauth_account");

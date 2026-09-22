@@ -7,8 +7,9 @@ using static AiUsage.Infrastructure.Providers.Codex.CodexQuotaParser;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvider = null, ProviderTransportOptions? options = null)
 {
+    private readonly ProviderTransportOptions transport = options ?? ProviderTransportOptions.Default;
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
 
     private const string CallbackPath = "/auth/callback";
@@ -126,7 +127,7 @@ internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvi
                                 ["redirect_uri"] = authorization.RedirectUri
                             })
                         };
-                        using var tokens = await CodexHttp.SendAsync(client, exchange, clock, linked.Token).ConfigureAwait(false);
+                        using var tokens = await CodexHttp.SendAsync(client, exchange, clock, linked.Token, transport).ConfigureAwait(false);
                         if (!tokens.IsSuccess)
                             throw CodexHttp.Failure(tokens);
                         var exchanged = ParseTokens(tokens.Body!.RootElement, null);
@@ -159,7 +160,7 @@ internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvi
         {
             Content = JsonContent.Create(new DeviceCodeRequest { ClientId = CodexHttp.ClientId }, CodexAuthJson.Default.DeviceCodeRequest)
         };
-        using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (response.StatusCode == HttpStatusCode.NotFound)
             throw new CodexException(ProviderFailureKind.DeviceLoginUnavailable, response.StatusCode);
         if (!response.IsSuccess)
@@ -212,7 +213,7 @@ internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvi
                     {
                         Content = JsonContent.Create(new DevicePollRequest { DeviceAuthId = authorization.DeviceAuthId, UserCode = authorization.UserCode }, CodexAuthJson.Default.DevicePollRequest)
                     };
-                    using var response = await CodexHttp.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
+                    using var response = await CodexHttp.SendAsync(client, request, clock, linked.Token, transport).ConfigureAwait(false);
                     if (clock.GetUtcNow() >= authorization.ExpiresAt)
                         throw new CodexException(ProviderFailureKind.DeviceCodeExpired);
                     if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.NotFound)
@@ -234,7 +235,7 @@ internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvi
                             ["redirect_uri"] = CodexHttp.AuthOrigin + "/deviceauth/callback"
                         })
                     };
-                    using var tokens = await CodexHttp.SendAsync(client, exchange, clock, linked.Token).ConfigureAwait(false);
+                    using var tokens = await CodexHttp.SendAsync(client, exchange, clock, linked.Token, transport).ConfigureAwait(false);
                     if (!tokens.IsSuccess)
                         throw CodexHttp.Failure(tokens);
                     var parsed = ParseTokens(tokens.Body!.RootElement, null);
@@ -263,7 +264,7 @@ internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvi
                 ClientId = CodexHttp.ClientId, GrantType = "refresh_token", RefreshToken = grant.RefreshToken
             }, CodexAuthJson.Default.RefreshRequest)
         };
-        using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
             var error = Property(response.Body?.RootElement ?? default, "error");
@@ -301,7 +302,7 @@ internal sealed class CodexAuthClient(HttpClient client, TimeProvider? timeProvi
                 }, CodexAuthJson.Default.RefreshRequest)
             };
             sent = true;
-            using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+            using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
             if (!response.IsSuccess)
             {
                 var error = Property(response.Body?.RootElement ?? default, "error");

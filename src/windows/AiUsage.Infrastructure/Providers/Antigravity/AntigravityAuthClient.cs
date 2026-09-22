@@ -15,15 +15,17 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 /// </summary>
 internal sealed class AntigravityAuthClient
 {
+    private readonly ProviderTransportOptions transport;
     private readonly HttpClient client;
     private readonly TimeProvider clock;
     private readonly Func<AntigravityRegistration> registration;
 
-    public AntigravityAuthClient(HttpClient client, TimeProvider? timeProvider = null)
-        : this(client, timeProvider, AntigravityRegistration.FromEnvironment) { }
+    public AntigravityAuthClient(HttpClient client, TimeProvider? timeProvider = null, ProviderTransportOptions? options = null)
+        : this(client, timeProvider, AntigravityRegistration.FromEnvironment, options) { }
 
-    internal AntigravityAuthClient(HttpClient client, TimeProvider? timeProvider, Func<AntigravityRegistration> registration)
+    internal AntigravityAuthClient(HttpClient client, TimeProvider? timeProvider, Func<AntigravityRegistration> registration, ProviderTransportOptions? options = null)
     {
+        transport = options ?? ProviderTransportOptions.Default;
         this.client = client;
         clock = timeProvider ?? TimeProvider.System;
         this.registration = registration;
@@ -89,7 +91,7 @@ internal sealed class AntigravityAuthClient
                     ["client_id"] = authorization.Registration.ClientId, ["client_secret"] = authorization.Registration.ClientSecret,
                     ["redirect_uri"] = authorization.RedirectUri, ["code_verifier"] = authorization.CodeVerifier
                 });
-                using var response = await ProviderTransport.SendAsync(client, request, clock, linked.Token).ConfigureAwait(false);
+                using var response = await ProviderTransport.SendAsync(client, request, clock, linked.Token, transport).ConfigureAwait(false);
                 if (!response.IsSuccess)
                     throw TokenFailure(response);
                 // A returned grant reaches the caller even if later discovery or quota work is cancelled.
@@ -115,7 +117,7 @@ internal sealed class AntigravityAuthClient
             ["grant_type"] = "refresh_token", ["refresh_token"] = refreshToken,
             ["client_id"] = current.ClientId, ["client_secret"] = current.ClientSecret
         });
-        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
             throw TokenFailure(response);
         return await ParseGrantAsync(response.Body!.RootElement, new(refreshToken, accountId), CancellationToken.None).ConfigureAwait(false);
@@ -126,7 +128,7 @@ internal sealed class AntigravityAuthClient
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, AntigravityHttp.IdentityUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
             throw ProviderTransport.Failure(response);
         var subject = Text(Property(response.Body!.RootElement, "id"));

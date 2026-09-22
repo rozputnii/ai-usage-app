@@ -17,10 +17,10 @@ internal static class ProviderHttp
     private const long MaximumResponseBytes = 1024 * 1024;
 
     internal static async Task<ProviderHttpResponse> SendAsync(
-        HttpClient client, HttpRequestMessage request, TimeProvider clock, CancellationToken cancellationToken)
+        HttpClient client, HttpRequestMessage request, TimeProvider clock, CancellationToken cancellationToken, ProviderTransportOptions? options = null)
     {
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        timeout.CancelAfter((options ?? ProviderTransportOptions.Default).RequestDeadline);
         // Truthful by default. A caller that has already set an identity owns it, so this never
         // appends a second product token to a header a provider may parse strictly.
         if (!request.Headers.Contains("User-Agent"))

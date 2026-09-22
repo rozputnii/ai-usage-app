@@ -277,7 +277,7 @@ no independent review or live-provider evidence will be claimed. T-12 is assesse
 T-11 is completed, using its explicit drop condition.
 
 ### T-12 - Transport options
-- status: pending
+- status: in-progress
 - depends_on: [T-01]
 - acceptance: AC-01
 - evidence: not-run
@@ -286,6 +286,24 @@ T-11 is completed, using its explicit drop condition.
       and retry-after fallback, bound once in the DI extensions, keeping today's values exactly.
 - [ ] Check: Infrastructure Release suite. Lowest priority; drop it if T-01 already leaves a
       single call site per value.
+
+Relevance check and implementation plan (2026-09-22, base `9f4d347`, after T-11 was
+completed and pushed): the request deadline and pooling lifetime have one owner each,
+but the one-minute retry-after fallback remains repeated in Claude, Copilot and Antigravity.
+The explicit drop condition is therefore false. Bind one immutable-after-initialization
+ProviderTransportOptions instance with TryAddSingleton in all four registrations. Pass it
+through all eight clients and the shared send path; use it for handler pooling and each
+quota throttle. Preserve defaults of 15 seconds, 5 minutes and 1 minute, explicit Retry-After
+precedence, cancellation classification, body-read deadline and all nontransport timers.
+Direct internal test/console construction falls back to the same default instance.
+
+Verify real DI pooling, configured deadlines through all eight clients, fallback expiry at
+the exact boundary for three providers and explicit header precedence. The new 15-case suite
+produced 12 expected failures before wiring: pooling, all eight deadlines and three fallbacks;
+the three explicit-header cases already passed. Infrastructure now passes 286/286.
+Finish Presentation Release, consumer builds, document validation and primary integrated
+review; preserve the primary-only review scope from T-11. No new public configuration API,
+dependency, provider protocol, credential lifecycle or UI behavior is introduced.
 
 ## Accepted as-is
 

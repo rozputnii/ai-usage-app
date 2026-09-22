@@ -7,13 +7,15 @@ namespace AiUsage.Infrastructure.Providers.Copilot;
 
 internal sealed class CopilotAuthClient
 {
+    private readonly ProviderTransportOptions transport;
     private readonly HttpClient client;
     private readonly TimeProvider clock;
     private readonly Func<TimeSpan, CancellationToken, Task> delay;
-    public CopilotAuthClient(HttpClient client, TimeProvider? timeProvider = null)
-        : this(client, timeProvider ?? TimeProvider.System, null) { }
-    internal CopilotAuthClient(HttpClient client, TimeProvider clock, Func<TimeSpan, CancellationToken, Task>? delay)
+    public CopilotAuthClient(HttpClient client, TimeProvider? timeProvider = null, ProviderTransportOptions? options = null)
+        : this(client, timeProvider ?? TimeProvider.System, null, options) { }
+    internal CopilotAuthClient(HttpClient client, TimeProvider clock, Func<TimeSpan, CancellationToken, Task>? delay, ProviderTransportOptions? options = null)
     {
+        transport = options ?? ProviderTransportOptions.Default;
         this.client = client; this.clock = clock;
         this.delay = delay ?? ((duration, token) => Task.Delay(duration, clock, token));
     }
@@ -21,7 +23,7 @@ internal sealed class CopilotAuthClient
     public async Task<CopilotCredentials> LoginAsync(Action<AuthorizationChallenge> authorize, CancellationToken cancellationToken = default)
     {
         using var start = Post(CopilotHttp.DeviceUrl, new() { ["client_id"] = CopilotHttp.ClientId, ["scope"] = "read:user" });
-        using var device = await ProviderTransport.SendAsync(client, start, clock, cancellationToken).ConfigureAwait(false);
+        using var device = await ProviderTransport.SendAsync(client, start, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!device.IsSuccess) throw ProviderTransport.Failure(device);
         var body = device.Body!.RootElement;
         var code = Text(body, "device_code");
@@ -46,7 +48,7 @@ internal sealed class CopilotAuthClient
                 ["client_id"] = CopilotHttp.ClientId, ["device_code"] = code!,
                 ["grant_type"] = "urn:ietf:params:oauth:grant-type:device_code"
             });
-            using var response = await ProviderTransport.SendAsync(client, poll, clock, cancellationToken).ConfigureAwait(false);
+            using var response = await ProviderTransport.SendAsync(client, poll, clock, cancellationToken, transport).ConfigureAwait(false);
             if (!response.IsSuccess) throw ProviderTransport.Failure(response);
             var root = response.Body!.RootElement;
             if (Text(root, "access_token") is { } access)
@@ -85,7 +87,7 @@ internal sealed class CopilotAuthClient
         using var request = new HttpRequestMessage(HttpMethod.Get, CopilotHttp.IdentityUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
-        using var response = await ProviderTransport.SendAsync(client, request, clock, token).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, token, transport).ConfigureAwait(false);
         if (!response.IsSuccess) throw ProviderTransport.Failure(response);
         var root = response.Body!.RootElement;
         if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.Number || !id.TryGetInt64(out var value) || value <= 0)

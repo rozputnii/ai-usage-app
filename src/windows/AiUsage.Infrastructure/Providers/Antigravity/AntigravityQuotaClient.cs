@@ -18,6 +18,7 @@ internal sealed class AntigravityQuotaClient
     private static readonly TimeSpan OnboardTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan OnboardInterval = TimeSpan.FromSeconds(1);
 
+    private readonly ProviderTransportOptions transport;
     private readonly HttpClient client;
     private readonly TimeProvider clock;
     private readonly Func<TimeSpan, CancellationToken, Task> delay;
@@ -25,11 +26,12 @@ internal sealed class AntigravityQuotaClient
     private string? throttledIdentity;
     private DateTimeOffset retryAt;
 
-    public AntigravityQuotaClient(HttpClient client, TimeProvider? timeProvider = null)
-        : this(client, timeProvider, null) { }
+    public AntigravityQuotaClient(HttpClient client, TimeProvider? timeProvider = null, ProviderTransportOptions? options = null)
+        : this(client, timeProvider, null, options) { }
 
-    internal AntigravityQuotaClient(HttpClient client, TimeProvider? timeProvider, Func<TimeSpan, CancellationToken, Task>? delay)
+    internal AntigravityQuotaClient(HttpClient client, TimeProvider? timeProvider, Func<TimeSpan, CancellationToken, Task>? delay, ProviderTransportOptions? options = null)
     {
+        transport = options ?? ProviderTransportOptions.Default;
         this.client = client;
         clock = timeProvider ?? TimeProvider.System;
         this.delay = delay ?? ((duration, token) => Task.Delay(duration, clock, token));
@@ -70,7 +72,7 @@ internal sealed class AntigravityQuotaClient
             ? $$"""{"metadata":{{Metadata}}}"""
             : $$"""{"cloudaicompanionProject":"{{JsonEncodedText.Encode(project)}}","metadata":{{Metadata}}}""";
         using var request = Post(AntigravityHttp.LoadCodeAssistUrl, body, accessToken);
-        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
             throw ProviderTransport.Failure(response);
         if (response.Body!.RootElement.ValueKind != JsonValueKind.Object)
@@ -163,7 +165,7 @@ internal sealed class AntigravityQuotaClient
 
     private async Task<JsonElement> ReadAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
             throw ProviderTransport.Failure(response);
         if (response.Body!.RootElement.ValueKind != JsonValueKind.Object)
@@ -184,7 +186,7 @@ internal sealed class AntigravityQuotaClient
         // JsonEncodedText escapes the opaque project identifier without a reflection serializer.
         var body = $$"""{"project":"{{JsonEncodedText.Encode(credentials.ProjectId)}}"}""";
         using var request = Post(AntigravityHttp.QuotaSummaryUrl, body, credentials.AccessToken);
-        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
             var error = ProviderTransport.Failure(response);
@@ -193,7 +195,7 @@ internal sealed class AntigravityQuotaClient
                 lock (sync)
                 {
                     throttledIdentity = credentials.AccountId;
-                    var delay = error.RetryAfter ?? TimeSpan.FromMinutes(1);
+                    var delay = error.RetryAfter ?? transport.RetryAfterFallback;
                     retryAt = delay >= DateTimeOffset.MaxValue - clock.GetUtcNow() ? DateTimeOffset.MaxValue : clock.GetUtcNow() + delay;
                 }
             }

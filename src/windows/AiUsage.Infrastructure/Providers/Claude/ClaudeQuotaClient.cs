@@ -4,8 +4,9 @@ using System.Net.Http.Headers;
 
 namespace AiUsage.Infrastructure.Providers.Claude;
 
-internal sealed class ClaudeQuotaClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class ClaudeQuotaClient(HttpClient client, TimeProvider? timeProvider = null, ProviderTransportOptions? options = null)
 {
+    private readonly ProviderTransportOptions transport = options ?? ProviderTransportOptions.Default;
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private readonly object sync = new();
     private ClaudeIdentity? throttledIdentity;
@@ -24,7 +25,7 @@ internal sealed class ClaudeQuotaClient(HttpClient client, TimeProvider? timePro
         using var request = new HttpRequestMessage(HttpMethod.Get, ClaudeHttp.UsageUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials.AccessToken);
         request.Headers.Add("anthropic-beta", "oauth-2025-04-20");
-        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+        using var response = await ProviderTransport.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
         if (!response.IsSuccess)
         {
             var error = ProviderTransport.Failure(response);
@@ -33,7 +34,7 @@ internal sealed class ClaudeQuotaClient(HttpClient client, TimeProvider? timePro
                 lock (sync)
                 {
                     throttledIdentity = credentials.Identity;
-                    var delay = error.RetryAfter ?? TimeSpan.FromMinutes(1);
+                    var delay = error.RetryAfter ?? transport.RetryAfterFallback;
                     retryAt = delay >= DateTimeOffset.MaxValue - clock.GetUtcNow() ? DateTimeOffset.MaxValue : clock.GetUtcNow() + delay;
                 }
             }

@@ -4,8 +4,9 @@ using System.Net.Http.Headers;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
-internal sealed class CodexQuotaClient(HttpClient client, TimeProvider? timeProvider = null)
+internal sealed class CodexQuotaClient(HttpClient client, TimeProvider? timeProvider = null, ProviderTransportOptions? options = null)
 {
+    private readonly ProviderTransportOptions transport = options ?? ProviderTransportOptions.Default;
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
 
     public async Task<QuotaSnapshot> GetQuotaAsync(CodexCredentials credentials, CancellationToken cancellationToken = default)
@@ -22,7 +23,7 @@ internal sealed class CodexQuotaClient(HttpClient client, TimeProvider? timeProv
             request.Headers.Add("ChatGPT-Account-Id", credentials.AccountId);
             // The inspected OMP usage path sends only these headers; residency stays unsent until a
             // real region rejection proves it is required.
-            using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken).ConfigureAwait(false);
+            using var response = await CodexHttp.SendAsync(client, request, clock, cancellationToken, transport).ConfigureAwait(false);
             if (!response.IsSuccess)
             {
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
