@@ -7,16 +7,10 @@ namespace AiUsage.Adapters.Live;
 internal sealed class LiveConnectionFlow(LiveUsageSource source, Action<Uri> openBrowser) : IConnectionFlow
 {
     public bool ManualCodeUsesActiveConnection => true;
-    public IReadOnlyList<ProviderDescriptor> Providers { get; } =
-    [
-        new("codex", "Codex", "›_", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing),
-        new("claude", "Claude", "✳", [ConnectionMethod.BrowserSignIn, ConnectionMethod.ManualCode], CapabilityOrigin.Existing),
-        new("copilot", "GitHub Copilot", "⊙", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing),
-        new("antigravity", "Antigravity", "↑", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Existing)
-    ];
+    public IReadOnlyList<ProviderDescriptor> Providers => source.Providers.All;
 
     public bool TrySubmitCode(ConnectRequest request, string transientCode) =>
-        request.ProviderId == "claude" && source.TrySubmitCode(request.ProviderId, transientCode);
+        source.TrySubmitCode(request.ProviderId, transientCode);
 
     public async IAsyncEnumerable<ConnectionStage> ConnectAsync(ConnectRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

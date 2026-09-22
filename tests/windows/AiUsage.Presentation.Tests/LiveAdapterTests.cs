@@ -119,13 +119,18 @@ public sealed class LiveAdapterTests
         await source.StopAsync();
     }
 
-    [Fact]
-    public async Task ManualCodeCompletesOriginalAuthorizationAndDisconnectRemovesConnection()
+    [Theory]
+    [InlineData("claude")]
+    [InlineData("codex")]
+    [InlineData("Fifth/opaque:ID")]
+    public async Task ManualCodeCompletesOriginalAuthorizationAndDisconnectRemovesConnection(string providerId)
     {
         var session = new LoginSession();
-        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { ["claude"] = session });
+        var catalog = new ProviderCatalog([.. ProviderCatalog.Default.All,
+            new("Fifth/opaque:ID", "Fifth Provider", "★", [ConnectionMethod.BrowserSignIn, ConnectionMethod.ManualCode], CapabilityOrigin.Existing)]);
+        using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { [providerId] = session }, providers: catalog);
         var flow = new LiveConnectionFlow(source, _ => { });
-        var request = new ConnectRequest("claude", ConnectionMethod.BrowserSignIn, null);
+        var request = new ConnectRequest(providerId, ConnectionMethod.BrowserSignIn, null);
         var stages = new List<ConnectionStage>();
         await foreach (var stage in flow.ConnectAsync(request, TestContext.Current.CancellationToken))
         {
@@ -136,7 +141,7 @@ public sealed class LiveAdapterTests
         Assert.Equal(ConnectionStageKind.Connected, stages.Last().Kind);
         Assert.Equal(1, session.Connects);
         Assert.Equal(ConnectionState.Connected, source.Current.Accounts.Single().Connection);
-        Assert.Equal(CommandStatus.Succeeded, (await source.ExecuteAsync(new(UiCommandKind.Disconnect, "claude", null,
+        Assert.Equal(CommandStatus.Succeeded, (await source.ExecuteAsync(new(UiCommandKind.Disconnect, providerId, null,
             source.Current.Revision), TestContext.Current.CancellationToken)).Status);
         Assert.Equal(ConnectionState.NotConnected, source.Current.Accounts.Single().Connection);
         await source.StopAsync();

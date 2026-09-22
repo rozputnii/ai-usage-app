@@ -230,7 +230,7 @@ internal sealed partial class MonitoringSettingsViewModel : SnapshotViewModel
             var shared = new List<ThresholdRuleViewModel> { Rule(RuleScope.Global, null, prefs, format.T("Rules_GlobalLabel"), format.T("Rules_GlobalSub"), null, null, null) };
             foreach (var providerId in accounts.Select(a => a.ProviderId).Distinct())
             {
-                var name = Providers.Get(providerId).Name;
+                var name = Context.Providers.Get(providerId).PresentationName;
                 shared.Add(Rule(RuleScope.Provider, providerId, prefs, name, format.T("Rules_ProviderSub"), null, null, providerId));
             }
             var types = accounts.SelectMany(a => a.Contexts.SelectMany(c => c.Groups).SelectMany(g => g.Windows)
@@ -239,12 +239,12 @@ internal sealed partial class MonitoringSettingsViewModel : SnapshotViewModel
                 .DistinctBy(t => QuotaRules.WindowTypeKey(t.Account.ProviderId, t.Window.Label));
             foreach (var (account, window) in types)
                 shared.Add(Rule(RuleScope.WindowType, QuotaRules.WindowTypeKey(account.ProviderId, window.Label), prefs, window.Label,
-                    format.F("Rules_WindowTypeSub", Providers.Get(account.ProviderId).Name), account, window, account.ProviderId));
+                    format.F("Rules_WindowTypeSub", Context.Providers.Get(account.ProviderId).PresentationName), account, window, account.ProviderId));
             CollectionSync.Sync(SharedRules, shared, r => r.Key, r => r.Key, r => r, (_, _) => { });
 
             CollectionSync.Sync(AccountRules, accounts, a => a.Id, vm => vm.AccountId, a => new AccountRulesViewModel(a.Id), (vm, a) =>
             {
-                vm.Header = format.F("Rules_AccountHeader", a.Label, Providers.Get(a.ProviderId).Name);
+                vm.Header = format.F("Rules_AccountHeader", a.Label, Context.Providers.Get(a.ProviderId).PresentationName);
                 vm.AccountRule = Rule(RuleScope.Account, a.Id, prefs, format.T("Rules_AccountLabel"), format.T("Rules_AccountSub"), a, null, a.ProviderId);
                 if (!vm.IsExpanded)
                 {

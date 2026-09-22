@@ -13,7 +13,8 @@ internal sealed class PresentationContext(
     IAnnouncer announcer,
     INavigationService navigation,
     IDialogService dialogs,
-    IMotionSettings motion)
+    IMotionSettings motion,
+    ProviderCatalog? providers = null)
 {
     public IUsageSource Usage { get; } = usage;
     public IUiDispatcher Dispatcher { get; } = dispatcher;
@@ -22,6 +23,7 @@ internal sealed class PresentationContext(
     public INavigationService Navigation { get; } = navigation;
     public IDialogService Dialogs { get; } = dialogs;
     public IMotionSettings Motion { get; } = motion;
+    public ProviderCatalog Providers { get; } = providers ?? ProviderCatalog.Default;
     public PresentationFormatter Format { get; } = new(text, clock);
 
     public UiCommand Command(UiCommandKind kind, string? targetId = null, object? payload = null) =>
@@ -220,21 +222,4 @@ internal sealed partial class FailureViewModel : ObservableObject
             WaitText = string.Empty;
         }
     }
-}
-
-public sealed record ProviderInfo(string Id, string Name, string Glyph);
-
-internal static class Providers
-{
-    private static readonly Dictionary<string, ProviderInfo> Known = new(StringComparer.Ordinal)
-    {
-        ["codex"] = new("codex", "Codex", "›_"),
-        ["claude"] = new("claude", "Claude", "✳"),
-        ["copilot"] = new("copilot", "Copilot", "⊙"),
-        ["antigravity"] = new("antigravity", "Antigravity", "↑"),
-    };
-
-    /// <summary>Provider identifiers are protocol values and are never translated; unknown providers get a neutral monogram.</summary>
-    public static ProviderInfo Get(string providerId) =>
-        Known.TryGetValue(providerId, out var info) ? info : new(providerId, providerId, providerId.Length > 0 ? providerId[..1].ToUpperInvariant() : "?");
 }

@@ -21,8 +21,14 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
     private IReadOnlyDictionary<string, string> labels = new Dictionary<string, string>();
     private IReadOnlyDictionary<string, ExpansionPreference> expansions = new Dictionary<string, ExpansionPreference>();
 
-    public LiveUsageSource(IReadOnlyDictionary<string, IProviderSession> sessions, IDiagnosticSink? diagnostics = null)
+    public ProviderCatalog Providers { get; }
+
+    public LiveUsageSource(ProviderCatalog providers, Func<string, IProviderSession> resolveSession, IDiagnosticSink? diagnostics = null)
+        : this(providers.All.ToDictionary(d => d.ProviderId, d => resolveSession(d.ProviderId), StringComparer.Ordinal), diagnostics, providers) { }
+
+    public LiveUsageSource(IReadOnlyDictionary<string, IProviderSession> sessions, IDiagnosticSink? diagnostics = null, ProviderCatalog? providers = null)
     {
+        Providers = providers ?? ProviderCatalog.Default;
         this.diagnostics = diagnostics;
         entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value));
         current = new(0, UiMode.Live, DateTimeOffset.UtcNow, [], Capabilities(),
@@ -128,7 +134,7 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
         Notification started;
         lock (sync)
         {
-            var account = current.Accounts.FirstOrDefault(a => a.Id == id) ?? LiveMapping.Map(id, entry.Session.State, entry.Session.HasStoredGrant);
+            var account = current.Accounts.FirstOrDefault(a => a.Id == id) ?? LiveMapping.Map(id, entry.Session.State, entry.Session.HasStoredGrant, Providers);
             started = Replace(account with { Operation = operation });
         }
         started.Deliver();
@@ -170,7 +176,7 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
             else
             {
                 var old = current.Accounts.FirstOrDefault(a => a.Id == id);
-                var next = LiveMapping.Map(id, state, entries[id].Session.HasStoredGrant);
+                var next = LiveMapping.Map(id, state, entries[id].Session.HasStoredGrant, Providers);
                 notification = Replace(next with { ObservationRevision = (old?.ObservationRevision ?? 0) +
                     (state.Status == ProviderSessionStatus.QuotaAvailable && !state.FromCache ? 1 : 0) });
             }
@@ -203,7 +209,7 @@ internal sealed class LiveUsageSource : IUsageSource, IDisposable
         current = snapshot with { Revision = current.Revision + 1, ObservedAt = DateTimeOffset.UtcNow,
             Accounts = snapshot.Accounts.Select(a => a with
             {
-                Label = labels.GetValueOrDefault(a.Id, LiveMapping.ProviderName(a.ProviderId)),
+                Label = labels.GetValueOrDefault(a.Id, Providers.Get(a.ProviderId).Name),
                 Contexts = a.Contexts.Select(c => c with { Groups = c.Groups.Select(g => g with
                 { Expansion = expansions.GetValueOrDefault(g.Id, ExpansionPreference.Auto) }).ToArray() }).ToArray()
             }).ToArray() };

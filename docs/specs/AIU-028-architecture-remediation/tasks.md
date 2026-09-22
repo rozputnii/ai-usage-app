@@ -92,7 +92,7 @@ makes every later task diagnosable. Polish is last.
       redaction test.
 
 ### T-05 - One provider descriptor table
-- status: pending
+- status: in-progress
 - depends_on: [T-03]
 - acceptance: AC-06
 - evidence: not-run
@@ -105,6 +105,19 @@ makes every later task diagnosable. Polish is last.
       every derived surface, so a missed registry is a failing test rather than a fallback
       monogram.
 - [ ] Check: Presentation Release suite including `DependencyBoundaryTests`.
+
+Implementation plan (2026-09-22, base `d90e90d`): introduce an immutable Windows-owned
+descriptor catalog carrying identity, connection methods, brand styling and the existing
+demo differences. Inject the same catalog into live composition, mapping, connection flow,
+presentation context and provider tiles. Keep session registration in the live composition
+boundary and resolve each catalog entry through its registration. Preserve the full/compact
+Copilot labels, opaque ordinal provider identifiers, demo behavior and neutral/high-contrast
+tile styling. Forward manual-code submission to the active session port. Add synthetic fifth
+provider coverage across derived surfaces and negative submission cases, then run Infrastructure
+and Presentation Release, document validation, Windows build/package and applicable local smoke.
+Only T-05 is selected. Implementation and primary integrated review are complete; Presentation
+142/142, Infrastructure 261/261, Windows Debug build, product smoke 7/7 and unsigned package
+build pass. Exact next action: finish the demo smoke and record final AC-06 evidence before closure.
 
 ### T-06 - Shared MSBuild and central package version roots
 - status: pending

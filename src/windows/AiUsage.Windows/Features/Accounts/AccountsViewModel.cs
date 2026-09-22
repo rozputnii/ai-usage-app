@@ -105,7 +105,7 @@ internal sealed partial class AccountsViewModel : SnapshotViewModel
                     vm.ValueText = window.Glyph.Length > 0 ? $"{window.Glyph} {window.ValueText}" : window.ValueText;
                     vm.Tone = window.Tone;
                 }
-                vm.AccessibleName = format.F("Accounts_ItemAria", a.Label, Providers.Get(a.ProviderId).Name, vm.ValueText);
+                vm.AccessibleName = format.F("Accounts_ItemAria", a.Label, Context.Providers.Get(a.ProviderId).PresentationName, vm.ValueText);
             });
             SelectedItem = Items.FirstOrDefault(i => i.Id == SelectedAccountId);
             var selected = snapshot.Accounts.FirstOrDefault(a => a.Id == SelectedAccountId);

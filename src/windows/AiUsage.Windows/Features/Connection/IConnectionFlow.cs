@@ -20,7 +20,15 @@ public enum ConnectionStageKind
     Failed,
 }
 
-public sealed record ProviderDescriptor(string ProviderId, string Name, string Glyph, IReadOnlyList<ConnectionMethod> Methods, CapabilityOrigin Origin);
+public sealed record ProviderDescriptor(string ProviderId, string Name, string Glyph, IReadOnlyList<ConnectionMethod> Methods, CapabilityOrigin Origin)
+{
+    public string? CompactName { get; init; }
+    public string PresentationName => CompactName ?? Name;
+    public uint? BrandRgb { get; init; }
+    public bool UseThemeFill { get; init; }
+    public IReadOnlyList<ConnectionMethod>? DemoMethods { get; init; }
+    public CapabilityOrigin? DemoOrigin { get; init; }
+}
 
 public sealed record ConnectRequest(string ProviderId, ConnectionMethod Method, string? ReconnectAccountId);
 

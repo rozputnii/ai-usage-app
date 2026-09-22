@@ -22,6 +22,7 @@ public partial class App : Application
     private TrayPopupWindow? popup;
     private Task? stopTask;
     private readonly ApplicationDiagnostics diagnostics = new();
+    internal ProviderCatalog Providers { get; private set; } = ProviderCatalog.Default;
 
     public App() => InitializeComponent();
 
@@ -42,6 +43,7 @@ public partial class App : Application
             await host.StartAsync();
 
             var services = host.Services;
+            Providers = services.GetRequiredService<ProviderCatalog>();
             Controls.CapabilityGate.Source = services.GetRequiredService<Features.Accounts.IUsageSource>();
             window = services.GetRequiredService<MainWindow>();
             services.GetRequiredService<Announcer>().Attach(window.LiveRegionElement);

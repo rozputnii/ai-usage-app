@@ -74,10 +74,10 @@ internal sealed partial class OverviewViewModel : SnapshotViewModel
             rows.Remove(stale);
         CollectionSync.Sync(Sections, sections, s => s.Id, vm => vm.ProviderId, s => new ProviderSectionViewModel(s.Id), (section, source) =>
         {
-            var provider = Providers.Get(source.Id);
-            section.Name = provider.Name;
+            var provider = Context.Providers.Get(source.Id);
+            section.Name = provider.PresentationName;
             section.Glyph = provider.Glyph;
-            section.ListName = format.F("Overview_ProviderList", provider.Name);
+            section.ListName = format.F("Overview_ProviderList", provider.PresentationName);
             CollectionSync.Sync(section.Rows, source.Accounts, a => a.Id, r => r.Id, a => GetRow(a.Id), (row, account) =>
             {
                 var index = Array.IndexOf(source.Accounts, account);

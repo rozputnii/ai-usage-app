@@ -9,13 +9,13 @@ public enum CliStage { Idle, Scanning, Found, Importing, Done }
 
 public enum OutcomeTone { Neutral, Positive, Critical }
 
-internal sealed partial class CliCandidateViewModel(CliCandidate candidate) : ObservableObject
+internal sealed partial class CliCandidateViewModel(CliCandidate candidate, ProviderCatalog providers) : ObservableObject
 {
     public CliCandidate Candidate { get; } = candidate;
     public string Id => Candidate.Id;
     public string Label => Candidate.Label;
     public string Path => Candidate.DisplayPath;
-    public string Glyph => Providers.Get(Candidate.ProviderId).Glyph;
+    public string Glyph => providers.Get(Candidate.ProviderId).Glyph;
 
     [ObservableProperty] public partial bool IsSelected { get; set; }
     [ObservableProperty] public partial bool IsEnabled { get; set; } = true;
@@ -79,7 +79,7 @@ internal sealed partial class CliImportViewModel(PresentationContext context, IC
         {
             await foreach (var candidate in service.DiscoverAsync(cancellation.Token))
             {
-                var item = new CliCandidateViewModel(candidate) { IsSelected = candidate.Importable, IsEnabled = true };
+                var item = new CliCandidateViewModel(candidate, context.Providers) { IsSelected = candidate.Importable, IsEnabled = true };
                 item.PropertyChanged += OnCandidateChanged;
                 Candidates.Add(item);
                 OnPropertyChanged(nameof(ScanningText));

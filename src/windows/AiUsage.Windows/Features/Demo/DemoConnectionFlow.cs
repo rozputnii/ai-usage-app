@@ -10,17 +10,11 @@ public enum DemoConnectOutcome { Approve, ApproveWithoutQuota, Deny, Expire, Dup
 /// Simulated connection flow. The waiting stage resolves only when the demo simulator chooses a browser outcome or
 /// the user cancels; no browser, credential or provider is contacted.
 /// </summary>
-internal sealed class DemoConnectionFlow(DemoState state) : IConnectionFlow
+internal sealed class DemoConnectionFlow(DemoState state, ProviderCatalog? providers = null) : IConnectionFlow
 {
     private TaskCompletionSource<DemoConnectOutcome>? pending;
 
-    public IReadOnlyList<ProviderDescriptor> Providers { get; } =
-    [
-        new("codex", "Codex", "›_", [ConnectionMethod.BrowserSignIn, ConnectionMethod.ManualCode], CapabilityOrigin.Existing),
-        new("claude", "Claude", "✳", [ConnectionMethod.BrowserSignIn, ConnectionMethod.ManualCode], CapabilityOrigin.Existing),
-        new("copilot", "Copilot", "⊙", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Planned),
-        new("antigravity", "Antigravity", "↑", [ConnectionMethod.BrowserSignIn], CapabilityOrigin.Planned),
-    ];
+    public IReadOnlyList<ProviderDescriptor> Providers { get; } = (providers ?? ProviderCatalog.Default).Demo;
 
     public bool IsWaiting => pending is not null;
 

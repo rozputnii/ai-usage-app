@@ -484,3 +484,40 @@ The closure changes only verification, tasks, backlog and the obsolete review-bl
 design. `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`
 returned `valid=true, diagnostics=[]`: PASS. `git diff --check`: PASS. Final closure diff and
 links inspected; T-04 is done, AIU-028 remains incomplete, and no other task was selected.
+
+## T-05 provider descriptor catalog - 2026-09-22
+
+Base: `d90e90d` on `main`. The owner selected T-05 only. The immutable Windows-owned
+`ProviderCatalog` now supplies composition, live mapping, live/demo connection lists, all
+presentation identity lookups and the neutral/brand/high-contrast tile projection. The table
+preserves the full and compact Copilot names and the demo-only method/origin differences.
+Provider IDs remain ordinal opaque values. Session registrations remain in live composition;
+non-owning keyed factories avoid registering another disposal owner for concrete sessions.
+Manual-code submission delegates to the session port without a provider-name check.
+
+Regression evidence: the new Codex-ID manual-code case failed at `Assert.True` against the
+original Claude-only condition. With the catalog contract introduced but consumers still using
+their old lookups, the fifth-descriptor test failed because the account label was the raw
+`Fifth/opaque:ID` instead of `Fifth Provider`. Both now pass. Fifth-descriptor coverage exercises
+session resolution, direct mapping and publication, live/demo connection choices, Overview,
+account list/detail, tray, appearance, status, monitoring provider/window-type/account rules,
+CLI candidate glyphs and the tile style projection. Manual-code coverage also connects a fifth
+descriptor, tests unsupported/unknown/stopped sessions, and retains cancellation/drain regressions.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 142/142, 0 failed/errors/skipped/not-run; includes `DependencyBoundaryTests`. |
+| Infrastructure Release | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261, 0 failed/errors/skipped/not-run. No Infrastructure or Core source changed. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: 0 warnings/errors. |
+| Actual product Windows smoke | PASS | Final `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7; all launched processes exited with code 0. Provider choices, availability and browser/manual methods are asserted without starting authorization. |
+| Actual demo Windows smoke | NOT_RUN | Running at the implementation checkpoint; final result will be recorded before closure. |
+| Unsigned MSIX | PASS | VS MSBuild Release/x64 with signing disabled and no restore; embedded manifest confirms AiUsage.Dev 2026.9.2202.0 x64. One tooling warning for missing `mspdbcmf.exe` (no symbols package), no owned-code warnings/errors. |
+| Primary integrated review | PASS | Reviewed AC-06, every former identity registry and caller, ordinal IDs/fallbacks, existing labels/methods/colors, dependency boundaries, DI ownership and complete test diff. No actionable findings. Routine primary review applies under CONTRIBUTING; no credential, durable-state or privilege boundary changes. |
+| Live provider and packaged install/update | NOT_RUN | Not needed for this metadata/refactoring task. No source CLI credentials, sign-in, host trust changes or package installation. |
+
+The first product smoke run was 6/7: the newly added assertion targeted an `ItemsRepeater`
+automation ID, but that container has no UIA peer. Its screenshot shows all four provider
+buttons correctly. The test now inspects actual buttons/radio buttons; the final 7/7 run is
+retained separately. Product evidence: `.ai-usage-local/AIU-028/t05-product-smoke-final/`, with
+an empty isolated `state` directory selected through `AIU_DEVELOPMENT_STATE_DIRECTORY`.
+Package and build log: `.ai-usage-local/AIU-028/t05-package/2026.9.2202.0/`.

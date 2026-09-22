@@ -99,6 +99,7 @@ public sealed class ShellSmoke
                 Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "AddAccountTabCli").Count > 0, TimeSpan.FromSeconds(5)));
                 Assert.Equal(demo, FindAllInProcess(automation, pid, "AddAccountTabCli").Single().IsEnabled);
                 Capture(window, evidence!, "capabilities-connect");
+                VerifyProviderChoices(automation, pid, demo);
                 FindAllInProcess(automation, pid, "AddAccountClose").Single().AsButton().Invoke();
                 Required(window, "NavSettings").Click();
                 Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("TabDataPrivacy")) is not null, TimeSpan.FromSeconds(5)));
@@ -268,7 +269,33 @@ public sealed class ShellSmoke
         return accept!.AsButton();
     }
 
+    private static void VerifyProviderChoices(UIA3Automation automation, int pid, bool demo)
+    {
+        var names = new[] { "Codex", "Claude", demo ? "Copilot" : "GitHub Copilot", "Antigravity" };
+        // ItemsRepeater has no UIA peer; inspect its actual buttons rather than its XAML ID.
+        var options = FindAllInProcess(automation, pid, cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
+        Assert.Equal(names, options.Where(button => names.Contains(button.Name)).Select(button => button.Name));
+        foreach (var name in names)
+        {
+            var button = FindAllInProcess(automation, pid, cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button).And(cf.ByName(name))).Single();
+            Assert.Equal(demo && name is "Copilot" or "Antigravity" ? "Planned · demo only" : "Available", button.Properties.HelpText.Value);
+            button.AsButton().Invoke();
+            Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "ChangeProvider").Count == 1, TimeSpan.FromSeconds(5)));
+            var methods = FindAllInProcess(automation, pid, cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.RadioButton))
+                .Where(method => method.Name is "Browser sign-in" or "Manual code");
+            var expected = name == "Claude" || demo && name == "Codex"
+                ? new[] { "Browser sign-in", "Manual code" } : ["Browser sign-in"];
+            Assert.Equal(expected, methods.Select(method => method.Name));
+            // Inspect available methods only; never begin a provider authorization.
+            FindAllInProcess(automation, pid, "ChangeProvider").Single().AsButton().Invoke();
+        }
+    }
+
     private static List<AutomationElement> FindAllInProcess(UIA3Automation automation, int pid, string automationId)
+        => FindAllInProcess(automation, pid, cf => cf.ByAutomationId(automationId));
+
+    private static List<AutomationElement> FindAllInProcess(UIA3Automation automation, int pid,
+        Func<FlaUI.Core.Conditions.ConditionFactory, FlaUI.Core.Conditions.ConditionBase> condition)
     {
         var found = new List<AutomationElement>();
         foreach (var element in automation.GetDesktop().FindAllChildren())
@@ -276,7 +303,7 @@ public sealed class ShellSmoke
             var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
             if (handle == IntPtr.Zero || GetWindowThreadProcessId(handle, out var owner) == 0 || owner != (uint)pid)
                 continue;
-            found.AddRange(element.FindAllDescendants(cf => cf.ByAutomationId(automationId)));
+            found.AddRange(element.FindAllDescendants(condition));
         }
         return found;
     }

@@ -139,7 +139,7 @@ internal sealed partial class AppearanceSettingsViewModel : SnapshotViewModel
             {
                 var index = ordered.ToList().IndexOf(a);
                 vm.Label = a.Label;
-                vm.ProviderName = Providers.Get(a.ProviderId).Name;
+                vm.ProviderName = Context.Providers.Get(a.ProviderId).PresentationName;
                 vm.IsHidden = prefs.HiddenTargets.Contains(a.Id);
                 vm.IsMuted = prefs.MutedTargets.Contains(a.Id);
                 vm.HideLabel = format.T(vm.IsHidden ? "Action_Show" : "Action_Hide");

@@ -6,9 +6,7 @@ namespace AiUsage.Adapters.Live;
 
 internal static class LiveMapping
 {
-    internal static string ProviderName(string provider) => provider switch
-    { "codex" => "Codex", "claude" => "Claude", "copilot" => "GitHub Copilot", "antigravity" => "Antigravity", _ => provider };
-    public static AccountItem Map(string provider, ProviderSessionState state, bool connected)
+    public static AccountItem Map(string provider, ProviderSessionState state, bool connected, ProviderCatalog? providers = null)
     {
         var quota = state.Quota;
         var connection = state.Status switch
@@ -42,7 +40,7 @@ internal static class LiveMapping
                     amount.Used?.ToString(CultureInfo.InvariantCulture), amount.Limit?.ToString(CultureInfo.InvariantCulture), amount.Unit) : null,
                 window.Duration?.TotalSeconds, window.ResetsAt, false)).ToArray())
             { Allowed = group.Allowed, LimitReached = group.LimitReached }).ToArray() ?? [];
-        return new(provider, provider, ProviderName(provider), quota?.PlanType, connection,
+        return new(provider, provider, (providers ?? ProviderCatalog.Default).Get(provider).Name, quota?.PlanType, connection,
             AccountOperation.Idle,
             state.Failure is not null || connection is ConnectionState.ReauthRequired or ConnectionState.RecoveryRequired
                 ? Freshness.Stale : state.FromCache ? Freshness.Cached : quota is null ? Freshness.Unknown : Freshness.Fresh,

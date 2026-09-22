@@ -57,26 +57,15 @@ internal sealed partial class ProviderTile : UserControl
         tile.Height = size;
         tile.CornerRadius = new CornerRadius(size >= 28 ? 6 : size >= 22 ? 5 : size >= 18 ? 4 : 3);
         glyph.FontSize = size >= 28 ? 13 : size >= 22 ? 10 : size >= 18 ? 10 : 9;
-        glyph.Text = Providers.Get(ProviderId ?? string.Empty).Glyph;
-        if (AppLayout.Current.ProviderHues && !Bind.IsSystemHighContrast())
-        {
-            (tile.Background, glyph.Foreground) = ProviderId switch
-            {
-                "codex" => (Bind.Token(this, "FillBrush"), Bind.Token(this, "AppBgBrush")),
-                "claude" => (Solid(0xD7, 0x76, 0x55), new SolidColorBrush(Colors.White)),
-                "copilot" => (Solid(0x5B, 0x6C, 0xFF), new SolidColorBrush(Colors.White)),
-                "antigravity" => (Solid(0x1B, 0xA3, 0x9C), new SolidColorBrush(Colors.White)),
-                _ => (Bind.Token(this, "Card2Brush"), Bind.Token(this, "TextBrush")),
-            };
-            tile.BorderThickness = new Thickness(0);
-        }
-        else
-        {
-            tile.Background = Bind.Token(this, "Card2Brush");
-            glyph.Foreground = Bind.Token(this, "TextBrush");
-            tile.BorderBrush = Bind.Token(this, "StrokeBrush");
-            tile.BorderThickness = new Thickness(1);
-        }
+        var style = ((App)Application.Current).Providers.Tile(ProviderId ?? string.Empty,
+            AppLayout.Current.ProviderHues, Bind.IsSystemHighContrast());
+        glyph.Text = style.Glyph;
+        tile.Background = style.BackgroundRgb is { } rgb
+            ? Solid((byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb)
+            : Bind.Token(this, style.BackgroundToken);
+        glyph.Foreground = style.ForegroundToken is { } token ? Bind.Token(this, token) : new SolidColorBrush(Colors.White);
+        tile.BorderBrush = Bind.Token(this, "StrokeBrush");
+        tile.BorderThickness = new Thickness(style.ShowBorder ? 1 : 0);
     }
 
     private static SolidColorBrush Solid(byte r, byte g, byte b) => new(Color.FromArgb(255, r, g, b));

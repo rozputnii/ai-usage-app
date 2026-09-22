@@ -88,11 +88,11 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
         if (switched && Rename.IsEditing)
             Rename.CancelCommand.Execute(null);
         account = item;
-        var provider = Providers.Get(item.ProviderId);
+        var provider = context.Providers.Get(item.ProviderId);
         AccountId = item.Id;
         ProviderId = item.ProviderId;
         Glyph = provider.Glyph;
-        Meta = format.F("Detail_Meta", provider.Name, item.Plan ?? format.T("Account_PlanUnknown"));
+        Meta = format.F("Detail_Meta", provider.PresentationName, item.Plan ?? format.T("Account_PlanUnknown"));
         Label = item.Label;
         Pill.Update(item, format);
         Failure.Update(item, format);

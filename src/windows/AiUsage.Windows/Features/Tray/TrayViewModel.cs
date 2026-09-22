@@ -70,7 +70,7 @@ internal sealed partial class TrayViewModel : SnapshotViewModel
             var account = t.account;
             vm.Label = account.Label;
             vm.ProviderId = account.ProviderId;
-            vm.Glyph = Providers.Get(account.ProviderId).Glyph;
+            vm.Glyph = Context.Providers.Get(account.ProviderId).Glyph;
             vm.Attention = t.attention;
             var primary = QuotaRules.PrimaryWindow(account, prefs);
             var pill = new StatusPillViewModel();
@@ -95,7 +95,7 @@ internal sealed partial class TrayViewModel : SnapshotViewModel
             vm.IsRefreshing = account.Operation == AccountOperation.Refreshing;
             vm.CanRefresh = account.Operation == AccountOperation.Idle && account.Connection == ConnectionState.Connected
                 && snapshot.System.Compatibility != CompatibilityState.SecurityBlocked;
-            vm.AccessibleName = format.F("Tray_RowAria", account.Label, Providers.Get(account.ProviderId).Name, vm.ValueText, vm.Primary.UnitText, vm.SubText);
+            vm.AccessibleName = format.F("Tray_RowAria", account.Label, Context.Providers.Get(account.ProviderId).PresentationName, vm.ValueText, vm.Primary.UnitText, vm.SubText);
             vm.RefreshName = format.F("Row_RefreshName", account.Label);
         });
         IsEmpty = Rows.Count == 0;

@@ -28,13 +28,13 @@ internal static class LiveServiceRegistration
         services.AddClaudeProductSession(Path.Combine(root, "providers"));
         services.AddCopilotProductSession(Path.Combine(root, "providers"));
         services.AddAntigravityProductSession(Path.Combine(root, "providers"));
-        services.AddSingleton(p => new LiveUsageSource(new Dictionary<string, IProviderSession>
-        {
-            ["codex"] = p.GetRequiredService<CodexSession>(),
-            ["claude"] = p.GetRequiredService<ClaudeSession>(),
-            ["copilot"] = p.GetRequiredService<CopilotSession>(),
-            ["antigravity"] = p.GetRequiredService<AntigravitySession>()
-        }, p.GetRequiredService<IDiagnosticSink>()));
+        // Resolve through non-owning factories; each concrete session has one DI disposal owner.
+        services.AddKeyedSingleton<Func<IProviderSession>>("codex", (p, _) => () => p.GetRequiredService<CodexSession>());
+        services.AddKeyedSingleton<Func<IProviderSession>>("claude", (p, _) => () => p.GetRequiredService<ClaudeSession>());
+        services.AddKeyedSingleton<Func<IProviderSession>>("copilot", (p, _) => () => p.GetRequiredService<CopilotSession>());
+        services.AddKeyedSingleton<Func<IProviderSession>>("antigravity", (p, _) => () => p.GetRequiredService<AntigravitySession>());
+        services.AddSingleton(p => new LiveUsageSource(p.GetRequiredService<ProviderCatalog>(),
+            id => p.GetRequiredKeyedService<Func<IProviderSession>>(id)(), p.GetRequiredService<IDiagnosticSink>()));
         services.AddSingleton<IUsageSource>(p => p.GetRequiredService<LiveUsageSource>());
         services.AddSingleton<IConnectionFlow>(p => new LiveConnectionFlow(p.GetRequiredService<LiveUsageSource>(),
             uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })));

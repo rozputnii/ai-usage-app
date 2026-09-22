@@ -84,7 +84,7 @@ internal sealed partial class SystemStatusViewModel : SnapshotViewModel
         CollectionSync.Sync(ProviderStatuses, QuotaRules.Ordered(snapshot), a => a.Id, vm => vm.Id, a => new ProviderStatusViewModel(a.Id), (vm, a) =>
         {
             vm.Label = a.Label;
-            vm.ProviderName = Providers.Get(a.ProviderId).Name;
+            vm.ProviderName = Context.Providers.Get(a.ProviderId).PresentationName;
             vm.StatusText = string.Join(" · ", new[]
             {
                 format.T("Connection_" + a.Connection),

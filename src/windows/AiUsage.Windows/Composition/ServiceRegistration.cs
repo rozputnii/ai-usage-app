@@ -27,6 +27,7 @@ internal static class ServiceRegistration
 {
     public static IServiceCollection AddPresentationFeatures(this IServiceCollection collection)
     {
+        collection.AddSingleton(ProviderCatalog.Default);
         collection.AddSingleton(provider => new PresentationContext(
             provider.GetRequiredService<IUsageSource>(),
             provider.GetRequiredService<IUiDispatcher>(),
@@ -35,7 +36,8 @@ internal static class ServiceRegistration
             provider.GetRequiredService<IAnnouncer>(),
             provider.GetRequiredService<INavigationService>(),
             provider.GetRequiredService<IDialogService>(),
-            provider.GetRequiredService<IMotionSettings>()));
+            provider.GetRequiredService<IMotionSettings>(),
+            provider.GetRequiredService<ProviderCatalog>()));
         collection.AddSingleton(provider => provider.GetRequiredService<PresentationContext>().Format);
         collection.AddSingleton(provider => new ToastViewModel(provider.GetRequiredService<PresentationContext>()));
         collection.AddSingleton(provider => new ShellViewModel(
@@ -108,7 +110,7 @@ internal static class ServiceRegistration
         collection.AddSingleton<IClock>(services => services.GetRequiredService<DemoClock>());
         collection.AddSingleton(services => new DemoState(services.GetRequiredService<DemoClock>(), DemoScenarioCatalog.DefaultScenarioId));
         collection.AddSingleton(services => new DemoUsageSource(services.GetRequiredService<DemoState>()));
-        collection.AddSingleton(services => new DemoConnectionFlow(services.GetRequiredService<DemoState>()));
+        collection.AddSingleton(services => new DemoConnectionFlow(services.GetRequiredService<DemoState>(), services.GetRequiredService<ProviderCatalog>()));
         collection.AddSingleton(services => new DemoHistorySource(services.GetRequiredService<DemoState>()));
         collection.AddSingleton(services => new DemoPreferenceStore(services.GetRequiredService<DemoState>()));
         collection.AddSingleton(services => new DemoNotificationPreview(services.GetRequiredService<DemoState>()));

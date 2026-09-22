@@ -97,7 +97,7 @@ internal sealed partial class AccountRowViewModel : ObservableObject
         var preferences = snapshot.Preferences;
         var first = account is null;
         account = item;
-        var provider = Providers.Get(item.ProviderId);
+        var provider = context.Providers.Get(item.ProviderId);
         Label = item.Label;
         var selectedContext = QuotaRules.SelectedContext(item, preferences);
         SubText = string.Join(" · ", new[] { item.Plan ?? format.T("Account_PlanUnknown"), item.Contexts.Count > 1 ? selectedContext?.Label : null }.Where(s => s is not null));
@@ -138,7 +138,7 @@ internal sealed partial class AccountRowViewModel : ObservableObject
         OnPropertyChanged(nameof(ExpandLabel));
 
         var primary = Windows.FirstOrDefault();
-        AccessibleName = format.F("Row_Aria", item.Label, provider.Name, Pill.Text, primary?.AccessibleName ?? format.T("Row_NoMeasurement"), position, count);
+        AccessibleName = format.F("Row_Aria", item.Label, provider.PresentationName, Pill.Text, primary?.AccessibleName ?? format.T("Row_NoMeasurement"), position, count);
 
         // "✓ Updated" follows an actual new observation, regardless of where the refresh started.
         if (!first && previousOperation == AccountOperation.Refreshing && item.Operation == AccountOperation.Idle
