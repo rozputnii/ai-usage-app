@@ -3,7 +3,7 @@ Set-StrictMode -Version Latest
 Import-Module "$PSScriptRoot/../../tools/windows/PreviewRelease.psm1" -Force
 $script:count = 0
 function Equal($actual, $expected) { if ($actual -cne $expected) { throw "Expected '$expected', got '$actual'." }; $script:count++ }
-function Reject([scriptblock] $action) { $rejected = $false; try { & $action | Out-Null } catch { $rejected = $true }; Equal $rejected $true }
+function Reject([scriptblock] $action, [string] $because = '') { $rejected = $false; try { & $action | Out-Null } catch { $rejected = $_.Exception.Message -like "*$because*" }; Equal $rejected $true }
 $today = [datetime]::SpecifyKind([datetime]'2026-09-22', [DateTimeKind]::Utc)
 Equal (Get-NextPreviewVersion -UtcDate $today -ExistingVersions @()) '2026.9.2223.0'
 Equal (Get-NextPreviewVersion -UtcDate $today -ExistingVersions @('2026.9.2230.0','2026.9.2229.0')) '2026.9.2231.0'
@@ -30,8 +30,8 @@ $args.PackageUri = 'https://example.org/releases/AiUsage.msix'
 $args.Dependencies[0].Uri = 'file:///C:/untrusted.msix'
 Reject { New-PreviewFeed @args }
 Write-Output "PASS: $script:count release policy assertions"
-# Runner trust: WinVerifyTrust (SignTool /pa, Get-AuthenticodeSignature) anchors a self-signed
-# chain only in a Root store; TrustedPeople never satisfies it, and CurrentUser\Root prompts.
+# Runner trust: hosted run 35785324979 proved CurrentUser\TrustedPeople does not satisfy SignTool
+# /pa for the self-signed signer; a Root store anchors it, and CurrentUser\Root would prompt.
 # These checks never open a store and never change trust on the machine running them.
 $trustStore = & (Get-Module PreviewRelease) { New-PreviewRunnerTrustStore }
 Equal $trustStore.Name 'Root'
@@ -40,8 +40,8 @@ $trustStore.Dispose()
 $savedJob = $env:GITHUB_JOB
 try {
     $env:GITHUB_JOB = 'validate'
-    Reject { Add-PreviewRunnerTrust -CertificatePath (Join-Path $PSScriptRoot 'missing.cer') -SignerThumbprint ('A' * 40) }
-    Reject { Remove-PreviewRunnerTrust -Thumbprint ('A' * 40) }
+    Reject { Add-PreviewRunnerTrust -CertificatePath (Join-Path $PSScriptRoot 'missing.cer') -SignerThumbprint ('A' * 40) } 'owned hosted main-push job'
+    Reject { Remove-PreviewRunnerTrust -Thumbprint ('A' * 40) } 'owned hosted main-push job'
 } finally { $env:GITHUB_JOB = $savedJob }
 $publish = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../../tools/windows/Publish-Preview.ps1'), [ref]$null, [ref]$null)
 Equal ($publish.Extent.Text -match 'TrustedPeople|CurrentUser\\Root|Import-Certificate') $false

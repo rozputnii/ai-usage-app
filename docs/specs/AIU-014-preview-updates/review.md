@@ -29,3 +29,23 @@ the accepted actual workflow run. Its statement that windows-package depends on
 validate is incorrect: these jobs run independently; preview requires both. Neither
 detail affects the identified shallow-checkout defect. Draft visibility, real
 signing/feed delivery and package activation still require operational evidence.
+
+## Runner trust fix review
+
+2026-09-23, fresh read-only Claude Code subagent (Plan type: no edit/write tools),
+candidate d28e6be against base 265c489, with the failed run's SignTool evidence and
+the spec. It had no implementation transcript and no signing material. Verdict:
+PASS, no material findings. It checked that verification is unchanged and fails
+closed, that the guard limits trust to the hosted main-push `preview` job, that only
+the signer's own public self-signed CER is accepted, that pre-existing trust is never
+removed, that root trust and the key are removed on every path, that no secret is
+newly exposed, and that the regression never opens a certificate store.
+
+Minor findings. The test comment overstated TrustedPeople: the repository's guest
+smoke uses LocalMachine\TrustedPeople for Get-AuthenticodeSignature, so the comment
+now states only the observed CurrentUser\TrustedPeople failure. The guard assertions
+now require the guard's own message instead of any exception. Two findings were
+accepted without change: a cleanup exception can mask the original failure (the job
+still fails closed), and the certificate-rejection branches are untested because
+faking the preview job next to a store write is unsafe. Static review cannot
+establish runner elevation or hosted SignTool success; only the hosted run can.
