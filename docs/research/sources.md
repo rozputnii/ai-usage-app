@@ -99,3 +99,19 @@ These sources support specific technical cautions, not every product decision. P
 ## S-024 — App data clearing
 - source: `https://learn.microsoft.com/en-us/uwp/api/windows.storage.applicationdata`
 - observation: ClearAsync requires closed file handles; clearing app-owned data is not literal reinstallation or remote grant revocation.
+
+## S-025 — Public MSIX signing options (checked 2026-09-23)
+- source: `https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart`, `https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/code-signing-options`, `https://signpath.org/terms`
+- observation: Artifact Signing Public Trust is open to organizations in the US, Canada,
+  EU, UK and several other countries. Individual developers must be in the US or
+  Canada. CN/O are the validated legal name. Certificates are reissued daily and valid
+  about three days, so signatures need timestamps. Basic costs $9.99 per month. The
+  alternative outside those regions is an OV certificate with an HSM-held key.
+  SignPath Foundation signs as its own publisher and approves each release manually.
+
+## S-026 — MSIX publisher bridging and web install
+- source: `https://learn.microsoft.com/en-us/windows/msix/package/persistent-identity`, `https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/distribution-feature-status`
+- observation: Publisher bridging needs an artifact signed by the old key before it
+  expires, and the old certificate installed on the machine. `ms-appinstaller:` has
+  been disabled by default since December 2023; users download and open the
+  `.appinstaller` file.

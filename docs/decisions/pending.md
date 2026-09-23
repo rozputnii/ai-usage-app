@@ -17,8 +17,9 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 ## RELEASE-001 - Public signing eligibility
 - timing: AIU-014; not a bootstrap blocker.
 - decision already made: Azure Artifact Signing is preferred.
-- unresolved fact: Actual legal-entity, billing and identity-validation eligibility.
-- source: ../research/sources.md, S-013.
+- unresolved fact: Whether the owner signs as an individual in the US or Canada, through an eligible organization, or neither (then choose an OV certificate or defer). Also: acceptance of the legal name and location shown in the certificate, budget, and public package name.
+- draft: ../specs/AIU-014-public-signing/spec.md (2026-09-23 research).
+- source: ../research/sources.md, S-013, S-025, S-026.
 - rule: Do not create paid resources or purchase an alternative without the owner.
 
 ## PROVIDER-001 - Authentication permission and quota access
