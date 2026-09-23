@@ -17,10 +17,10 @@ failure. Missing secrets must not produce unsigned releases. PFX/password must n
 appear in output. First install must establish feed association and prerequisites.
 
 ### T-01 - Release policy and artifacts
-- status: in-progress
+- status: done
 - depends_on: []
 - acceptance: AC-01, AC-02, AC-04
-- evidence: not-run
+- evidence: docs/specs/AIU-014-preview-updates/verification.md (2026-09-23)
 
 - [x] Add `tests/release/Test-PreviewRelease.ps1` behavioral assertions against
   `tools/windows/PreviewRelease.psm1`: same-day increments, calendar rollover,
@@ -32,40 +32,42 @@ appear in output. First install must establish feed association and prerequisite
   queue:max. Inspect workflow privileges and parse scripts before commit/push.
 
 ### T-02 - Signing setup and tester experience
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-03, AC-05
-- evidence: not-run
+- evidence: docs/specs/AIU-014-preview-updates/review.md (2026-09-23)
 
 - [x] Prepare a dedicated-certificate provisioning script and public-CER installation
   instructions. Do not execute secret/trust provisioning without explicit authority.
 - [x] Document OS-managed updates and first-install runtime prerequisites in README.
   Existing live product copy already says updates are managed outside the app; no
   product behavior or UI was changed by this phase.
-- [ ] Freeze code, obtain required fresh read-only independent review, address material
-  findings and commit/push. Codex Luna is unavailable; use existing non-Codex reviewer.
+- [x] Freeze code, obtain required fresh read-only independent review, address material
+  findings and commit/push. Non-Codex reviewers were used; the Codex Luna policy did not apply.
 
 ### T-03 - Operational verification
-- status: pending
+- status: done
 - depends_on: [T-02]
 - acceptance: AC-01, AC-04, AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-014-preview-updates/verification.md (2026-09-23)
 
-- [ ] Present exact prepared provisioning action; after authority, configure signing
+- [x] Present exact prepared provisioning action; after authority, configure signing
   secrets/Pages, enable publication and observe a real successful main-push release.
-- [ ] In Sandbox, trust only the public CER, install through the feed, preserve
+- [x] In Sandbox, trust only the public CER, install through the feed, preserve
   synthetic state across a second release, and inspect feed registration and UI.
-- [ ] Record actual checks and limits in verification.md, update canonical state and
+- [x] Record actual checks and limits in verification.md, update canonical state and
   commit/push. Do not mark trusted public distribution complete.
 
 ## Handoff
 
-Base f708954. Prepared implementation dc0548e; CI fixes 55286df, 9064d76, ff30d80.
-23 release-policy assertions, script syntax and full hosted CI at ff30d80 PASS.
-Independent review's shallow-checkout defect is resolved. The owner explicitly
-authorized full setup/testing and Initialize-PreviewSigning.ps1 -Apply succeeded.
-Dedicated CI secrets and Pages are configured; AIU_PREVIEW_ENABLED is true. Public
-test certificate thumbprint: B4C73392759C80CA5D1AA4004486B6C957417609.
-Host trust is not yet changed. Next action: observe the first signed Preview job from
-this activation-record push, resolve failures, then verify actual feed installation
-and forward update. Prior Sandbox rejection preceded the owner's renewed authority.
+The development phase is operational as of 2026-09-23. Run 35785324979 failed because the
+public CER was only in CurrentUserTrustedPeople, so SignTool /pa rejected the self-signed
+root. d28e6be/eb52980 now trust it in LocalMachineRoot on the hosted preview runner only,
+and remove it in finally. Independent review passed with no material findings. Hosted
+runs 35895908547 and 35899151315 published 2026.9.2301.0 and 2026.9.2302.0 and advanced
+the Pages feed. Windows Sandbox installed through the feed and was updated by Windows to
+the second version with synthetic preferences preserved. Draft 2026.9.2223.0 stays a
+consumed reservation. There is no host trust or host install. Each main push publishes a
+Preview. Remaining AIU-014 scope is outside this phase: official signing, Stable, channel
+switching and public distribution. Next action: the owner selects the next AIU-014 phase,
+starting with public signing eligibility and migration from the development identity.

@@ -95,6 +95,15 @@ The separate executable UI suite publishes with `dotnet publish tests/windows/Ai
 
 The default `-VerificationMode ProductUi` provisions the offline dependencies before the first app activation, so ordinary UI checks do not show missing-runtime dialogs. Missing-prerequisite negative checks are reported as NOT_RUN. Use `-VerificationMode InstallationContract` explicitly when testing installation failures; that mode deliberately activates without the runtime and can display the native missing-runtime dialog. ProductUi success does not claim the installation-negative contract passed.
 
+`tools/windows/Invoke-FeedUpdateSmoke.ps1` is a Windows Sandbox-only harness for the
+development Preview feed. Its `-Phase Install` step checks the public CER thumbprint and
+trusts the CER only in the guest. It installs the runtime and the app through the
+published `.appinstaller`, then seeds a synthetic Dark preference. Its `-Phase Update`
+step runs after the feed advances: it launches the installed version, waits for the
+Windows-managed update, then checks the package family, unchanged LocalState bytes and
+the preference via the explicit `AppInstallerActivationPreservesPreferences` UI test.
+The guest needs networking to reach the feed.
+
 ## Development Preview updates
 
 The owner-selected AIU-014 test channel uses a dedicated self-signed CI certificate.
