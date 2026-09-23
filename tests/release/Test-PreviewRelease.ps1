@@ -30,6 +30,23 @@ $args.PackageUri = 'https://example.org/releases/AiUsage.msix'
 $args.Dependencies[0].Uri = 'file:///C:/untrusted.msix'
 Reject { New-PreviewFeed @args }
 Write-Output "PASS: $script:count release policy assertions"
+# Runner trust: WinVerifyTrust (SignTool /pa, Get-AuthenticodeSignature) anchors a self-signed
+# chain only in a Root store; TrustedPeople never satisfies it, and CurrentUser\Root prompts.
+# These checks never open a store and never change trust on the machine running them.
+$trustStore = & (Get-Module PreviewRelease) { New-PreviewRunnerTrustStore }
+Equal $trustStore.Name 'Root'
+Equal ([string]$trustStore.Location) 'LocalMachine'
+$trustStore.Dispose()
+$savedJob = $env:GITHUB_JOB
+try {
+    $env:GITHUB_JOB = 'validate'
+    Reject { Add-PreviewRunnerTrust -CertificatePath (Join-Path $PSScriptRoot 'missing.cer') -SignerThumbprint ('A' * 40) }
+    Reject { Remove-PreviewRunnerTrust -Thumbprint ('A' * 40) }
+} finally { $env:GITHUB_JOB = $savedJob }
+$publish = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../../tools/windows/Publish-Preview.ps1'), [ref]$null, [ref]$null)
+Equal ($publish.Extent.Text -match 'TrustedPeople|CurrentUser\\Root|Import-Certificate') $false
+$finally = @($publish.FindAll({ param($node) $node -is [Management.Automation.Language.TryStatementAst] -and $node.Finally }, $true))
+Equal (@($finally | Where-Object { $_.Body.Extent.Text -match 'Add-PreviewRunnerTrust' -and $_.Finally.Extent.Text -match 'Remove-PreviewRunnerTrust' }).Count) 1
 $head = git rev-parse HEAD
 if ($LASTEXITCODE -ne 0) { throw 'Release ancestry tests require a Git checkout.' }
 $parent = git rev-parse HEAD~1

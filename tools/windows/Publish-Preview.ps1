@@ -4,8 +4,7 @@ param([Parameter(Mandatory)][string]$SiteUrl)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Import-Module "$PSScriptRoot/PreviewRelease.psm1" -Force
-if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'push' -or $env:GITHUB_REF -ne 'refs/heads/main' -or
-    $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:GITHUB_REPOSITORY -ne 'rozputnii/ai-usage-app') { throw 'Preview publication requires the owned hosted main-push job.' }
+Assert-PreviewPublicationRunner
 if (!$env:AIU_CI_PFX_BASE64 -or !$env:AIU_CI_PFX_PASSWORD) { throw 'Dedicated Preview signing secrets are not configured.' }
 if ($env:GITHUB_SHA -notmatch '^[0-9a-f]{40}$') { throw 'Expected immutable source SHA.' }
 if ($SiteUrl -cne 'https://rozputnii.github.io/ai-usage-app') { throw 'Unexpected Preview site.' }
@@ -44,8 +43,9 @@ try {
     if (@($certificate).Count -ne 1 -or $certificate.Subject -ne 'CN=AI Usage Development') { throw 'Unexpected CI certificate.' }
     $cerPath = Join-Path $assets 'AiUsage.Development.cer'
     Export-Certificate -Cert $certificate -FilePath $cerPath | Out-Null
-    $trusted = Import-Certificate -FilePath $cerPath -CertStoreLocation Cert:\CurrentUser\TrustedPeople
     Remove-Item -LiteralPath $pfxPath
+    # Only this disposable runner trusts the public CER, so SignTool can verify before upload.
+    $trusted = Add-PreviewRunnerTrust -CertificatePath $cerPath -SignerThumbprint $certificate.Thumbprint
     & "$PSScriptRoot/Build-Package.ps1" -MsixVersion $version -CertificateThumbprint $certificate.Thumbprint -OutputDirectory (Join-Path $work 'packages')
     if ($LASTEXITCODE -ne 0) { throw 'Signed package build failed.' }
     $packages = @(Get-ChildItem -LiteralPath (Join-Path $work 'packages') -Recurse -Filter 'AiUsage*.msix' -File)
@@ -86,6 +86,6 @@ try {
     Write-Output "Published development Preview $version; promote feed: $promote"
 } finally {
     if (Test-Path -LiteralPath $pfxPath) { Remove-Item -LiteralPath $pfxPath }
-    if ($certificate) { Remove-Item -LiteralPath "Cert:\CurrentUser\My\$($certificate.Thumbprint)" -DeleteKey }
-    if ($trusted) { Remove-Item -LiteralPath "Cert:\CurrentUser\TrustedPeople\$($trusted.Thumbprint)" }
+    try { if ($trusted) { Remove-PreviewRunnerTrust -Thumbprint $trusted } }
+    finally { if ($certificate) { Remove-Item -LiteralPath "Cert:\CurrentUser\My\$($certificate.Thumbprint)" -DeleteKey } }
 }

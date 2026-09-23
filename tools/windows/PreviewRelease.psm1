@@ -65,4 +65,38 @@ function Test-PreviewPromotion {
     }
     return $true
 }
-Export-ModuleMember -Function Get-NextPreviewVersion, New-PreviewFeed, Test-PreviewPromotion
+function Assert-PreviewPublicationRunner {
+    if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'push' -or $env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_JOB -ne 'preview' -or
+        $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:GITHUB_REPOSITORY -ne 'rozputnii/ai-usage-app') { throw 'Preview publication requires the owned hosted main-push job.' }
+}
+# WinVerifyTrust anchors the self-signed development chain only in a Root store. The machine
+# store avoids the interactive CurrentUser\Root confirmation and is writable on the elevated,
+# disposable hosted runner. Trust is never added anywhere else.
+function New-PreviewRunnerTrustStore {
+    return [Security.Cryptography.X509Certificates.X509Store]::new([Security.Cryptography.X509Certificates.StoreName]::Root, [Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine)
+}
+function Add-PreviewRunnerTrust {
+    param([Parameter(Mandatory)][string]$CertificatePath, [Parameter(Mandatory)][string]$SignerThumbprint)
+    Assert-PreviewPublicationRunner
+    $certificate = [Security.Cryptography.X509Certificates.X509Certificate2]::new($CertificatePath)
+    if ($certificate.HasPrivateKey -or $certificate.Thumbprint -cne $SignerThumbprint.ToUpperInvariant() -or
+        $certificate.Subject -cne 'CN=AI Usage Development' -or $certificate.Issuer -cne $certificate.Subject) { throw 'Runner trust accepts only the signer''s public self-signed development CER.' }
+    $store = New-PreviewRunnerTrustStore
+    try {
+        $store.Open([Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+        if ($store.Certificates.Find('FindByThumbprint', $certificate.Thumbprint, $false).Count) { throw 'Development root is unexpectedly trusted before publication.' }
+        $store.Add($certificate)
+    } finally { $store.Dispose() }
+    return $certificate.Thumbprint
+}
+function Remove-PreviewRunnerTrust {
+    param([Parameter(Mandatory)][string]$Thumbprint)
+    Assert-PreviewPublicationRunner
+    $store = New-PreviewRunnerTrustStore
+    try {
+        $store.Open([Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+        foreach ($certificate in @($store.Certificates.Find('FindByThumbprint', $Thumbprint, $false))) { $store.Remove($certificate) }
+        if ($store.Certificates.Find('FindByThumbprint', $Thumbprint, $false).Count) { throw 'Development root trust was not removed.' }
+    } finally { $store.Dispose() }
+}
+Export-ModuleMember -Function Get-NextPreviewVersion, New-PreviewFeed, Test-PreviewPromotion, Assert-PreviewPublicationRunner, Add-PreviewRunnerTrust, Remove-PreviewRunnerTrust

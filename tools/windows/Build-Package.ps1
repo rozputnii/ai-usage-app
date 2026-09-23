@@ -60,8 +60,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Signing failed with exit $LASTEXITCODE; artifact is not installable evidence." }
         Export-Certificate -Cert $certificate -FilePath (Join-Path $versionOutput 'AiUsage.Development.cer') -Type CERT | Out-Null
         $report.sha256 = (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash
-        # Fail closed on untrusted roots too. The public CER enables verification in the guest;
-        # this command never imports host trust to manufacture a successful verification.
+        # Fail closed on untrusted roots too. Only a disposable guest or the hosted Preview runner
+        # supplies root trust for the public CER; this command never imports trust itself.
         & $signtool verify /pa /v $package
         $report.signtoolVerifyExit = $LASTEXITCODE
         if ($LASTEXITCODE -ne 0) { throw 'SignTool verification failed; retained signed bytes require guest verification and are not installable success evidence.' }
