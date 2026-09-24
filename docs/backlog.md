@@ -288,6 +288,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - scope-note: Owner requests, 2026-09-24, recorded as D-181. Advice only; readings, detail, the tray and notification thresholds stay factual. History-based forecasting remains AIU-024.
 - review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke and interactive demo checks on 2026-09-24. Pace colors on live provider readings and the tray smoke rows are NOT_RUN.
 
+## AIU-032 - Dark-only appearance and removed-UI cleanup
+- goal: G-003
+- status: in-progress
+- depends_on: [AIU-031]
+- trigger: owner-selected
+- outcome: The app always uses the dark palette with no theme setting, and code, styles, strings and demo controls left over from removed screens and themes are deleted.
+- specification: docs/specs/AIU-032-dark-only-cleanup/spec.md
+- evidence: docs/specs/AIU-032-dark-only-cleanup/verification.md
+- scope-note: Owner request, 2026-09-24, recorded as D-182. The account list beside account detail stays.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
