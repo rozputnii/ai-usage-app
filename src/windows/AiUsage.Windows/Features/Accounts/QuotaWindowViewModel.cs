@@ -38,11 +38,54 @@ internal sealed partial class QuotaWindowViewModel : ObservableObject
     [ObservableProperty] public partial long Observation { get; private set; }
     [ObservableProperty] public partial double? RemainingPercent { get; private set; }
 
+    /// <summary>Compact bar color: the pace advice where it applies, otherwise <see cref="Tone"/>.</summary>
+    [ObservableProperty] public partial ValueTone PaceTone { get; private set; }
+    /// <summary>Meter fraction of the end-of-today pace mark, or NaN when there is no daily share.</summary>
+    [ObservableProperty] public partial double PaceMark { get; private set; } = double.NaN;
+    /// <summary>True when the bar shows remaining quota with a daily share, so the part reserved for later days is faded.</summary>
+    [ObservableProperty] public partial bool PaceSplit { get; private set; }
+    [ObservableProperty] public partial string PaceText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial string BackInText { get; private set; } = string.Empty;
+    /// <summary>Hover text of the compact bar: the reading, its reset and the pace advice.</summary>
+    [ObservableProperty] public partial string HintText { get; private set; } = string.Empty;
+
     public bool HasAbsolute => AbsoluteText.Length > 0;
     public bool HasResetExact => ResetExact.Length > 0;
+    public bool HasBackIn => BackInText.Length > 0;
 
     partial void OnAbsoluteTextChanged(string value) => OnPropertyChanged(nameof(HasAbsolute));
     partial void OnResetExactChanged(string value) => OnPropertyChanged(nameof(HasResetExact));
+    partial void OnBackInTextChanged(string value) => OnPropertyChanged(nameof(HasBackIn));
+
+    /// <summary>
+    /// Compact Overview only (D-181): colors the bar by pace, places the end-of-today mark and writes the hover text. Call
+    /// after <see cref="Update"/>. The reading itself, detail views, the tray and notifications keep factual tones.
+    /// </summary>
+    public void ApplyPace(WindowItem window, Freshness freshness, Preferences preferences, PresentationFormatter format)
+    {
+        // An exhausted window is already a full critical bar; a pace mark on it would only add noise.
+        var advice = Severity == QuotaSeverity.Exhausted ? PaceAdvice.None : QuotaPace.Evaluate(window, freshness, format.Clock.UtcNow, format.Clock.TimeZone);
+        var usedMode = preferences.UsageDisplay == UsageDisplay.Used;
+        PaceTone = advice.Kind == PaceKind.None ? Tone : advice.Tone;
+        PaceMark = advice.MarkPercent is { } mark && Kind == MeterKind.Bar ? (usedMode ? 100 - mark : mark) / 100 : double.NaN;
+        PaceSplit = !double.IsNaN(PaceMark) && !usedMode;
+        PaceText = advice.Kind switch
+        {
+            PaceKind.DailyShare when advice.Tone == ValueTone.Critical => -advice.TodayAvailable >= 0.5
+                ? format.F("Pace_TodayOver", format.Percent(-advice.TodayAvailable)) : format.T("Pace_TodayUsed"),
+            PaceKind.DailyShare when advice.Tone == ValueTone.Warning => advice.TodayAvailable < 0.5
+                ? format.T("Pace_SlowDownUnderOne") : format.F("Pace_SlowDown", format.Percent(advice.TodayAvailable)),
+            PaceKind.DailyShare => format.F("Pace_CanUse", format.Percent(advice.TodayAvailable)),
+            PaceKind.ShortWindow when advice.Tone == ValueTone.Critical => format.F("Pace_ShortLow", format.Percent(QuotaPace.ShortWindowCriticalPercent)),
+            _ => string.Empty,
+        };
+        BackInText = Severity == QuotaSeverity.Exhausted && window.ResetsAt is { } reset
+            ? format.Relative(reset) is { } relative ? format.F("Pace_BackIn", relative) : format.T("Reset_PassedAwaiting")
+            : string.Empty;
+        var value = UnitText.Length > 0 ? $"{ValueText} {UnitText}" : ValueText;
+        var reset1 = ResetExact.Length > 0 ? $"{ResetRelative} ({ResetExact})" : ResetRelative;
+        HintText = string.Join(Environment.NewLine, new[] { $"{Label} · {value} · {reset1}", PaceText }.Where(line => line.Length > 0));
+    }
 
     public void Update(AccountItem account, GroupItem group, WindowItem window, Preferences preferences, PresentationFormatter format)
     {

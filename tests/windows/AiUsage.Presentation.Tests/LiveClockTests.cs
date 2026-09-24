@@ -99,14 +99,15 @@ public sealed class LiveClockTests
         using var clock = new LiveClock(host.Motion, host.Dispatcher, time);
         var context = new PresentationContext(host.Usage, host.Dispatcher, clock, host.Text,
             host.Announcer, host.Navigation, host.Dialogs, host.Motion);
-        using var overview = new OverviewViewModel(context, host.History, host.Preferences, host.AddAccount());
+        using var overview = new OverviewViewModel(context, host.Preferences, host.AddAccount());
         using var tray = new TrayViewModel(context, host.Lifetime, () => Task.CompletedTask, () => Task.CompletedTask);
-        var before = overview.SummaryReset;
+        string Hint() => overview.FindRow("demo-codex-1")!.Windows[0].HintText;
+        var before = Hint();
         host.Motion.WindowVisible = false;
         host.Motion.Raise();
         time.Now += TimeSpan.FromHours(1);
         time.Timer.Fire();
-        Assert.Equal(before, overview.SummaryReset);
+        Assert.Equal(before, Hint());
         var changed = host.State.World.Accounts.Single(a => a.Id == "demo-claude-1");
         changed.Label = "Changed while hidden";
         foreach (var window in changed.AllWindows)
@@ -118,11 +119,11 @@ public sealed class LiveClockTests
         var changedRow = tray.Rows.Single(row => row.Id == changed.Id);
         Assert.Equal("Changed while hidden", changedRow.Label);
         Assert.Equal("37 %", changedRow.ValueText);
-        var afterSnapshot = overview.SummaryReset;
+        var afterSnapshot = Hint();
         time.Now += TimeSpan.FromHours(1);
         host.Motion.WindowVisible = true;
         host.Motion.Raise();
-        Assert.NotEqual(afterSnapshot, overview.SummaryReset);
+        Assert.NotEqual(afterSnapshot, Hint());
     }
 
     [Fact]
@@ -133,9 +134,9 @@ public sealed class LiveClockTests
         using var clock = new LiveClock(host.Motion, host.Dispatcher, time);
         var context = new PresentationContext(host.Usage, host.Dispatcher, clock, host.Text,
             host.Announcer, host.Navigation, host.Dialogs, host.Motion);
-        using var overview = new OverviewViewModel(context, host.History, host.Preferences, host.AddAccount());
+        using var overview = new OverviewViewModel(context, host.Preferences, host.AddAccount());
         using var tray = new TrayViewModel(context, host.Lifetime, () => Task.CompletedTask, () => Task.CompletedTask);
-        var overviewBefore = overview.SummaryReset;
+        var overviewBefore = overview.FindRow("demo-codex-1")!.Windows[0].HintText;
         var row = tray.Rows.Single(r => r.Id == "demo-claude-1");
         var quota = row.ValueText;
         host.Motion.WindowVisible = false;
@@ -144,7 +145,7 @@ public sealed class LiveClockTests
         tray.RefreshTime();
         Assert.Equal("Resets in 1 h 14 m · Sep 15, 2:14 PM", row.SubText);
         Assert.Equal(quota, row.ValueText);
-        Assert.Equal(overviewBefore, overview.SummaryReset);
+        Assert.Equal(overviewBefore, overview.FindRow("demo-codex-1")!.Windows[0].HintText);
         time.Now += TimeSpan.FromHours(2);
         tray.RefreshTime();
         Assert.DoesNotContain("Resets in", row.SubText, StringComparison.Ordinal);

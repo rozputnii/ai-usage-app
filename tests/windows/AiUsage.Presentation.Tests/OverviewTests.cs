@@ -1,3 +1,5 @@
+using AiUsage.Features.Accounts;
+using AiUsage.Features.Overview;
 using AiUsage.Features.Presentation;
 using Xunit;
 
@@ -41,21 +43,58 @@ public sealed class OverviewTests
     }
 
     [Fact]
-    public void F02GroupsByProviderInManualOrderAndRestoresTheD115Summary()
+    public void F02GroupsByProviderInManualOrderWithWindowNamesOncePerProvider()
     {
         using var host = new TestHost();
         var overview = host.Overview();
         Assert.Equal(["codex", "claude", "copilot", "antigravity"], overview.Sections.Select(s => s.ProviderId));
         Assert.Equal(["Personal", "Work"], overview.Sections[0].Rows.Select(r => r.Label));
-        Assert.Equal("5", overview.SummaryAccounts);
-        Assert.Equal("across 4 providers", overview.SummaryAccountsDetail);
-        Assert.Equal("0 % left", overview.SummaryLowest);
-        Assert.Contains("Experiments", overview.SummaryLowestSource);
-        Assert.Equal("in 1 m", overview.SummaryReset);
-        // Summary counts: Work warning (20), Research critical (8), Experiments exhausted; no global percentage anywhere.
-        Assert.Equal("1 warning · 1 critical · 1 exhausted · 0 sign-in", overview.SummaryAttentionDetail);
-        Assert.DoesNotContain("average", overview.SummaryScope, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("shared pools counted once", overview.SummaryScope);
+        Assert.Equal(["5-hour window", "Weekly window"], overview.Sections[0].Columns);
+        Assert.Equal(["Session window", "Weekly window"], overview.Sections[1].Columns);
+    }
+
+    [Fact]
+    public void TheD115SummaryStillFeedsTheTrayAfterLeavingTheOverview()
+    {
+        using var host = new TestHost();
+        var snapshot = host.Usage.Current;
+        var visible = QuotaRules.Ordered(snapshot).Where(a => QuotaRules.IsVisible(a, snapshot.Preferences)).ToArray();
+        var summary = OverviewSummary.Compute(visible, snapshot.Preferences, host.Clock.UtcNow);
+        Assert.Equal((5, 4, 0d), (summary.AccountCount, summary.ProviderCount, summary.LowestRemaining!.Value));
+        Assert.Equal("Experiments", summary.LowestAccount!.Label);
+        // Work warning (20), Research critical (8), Experiments exhausted; no global percentage anywhere.
+        Assert.Equal((1, 1, 1, 0), (summary.Warning, summary.Critical, summary.Exhausted, summary.ReauthRequired));
+    }
+
+    [Fact]
+    public void CompactRowsShowOnlyPrimaryBarsWithPaceColorsAndDetailsInHoverText()
+    {
+        using var host = new TestHost();
+        var overview = host.Overview();
+        // Demo time is Monday 15 Sept 12:00 UTC; weekly windows reset Thursday 18 Sept 09:00, so 33.9 % is kept at midnight.
+        var personal = overview.FindRow("demo-codex-1")!;
+        Assert.Equal(["5-hour window", "Weekly window"], personal.Windows.Select(w => w.Label));
+        var weekly = personal.Windows[1];
+        Assert.Equal((ValueTone.Ok, true), (weekly.PaceTone, weekly.PaceSplit));
+        Assert.Equal(100 * 57 / 168.0 / 100, weekly.PaceMark, 6);
+        Assert.Contains("61 % left", weekly.HintText);
+        Assert.Contains("You can use 27 % more today", weekly.HintText);
+        Assert.Equal((RowStatus.None, false), (personal.Status, personal.HasStatus));
+
+        var research = overview.FindRow("demo-claude-1")!;
+        Assert.Equal(ValueTone.Critical, research.Windows[0].PaceTone); // 8 % of a 5-hour window: at or below 20 %
+        Assert.True(double.IsNaN(research.Windows[0].PaceMark));
+        Assert.Equal(ValueTone.Warning, research.Windows[1].PaceTone); // 34 % weekly: today's share is almost used
+        Assert.Equal((RowStatus.Attention, ValueTone.Critical), (research.Status, research.StatusTone));
+        Assert.Contains("Slow down", research.AccessibleName);
+
+        var experiments = overview.FindRow("demo-antigravity-1")!;
+        Assert.Equal("Back in 1 m", experiments.Windows[0].BackInText);
+
+        var work = overview.FindRow("demo-codex-2")!;
+        Assert.Equal(RowStatus.Failure, work.Status);
+        Assert.True(work.IsStale);
+        Assert.All(work.Windows, w => Assert.True(double.IsNaN(w.PaceMark))); // stale readings get no pace advice
     }
 
     [Fact]
@@ -128,7 +167,7 @@ public sealed class OverviewTests
     }
 
     [Fact]
-    public async Task RowRefreshShowsUpdatingThenAcknowledgesOnlyAfterNewData()
+    public async Task RowRefreshSpinsUntilTheNewReadingArrives()
     {
         using var host = new TestHost(autoDelays: false);
         var overview = host.Overview();
@@ -137,14 +176,10 @@ public sealed class OverviewTests
         Assert.True(row.IsRefreshing);
         Assert.False(row.RefreshCommand.CanExecute(null));
         Assert.True(row.CancelRefreshCommand.CanExecute(null));
-        Assert.False(row.ShowAck);
         await host.Delays.Advance();
         await refresh;
         Assert.False(row.IsRefreshing);
-        Assert.True(row.ShowAck);
         Assert.Equal("Personal updated", host.Announcer.Last);
-        await host.Delays.Drain();
-        Assert.False(row.ShowAck);
     }
 
     [Fact]
@@ -159,7 +194,6 @@ public sealed class OverviewTests
         await refresh;
         Assert.False(row.IsRefreshing);
         Assert.False(row.Failure.IsVisible);
-        Assert.False(row.ShowAck);
         Assert.Equal("72 %", row.Windows[0].ValueText);
         Assert.Equal("Refresh cancelled. Previous reading kept.", host.Announcer.Last);
     }
@@ -179,23 +213,6 @@ public sealed class OverviewTests
     }
 
     [Fact]
-    public void ExpandedRowShowsOtherGroupsSharedPoolNoteContextsAndExtensions()
-    {
-        using var host = new TestHost();
-        var row = host.Overview().FindRow("demo-claude-1")!;
-        Assert.Equal(["Session window", "Weekly window"], row.Windows.Select(w => w.Label));
-        Assert.True(row.HasMore);
-        Assert.Equal("Show all · 2 more groups", row.ExpandLabel);
-        row.ToggleExpandCommand.Execute(null);
-        Assert.True(row.IsExpanded);
-        Assert.Equal("Show less", row.ExpandLabel);
-        Assert.Equal(["Shared pool · counted once", "Model-specific"], row.MoreGroups.Select(g => g.Label));
-        Assert.Equal("2 contexts · showing Workspace A", row.MoreContextText);
-        Assert.Equal(["Extra usage: $12.50 used · USD", "Credits: 1,250 minor units · currency not reported"], row.ExtensionLines);
-        Assert.True(row.HasSparkline);
-    }
-
-    [Fact]
     public void F15StressKeepsAllAccountsAndTheLongLabel()
     {
         using var host = new TestHost("F15");
@@ -203,6 +220,5 @@ public sealed class OverviewTests
         Assert.Equal(20, overview.Sections.Sum(s => s.Rows.Count));
         Assert.Contains(overview.Sections.SelectMany(s => s.Rows), r => r.Label.Length > 60);
         Assert.All(overview.Sections.SelectMany(s => s.Rows), r => Assert.Equal(2, r.Windows.Count));
-        Assert.All(overview.Sections.SelectMany(s => s.Rows), r => Assert.Equal(11, r.MoreGroups.Count));
     }
 }

@@ -48,6 +48,7 @@ public sealed partial class Tokens : DependencyObject
             switch (element)
             {
                 case TextBlock text: text.Foreground = brush; break;
+                case IconElement icon: icon.Foreground = brush; break;
                 case Control control: control.Foreground = brush; break;
                 case Shape shape: shape.Fill = brush; break;
                 case ContentPresenter presenter: presenter.Foreground = brush; break;

@@ -277,6 +277,17 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - scope-note: Owner request, 2026-09-24, recorded as D-180. Provider connection flows, credential storage and D-093 retention are unchanged; only the presentation around them changes.
 - review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke and interactive demo checks on 2026-09-24. A live provider sign-in and sign-out through the new menu and panel button are NOT_RUN and await the owner's own check; the tray smoke rows were not run locally because the owner's instance was running.
 
+## AIU-031 - Compact usage view with daily pace colors
+- goal: G-003
+- status: review
+- depends_on: [AIU-030]
+- trigger: owner-selected
+- outcome: The usage view shows only the limit bars, one line per account with window names once per provider and details on hover. Bar color is pace advice: weekly and longer windows split the remainder into even daily shares and turn orange, then red, as today's share runs out; windows shorter than a day turn red at 20 % or less.
+- specification: docs/specs/AIU-031-compact-pace/spec.md
+- evidence: docs/specs/AIU-031-compact-pace/verification.md
+- scope-note: Owner requests, 2026-09-24, recorded as D-181. Advice only; readings, detail, the tray and notification thresholds stay factual. History-based forecasting remains AIU-024.
+- review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke and interactive demo checks on 2026-09-24. Pace colors on live provider readings and the tray smoke rows are NOT_RUN.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

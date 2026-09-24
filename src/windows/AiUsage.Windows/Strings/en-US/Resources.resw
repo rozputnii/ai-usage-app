@@ -1284,9 +1284,6 @@
   <data name="Overview_ShowAll.Content" xml:space="preserve">
     <value>Show hidden and disconnected</value>
   </data>
-  <data name="Overview_SummaryRegion.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>Summary</value>
-  </data>
   <data name="Pill_Cached" xml:space="preserve">
     <value>Cached · {0}</value>
   </data>
@@ -1557,9 +1554,6 @@
   <data name="Row_Cancel.Content" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="Row_ContextsNote" xml:space="preserve">
-    <value>{0} contexts · showing {1}</value>
-  </data>
   <data name="Row_Hidden" xml:space="preserve">
     <value>hidden</value>
   </data>
@@ -1577,27 +1571,6 @@
   </data>
   <data name="Row_RefreshName" xml:space="preserve">
     <value>Refresh {0}</value>
-  </data>
-  <data name="Row_SharedPoolGroup" xml:space="preserve">
-    <value>{0} · counted once</value>
-  </data>
-  <data name="Row_ShowAll" xml:space="preserve">
-    <value>Show all</value>
-  </data>
-  <data name="Row_ShowAllMany" xml:space="preserve">
-    <value>Show all · {0} more groups</value>
-  </data>
-  <data name="Row_ShowAllOne" xml:space="preserve">
-    <value>Show all · {0} more group</value>
-  </data>
-  <data name="Row_ShowLess" xml:space="preserve">
-    <value>Show less</value>
-  </data>
-  <data name="Row_SparklineCaption" xml:space="preserve">
-    <value>{0} · last 24 h</value>
-  </data>
-  <data name="Row_SwitchInDetail.Content" xml:space="preserve">
-    <value>switch in account detail</value>
   </data>
   <data name="Row_Updated.Text" xml:space="preserve">
     <value>✓ Updated</value>
@@ -1787,57 +1760,6 @@
   </data>
   <data name="Status_UpdateLabel.Text" xml:space="preserve">
     <value>Update</value>
-  </data>
-  <data name="Summary_AccountsLabel.Text" xml:space="preserve">
-    <value>Accounts</value>
-  </data>
-  <data name="Summary_AttentionDetail" xml:space="preserve">
-    <value>{0} warning · {1} critical · {2} exhausted · {3} sign-in</value>
-  </data>
-  <data name="Summary_AttentionLabel.Text" xml:space="preserve">
-    <value>Need attention</value>
-  </data>
-  <data name="Summary_LowestLabel.Text" xml:space="preserve">
-    <value>Lowest remaining</value>
-  </data>
-  <data name="Summary_LowestUnavailable" xml:space="preserve">
-    <value>Unavailable · no comparable known percentages</value>
-  </data>
-  <data name="Summary_LowestValue" xml:space="preserve">
-    <value>{0} left</value>
-  </data>
-  <data name="Summary_NoReset" xml:space="preserve">
-    <value>—</value>
-  </data>
-  <data name="Summary_NoResetKnown" xml:space="preserve">
-    <value>No upcoming reset known</value>
-  </data>
-  <data name="Summary_ProvidersMany" xml:space="preserve">
-    <value>across {0} providers</value>
-  </data>
-  <data name="Summary_ProvidersOne" xml:space="preserve">
-    <value>across {0} provider</value>
-  </data>
-  <data name="Summary_ResetLabel.Text" xml:space="preserve">
-    <value>Next reset</value>
-  </data>
-  <data name="Summary_ResetSource" xml:space="preserve">
-    <value>{0} · {1} · {2}</value>
-  </data>
-  <data name="Summary_Scope" xml:space="preserve">
-    <value>Summary covers {0} visible accounts{1}{2} · minimum compares known percentages only (unknown, unavailable and unlimited excluded; shared pools counted once)</value>
-  </data>
-  <data name="Summary_ScopeExclDisconnected" xml:space="preserve">
-    <value> excl. disconnected</value>
-  </data>
-  <data name="Summary_ScopeInclHidden" xml:space="preserve">
-    <value> incl. hidden</value>
-  </data>
-  <data name="Summary_Source" xml:space="preserve">
-    <value>{0} · {1}</value>
-  </data>
-  <data name="Summary_SourceStale" xml:space="preserve">
-    <value>{0} · {1} · stale</value>
   </data>
   <data name="Theme_Dark" xml:space="preserve">
     <value>Dark</value>
@@ -2131,4 +2053,13 @@
   <data name="Settings_SectionData.Text" xml:space="preserve"><value>Data &amp; privacy</value></data>
   <data name="Settings_SectionUpdates.Text" xml:space="preserve"><value>Updates</value></data>
   <data name="Settings_SectionSystemStatus.Text" xml:space="preserve"><value>System status</value></data>
+  <data name="Pace_CanUse" xml:space="preserve"><value>You can use {0} more today</value></data>
+  <data name="Pace_SlowDown" xml:space="preserve"><value>Slow down: {0} left for today</value></data>
+  <data name="Pace_SlowDownUnderOne" xml:space="preserve"><value>Slow down: less than 1 % left for today</value></data>
+  <data name="Pace_TodayUsed" xml:space="preserve"><value>Today's share is used</value></data>
+  <data name="Pace_TodayOver" xml:space="preserve"><value>Today's share is used · {0} over</value></data>
+  <data name="Pace_ShortLow" xml:space="preserve"><value>{0} or less left in this window</value></data>
+  <data name="Pace_BackIn" xml:space="preserve"><value>Back {0}</value></data>
+  <data name="Row_SignedOut" xml:space="preserve"><value>Signed out</value></data>
+  <data name="Row_SignInExpired" xml:space="preserve"><value>Sign-in expired</value></data>
 </root>

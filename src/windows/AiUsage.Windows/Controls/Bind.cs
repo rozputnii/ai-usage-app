@@ -16,6 +16,7 @@ internal static class Bind
     public static Visibility VisibleEither(bool first, bool second) => first || second ? Visibility.Visible : Visibility.Collapsed;
     public static Visibility VisibleText(string? value) => string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
     public static Visibility VisibleCount(int count) => count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    public static int AtLeastOne(int count) => Math.Max(1, count);
     public static bool Not(bool value) => !value;
     public static bool And(bool first, bool second) => first && second;
     public static double Opacity(bool dimmed) => dimmed ? 0.6 : 1;

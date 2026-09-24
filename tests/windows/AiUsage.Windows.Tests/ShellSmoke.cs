@@ -72,7 +72,7 @@ public sealed partial class ShellSmoke
             while (startup.Elapsed < TimeSpan.FromSeconds(30) && !process.HasExited)
             {
                 window = FindProcessWindow(automation, pid);
-                if (window?.FindFirstDescendant(cf => cf.ByAutomationId(demo ? "OverviewSummary" : "AddProvider_codex")) is not null)
+                if (window?.FindFirstDescendant(cf => cf.ByAutomationId(demo ? "Row_demo-codex-1" : "AddProvider_codex")) is not null)
                     break;
                 Thread.Sleep(200);
             }
@@ -219,13 +219,13 @@ public sealed partial class ShellSmoke
 
     /// <summary>
     /// One window without tabs: the header gear shows every settings section (System status included) in place of the
-    /// usage view, and Back returns. In demo, an account's History and detail open from its panel; history loads
-    /// without an initial load action.
+    /// usage view, and Back returns. In demo, account detail opens from its compact row and History from the detail;
+    /// history loads without an initial load action and Back walks the same path home.
     /// </summary>
     private static void Navigate(Window window, string evidence, string scenario)
     {
         var demo = Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") == "demo";
-        var home = demo ? "OverviewSummary" : "AddProvider_codex";
+        var home = demo ? "Row_demo-codex-1" : "AddProvider_codex";
         void Show(string id, string marker, string capture)
         {
             var entry = Required(window, id);
@@ -236,12 +236,13 @@ public sealed partial class ShellSmoke
             if (scenario == "navigation")
                 Capture(window, evidence, "view-" + capture);
         }
-        void Back()
+        void Back(string? to = null)
         {
             Required(window, "BackButton").AsButton().Invoke();
-            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId(home)) is not null, TimeSpan.FromSeconds(10)),
-                "Back must return to the usage view.");
-            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("BackButton")) is null, TimeSpan.FromSeconds(5)));
+            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId(to ?? home)) is not null, TimeSpan.FromSeconds(10)),
+                $"Back must return to the view carrying {to ?? home}.");
+            if (to is null)
+                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("BackButton")) is null, TimeSpan.FromSeconds(5)));
         }
 
         Assert.Null(window.FindFirstDescendant(cf => cf.ByAutomationId("BackButton")));
@@ -252,13 +253,13 @@ public sealed partial class ShellSmoke
         Back();
         if (!demo)
             return;
-        Show("RowHistory", "HistoryAccount", "history");
+        Show("RowOpen", "DetailTitle", "account");
+        Show("DetailHistory", "HistoryAccount", "history");
         Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderHistoryRows")) is not null,
             TimeSpan.FromSeconds(10)), "Provider history must load automatically.");
         Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByName("12000 tokens")) is not null,
             TimeSpan.FromSeconds(5)), "A native provider value must be visible without a load action.");
-        Back();
-        Show("RowOpen", "DetailTitle", "account");
+        Back("DetailTitle");
         Back();
     }
 

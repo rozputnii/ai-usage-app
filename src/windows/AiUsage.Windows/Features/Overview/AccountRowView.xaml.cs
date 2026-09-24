@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using AiUsage.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
@@ -10,7 +8,7 @@ using Windows.System;
 namespace AiUsage.Features.Overview;
 
 /// <summary>
-/// Overview account row. Pointer hover and keyboard focus reveal refresh and the quiet Fresh pill without changing height;
+/// Compact Overview account row (D-181). Pointer hover and keyboard focus reveal refresh without changing height;
 /// Enter opens detail; Alt+↑/↓ and drag both reorder within the provider with the same announced outcome.
 /// </summary>
 internal sealed partial class AccountRowView : UserControl
@@ -32,12 +30,6 @@ internal sealed partial class AccountRowView : UserControl
         DragOver += OnDragOver;
         Drop += OnDrop;
         DropCompleted += (_, _) => (draggingId, draggingProvider) = (null, null);
-        Loaded += (_, _) =>
-        {
-            AppLayout.Current.PropertyChanged += OnLayoutChanged;
-            Arrange();
-        };
-        Unloaded += (_, _) => AppLayout.Current.PropertyChanged -= OnLayoutChanged;
     }
 
     /// <summary>The page registers its view model so drops can reorder; rows are created by item templates.</summary>
@@ -55,7 +47,20 @@ internal sealed partial class AccountRowView : UserControl
 
     private string AutomationIdFor(string id) => "Row_" + id;
     private double RevealOpacity(bool hovered, bool refreshing) => hovered || refreshing ? 1 : 0;
-    private double PillOpacity(bool quietFresh, bool hovered) => !quietFresh || hovered ? 1 : 0;
+    private double StaleOpacity(bool stale) => stale ? 0.45 : 1;
+    private Thickness CompactPadding(bool compactDensity) => compactDensity ? new Thickness(0, 5, 0, 5) : new Thickness(0, 9, 0, 9);
+
+    /// <summary>Segoe Fluent glyphs: warning triangle, clock for a stale reading, error circle for a failed refresh.</summary>
+    private string StatusGlyph(RowStatus status) => status switch
+    {
+        RowStatus.Attention => "",
+        RowStatus.Stale => "",
+        RowStatus.Failure => "",
+        _ => string.Empty,
+    };
+
+    /// <summary>The hover refresh button cancels while a refresh runs.</summary>
+    private System.Windows.Input.ICommand? RefreshAction(bool refreshing) => row is null ? null : refreshing ? row.CancelRefreshCommand : row.RefreshCommand;
 
     protected override AutomationPeer OnCreateAutomationPeer() => new RowPeer(this);
 
@@ -150,22 +155,6 @@ internal sealed partial class AccountRowView : UserControl
             return;
         _ = Owner.DropAsync(draggingId, row.Id);
         draggingId = null;
-    }
-
-    private void OnLayoutChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(AppLayout.IsCompact))
-            Arrange();
-    }
-
-    private void Arrange()
-    {
-        var compact = AppLayout.Current.IsCompact;
-        IdentityColumn.Width = compact ? new GridLength(1, GridUnitType.Star) : new GridLength(190);
-        LinesColumn.Width = compact ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
-        Grid.SetRow(LinesHost, compact ? 1 : 0);
-        Grid.SetColumn(LinesHost, compact ? 0 : 1);
-        Grid.SetColumnSpan(LinesHost, compact ? 3 : 1);
     }
 
     private sealed partial class RowPeer(AccountRowView owner) : FrameworkElementAutomationPeer(owner)

@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AiUsage.Controls"
     xmlns:accounts="using:AiUsage.Features.Accounts"
-    xmlns:overview="using:AiUsage.Features.Overview"
     xmlns:platform="using:AiUsage.Platform"
     IsTabStop="True"
     UseSystemFocusVisuals="True"
@@ -16,131 +15,77 @@
     AutomationProperties.AutomationId="{x:Bind AutomationIdFor(Row.Id), Mode=OneWay}"
     AutomationProperties.Name="{x:Bind Row.AccessibleName, Mode=OneWay}"
     AutomationProperties.PositionInSet="{x:Bind Row.Position, Mode=OneWay}">
-  <Border x:Name="RowBorder" Style="{StaticResource HairlineRow}" Padding="{x:Bind controls:Bind.RowPadding(platform:AppLayout.Current.CompactDensity), Mode=OneWay}"
-          Opacity="{x:Bind controls:Bind.Opacity(Row.IsDisconnected), Mode=OneWay}" Background="Transparent">    <Grid x:Name="RowGrid" ColumnSpacing="24" RowSpacing="8">
+  <!-- D-181 compact row: label and one status mark, one bar per window, sign-out at the right edge. Details are hover text. -->
+  <Border x:Name="RowBorder" Style="{StaticResource HairlineRow}" Padding="{x:Bind CompactPadding(platform:AppLayout.Current.CompactDensity), Mode=OneWay}"
+          Opacity="{x:Bind controls:Bind.Opacity(Row.IsDisconnected), Mode=OneWay}" Background="Transparent">
+    <Grid ColumnSpacing="16">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition x:Name="IdentityColumn" Width="190" />
-        <ColumnDefinition x:Name="LinesColumn" Width="*" />
-        <ColumnDefinition x:Name="ActionsColumn" Width="Auto" />
+        <ColumnDefinition Width="{StaticResource CompactNameWidth}" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="30" />
       </Grid.ColumnDefinitions>
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-      </Grid.RowDefinitions>
 
-      <!-- Identity: label, hover-revealed refresh, Updating… / ✓ Updated, plan, pill, hidden tag. -->
-      <StackPanel x:Name="IdentityHost" Spacing="3">
-        <StackPanel Orientation="Horizontal" Spacing="6" Height="24">
-          <Button AutomationProperties.AutomationId="RowOpen" Style="{StaticResource LinkButton}" Foreground="{ThemeResource TextBrush}" FontSize="14" FontWeight="SemiBold" Padding="0"
-                  Command="{x:Bind Row.OpenCommand}" AutomationProperties.Name="{x:Bind Row.Label, Mode=OneWay}" MaxWidth="170" IsTabStop="False">
-            <TextBlock Text="{x:Bind Row.Label, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" FontWeight="SemiBold" />
-          </Button>
-          <Button AutomationProperties.AutomationId="RowRefresh" Style="{StaticResource GhostIconButton}" Command="{x:Bind Row.RefreshCommand}"
-                  AutomationProperties.Name="{x:Bind Row.RefreshName, Mode=OneWay}" Opacity="{x:Bind RevealOpacity(Row.IsHovered, Row.IsRefreshing), Mode=OneWay}">
-            <controls:RefreshGlyph IsSpinning="{x:Bind Row.IsRefreshing, Mode=OneWay}" Foreground="{ThemeResource Text2Brush}" />          </Button>
-          <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.Visible(Row.IsRefreshing), Mode=OneWay}" controls:Motion.Entrance="True">
-            <TextBlock x:Uid="Row_Updating" Style="{StaticResource Caption11Text}" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-            <Button x:Uid="Row_Cancel" AutomationProperties.AutomationId="RowCancel" Style="{StaticResource LinkButton}" FontSize="11" Command="{x:Bind Row.CancelRefreshCommand}" />
-          </StackPanel>
-          <TextBlock x:Uid="Row_Updated" FontSize="11" Foreground="{ThemeResource OkBrush}" VerticalAlignment="Center" Visibility="Collapsed" controls:Motion.Acknowledge="{x:Bind Row.ShowAck, Mode=OneWay}" />
-        </StackPanel>
-        <TextBlock Text="{x:Bind Row.SubText, Mode=OneWay}" Style="{StaticResource CaptionText}" />
-        <Button x:Uid="ProviderHistory_Open" AutomationProperties.AutomationId="RowHistory" Command="{x:Bind Row.OpenHistoryCommand}" Style="{StaticResource LinkButton}" HorizontalAlignment="Left" />
-        <controls:StatusPill Text="{x:Bind Row.Pill.Text, Mode=OneWay}" Tone="{x:Bind Row.Pill.Tone, Mode=OneWay}" HorizontalAlignment="Left"
-                             Opacity="{x:Bind PillOpacity(Row.Pill.IsQuietFresh, Row.IsHovered), Mode=OneWay}" />
-        <TextBlock Text="{x:Bind Row.HiddenTag, Mode=OneWay}" Style="{StaticResource Caption11Text}" Visibility="{x:Bind controls:Bind.Visible(Row.HasHiddenTag), Mode=OneWay}" />
+      <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+        <Button AutomationProperties.AutomationId="RowOpen" Style="{StaticResource LinkButton}" Foreground="{ThemeResource TextBrush}" FontSize="13" Padding="0"
+                Command="{x:Bind Row.OpenCommand}" AutomationProperties.Name="{x:Bind Row.Label, Mode=OneWay}" MaxWidth="104" IsTabStop="False"
+                ToolTipService.ToolTip="{x:Bind Row.Label, Mode=OneWay}">
+          <TextBlock Text="{x:Bind Row.Label, Mode=OneWay}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+        </Button>
+        <Button AutomationProperties.AutomationId="RowStatus" Style="{StaticResource GhostIconButton}" Width="20" Height="20" Command="{x:Bind Row.StatusActionCommand}"
+                Visibility="{x:Bind controls:Bind.Visible(Row.HasStatus), Mode=OneWay}" AutomationProperties.Name="{x:Bind Row.StatusText, Mode=OneWay}"
+                ToolTipService.ToolTip="{x:Bind Row.StatusText, Mode=OneWay}">
+          <FontIcon Glyph="{x:Bind StatusGlyph(Row.Status), Mode=OneWay}" FontSize="12" controls:Tokens.Foreground="{x:Bind controls:Bind.ToneKey(Row.StatusTone), Mode=OneWay}" />
+        </Button>
+        <Button AutomationProperties.AutomationId="RowRefresh" Style="{StaticResource GhostIconButton}" Width="20" Height="20"
+                Command="{x:Bind RefreshAction(Row.IsRefreshing), Mode=OneWay}" AutomationProperties.Name="{x:Bind Row.RefreshName, Mode=OneWay}"
+                Opacity="{x:Bind RevealOpacity(Row.IsHovered, Row.IsRefreshing), Mode=OneWay}">
+          <controls:RefreshGlyph IsSpinning="{x:Bind Row.IsRefreshing, Mode=OneWay}" Foreground="{ThemeResource Text2Brush}" />
+        </Button>
+        <TextBlock Text="{x:Bind Row.HiddenTag, Mode=OneWay}" Style="{StaticResource Caption11Text}" VerticalAlignment="Center"
+                   Visibility="{x:Bind controls:Bind.Visible(Row.HasHiddenTag), Mode=OneWay}" />
       </StackPanel>
 
-      <!-- Right edge: sign out (icon only, immediate, keeps history) or Sign in again for a signed-out account. -->
-      <StackPanel x:Name="ActionsHost" Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
-        <Button AutomationProperties.AutomationId="RowSignOut" Style="{StaticResource GhostIconButton}" Width="30" Height="30" Command="{x:Bind Row.SignOutCommand}"
+      <!-- One bar per window of the primary group; stale readings are dimmed so they never look current. -->
+      <ItemsRepeater Grid.Column="1" ItemsSource="{x:Bind Row.Windows}" VerticalAlignment="Center"
+                     Visibility="{x:Bind controls:Bind.Visible(Row.ShowBars), Mode=OneWay}" Opacity="{x:Bind StaleOpacity(Row.IsStale), Mode=OneWay}">
+        <ItemsRepeater.Layout>
+          <UniformGridLayout MinItemWidth="40" MinColumnSpacing="16" ItemsStretch="Fill" MaximumRowsOrColumns="{x:Bind controls:Bind.AtLeastOne(Row.Windows.Count), Mode=OneWay}" />
+        </ItemsRepeater.Layout>
+        <ItemsRepeater.ItemTemplate>
+          <DataTemplate x:DataType="accounts:QuotaWindowViewModel">
+            <Grid ColumnSpacing="8" MinHeight="20" Background="Transparent" ToolTipService.ToolTip="{x:Bind HintText, Mode=OneWay}"
+                  AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <controls:QuotaMeter BarHeight="8" VerticalAlignment="Center" Kind="{x:Bind Kind, Mode=OneWay}" Tone="{x:Bind PaceTone, Mode=OneWay}"
+                                   Observation="{x:Bind Observation, Mode=OneWay}" Fraction="{x:Bind Fraction, Mode=OneWay}"
+                                   PaceMark="{x:Bind PaceMark, Mode=OneWay}" PaceSplit="{x:Bind PaceSplit, Mode=OneWay}" />
+              <TextBlock Grid.Column="1" Text="{x:Bind BackInText, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource CritBrush}" VerticalAlignment="Center"
+                         Visibility="{x:Bind controls:Bind.Visible(HasBackIn), Mode=OneWay}" AutomationProperties.AccessibilityView="Raw" />
+            </Grid>
+          </DataTemplate>
+        </ItemsRepeater.ItemTemplate>
+      </ItemsRepeater>
+
+      <!-- Signed out or sign-in expired: the bars give way to one prompt with the inline sign-in. -->
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.Visible(Row.ShowSignInPrompt), Mode=OneWay}">
+        <TextBlock Text="{x:Bind Row.SignInPrompt, Mode=OneWay}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
+        <Button x:Uid="Row_SignIn" AutomationProperties.AutomationId="RowSignIn" Style="{StaticResource SmallLinkButton}" Padding="0" Command="{x:Bind Row.ReconnectCommand}"
+                AutomationProperties.Name="{x:Bind Row.SignInName, Mode=OneWay}" />
+      </StackPanel>
+
+      <TextBlock Grid.Column="1" Text="{x:Bind Row.NoPrimaryText, Mode=OneWay}" Style="{StaticResource Caption11Text}" VerticalAlignment="Center"
+                 Visibility="{x:Bind controls:Bind.Visible(Row.ShowNoPrimary), Mode=OneWay}" />
+
+      <!-- Right edge: sign out, icon only, immediate, keeps history. -->
+      <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
+        <Button AutomationProperties.AutomationId="RowSignOut" Style="{StaticResource GhostIconButton}" Width="28" Height="28" Command="{x:Bind Row.SignOutCommand}"
                 Visibility="{x:Bind controls:Bind.Collapsed(Row.IsDisconnected), Mode=OneWay}"
                 AutomationProperties.Name="{x:Bind Row.SignOutName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind Row.SignOutName, Mode=OneWay}">
           <FontIcon Glyph="&#xF3B1;" FontSize="14" />
         </Button>
-        <Button x:Uid="Row_SignIn" AutomationProperties.AutomationId="RowSignIn" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind Row.ReconnectCommand}"
-                Visibility="{x:Bind controls:Bind.Visible(Row.IsDisconnected), Mode=OneWay}" IsEnabled="{x:Bind Row.CanSignIn, Mode=OneWay}"
-                AutomationProperties.Name="{x:Bind Row.SignInName, Mode=OneWay}" />
-      </StackPanel>
-
-      <!-- Lines of the primary group, failure, expansion. -->
-      <StackPanel x:Name="LinesHost" Grid.Column="1" Spacing="2">
-        <ItemsRepeater ItemsSource="{x:Bind Row.Windows}">
-          <ItemsRepeater.Layout>
-            <StackLayout Spacing="0" />
-          </ItemsRepeater.Layout>
-          <ItemsRepeater.ItemTemplate>
-            <DataTemplate x:DataType="accounts:QuotaWindowViewModel">
-              <accounts:WindowLineView Window="{x:Bind}" Variant="Overview" Padding="0,4" />
-            </DataTemplate>
-          </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
-        <StackPanel Visibility="{x:Bind controls:Bind.Collapsed(Row.HasPrimary), Mode=OneWay}" Spacing="4" Padding="0,4">
-          <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Border Height="4" BorderBrush="{ThemeResource Stroke2Brush}" BorderThickness="1" CornerRadius="2" VerticalAlignment="Center" />
-            <TextBlock Grid.Column="1" Text="—" Style="{StaticResource Display22Text}" FontSize="20" Foreground="{ThemeResource Text2Brush}" />
-          </Grid>
-          <TextBlock Text="{x:Bind Row.NoPrimaryText, Mode=OneWay}" Style="{StaticResource Caption11Text}" />
-        </StackPanel>
-
-        <!-- Scoped failure: message, Retry (D5) or countdown, Reconnect for sign-in required. -->
-        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0" Visibility="{x:Bind controls:Bind.Visible(Row.Failure.IsVisible), Mode=OneWay}" controls:Motion.Entrance="True"
-                    AutomationProperties.LiveSetting="Assertive">
-          <TextBlock Text="{x:Bind Row.Failure.Message, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource CritBrush}" VerticalAlignment="Center" MaxWidth="420" />
-          <Button AutomationProperties.AutomationId="RowRetry" Style="{StaticResource SmallSecondaryButton}" Content="{x:Bind Row.Failure.ActionLabel, Mode=OneWay}" Command="{x:Bind Row.RetryCommand}"
-                  IsEnabled="{x:Bind Row.Failure.ActionEnabled, Mode=OneWay}" Visibility="{x:Bind controls:Bind.Visible(Row.Failure.HasAction), Mode=OneWay}" VerticalAlignment="Center" />
-          <TextBlock Text="{x:Bind Row.Failure.WaitText, Mode=OneWay}" Style="{StaticResource CaptionText}" VerticalAlignment="Center" Visibility="{x:Bind controls:Bind.Visible(Row.Failure.HasWait), Mode=OneWay}" />
-        </StackPanel>
-
-        <Button AutomationProperties.AutomationId="RowExpand" Style="{StaticResource QuietLinkButton}" Margin="0,4,0,0" Padding="0,2" HorizontalAlignment="Left"
-                Command="{x:Bind Row.ToggleExpandCommand}" Visibility="{x:Bind controls:Bind.Visible(Row.HasMore), Mode=OneWay}" AutomationProperties.Name="{x:Bind Row.ExpandLabel, Mode=OneWay}">
-          <StackPanel Orientation="Horizontal" Spacing="6">
-            <TextBlock Text="›" Width="10" TextAlignment="Center" controls:Motion.Rotate="{x:Bind controls:Bind.Rotation(Row.IsExpanded), Mode=OneWay}" />
-            <TextBlock Text="{x:Bind Row.ExpandLabel, Mode=OneWay}" />
-          </StackPanel>
-        </Button>
-
-        <StackPanel Spacing="2" Padding="0,6,0,2" Visibility="{x:Bind controls:Bind.Visible(Row.IsExpanded), Mode=OneWay}" controls:Motion.Entrance="True">
-          <StackPanel Orientation="Horizontal" Spacing="4" Padding="0,2,0,4" Visibility="{x:Bind controls:Bind.Visible(Row.HasMoreContext), Mode=OneWay}">
-            <TextBlock Text="{x:Bind Row.MoreContextText, Mode=OneWay}" Style="{StaticResource Caption11Text}" VerticalAlignment="Center" />
-            <Button x:Uid="Row_SwitchInDetail" Style="{StaticResource LinkButton}" FontSize="11" Command="{x:Bind Row.OpenCommand}" />
-          </StackPanel>
-          <StackPanel Visibility="{x:Bind controls:Bind.Visible(Row.HasSparkline), Mode=OneWay}" Spacing="2" Padding="0,2,0,6">
-            <TextBlock Text="{x:Bind Row.SparklineCaption, Mode=OneWay}" Style="{StaticResource Caption11Text}" />
-            <controls:Sparkline Model="{x:Bind Row.Sparkline, Mode=OneWay}" Height="28" MaxWidth="360" HorizontalAlignment="Left" Width="360" />
-          </StackPanel>
-          <ItemsRepeater ItemsSource="{x:Bind Row.MoreGroups}">
-            <ItemsRepeater.ItemTemplate>
-              <DataTemplate x:DataType="overview:GroupLinesViewModel">
-                <StackPanel>
-                  <Border Style="{StaticResource HairlineRow}" Padding="0,8,0,2">
-                    <TextBlock Text="{x:Bind Label, Mode=OneWay}" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
-                  </Border>
-                  <ItemsRepeater ItemsSource="{x:Bind Windows}">
-                    <ItemsRepeater.ItemTemplate>
-                      <DataTemplate x:DataType="accounts:QuotaWindowViewModel">
-                        <accounts:WindowLineView Window="{x:Bind}" Variant="OverviewExpanded" Padding="0,4" />
-                      </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                  </ItemsRepeater>
-                </StackPanel>
-              </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-          </ItemsRepeater>
-          <ItemsRepeater ItemsSource="{x:Bind Row.ExtensionLines}">
-            <ItemsRepeater.ItemTemplate>
-              <DataTemplate x:DataType="x:String">
-                <Border Style="{StaticResource HairlineRow}" Padding="0,6,0,2">
-                  <TextBlock Text="{x:Bind}" Style="{StaticResource CaptionText}" />
-                </Border>
-              </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-          </ItemsRepeater>
-        </StackPanel>
       </StackPanel>
     </Grid>
   </Border>

@@ -12,30 +12,8 @@
     AutomationProperties.AutomationId="OverviewPage">
   <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
     <Grid x:Name="PageRoot" Padding="{x:Bind Gutter(platform:AppLayout.Current.IsCompact), Mode=OneWay}" controls:Motion.Entrance="True">
-      <!-- Skeleton: mirrors the final layout (summary, provider headers, rows with label, meter and numeral). -->
+      <!-- Skeleton: mirrors the compact layout (provider header, rows with label and bars). -->
       <StackPanel AutomationProperties.AutomationId="OverviewSkeleton" x:Uid="Overview_LoadingRegion" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsLoading), Mode=OneWay}">
-        <Grid Padding="0,20,0,14" ColumnSpacing="28">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <StackPanel Spacing="8">
-            <controls:SkeletonBlock Height="9" Width="70" HorizontalAlignment="Left" />
-            <controls:SkeletonBlock Height="34" Width="110" HorizontalAlignment="Left" Shimmer="True" CornerRadius="4" />
-            <controls:SkeletonBlock Height="9" Width="150" HorizontalAlignment="Left" />
-          </StackPanel>
-          <StackPanel Grid.Column="1" Spacing="8">
-            <controls:SkeletonBlock Height="9" Width="70" HorizontalAlignment="Left" />
-            <controls:SkeletonBlock Height="34" Width="110" HorizontalAlignment="Left" Shimmer="True" CornerRadius="4" />
-            <controls:SkeletonBlock Height="9" Width="150" HorizontalAlignment="Left" />
-          </StackPanel>
-          <StackPanel Grid.Column="2" Spacing="8">
-            <controls:SkeletonBlock Height="9" Width="70" HorizontalAlignment="Left" />
-            <controls:SkeletonBlock Height="34" Width="110" HorizontalAlignment="Left" Shimmer="True" CornerRadius="4" />
-            <controls:SkeletonBlock Height="9" Width="150" HorizontalAlignment="Left" />
-          </StackPanel>
-        </Grid>
         <overview:SkeletonRows />
         <overview:SkeletonRows />
         <Border Style="{StaticResource HairlineRow}" />
@@ -84,53 +62,34 @@
         <Button x:Uid="Overview_ShowAll" AutomationProperties.AutomationId="OverviewShowAll" Style="{StaticResource LinkButton}" Command="{x:Bind ViewModel.ShowHiddenAndDisconnectedCommand}" />
       </StackPanel>
 
-      <!-- Rows -->
+      <!-- Rows (D-181): one line per account; window names appear once per provider above the bar columns. -->
       <StackPanel Visibility="{x:Bind controls:Bind.Visible(ViewModel.HasRows), Mode=OneWay}">
-        <!-- D3: summary restored (S01 counts, lowest known remaining with source, nearest reset, attention). -->
-        <Grid x:Name="SummaryGrid" Padding="0,20,0,6" ColumnSpacing="28" RowSpacing="16" AutomationProperties.AutomationId="OverviewSummary" x:Uid="Overview_SummaryRegion">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-          </Grid.ColumnDefinitions>
-          <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-          </Grid.RowDefinitions>
-          <StackPanel x:Name="StatAccounts" Spacing="2">
-            <TextBlock x:Uid="Summary_AccountsLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryAccounts, Mode=OneWay}" Style="{StaticResource Display40Text}" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryAccountsDetail, Mode=OneWay}" Style="{StaticResource CaptionText}" />
-          </StackPanel>
-          <StackPanel x:Name="StatLowest" Grid.Column="1" Spacing="2">
-            <TextBlock x:Uid="Summary_LowestLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryLowest, Mode=OneWay}" Style="{StaticResource Display40Text}" TextWrapping="Wrap"
-                       controls:Tokens.Foreground="{x:Bind CriticalKey(ViewModel.SummaryLowestCritical), Mode=OneWay}" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryLowestSource, Mode=OneWay}" Style="{StaticResource CaptionText}" />
-          </StackPanel>
-          <StackPanel x:Name="StatReset" Grid.Column="2" Spacing="2">
-            <TextBlock x:Uid="Summary_ResetLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryReset, Mode=OneWay}" Style="{StaticResource Display40Text}" TextWrapping="Wrap" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryResetSource, Mode=OneWay}" Style="{StaticResource CaptionText}" />
-          </StackPanel>
-          <StackPanel x:Name="StatAttention" Grid.Column="3" Spacing="2">
-            <TextBlock x:Uid="Summary_AttentionLabel" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryAttention, Mode=OneWay}" Style="{StaticResource Display40Text}"
-                       controls:Tokens.Foreground="{x:Bind CriticalKey(ViewModel.SummaryAttentionCritical), Mode=OneWay}" />
-            <TextBlock Text="{x:Bind ViewModel.SummaryAttentionDetail, Mode=OneWay}" Style="{StaticResource CaptionText}" />
-          </StackPanel>
-        </Grid>
-        <TextBlock Text="{x:Bind ViewModel.SummaryScope, Mode=OneWay}" Style="{StaticResource Caption11Text}" Padding="0,0,0,4" />
-
         <ItemsRepeater ItemsSource="{x:Bind ViewModel.Sections}" AutomationProperties.AutomationId="ProviderSections">
           <ItemsRepeater.ItemTemplate>
             <DataTemplate x:DataType="overview:ProviderSectionViewModel">
               <StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="10" Padding="0,14,0,3">
-                  <controls:ProviderTile ProviderId="{x:Bind ProviderId}" TileSize="18" VerticalAlignment="Center" />
-                  <TextBlock Text="{x:Bind Name, Mode=OneWay}" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" VerticalAlignment="Center" AutomationProperties.HeadingLevel="Level2" />
-                </StackPanel>
+                <Grid ColumnSpacing="16" Padding="0,16,0,6">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{StaticResource CompactNameWidth}" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="30" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <controls:ProviderTile ProviderId="{x:Bind ProviderId}" TileSize="16" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Bind Name, Mode=OneWay}" Style="{StaticResource SectionLabelText}" controls:TextCase.Upper="True" VerticalAlignment="Center"
+                               AutomationProperties.HeadingLevel="Level2" />
+                  </StackPanel>
+                  <ItemsRepeater Grid.Column="1" ItemsSource="{x:Bind Columns}" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw">
+                    <ItemsRepeater.Layout>
+                      <UniformGridLayout MinItemWidth="40" MinColumnSpacing="16" ItemsStretch="Fill" MaximumRowsOrColumns="{x:Bind controls:Bind.AtLeastOne(Columns.Count), Mode=OneWay}" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <TextBlock Text="{x:Bind}" Style="{StaticResource Caption11Text}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                      </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                  </ItemsRepeater>
+                </Grid>
                 <ItemsRepeater ItemsSource="{x:Bind Rows}" AutomationProperties.Name="{x:Bind ListName, Mode=OneWay}">
                   <ItemsRepeater.ItemTemplate>
                     <DataTemplate x:DataType="overview:AccountRowViewModel">

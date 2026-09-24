@@ -47,8 +47,7 @@ internal static class ServiceRegistration
             provider.GetRequiredService<ToastViewModel>(),
             isDemo: provider.GetService<DemoScenarioController>() is not null));
         collection.AddSingleton(provider => new OverviewViewModel(
-            provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IHistorySource>(), provider.GetRequiredService<IPreferenceStore>(),
-            provider.GetRequiredService<AddAccountViewModel>()));
+            provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IPreferenceStore>(), provider.GetRequiredService<AddAccountViewModel>()));
         collection.AddSingleton(provider => new AccountsViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IHistorySource>(),
             provider.GetRequiredService<IDataManagementService>(), provider.GetRequiredService<IPreferenceStore>(), provider.GetRequiredService<AddAccountViewModel>()));

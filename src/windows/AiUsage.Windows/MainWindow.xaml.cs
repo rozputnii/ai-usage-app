@@ -41,6 +41,10 @@ internal sealed partial class MainWindow : Window
     private bool reopenAfterClose;
     private bool finalClose;
 
+    /// <summary>D-181: the compact usage view needs little room; effective pixels, wide enough to keep settings unstacked.</summary>
+    private const int DefaultWidth = 760;
+    private const int DefaultHeight = 600;
+
     public MainWindow(ShellViewModel shell, TrayViewModel tray, RecoveryViewModel recovery, OverviewViewModel overview, AccountsViewModel accounts,
         ProviderHistoryViewModel history, SettingsViewModel settings, AddAccountViewModel addAccount, NavigationService navigation, ThemeService theme, DisplaySimulation display,
         IUsageSource usage, IServiceProvider services)
@@ -76,7 +80,8 @@ internal sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
-        AppWindow.Resize(new SizeInt32(1100, 860));
+        AppWindow.Resize(new SizeInt32(DefaultWidth, DefaultHeight));
+        RootGrid.Loaded += ApplyDefaultSizeForScale;
         theme.Attach(RootGrid, AppWindow);
 
         navigation.Navigated += (_, request) => DispatcherQueue.TryEnqueue(() => ShowPage(request));
@@ -125,6 +130,15 @@ internal sealed partial class MainWindow : Window
     private string StripBorder(bool note, NoteTone tone) => note && tone == NoteTone.Critical ? "CritStrokeBrush" : "StrokeBrush";
     private string CodeBorder(bool error) => error ? "CritBrush" : "Stroke2Brush";
     private string ProviderIdOf(ProviderOptionViewModel? provider) => provider?.ProviderId ?? string.Empty;
+
+    /// <summary>AppWindow sizes are physical pixels; once the display scale is known, apply the default in effective pixels.</summary>
+    private void ApplyDefaultSizeForScale(object sender, RoutedEventArgs e)
+    {
+        RootGrid.Loaded -= ApplyDefaultSizeForScale;
+        var scale = RootGrid.XamlRoot?.RasterizationScale ?? 1;
+        if (Math.Abs(scale - 1) > 0.01)
+            AppWindow.Resize(new SizeInt32((int)(DefaultWidth * scale), (int)(DefaultHeight * scale)));
+    }
 
     private void ShowPage(NavigationRequest request)
     {

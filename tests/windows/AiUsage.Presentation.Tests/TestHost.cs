@@ -283,7 +283,7 @@ internal sealed class TestHost : IDisposable
         return value;
     }
 
-    public OverviewViewModel Overview() => Track(new OverviewViewModel(Context, History, Preferences, AddAccount()));
+    public OverviewViewModel Overview() => Track(new OverviewViewModel(Context, Preferences, AddAccount()));
     public AccountsViewModel Accounts() => Track(new AccountsViewModel(Context, History, Data, Preferences, AddAccount()));
     /// <summary>One shared inline connector, like the app singleton: rows, detail and the header menu use the same one.</summary>
     public AddAccountViewModel AddAccount() => addAccount ??= Track(new AddAccountViewModel(Context, Connection, new CliImportViewModel(Context, Cli), Controller));

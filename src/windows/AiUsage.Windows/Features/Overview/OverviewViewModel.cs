@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using AiUsage.Features.Connection;
-using AiUsage.Features.History;
 using AiUsage.Features.Presentation;
 using AiUsage.Features.Settings;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,21 +14,21 @@ internal sealed partial class ProviderSectionViewModel(string providerId) : Obse
     [ObservableProperty] public partial string Glyph { get; set; } = string.Empty;
     [ObservableProperty] public partial string ListName { get; set; } = string.Empty;
     public ObservableCollection<AccountRowViewModel> Rows { get; } = [];
+    /// <summary>Window names shown once above the bar columns, taken from the first account of the provider.</summary>
+    public ObservableCollection<string> Columns { get; } = [];
 }
 
 /// <summary>
-/// S01 Overview: provider sections in manual order, the D-115 summary (restored per D3), first-run and all-hidden
-/// states. Never shows a global usage percentage; the minimum compares known percentages only.
+/// S01 Overview, compact (D-181): provider sections in manual order with window names once per provider, one bar row
+/// per account, first-run and all-hidden states. No summary block and no global usage percentage.
 /// </summary>
 internal sealed partial class OverviewViewModel : SnapshotViewModel
 {
-    private readonly IHistorySource history;
     private readonly IPreferenceStore preferences;
     private readonly Dictionary<string, AccountRowViewModel> rows = new(StringComparer.Ordinal);
 
-    public OverviewViewModel(PresentationContext context, IHistorySource history, IPreferenceStore preferences, AddAccountViewModel addAccount) : base(context)
+    public OverviewViewModel(PresentationContext context, IPreferenceStore preferences, AddAccountViewModel addAccount) : base(context)
     {
-        this.history = history;
         this.preferences = preferences;
         AddAccount = addAccount;
         Initialize();
@@ -44,20 +43,6 @@ internal sealed partial class OverviewViewModel : SnapshotViewModel
     [ObservableProperty] public partial bool AllHidden { get; private set; }
     [ObservableProperty] public partial bool HasRows { get; private set; }
     [ObservableProperty] public partial bool IsCompactDensity { get; private set; }
-
-    [ObservableProperty] public partial string SummaryAccounts { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string SummaryAccountsDetail { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string SummaryLowest { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string SummaryLowestSource { get; private set; } = string.Empty;
-    [ObservableProperty] public partial bool SummaryLowestCritical { get; private set; }
-    [ObservableProperty] public partial string SummaryReset { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string SummaryResetSource { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string SummaryAttention { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string SummaryAttentionDetail { get; private set; } = string.Empty;
-    [ObservableProperty] public partial bool SummaryAttentionCritical { get; private set; }
-    [ObservableProperty] public partial string SummaryScope { get; private set; } = string.Empty;
-
-    public OverviewSummary? Summary { get; private set; }
 
     protected override void OnSnapshot(UiSnapshot snapshot)
     {
@@ -87,46 +72,20 @@ internal sealed partial class OverviewViewModel : SnapshotViewModel
                 var index = Array.IndexOf(source.Accounts, account);
                 row.Update(account, snapshot, index + 1, source.Accounts.Length, index > 0, index < source.Accounts.Length - 1);
             });
+            var columns = section.Rows.FirstOrDefault()?.Windows.Select(w => w.Label).ToArray() ?? [];
+            if (!section.Columns.SequenceEqual(columns))
+            {
+                section.Columns.Clear();
+                foreach (var column in columns)
+                    section.Columns.Add(column);
+            }
         });
-
-        var summary = Summary = OverviewSummary.Compute(visible, prefs, Context.Clock.UtcNow);
-        SummaryAccounts = format.Count(summary.AccountCount);
-        SummaryAccountsDetail = format.F(summary.ProviderCount == 1 ? "Summary_ProvidersOne" : "Summary_ProvidersMany", summary.ProviderCount);
-        if (summary.LowestRemaining is { } lowest)
-        {
-            SummaryLowest = format.F("Summary_LowestValue", format.Percent(lowest));
-            SummaryLowestSource = format.F(summary.LowestAccount!.Freshness == Freshness.Stale ? "Summary_SourceStale" : "Summary_Source",
-                summary.LowestAccount.Label, summary.LowestWindow!.Label);
-            SummaryLowestCritical = lowest <= 0;
-        }
-        else
-        {
-            SummaryLowest = format.T("Value_Unavailable");
-            SummaryLowestSource = format.T("Summary_LowestUnavailable");
-            SummaryLowestCritical = false;
-        }
-        if (summary.NearestReset is { } reset)
-        {
-            SummaryReset = format.Relative(reset) ?? format.T("Summary_NoReset");
-            SummaryResetSource = format.F("Summary_ResetSource", format.Time(reset), summary.NearestAccount!.Label, summary.NearestWindow!.Label);
-        }
-        else
-        {
-            SummaryReset = "—";
-            SummaryResetSource = format.T("Summary_NoResetKnown");
-        }
-        SummaryAttention = format.Count(summary.NeedAttention);
-        SummaryAttentionDetail = format.F("Summary_AttentionDetail", summary.Warning, summary.Critical, summary.Exhausted, summary.ReauthRequired);
-        SummaryAttentionCritical = summary.Critical + summary.Exhausted + summary.ReauthRequired > 0;
-        SummaryScope = format.F("Summary_Scope", summary.AccountCount,
-            prefs.ShowHidden ? format.T("Summary_ScopeInclHidden") : string.Empty,
-            prefs.ShowDisconnected ? string.Empty : format.T("Summary_ScopeExclDisconnected"));
     }
 
     private AccountRowViewModel GetRow(string id)
     {
         if (!rows.TryGetValue(id, out var row))
-            rows[id] = row = new AccountRowViewModel(id, Context, history, AddAccount, (r, direction) => _ = MoveAsync(r.Id, direction));
+            rows[id] = row = new AccountRowViewModel(id, Context, AddAccount, (r, direction) => _ = MoveAsync(r.Id, direction));
         return row;
     }
 

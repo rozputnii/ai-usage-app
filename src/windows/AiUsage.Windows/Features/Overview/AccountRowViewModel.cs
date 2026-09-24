@@ -1,42 +1,31 @@
 using System.Collections.ObjectModel;
 using AiUsage.Features.Accounts;
 using AiUsage.Features.Connection;
-using AiUsage.Features.History;
 using AiUsage.Features.Presentation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AiUsage.Features.Overview;
 
-/// <summary>Extra group lines shown when an Overview row is expanded.</summary>
-internal sealed partial class GroupLinesViewModel(string id) : ObservableObject
-{
-    public string Id { get; } = id;
-    [ObservableProperty] public partial string Label { get; set; } = string.Empty;
-    public ObservableCollection<QuotaWindowViewModel> Windows { get; } = [];
-}
+/// <summary>The one status mark a compact row shows beside its label, most urgent first.</summary>
+public enum RowStatus { None, Attention, Stale, Failure }
 
 /// <summary>
-/// One Overview row: identity column plus one line per window of the primary group. Refresh feedback ("Updating…",
-/// "✓ Updated") is derived from snapshot transitions, so it is correct whether refresh started here, in detail or in the tray.
+/// One compact Overview row (D-181): label, one status mark, one bar per window of the primary group and the sign-out
+/// action. Numbers, resets and pace advice live in each bar's hover text and in the accessible name; other groups,
+/// plan, history and freshness stay in account detail.
 /// </summary>
 internal sealed partial class AccountRowViewModel : ObservableObject
 {
     private readonly PresentationContext context;
-    private readonly IHistorySource history;
     private readonly IAccountConnector connector;
     private readonly Action<AccountRowViewModel, int> move;
     private AccountItem account = null!;
-    private AccountOperation previousOperation;
-    private long previousObservation;
-    private int ackGeneration;
-    private CancellationTokenSource? sparklineLoad;
 
-    public AccountRowViewModel(string id, PresentationContext context, IHistorySource history, IAccountConnector connector, Action<AccountRowViewModel, int> move)
+    public AccountRowViewModel(string id, PresentationContext context, IAccountConnector connector, Action<AccountRowViewModel, int> move)
     {
         Id = id;
         this.context = context;
-        this.history = history;
         this.connector = connector;
         this.move = move;
     }
@@ -46,28 +35,24 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     public StatusPillViewModel Pill { get; } = new();
     public FailureViewModel Failure { get; } = new();
     public ObservableCollection<QuotaWindowViewModel> Windows { get; } = [];
-    public ObservableCollection<GroupLinesViewModel> MoreGroups { get; } = [];
-    public ObservableCollection<string> ExtensionLines { get; } = [];
 
     [ObservableProperty] public partial string Label { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string SubText { get; private set; } = string.Empty;
     [ObservableProperty] public partial string HiddenTag { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool IsDisconnected { get; private set; }
+    [ObservableProperty] public partial bool IsStale { get; private set; }
     [ObservableProperty] public partial bool HasPrimary { get; private set; }
     [ObservableProperty] public partial string NoPrimaryText { get; private set; } = string.Empty;
-    [ObservableProperty] public partial bool HasMore { get; private set; }
-    [NotifyPropertyChangedFor(nameof(ExpandLabel))]
-    [ObservableProperty] public partial bool IsExpanded { get; private set; }
-    [ObservableProperty] public partial string MoreContextText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial bool NeedsSignIn { get; private set; }
+    [ObservableProperty] public partial string SignInPrompt { get; private set; } = string.Empty;
+    [ObservableProperty] public partial RowStatus Status { get; private set; }
+    [ObservableProperty] public partial ValueTone StatusTone { get; private set; }
+    [ObservableProperty] public partial string StatusText { get; private set; } = string.Empty;
     [NotifyCanExecuteChangedFor(nameof(RefreshCommand), nameof(CancelRefreshCommand), nameof(RetryCommand))]
     [ObservableProperty] public partial bool IsRefreshing { get; private set; }
-    [ObservableProperty] public partial bool ShowAck { get; private set; }
     [NotifyCanExecuteChangedFor(nameof(RefreshCommand), nameof(RetryCommand))]
     [ObservableProperty] public partial bool CanRefresh { get; private set; }
     [ObservableProperty] public partial string AccessibleName { get; private set; } = string.Empty;
     [ObservableProperty] public partial int Position { get; private set; }
-    [ObservableProperty] public partial ChartModel Sparkline { get; private set; } = ChartModel.Empty;
-    [ObservableProperty] public partial string SparklineCaption { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool IsHovered { get; set; }
     [NotifyCanExecuteChangedFor(nameof(MoveUpCommand))]
     [ObservableProperty] public partial bool CanMoveUp { get; private set; }
@@ -78,25 +63,20 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     [ObservableProperty] public partial bool CanSignIn { get; private set; }
 
     public bool HasHiddenTag => HiddenTag.Length > 0;
-    public bool HasMoreContext => MoreContextText.Length > 0;
-    public bool HasSparkline => Sparkline.ObservedCount > 1;
+    public bool HasStatus => Status != RowStatus.None;
+    /// <summary>Bars give way to a sign-in prompt when the account is signed out or its grant expired.</summary>
+    public bool ShowSignInPrompt => NeedsSignIn || IsDisconnected;
+    public bool ShowBars => HasPrimary && !ShowSignInPrompt;
+    public bool ShowNoPrimary => !HasPrimary && !ShowSignInPrompt;
     public string RefreshName => context.Format.F("Row_RefreshName", Label);
     public string SignOutName => context.Format.F("Row_SignOutName", Label);
     public string SignInName => context.Format.F("Row_SignInName", Label);
 
-    public string ExpandLabel
-    {
-        get
-        {
-            if (IsExpanded)
-                return context.Format.T("Row_ShowLess");
-            return MoreGroups.Count > 0 ? context.Format.F(MoreGroups.Count == 1 ? "Row_ShowAllOne" : "Row_ShowAllMany", MoreGroups.Count) : context.Format.T("Row_ShowAll");
-        }
-    }
-
     partial void OnHiddenTagChanged(string value) => OnPropertyChanged(nameof(HasHiddenTag));
-    partial void OnMoreContextTextChanged(string value) => OnPropertyChanged(nameof(HasMoreContext));
-    partial void OnSparklineChanged(ChartModel value) => OnPropertyChanged(nameof(HasSparkline));
+    partial void OnStatusChanged(RowStatus value) => OnPropertyChanged(nameof(HasStatus));
+    partial void OnHasPrimaryChanged(bool value) => NotifyBarsChanged();
+    partial void OnNeedsSignInChanged(bool value) => NotifyBarsChanged();
+    partial void OnIsDisconnectedChanged(bool value) => NotifyBarsChanged();
     partial void OnLabelChanged(string value)
     {
         OnPropertyChanged(nameof(RefreshName));
@@ -104,19 +84,26 @@ internal sealed partial class AccountRowViewModel : ObservableObject
         OnPropertyChanged(nameof(SignInName));
     }
 
+    private void NotifyBarsChanged()
+    {
+        OnPropertyChanged(nameof(ShowSignInPrompt));
+        OnPropertyChanged(nameof(ShowBars));
+        OnPropertyChanged(nameof(ShowNoPrimary));
+    }
+
     public void Update(AccountItem item, UiSnapshot snapshot, int position, int count, bool canMoveUp, bool canMoveDown)
     {
         var format = context.Format;
         var preferences = snapshot.Preferences;
-        var first = account is null;
         account = item;
         var provider = context.Providers.Get(item.ProviderId);
         Label = item.Label;
-        var selectedContext = QuotaRules.SelectedContext(item, preferences);
-        SubText = string.Join(" · ", new[] { item.Plan ?? format.T("Account_PlanUnknown"), item.Contexts.Count > 1 ? selectedContext?.Label : null }.Where(s => s is not null));
         Pill.Update(item, format);
         Failure.Update(item, format);
         IsDisconnected = item.Connection == ConnectionState.NotConnected;
+        IsStale = item.Freshness == Freshness.Stale;
+        NeedsSignIn = Failure.IsVisible && Failure.Action == FailureAction.Reconnect;
+        SignInPrompt = format.T(IsDisconnected ? "Row_SignedOut" : "Row_SignInExpired");
         HiddenTag = preferences.HiddenTargets.Contains(item.Id)
             ? format.T(preferences.MutedTargets.Contains(item.Id) ? "Row_HiddenMuted" : "Row_Hidden")
             : string.Empty;
@@ -128,84 +115,36 @@ internal sealed partial class AccountRowViewModel : ObservableObject
             && QuotaRules.IsAvailable(snapshot, CapabilityKeys.For(UiCommandKind.RefreshAccount), item.Id)
             && !(item.Failure is { Kind: FailureKinds.RateLimited, RetryAt: { } retryAt } && retryAt > context.Clock.UtcNow);
         IsRefreshing = item.Operation == AccountOperation.Refreshing;
-        RetryCommand.NotifyCanExecuteChanged();
         CanSignOut = !IsDisconnected && item.Operation == AccountOperation.Idle
             && QuotaRules.IsAvailable(snapshot, nameof(UiCommandKind.Disconnect), item.Id);
         CanSignIn = IsDisconnected && item.Operation == AccountOperation.Idle
             && snapshot.System.Compatibility != CompatibilityState.SecurityBlocked;
+        RetryCommand.NotifyCanExecuteChanged();
 
-        var groups = QuotaRules.VisibleGroups(selectedContext, preferences).ToArray();
-        var primaryGroup = groups.FirstOrDefault();
+        var selectedContext = QuotaRules.SelectedContext(item, preferences);
+        var primaryGroup = QuotaRules.VisibleGroups(selectedContext, preferences).FirstOrDefault();
         var primaryWindows = primaryGroup?.Windows ?? [];
-        CollectionSync.Sync(Windows, primaryWindows, w => w.Id, vm => vm.Id, w => new QuotaWindowViewModel(w.Id), (vm, w) => vm.Update(item, primaryGroup!, w, preferences, format));
+        CollectionSync.Sync(Windows, primaryWindows, w => w.Id, vm => vm.Id, w => new QuotaWindowViewModel(w.Id), (vm, w) =>
+        {
+            vm.Update(item, primaryGroup!, w, preferences, format);
+            vm.ApplyPace(w, item.Freshness, preferences, format);
+        });
         HasPrimary = Windows.Count > 0;
         NoPrimaryText = format.T(item.Connection == ConnectionState.NotConnected ? "Row_MonitoringStopped" : "Row_NoWindows");
 
-        var more = groups.Skip(1).ToArray();
-        CollectionSync.Sync(MoreGroups, more, g => g.Id, vm => vm.Id, g => new GroupLinesViewModel(g.Id), (vm, g) =>
-        {
-            vm.Label = g.SharedPoolId is null ? g.Label : format.F("Row_SharedPoolGroup", g.Label);
-            CollectionSync.Sync(vm.Windows, g.Windows, w => w.Id, w => w.Id, w => new QuotaWindowViewModel(w.Id), (wvm, w) => wvm.Update(item, g, w, preferences, format));
-        });
-        ExtensionLines.Clear();
-        foreach (var extension in item.Extensions)
-            ExtensionLines.Add(ExtensionLine(extension, format));
-        MoreContextText = item.Contexts.Count > 1 ? format.F("Row_ContextsNote", item.Contexts.Count, selectedContext?.Label ?? string.Empty) : string.Empty;
-        HasMore = more.Length > 0 || item.Extensions.Count > 0 || item.Contexts.Count > 1;
-        OnPropertyChanged(nameof(ExpandLabel));
+        // One mark: a failure outranks staleness, which outranks quota attention; stale bars never look current.
+        var worst = Windows.Select(w => w.PaceTone).Where(t => t is ValueTone.Warning or ValueTone.Critical).DefaultIfEmpty(ValueTone.Normal).Max();
+        (Status, StatusTone, StatusText) = ShowSignInPrompt ? (RowStatus.None, ValueTone.Normal, string.Empty)
+            : Failure.IsVisible
+            ? (RowStatus.Failure, ValueTone.Critical, Failure.HasWait ? $"{Failure.Message} {Failure.WaitText}" : Failure.Message)
+            : IsStale ? (RowStatus.Stale, ValueTone.Muted, Pill.Text)
+            : worst is ValueTone.Warning or ValueTone.Critical ? (RowStatus.Attention, worst,
+                string.Join(Environment.NewLine, Windows.Where(w => w.PaceTone == worst).Select(w => w.HintText)))
+            : (RowStatus.None, ValueTone.Normal, string.Empty);
 
         var primary = Windows.FirstOrDefault();
-        AccessibleName = format.F("Row_Aria", item.Label, provider.PresentationName, Pill.Text, primary?.AccessibleName ?? format.T("Row_NoMeasurement"), position, count);
-
-        // "✓ Updated" follows an actual new observation, regardless of where the refresh started.
-        if (!first && previousOperation == AccountOperation.Refreshing && item.Operation == AccountOperation.Idle
-            && item.Failure is null && item.ObservationRevision != previousObservation)
-            _ = AcknowledgeAsync();
-        previousOperation = item.Operation;
-        previousObservation = item.ObservationRevision;
-        if (IsExpanded)
-            _ = LoadSparklineAsync();
-    }
-
-    internal static string ExtensionLine(ExtensionItem extension, PresentationFormatter format)
-    {
-        var money = format.Money(extension.AmountMinor, extension.Exponent, extension.Currency);
-        if (money is not null)
-            return format.F("Extension_LineMoney", extension.Label, money, extension.Currency);
-        return extension.AmountMinor is not null
-            ? format.F("Extension_LineMinor", extension.Label, format.NativeNumber(extension.AmountMinor))
-            : format.F("Extension_LineNone", extension.Label);
-    }
-
-    private async Task AcknowledgeAsync()
-    {
-        var generation = ++ackGeneration;
-        ShowAck = true;
-        await context.Clock.Delay(TimeSpan.FromMilliseconds(1500), CancellationToken.None);
-        if (generation == ackGeneration)
-            ShowAck = false;
-    }
-
-    private async Task LoadSparklineAsync()
-    {
-        var primary = QuotaRules.PrimaryWindow(account, context.Usage.Current.Preferences);
-        if (primary is null || !QuotaRules.IsAvailable(context.Usage.Current, CapabilityKeys.ViewHistory))
-        {
-            Sparkline = ChartModel.Empty;
-            return;
-        }
-        sparklineLoad?.Cancel();
-        var cancellation = sparklineLoad = new CancellationTokenSource();
-        var now = context.Clock.UtcNow;
-        try
-        {
-            var result = await history.QueryHistoryAsync(new(account.Id, null, null, primary.Id, now - TimeSpan.FromHours(24), now, HistoryResolution.Auto, HistoryPreset.Hours24), cancellation.Token);
-            if (cancellation.IsCancellationRequested)
-                return;
-            Sparkline = ChartModel.Build(result.Points, context.Usage.Current.Preferences.UsageDisplay, context.Format, withTicks: false);
-            SparklineCaption = context.Format.F("Row_SparklineCaption", primary.Label);
-        }
-        catch (OperationCanceledException) { }
+        AccessibleName = format.F("Row_Aria", item.Label, provider.PresentationName, Pill.Text, primary?.AccessibleName ?? format.T("Row_NoMeasurement"), position, count)
+            + string.Concat(Windows.Where(w => w.PaceText.Length > 0).Select(w => $". {w.Label}: {w.PaceText}"));
     }
 
     private bool CanRefreshNow() => CanRefresh && !IsRefreshing;
@@ -253,16 +192,14 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     [RelayCommand]
     private void Open() => context.Navigation.Navigate(new(PageKey.Accounts, Id));
 
+    /// <summary>The status mark retries a failed refresh where possible; otherwise it opens the account detail.</summary>
     [RelayCommand]
-    private void OpenHistory() => context.Navigation.Navigate(new(PageKey.History, Id));
-
-    [RelayCommand]
-    private void ToggleExpand()
+    private Task StatusActionAsync()
     {
-        IsExpanded = !IsExpanded;
-        context.Announcer.Announce(context.Format.F(IsExpanded ? "Announce_Expanded" : "Announce_Collapsed", Label));
-        if (IsExpanded)
-            _ = LoadSparklineAsync();
+        if (Status == RowStatus.Failure && CanRetry())
+            return RetryAsync();
+        Open();
+        return Task.CompletedTask;
     }
 
     [RelayCommand(CanExecute = nameof(CanMoveUp))]

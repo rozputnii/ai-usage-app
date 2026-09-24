@@ -54,7 +54,7 @@ public sealed class ProviderCatalogTests
         var demo = new DemoConnectionFlow(host.State, catalog);
         Assert.Equal("Synthetic brand", Assert.Single(demo.Providers, p => p.ProviderId == id).Name);
 
-        using var overview = new OverviewViewModel(context, host.History, host.Preferences, add);
+        using var overview = new OverviewViewModel(context, host.Preferences, add);
         var section = Assert.Single(overview.Sections);
         Assert.Equal("Synthetic brand", section.Name);
         Assert.Equal("★", section.Glyph);

@@ -13,6 +13,8 @@ namespace AiUsage.Controls;
 /// <summary>
 /// 4 px quota meter: ink/status fill with threshold ticks (Known), dotted hatch (Unknown/Unavailable) or dashed pattern
 /// (Unlimited). Never draws a zero fill for a missing value. Width animates over 320 ms only after a new observation.
+/// An optional pace mark (D-181) draws the end-of-today position; with <see cref="PaceSplit"/> the part of the fill
+/// reserved for the coming days is faded so today's portion stands out, while the whole fill keeps the pace tone.
 /// Visuals are hidden from UI Automation; the owning row carries the text value and state word.
 /// </summary>
 internal sealed partial class QuotaMeter : UserControl
@@ -23,10 +25,13 @@ internal sealed partial class QuotaMeter : UserControl
     public static readonly DependencyProperty TicksProperty = DependencyProperty.Register(nameof(Ticks), typeof(object), typeof(QuotaMeter), new PropertyMetadata(null, OnVisualChanged));
     public static readonly DependencyProperty ObservationProperty = DependencyProperty.Register(nameof(Observation), typeof(long), typeof(QuotaMeter), new PropertyMetadata(0L, OnObservationChanged));
     public static readonly DependencyProperty BarHeightProperty = DependencyProperty.Register(nameof(BarHeight), typeof(double), typeof(QuotaMeter), new PropertyMetadata(4d, OnVisualChanged));
+    public static readonly DependencyProperty PaceMarkProperty = DependencyProperty.Register(nameof(PaceMark), typeof(double), typeof(QuotaMeter), new PropertyMetadata(double.NaN, OnVisualChanged));
+    public static readonly DependencyProperty PaceSplitProperty = DependencyProperty.Register(nameof(PaceSplit), typeof(bool), typeof(QuotaMeter), new PropertyMetadata(false, OnVisualChanged));
 
     private readonly Canvas canvas = new() { IsHitTestVisible = false };
     private readonly Border track = new() { CornerRadius = new CornerRadius(2) };
     private readonly Border fill = new() { CornerRadius = new CornerRadius(2) };
+    private readonly Border reserved = new() { CornerRadius = new CornerRadius(2, 0, 0, 2) };
     private readonly Canvas pattern = new();
     private readonly Canvas ticks = new();
     private bool observationChanged;
@@ -39,6 +44,7 @@ internal sealed partial class QuotaMeter : UserControl
         AutomationProperties.SetAccessibilityView(this, AccessibilityView.Raw);
         canvas.Children.Add(track);
         canvas.Children.Add(fill);
+        canvas.Children.Add(reserved);
         canvas.Children.Add(pattern);
         canvas.Children.Add(ticks);
         Content = canvas;
@@ -53,6 +59,10 @@ internal sealed partial class QuotaMeter : UserControl
     public object? Ticks { get => GetValue(TicksProperty); set => SetValue(TicksProperty, value); }
     public long Observation { get => (long)GetValue(ObservationProperty); set => SetValue(ObservationProperty, value); }
     public double BarHeight { get => (double)GetValue(BarHeightProperty); set => SetValue(BarHeightProperty, value); }
+    /// <summary>Fraction of the end-of-today pace mark; NaN draws none.</summary>
+    public double PaceMark { get => (double)GetValue(PaceMarkProperty); set => SetValue(PaceMarkProperty, value); }
+    /// <summary>True when the fill is remaining quota, so the part up to the mark is reserved for later days.</summary>
+    public bool PaceSplit { get => (bool)GetValue(PaceSplitProperty); set => SetValue(PaceSplitProperty, value); }
 
     private static void OnVisualChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((QuotaMeter)d).Redraw(animate: false);
 
@@ -83,6 +93,7 @@ internal sealed partial class QuotaMeter : UserControl
         fill.Height = bar;
         pattern.Children.Clear();
         ticks.Children.Clear();
+        reserved.Visibility = Visibility.Collapsed;
 
         switch (Kind)
         {
@@ -101,6 +112,8 @@ internal sealed partial class QuotaMeter : UserControl
                         ticks.Children.Add(tick);
                     }
                 }
+                if (!double.IsNaN(PaceMark))
+                    DrawPace(width, top, bar);
                 break;
             case MeterKind.Unlimited:
                 track.Background = null;
@@ -113,6 +126,24 @@ internal sealed partial class QuotaMeter : UserControl
                 DrawPattern(width, top, bar, dash: 3, gap: 4, Bind.Token(this, "HatchBrush"), 1);
                 break;
         }
+    }
+
+    private void DrawPace(double width, double top, double bar)
+    {
+        var mark = Math.Clamp(PaceMark, 0, 1);
+        if (PaceSplit && Fraction > mark)
+        {
+            reserved.Visibility = Visibility.Visible;
+            // A wash over the toned fill: the color stays readable while the part kept for later days recedes.
+            reserved.Background = Bind.Token(this, "AppBgBrush");
+            reserved.Opacity = 0.55;
+            reserved.Width = mark * width;
+            reserved.Height = bar;
+            Canvas.SetTop(reserved, top);
+        }
+        var line = new Rectangle { Width = 2, Height = bar + 4, Fill = Bind.Token(this, "TextBrush") };
+        Canvas.SetLeft(line, Math.Clamp(Math.Round(mark * width) - 1, 0, Math.Max(0, width - 2)));
+        ticks.Children.Add(line);
     }
 
     private void DrawPattern(double width, double top, double bar, double dash, double gap, Brush brush, double opacity)
