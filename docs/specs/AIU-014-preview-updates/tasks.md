@@ -69,5 +69,5 @@ the Pages feed. Windows Sandbox installed through the feed and was updated by Wi
 the second version with synthetic preferences preserved. Draft 2026.9.2223.0 stays a
 consumed reservation. There is no host trust or host install. Each main push publishes a
 Preview. Remaining AIU-014 scope is outside this phase: official signing, Stable, channel
-switching and public distribution. Next action: the owner selects the next AIU-014 phase,
-starting with public signing eligibility and migration from the development identity.
+switching and public distribution. Owner decision 2026-09-24: personal tool, remaining scope deferred (see
+AIU-014-public-signing). Next action: none until the owner reopens public distribution.

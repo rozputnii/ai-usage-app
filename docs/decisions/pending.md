@@ -18,7 +18,7 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 - timing: AIU-014; not a bootstrap blocker.
 - decision already made: Azure Artifact Signing is preferred.
 - owner answers (2026-09-24): individual outside the US and Canada with no eligible organization, so Artifact Signing is unavailable. Free options only (no Artifact Signing, no OV/IV/EV purchase). Verified name as publisher accepted. Public product name `AIUsage`.
-- unresolved: choose the free trusted channel (Microsoft Store individual account, recommended, or SignPath Foundation), or defer public distribution. Either choice amends D-159, D-161 and D-162.
+- resolved (2026-09-24): owner deferred publicly trusted distribution. The app is a personal tool, distributed as the self-signed GitHub channel with explicit certificate trust (D-161 amendment). Reopen only by explicit owner request.
 - draft: ../specs/AIU-014-public-signing/spec.md (2026-09-23 research).
 - source: ../research/sources.md, S-013, S-025, S-026.
 - rule: Do not create paid resources or purchase an alternative without the owner.

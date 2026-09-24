@@ -8,6 +8,9 @@ approval_basis: Derived from the owner's 2026-09-23 selection of read-only publi
 ---
 # Public signing and production identity
 
+Owner decision, 2026-09-24: deferred. The app is a personal tool, distributed only through
+the self-signed GitHub channel. This draft is kept as research for a possible reopening.
+
 This follows the operational development Preview phase
 ([preview-updates](../AIU-014-preview-updates/spec.md)). It selects how public Preview and
 Stable packages are signed and which package identity they use. No account, identity

@@ -107,7 +107,8 @@ The guest needs networking to reach the feed.
 ## Development Preview updates
 
 The owner-selected AIU-014 test channel uses a dedicated self-signed CI certificate.
-It is for explicitly trusted test devices, not public distribution. Provisioning is
+It is for the owner and anyone who explicitly chooses to trust its public certificate;
+publicly trusted signing is deferred. Provisioning is
 separate from ordinary build/push authority: review
 `tools/windows/Initialize-PreviewSigning.ps1` before explicitly running it with `-Apply`
 in PowerShell 7. It creates a new in-memory key, sends a password-protected PFX and its

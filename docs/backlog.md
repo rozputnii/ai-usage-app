@@ -133,11 +133,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-014 - Trusted direct Preview/Stable distribution
 - goal: G-004
-- status: in-progress
+- status: paused
 - depends_on: [AIU-006]
 - trigger: before-public
 - outcome: Verify signing eligibility/identity and runtime prerequisite delivery. Implement monotonic version allocation, Releases/Pages/App Installer, channel switching and nonblocking updates.
-- scope-note: Owner selected an initial development-only phase on 2026-09-22: publish every successful main push and automatically update the owner's test installations. Use self-signed CI packages with one-time explicit tester trust; official signing/public distribution and Stable remain deferred. See docs/specs/AIU-014-preview-updates/spec.md. That phase was operational on 2026-09-23: signed Previews publish from main, and a Sandbox feed install then updated automatically. Official signing, Stable, channel switching and public distribution remain open. Public signing research draft: docs/specs/AIU-014-public-signing/spec.md.
+- scope-note: Owner selected an initial development-only phase on 2026-09-22: publish every successful main push and automatically update the owner's test installations. Use self-signed CI packages with one-time explicit tester trust; official signing/public distribution and Stable remain deferred. See docs/specs/AIU-014-preview-updates/spec.md. That phase was operational on 2026-09-23: signed Previews publish from main, and a Sandbox feed install then updated automatically. Official signing, Stable, channel switching and public distribution remain open. Public signing research draft: docs/specs/AIU-014-public-signing/spec.md. Owner decision 2026-09-24: personal tool; public signing, Store and Stable deferred (paused).
 - specification: docs/specs/AIU-014-preview-updates/spec.md
 - evidence: docs/specs/AIU-014-preview-updates/verification.md
 

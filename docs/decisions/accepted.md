@@ -518,6 +518,8 @@ Check asynchronously without blocking startup. Show Update available/ready and u
 ### D-161 - Signing
 Prefer Azure Artifact Signing for public builds, subject to actual eligibility. Keep publisher identity stable and test rotation. Reuse the initial local development certificate; exclude its private key from Git.
 
+Owner amendment (2026-09-24): the app is a personal tool. It is distributed only as the self-signed development channel through GitHub Releases and Pages, for the owner and anyone who explicitly chooses to trust its public certificate. Publicly trusted signing, Microsoft Store and Stable are deferred. The owner is ineligible for Artifact Signing and allows free options only; see RELEASE-001.
+
 ### D-162 - Microsoft Store
 Add later as paid acquisition with the same features. A separate package identity may require a dedicated direct-to-Store migration. Do not assume an ordinary same-family update.
 
