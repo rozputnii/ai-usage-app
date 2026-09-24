@@ -17,7 +17,8 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 ## RELEASE-001 - Public signing eligibility
 - timing: AIU-014; not a bootstrap blocker.
 - decision already made: Azure Artifact Signing is preferred.
-- unresolved fact: Whether the owner signs as an individual in the US or Canada, through an eligible organization, or neither (then choose an OV certificate or defer). Also: acceptance of the legal name and location shown in the certificate, budget, and public package name.
+- owner answers (2026-09-24): individual outside the US and Canada with no eligible organization, so Artifact Signing is unavailable. Free options only (no Artifact Signing, no OV/IV/EV purchase). Verified name as publisher accepted. Public product name `AIUsage`.
+- unresolved: choose the free trusted channel (Microsoft Store individual account, recommended, or SignPath Foundation), or defer public distribution. Either choice amends D-159, D-161 and D-162.
 - draft: ../specs/AIU-014-public-signing/spec.md (2026-09-23 research).
 - source: ../research/sources.md, S-013, S-025, S-026.
 - rule: Do not create paid resources or purchase an alternative without the owner.

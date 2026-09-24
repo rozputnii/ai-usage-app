@@ -4,7 +4,7 @@ type: spec
 status: draft
 goal: G-004
 scope_version: 1
-approval_basis: Derived from the owner's 2026-09-23 selection of read-only public-signing research for AIU-014. Draft only; provider, eligibility, spending and identity decisions are unapproved.
+approval_basis: Derived from the owner's 2026-09-23 selection of read-only public-signing research for AIU-014, with owner answers of 2026-09-24 (ineligible for Artifact Signing, free only, name AIUsage). Draft; the free channel choice is unapproved.
 ---
 # Public signing and production identity
 
@@ -50,50 +50,50 @@ validation, paid resource, certificate or workflow change is authorized by this 
 - The `ms-appinstaller:` protocol has been disabled by default since December 2023.
   Users must download and open the `.appinstaller` file.
 
-## Proposed direction
+## Owner answers, 2026-09-24
 
-1. Use Artifact Signing if the owner qualifies as an individual in the US or Canada, or
-   through an eligible organization. Otherwise stop and choose separately between an
-   OV/IV CA certificate with a cloud HSM and deferring public distribution. Never
-   purchase or create resources without the owner.
-2. Give public packages a new identity: a product package name plus the validated
-   publisher. `AiUsage.Dev` stays the self-signed development/test channel with its own
-   data root. Do not bridge development publisher to public publisher, because only the
-   owner has development installs. Moving the owner's data between the two is a
-   documented manual step until export/import exists.
-3. Sign public Preview on every green main push and promote exact Stable bytes, per
-   D-157. Use Azure federated credentials limited to the certificate-profile signer
-   role, from the protected main-push job only. Timestamp every signature and verify
-   before upload, failing closed.
-4. Test rotation with the service's real daily certificates: an update signed on a later
-   day, by a different certificate with the same subject, must install over an earlier
-   one.
+- Eligibility: the owner is an individual outside the US and Canada, with no eligible
+  organization. Artifact Signing Public Trust is therefore unavailable, so D-161's
+  preferred option cannot be used.
+- Spending: free options only. Artifact Signing and paid OV/IV/EV certificates are
+  excluded.
+- Privacy: the owner accepts that their verified name is shown as publisher.
+- Public product name: `AIUsage`.
 
-## Acceptance (draft)
+## Free options remaining
 
-- AC-01: The owner records eligibility (individual country or legal entity), provider
-  and budget. No paid resource or identity validation exists without that decision.
-- AC-02: The exact public `Name` and certificate-subject `Publisher` are recorded before
-  the first public build; the development identity and feed are unchanged.
-- AC-03: Hosted public signing uses short-lived federated credentials, no long-lived key
-  or password. Only the gated main-push job can sign. Every signature is timestamped,
-  and verification fails closed before publication.
-- AC-04: In a clean Sandbox with no manual certificate trust, two public-signed versions
-  signed with different daily certificates install and update through the public feed.
-- AC-05: A package signed at least four days earlier still verifies and installs after
-  its signing certificate has expired.
-- AC-06: Documentation states the publisher details visible to users, expected
-  SmartScreen warnings, the download-and-open `.appinstaller` flow, and the separation
-  from the development channel.
+| Option | Trust for users | Identity | Automation fit | Main constraints |
+| --- | --- | --- | --- | --- |
+| Microsoft Store, individual account | Store signs MSIX; no SmartScreen warning | Name and Publisher are assigned by Partner Center; `AIUsage` becomes the reserved display name | Each submission is certified (not instant). Package flights let known testers receive test packages under the same identity | Free registration with government ID and selfie in about 200 markets; the owner's market is unconfirmed. Store policy review of provider integrations is needed. Changes D-159 and D-162 (direct first, Store later) |
+| SignPath Foundation | Publicly trusted OV-level signature | Publisher is SignPath Foundation, not the owner | Every release needs manual approval, so it cannot sign every green main push | Needs an OSI license without proprietary code, and an already released project. MSIX support is not confirmed on its terms page |
+| Self-signed only (current) | Users must trust the CER manually | `AiUsage.Dev` | Fully automatic (operational now) | Not suitable for public distribution |
 
-## Owner decisions required
+## Proposed direction (pending owner choice)
 
-- Eligibility: individual in the US or Canada, an eligible organization, or neither.
-- Privacy: an individual certificate publishes the legal name and city/state/country in
-  every signed package.
-- Spending: $9.99 per month for Artifact Signing, or an OV certificate if ineligible.
-- Public package name, for example `AiUsage`, and whether public Preview starts before
-  Stable promotion is designed (AIU-015 remains separate).
+1. Keep the direct `AiUsage.Dev` self-signed Preview as the owner's automatic test
+   channel. It stays operational and unchanged.
+2. Recommended: use a free Microsoft Store individual account as the public trusted
+   channel for `AIUsage`. Public releases go through Store certification, and optional
+   package flights go to known testers. This replaces the direct public Preview/Stable
+   feed of D-157 and D-159, and needs owner amendment of D-159, D-161 and D-162 before
+   implementation. First steps are a Store-policy review of the provider integrations
+   and confirming the owner's market during registration, which the owner must do.
+3. Alternative: SignPath Foundation for manually approved public releases only, accepting
+   SignPath Foundation as publisher, after its MSIX support and eligibility are confirmed.
+4. Never create accounts, submit to Store or apply to SignPath without the owner. The
+   owner performs registration and identity verification personally.
+
+## Acceptance (draft, to be restated after the choice)
+
+- AC-01: The owner's channel choice and the resulting decision amendments are recorded.
+- AC-02: The exact public identity (Name and Publisher) is recorded before the first
+  public build; the development identity and feed are unchanged.
+- AC-03: Public artifacts are signed only by the chosen trusted mechanism, never by a
+  CI-held long-lived public key, and never published unsigned.
+- AC-04: A clean Sandbox without manual certificate trust installs a public build and
+  receives the next public version through the chosen channel.
+- AC-05: Documentation states the publisher shown to users, the install and update path,
+  and its separation from the development channel.
 
 ## Sources
 
@@ -103,3 +103,4 @@ validation, paid resource, certificate or workflow change is authorized by this 
 - [MSIX persistent identity](https://learn.microsoft.com/en-us/windows/msix/package/persistent-identity): publisher bridging constraints.
 - [Distribution feature status](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/distribution-feature-status): `ms-appinstaller:` disabled by default.
 - [SignPath Foundation terms](https://signpath.org/terms): publisher and per-release manual approval.
+- [Free individual Store registration](https://learn.microsoft.com/en-us/windows/apps/publish/whats-new-individual-developer) and [package flights](https://learn.microsoft.com/en-us/windows/apps/publish/package-flights): free ID-verified accounts, Store signing, tester flights.
