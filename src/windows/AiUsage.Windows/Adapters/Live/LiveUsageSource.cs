@@ -33,7 +33,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         this.diagnostics = diagnostics;
         entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value));
         current = new(0, UiMode.Live, DateTimeOffset.UtcNow, [], Capabilities(),
-            new(ThemePreference.System, [], [], [], false, false, false, [Preferences.DefaultGlobalRule]),
+            new([], [], [], false, false, false, [Preferences.DefaultGlobalRule]),
             new(typeof(LiveUsageSource).Assembly.GetName().Version?.ToString() ?? "", "", HealthState.Idle,
                 UpdateState.Unsupported, RecoveryState.None, CompatibilityState.Normal)) { Loaded = false };
     }

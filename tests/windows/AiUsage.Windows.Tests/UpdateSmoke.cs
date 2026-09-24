@@ -34,8 +34,8 @@ public sealed partial class ShellSmoke
             window!.Patterns.Window.Pattern.SetWindowVisualState(FlaUI.Core.Definitions.WindowVisualState.Maximized);
             WaitForDashboard(window);
             SettingsEntry(window)!.Click();
-            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ThemeNote"))?.Name.Contains("Dark", StringComparison.Ordinal) == true,
-                TimeSpan.FromSeconds(10)), "The installed version must load the durable Dark preference.");
+            Assert.True(WaitUntil(() => AlwaysOnTopLoaded(window),
+                TimeSpan.FromSeconds(10)), "The installed version must load the durable always-on-top preference.");
             Thread.Sleep(500);
             Capture(window, evidence!, "installed-preferences");
             FocusForKeyboard(window, window, evidence!, "installed-exit");

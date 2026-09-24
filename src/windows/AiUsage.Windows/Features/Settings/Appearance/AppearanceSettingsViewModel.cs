@@ -1,23 +1,10 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using AiUsage.Features.Accounts;
 using AiUsage.Features.Presentation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AiUsage.Features.Settings.Appearance;
-
-internal sealed partial class ThemeOptionViewModel(ThemePreference preference) : ObservableObject
-{
-    public ThemePreference Preference { get; } = preference;
-    [ObservableProperty] public partial string Label { get; set; } = string.Empty;
-    [ObservableProperty] public partial string Description { get; set; } = string.Empty;
-    [ObservableProperty] public partial bool IsSelected { get; set; }
-    /// <summary>The theme shown in the miniature preview.</summary>
-    [NotifyPropertyChangedFor(nameof(PreviewIsDark))]
-    [ObservableProperty] public partial EffectiveTheme PreviewTheme { get; set; }
-    public bool PreviewIsDark => PreviewTheme == EffectiveTheme.Dark;
-}
 
 internal sealed partial class OrderItemViewModel(string id, AppearanceSettingsViewModel owner) : ObservableObject
 {
@@ -53,24 +40,18 @@ internal sealed partial class OrderItemViewModel(string id, AppearanceSettingsVi
 internal sealed partial class AppearanceSettingsViewModel : SnapshotViewModel
 {
     private readonly IPreferenceStore preferences;
-    private readonly IThemeService theme;
     private bool applying;
 
-    public AppearanceSettingsViewModel(PresentationContext context, IPreferenceStore preferences, IThemeService theme) : base(context)
+    public AppearanceSettingsViewModel(PresentationContext context, IPreferenceStore preferences) : base(context)
     {
         this.preferences = preferences;
-        this.theme = theme;
-        ThemeOptions = [new(ThemePreference.System), new(ThemePreference.Light), new(ThemePreference.Dark)];
         DensityLabels = [context.Format.T("Density_Comfortable"), context.Format.T("Density_Compact")];
-        theme.PropertyChanged += OnThemeChanged;
         Initialize();
     }
 
-    public ObservableCollection<ThemeOptionViewModel> ThemeOptions { get; }
     public IReadOnlyList<string> DensityLabels { get; }
     public ObservableCollection<OrderItemViewModel> OrderItems { get; } = [];
 
-    [ObservableProperty] public partial string ThemeNote { get; private set; } = string.Empty;
     [ObservableProperty] public partial int DensityIndex { get; set; }
     [ObservableProperty] public partial bool AlwaysOnTop { get; set; }
     [ObservableProperty] public partial bool ShowDisconnected { get; set; }
@@ -101,8 +82,6 @@ internal sealed partial class AppearanceSettingsViewModel : SnapshotViewModel
             Context.Announcer.Announce(announcement);
     }
 
-    private void OnThemeChanged(object? sender, PropertyChangedEventArgs e) => Dispatch(() => OnSnapshot(Snapshot));
-
     protected override void OnSnapshot(UiSnapshot snapshot)
     {
         var format = Format;
@@ -110,25 +89,6 @@ internal sealed partial class AppearanceSettingsViewModel : SnapshotViewModel
         applying = true;
         try
         {
-            var system = theme.SystemTheme;
-            var systemWord = format.T(system == EffectiveTheme.Dark ? "Theme_WordDark" : "Theme_WordLight");
-            foreach (var option in ThemeOptions)
-            {
-                option.IsSelected = option.Preference == prefs.Theme;
-                option.Label = option.Preference == ThemePreference.System ? format.F("Theme_SystemLabel", systemWord) : format.T("Theme_" + option.Preference);
-                option.Description = format.T("Theme_" + option.Preference + "Description");
-                option.PreviewTheme = option.Preference switch
-                {
-                    ThemePreference.Light => EffectiveTheme.Light,
-                    ThemePreference.Dark => EffectiveTheme.Dark,
-                    _ => system,
-                };
-            }
-            ThemeNote = prefs.Theme == ThemePreference.System
-                ? format.F("Theme_NoteSystem", systemWord)
-                : format.F("Theme_NoteFixed", format.T("Theme_" + prefs.Theme));
-            if (theme.HighContrast)
-                ThemeNote += " " + format.T("Theme_NoteHighContrast");
             DensityIndex = (int)prefs.Density;
             AlwaysOnTop = prefs.AlwaysOnTop;
             ShowDisconnected = prefs.ShowDisconnected;
@@ -153,19 +113,6 @@ internal sealed partial class AppearanceSettingsViewModel : SnapshotViewModel
             });
         }
         finally { applying = false; }
-    }
-
-    [RelayCommand]
-    private async Task SelectThemeAsync(ThemeOptionViewModel? option)
-    {
-        if (option is null)
-            return;
-        var result = await preferences.SetPreferenceAsync(new(PreferenceKey.Theme, option.Preference), CancellationToken.None);
-        if (result.Status == CommandStatus.Succeeded)
-        {
-            theme.Apply(option.Preference);
-            Context.Announcer.Announce(Format.F("Announce_Theme", Format.T("Theme_" + option.Preference)));
-        }
     }
 
     internal async Task MoveAsync(string id, int direction)

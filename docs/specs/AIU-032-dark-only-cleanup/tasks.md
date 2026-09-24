@@ -8,29 +8,29 @@ Goal: [spec.md](spec.md). Evidence: [verification.md](verification.md). Sequenti
 work; commit and push after each task once its check passes. No dependency changes.
 
 ### T-01 - Dark-only tokens and theme plumbing
-- status: in-progress
+- status: done
 - depends_on: []
 - acceptance: AC-01, AC-03
-- evidence: not-run
+- evidence: Presentation 172/172 including LiveAdapterTests.PreferenceFileWithUnknownMembersRoundTripsUnchanged (stored Theme kept); app and smoke projects build; interactive checks in T-04
 
-- [ ] Generator emits a single dark dictionary; delete SimulatedHighContrast.xaml.
-- [ ] Application requests the dark theme; ThemeService shrinks to window chrome (dark root and
+- [x] Generator emits a single dark dictionary; delete SimulatedHighContrast.xaml.
+- [x] Application requests the dark theme; ThemeService shrinks to window chrome (dark root and
       title bar); drop IThemeService, EffectiveTheme, ThemePreference and PreferenceKey.Theme.
-- [ ] Preferences contract loses Theme; the live store keeps an old value as extension data.
-- [ ] Token lookup, provider tiles and code-drawn controls stop branching on theme or contrast.
+- [x] Preferences contract loses Theme; the live store keeps an old value as extension data.
+- [x] Token lookup, provider tiles and code-drawn controls stop branching on theme or contrast.
 
 ### T-02 - Remove theme settings and demo display simulation
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-02
-- evidence: not-run
+- evidence: Presentation 172/172; smoke row theme replaced by appearance (asserts no theme or contrast controls), run in T-04
 
-- [ ] Remove the App theme section, ThemeOptionViewModel, theme strings and bind helpers.
-- [ ] Remove the demo Windows-mode and contrast simulation (DisplaySimulation keeps reduced
+- [x] Remove the App theme section, ThemeOptionViewModel, theme strings and bind helpers.
+- [x] Remove the demo Windows-mode and contrast simulation (DisplaySimulation keeps reduced
       motion only).
 
 ### T-03 - Removed-UI leftovers
-- status: pending
+- status: in-progress
 - depends_on: [T-02]
 - acceptance: AC-04
 - evidence: not-run

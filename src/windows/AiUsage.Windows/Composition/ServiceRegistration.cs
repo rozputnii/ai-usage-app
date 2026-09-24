@@ -42,7 +42,6 @@ internal static class ServiceRegistration
         collection.AddSingleton(provider => new ToastViewModel(provider.GetRequiredService<PresentationContext>()));
         collection.AddSingleton(provider => new ShellViewModel(
             provider.GetRequiredService<PresentationContext>(),
-            provider.GetRequiredService<IThemeService>(),
             provider.GetRequiredService<IAppLifetime>(),
             provider.GetRequiredService<ToastViewModel>(),
             isDemo: provider.GetService<DemoScenarioController>() is not null));
@@ -53,7 +52,7 @@ internal static class ServiceRegistration
             provider.GetRequiredService<IDataManagementService>(), provider.GetRequiredService<IPreferenceStore>(), provider.GetRequiredService<AddAccountViewModel>()));
         collection.AddSingleton(provider => new ProviderHistoryViewModel(provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IProviderHistorySource>()));
         collection.AddSingleton(provider => new AppearanceSettingsViewModel(
-            provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IPreferenceStore>(), provider.GetRequiredService<IThemeService>()));
+            provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IPreferenceStore>()));
         collection.AddSingleton(provider => new MonitoringSettingsViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IPreferenceStore>(),
             provider.GetRequiredService<INotificationPreview>(), provider.GetRequiredService<ToastViewModel>(), provider.GetService<DemoScenarioController>()));
@@ -92,13 +91,11 @@ internal static class ServiceRegistration
         collection.AddSingleton<IAnnouncer>(provider => provider.GetRequiredService<Announcer>());
         collection.AddSingleton<MotionSettings>();
         collection.AddSingleton<IMotionSettings>(provider => provider.GetRequiredService<MotionSettings>());
-        collection.AddSingleton<ThemeService>();
-        collection.AddSingleton<IThemeService>(provider => provider.GetRequiredService<ThemeService>());
         collection.AddSingleton<AppLifetime>();
         collection.AddSingleton<IAppLifetime>(provider => provider.GetRequiredService<AppLifetime>());
         collection.AddSingleton<DisplaySimulation>();
         collection.AddSingleton<IDisplaySimulation>(provider => provider.GetRequiredService<DisplaySimulation>());
-        collection.AddSingleton(provider => new DialogService(provider.GetRequiredService<ThemeService>()));
+        collection.AddSingleton(provider => new DialogService());
         collection.AddSingleton<IDialogService>(provider => provider.GetRequiredService<DialogService>());
         collection.AddSingleton<MainWindow>();
         return collection;

@@ -66,7 +66,7 @@ try {
     $family = $installed.PackageFamilyName
     $state = Join-Path $env:LOCALAPPDATA "Packages/$family/LocalState"
     New-Item -ItemType Directory -Force -Path (Join-Path $state 'providers') | Out-Null
-    $preferences = '{"Version":1,"Theme":2,"Labels":{"opaque/provider":"Synthetic checkpoint"},"future":{"raw":[null,7]}}'
+    $preferences = '{"Version":1,"Theme":2,"AlwaysOnTop":true,"Labels":{"opaque/provider":"Synthetic checkpoint"},"future":{"raw":[null,7]}}'
     [IO.File]::WriteAllText((Join-Path $state 'appearance.v1.json'), $preferences)
     # Synthetic credentials exist only in this network-disabled guest. No personal state is mapped.
     $grantPath = Join-Path $state 'providers/codex.grant'

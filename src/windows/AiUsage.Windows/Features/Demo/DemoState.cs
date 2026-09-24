@@ -101,7 +101,7 @@ internal sealed class DemoState
             throw new OperationCanceledException("The demo scenario changed.");
     }
 
-    /// <summary>Loads a scenario seed. Theme stays because the demo shell keeps display simulation across scenarios.</summary>
+    /// <summary>Loads a scenario seed. Density and usage display stay because the demo shell keeps appearance across scenarios.</summary>
     public void LoadScenario(string scenarioId, bool keepAppearance = true, bool skeleton = true)
     {
         var previous = World;
@@ -111,7 +111,6 @@ internal sealed class DemoState
         World = DemoScenarioCatalog.Build(scenarioId);
         if (keepAppearance)
         {
-            World.Theme = previous.Theme;
             World.Density = previous.Density;
             World.UsageDisplay = previous.UsageDisplay;
         }

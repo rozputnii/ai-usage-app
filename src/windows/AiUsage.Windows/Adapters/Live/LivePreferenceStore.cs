@@ -41,13 +41,12 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
         catch (JsonException) { return false; }
     }
     private static bool IsValid(State? loaded) => loaded is not null && loaded.Version == 1 &&
-        Enum.IsDefined(loaded.Theme) && Enum.IsDefined(loaded.Density) && Enum.IsDefined(loaded.UsageDisplay) &&
+        Enum.IsDefined(loaded.Density) && Enum.IsDefined(loaded.UsageDisplay) &&
         loaded.Order is not null && loaded.Hidden is not null && loaded.Labels is not null && loaded.Expansion is not null &&
         loaded.Order.All(id => id is not null) && loaded.Hidden.All(id => id is not null) &&
         loaded.Labels.Values.All(label => label is not null && label.Length <= 100) && loaded.Expansion.Values.All(Enum.IsDefined);
     public Task<UiCommandResult> SetPreferenceAsync(PreferenceChange change, CancellationToken cancellationToken) => ChangeAsync(s => change switch
     {
-        { Key: PreferenceKey.Theme, Value: ThemePreference value } when Enum.IsDefined(value) => s with { Theme = value },
         { Key: PreferenceKey.Density, Value: Density value } when Enum.IsDefined(value) => s with { Density = value },
         { Key: PreferenceKey.UsageDisplay, Value: UsageDisplay value } when Enum.IsDefined(value) => s with { UsageDisplay = value },
         { Key: PreferenceKey.AlwaysOnTop, Value: bool value } => s with { AlwaysOnTop = value },
@@ -100,7 +99,7 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
     }
     private void Apply() => source.SetPreferences(source.Current.Preferences with
     {
-        Theme = state.Theme, Density = state.Density, UsageDisplay = state.UsageDisplay,
+        Density = state.Density, UsageDisplay = state.UsageDisplay,
         AlwaysOnTop = state.AlwaysOnTop, ShowDisconnected = state.ShowDisconnected, ShowHidden = state.ShowHidden,
         AccountOrder = state.Order, HiddenTargets = state.Hidden
     }, state.Labels, state.Expansion);
@@ -114,7 +113,6 @@ internal sealed class LivePreferenceStore(LiveUsageSource source, Func<Cancellat
     internal sealed record State
     {
         public int Version { get; set; } = 1;
-        public ThemePreference Theme { get; set; }
         public Density Density { get; set; }
         public UsageDisplay UsageDisplay { get; set; }
         public bool AlwaysOnTop { get; set; }

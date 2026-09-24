@@ -75,7 +75,7 @@ try {
         $report.stage = 'Synthetic durable state'; Save-Report
         $state = Join-Path $env:LOCALAPPDATA "Packages/$($report.installed.family)/LocalState"
         New-Item -ItemType Directory -Force -Path $state | Out-Null
-        [IO.File]::WriteAllText((Join-Path $state 'appearance.v1.json'), '{"Version":1,"Theme":2,"Labels":{"opaque/provider":"Synthetic feed update"}}')
+        [IO.File]::WriteAllText((Join-Path $state 'appearance.v1.json'), '{"Version":1,"Theme":2,"AlwaysOnTop":true,"Labels":{"opaque/provider":"Synthetic feed update"}}')
         $report.stage = 'Installed activation'; Save-Report
         Invoke-Smoke $ExpectedVersion 'installed-ui'
         $report.stateHashes = Get-StateHashes $report.installed.family

@@ -135,7 +135,6 @@ internal sealed partial class BusyRing : MotionAwareControl
     public BusyRing()
     {
         Build();
-        ActualThemeChanged += (_, _) => Build();
         Loaded += (_, _) => Build();
         RegisterPropertyChangedCallback(VisibilityProperty, (_, _) => UpdateAnimation());
     }
@@ -182,7 +181,6 @@ internal sealed partial class SkeletonBlock : MotionAwareControl
     {
         Content = block;
         block.CornerRadius = new CornerRadius(3);
-        ActualThemeChanged += (_, _) => Restart();
         Paint();
     }
 
@@ -197,7 +195,7 @@ internal sealed partial class SkeletonBlock : MotionAwareControl
     private LinearGradientBrush Gradient()
     {
         var skel = ((SolidColorBrush)Bind.Token(this, "SkelBrush")).Color;
-        // A gradient stop belongs to one brush, so every rebuild (theme change included) needs its own highlight stop.
+        // A gradient stop belongs to one brush, so every rebuild needs its own highlight stop.
         var highlight = new GradientStop { Color = ((SolidColorBrush)Bind.Token(this, "Skel2Brush")).Color, Offset = 0.5 };
         var brush = new LinearGradientBrush { StartPoint = new(0, 0), EndPoint = new(1, 0), MappingMode = BrushMappingMode.RelativeToBoundingBox };
         brush.GradientStops.Add(new GradientStop { Color = skel, Offset = 0 });

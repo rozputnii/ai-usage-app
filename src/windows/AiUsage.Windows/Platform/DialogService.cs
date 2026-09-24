@@ -9,7 +9,7 @@ namespace AiUsage.Platform;
 /// ContentDialog host for confirmations. WinUI allows one open dialog per window, so a
 /// request arriving while another dialog is open waits for it to close instead of failing.
 /// </summary>
-internal sealed class DialogService(ThemeService theme) : IDialogService
+internal sealed class DialogService : IDialogService
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private FrameworkElement? root;
@@ -40,19 +40,8 @@ internal sealed class DialogService(ThemeService theme) : IDialogService
         {
             IsDialogOpen = true;
             dialog.XamlRoot = root!.XamlRoot;
-            dialog.RequestedTheme = theme.ElementTheme;
-            void OnThemeChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e) => dialog.RequestedTheme = theme.ElementTheme;
-            theme.PropertyChanged += OnThemeChanged;
-            // Dialog content is built now, so it needs the same contrast re-resolution as a freshly navigated page.
-            theme.RefreshContrast(dialog);
-            try
-            {
-                await dialog.ShowAsync();
-            }
-            finally
-            {
-                theme.PropertyChanged -= OnThemeChanged;
-            }
+            dialog.RequestedTheme = ElementTheme.Dark;
+            await dialog.ShowAsync();
         }
         finally
         {

@@ -197,14 +197,14 @@ public sealed class LiveAdapterTests
         { if (fail) throw new IOException(); saved = json; return Task.CompletedTask; });
         var token = TestContext.Current.CancellationToken;
         await preferences.LoadAsync(token);
-        Assert.Equal(CommandStatus.Succeeded, (await preferences.SetPreferenceAsync(new(PreferenceKey.Theme, ThemePreference.Dark), token)).Status);
+        Assert.Equal(CommandStatus.Succeeded, (await preferences.SetPreferenceAsync(new(PreferenceKey.Density, Density.Compact), token)).Status);
         fail = true;
-        Assert.Equal(CommandStatus.Failed, (await preferences.SetPreferenceAsync(new(PreferenceKey.Theme, ThemePreference.Light), token)).Status);
-        Assert.Equal(ThemePreference.Dark, source.Current.Preferences.Theme);
+        Assert.Equal(CommandStatus.Failed, (await preferences.SetPreferenceAsync(new(PreferenceKey.Density, Density.Comfortable), token)).Status);
+        Assert.Equal(Density.Compact, source.Current.Preferences.Density);
         Assert.Equal(CommandStatus.Unsupported, (await preferences.SetPreferenceAsync(new(PreferenceKey.HistoryEnabled, true), token)).Status);
         var restored = new LivePreferenceStore(source, _ => Task.FromResult(saved), (_, _) => Task.CompletedTask);
         await restored.LoadAsync(token);
-        Assert.Equal(ThemePreference.Dark, source.Current.Preferences.Theme);
+        Assert.Equal(Density.Compact, source.Current.Preferences.Density);
         await source.StopAsync();
     }
 
@@ -239,7 +239,8 @@ public sealed class LiveAdapterTests
     public async Task PreferenceFileWithUnknownMembersRoundTripsUnchanged()
     {
         using var source = new LiveUsageSource(new Dictionary<string, IProviderSession>());
-        // A file written by a newer build: known members plus members this build has never heard of.
+        // A file written by a newer build: known members plus members this build has never heard of. Theme is one of
+        // them since the app became dark-only (D-182); it is kept, never rewritten.
         const string stored = """
             {"Version":1,"Theme":2,"Density":1,"UsageDisplay":1,"AlwaysOnTop":false,"ShowDisconnected":true,
              "ShowHidden":false,"Order":["codex"],"Hidden":[],"Labels":{"codex":"Work"},"Expansion":{"codex":1},
@@ -249,7 +250,7 @@ public sealed class LiveAdapterTests
         var preferences = new LivePreferenceStore(source, _ => Task.FromResult<string?>(stored), (json, _) => { saved = json; return Task.CompletedTask; });
         var token = TestContext.Current.CancellationToken;
         await preferences.LoadAsync(token);
-        Assert.Equal(ThemePreference.Dark, source.Current.Preferences.Theme);
+        Assert.Equal(Density.Compact, source.Current.Preferences.Density);
         Assert.Equal(CommandStatus.Succeeded, (await preferences.SetPreferenceAsync(new(PreferenceKey.AlwaysOnTop, true), token)).Status);
         using var written = JsonDocument.Parse(saved!);
         var root = written.RootElement;
@@ -257,7 +258,7 @@ public sealed class LiveAdapterTests
         Assert.Equal("[1,2]", root.GetProperty("FutureSetting").GetProperty("nested").GetRawText());
         Assert.True(root.GetProperty("FutureSetting").GetProperty("flag").GetBoolean());
         Assert.Equal(1, root.GetProperty("Version").GetInt32());
-        Assert.Equal((int)ThemePreference.Dark, root.GetProperty("Theme").GetInt32());
+        Assert.Equal(2, root.GetProperty("Theme").GetInt32());
         Assert.Equal((int)Density.Compact, root.GetProperty("Density").GetInt32());
         Assert.Equal((int)UsageDisplay.Used, root.GetProperty("UsageDisplay").GetInt32());
         Assert.True(root.GetProperty("ShowDisconnected").GetBoolean());
@@ -268,7 +269,7 @@ public sealed class LiveAdapterTests
         Assert.True(root.GetProperty("AlwaysOnTop").GetBoolean());
         var reloaded = new LivePreferenceStore(source, _ => Task.FromResult(saved), (_, _) => Task.CompletedTask);
         await reloaded.LoadAsync(token);
-        Assert.Equal(ThemePreference.Dark, source.Current.Preferences.Theme);
+        Assert.Equal(UsageDisplay.Used, source.Current.Preferences.UsageDisplay);
         Assert.True(source.Current.Preferences.AlwaysOnTop);
         await source.StopAsync();
     }

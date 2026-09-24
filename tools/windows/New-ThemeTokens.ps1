@@ -1,66 +1,49 @@
 [CmdletBinding()]
 param([string] $Output = (Join-Path $PSScriptRoot '../../src/windows/AiUsage.Windows/Themes/Tokens.xaml'))
 # Generates Themes/Tokens.xaml from the AIU-010 design tokens (Quiet Editorial 1b, specification section 3).
-# Framework lightweight-styling keys receive explicit per-theme colours so RequestedTheme switches resolve correctly.
+# The app has one appearance, the designed dark palette (D-182). Framework lightweight-styling keys take their colour from a token.
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-# name = light, dark, high-contrast system colour key
+# name = dark palette value
 $tokens = [ordered]@{
-    AppBg = '#F6F4EF', '#1F1E1B', 'SystemColorWindowColor'
-    Card = '#FDFCFA', '#282725', 'SystemColorWindowColor'
-    Card2 = '#EEEBE4', '#31302C', 'SystemColorWindowColor'
-    Stroke = '#1C1D1B18', '#1FF3F1EC', 'SystemColorWindowTextColor'
-    Stroke2 = '#3D1D1B18', '#42F3F1EC', 'SystemColorWindowTextColor'
-    Text = '#1D1B18', '#F3F1EC', 'SystemColorWindowTextColor'
-    Text2 = '#6B665E', '#B8B2A7', 'SystemColorWindowTextColor'
-    Text3 = '#9A948A', '#8A857B', 'SystemColorGrayTextColor'
-    Accent = '#C8684A', '#E38A6C', 'SystemColorHotlightColor'
-    AccentHover = '#B2583C', '#EEA38A', 'SystemColorHotlightColor'
-    AccentText = '#FFFFFF', '#1F1E1B', 'SystemColorHighlightTextColor'
-    AccentSoft = '#21C8684A', '#2EE38A6C', 'SystemColorHighlightColor'
-    Primary = '#1D1B18', '#F3F1EC', 'SystemColorButtonTextColor'
-    PrimaryText = '#FFFFFF', '#1F1E1B', 'SystemColorButtonFaceColor'
-    Fill = '#1D1B18', '#F3F1EC', 'SystemColorWindowTextColor'
-    OkFill = '#3E9A5A', '#6CCB8A', 'SystemColorWindowTextColor'
-    WarnFill = '#E8811C', '#F0A35E', 'SystemColorHighlightColor'
-    Warn = '#B25A00', '#F0A35E', 'SystemColorHighlightColor'
-    WarnBg = '#F6E7C4', '#24E5B95A', 'SystemColorWindowColor'
-    WarnStroke = '#DCC48A', '#73E5B95A', 'SystemColorHighlightColor'
-    Crit = '#B3301E', '#FF9C8A', 'SystemColorHotlightColor'
-    CritBg = '#F8E1DC', '#24FF9C8A', 'SystemColorWindowColor'
-    CritStroke = '#E8B3A8', '#73FF9C8A', 'SystemColorHotlightColor'
-    Ok = '#2F7A3E', '#7BCB8A', 'SystemColorWindowTextColor'
-    Track = '#1A1D1B18', '#1FF3F1EC', 'SystemColorWindowColor'
-    Hatch = '#4D1D1B18', '#52F3F1EC', 'SystemColorWindowTextColor'
-    Skel = '#EAE7E0', '#2C2B28', 'SystemColorWindowColor'
-    Skel2 = '#F4F2ED', '#3A3834', 'SystemColorGrayTextColor'
-    Focus = '#1D1B18', '#F3F1EC', 'SystemColorHighlightColor'
-    Overlay = '#521D1B18', '#8C000000', 'SystemColorWindowColor'
-    Btn = '#FDFCFA', '#282725', 'SystemColorButtonFaceColor'
-    BtnHover = '#F0EDE6', '#33322E', 'SystemColorHighlightColor'
-    DestructiveText = '#FFFFFF', '#1F1E1B', 'SystemColorButtonFaceColor'
-    Shadow = '#291D1B18', '#80000000', 'SystemColorWindowTextColor'
-    Transparent = '#00FFFFFF', '#00000000', ''
-}
-
-# Simulated high contrast for the demo shell (spec design stand-ins); real contrast themes use the system colours above.
-$simulated = [ordered]@{
-    AppBg = '#000000'; Card = '#000000'; Card2 = '#000000'; Stroke = '#FFFFFF'; Stroke2 = '#FFFFFF'; Text = '#FFFFFF'; Text2 = '#FFFFFF'; Text3 = '#FFFFFF'
-    Accent = '#FFFF00'; AccentHover = '#FFFF80'; AccentText = '#000000'; AccentSoft = '#2A2A00'; Primary = '#FFFFFF'; PrimaryText = '#000000'; Fill = '#FFFFFF'
-    OkFill = '#3FF23F'; WarnFill = '#FFFF00'; Warn = '#FFFF00'; WarnBg = '#000000'; WarnStroke = '#FFFF00'; Crit = '#FF8080'; CritBg = '#000000'; CritStroke = '#FF8080'
-    Ok = '#3FF23F'; Track = '#000000'; Hatch = '#FFFFFF'; Skel = '#000000'; Skel2 = '#444444'; Focus = '#FFFF00'; Overlay = '#D9000000'; Btn = '#000000'; BtnHover = '#333333'
-    DestructiveText = '#000000'; Shadow = '#FFFFFF'; Transparent = '#00000000'
+    AppBg = '#1F1E1B'
+    Card = '#282725'
+    Card2 = '#31302C'
+    Stroke = '#1FF3F1EC'
+    Stroke2 = '#42F3F1EC'
+    Text = '#F3F1EC'
+    Text2 = '#B8B2A7'
+    Text3 = '#8A857B'
+    Accent = '#E38A6C'
+    AccentHover = '#EEA38A'
+    AccentText = '#1F1E1B'
+    AccentSoft = '#2EE38A6C'
+    Primary = '#F3F1EC'
+    PrimaryText = '#1F1E1B'
+    Fill = '#F3F1EC'
+    OkFill = '#6CCB8A'
+    WarnFill = '#F0A35E'
+    Warn = '#F0A35E'
+    WarnBg = '#24E5B95A'
+    WarnStroke = '#73E5B95A'
+    Crit = '#FF9C8A'
+    CritBg = '#24FF9C8A'
+    CritStroke = '#73FF9C8A'
+    Ok = '#7BCB8A'
+    Track = '#1FF3F1EC'
+    Hatch = '#52F3F1EC'
+    Skel = '#2C2B28'
+    Skel2 = '#3A3834'
+    Focus = '#F3F1EC'
+    Btn = '#282725'
+    BtnHover = '#33322E'
+    DestructiveText = '#1F1E1B'
+    Transparent = '#00000000'
 }
 
 # Framework key = token it takes its colour from.
 $aliases = [ordered]@{
-    NavigationViewTopPaneBackground = 'Transparent'; NavigationViewItemBackgroundPointerOver = 'Transparent'; NavigationViewItemBackgroundPressed = 'Transparent'
-    NavigationViewItemBackgroundSelected = 'Transparent'; NavigationViewItemBackgroundSelectedPointerOver = 'Transparent'; NavigationViewItemBackgroundSelectedPressed = 'Transparent'
-    TopNavigationViewItemForeground = 'Text2'; TopNavigationViewItemForegroundPointerOver = 'Text'; TopNavigationViewItemForegroundPressed = 'Text'
-    TopNavigationViewItemForegroundSelected = 'Text'; TopNavigationViewItemForegroundSelectedPointerOver = 'Text'; TopNavigationViewItemForegroundSelectedPressed = 'Text'
-    NavigationViewSelectionIndicatorForeground = 'Accent'; NavigationViewButtonForeground = 'Text2'; NavigationViewButtonBackgroundPointerOver = 'Card2'
-    NavigationViewDefaultPaneBackground = 'AppBg'; NavigationViewExpandedPaneBackground = 'AppBg'; NavigationViewContentBackground = 'Transparent'; NavigationViewContentGridBorderBrush = 'Transparent'
     ToggleSwitchFillOn = 'Accent'; ToggleSwitchFillOnPointerOver = 'AccentHover'; ToggleSwitchFillOnPressed = 'AccentHover'; ToggleSwitchKnobFillOn = 'AccentText'; ToggleSwitchKnobFillOnPointerOver = 'AccentText'; ToggleSwitchKnobFillOnPressed = 'AccentText'
     ToggleSwitchFillOff = 'Card2'; ToggleSwitchFillOffPointerOver = 'Card2'; ToggleSwitchStrokeOff = 'Stroke2'; ToggleSwitchStrokeOffPointerOver = 'Stroke2'; ToggleSwitchKnobFillOff = 'Text2'; ToggleSwitchKnobFillOffPointerOver = 'Text'
     ToggleSwitchContentForeground = 'Text'; ToggleSwitchHeaderForeground = 'Text'
@@ -83,51 +66,11 @@ $aliases = [ordered]@{
     RadioButtonsHeaderForeground = 'Text2'
 }
 
-function Escape([string] $value) { [Security.SecurityElement]::Escape($value) }
-
 $builder = New-Object Text.StringBuilder
-[void]$builder.AppendLine('<!-- Generated by tools/windows/New-ThemeTokens.ps1 from the AIU-010 design tokens. Edit the script, not this file. -->')
+[void]$builder.AppendLine('<!-- Generated by tools/windows/New-ThemeTokens.ps1 from the AIU-010 dark design tokens. Edit the script, not this file. -->')
 [void]$builder.AppendLine('<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">')
-[void]$builder.AppendLine('  <ResourceDictionary.ThemeDictionaries>')
-foreach ($theme in @('Light', 'Dark', 'HighContrast')) {
-    [void]$builder.AppendLine("    <ResourceDictionary x:Key=`"$theme`">")
-    foreach ($name in $tokens.Keys) {
-        $values = $tokens[$name]
-        if ($theme -eq 'HighContrast') {
-            if ($values[2]) { [void]$builder.AppendLine("      <SolidColorBrush x:Key=`"${name}Brush`" Color=`"{ThemeResource $($values[2])}`" />") }
-            else { [void]$builder.AppendLine("      <SolidColorBrush x:Key=`"${name}Brush`" Color=`"Transparent`" />") }
-        } else {
-            $color = if ($theme -eq 'Light') { $values[0] } else { $values[1] }
-            [void]$builder.AppendLine("      <SolidColorBrush x:Key=`"${name}Brush`" Color=`"$color`" />")
-        }
-    }
-    if ($theme -ne 'HighContrast') {
-        foreach ($alias in $aliases.Keys) {
-            $values = $tokens[$aliases[$alias]]
-            $color = if ($theme -eq 'Light') { $values[0] } else { $values[1] }
-            [void]$builder.AppendLine("      <SolidColorBrush x:Key=`"$alias`" Color=`"$color`" />")
-        }
-    }
-    [void]$builder.AppendLine('    </ResourceDictionary>')
-}
-[void]$builder.AppendLine('  </ResourceDictionary.ThemeDictionaries>')
+foreach ($name in $tokens.Keys) { [void]$builder.AppendLine("  <SolidColorBrush x:Key=`"${name}Brush`" Color=`"$($tokens[$name])`" />") }
+foreach ($alias in $aliases.Keys) { [void]$builder.AppendLine("  <SolidColorBrush x:Key=`"$alias`" Color=`"$($tokens[$aliases[$alias]])`" />") }
 [void]$builder.AppendLine('</ResourceDictionary>')
 [IO.File]::WriteAllText([IO.Path]::GetFullPath($Output), $builder.ToString(), (New-Object Text.UTF8Encoding($false)))
-
-# The demo's simulated contrast theme is a plain dictionary swapped in by ThemeService (Themes/SimulatedHighContrast.xaml).
-$simulatedPath = Join-Path (Split-Path ([IO.Path]::GetFullPath($Output))) 'SimulatedHighContrast.xaml'
-$sim = New-Object Text.StringBuilder
-[void]$sim.AppendLine('<!-- Generated by tools/windows/New-ThemeTokens.ps1. Demo-only stand-in for a Windows contrast theme (specification section 3 values). -->')
-[void]$sim.AppendLine('<!-- Swapped in for Tokens.xaml by ThemeService while the demo simulates high contrast; both themes carry the contrast values. -->')
-[void]$sim.AppendLine('<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">')
-[void]$sim.AppendLine('  <ResourceDictionary.ThemeDictionaries>')
-foreach ($theme in @('Light', 'Dark', 'HighContrast')) {
-    [void]$sim.AppendLine("    <ResourceDictionary x:Key=`"$theme`">")
-    foreach ($name in $simulated.Keys) { [void]$sim.AppendLine("      <SolidColorBrush x:Key=`"${name}Brush`" Color=`"$($simulated[$name])`" />") }
-    foreach ($alias in $aliases.Keys) { [void]$sim.AppendLine("      <SolidColorBrush x:Key=`"$alias`" Color=`"$($simulated[$aliases[$alias]])`" />") }
-    [void]$sim.AppendLine('    </ResourceDictionary>')
-}
-[void]$sim.AppendLine('  </ResourceDictionary.ThemeDictionaries>')
-[void]$sim.AppendLine('</ResourceDictionary>')
-[IO.File]::WriteAllText($simulatedPath, $sim.ToString(), (New-Object Text.UTF8Encoding($false)))
 "Generated $($tokens.Count) tokens and $($aliases.Count) framework aliases."

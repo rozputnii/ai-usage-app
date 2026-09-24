@@ -5,8 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace AiUsage.Features.Demo;
 
 /// <summary>
-/// Demo shell panel: scenario selection, simulated Windows mode, window width, reduced motion, high contrast, content
-/// scale, provider hues, clock, forced refresh outcomes, environment simulation, tray previews and demo reset.
+/// Demo shell panel: scenario selection, window width, reduced motion, content scale, provider hues, clock, forced refresh outcomes, environment simulation, tray previews and demo reset.
 /// Exists only in demo composition.
 /// </summary>
 internal sealed partial class DemoControlViewModel : ObservableObject
@@ -24,7 +23,6 @@ internal sealed partial class DemoControlViewModel : ObservableObject
         this.lifetime = lifetime;
         this.format = format;
         Scenarios = DemoScenarioCatalog.Scenarios;
-        WindowsModeLabels = [format.T("Demo_ModeActual"), format.T("Demo_ModeLight"), format.T("Demo_ModeDark")];
         MotionLabels = [format.T("Demo_MotionWindows"), format.T("Demo_MotionReduced"), format.T("Demo_MotionFull")];
         ScaleLabels = ["100 %", "150 %", "200 %"];
         OutcomeLabels = [format.T("Demo_OutcomeScenario"), format.T("Demo_OutcomeSuccess"), format.T("Demo_OutcomeNetwork"), format.T("Demo_OutcomeRateLimited"), format.T("Demo_OutcomeInvalidGrant")];
@@ -36,18 +34,15 @@ internal sealed partial class DemoControlViewModel : ObservableObject
     }
 
     public IReadOnlyList<DemoScenario> Scenarios { get; }
-    public IReadOnlyList<string> WindowsModeLabels { get; }
     public IReadOnlyList<string> MotionLabels { get; }
     public IReadOnlyList<string> ScaleLabels { get; }
     public IReadOnlyList<string> OutcomeLabels { get; }
 
     [ObservableProperty] public partial bool IsPanelOpen { get; set; }
     [ObservableProperty] public partial DemoScenario? SelectedScenario { get; set; }
-    [ObservableProperty] public partial int WindowsModeIndex { get; set; }
     [ObservableProperty] public partial int MotionIndex { get; set; }
     [ObservableProperty] public partial int ScaleIndex { get; set; }
     [ObservableProperty] public partial int OutcomeIndex { get; set; }
-    [ObservableProperty] public partial bool HighContrast { get; set; }
     [ObservableProperty] public partial bool ProviderHues { get; set; }
     [ObservableProperty] public partial bool NotificationsAllowed { get; set; }
     [ObservableProperty] public partial bool QuietHours { get; set; }
@@ -66,11 +61,9 @@ internal sealed partial class DemoControlViewModel : ObservableObject
         {
             MarkerText = format.T("Demo_Marker");
             SelectedScenario = Scenarios.FirstOrDefault(s => s.Id == controller.CurrentScenarioId);
-            WindowsModeIndex = display.SimulatedSystemTheme switch { EffectiveTheme.Light => 1, EffectiveTheme.Dark => 2, _ => 0 };
             MotionIndex = display.ReducedMotionOverride switch { true => 1, false => 2, _ => 0 };
             ScaleIndex = display.ContentScale switch { >= 2 => 2, >= 1.5 => 1, _ => 0 };
             OutcomeIndex = (int)controller.ForcedRefreshOutcome;
-            HighContrast = display.SimulatedHighContrast;
             ProviderHues = display.ProviderHues;
             NotificationsAllowed = controller.NotificationsAllowed;
             QuietHours = controller.QuietHours;
@@ -90,11 +83,6 @@ internal sealed partial class DemoControlViewModel : ObservableObject
             _ = controller.LoadScenarioAsync(value.Id);
     }
 
-    partial void OnWindowsModeIndexChanged(int value)
-    {
-        if (!applying)
-            display.SimulatedSystemTheme = value switch { 1 => EffectiveTheme.Light, 2 => EffectiveTheme.Dark, _ => null };
-    }
 
     partial void OnMotionIndexChanged(int value)
     {
@@ -112,12 +100,6 @@ internal sealed partial class DemoControlViewModel : ObservableObject
     {
         if (!applying && value >= 0)
             controller.ForcedRefreshOutcome = (DemoRefreshOutcome)value;
-    }
-
-    partial void OnHighContrastChanged(bool value)
-    {
-        if (!applying)
-            display.SimulatedHighContrast = value;
     }
 
     partial void OnProviderHuesChanged(bool value)

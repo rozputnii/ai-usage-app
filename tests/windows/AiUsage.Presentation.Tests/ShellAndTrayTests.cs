@@ -73,16 +73,13 @@ public sealed class ShellAndTrayTests
     }
 
     [Fact]
-    public async Task ShellAppliesThemeAndAlwaysOnTopFromPreferencesAndMarksDemo()
+    public async Task ShellAppliesAlwaysOnTopFromPreferencesAndMarksDemo()
     {
         using var host = new TestHost();
         var shell = host.Shell();
         Assert.Equal("Demo · sample data", shell.DemoMarker);
-        Assert.Equal([ThemePreference.System], host.Theme.Applied);
         Assert.False(host.Lifetime.AlwaysOnTop);
-        await host.Preferences.SetPreferenceAsync(new(AiUsage.Features.Settings.PreferenceKey.Theme, ThemePreference.Light), CancellationToken.None);
         await host.Preferences.SetPreferenceAsync(new(AiUsage.Features.Settings.PreferenceKey.AlwaysOnTop, true), CancellationToken.None);
-        Assert.Equal(ThemePreference.Light, host.Theme.Preference);
         Assert.True(host.Lifetime.AlwaysOnTop);
         host.Navigation.Navigate(new(PageKey.History));
         Assert.Equal(PageKey.History, shell.CurrentPage);
@@ -125,14 +122,10 @@ public sealed class ShellAndTrayTests
         await demo.ResetCommand.ExecuteAsync(null);
         Assert.Equal(DemoScenarioCatalog.T0, host.Clock.UtcNow);
 
-        demo.WindowsModeIndex = 2;
-        Assert.Equal(EffectiveTheme.Dark, host.Display.SimulatedSystemTheme);
         demo.MotionIndex = 1;
         Assert.True(host.Display.ReducedMotionOverride);
         demo.ScaleIndex = 2;
         Assert.Equal(2, host.Display.ContentScale);
-        demo.HighContrast = true;
-        Assert.True(host.Display.SimulatedHighContrast);
         demo.ProviderHues = true;
         Assert.True(host.Display.ProviderHues);
         demo.ResizeWindowCommand.Execute("560");

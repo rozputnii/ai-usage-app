@@ -165,29 +165,6 @@ internal sealed class TestDialogs : IDialogService
     }
 }
 
-internal sealed class TestTheme : IThemeService
-{
-    public ThemePreference Preference { get; private set; }
-    public EffectiveTheme SystemTheme { get; set; } = EffectiveTheme.Light;
-    public EffectiveTheme Effective => Preference switch { ThemePreference.Light => EffectiveTheme.Light, ThemePreference.Dark => EffectiveTheme.Dark, _ => SystemTheme };
-    public bool HighContrast { get; set; }
-    public List<ThemePreference> Applied { get; } = [];
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    public void Apply(ThemePreference preference)
-    {
-        Preference = preference;
-        Applied.Add(preference);
-        PropertyChanged?.Invoke(this, new(nameof(Effective)));
-    }
-
-    public void ChangeSystem(EffectiveTheme theme)
-    {
-        SystemTheme = theme;
-        PropertyChanged?.Invoke(this, new(nameof(SystemTheme)));
-    }
-}
-
 internal sealed class TestMotion : IMotionSettings
 {
     public bool ReducedMotion { get; set; }
@@ -214,8 +191,6 @@ internal sealed class TestLifetime : IAppLifetime
 
 internal sealed class TestDisplay : IDisplaySimulation
 {
-    public EffectiveTheme? SimulatedSystemTheme { get; set; }
-    public bool SimulatedHighContrast { get; set; }
     public bool? ReducedMotionOverride { get; set; }
     public double ContentScale { get; set; } = 1;
     public bool ProviderHues { get; set; }
@@ -269,7 +244,6 @@ internal sealed class TestHost : IDisposable
     public TestAnnouncer Announcer { get; } = new();
     public TestNavigation Navigation { get; } = new();
     public TestDialogs Dialogs { get; } = new();
-    public TestTheme Theme { get; } = new();
     public TestMotion Motion { get; } = new();
     public TestLifetime Lifetime { get; } = new();
     public TestDisplay Display { get; } = new();
@@ -289,14 +263,14 @@ internal sealed class TestHost : IDisposable
     public AddAccountViewModel AddAccount() => addAccount ??= Track(new AddAccountViewModel(Context, Connection, new CliImportViewModel(Context, Cli), Controller));
     public CliImportViewModel CliImport() => new(Context, Cli);
     public HistoryViewModel HistoryPage() => Track(new HistoryViewModel(Context, History));
-    public AppearanceSettingsViewModel Appearance() => Track(new AppearanceSettingsViewModel(Context, Preferences, Theme));
+    public AppearanceSettingsViewModel Appearance() => Track(new AppearanceSettingsViewModel(Context, Preferences));
     public ToastViewModel Toast { get => field ??= new ToastViewModel(Context); }
     public MonitoringSettingsViewModel Monitoring() => Track(new MonitoringSettingsViewModel(Context, Preferences, NotificationPreview, Toast, Controller));
     public DataPrivacyViewModel DataPrivacy() => Track(new DataPrivacyViewModel(Context, Preferences, Data));
     public UpdatesViewModel UpdatesPage() => Track(new UpdatesViewModel(Context, Updates, Controller));
     public SystemStatusViewModel SystemStatus() => Track(new SystemStatusViewModel(Context, Diagnostics, () => Task.CompletedTask));
     public RecoveryViewModel RecoveryPage() => Track(new RecoveryViewModel(Context, Recovery));
-    public ShellViewModel Shell() => Track(new ShellViewModel(Context, Theme, Lifetime, Toast, isDemo: true));
+    public ShellViewModel Shell() => Track(new ShellViewModel(Context, Lifetime, Toast, isDemo: true));
     public TrayViewModel Tray(ShellViewModel shell) => Track(new TrayViewModel(Context, Lifetime, shell.RefreshAllFromTrayAsync, () => shell.ExitCommand.ExecuteAsync(null)));
     public DemoControlViewModel DemoControl() => new(Controller, Display, Lifetime, Format);
 

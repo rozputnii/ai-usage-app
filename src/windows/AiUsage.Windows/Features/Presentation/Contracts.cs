@@ -13,7 +13,6 @@ public enum ValueState { Known, Unknown, Unlimited, Exhausted, Unavailable }
 public enum ExtensionKind { Credits, ExtraUsage, Opaque }
 public enum Availability { Available, Unavailable }
 public enum CapabilityOrigin { Existing, Planned }
-public enum ThemePreference { System, Light, Dark }
 public enum Density { Comfortable, Compact }
 public enum UsageDisplay { Remaining, Used }
 public enum RuleScope { Global, Provider, WindowType, Account, Window }
@@ -129,7 +128,6 @@ public static class FailureKinds
 }
 
 public sealed record Preferences(
-    ThemePreference Theme,
     IReadOnlyList<string> AccountOrder,
     IReadOnlyList<string> HiddenTargets,
     IReadOnlyList<string> MutedTargets,

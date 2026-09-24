@@ -174,13 +174,13 @@ public sealed class OperationsTests
         using var host = new TestHost();
         await host.Usage.ExecuteAsync(host.Context.Command(UiCommandKind.Rename, "demo-codex-1", new RenamePayload("Home")), CancellationToken.None);
         await host.Usage.ExecuteAsync(host.Context.Command(UiCommandKind.Reorder, null, new ReorderPayload(["demo-codex-2", "demo-codex-1", "demo-claude-1", "demo-copilot-1", "demo-antigravity-1"])), CancellationToken.None);
-        await host.Preferences.SetPreferenceAsync(new(AiUsage.Features.Settings.PreferenceKey.Theme, ThemePreference.Dark), CancellationToken.None);
+        await host.Preferences.SetPreferenceAsync(new(AiUsage.Features.Settings.PreferenceKey.Density, Density.Compact), CancellationToken.None);
         await host.Preferences.SetNotificationRuleAsync(new(RuleScope.Provider, "codex", false, [50], true), CancellationToken.None);
         var data = host.DataPrivacy();
         host.Dialogs.Next(ConfirmOutcome.Confirmed);
         await data.ResetSettingsCommand.ExecuteAsync(null);
         var prefs = host.Usage.Current.Preferences;
-        Assert.Equal(ThemePreference.System, prefs.Theme);
+        Assert.Equal(Density.Comfortable, prefs.Density);
         Assert.Single(prefs.NotificationRules);
         Assert.Equal("Home", host.Account("demo-codex-1").Label);
         Assert.Equal("demo-codex-2", prefs.AccountOrder[0]);

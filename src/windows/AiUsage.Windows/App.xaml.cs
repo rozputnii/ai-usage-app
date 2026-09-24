@@ -71,7 +71,7 @@ public partial class App : Application
         if (host is null || stopTask is not null)
             return;
         var services = host.Services;
-        popup ??= new TrayPopupWindow(services.GetRequiredService<TrayViewModel>(), services.GetRequiredService<ThemeService>(),
+        popup ??= new TrayPopupWindow(services.GetRequiredService<TrayViewModel>(),
             services.GetRequiredService<ITextResources>().Get("AppTitle"));
         popup.ShowNearTray();
     }

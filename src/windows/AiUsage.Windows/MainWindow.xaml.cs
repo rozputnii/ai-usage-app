@@ -28,7 +28,6 @@ namespace AiUsage;
 internal sealed partial class MainWindow : Window
 {
     private readonly NavigationService navigation;
-    private readonly ThemeService theme;
     private readonly DisplaySimulation display;
     private readonly IUsageSource usage;
     private readonly IServiceProvider services;
@@ -46,7 +45,7 @@ internal sealed partial class MainWindow : Window
     private const int DefaultHeight = 600;
 
     public MainWindow(ShellViewModel shell, TrayViewModel tray, RecoveryViewModel recovery, OverviewViewModel overview, AccountsViewModel accounts,
-        ProviderHistoryViewModel history, SettingsViewModel settings, AddAccountViewModel addAccount, NavigationService navigation, ThemeService theme, DisplaySimulation display,
+        ProviderHistoryViewModel history, SettingsViewModel settings, AddAccountViewModel addAccount, NavigationService navigation, DisplaySimulation display,
         IUsageSource usage, IServiceProvider services)
     {
         Shell = shell;
@@ -55,7 +54,6 @@ internal sealed partial class MainWindow : Window
         Recovery = recovery;
         Demo = services.GetService<DemoControlViewModel>();
         this.navigation = navigation;
-        this.theme = theme;
         this.display = display;
         this.usage = usage;
         this.services = services;
@@ -82,7 +80,7 @@ internal sealed partial class MainWindow : Window
         AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
         AppWindow.Resize(new SizeInt32(DefaultWidth, DefaultHeight));
         RootGrid.Loaded += ApplyDefaultSizeForScale;
-        theme.Attach(RootGrid, AppWindow);
+        WindowTheme.Apply(RootGrid, AppWindow);
 
         navigation.Navigated += (_, request) => DispatcherQueue.TryEnqueue(() => ShowPage(request));
         ShowPage(new NavigationRequest(navigation.Current));
@@ -147,8 +145,6 @@ internal sealed partial class MainWindow : Window
         if (ContentFrame.Content?.GetType() != target.Page)
         {
             ContentFrame.Navigate(target.Page, target.ViewModel, new Microsoft.UI.Xaml.Media.Animation.SuppressNavigationTransitionInfo());
-            // A page built while the demo simulates a contrast theme resolved the ordinary colours; ask for a re-resolution.
-            theme.RefreshContrast(RootGrid);
         }
         else if (ContentFrame.Content is UIElement page && request.Tab is null && request.AccountId is null)
             Controls.Motion.Rise(page);
@@ -211,7 +207,6 @@ internal sealed partial class MainWindow : Window
 
     private void OnProviderFlyoutOpened(object? sender, object e)
     {
-        theme.RefreshContrast(ProviderMenu);
         if (ProviderFlyout.ShowMode != FlyoutShowMode.Standard)
             return;
         reopenAfterClose = false;

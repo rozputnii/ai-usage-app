@@ -106,7 +106,6 @@ public sealed class DependencyBoundaryTests
         foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.RuleScope>()) _ = text.Get("Scope_" + value);
         foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.AttentionLevel>()) _ = text.Get("Attention_" + value);
         foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.HistoryRetention>()) _ = text.Get("Retention_" + value);
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.ThemePreference>()) { _ = text.Get("Theme_" + value); _ = text.Get("Theme_" + value + "Description"); }
         foreach (var value in new[] { "Interrupted", "NewerSchema", "RestoreFailed" }) { _ = text.Get("Recovery_Title_" + value); _ = text.Get("Recovery_Body_" + value); }
         foreach (var value in new[] { "NetworkFailure", "RateLimited", "InvalidGrant", "SchemaMismatch", "InternalError" }) _ = text.Get("Failure_Short_" + value);
     }

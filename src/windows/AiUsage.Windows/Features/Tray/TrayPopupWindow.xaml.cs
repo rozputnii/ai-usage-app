@@ -12,15 +12,13 @@ internal sealed partial class TrayPopupWindow : Window
 {
     private const int PopupWidth = 360;
     private const int PopupHeight = 440;
-    private readonly ThemeService theme;
     private readonly DispatcherQueueTimer clock;
     private bool showing;
     private bool closing;
 
-    public TrayPopupWindow(TrayViewModel viewModel, ThemeService theme, string title)
+    public TrayPopupWindow(TrayViewModel viewModel, string title)
     {
         ViewModel = viewModel;
-        this.theme = theme;
         InitializeComponent();
         clock = DispatcherQueue.CreateTimer();
         clock.Interval = TimeSpan.FromSeconds(30);
@@ -35,7 +33,7 @@ internal sealed partial class TrayPopupWindow : Window
             presenter.SetBorderAndTitleBar(true, false);
         }
         AppWindow.IsShownInSwitchers = false;
-        theme.Attach(PopupRoot, null);
+        WindowTheme.Apply(PopupRoot, null);
         viewModel.ClosePopupRequested += OnCloseRequested;
         Activated += (_, args) =>
         {
@@ -89,7 +87,6 @@ internal sealed partial class TrayPopupWindow : Window
         clock.Stop();
         clock.Tick -= OnClockTick;
         ViewModel.ClosePopupRequested -= OnCloseRequested;
-        theme.Detach(PopupRoot);
         Close();
     }
 

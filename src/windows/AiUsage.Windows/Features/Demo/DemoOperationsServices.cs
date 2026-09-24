@@ -101,7 +101,7 @@ internal sealed class DemoDiagnosticsService(DemoState state) : IDiagnosticsServ
         var providers = string.Join(", ", world.Accounts.GroupBy(a => a.ProviderId).Select(g => $"{g.Key} {g.Count()}"));
         return string.Join('\n',
             "diagnostics preview (sanitized)",
-            $"build 1.0.0-demo · {world.SchemaLabel.ToLowerInvariant()} · theme {world.Theme.ToString().ToLowerInvariant()}",
+            $"build 1.0.0-demo · {world.SchemaLabel.ToLowerInvariant()}",
             $"accounts {world.Accounts.Count} ({providers})",
             $"last refresh 12:00:00 · failures {world.Accounts.Count(a => a.Failure is not null)}",
             $"notifications: channel {(world.NotificationsAllowed ? "allowed" : "blocked")} · rules {world.Rules.Count(r => r.Scope == RuleScope.Global)} global, {world.Rules.Count(r => r.Scope != RuleScope.Global)} overrides",

@@ -88,7 +88,6 @@ internal sealed class DemoWorld
     public HashSet<string> Hidden { get; } = [];
     public HashSet<string> Muted { get; } = [];
     public Dictionary<string, string> ContextSelection { get; } = [];
-    public ThemePreference Theme { get; set; } = ThemePreference.System;
     public Density Density { get; set; } = Density.Comfortable;
     public UsageDisplay UsageDisplay { get; set; } = UsageDisplay.Remaining;
     public bool ShowDisconnected { get; set; }
@@ -118,7 +117,7 @@ internal sealed class DemoWorld
     public DemoRefreshOutcome ForcedRefreshOutcome { get; set; }
     public string SchemaLabel { get; set; } = "Schema 4";
 
-    public Preferences BuildPreferences() => new(Theme, Order.ToArray(), Hidden.ToArray(), Muted.ToArray(), ShowDisconnected, AlwaysOnTop, HistoryEnabled, Rules.ToArray())
+    public Preferences BuildPreferences() => new(Order.ToArray(), Hidden.ToArray(), Muted.ToArray(), ShowDisconnected, AlwaysOnTop, HistoryEnabled, Rules.ToArray())
     {
         Density = Density,
         UsageDisplay = UsageDisplay,
@@ -146,7 +145,6 @@ internal sealed class DemoWorld
 
     public void ResetSettings()
     {
-        Theme = ThemePreference.System;
         Density = Density.Comfortable;
         UsageDisplay = UsageDisplay.Remaining;
         AlwaysOnTop = false;

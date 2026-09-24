@@ -22,8 +22,6 @@
 
         <ComboBox x:Uid="Demo_Scenario" AutomationProperties.AutomationId="DemoScenario" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
                   ItemsSource="{x:Bind ViewModel.Scenarios, Mode=OneWay}" SelectedItem="{x:Bind ViewModel.SelectedScenario, Mode=TwoWay, Converter={StaticResource PassThrough}}" DisplayMemberPath="Name" />
-        <ComboBox x:Uid="Demo_WindowsMode" AutomationProperties.AutomationId="DemoWindowsMode" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
-                  ItemsSource="{x:Bind ViewModel.WindowsModeLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.WindowsModeIndex, Mode=TwoWay}" />
         <ComboBox x:Uid="Demo_Motion" AutomationProperties.AutomationId="DemoMotion" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
                   ItemsSource="{x:Bind ViewModel.MotionLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.MotionIndex, Mode=TwoWay}" />
         <ComboBox x:Uid="Demo_Scale" AutomationProperties.AutomationId="DemoScale" Style="{StaticResource AppComboBox}" HorizontalAlignment="Stretch"
@@ -32,7 +30,6 @@
                   ItemsSource="{x:Bind ViewModel.OutcomeLabels, Mode=OneWay}" SelectedIndex="{x:Bind ViewModel.OutcomeIndex, Mode=TwoWay}" />
 
         <StackPanel Spacing="0">
-          <CheckBox x:Uid="Demo_HighContrast" AutomationProperties.AutomationId="DemoHighContrast" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.HighContrast, Mode=TwoWay}" />
           <CheckBox x:Uid="Demo_ProviderHues" AutomationProperties.AutomationId="DemoProviderHues" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.ProviderHues, Mode=TwoWay}" />
           <CheckBox x:Uid="Demo_NotificationsAllowed" AutomationProperties.AutomationId="DemoNotificationsAllowed" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.NotificationsAllowed, Mode=TwoWay}" />
           <CheckBox x:Uid="Demo_QuietHours" AutomationProperties.AutomationId="DemoQuietHours" Style="{StaticResource AppCheckBox}" IsChecked="{x:Bind ViewModel.QuietHours, Mode=TwoWay}" />

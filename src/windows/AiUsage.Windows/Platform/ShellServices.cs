@@ -85,26 +85,14 @@ internal sealed class AppLifetime(MotionSettings motion) : IAppLifetime
     public void ShowTrayPopup() => showPopup?.Invoke();
 }
 
-/// <summary>Demo-only display simulation: Windows mode, contrast, motion, content scale, provider hues and window size.</summary>
-internal sealed class DisplaySimulation(ThemeService theme, MotionSettings motion) : IDisplaySimulation
+/// <summary>Demo-only display simulation: motion, content scale, provider hues and window size.</summary>
+internal sealed class DisplaySimulation(MotionSettings motion) : IDisplaySimulation
 {
     private MainWindow? window;
 
     public event EventHandler? ContentScaleChanged;
 
     public void Attach(MainWindow mainWindow) => window = mainWindow;
-
-    public EffectiveTheme? SimulatedSystemTheme
-    {
-        get => theme.SimulatedSystemTheme;
-        set => theme.SimulatedSystemTheme = value;
-    }
-
-    public bool SimulatedHighContrast
-    {
-        get => theme.SimulatedHighContrast;
-        set => theme.SimulatedHighContrast = value;
-    }
 
     public bool? ReducedMotionOverride
     {

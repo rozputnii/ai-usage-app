@@ -162,7 +162,7 @@ public sealed class QuotaSemanticsTests
         var snapshot = new UiSnapshot(1, UiMode.Live, DateTimeOffset.UnixEpoch, [], [
             new("RefreshAccount", null, Availability.Available, null, CapabilityOrigin.Existing),
             new("RefreshAccount", "a", Availability.Unavailable, "Capability_NotImplemented", CapabilityOrigin.Planned),
-        ], new(ThemePreference.System, [], [], [], false, false, true, [Preferences.DefaultGlobalRule]), new("b", "s", HealthState.Idle, UpdateState.Current, RecoveryState.None, CompatibilityState.Normal));
+        ], new([], [], [], false, false, true, [Preferences.DefaultGlobalRule]), new("b", "s", HealthState.Idle, UpdateState.Current, RecoveryState.None, CompatibilityState.Normal));
         Assert.True(QuotaRules.IsAvailable(snapshot, "RefreshAccount", "b"));
         Assert.False(QuotaRules.IsAvailable(snapshot, "RefreshAccount", "a"));
         Assert.False(QuotaRules.IsAvailable(snapshot, "Disconnect"));

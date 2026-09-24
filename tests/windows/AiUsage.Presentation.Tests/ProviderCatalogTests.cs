@@ -38,9 +38,8 @@ public sealed class ProviderCatalogTests
         Assert.Equal("Fifth Provider", LiveMapping.Map(id, ProviderSessionState.NotConnected, false, catalog).Label);
         Assert.Equal(0x123456u, catalog.Get(id).BrandRgb);
         Assert.Equal("★", catalog.Get(id).Glyph);
-        Assert.Equal(new ProviderTileStyle("★", "Card2Brush", null, 0x123456, false), catalog.Tile(id, true, false));
-        Assert.Equal(new ProviderTileStyle("★", "Card2Brush", "TextBrush", null, true), catalog.Tile(id, false, false));
-        Assert.Equal(new ProviderTileStyle("★", "Card2Brush", "TextBrush", null, true), catalog.Tile(id, true, true));
+        Assert.Equal(new ProviderTileStyle("★", "Card2Brush", null, 0x123456, false), catalog.Tile(id, true));
+        Assert.Equal(new ProviderTileStyle("★", "Card2Brush", "TextBrush", null, true), catalog.Tile(id, false));
 
         using var host = new TestHost();
         var context = new PresentationContext(source, host.Dispatcher, host.Clock, host.Text,
@@ -67,7 +66,7 @@ public sealed class ProviderCatalogTests
         using var tray = new TrayViewModel(context, host.Lifetime, () => Task.CompletedTask, () => Task.CompletedTask);
         Assert.Equal("★", Assert.Single(tray.Rows).Glyph);
         Assert.Contains("Synthetic brand", Assert.Single(tray.Rows).AccessibleName);
-        using var appearance = new AppearanceSettingsViewModel(context, host.Preferences, host.Theme);
+        using var appearance = new AppearanceSettingsViewModel(context, host.Preferences);
         Assert.Equal("Synthetic brand", Assert.Single(appearance.OrderItems).ProviderName);
         using var status = new SystemStatusViewModel(context, host.Diagnostics, () => Task.CompletedTask);
         Assert.Equal("Synthetic brand", Assert.Single(status.ProviderStatuses).ProviderName);
@@ -90,8 +89,8 @@ public sealed class ProviderCatalogTests
         Assert.Equal(["›_", "✳", "⊙", "↑"], catalog.All.Select(d => d.Glyph));
         Assert.Equal([null, 0xD77655u, 0x5B6CFFu, 0x1BA39Cu], catalog.All.Select(d => d.BrandRgb));
         Assert.True(catalog.Get("codex").UseThemeFill);
-        Assert.Equal(new ProviderTileStyle("›_", "FillBrush", "AppBgBrush", null, false), catalog.Tile("codex", true, false));
-        Assert.Equal(new ProviderTileStyle("U", "Card2Brush", "TextBrush", null, false), catalog.Tile("unknown", true, false));
+        Assert.Equal(new ProviderTileStyle("›_", "FillBrush", "AppBgBrush", null, false), catalog.Tile("codex", true));
+        Assert.Equal(new ProviderTileStyle("U", "Card2Brush", "TextBrush", null, false), catalog.Tile("unknown", true));
         Assert.Equal(["claude"], catalog.All.Where(d => d.Methods.Contains(ConnectionMethod.ManualCode)).Select(d => d.ProviderId));
         using var host = new TestHost();
         var demo = new DemoConnectionFlow(host.State, catalog);

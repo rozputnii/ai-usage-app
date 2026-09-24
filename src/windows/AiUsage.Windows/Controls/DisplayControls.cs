@@ -31,7 +31,6 @@ internal sealed partial class ProviderTile : UserControl
         tile.Child = glyph;
         Content = tile;
         glyph.FontFamily = new FontFamily("Consolas");
-        ActualThemeChanged += (_, _) => Paint();
         Loaded += (_, _) =>
         {
             AppLayout.Current.PropertyChanged += OnLayoutChanged;
@@ -57,8 +56,7 @@ internal sealed partial class ProviderTile : UserControl
         tile.Height = size;
         tile.CornerRadius = new CornerRadius(size >= 28 ? 6 : size >= 22 ? 5 : size >= 18 ? 4 : 3);
         glyph.FontSize = size >= 28 ? 13 : size >= 22 ? 10 : size >= 18 ? 10 : 9;
-        var style = ((App)Application.Current).Providers.Tile(ProviderId ?? string.Empty,
-            AppLayout.Current.ProviderHues, Bind.IsSystemHighContrast());
+        var style = ((App)Application.Current).Providers.Tile(ProviderId ?? string.Empty, AppLayout.Current.ProviderHues);
         glyph.Text = style.Glyph;
         tile.Background = style.BackgroundRgb is { } rgb
             ? Solid((byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb)
@@ -85,7 +83,6 @@ internal sealed partial class StatusPill : UserControl
         IsTabStop = false;
         border.Child = label;
         Content = border;
-        ActualThemeChanged += (_, _) => Paint();
         Loaded += (_, _) => Paint();
     }
 

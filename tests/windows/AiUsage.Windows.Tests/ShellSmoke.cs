@@ -30,7 +30,7 @@ public sealed partial class ShellSmoke
     [Theory]
     [InlineData("launch")]
     [InlineData("navigation")]
-    [InlineData("theme")]
+    [InlineData("appearance")]
     [InlineData("tray-exit")]
     [InlineData("repeated-exit")]
     [InlineData("capabilities")]
@@ -88,10 +88,10 @@ public sealed partial class ShellSmoke
             // The tray icon is created by the window; without it there is no tray presence at all.
             Assert.True(TrayIconPresent(pid), "No tray icon window owned by the launched process.");
 
-            if (scenario is "navigation" or "theme")
+            if (scenario is "navigation" or "appearance")
                 Navigate(window, evidence!, scenario);
-            if (scenario == "theme")
-                SwitchTheme(window, evidence!);
+            if (scenario == "appearance")
+                DarkOnly(window, evidence!);
             if (scenario == "capabilities")
             {
                 // The Add account menu replaces the dialog; CLI import is listed only where the capability exists.
@@ -246,7 +246,7 @@ public sealed partial class ShellSmoke
         }
 
         Assert.Null(window.FindFirstDescendant(cf => cf.ByAutomationId("BackButton")));
-        Show("SettingsButton", "ThemeNote", "settings");
+        Show("SettingsButton", "DensitySelector", "settings");
         // Every former settings tab and the former System status page are sections of this one view.
         foreach (var id in new[] { "HistoryEnabledSwitch", "UpdateStatus", "StatusBuild" })
             Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId(id)));
@@ -263,25 +263,22 @@ public sealed partial class ShellSmoke
         Back();
     }
 
-    /// <summary>Appearance settings must switch the app theme without a restart.</summary>
-    private static void SwitchTheme(Window window, string evidence)
+    /// <summary>The app is dark-only (D-182): Settings offers no theme choice, whatever the Windows app mode.</summary>
+    private static void DarkOnly(Window window, string evidence)
     {
         var settings = SettingsEntry(window);
         Assert.NotNull(settings);
         settings.Click();
-        Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ThemeNote")) is not null, TimeSpan.FromSeconds(10)));
-        foreach (var (id, expected) in new[] { ("ThemeDark", "Dark"), ("ThemeLight", "Light"), ("ThemeSystem", "Windows") })
-        {
-            var card = window.FindFirstDescendant(cf => cf.ByAutomationId(id));
-            Assert.NotNull(card);
-            card.Click();
-            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ThemeNote"))?.Name?.Contains(expected, StringComparison.Ordinal) == true,
-                TimeSpan.FromSeconds(5)), $"{id} must be reflected by the appearance note.");
-            Thread.Sleep(400);
-            Capture(window, evidence, "theme-" + id);
-        }
+        Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("DensitySelector")) is not null, TimeSpan.FromSeconds(10)));
+        foreach (var id in new[] { "ThemeOptions", "ThemeNote", "ThemeSystem", "ThemeLight", "ThemeDark", "DemoWindowsMode", "DemoHighContrast" })
+            Assert.Null(window.FindFirstDescendant(cf => cf.ByAutomationId(id)));
+        Thread.Sleep(400);
+        Capture(window, evidence, "appearance-settings");
     }
 
+    /// <summary>The durable preference seeded by the upgrade harnesses: always on top is on.</summary>
+    private static bool AlwaysOnTopLoaded(AutomationElement window) =>
+        window.FindFirstDescendant(cf => cf.ByAutomationId("AlwaysOnTopSwitch"))?.Patterns.Toggle.PatternOrDefault?.ToggleState.Value == FlaUI.Core.Definitions.ToggleState.On;
     /// <summary>Exit always asks first; the dialog is the only way the process ends.</summary>
     private static Button ConfirmDialog(UIA3Automation automation, int pid, Window window, string evidence, string scenario)
     {

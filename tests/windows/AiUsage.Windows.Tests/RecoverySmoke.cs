@@ -11,7 +11,7 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class ShellSmoke
 {
-    private const string UpgradePreferences = "{\"Version\":1,\"Theme\":2,\"Labels\":{\"opaque/provider\":\"Synthetic checkpoint\"},\"future\":{\"raw\":[null,7]}}";
+    private const string UpgradePreferences = "{\"Version\":1,\"Theme\":2,\"AlwaysOnTop\":true,\"Labels\":{\"opaque/provider\":\"Synthetic checkpoint\"},\"future\":{\"raw\":[null,7]}}";
 
     [Fact(Explicit = true)]
     public void UpgradeRecovery()
@@ -55,7 +55,7 @@ public sealed partial class ShellSmoke
                 {
                     Assert.True(WaitUntil(() => SettingsEntry(window)?.IsEnabled == true, TimeSpan.FromSeconds(15)));
                     SettingsEntry(window)!.Click();
-                    Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ThemeNote"))?.Name.Contains("Dark", StringComparison.Ordinal) == true, TimeSpan.FromSeconds(10)));
+                    Assert.True(WaitUntil(() => AlwaysOnTopLoaded(window), TimeSpan.FromSeconds(10)));
                     Capture(window, evidence, "old-preferences");
                 });
                 Assert.Equal(original, File.ReadAllBytes(legacy));

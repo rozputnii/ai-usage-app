@@ -40,10 +40,10 @@ internal sealed class ProviderCatalog
     public IReadOnlyList<ProviderDescriptor> All { get; }
     public IReadOnlyList<ProviderDescriptor> Demo { get; }
 
-    public ProviderTileStyle Tile(string providerId, bool hues, bool highContrast)
+    public ProviderTileStyle Tile(string providerId, bool hues)
     {
         var provider = Get(providerId);
-        if (!hues || highContrast)
+        if (!hues)
             return new(provider.Glyph, "Card2Brush", "TextBrush", null, true);
         if (provider.UseThemeFill)
             return new(provider.Glyph, "FillBrush", "AppBgBrush", null, false);

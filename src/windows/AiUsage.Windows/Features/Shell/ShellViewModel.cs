@@ -7,21 +7,18 @@ namespace AiUsage.Features.Shell;
 
 /// <summary>
 /// Application shell: one main usage view without tabs, header actions (Back, Refresh all, Add account menu, Settings),
-/// compatibility banner, Refresh-all result bar, notification preview host, recovery takeover, theme/always-on-top
+/// compatibility banner, Refresh-all result bar, notification preview host, recovery takeover, always-on-top
 /// application and confirmed Exit.
 /// </summary>
 internal sealed partial class ShellViewModel : SnapshotViewModel
 {
-    private readonly IThemeService theme;
     private readonly IAppLifetime lifetime;
     private RefreshAllSummary? dismissedResult;
     private bool exiting;
-    private ThemePreference? appliedTheme;
     private bool? appliedOnTop;
 
-    public ShellViewModel(PresentationContext context, IThemeService theme, IAppLifetime lifetime, ToastViewModel toast, bool isDemo) : base(context)
+    public ShellViewModel(PresentationContext context, IAppLifetime lifetime, ToastViewModel toast, bool isDemo) : base(context)
     {
-        this.theme = theme;
         this.lifetime = lifetime;
         Toast = toast;
         IsDemo = isDemo;
@@ -65,11 +62,6 @@ internal sealed partial class ShellViewModel : SnapshotViewModel
         var system = snapshot.System;
         DemoMarker = IsDemo ? format.T("Demo_Marker") : string.Empty;
         IsRecovery = system.Recovery != RecoveryState.None;
-        if (appliedTheme != prefs.Theme)
-        {
-            appliedTheme = prefs.Theme;
-            theme.Apply(prefs.Theme);
-        }
         if (appliedOnTop != prefs.AlwaysOnTop)
         {
             appliedOnTop = prefs.AlwaysOnTop;

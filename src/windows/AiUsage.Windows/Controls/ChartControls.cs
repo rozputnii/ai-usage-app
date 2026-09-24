@@ -44,7 +44,6 @@ internal sealed partial class HistoryChart : UserControl
         root.Children.Add(new Canvas { Children = { tip } });
         Content = root;
         SizeChanged += (_, _) => Redraw();
-        ActualThemeChanged += (_, _) => Redraw();
         Loaded += (_, _) => Redraw();
     }
 
@@ -220,7 +219,6 @@ internal sealed partial class Sparkline : UserControl
         Content = canvas;
         AutomationProperties.SetAccessibilityView(this, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
         SizeChanged += (_, _) => Redraw();
-        ActualThemeChanged += (_, _) => Redraw();
     }
 
     public ChartModel Model { get => (ChartModel)GetValue(ModelProperty); set => SetValue(ModelProperty, value); }

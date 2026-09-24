@@ -6,8 +6,8 @@ using Microsoft.UI.Xaml.Shapes;
 namespace AiUsage.Controls;
 
 /// <summary>
-/// Attached token keys for state-dependent colours (tone, outcome, pill). The brush is re-resolved when the element's
-/// theme changes, so bound state colours follow System/Light/Dark exactly like static ThemeResource references.
+/// Attached token keys for state-dependent colours (tone, outcome, pill). The brush is resolved when the key changes
+/// and again when the element loads.
 /// </summary>
 public sealed partial class Tokens : DependencyObject
 {
@@ -34,7 +34,6 @@ public sealed partial class Tokens : DependencyObject
         if (!(bool)element.GetValue(HookedProperty))
         {
             element.SetValue(HookedProperty, true);
-            element.ActualThemeChanged += (sender, _) => Apply(sender);
             element.Loaded += (sender, _) => Apply((FrameworkElement)sender);
         }
         Apply(element);

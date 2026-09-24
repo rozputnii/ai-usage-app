@@ -67,17 +67,6 @@ public sealed record ConfirmRequest(
     Func<CancellationToken, Task<string?>>? ConfirmAction = null,
     Func<CancellationToken, Task<string?>>? AlternateAction = null);
 
-public enum EffectiveTheme { Light, Dark }
-
-public interface IThemeService : INotifyPropertyChanged
-{
-    ThemePreference Preference { get; }
-    EffectiveTheme SystemTheme { get; }
-    EffectiveTheme Effective { get; }
-    bool HighContrast { get; }
-    void Apply(ThemePreference preference);
-}
-
 public interface IMotionSettings : INotifyPropertyChanged
 {
     bool ReducedMotion { get; }

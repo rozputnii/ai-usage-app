@@ -49,7 +49,6 @@ internal sealed partial class QuotaMeter : UserControl
         canvas.Children.Add(ticks);
         Content = canvas;
         SizeChanged += (_, _) => Redraw(animate: false);
-        ActualThemeChanged += (_, _) => Redraw(animate: false);
         Loaded += (_, _) => Redraw(animate: false);
     }
 

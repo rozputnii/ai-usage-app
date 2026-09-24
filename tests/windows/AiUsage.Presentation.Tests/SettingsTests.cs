@@ -8,30 +8,6 @@ namespace AiUsage.Presentation.Tests;
 public sealed class SettingsTests
 {
     [Fact]
-    public async Task ThemeChoiceAppliesImmediatelyAndSystemFollowsWindows()
-    {
-        using var host = new TestHost();
-        var shell = host.Shell();
-        var appearance = host.Appearance();
-        Assert.Equal(ThemePreference.System, host.Theme.Preference);
-        Assert.Equal("System (light now)", appearance.ThemeOptions[0].Label);
-        Assert.True(appearance.ThemeOptions[0].IsSelected);
-        Assert.Contains("Following Windows: currently light", appearance.ThemeNote);
-
-        host.Theme.ChangeSystem(EffectiveTheme.Dark);
-        Assert.Equal("System (dark now)", appearance.ThemeOptions[0].Label);
-        Assert.True(appearance.ThemeOptions[0].PreviewIsDark);
-
-        await appearance.SelectThemeCommand.ExecuteAsync(appearance.ThemeOptions[2]);
-        Assert.Equal(ThemePreference.Dark, host.Theme.Preference);
-        Assert.Equal(ThemePreference.Dark, host.Usage.Current.Preferences.Theme);
-        Assert.True(appearance.ThemeOptions[2].IsSelected);
-        Assert.Equal("Fixed to Dark. Windows mode changes are ignored until you choose System.", appearance.ThemeNote);
-        Assert.Equal("Theme Dark", host.Announcer.Last);
-        _ = shell;
-    }
-
-    [Fact]
     public async Task DensityAlwaysOnTopAndOrderListApplyWithoutPendingState()
     {
         using var host = new TestHost();

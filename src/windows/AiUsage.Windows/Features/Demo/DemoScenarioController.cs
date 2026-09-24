@@ -5,9 +5,6 @@ namespace AiUsage.Features.Demo;
 /// <summary>Display simulation hooks implemented by Platform/ for the demo shell only.</summary>
 public interface IDisplaySimulation
 {
-    /// <summary>Null follows the real Windows app mode.</summary>
-    EffectiveTheme? SimulatedSystemTheme { get; set; }
-    bool SimulatedHighContrast { get; set; }
     /// <summary>Null follows the Windows animation setting.</summary>
     bool? ReducedMotionOverride { get; set; }
     /// <summary>1, 1.5 or 2: lays out the window content at that effective-pixel scale.</summary>

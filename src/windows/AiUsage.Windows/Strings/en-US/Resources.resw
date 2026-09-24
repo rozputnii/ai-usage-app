@@ -210,9 +210,6 @@
   <data name="Announce_ShowUsed" xml:space="preserve">
     <value>Showing used percentage</value>
   </data>
-  <data name="Announce_Theme" xml:space="preserve">
-    <value>Theme {0}</value>
-  </data>
   <data name="Announce_ThresholdsReset" xml:space="preserve">
     <value>Reset to inherited thresholds</value>
   </data>
@@ -272,12 +269,6 @@
   </data>
   <data name="Appearance_ShowDisconnectedSwitch.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Show disconnected accounts</value>
-  </data>
-  <data name="Appearance_ThemeGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>App theme</value>
-  </data>
-  <data name="Appearance_ThemeHeading.Text" xml:space="preserve">
-    <value>App theme</value>
   </data>
   <data name="AppTitle" xml:space="preserve">
     <value>AI Usage</value>
@@ -615,23 +606,11 @@
   <data name="Demo_HideToTray" xml:space="preserve">
     <value>Hide to tray</value>
   </data>
-  <data name="Demo_HighContrast.Content" xml:space="preserve">
-    <value>Simulate high contrast</value>
-  </data>
   <data name="Demo_Marker" xml:space="preserve">
     <value>Demo · sample data</value>
   </data>
   <data name="Demo_MarkerTip.Content" xml:space="preserve">
     <value>Open the demo controls</value>
-  </data>
-  <data name="Demo_ModeActual" xml:space="preserve">
-    <value>Follow Windows</value>
-  </data>
-  <data name="Demo_ModeDark" xml:space="preserve">
-    <value>Simulate Dark</value>
-  </data>
-  <data name="Demo_ModeLight" xml:space="preserve">
-    <value>Simulate Light</value>
   </data>
   <data name="Demo_Motion.Header" xml:space="preserve">
     <value>Motion</value>
@@ -701,9 +680,6 @@
   </data>
   <data name="Demo_WindowSize.Text" xml:space="preserve">
     <value>Window width (effective pixels)</value>
-  </data>
-  <data name="Demo_WindowsMode.Header" xml:space="preserve">
-    <value>Windows mode</value>
   </data>
   <data name="Density_Comfortable" xml:space="preserve">
     <value>Comfortable</value>
@@ -1760,42 +1736,6 @@
   </data>
   <data name="Status_UpdateLabel.Text" xml:space="preserve">
     <value>Update</value>
-  </data>
-  <data name="Theme_Dark" xml:space="preserve">
-    <value>Dark</value>
-  </data>
-  <data name="Theme_DarkDescription" xml:space="preserve">
-    <value>Always dark, regardless of Windows.</value>
-  </data>
-  <data name="Theme_Light" xml:space="preserve">
-    <value>Light</value>
-  </data>
-  <data name="Theme_LightDescription" xml:space="preserve">
-    <value>Always light, regardless of Windows.</value>
-  </data>
-  <data name="Theme_NoteFixed" xml:space="preserve">
-    <value>Fixed to {0}. Windows mode changes are ignored until you choose System.</value>
-  </data>
-  <data name="Theme_NoteHighContrast" xml:space="preserve">
-    <value>A Windows contrast theme is active and takes precedence.</value>
-  </data>
-  <data name="Theme_NoteSystem" xml:space="preserve">
-    <value>Following Windows: currently {0}. Changing Windows mode updates the app immediately.</value>
-  </data>
-  <data name="Theme_System" xml:space="preserve">
-    <value>System</value>
-  </data>
-  <data name="Theme_SystemDescription" xml:space="preserve">
-    <value>Follows the Windows app mode and changes with it.</value>
-  </data>
-  <data name="Theme_SystemLabel" xml:space="preserve">
-    <value>System ({0} now)</value>
-  </data>
-  <data name="Theme_WordDark" xml:space="preserve">
-    <value>dark</value>
-  </data>
-  <data name="Theme_WordLight" xml:space="preserve">
-    <value>light</value>
   </data>
   <data name="Time_InDays" xml:space="preserve">
     <value>in {0} d</value>

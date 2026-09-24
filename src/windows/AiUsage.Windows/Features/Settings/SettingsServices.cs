@@ -2,9 +2,9 @@ using AiUsage.Features.Presentation;
 
 namespace AiUsage.Features.Settings;
 
-public enum PreferenceKey { Theme, Density, AlwaysOnTop, ShowDisconnected, ShowHidden, HistoryEnabled, Retention, UsageDisplay, ReduceRefreshOnBatterySaver }
+public enum PreferenceKey { Density, AlwaysOnTop, ShowDisconnected, ShowHidden, HistoryEnabled, Retention, UsageDisplay, ReduceRefreshOnBatterySaver }
 
-/// <summary><paramref name="Value"/> type matches the key: enum for Theme/Density/Retention/UsageDisplay, bool otherwise.</summary>
+/// <summary><paramref name="Value"/> type matches the key: enum for Density/Retention/UsageDisplay, bool otherwise.</summary>
 public sealed record PreferenceChange(PreferenceKey Key, object Value);
 
 /// <summary>

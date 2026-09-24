@@ -11,7 +11,6 @@ internal sealed class DemoPreferenceStore(DemoState state) : IPreferenceStore
         var world = state.World;
         switch (change.Key, change.Value)
         {
-            case (PreferenceKey.Theme, ThemePreference theme): world.Theme = theme; break;
             case (PreferenceKey.Density, Density density): world.Density = density; break;
             case (PreferenceKey.AlwaysOnTop, bool onTop): world.AlwaysOnTop = onTop; break;
             case (PreferenceKey.ShowDisconnected, bool show): world.ShowDisconnected = show; break;
