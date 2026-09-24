@@ -30,7 +30,6 @@ internal sealed partial class QuotaWindowViewModel : ObservableObject
     [ObservableProperty] public partial string ResetRelative { get; private set; } = string.Empty;
     [ObservableProperty] public partial string ResetExact { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool ResetIsCritical { get; private set; }
-    [ObservableProperty] public partial bool ResetPassed { get; private set; }
     [ObservableProperty] public partial string AbsoluteText { get; private set; } = string.Empty;
     [ObservableProperty] public partial string AccessibleName { get; private set; } = string.Empty;
     [ObservableProperty] public partial QuotaSeverity Severity { get; private set; }
@@ -50,11 +49,9 @@ internal sealed partial class QuotaWindowViewModel : ObservableObject
     [ObservableProperty] public partial string HintText { get; private set; } = string.Empty;
 
     public bool HasAbsolute => AbsoluteText.Length > 0;
-    public bool HasResetExact => ResetExact.Length > 0;
     public bool HasBackIn => BackInText.Length > 0;
 
     partial void OnAbsoluteTextChanged(string value) => OnPropertyChanged(nameof(HasAbsolute));
-    partial void OnResetExactChanged(string value) => OnPropertyChanged(nameof(HasResetExact));
     partial void OnBackInTextChanged(string value) => OnPropertyChanged(nameof(HasBackIn));
 
     /// <summary>
@@ -159,14 +156,12 @@ internal sealed partial class QuotaWindowViewModel : ObservableObject
         if (window.ResetsAt is { } reset)
         {
             var relative = format.Relative(reset);
-            ResetPassed = relative is null;
             ResetRelative = relative is null ? format.T("Reset_PassedAwaiting") : format.F("Reset_In", relative);
             ResetExact = format.DateTime(reset);
             ResetIsCritical = relative is null && severity == QuotaSeverity.Exhausted;
         }
         else
         {
-            ResetPassed = false;
             ResetRelative = format.T(window.ValueState == ValueState.Unlimited ? "Reset_NoneUnlimited" : "Reset_None");
             ResetExact = string.Empty;
             ResetIsCritical = false;

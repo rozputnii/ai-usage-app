@@ -7,17 +7,13 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace AiUsage.Features.Accounts;
 
-public enum WindowLineVariant { Overview, OverviewExpanded, Detail }
-
 /// <summary>
-/// Quota window line used by Overview rows (three columns, 22 px light numerals) and account detail rows (15 px values,
-/// native amount under the meter). Below 720 px it stacks: label + value, then full-width meter, then reset.
+/// Quota window line in account detail: label, meter with the native amount under it, value and reset. Below 720 px it
+/// stacks: label + value, then full-width meter, then reset.
 /// Exposes one UI Automation text element whose name carries value, state word and reset.
 /// </summary>
 internal sealed partial class WindowLineView : UserControl
 {
-    public static readonly DependencyProperty VariantProperty = DependencyProperty.Register(nameof(Variant), typeof(WindowLineVariant), typeof(WindowLineView), new PropertyMetadata(WindowLineVariant.Overview, (d, _) => ((WindowLineView)d).Arrange()));
-
     private QuotaWindowViewModel? window;
 
     public WindowLineView()
@@ -47,8 +43,6 @@ internal sealed partial class WindowLineView : UserControl
         }
     }
 
-    public WindowLineVariant Variant { get => (WindowLineVariant)GetValue(VariantProperty); set => SetValue(VariantProperty, value); }
-
     private string MutedText(bool muted) => muted ? Controls.Res.T("Window_MutedTag") : string.Empty;
     private string ResetKey(bool critical) => critical ? "CritBrush" : "Text2Brush";
 
@@ -75,17 +69,7 @@ internal sealed partial class WindowLineView : UserControl
         if (!IsLoaded || window is null)
             return;
         var compact = AppLayout.Current.IsCompact;
-        var detail = Variant == WindowLineVariant.Detail;
-        var hasAbsolute = window.HasAbsolute;
-
-        LabelText.FontSize = detail ? 13 : 12;
-        LabelText.Foreground = Controls.Bind.Token(this, detail ? "TextBrush" : "Text2Brush");
-        ValueText.FontSize = detail ? 15 : window.Kind == MeterKind.Bar ? 22 : 15;
-        ValueText.FontWeight = detail ? Microsoft.UI.Text.FontWeights.Normal : Microsoft.UI.Text.FontWeights.Light;
-        ResetRelativeText.FontSize = detail ? 12 : 11;
-        ResetExactText.FontSize = detail ? 12 : 11;
-        AbsoluteUnderMeter.Visibility = detail && hasAbsolute ? Visibility.Visible : Visibility.Collapsed;
-        AbsoluteUnderReset.Visibility = Variant == WindowLineVariant.OverviewExpanded && hasAbsolute ? Visibility.Visible : Visibility.Collapsed;
+        AbsoluteUnderMeter.Visibility = window.HasAbsolute ? Visibility.Visible : Visibility.Collapsed;
 
         if (compact)
         {
@@ -103,16 +87,16 @@ internal sealed partial class WindowLineView : UserControl
         }
         else
         {
-            LabelColumn.Width = detail ? new GridLength(150) : GridLength.Auto;
-            LabelColumn.MinWidth = detail ? 120 : 90;
-            LabelColumn.MaxWidth = detail ? 170 : 130;
+            LabelColumn.Width = new GridLength(150);
+            LabelColumn.MinWidth = 120;
+            LabelColumn.MaxWidth = 170;
             MeterColumn.Width = new GridLength(1, GridUnitType.Star);
-            MeterColumn.MinWidth = detail ? 100 : 80;
-            ValueColumn.Width = detail ? new GridLength(90) : GridLength.Auto;
+            MeterColumn.MinWidth = 100;
+            ValueColumn.Width = new GridLength(90);
             // Star-sized so a long reset line can never push the row past the page gutter; the text trims instead.
-            ResetColumn.Width = new GridLength(detail ? 1.4 : 1.6, GridUnitType.Star);
-            ResetColumn.MinWidth = detail ? 150 : 140;
-            ResetColumn.MaxWidth = detail ? 320 : 260;
+            ResetColumn.Width = new GridLength(1.4, GridUnitType.Star);
+            ResetColumn.MinWidth = 150;
+            ResetColumn.MaxWidth = 320;
             Place(LabelText, 0, 0, 1);
             Place(MeterHost, 0, 1, 1);
             Place(ValueHost, 0, 2, 1);

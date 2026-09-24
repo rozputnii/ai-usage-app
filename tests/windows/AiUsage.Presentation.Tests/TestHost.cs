@@ -262,7 +262,6 @@ internal sealed class TestHost : IDisposable
     /// <summary>One shared inline connector, like the app singleton: rows, detail and the header menu use the same one.</summary>
     public AddAccountViewModel AddAccount() => addAccount ??= Track(new AddAccountViewModel(Context, Connection, new CliImportViewModel(Context, Cli), Controller));
     public CliImportViewModel CliImport() => new(Context, Cli);
-    public HistoryViewModel HistoryPage() => Track(new HistoryViewModel(Context, History));
     public AppearanceSettingsViewModel Appearance() => Track(new AppearanceSettingsViewModel(Context, Preferences));
     public ToastViewModel Toast { get => field ??= new ToastViewModel(Context); }
     public MonitoringSettingsViewModel Monitoring() => Track(new MonitoringSettingsViewModel(Context, Preferences, NotificationPreview, Toast, Controller));

@@ -810,15 +810,6 @@
   <data name="Extension_LimitOf" xml:space="preserve">
     <value>of {0}</value>
   </data>
-  <data name="Extension_LineMinor" xml:space="preserve">
-    <value>{0}: {1} minor units · currency not reported</value>
-  </data>
-  <data name="Extension_LineMoney" xml:space="preserve">
-    <value>{0}: {1} used · {2}</value>
-  </data>
-  <data name="Extension_LineNone" xml:space="preserve">
-    <value>{0}: no amount reported</value>
-  </data>
   <data name="Extension_MinorUnits" xml:space="preserve">
     <value>minor units · no currency formatting</value>
   </data>
@@ -990,119 +981,8 @@
   <data name="History_AccountFilter.Header" xml:space="preserve">
     <value>Account</value>
   </data>
-  <data name="History_Apply.Content" xml:space="preserve">
-    <value>Apply</value>
-  </data>
-  <data name="History_Chart.GapLabel" xml:space="preserve">
-    <value>gap</value>
-  </data>
-  <data name="History_Chart.ResetLabel" xml:space="preserve">
-    <value>reset</value>
-  </data>
-  <data name="History_ChartAriaRemaining" xml:space="preserve">
-    <value>Remaining percent over time, {0} observed points, {1} gaps, {2} resets</value>
-  </data>
-  <data name="History_ChartAriaUsed" xml:space="preserve">
-    <value>Used percent over time, {0} observed points, {1} gaps, {2} resets</value>
-  </data>
-  <data name="History_ChartTitle" xml:space="preserve">
-    <value>{0} · {1}</value>
-  </data>
-  <data name="History_DisabledBanner.Text" xml:space="preserve">
-    <value>History collection is off. Existing samples stay readable; no new points are recorded.</value>
-  </data>
-  <data name="History_EmptyCollectionOff" xml:space="preserve">
-    <value>Collection is off; nothing new is recorded.</value>
-  </data>
-  <data name="History_EmptyDeleted" xml:space="preserve">
-    <value>Stored data for this account was deleted. New samples appear after the next reading.</value>
-  </data>
-  <data name="History_EmptyNoAccount" xml:space="preserve">
-    <value>No account selected.</value>
-  </data>
-  <data name="History_EmptyNoPercentage" xml:space="preserve">
-    <value>This window has no comparable percentage (unknown, unlimited or unavailable).</value>
-  </data>
-  <data name="History_EmptyRange" xml:space="preserve">
-    <value>The selected range has no samples.</value>
-  </data>
-  <data name="History_EmptyTitle.Text" xml:space="preserve">
-    <value>No samples to show</value>
-  </data>
-  <data name="History_ErrorFormat" xml:space="preserve">
-    <value>Use the format YYYY-MM-DD HH:MM for both fields.</value>
-  </data>
-  <data name="History_ErrorFuture" xml:space="preserve">
-    <value>“To” is in the future; no samples can exist there.</value>
-  </data>
-  <data name="History_ErrorOrder" xml:space="preserve">
-    <value>“From” must be earlier than “To”.</value>
-  </data>
-  <data name="History_From.Header" xml:space="preserve">
-    <value>From</value>
-  </data>
-  <data name="History_From.PlaceholderText" xml:space="preserve">
-    <value>2026-09-14 00:00</value>
-  </data>
-  <data name="History_LegendGap.Text" xml:space="preserve">
-    <value>Gap · no observation</value>
-  </data>
-  <data name="History_LegendRemaining" xml:space="preserve">
-    <value>Observed remaining %</value>
-  </data>
-  <data name="History_LegendReset.Text" xml:space="preserve">
-    <value>Reset · new segment</value>
-  </data>
-  <data name="History_LegendUsed" xml:space="preserve">
-    <value>Observed used %</value>
-  </data>
-  <data name="History_Loading.Text" xml:space="preserve">
-    <value>Loading history…</value>
-  </data>
-  <data name="History_OpenData.Content" xml:space="preserve">
-    <value>Data &amp; privacy</value>
-  </data>
-  <data name="History_PartialNote.Text" xml:space="preserve">
-    <value>Partial range · older samples were pruned by retention</value>
-  </data>
-  <data name="History_PointAria" xml:space="preserve">
-    <value>{0}: {1} {2}</value>
-  </data>
-  <data name="History_PointCount" xml:space="preserve">
-    <value>Synthetic samples · {0} points</value>
-  </data>
-  <data name="History_PointTip" xml:space="preserve">
-    <value>{0} · {1} {2}</value>
-  </data>
-  <data name="History_RangeGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>Range</value>
-  </data>
-  <data name="History_RangeText" xml:space="preserve">
-    <value>{0} – {1}</value>
-  </data>
-  <data name="History_SubtitleRemaining" xml:space="preserve">
-    <value>Remaining percentage over time, one window at a time · gaps are never joined, resets start a new segment</value>
-  </data>
-  <data name="History_SubtitleUsed" xml:space="preserve">
-    <value>Used percentage over time, one window at a time · gaps are never joined, resets start a new segment</value>
-  </data>
   <data name="History_Title.Text" xml:space="preserve">
     <value>History</value>
-  </data>
-  <data name="History_To.Header" xml:space="preserve">
-    <value>To</value>
-  </data>
-  <data name="History_To.PlaceholderText" xml:space="preserve">
-    <value>2026-09-15 12:00</value>
-  </data>
-  <data name="History_WindowFilter.Header" xml:space="preserve">
-    <value>Window</value>
-  </data>
-  <data name="History_WindowOption" xml:space="preserve">
-    <value>{0} · {1}</value>
-  </data>
-  <data name="History_WindowOptionContext" xml:space="preserve">
-    <value>{0} · {1} · {2}</value>
   </data>
   <data name="Menu_DeleteData.Text" xml:space="preserve">
     <value>Delete stored data…</value>
@@ -1316,9 +1196,6 @@
   </data>
   <data name="Range_1y" xml:space="preserve">
     <value>1y</value>
-  </data>
-  <data name="Range_24h" xml:space="preserve">
-    <value>24h</value>
   </data>
   <data name="Range_30d" xml:space="preserve">
     <value>30d</value>

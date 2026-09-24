@@ -231,7 +231,7 @@
                     <ItemsRepeater.ItemTemplate>
                       <DataTemplate x:DataType="accounts:QuotaWindowViewModel">
                         <Border Style="{StaticResource HairlineRow}" Padding="{x:Bind controls:Bind.RowPadding(platform:AppLayout.Current.CompactDensity), Mode=OneWay}">
-                          <accounts:WindowLineView Window="{x:Bind}" Variant="Detail" />
+                          <accounts:WindowLineView Window="{x:Bind}" />
                         </Border>
                       </DataTemplate>
                     </ItemsRepeater.ItemTemplate>

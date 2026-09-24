@@ -28,18 +28,6 @@
     <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
     <Setter Property="LineHeight" Value="66" />
   </Style>
-  <Style x:Key="Display40Text" TargetType="TextBlock" BasedOn="{StaticResource BaseText}">
-    <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
-    <Setter Property="FontWeight" Value="Light" />
-    <Setter Property="FontSize" Value="40" />
-    <Setter Property="TextWrapping" Value="NoWrap" />
-  </Style>
-  <Style x:Key="Display22Text" TargetType="TextBlock" BasedOn="{StaticResource BaseText}">
-    <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
-    <Setter Property="FontWeight" Value="Light" />
-    <Setter Property="FontSize" Value="22" />
-    <Setter Property="TextWrapping" Value="NoWrap" />
-  </Style>
   <Style x:Key="Title26Text" TargetType="TextBlock" BasedOn="{StaticResource BaseText}">
     <Setter Property="FontFamily" Value="{StaticResource DisplayFont}" />
     <Setter Property="FontWeight" Value="SemiBold" />
@@ -56,10 +44,6 @@
   </Style>
   <Style x:Key="Section16Text" TargetType="TextBlock" BasedOn="{StaticResource Title26Text}">
     <Setter Property="FontSize" Value="16" />
-  </Style>
-  <Style x:Key="BodyText" TargetType="TextBlock" BasedOn="{StaticResource BaseText}" />
-  <Style x:Key="BodyStrongText" TargetType="TextBlock" BasedOn="{StaticResource BaseText}">
-    <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
   <Style x:Key="Body13Text" TargetType="TextBlock" BasedOn="{StaticResource BaseText}">
     <Setter Property="FontSize" Value="13" />
@@ -368,60 +352,6 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
 
-  <Style x:Key="TabRadio" TargetType="RadioButton">
-    <Setter Property="FontFamily" Value="{StaticResource TextFont}" />
-    <Setter Property="FontSize" Value="14" />
-    <Setter Property="Foreground" Value="{ThemeResource Text2Brush}" />
-    <Setter Property="Padding" Value="0,8,0,9" />
-    <Setter Property="MinWidth" Value="0" />
-    <Setter Property="MinHeight" Value="0" />
-    <Setter Property="UseSystemFocusVisuals" Value="True" />
-    <Setter Property="FocusVisualMargin" Value="-3,0" />
-    <Setter Property="FocusVisualPrimaryThickness" Value="2" />
-    <Setter Property="FocusVisualSecondaryThickness" Value="0" />
-    <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource FocusBrush}" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="RadioButton">
-          <Grid x:Name="Root" Background="Transparent">
-            <VisualStateManager.VisualStateGroups>
-              <VisualStateGroup x:Name="CommonStates">
-                <VisualState x:Name="Normal" />
-                <VisualState x:Name="PointerOver">
-                  <VisualState.Setters>
-                    <Setter Target="Label.Foreground" Value="{ThemeResource TextBrush}" />
-                  </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Pressed">
-                  <VisualState.Setters>
-                    <Setter Target="Label.Foreground" Value="{ThemeResource TextBrush}" />
-                  </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Disabled">
-                  <VisualState.Setters>
-                    <Setter Target="Root.Opacity" Value="0.5" />
-                  </VisualState.Setters>
-                </VisualState>
-              </VisualStateGroup>
-              <VisualStateGroup x:Name="CheckStates">
-                <VisualState x:Name="Checked">
-                  <VisualState.Setters>
-                    <Setter Target="Bar.Opacity" Value="1" />
-                    <Setter Target="Label.Foreground" Value="{ThemeResource TextBrush}" />
-                    <Setter Target="Label.FontWeight" Value="SemiBold" />
-                  </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Unchecked" />
-                <VisualState x:Name="Indeterminate" />
-              </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
-            <ContentPresenter x:Name="Label" Content="{TemplateBinding Content}" Padding="{TemplateBinding Padding}" Foreground="{TemplateBinding Foreground}" AutomationProperties.AccessibilityView="Raw" />
-            <Border x:Name="Bar" Height="2" VerticalAlignment="Bottom" CornerRadius="1" Background="{ThemeResource AccentBrush}" Opacity="0" Margin="0,0,0,-1" />
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
 
   <!-- Inputs -->
   <Style x:Key="AppTextBox" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
@@ -471,13 +401,6 @@
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="6" />
     <Setter Property="Padding" Value="14,10" />
-  </Style>
-  <Style x:Key="WarningAlert" TargetType="Border">
-    <Setter Property="Background" Value="{ThemeResource WarnBgBrush}" />
-    <Setter Property="BorderBrush" Value="{ThemeResource WarnStrokeBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="6" />
-    <Setter Property="Padding" Value="12,8" />
   </Style>
   <Style x:Key="OutlineBadge" TargetType="Border">
     <Setter Property="BorderBrush" Value="{ThemeResource Stroke2Brush}" />

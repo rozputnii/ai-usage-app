@@ -209,7 +209,7 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
         {
             var result = await history.QueryHistoryAsync(new(account.Id, null, null, primary.Id, now - TimeSpan.FromHours(24), now, HistoryResolution.Auto, HistoryPreset.Hours24), cancellation.Token);
             if (!cancellation.IsCancellationRequested)
-                Sparkline = ChartModel.Build(result.Points, context.Usage.Current.Preferences.UsageDisplay, context.Format, withTicks: false);
+                Sparkline = ChartModel.Build(result.Points, context.Usage.Current.Preferences.UsageDisplay);
         }
         catch (OperationCanceledException) { }
     }

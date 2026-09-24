@@ -30,19 +30,19 @@ work; commit and push after each task once its check passes. No dependency chang
       motion only).
 
 ### T-03 - Removed-UI leftovers
-- status: in-progress
+- status: done
 - depends_on: [T-02]
 - acceptance: AC-04
-- evidence: not-run
+- evidence: Presentation 167/167 (five tests of the deleted local History page removed; chart gap and reset semantics kept on ChartModel); reference scan of strings, styles and members reports only the dynamically built RecoveryLive_Body_* keys
 
-- [ ] Delete HistoryViewModel, HistoryChart and the tests that only exercised them; keep
+- [x] Delete HistoryViewModel, HistoryChart and the tests that only exercised them; keep
       ChartModel and the sparkline for account detail.
-- [ ] WindowLineView becomes detail-only; delete ArrowNavigation, unused Bind helpers, styles,
+- [x] WindowLineView becomes detail-only; delete ArrowNavigation, unused Bind helpers, styles,
       NavigationView aliases and strings.
-- [ ] Re-run the reference scan until it reports only dynamically built keys.
+- [x] Re-run the reference scan until it reports only dynamically built keys.
 
 ### T-04 - Verification and records
-- status: pending
+- status: in-progress
 - depends_on: [T-03]
 - acceptance: AC-05
 - evidence: not-run
