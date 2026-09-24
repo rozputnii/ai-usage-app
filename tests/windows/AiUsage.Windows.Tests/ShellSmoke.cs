@@ -20,12 +20,12 @@ namespace AiUsage.Windows.Tests;
 /// </summary>
 public sealed partial class ShellSmoke
 {
-    /// <summary>One element per page that only that page contributes to the automation tree.</summary>
-    private static readonly string[] PageMarkers =
-        ["OverviewSummary", "AccountsShowHidden", "HistoryAccount", "SettingsTabs", "StatusBuild"];
+    /// <summary>The single-window header: no navigation tabs, only these actions.</summary>
+    private static readonly string[] HeaderIds = ["RefreshAllButton", "AddAccountButton", "SettingsButton"];
 
-    private static readonly string[] NavigationIds =
-        ["NavOverview", "NavAccounts", "NavHistory", "NavSettings", "NavSystemStatus"];
+    /// <summary>Automation IDs of the removed top navigation and settings tabs; none may appear.</summary>
+    private static readonly string[] RemovedTabIds =
+        ["MainNavigation", "NavOverview", "NavAccounts", "NavHistory", "NavSettings", "NavSystemStatus", "SettingsTabs", "TabAppearance"];
 
     [Theory]
     [InlineData("launch")]
@@ -72,7 +72,7 @@ public sealed partial class ShellSmoke
             while (startup.Elapsed < TimeSpan.FromSeconds(30) && !process.HasExited)
             {
                 window = FindProcessWindow(automation, pid);
-                if (window?.FindFirstDescendant(cf => cf.ByAutomationId(demo ? "OverviewSummary" : "EmptyAddAccount")) is not null)
+                if (window?.FindFirstDescendant(cf => cf.ByAutomationId(demo ? "OverviewSummary" : "AddProvider_codex")) is not null)
                     break;
                 Thread.Sleep(200);
             }
@@ -81,9 +81,10 @@ public sealed partial class ShellSmoke
             var marker = window.FindFirstDescendant(cf => cf.ByAutomationId("DemoMarker"));
             if (demo) Assert.NotNull(marker);
             else Assert.Null(marker);
-            foreach (var id in NavigationIds)
+            foreach (var id in HeaderIds)
                 Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId(id)));
-            Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId("AddAccountButton")));
+            foreach (var id in RemovedTabIds)
+                Assert.Null(window.FindFirstDescendant(cf => cf.ByAutomationId(id)));
             // The tray icon is created by the window; without it there is no tray presence at all.
             Assert.True(TrayIconPresent(pid), "No tray icon window owned by the launched process.");
 
@@ -93,16 +94,17 @@ public sealed partial class ShellSmoke
                 SwitchTheme(window, evidence!);
             if (scenario == "capabilities")
             {
-                Assert.Equal(demo, window.FindFirstDescendant(cf => cf.ByAutomationId("EmptyImportCli"))?.IsEnabled ?? demo);
+                // The Add account menu replaces the dialog; CLI import is listed only where the capability exists.
                 Required(window, "AddAccountButton").AsButton().Invoke();
-                Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "AddAccountTabCli").Count > 0, TimeSpan.FromSeconds(5)));
-                Assert.Equal(demo, FindAllInProcess(automation, pid, "AddAccountTabCli").Single().IsEnabled);
+                Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "AddImportCli").Count > 0 || FindAllInProcess(automation, pid, "AddProvider_claude").Count > (demo ? 0 : 1),
+                    TimeSpan.FromSeconds(5)), "Add account must open the provider menu.");
+                Assert.Equal(demo, FindAllInProcess(automation, pid, "AddImportCli").Count == 1);
                 Capture(window, evidence!, "capabilities-connect");
                 VerifyProviderChoices(automation, pid, demo);
-                FindAllInProcess(automation, pid, "AddAccountClose").Single().AsButton().Invoke();
-                Required(window, "NavSettings").Click();
-                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("TabDataPrivacy")) is not null, TimeSpan.FromSeconds(5)));
-                Required(window, "TabDataPrivacy").Click();
+                Keyboard.Press(VirtualKeyShort.ESCAPE);
+                Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "AddImportCli").Count == 0 && FindAllInProcess(automation, pid, "AddProvider_claude").Count <= (demo ? 0 : 1),
+                    TimeSpan.FromSeconds(5)), "Escape must close the provider menu without starting a sign-in.");
+                Required(window, "SettingsButton").AsButton().Invoke();
                 Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("HistoryEnabledSwitch")) is not null, TimeSpan.FromSeconds(5)));
                 foreach (var id in new[] { "HistoryEnabledSwitch", "RetentionSelector", "PrepareExport" })
                     Assert.Equal(demo, Required(window, id).IsEnabled);
@@ -215,37 +217,58 @@ public sealed partial class ShellSmoke
     [Fact]
     public void CloseToTrayRestoresDashboard() => ShellLaunchesNavigatesAndExits("close-to-tray");
 
-    /// <summary>Both product and demo History open without an initial load action.</summary>
+    /// <summary>
+    /// One window without tabs: the header gear shows every settings section (System status included) in place of the
+    /// usage view, and Back returns. In demo, an account's History and detail open from its panel; history loads
+    /// without an initial load action.
+    /// </summary>
     private static void Navigate(Window window, string evidence, string scenario)
     {
-        for (var i = 0; i < NavigationIds.Length; i++)
+        var demo = Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") == "demo";
+        var home = demo ? "OverviewSummary" : "AddProvider_codex";
+        void Show(string id, string marker, string capture)
         {
-            var tab = window.FindFirstDescendant(cf => cf.ByAutomationId(NavigationIds[i]));
-            Assert.NotNull(tab);
-            Assert.True(tab.IsEnabled);
-            tab.Click();
-            var marker = i == 0 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") != "demo" ? "EmptyAddAccount" : PageMarkers[i];
+            var entry = Required(window, id);
+            Assert.True(entry.IsEnabled);
+            entry.AsButton().Invoke();
             Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId(marker)) is not null, TimeSpan.FromSeconds(10)),
-                $"{NavigationIds[i]} must show the page carrying {marker}.");
-            if (i == 2 && Environment.GetEnvironmentVariable("AIU_SMOKE_MODE") == "demo")
-            {
-                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderHistoryRows")) is not null,
-                    TimeSpan.FromSeconds(10)), "Provider history must load automatically.");
-                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByName("12000 tokens")) is not null,
-                    TimeSpan.FromSeconds(5)), "A native provider value must be visible without a load action.");
-            }
+                $"{id} must show the view carrying {marker}.");
             if (scenario == "navigation")
-                Capture(window, evidence, "page-" + NavigationIds[i]);
+                Capture(window, evidence, "view-" + capture);
         }
+        void Back()
+        {
+            Required(window, "BackButton").AsButton().Invoke();
+            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId(home)) is not null, TimeSpan.FromSeconds(10)),
+                "Back must return to the usage view.");
+            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("BackButton")) is null, TimeSpan.FromSeconds(5)));
+        }
+
+        Assert.Null(window.FindFirstDescendant(cf => cf.ByAutomationId("BackButton")));
+        Show("SettingsButton", "ThemeNote", "settings");
+        // Every former settings tab and the former System status page are sections of this one view.
+        foreach (var id in new[] { "HistoryEnabledSwitch", "UpdateStatus", "StatusBuild" })
+            Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId(id)));
+        Back();
+        if (!demo)
+            return;
+        Show("RowHistory", "HistoryAccount", "history");
+        Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ProviderHistoryRows")) is not null,
+            TimeSpan.FromSeconds(10)), "Provider history must load automatically.");
+        Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByName("12000 tokens")) is not null,
+            TimeSpan.FromSeconds(5)), "A native provider value must be visible without a load action.");
+        Back();
+        Show("RowOpen", "DetailTitle", "account");
+        Back();
     }
 
     /// <summary>Appearance settings must switch the app theme without a restart.</summary>
     private static void SwitchTheme(Window window, string evidence)
     {
-        var settings = window.FindFirstDescendant(cf => cf.ByAutomationId("NavSettings"));
+        var settings = SettingsEntry(window);
         Assert.NotNull(settings);
         settings.Click();
-        Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("TabAppearance")) is not null, TimeSpan.FromSeconds(10)));
+        Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ThemeNote")) is not null, TimeSpan.FromSeconds(10)));
         foreach (var (id, expected) in new[] { ("ThemeDark", "Dark"), ("ThemeLight", "Light"), ("ThemeSystem", "Windows") })
         {
             var card = window.FindFirstDescendant(cf => cf.ByAutomationId(id));
@@ -274,27 +297,34 @@ public sealed partial class ShellSmoke
         return accept!.AsButton();
     }
 
+    /// <summary>
+    /// Inspects the provider menu only. One click on a provider starts browser sign-in, so no entry is invoked. With
+    /// isolated empty product state every provider is available; demo marks its planned providers.
+    /// </summary>
     private static void VerifyProviderChoices(UIA3Automation automation, int pid, bool demo)
     {
+        var ids = new[] { "codex", "claude", "copilot", "antigravity" };
         var names = new[] { "Codex", "Claude", demo ? "Copilot" : "GitHub Copilot", "Antigravity" };
-        // ItemsRepeater has no UIA peer; inspect its actual buttons rather than its XAML ID.
-        var options = FindAllInProcess(automation, pid, cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button));
-        Assert.Equal(names, options.Where(button => names.Contains(button.Name)).Select(button => button.Name));
-        foreach (var name in names)
+        for (var i = 0; i < ids.Length; i++)
         {
-            var button = FindAllInProcess(automation, pid, cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button).And(cf.ByName(name))).Single();
-            Assert.Equal(demo && name is "Copilot" or "Antigravity" ? "Planned · demo only" : "Available", button.Properties.HelpText.Value);
-            button.AsButton().Invoke();
-            Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "ChangeProvider").Count == 1, TimeSpan.FromSeconds(5)));
-            var methods = FindAllInProcess(automation, pid, cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.RadioButton))
-                .Where(method => method.Name is "Browser sign-in" or "Manual code");
-            var expected = name == "Claude" || demo && name == "Codex"
-                ? new[] { "Browser sign-in", "Manual code" } : ["Browser sign-in"];
-            Assert.Equal(expected, methods.Select(method => method.Name));
-            // Inspect available methods only; never begin a provider authorization.
-            FindAllInProcess(automation, pid, "ChangeProvider").Single().AsButton().Invoke();
+            // Product first run lists the same providers in the page; every listed entry must agree.
+            var buttons = FindAllInProcess(automation, pid, "AddProvider_" + ids[i]);
+            Assert.NotEmpty(buttons);
+            foreach (var button in buttons)
+            {
+                Assert.Equal(names[i], button.Name);
+                Assert.True(button.IsEnabled);
+                Assert.Equal(demo && ids[i] is "copilot" or "antigravity" ? "Planned · demo only" : "", button.Properties.HelpText.ValueOrDefault ?? "");
+            }
         }
     }
+
+    /// <summary>
+    /// The settings entry: the header gear of the single-window shell, or the Settings tab of older packages that the
+    /// upgrade harnesses still launch as their old side.
+    /// </summary>
+    private static AutomationElement? SettingsEntry(AutomationElement window) =>
+        window.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton")) ?? window.FindFirstDescendant(cf => cf.ByAutomationId("NavSettings"));
 
     private static List<AutomationElement> FindAllInProcess(UIA3Automation automation, int pid, string automationId)
         => FindAllInProcess(automation, pid, cf => cf.ByAutomationId(automationId));
@@ -372,7 +402,7 @@ public sealed partial class ShellSmoke
             {
                 var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
                 if (handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == (uint)pid
-                    && element.FindFirstDescendant(cf => cf.ByAutomationId("MainNavigation")) is not null)
+                    && SettingsEntry(element) is not null)
                     return element.AsWindow();
             }
             catch (COMException) { /* Another desktop window can disappear during enumeration. Retry the owned PID. */ }

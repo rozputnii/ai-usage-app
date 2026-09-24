@@ -10,7 +10,7 @@
     xmlns:connection="using:AiUsage.Features.Connection"
     xmlns:cli="using:AiUsage.Features.CliImport"
     xmlns:tray="using:H.NotifyIcon">
-  <Grid x:Name="RootGrid" Background="{ThemeResource AppBgBrush}" AutomationProperties.AutomationId="AppRoot">
+  <Grid x:Name="RootGrid" Background="{ThemeResource AppBgBrush}" AutomationProperties.AutomationId="AppRoot" KeyboardAcceleratorPlacementMode="Hidden">
     <Grid.KeyboardAccelerators>
       <KeyboardAccelerator Key="Q" Modifiers="Control" Invoked="OnExitAccelerator" />
       <KeyboardAccelerator Key="F5" Invoked="OnRefreshAllAccelerator" />
@@ -102,13 +102,13 @@
                   </Button>
                   <!-- Add account: the provider menu opens on hover (and on click or keyboard); one provider click starts sign-in. -->
                   <Button x:Name="AddAccountButton" x:Uid="Header_AddAccount" AutomationProperties.AutomationId="AddAccountButton" Style="{StaticResource PrimaryButton}"
-                          PointerEntered="OnAddAccountPointerEntered" Click="OnAddAccountClick">
+                          Click="OnAddAccountClick">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <TextBlock x:Uid="Header_AddAccountText" VerticalAlignment="Center" />
                       <FontIcon Glyph="&#xE70D;" FontSize="10" VerticalAlignment="Center" />
                     </StackPanel>
                     <FlyoutBase.AttachedFlyout>
-                      <Flyout x:Name="ProviderFlyout" Placement="BottomEdgeAlignedRight" Opened="OnProviderFlyoutOpened">
+                      <Flyout x:Name="ProviderFlyout" Placement="BottomEdgeAlignedRight" Opened="OnProviderFlyoutOpened" Closed="OnProviderFlyoutClosed">
                         <Flyout.FlyoutPresenterStyle>
                           <Style TargetType="FlyoutPresenter">
                             <Setter Property="Padding" Value="4" />

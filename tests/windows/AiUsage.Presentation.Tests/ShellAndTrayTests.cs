@@ -84,7 +84,7 @@ public sealed class ShellAndTrayTests
         await host.Preferences.SetPreferenceAsync(new(AiUsage.Features.Settings.PreferenceKey.AlwaysOnTop, true), CancellationToken.None);
         Assert.Equal(ThemePreference.Light, host.Theme.Preference);
         Assert.True(host.Lifetime.AlwaysOnTop);
-        shell.NavigateCommand.Execute(PageKey.History);
+        host.Navigation.Navigate(new(PageKey.History));
         Assert.Equal(PageKey.History, shell.CurrentPage);
         Assert.True(shell.CanGoBack);
         shell.GoBackCommand.Execute(null);

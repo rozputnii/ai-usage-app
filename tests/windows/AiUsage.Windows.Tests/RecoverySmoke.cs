@@ -53,8 +53,8 @@ public sealed partial class ShellSmoke
             {
                 Session("old-package", window =>
                 {
-                    Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("NavSettings"))?.IsEnabled == true, TimeSpan.FromSeconds(15)));
-                    Required(window, "NavSettings").Click();
+                    Assert.True(WaitUntil(() => SettingsEntry(window)?.IsEnabled == true, TimeSpan.FromSeconds(15)));
+                    SettingsEntry(window)!.Click();
                     Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ThemeNote"))?.Name.Contains("Dark", StringComparison.Ordinal) == true, TimeSpan.FromSeconds(10)));
                     Capture(window, evidence, "old-preferences");
                 });
@@ -186,11 +186,11 @@ public sealed partial class ShellSmoke
             var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
             return handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == (uint)pid &&
                 (element.FindFirstDescendant(cf => cf.ByAutomationId("RecoveryTitle")) is not null ||
-                 element.FindFirstDescendant(cf => cf.ByAutomationId("MainNavigation")) is not null);
+                 SettingsEntry(element) is not null);
         })?.AsWindow();
 
     private static void WaitForRecovery(Window window, string title) => Assert.True(WaitUntil(() =>
         window.FindFirstDescendant(cf => cf.ByAutomationId("RecoveryTitle"))?.Name == title, TimeSpan.FromSeconds(15)));
     private static void WaitForDashboard(Window window) => Assert.True(WaitUntil(() =>
-        window.FindFirstDescendant(cf => cf.ByAutomationId("NavSettings")) is { IsEnabled: true, IsOffscreen: false }, TimeSpan.FromSeconds(15)));
+        SettingsEntry(window) is { IsEnabled: true, IsOffscreen: false }, TimeSpan.FromSeconds(15)));
 }

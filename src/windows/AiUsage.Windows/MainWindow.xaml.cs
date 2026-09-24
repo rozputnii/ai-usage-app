@@ -35,6 +35,10 @@ internal sealed partial class MainWindow : Window
     private readonly Dictionary<PageKey, (Type Page, object ViewModel)> pages;
     private IDisposable? densitySubscription;
     private RectInt32? passthrough;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? hoverClose;
+    private bool openedByHover;
+    private bool pointerOverMenu;
+    private bool reopenAfterClose;
     private bool finalClose;
 
     public MainWindow(ShellViewModel shell, TrayViewModel tray, RecoveryViewModel recovery, OverviewViewModel overview, AccountsViewModel accounts,
@@ -59,6 +63,13 @@ internal sealed partial class MainWindow : Window
             [PageKey.Settings] = (typeof(SettingsPage), settings),
         };
         InitializeComponent();
+        // Button marks pointer input handled, so the hover menu listens for handled events too.
+        AddAccountButton.AddHandler(UIElement.PointerEnteredEvent, new PointerEventHandler(OnAddAccountPointerEntered), handledEventsToo: true);
+        AddAccountButton.AddHandler(UIElement.PointerExitedEvent, new PointerEventHandler(OnMenuPointerExited), handledEventsToo: true);
+        ProviderMenu.AddHandler(UIElement.PointerEnteredEvent, new PointerEventHandler(OnMenuPointerEntered), handledEventsToo: true);
+        ProviderMenu.AddHandler(UIElement.PointerExitedEvent, new PointerEventHandler(OnMenuPointerExited), handledEventsToo: true);
+        // A click on the button while the hover menu shows must reach the button instead of only dismissing the menu.
+        ProviderFlyout.OverlayInputPassThroughElement = AddAccountButton;
 
         Title = services.GetRequiredService<ITextResources>().Get("AppTitle");
         AppWindow.SetIcon((string?)null);
@@ -129,32 +140,77 @@ internal sealed partial class MainWindow : Window
             Controls.Motion.Rise(page);
     }
 
-    /// <summary>Hovering Add account opens the provider menu without taking focus; it closes when the pointer moves away.</summary>
+    /// <summary>Hovering Add account opens the provider menu without taking focus.</summary>
     private void OnAddAccountPointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Touch)
-            ShowProviderMenu(FlyoutShowMode.TransientWithDismissOnPointerMoveAway);
+        pointerOverMenu = true;
+        if (e.Pointer.PointerDeviceType == Microsoft.UI.Input.PointerDeviceType.Touch || ProviderFlyout.IsOpen)
+            return;
+        openedByHover = true;
+        ProviderFlyout.ShowAt(AddAccountButton, new FlyoutShowOptions { ShowMode = FlyoutShowMode.Transient, Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
     }
 
-    /// <summary>Click, tap, Enter and Space open the same menu as a standard flyout with keyboard focus inside.</summary>
-    private void OnAddAccountClick(object sender, RoutedEventArgs e) => ShowProviderMenu(FlyoutShowMode.Standard);
-
-    private void ShowProviderMenu(FlyoutShowMode mode)
+    /// <summary>A hover-opened menu closes shortly after the pointer leaves both the button and the menu.</summary>
+    private void OnMenuPointerExited(object sender, PointerRoutedEventArgs e)
     {
-        if (ProviderFlyout.IsOpen)
+        pointerOverMenu = false;
+        if (!openedByHover)
+            return;
+        hoverClose ??= CreateHoverCloseTimer();
+        hoverClose.Start();
+    }
+
+    private void OnMenuPointerEntered(object sender, PointerRoutedEventArgs e) => pointerOverMenu = true;
+
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer CreateHoverCloseTimer()
+    {
+        var timer = DispatcherQueue.CreateTimer();
+        timer.Interval = TimeSpan.FromMilliseconds(400);
+        timer.IsRepeating = false;
+        timer.Tick += (_, _) =>
         {
-            if (mode == FlyoutShowMode.Standard)
-                FocusFirstProvider();
+            if (openedByHover && !pointerOverMenu)
+                ProviderFlyout.Hide();
+        };
+        return timer;
+    }
+
+    /// <summary>Click, tap, Enter and Space open the same menu with keyboard focus inside; it then stays until dismissed.</summary>
+    private void OnAddAccountClick(object sender, RoutedEventArgs e)
+    {
+        openedByHover = false;
+        if (ProviderFlyout.IsOpen && ProviderFlyout.ShowMode == FlyoutShowMode.Standard)
+        {
+            FocusFirstProvider();
             return;
         }
-        ProviderFlyout.ShowAt(AddAccountButton, new FlyoutShowOptions { ShowMode = mode, Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
+        // A hover-opened menu is transient and light-dismisses on this press; show it again as a standard flyout.
+        reopenAfterClose = true;
+        if (ProviderFlyout.IsOpen)
+            ProviderFlyout.Hide();
+        else
+            ShowStandardMenu();
     }
+
+    private void ShowStandardMenu() =>
+        ProviderFlyout.ShowAt(AddAccountButton, new FlyoutShowOptions { ShowMode = FlyoutShowMode.Standard, Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
 
     private void OnProviderFlyoutOpened(object? sender, object e)
     {
         theme.RefreshContrast(ProviderMenu);
-        if (ProviderFlyout.ShowMode == FlyoutShowMode.Standard)
-            FocusFirstProvider();
+        if (ProviderFlyout.ShowMode != FlyoutShowMode.Standard)
+            return;
+        reopenAfterClose = false;
+        FocusFirstProvider();
+    }
+
+    private void OnProviderFlyoutClosed(object? sender, object e)
+    {
+        openedByHover = false;
+        if (!reopenAfterClose)
+            return;
+        reopenAfterClose = false;
+        DispatcherQueue.TryEnqueue(ShowStandardMenu);
     }
 
     private void FocusFirstProvider() =>

@@ -7,7 +7,6 @@
     AutomationProperties.AutomationId="UpdatesSettings">
   <StackPanel Spacing="22" Padding="0,0,0,24">
     <StackPanel Spacing="10">
-      <TextBlock x:Uid="Updates_Heading" Style="{StaticResource Section16Text}" AutomationProperties.HeadingLevel="Level2" />
       <Border Style="{StaticResource HairlineRow}" Padding="0,12">
         <controls:WrapPanel HorizontalSpacing="14" VerticalSpacing="10">
           <StackPanel MinWidth="240" MaxWidth="460">

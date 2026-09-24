@@ -576,3 +576,8 @@ Owner-approved agent-neutral amendment, 2026-09-14: The former direct-main defau
 
 ### D-179 - Automatic publication of completed task branches
 Owner amendment after the agent-neutral migration, 2026-09-14: automatically commit and push each owner-selected task after completion, review and successful required verification. This is a standing task-branch publication instruction, not a direct-main or automatic task-selection grant. The sole operative Git policy and its boundaries are in [CONTRIBUTING](../../CONTRIBUTING.md#git-policy).
+
+## Owner UI amendments
+
+### D-180 - Single-window shell, one-click sign-in and immediate sign-out
+Owner amendment, 2026-09-24: the interface had too many steps and transitions. The main window is one usage view with no navigation tabs; a Settings icon on the right shows all settings, with System Status as its last section rather than a separate page. Account detail and History open from the account panel with Back, not from tabs. There is no Add account dialog: a provider menu opens on hover, one provider click starts browser sign-in, progress stays inline, and success adds the account without a confirmation step. First run lists the providers directly. Each account panel has an icon-only sign-out that disconnects without confirmation. This amends D-091 (no method step; the manual code stays available inline where a provider supports it), D-111 (first run lists providers instead of an Add account button), D-129 (System Status becomes a settings section) and the AIU-010 navigation proposal. D-093 retention is unchanged: sign-out keeps history, labels, order and identity, and Delete stored data stays separate and confirmed. See [AIU-030](../specs/AIU-030-single-window/spec.md).

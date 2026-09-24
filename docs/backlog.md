@@ -266,6 +266,17 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - scope-note: Split from AIU-011 by owner direction on 2026-09-22. Defer until the product is stable; neither completion of AIU-011 nor existing history preferences starts this work. CLI transcript ingestion remains separate from local quota sampling and is not authorized by this entry.
 - sequencing-note: Local observation history does not technically depend on a remote history endpoint. The initial AIU-011 dependency was corrected after OMP source inspection established that these are independent data sources; the owner-selection and product-stability gates remain unchanged.
 
+## AIU-030 - Single-window shell, one-click sign-in and immediate sign-out
+- goal: G-003
+- status: review
+- depends_on: [AIU-010]
+- trigger: owner-selected
+- outcome: One usage window without tabs and a Settings icon on the right that shows every settings section, System status included. Add account opens a provider menu on hover; one provider click starts browser sign-in with inline progress and no dialog or confirmation, and success simply adds the account. Each account panel has an icon-only sign-out that disconnects immediately and keeps history.
+- specification: docs/specs/AIU-030-single-window/spec.md
+- evidence: docs/specs/AIU-030-single-window/verification.md
+- scope-note: Owner request, 2026-09-24, recorded as D-180. Provider connection flows, credential storage and D-093 retention are unchanged; only the presentation around them changes.
+- review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke and interactive demo checks on 2026-09-24. A live provider sign-in and sign-out through the new menu and panel button are NOT_RUN and await the owner's own check; the tray smoke rows were not run locally because the owner's instance was running.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

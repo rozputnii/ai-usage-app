@@ -143,9 +143,6 @@ internal sealed partial class ShellViewModel : SnapshotViewModel
     [RelayCommand]
     private void OpenUpdates() => Context.Navigation.Navigate(new(PageKey.Settings, Tab: SettingsTab.Updates));
 
-    [RelayCommand]
-    private void Navigate(PageKey page) => Context.Navigation.Navigate(new(page));
-
     /// <summary>The header gear: opens settings in place of the usage view, or returns to usage when already open.</summary>
     [RelayCommand]
     private void ToggleSettings() => Context.Navigation.Navigate(new(IsSettings ? PageKey.Overview : PageKey.Settings));

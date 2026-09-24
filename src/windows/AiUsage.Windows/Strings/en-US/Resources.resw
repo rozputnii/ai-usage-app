@@ -2013,9 +2013,6 @@
   <data name="Updates_DownloadProgress.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Download progress</value>
   </data>
-  <data name="Updates_Heading.Text" xml:space="preserve">
-    <value>Updates</value>
-  </data>
   <data name="Updates_Override.Content" xml:space="preserve">
     <value>Override the compatibility block</value>
   </data>

@@ -64,7 +64,6 @@ internal static class Bind
         _ => "Text2Brush",
     };
 
-    public static bool IsPage(PageKey current, int index) => (int)current == index;
     public static string NoteBackground(NoteTone tone) => tone == NoteTone.Critical ? "CritBgBrush" : "Card2Brush";
     public static string NoteBorder(NoteTone tone) => tone == NoteTone.Critical ? "CritStrokeBrush" : "StrokeBrush";
     public static string ThemeId(ThemePreference preference) => "Theme" + preference;

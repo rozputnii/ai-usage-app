@@ -33,7 +33,7 @@ public sealed partial class ShellSmoke
             Assert.True(WaitUntil(() => (window = FindRecoveryWindow(automation, process.Id)) is not null, TimeSpan.FromSeconds(30)));
             window!.Patterns.Window.Pattern.SetWindowVisualState(FlaUI.Core.Definitions.WindowVisualState.Maximized);
             WaitForDashboard(window);
-            Required(window, "NavSettings").Click();
+            SettingsEntry(window)!.Click();
             Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("ThemeNote"))?.Name.Contains("Dark", StringComparison.Ordinal) == true,
                 TimeSpan.FromSeconds(10)), "The installed version must load the durable Dark preference.");
             Thread.Sleep(500);

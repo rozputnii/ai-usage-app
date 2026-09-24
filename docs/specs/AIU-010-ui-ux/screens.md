@@ -19,7 +19,7 @@ All rows are required design and interactive demo scope. “Existing” means a 
 
 ## Required cross-screen rules
 
-- Navigation proposal: Overview, Accounts, History, Settings, System Status. Add account is contextual; recovery is a dedicated blocking surface when normal operation is unsafe. Claude Design may refine navigation while preserving coverage.
+- Navigation proposal: Overview, Accounts, History, Settings, System Status. Add account is contextual; recovery is a dedicated blocking surface when normal operation is unsafe. Claude Design may refine navigation while preserving coverage. Superseded on 2026-09-24 by [D-180](../../decisions/accepted.md) and [AIU-030](../AIU-030-single-window/spec.md): one usage view without tabs, a Settings icon, and History and account detail opened from the account panel.
 - Stable identity hierarchy: provider -> account -> context -> group -> window. Labels are editable display values. Do not expose opaque IDs as primary UI copy unless no safe label exists.
 - Keep primary quotas visible. Auto-expand warning groups only when there is no explicit user collapse/hide preference. Hiding does not stop collection; muting alerts is a separate choice.
 - Overview minimum uses comparable known remaining percentages and identifies the exact source. Unknown-only data produces “Unavailable”; stale candidates retain a stale badge. Counts may include all visible accounts; document filter scope beside summary definitions. Shared pools are counted once by stable pool identity.

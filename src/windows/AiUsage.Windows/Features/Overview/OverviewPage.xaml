@@ -53,11 +53,11 @@
           <!-- One click on a provider starts browser sign-in, exactly like the header Add account menu. -->
           <ItemsRepeater ItemsSource="{x:Bind ViewModel.AddAccount.ProviderOptions}" AutomationProperties.AutomationId="EmptyAddAccount" x:Uid="AddAccount_Menu">
             <ItemsRepeater.Layout>
-              <UniformGridLayout MinItemWidth="190" MinColumnSpacing="8" MinRowSpacing="8" ItemsStretch="Fill" MaximumRowsOrColumns="2" />
+              <UniformGridLayout MinItemWidth="190" MinItemHeight="58" MinColumnSpacing="8" MinRowSpacing="8" ItemsStretch="Fill" MaximumRowsOrColumns="2" />
             </ItemsRepeater.Layout>
             <ItemsRepeater.ItemTemplate>
               <DataTemplate x:DataType="connection:ProviderOptionViewModel">
-                <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="12,9" CornerRadius="7"
+                <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="12,9" CornerRadius="7"
                         Click="OnProviderClick" Tag="{x:Bind}" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
                         AutomationProperties.AutomationId="{x:Bind AutomationId}" AutomationProperties.Name="{x:Bind Name}" AutomationProperties.HelpText="{x:Bind Availability, Mode=OneWay}">
                   <Grid ColumnSpacing="10">
