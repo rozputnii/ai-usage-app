@@ -49,6 +49,12 @@ validation, paid resource, certificate or workflow change is authorized by this 
   installed on the machine. That makes it unsuitable for public installs.
 - The `ms-appinstaller:` protocol has been disabled by default since December 2023.
   Users must download and open the `.appinstaller` file.
+- Market check, 2026-09-24 (Store catalog API): at least ten free or paid Store apps
+  already show AI subscription limits. Several read local CLI sign-ins and call provider
+  usage endpoints, including AI Limits (Claude, Codex, Copilot and Antigravity; GPL-3.0),
+  TaskbarQuota, UsageScope, Wburn and PowerQuota. This shows that Store certification has
+  accepted the category. It does not prove that any provider permits it, and it does not
+  change the recorded Claude restriction.
 
 ## Owner answers, 2026-09-24
 

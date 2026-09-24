@@ -115,3 +115,11 @@ These sources support specific technical cautions, not every product decision. P
   expires, and the old certificate installed on the machine. `ms-appinstaller:` has
   been disabled by default since December 2023; users download and open the
   `.appinstaller` file.
+
+## S-027 — Existing Microsoft Store quota monitors (checked 2026-09-24)
+- source: `https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=9P2B0J1VWPWH,9PHD6701CCD2,9N3KL49VFPVN,9NCQ7KX4K6BZ,9NP7BBL8695W,9NNZK4V8CZM0&market=US&languages=en-US`
+- observation: AI Limits (napxlexn, GPL-3.0, released 2026-09-15) covers Claude, Codex,
+  Copilot and Antigravity by reading CLI sign-ins. Wburn, TaskbarQuota, UsageScope,
+  PowerQuota and UsagePeek ($9.99) are similar Store-certified apps with full-trust
+  desktop capability. This is evidence of Store certification, not of provider
+  authorization.
