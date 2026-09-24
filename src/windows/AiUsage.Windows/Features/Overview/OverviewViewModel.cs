@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using AiUsage.Features.Connection;
 using AiUsage.Features.History;
 using AiUsage.Features.Presentation;
 using AiUsage.Features.Settings;
@@ -26,14 +27,17 @@ internal sealed partial class OverviewViewModel : SnapshotViewModel
     private readonly IPreferenceStore preferences;
     private readonly Dictionary<string, AccountRowViewModel> rows = new(StringComparer.Ordinal);
 
-    public OverviewViewModel(PresentationContext context, IHistorySource history, IPreferenceStore preferences) : base(context)
+    public OverviewViewModel(PresentationContext context, IHistorySource history, IPreferenceStore preferences, AddAccountViewModel addAccount) : base(context)
     {
         this.history = history;
         this.preferences = preferences;
+        AddAccount = addAccount;
         Initialize();
     }
 
     public ObservableCollection<ProviderSectionViewModel> Sections { get; } = [];
+    /// <summary>First run lists the providers directly; one click starts sign-in like the header menu.</summary>
+    public AddAccountViewModel AddAccount { get; }
 
     [ObservableProperty] public partial bool IsLoading { get; private set; }
     [ObservableProperty] public partial bool IsFirstRun { get; private set; }
@@ -122,7 +126,7 @@ internal sealed partial class OverviewViewModel : SnapshotViewModel
     private AccountRowViewModel GetRow(string id)
     {
         if (!rows.TryGetValue(id, out var row))
-            rows[id] = row = new AccountRowViewModel(id, Context, history, (r, direction) => _ = MoveAsync(r.Id, direction));
+            rows[id] = row = new AccountRowViewModel(id, Context, history, AddAccount, (r, direction) => _ = MoveAsync(r.Id, direction));
         return row;
     }
 
@@ -174,12 +178,6 @@ internal sealed partial class OverviewViewModel : SnapshotViewModel
             Context.Announcer.Announce(Format.F("Announce_MovedTo", dragged.Label, siblings.FindIndex(a => a.Id == draggedId) + 1, siblings.Count));
         }
     }
-
-    [RelayCommand]
-    private Task AddAccountAsync() => Context.Dialogs.ShowAddAccountAsync(new(AddAccountTab.SignIn));
-
-    [RelayCommand]
-    private Task ImportFromCliAsync() => Context.Dialogs.ShowAddAccountAsync(new(AddAccountTab.ImportFromCli));
 
     [RelayCommand]
     private async Task ShowHiddenAndDisconnectedAsync()

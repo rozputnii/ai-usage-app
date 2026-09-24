@@ -19,17 +19,17 @@ public sealed class AntigravityPresentationTests
         var flow = new LiveConnectionFlow(source, uri => { Assert.Equal("accounts.google.com", uri.Host); launches++; });
         Assert.Contains(flow.Providers, provider => provider.ProviderId == "antigravity" &&
             provider.Methods.SequenceEqual([ConnectionMethod.BrowserSignIn]) && provider.Origin == CapabilityOrigin.Existing);
-        var sheet = new AddAccountViewModel(host.Context, flow, new CliImportViewModel(host.Context, host.Cli));
-        sheet.Open(new(AddAccountTab.SignIn, "antigravity"));
+        var context = new PresentationContext(source, host.Dispatcher, host.Clock, host.Text, host.Announcer, host.Navigation, host.Dialogs, host.Motion);
+        using var sheet = new AddAccountViewModel(context, flow, new CliImportViewModel(context, host.Cli));
         var waiting = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         sheet.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(sheet.Step) && sheet.IsWaiting) waiting.TrySetResult(); };
-        var running = sheet.StartCommand.ExecuteAsync(null);
+        var running = sheet.ConnectCommand.ExecuteAsync(sheet.ProviderOptions.Single(p => p.ProviderId == "antigravity"));
         await waiting.Task.WaitAsync(TestContext.Current.CancellationToken);
         Assert.Equal("", sheet.DeviceUserCode);
         Assert.False(sheet.SupportsManualCode);
         Assert.Equal(1, launches);
         // A transient authorization URL never reaches a durable presentation field.
-        Assert.DoesNotContain("code_challenge", sheet.WaitingText);
+        Assert.DoesNotContain("code_challenge", sheet.StatusText);
         sheet.CancelCommand.Execute(null);
         await running;
         Assert.True(session.Cancelled);

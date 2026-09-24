@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
+using AiUsage.Features.Connection;
 using AiUsage.Features.History;
 using AiUsage.Features.Presentation;
 using AiUsage.Features.Settings;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace AiUsage.Features.Accounts;
 
@@ -13,10 +13,10 @@ internal sealed partial class AccountsViewModel : SnapshotViewModel
     private readonly IPreferenceStore preferences;
     private bool applying;
 
-    public AccountsViewModel(PresentationContext context, IHistorySource history, IDataManagementService data, IPreferenceStore preferences) : base(context)
+    public AccountsViewModel(PresentationContext context, IHistorySource history, IDataManagementService data, IPreferenceStore preferences, IAccountConnector connector) : base(context)
     {
         this.preferences = preferences;
-        Detail = new AccountDetailViewModel(context, history, data);
+        Detail = new AccountDetailViewModel(context, history, data, connector);
         context.Navigation.Navigated += (_, request) =>
         {
             if (request.Page == PageKey.Accounts && request.AccountId is { } id)
@@ -118,7 +118,4 @@ internal sealed partial class AccountsViewModel : SnapshotViewModel
             applying = false;
         }
     }
-
-    [RelayCommand]
-    private Task AddAccountAsync() => Context.Dialogs.ShowAddAccountAsync(new(AddAccountTab.SignIn));
 }

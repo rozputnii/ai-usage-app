@@ -1,4 +1,3 @@
-using AiUsage.Features.Connection;
 using AiUsage.Features.Presentation;
 using AiUsage.Features.Shell;
 using Microsoft.UI.Xaml;
@@ -7,10 +6,10 @@ using Microsoft.UI.Xaml.Controls;
 namespace AiUsage.Platform;
 
 /// <summary>
-/// ContentDialog host for the confirm dialog and the Add account sheet. WinUI allows one open dialog per window, so a
+/// ContentDialog host for confirmations. WinUI allows one open dialog per window, so a
 /// request arriving while another dialog is open waits for it to close instead of failing.
 /// </summary>
-internal sealed class DialogService(Func<AddAccountViewModel> addAccount, ThemeService theme) : IDialogService
+internal sealed class DialogService(ThemeService theme) : IDialogService
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private FrameworkElement? root;
@@ -32,15 +31,6 @@ internal sealed class DialogService(Func<AddAccountViewModel> addAccount, ThemeS
         var dialog = new ConfirmDialog(viewModel);
         await ShowAsync(dialog);
         return viewModel.Completion.IsCompleted ? viewModel.Completion.Result : ConfirmOutcome.Cancelled;
-    }
-
-    public async Task ShowAddAccountAsync(AddAccountEntry entry)
-    {
-        if (root?.XamlRoot is null)
-            return;
-        var viewModel = addAccount();
-        viewModel.Open(entry);
-        await ShowAsync(new AddAccountDialog(viewModel));
     }
 
     private async Task ShowAsync(ContentDialog dialog)

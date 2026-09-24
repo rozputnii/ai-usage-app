@@ -6,8 +6,9 @@ using CommunityToolkit.Mvvm.Input;
 namespace AiUsage.Features.Shell;
 
 /// <summary>
-/// Application shell: top navigation, header actions (Refresh all, Add account), compatibility banner, Refresh-all
-/// result bar, notification preview host, recovery takeover, theme/always-on-top application and confirmed Exit.
+/// Application shell: one main usage view without tabs, header actions (Back, Refresh all, Add account menu, Settings),
+/// compatibility banner, Refresh-all result bar, notification preview host, recovery takeover, theme/always-on-top
+/// application and confirmed Exit.
 /// </summary>
 internal sealed partial class ShellViewModel : SnapshotViewModel
 {
@@ -32,7 +33,8 @@ internal sealed partial class ShellViewModel : SnapshotViewModel
     public ToastViewModel Toast { get; }
     public bool IsDemo { get; }
 
-    [NotifyPropertyChangedFor(nameof(CanGoBack))]
+    [NotifyPropertyChangedFor(nameof(CanGoBack), nameof(IsOverview), nameof(IsSettings))]
+    [NotifyCanExecuteChangedFor(nameof(GoBackCommand))]
     [ObservableProperty] public partial PageKey CurrentPage { get; private set; }
     [ObservableProperty] public partial bool IsRecovery { get; private set; }
     [NotifyCanExecuteChangedFor(nameof(RefreshAllCommand))]
@@ -52,7 +54,9 @@ internal sealed partial class ShellViewModel : SnapshotViewModel
     [ObservableProperty] public partial bool ResultHasFailures { get; private set; }
     [ObservableProperty] public partial string DemoMarker { get; private set; } = string.Empty;
 
-    public bool CanGoBack => Context.Navigation.CanGoBack;
+    public bool CanGoBack => CurrentPage != PageKey.Overview;
+    public bool IsOverview => CurrentPage == PageKey.Overview;
+    public bool IsSettings => CurrentPage == PageKey.Settings;
 
     protected override void OnSnapshot(UiSnapshot snapshot)
     {
@@ -137,16 +141,24 @@ internal sealed partial class ShellViewModel : SnapshotViewModel
     }
 
     [RelayCommand]
-    private Task AddAccountAsync() => Context.Dialogs.ShowAddAccountAsync(new(AddAccountTab.SignIn));
-
-    [RelayCommand]
     private void OpenUpdates() => Context.Navigation.Navigate(new(PageKey.Settings, Tab: SettingsTab.Updates));
 
     [RelayCommand]
     private void Navigate(PageKey page) => Context.Navigation.Navigate(new(page));
 
+    /// <summary>The header gear: opens settings in place of the usage view, or returns to usage when already open.</summary>
     [RelayCommand]
-    private void GoBack() => Context.Navigation.GoBack();
+    private void ToggleSettings() => Context.Navigation.Navigate(new(IsSettings ? PageKey.Overview : PageKey.Settings));
+
+    /// <summary>Back from settings, history or account detail; the usage view is the root, so Back never leaves it.</summary>
+    [RelayCommand(CanExecute = nameof(CanGoBack))]
+    private void GoBack()
+    {
+        if (Context.Navigation.CanGoBack)
+            Context.Navigation.GoBack();
+        else
+            Context.Navigation.Navigate(new(PageKey.Overview));
+    }
 
     /// <summary>Explicit Exit with confirmation; the window is shown first so the dialog is visible even from the tray.</summary>
     [RelayCommand]

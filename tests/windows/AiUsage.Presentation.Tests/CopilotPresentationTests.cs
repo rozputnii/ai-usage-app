@@ -17,14 +17,14 @@ public sealed class CopilotPresentationTests
         using var source = new LiveUsageSource(new Dictionary<string, IProviderSession> { ["copilot"] = session });
         var launches = 0;
         var flow = new LiveConnectionFlow(source, uri => { Assert.Equal("github.com", uri.Host); launches++; });
-        var sheet = new AddAccountViewModel(host.Context, flow, new CliImportViewModel(host.Context, host.Cli));
-        sheet.Open(new(AddAccountTab.SignIn, "copilot"));
+        var context = new PresentationContext(source, host.Dispatcher, host.Clock, host.Text, host.Announcer, host.Navigation, host.Dialogs, host.Motion);
+        using var sheet = new AddAccountViewModel(context, flow, new CliImportViewModel(context, host.Cli));
         var waiting = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         sheet.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(sheet.Step) && sheet.IsWaiting) waiting.TrySetResult(); };
-        var running = sheet.StartCommand.ExecuteAsync(null);
+        var running = sheet.ConnectCommand.ExecuteAsync(sheet.ProviderOptions.Single(p => p.ProviderId == "copilot"));
         await waiting.Task.WaitAsync(TestContext.Current.CancellationToken);
         Assert.Equal("ABCD-1234", sheet.DeviceUserCode);
-        Assert.Contains("github.com/login/device", sheet.WaitingText);
+        Assert.Contains("github.com/login/device", sheet.StatusText);
         Assert.False(sheet.SupportsManualCode);
         Assert.Equal(1, launches);
         sheet.CancelCommand.Execute(null);

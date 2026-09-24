@@ -137,7 +137,6 @@ internal sealed class TestDialogs : IDialogService
 {
     public Queue<(ConfirmOutcome Outcome, string? Typed)> Script { get; } = new();
     public List<ConfirmRequest> Requests { get; } = [];
-    public List<AddAccountEntry> AddAccount { get; } = [];
     public List<string?> ActionErrors { get; } = [];
     public bool IsDialogOpen { get; set; }
 
@@ -163,12 +162,6 @@ internal sealed class TestDialogs : IDialogService
                 return ConfirmOutcome.Cancelled;
         }
         return outcome;
-    }
-
-    public Task ShowAddAccountAsync(AddAccountEntry entry)
-    {
-        AddAccount.Add(entry);
-        return Task.CompletedTask;
     }
 }
 
@@ -234,6 +227,7 @@ internal sealed class TestDisplay : IDisplaySimulation
 internal sealed class TestHost : IDisposable
 {
     private readonly List<IDisposable> disposables = [];
+    private AddAccountViewModel? addAccount;
 
     public TestHost(string scenario = "F02", bool autoDelays = true)
     {
@@ -253,7 +247,7 @@ internal sealed class TestHost : IDisposable
         Diagnostics = new DemoDiagnosticsService(State);
         Recovery = new DemoRecoveryService(State);
         Context = new PresentationContext(Usage, Dispatcher, Clock, Text, Announcer, Navigation, Dialogs, Motion);
-        Controller = new DemoScenarioController(State, Connection, Updates, Cli, Navigation, Dialogs);
+        Controller = new DemoScenarioController(State, Connection, Updates, Cli, Navigation);
     }
 
     public ManualDelays Delays { get; }
@@ -289,9 +283,10 @@ internal sealed class TestHost : IDisposable
         return value;
     }
 
-    public OverviewViewModel Overview() => Track(new OverviewViewModel(Context, History, Preferences));
-    public AccountsViewModel Accounts() => Track(new AccountsViewModel(Context, History, Data, Preferences));
-    public AddAccountViewModel AddAccount() => new(Context, Connection, new CliImportViewModel(Context, Cli), Controller);
+    public OverviewViewModel Overview() => Track(new OverviewViewModel(Context, History, Preferences, AddAccount()));
+    public AccountsViewModel Accounts() => Track(new AccountsViewModel(Context, History, Data, Preferences, AddAccount()));
+    /// <summary>One shared inline connector, like the app singleton: rows, detail and the header menu use the same one.</summary>
+    public AddAccountViewModel AddAccount() => addAccount ??= Track(new AddAccountViewModel(Context, Connection, new CliImportViewModel(Context, Cli), Controller));
     public CliImportViewModel CliImport() => new(Context, Cli);
     public HistoryViewModel HistoryPage() => Track(new HistoryViewModel(Context, History));
     public AppearanceSettingsViewModel Appearance() => Track(new AppearanceSettingsViewModel(Context, Preferences, Theme));

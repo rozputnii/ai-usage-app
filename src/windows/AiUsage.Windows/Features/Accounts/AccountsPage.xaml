@@ -48,7 +48,6 @@
         </ListView>
         <StackPanel Orientation="Horizontal" Padding="0,8" Spacing="2" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsEmpty), Mode=OneWay}">
           <TextBlock x:Uid="Accounts_EmptyList" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
-          <Button x:Uid="Accounts_EmptyAdd" AutomationProperties.AutomationId="AccountsEmptyAdd" Style="{StaticResource SmallLinkButton}" Command="{x:Bind ViewModel.AddAccountCommand}" />
         </StackPanel>
         <StackPanel Spacing="2" Padding="0,14,0,0">
           <CheckBox AutomationProperties.AutomationId="AccountsShowHidden" Style="{StaticResource AppCheckBox}" Content="{x:Bind ViewModel.ShowHiddenLabel, Mode=OneWay}" IsChecked="{x:Bind ViewModel.ShowHidden, Mode=TwoWay}" />

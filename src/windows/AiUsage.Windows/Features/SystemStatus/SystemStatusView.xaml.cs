@@ -1,34 +1,40 @@
 using AiUsage.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace AiUsage.Features.SystemStatusPage;
 
-internal sealed partial class SystemStatusPage : Page
+/// <summary>S09 System status, shown as the last section of the single settings view.</summary>
+internal sealed partial class SystemStatusView : UserControl
 {
-    public SystemStatusPage()
+    public SystemStatusView()
     {
         InitializeComponent();
-        AppLayout.Current.PropertyChanged += (_, e) =>
+        Loaded += (_, _) =>
         {
-            if (e.PropertyName == nameof(AppLayout.IsCompact))
-                Arrange();
+            AppLayout.Current.PropertyChanged += OnLayoutChanged;
+            Arrange();
         };
-        Loaded += (_, _) => Arrange();
+        Unloaded += (_, _) => AppLayout.Current.PropertyChanged -= OnLayoutChanged;
     }
 
-    public SystemStatusViewModel ViewModel { get; private set; } = null!;
-
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    public SystemStatusViewModel? ViewModel
     {
-        ViewModel = (SystemStatusViewModel)e.Parameter;
-        Bindings.Update();
-        base.OnNavigatedTo(e);
+        get;
+        set
+        {
+            field = value;
+            Bindings.Update();
+        }
     }
 
-    private Thickness Gutter(bool compact) => compact ? new Thickness(18, 0, 18, 18) : new Thickness(40, 0, 40, 24);
     private string FailureKey(bool failure) => failure ? "CritBrush" : "TextBrush";
+
+    private void OnLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(AppLayout.IsCompact))
+            Arrange();
+    }
 
     private void Arrange()
     {

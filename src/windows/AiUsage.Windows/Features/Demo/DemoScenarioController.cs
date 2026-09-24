@@ -22,8 +22,7 @@ internal sealed class DemoScenarioController(
     DemoConnectionFlow connection,
     DemoUpdateService updates,
     DemoCliImportService cli,
-    INavigationService navigation,
-    IDialogService dialogs)
+    INavigationService navigation)
 {
     private int loadToken;
 
@@ -32,6 +31,9 @@ internal sealed class DemoScenarioController(
     public string CurrentScenarioId => state.World.ScenarioId;
 
     public event EventHandler? EnvironmentChanged;
+
+    /// <summary>Raised when a scenario opens the CLI import surface under the Add account menu.</summary>
+    public event EventHandler? CliImportRequested;
 
     /// <summary>Loads a seed, shows the skeleton for the prototype load latency, then opens the scenario's entry surface.</summary>
     public async Task LoadScenarioAsync(string scenarioId, bool openEntry = true)
@@ -50,8 +52,8 @@ internal sealed class DemoScenarioController(
                 return;
             state.SetLoaded(true);
         }
-        if (openEntry && scenario.Surface != DemoEntrySurface.None && !dialogs.IsDialogOpen)
-            _ = dialogs.ShowAddAccountAsync(new(scenario.Surface == DemoEntrySurface.AddAccountCli ? AddAccountTab.ImportFromCli : AddAccountTab.SignIn));
+        if (openEntry && scenario.Surface == DemoEntrySurface.AddAccountCli)
+            CliImportRequested?.Invoke(this, EventArgs.Empty);
     }
 
     public Task ResetAsync() => LoadScenarioAsync(state.World.ScenarioId);

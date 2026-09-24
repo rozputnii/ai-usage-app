@@ -47,10 +47,11 @@ internal static class ServiceRegistration
             provider.GetRequiredService<ToastViewModel>(),
             isDemo: provider.GetService<DemoScenarioController>() is not null));
         collection.AddSingleton(provider => new OverviewViewModel(
-            provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IHistorySource>(), provider.GetRequiredService<IPreferenceStore>()));
+            provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IHistorySource>(), provider.GetRequiredService<IPreferenceStore>(),
+            provider.GetRequiredService<AddAccountViewModel>()));
         collection.AddSingleton(provider => new AccountsViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IHistorySource>(),
-            provider.GetRequiredService<IDataManagementService>(), provider.GetRequiredService<IPreferenceStore>()));
+            provider.GetRequiredService<IDataManagementService>(), provider.GetRequiredService<IPreferenceStore>(), provider.GetRequiredService<AddAccountViewModel>()));
         collection.AddSingleton(provider => new ProviderHistoryViewModel(provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IProviderHistorySource>()));
         collection.AddSingleton(provider => new AppearanceSettingsViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IPreferenceStore>(), provider.GetRequiredService<IThemeService>()));
@@ -63,7 +64,8 @@ internal static class ServiceRegistration
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IUpdateService>(), provider.GetService<DemoScenarioController>()));
         collection.AddSingleton(provider => new SettingsViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<AppearanceSettingsViewModel>(),
-            provider.GetRequiredService<MonitoringSettingsViewModel>(), provider.GetRequiredService<DataPrivacyViewModel>(), provider.GetRequiredService<UpdatesViewModel>()));
+            provider.GetRequiredService<MonitoringSettingsViewModel>(), provider.GetRequiredService<DataPrivacyViewModel>(), provider.GetRequiredService<UpdatesViewModel>(),
+            provider.GetRequiredService<SystemStatusViewModel>()));
         collection.AddSingleton(provider => new SystemStatusViewModel(
             provider.GetRequiredService<PresentationContext>(), provider.GetRequiredService<IDiagnosticsService>(),
             () => provider.GetRequiredService<ShellViewModel>().ExitCommand.ExecuteAsync(null)));
@@ -97,7 +99,7 @@ internal static class ServiceRegistration
         collection.AddSingleton<IAppLifetime>(provider => provider.GetRequiredService<AppLifetime>());
         collection.AddSingleton<DisplaySimulation>();
         collection.AddSingleton<IDisplaySimulation>(provider => provider.GetRequiredService<DisplaySimulation>());
-        collection.AddSingleton(provider => new DialogService(provider.GetRequiredService<AddAccountViewModel>, provider.GetRequiredService<ThemeService>()));
+        collection.AddSingleton(provider => new DialogService(provider.GetRequiredService<ThemeService>()));
         collection.AddSingleton<IDialogService>(provider => provider.GetRequiredService<DialogService>());
         collection.AddSingleton<MainWindow>();
         return collection;
@@ -132,7 +134,7 @@ internal static class ServiceRegistration
         collection.AddSingleton<IUpdateService>(services => services.GetRequiredService<DemoUpdateService>());
         collection.AddSingleton(services => new DemoScenarioController(
             services.GetRequiredService<DemoState>(), services.GetRequiredService<DemoConnectionFlow>(), services.GetRequiredService<DemoUpdateService>(),
-            services.GetRequiredService<DemoCliImportService>(), services.GetRequiredService<INavigationService>(), services.GetRequiredService<IDialogService>()));
+            services.GetRequiredService<DemoCliImportService>(), services.GetRequiredService<INavigationService>()));
         collection.AddSingleton(services => new DemoControlViewModel(
             services.GetRequiredService<DemoScenarioController>(), services.GetRequiredService<IDisplaySimulation>(),
             services.GetRequiredService<IAppLifetime>(), services.GetRequiredService<PresentationFormatter>()));

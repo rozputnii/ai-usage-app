@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using AiUsage.Features.Accounts;
+using AiUsage.Features.Connection;
 using AiUsage.Features.History;
 using AiUsage.Features.Presentation;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -23,6 +24,7 @@ internal sealed partial class AccountRowViewModel : ObservableObject
 {
     private readonly PresentationContext context;
     private readonly IHistorySource history;
+    private readonly IAccountConnector connector;
     private readonly Action<AccountRowViewModel, int> move;
     private AccountItem account = null!;
     private AccountOperation previousOperation;
@@ -30,11 +32,12 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     private int ackGeneration;
     private CancellationTokenSource? sparklineLoad;
 
-    public AccountRowViewModel(string id, PresentationContext context, IHistorySource history, Action<AccountRowViewModel, int> move)
+    public AccountRowViewModel(string id, PresentationContext context, IHistorySource history, IAccountConnector connector, Action<AccountRowViewModel, int> move)
     {
         Id = id;
         this.context = context;
         this.history = history;
+        this.connector = connector;
         this.move = move;
     }
 
@@ -70,11 +73,16 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     [ObservableProperty] public partial bool CanMoveUp { get; private set; }
     [NotifyCanExecuteChangedFor(nameof(MoveDownCommand))]
     [ObservableProperty] public partial bool CanMoveDown { get; private set; }
+    [NotifyCanExecuteChangedFor(nameof(SignOutCommand))]
+    [ObservableProperty] public partial bool CanSignOut { get; private set; }
+    [ObservableProperty] public partial bool CanSignIn { get; private set; }
 
     public bool HasHiddenTag => HiddenTag.Length > 0;
     public bool HasMoreContext => MoreContextText.Length > 0;
     public bool HasSparkline => Sparkline.ObservedCount > 1;
     public string RefreshName => context.Format.F("Row_RefreshName", Label);
+    public string SignOutName => context.Format.F("Row_SignOutName", Label);
+    public string SignInName => context.Format.F("Row_SignInName", Label);
 
     public string ExpandLabel
     {
@@ -89,7 +97,12 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     partial void OnHiddenTagChanged(string value) => OnPropertyChanged(nameof(HasHiddenTag));
     partial void OnMoreContextTextChanged(string value) => OnPropertyChanged(nameof(HasMoreContext));
     partial void OnSparklineChanged(ChartModel value) => OnPropertyChanged(nameof(HasSparkline));
-    partial void OnLabelChanged(string value) => OnPropertyChanged(nameof(RefreshName));
+    partial void OnLabelChanged(string value)
+    {
+        OnPropertyChanged(nameof(RefreshName));
+        OnPropertyChanged(nameof(SignOutName));
+        OnPropertyChanged(nameof(SignInName));
+    }
 
     public void Update(AccountItem item, UiSnapshot snapshot, int position, int count, bool canMoveUp, bool canMoveDown)
     {
@@ -116,6 +129,10 @@ internal sealed partial class AccountRowViewModel : ObservableObject
             && !(item.Failure is { Kind: FailureKinds.RateLimited, RetryAt: { } retryAt } && retryAt > context.Clock.UtcNow);
         IsRefreshing = item.Operation == AccountOperation.Refreshing;
         RetryCommand.NotifyCanExecuteChanged();
+        CanSignOut = !IsDisconnected && item.Operation == AccountOperation.Idle
+            && QuotaRules.IsAvailable(snapshot, nameof(UiCommandKind.Disconnect), item.Id);
+        CanSignIn = IsDisconnected && item.Operation == AccountOperation.Idle
+            && snapshot.System.Compatibility != CompatibilityState.SecurityBlocked;
 
         var groups = QuotaRules.VisibleGroups(selectedContext, preferences).ToArray();
         var primaryGroup = groups.FirstOrDefault();
@@ -216,7 +233,22 @@ internal sealed partial class AccountRowViewModel : ObservableObject
     private Task RetryAsync() => Failure.Action == FailureAction.Reconnect ? ReconnectAsync() : RefreshAsync();
 
     [RelayCommand]
-    private Task ReconnectAsync() => context.Dialogs.ShowAddAccountAsync(new(AddAccountTab.SignIn, account.ProviderId, account.Id));
+    private Task ReconnectAsync() => connector.ReconnectAsync(account.ProviderId, account.Id);
+
+    /// <summary>
+    /// Row sign-out: immediate, without confirmation (owner decision 2026-09-24). It removes only the app-owned
+    /// credential and stops monitoring; history, label and order stay for the next sign-in (D-093). Stored data is
+    /// deleted only by the separate Delete stored data action.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanSignOut))]
+    private async Task SignOutAsync()
+    {
+        var label = Label;
+        var result = await context.Usage.ExecuteAsync(context.Command(UiCommandKind.Disconnect, Id), CancellationToken.None);
+        context.Announcer.Announce(result.Status == CommandStatus.Succeeded
+            ? context.Format.F("Announce_SignedOut", label)
+            : context.Format.F("Announce_SignOutFailed", label));
+    }
 
     [RelayCommand]
     private void Open() => context.Navigation.Navigate(new(PageKey.Accounts, Id));

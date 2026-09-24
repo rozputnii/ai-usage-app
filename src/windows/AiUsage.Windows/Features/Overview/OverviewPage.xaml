@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:AiUsage.Controls"
     xmlns:overview="using:AiUsage.Features.Overview"
+    xmlns:connection="using:AiUsage.Features.Connection"
     xmlns:platform="using:AiUsage.Platform"
     NavigationCacheMode="Required"
     Background="Transparent"
@@ -43,16 +44,37 @@
 
       <!-- First run -->
       <Grid Padding="20,64" Visibility="{x:Bind controls:Bind.Visible(ViewModel.IsFirstRun), Mode=OneWay}" AutomationProperties.AutomationId="OverviewEmpty" controls:Motion.Entrance="True">
-        <StackPanel MaxWidth="400" HorizontalAlignment="Center">
+        <StackPanel MaxWidth="420" HorizontalAlignment="Center">
           <Border Width="44" Height="44" CornerRadius="22" BorderBrush="{ThemeResource Stroke2Brush}" BorderThickness="1.5" HorizontalAlignment="Center" Margin="0,0,0,14">
             <TextBlock Text="+" FontSize="20" Foreground="{ThemeResource Text2Brush}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" />
           </Border>
           <TextBlock x:Uid="Overview_EmptyTitle" Style="{StaticResource Heading20Text}" HorizontalAlignment="Center" TextAlignment="Center" AutomationProperties.HeadingLevel="Level1" />
           <TextBlock x:Uid="Overview_EmptyBody" Style="{StaticResource Body13SecondaryText}" TextAlignment="Center" Margin="0,8,0,18" LineHeight="20" />
-          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-            <Button x:Uid="Header_AddAccountButton" AutomationProperties.AutomationId="EmptyAddAccount" Style="{StaticResource PrimaryButton}" FontSize="14" Padding="16,6,16,7" Command="{x:Bind ViewModel.AddAccountCommand}" />
-            <Button x:Uid="Overview_EmptyImport" AutomationProperties.AutomationId="EmptyImportCli" Style="{StaticResource SecondaryButton}" FontSize="14" Padding="16,6,16,7" controls:CapabilityGate.Key="DiscoverCli" Command="{x:Bind ViewModel.ImportFromCliCommand}" />
-          </StackPanel>
+          <!-- One click on a provider starts browser sign-in, exactly like the header Add account menu. -->
+          <ItemsRepeater ItemsSource="{x:Bind ViewModel.AddAccount.ProviderOptions}" AutomationProperties.AutomationId="EmptyAddAccount" x:Uid="AddAccount_Menu">
+            <ItemsRepeater.Layout>
+              <UniformGridLayout MinItemWidth="190" MinColumnSpacing="8" MinRowSpacing="8" ItemsStretch="Fill" MaximumRowsOrColumns="2" />
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+              <DataTemplate x:DataType="connection:ProviderOptionViewModel">
+                <Button Style="{StaticResource SecondaryButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="12,9" CornerRadius="7"
+                        Click="OnProviderClick" Tag="{x:Bind}" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                        AutomationProperties.AutomationId="{x:Bind AutomationId}" AutomationProperties.Name="{x:Bind Name}" AutomationProperties.HelpText="{x:Bind Availability, Mode=OneWay}">
+                  <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <controls:ProviderTile ProviderId="{x:Bind ProviderId}" TileSize="24" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{x:Bind Name}" Style="{StaticResource Body13StrongText}" />
+                      <TextBlock Text="{x:Bind Availability, Mode=OneWay}" Style="{StaticResource Caption11Text}" Visibility="{x:Bind controls:Bind.Visible(HasAvailability), Mode=OneWay}" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+          </ItemsRepeater>
         </StackPanel>
       </Grid>
 

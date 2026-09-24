@@ -302,13 +302,16 @@ public sealed class LiveAdapterTests
         stages.Clear();
         await foreach (var stage in flow.ConnectAsync(new("codex", ConnectionMethod.BrowserSignIn, null), token)) stages.Add(stage);
         Assert.Equal(ConnectionStageKind.ProviderSlotOccupied, stages.Single().Kind);
+        // The menu shows the occupied provider as connected and does not start a sign-in for it.
         using var host = new TestHost();
-        var sheet = new AddAccountViewModel(host.Context, flow, host.CliImport());
-        sheet.Open(new(AddAccountTab.SignIn, "codex"));
-        await sheet.StartCommand.ExecuteAsync(null);
-        Assert.Equal("One account per provider", sheet.ResultTitle);
-        Assert.Contains("Disconnect", sheet.ResultBody);
-        Assert.DoesNotContain("identity", sheet.ResultBody);
+        var context = new PresentationContext(source, host.Dispatcher, host.Clock, host.Text, host.Announcer, host.Navigation, host.Dialogs, host.Motion);
+        using var connect = new AddAccountViewModel(context, flow, host.CliImport());
+        var option = connect.ProviderOptions.Single(p => p.ProviderId == "codex");
+        Assert.Equal(ConnectionState.Connected, source.Current.Accounts.Single().Connection);
+        Assert.Equal(("Connected", false, (string?)null), (option.Availability, option.IsEnabled, option.ReconnectAccountId));
+        await connect.ConnectCommand.ExecuteAsync(option);
+        Assert.False(connect.ShowStrip);
+        Assert.DoesNotContain("identity", host.Text.Get("Connect_ProviderSlotBody"));
         Assert.Equal(0, launches);
         await source.StopAsync();
     }

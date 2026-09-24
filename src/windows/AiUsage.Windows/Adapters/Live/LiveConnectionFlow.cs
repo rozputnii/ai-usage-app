@@ -7,6 +7,7 @@ namespace AiUsage.Adapters.Live;
 internal sealed class LiveConnectionFlow(LiveUsageSource source, Action<Uri> openBrowser) : IConnectionFlow
 {
     public bool ManualCodeUsesActiveConnection => true;
+    public bool SingleAccountPerProvider => true;
     public IReadOnlyList<ProviderDescriptor> Providers => source.Providers.All;
 
     public bool TrySubmitCode(ConnectRequest request, string transientCode) =>

@@ -1,4 +1,5 @@
 using AiUsage.Features.Accounts;
+using AiUsage.Features.Connection;
 using AiUsage.Features.Demo;
 using AiUsage.Features.History;
 using AiUsage.Features.Overview;
@@ -6,7 +7,6 @@ using AiUsage.Features.Presentation;
 using AiUsage.Features.Recovery;
 using AiUsage.Features.Settings;
 using AiUsage.Features.Shell;
-using AiUsage.Features.SystemStatusPage;
 using AiUsage.Features.Tray;
 using AiUsage.Platform;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,13 +14,17 @@ using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Windows.Graphics;
 using Windows.UI;
 
 namespace AiUsage;
 
-/// <summary>Native window: title bar, top navigation shell, page frame, tray icon and close-to-tray. State lives in view models.</summary>
+/// <summary>
+/// Native window: title bar, one usage view with a header (Back, Refresh all, Add account menu, Settings), the view
+/// frame, the inline sign-in strip, tray icon and close-to-tray. State lives in view models.
+/// </summary>
 internal sealed partial class MainWindow : Window
 {
     private readonly NavigationService navigation;
@@ -34,10 +38,11 @@ internal sealed partial class MainWindow : Window
     private bool finalClose;
 
     public MainWindow(ShellViewModel shell, TrayViewModel tray, RecoveryViewModel recovery, OverviewViewModel overview, AccountsViewModel accounts,
-        ProviderHistoryViewModel history, SettingsViewModel settings, SystemStatusViewModel systemStatus, NavigationService navigation, ThemeService theme, DisplaySimulation display,
+        ProviderHistoryViewModel history, SettingsViewModel settings, AddAccountViewModel addAccount, NavigationService navigation, ThemeService theme, DisplaySimulation display,
         IUsageSource usage, IServiceProvider services)
     {
         Shell = shell;
+        AddAccount = addAccount;
         Tray = tray;
         Recovery = recovery;
         Demo = services.GetService<DemoControlViewModel>();
@@ -52,7 +57,6 @@ internal sealed partial class MainWindow : Window
             [PageKey.Accounts] = (typeof(AccountsPage), accounts),
             [PageKey.History] = (typeof(HistoryPage), history),
             [PageKey.Settings] = (typeof(SettingsPage), settings),
-            [PageKey.SystemStatus] = (typeof(SystemStatusPage), systemStatus),
         };
         InitializeComponent();
 
@@ -82,11 +86,17 @@ internal sealed partial class MainWindow : Window
         };
         densitySubscription = usage.Subscribe(snapshot => DispatcherQueue.TryEnqueue(() => AppLayout.Current.CompactDensity = snapshot.Preferences.Density == Density.Compact));
         AppLayout.Current.CompactDensity = usage.Current.Preferences.Density == Density.Compact;
+        addAccount.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(AddAccountViewModel.IsCode) && addAccount.IsCode)
+                DispatcherQueue.TryEnqueue(() => CodeBox.Focus(FocusState.Programmatic));
+        };
         UpdateTrayGlyph();
         Closed += (_, _) => densitySubscription?.Dispose();
     }
 
     public ShellViewModel Shell { get; }
+    public AddAccountViewModel AddAccount { get; }
     public TrayViewModel Tray { get; }
     public RecoveryViewModel Recovery { get; }
     public DemoControlViewModel? Demo { get; }
@@ -99,6 +109,11 @@ internal sealed partial class MainWindow : Window
     private string BannerGlyph(bool security) => security ? "CritBrush" : "WarnBrush";
     private string ResultGlyph(bool failures) => failures ? "▲" : "✓";
     private string ResultBrush(bool failures) => failures ? "WarnBrush" : "OkBrush";
+    private string SettingsBackground(bool open) => open ? "Card2Brush" : "BtnBrush";
+    private string StripBackground(bool note, NoteTone tone) => note && tone == NoteTone.Critical ? "CritBgBrush" : "Card2Brush";
+    private string StripBorder(bool note, NoteTone tone) => note && tone == NoteTone.Critical ? "CritStrokeBrush" : "StrokeBrush";
+    private string CodeBorder(bool error) => error ? "CritBrush" : "Stroke2Brush";
+    private string ProviderIdOf(ProviderOptionViewModel? provider) => provider?.ProviderId ?? string.Empty;
 
     private void ShowPage(NavigationRequest request)
     {
@@ -114,10 +129,83 @@ internal sealed partial class MainWindow : Window
             Controls.Motion.Rise(page);
     }
 
-    private void OnNavClick(object sender, RoutedEventArgs e)
+    /// <summary>Hovering Add account opens the provider menu without taking focus; it closes when the pointer moves away.</summary>
+    private void OnAddAccountPointerEntered(object sender, PointerRoutedEventArgs e)
     {
-        if (sender is FrameworkElement { Tag: string tag } && Enum.TryParse<PageKey>(tag, out var page))
-            Shell.NavigateCommand.Execute(page);
+        if (e.Pointer.PointerDeviceType != Microsoft.UI.Input.PointerDeviceType.Touch)
+            ShowProviderMenu(FlyoutShowMode.TransientWithDismissOnPointerMoveAway);
+    }
+
+    /// <summary>Click, tap, Enter and Space open the same menu as a standard flyout with keyboard focus inside.</summary>
+    private void OnAddAccountClick(object sender, RoutedEventArgs e) => ShowProviderMenu(FlyoutShowMode.Standard);
+
+    private void ShowProviderMenu(FlyoutShowMode mode)
+    {
+        if (ProviderFlyout.IsOpen)
+        {
+            if (mode == FlyoutShowMode.Standard)
+                FocusFirstProvider();
+            return;
+        }
+        ProviderFlyout.ShowAt(AddAccountButton, new FlyoutShowOptions { ShowMode = mode, Placement = FlyoutPlacementMode.BottomEdgeAlignedRight });
+    }
+
+    private void OnProviderFlyoutOpened(object? sender, object e)
+    {
+        theme.RefreshContrast(ProviderMenu);
+        if (ProviderFlyout.ShowMode == FlyoutShowMode.Standard)
+            FocusFirstProvider();
+    }
+
+    private void FocusFirstProvider() =>
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (FocusManager.FindFirstFocusableElement(ProviderMenu) is Control first)
+                first.Focus(FocusState.Keyboard);
+        });
+
+    private void OnProviderClick(object sender, RoutedEventArgs e)
+    {
+        ProviderFlyout.Hide();
+        if (((FrameworkElement)sender).Tag is ProviderOptionViewModel option)
+            _ = AddAccount.ConnectCommand.ExecuteAsync(option);
+    }
+
+    private void OnImportCliClick(object sender, RoutedEventArgs e)
+    {
+        ProviderFlyout.Hide();
+        AddAccount.OpenCliImportCommand.Execute(null);
+    }
+
+    private void OnSimulatorClick(object sender, RoutedEventArgs e) =>
+        AddAccount.SimulateCommand.Execute(((FrameworkElement)sender).Tag as SimulatorOption);
+
+    private void OnCopyDeviceCode(object sender, RoutedEventArgs e)
+    {
+        if (!AddAccount.HasDeviceCode)
+            return;
+        var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        package.SetText(AddAccount.DeviceUserCode);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+        services.GetRequiredService<IAnnouncer>().Announce(services.GetRequiredService<ITextResources>().Get("Announce_CodeCopied"));
+    }
+
+    private void OnCodeKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Enter && AddAccount.SubmitCodeCommand.CanExecute(null))
+        {
+            e.Handled = true;
+            _ = AddAccount.SubmitCodeCommand.ExecuteAsync(null);
+        }
+    }
+
+    /// <summary>Esc returns from settings, history or account detail to the usage view.</summary>
+    private void OnEscapeAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (Shell.IsOverview || !Shell.GoBackCommand.CanExecute(null))
+            return;
+        args.Handled = true;
+        Shell.GoBackCommand.Execute(null);
     }
 
     private void OnExitAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
@@ -160,9 +248,8 @@ internal sealed partial class MainWindow : Window
         var gutter = compact ? 18 : 40;
         HeaderHost.Margin = new Thickness(gutter, 0, gutter, 0);
         BannerHost.Margin = new Thickness(gutter, 0, gutter, 0);
-        Grid.SetRow(HeaderActions, compact ? 1 : 0);
-        Grid.SetColumn(HeaderActions, compact ? 0 : 1);
-        HeaderActions.Padding = compact ? new Thickness(0, 2, 0, 10) : new Thickness(0, 6, 0, 10);
+        // Narrow windows keep one header row: Refresh all shrinks to its icon (its accessible name stays the label).
+        RefreshAllText.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
     }
 
     /// <summary>The demo marker in the title bar stays clickable; the rest of the bar drags the window.</summary>

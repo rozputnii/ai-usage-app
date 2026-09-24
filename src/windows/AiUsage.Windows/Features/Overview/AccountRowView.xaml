@@ -21,6 +21,7 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition x:Name="IdentityColumn" Width="190" />
         <ColumnDefinition x:Name="LinesColumn" Width="*" />
+        <ColumnDefinition x:Name="ActionsColumn" Width="Auto" />
       </Grid.ColumnDefinitions>
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto" />
@@ -48,6 +49,18 @@
         <controls:StatusPill Text="{x:Bind Row.Pill.Text, Mode=OneWay}" Tone="{x:Bind Row.Pill.Tone, Mode=OneWay}" HorizontalAlignment="Left"
                              Opacity="{x:Bind PillOpacity(Row.Pill.IsQuietFresh, Row.IsHovered), Mode=OneWay}" />
         <TextBlock Text="{x:Bind Row.HiddenTag, Mode=OneWay}" Style="{StaticResource Caption11Text}" Visibility="{x:Bind controls:Bind.Visible(Row.HasHiddenTag), Mode=OneWay}" />
+      </StackPanel>
+
+      <!-- Right edge: sign out (icon only, immediate, keeps history) or Sign in again for a signed-out account. -->
+      <StackPanel x:Name="ActionsHost" Grid.Column="2" Orientation="Horizontal" Spacing="4" VerticalAlignment="Top">
+        <Button AutomationProperties.AutomationId="RowSignOut" Style="{StaticResource GhostIconButton}" Width="30" Height="30" Command="{x:Bind Row.SignOutCommand}"
+                Visibility="{x:Bind controls:Bind.Collapsed(Row.IsDisconnected), Mode=OneWay}"
+                AutomationProperties.Name="{x:Bind Row.SignOutName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind Row.SignOutName, Mode=OneWay}">
+          <FontIcon Glyph="&#xF3B1;" FontSize="14" />
+        </Button>
+        <Button x:Uid="Row_SignIn" AutomationProperties.AutomationId="RowSignIn" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind Row.ReconnectCommand}"
+                Visibility="{x:Bind controls:Bind.Visible(Row.IsDisconnected), Mode=OneWay}" IsEnabled="{x:Bind Row.CanSignIn, Mode=OneWay}"
+                AutomationProperties.Name="{x:Bind Row.SignInName, Mode=OneWay}" />
       </StackPanel>
 
       <!-- Lines of the primary group, failure, expansion. -->

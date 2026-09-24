@@ -99,7 +99,7 @@ public sealed class LiveClockTests
         using var clock = new LiveClock(host.Motion, host.Dispatcher, time);
         var context = new PresentationContext(host.Usage, host.Dispatcher, clock, host.Text,
             host.Announcer, host.Navigation, host.Dialogs, host.Motion);
-        using var overview = new OverviewViewModel(context, host.History, host.Preferences);
+        using var overview = new OverviewViewModel(context, host.History, host.Preferences, host.AddAccount());
         using var tray = new TrayViewModel(context, host.Lifetime, () => Task.CompletedTask, () => Task.CompletedTask);
         var before = overview.SummaryReset;
         host.Motion.WindowVisible = false;
@@ -133,7 +133,7 @@ public sealed class LiveClockTests
         using var clock = new LiveClock(host.Motion, host.Dispatcher, time);
         var context = new PresentationContext(host.Usage, host.Dispatcher, clock, host.Text,
             host.Announcer, host.Navigation, host.Dialogs, host.Motion);
-        using var overview = new OverviewViewModel(context, host.History, host.Preferences);
+        using var overview = new OverviewViewModel(context, host.History, host.Preferences, host.AddAccount());
         using var tray = new TrayViewModel(context, host.Lifetime, () => Task.CompletedTask, () => Task.CompletedTask);
         var overviewBefore = overview.SummaryReset;
         var row = tray.Rows.Single(r => r.Id == "demo-claude-1");

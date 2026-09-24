@@ -54,18 +54,17 @@ public sealed class AccountTests
         Assert.True(b.Failure.ActionEnabled);
         Assert.True(b.RefreshCommand.CanExecute(null));
 
-        // Reconnect A through the sheet: same id, label, order.
+        // Reconnect A inline from its row, without a dialog: same id, label, order.
         var order = host.Usage.Current.Preferences.AccountOrder.ToArray();
-        await a.RetryCommand.ExecuteAsync(null);
-        var entry = host.Dialogs.AddAccount.Single();
-        Assert.Equal(("codex", "demo-codex-1"), (entry.ProviderId, entry.ReconnectAccountId));
-        var sheet = host.AddAccount();
-        sheet.Open(entry);
-        var connecting = sheet.StartCommand.ExecuteAsync(null);
+        var connect = host.AddAccount();
+        var connecting = a.RetryCommand.ExecuteAsync(null);
         await Task.Yield();
+        Assert.True(connect.IsWaiting);
+        Assert.Equal(("codex", "demo-codex-1"), (connect.Provider!.ProviderId, connect.ReconnectAccountId));
         Assert.True(host.Controller.ResolveConnection(AiUsage.Features.Demo.DemoConnectOutcome.Approve));
         await connecting;
-        Assert.Equal("Reconnected", sheet.ResultTitle);
+        Assert.False(connect.ShowStrip);
+        Assert.Equal("Personal connected", host.Announcer.Last);
         Assert.Equal(ConnectionState.Connected, host.Account("demo-codex-1").Connection);
         Assert.Equal("Personal", host.Account("demo-codex-1").Label);
         Assert.Equal(order, host.Usage.Current.Preferences.AccountOrder);
@@ -75,16 +74,14 @@ public sealed class AccountTests
     public async Task F06CancelledReconnectRestoresPriorStableState()
     {
         using var host = new TestHost("F06", autoDelays: false);
-        var sheet = host.AddAccount();
-        sheet.Open(new(AddAccountTab.SignIn, "codex", "demo-codex-1"));
-        var running = sheet.StartCommand.ExecuteAsync(null);
+        var connect = host.AddAccount();
+        var running = connect.ReconnectAsync("codex", "demo-codex-1");
         await host.Delays.Advance();
-        Assert.True(sheet.IsWaiting);
-        sheet.CancelCommand.Execute(null);
+        Assert.True(connect.IsWaiting);
+        connect.CancelCommand.Execute(null);
         await running;
-        Assert.True(sheet.IsMethod);
-        Assert.Equal("Cancelled. Nothing was changed.", sheet.Note);
-        Assert.Equal(AiUsage.Features.Connection.NoteTone.Neutral, sheet.NoteSeverity);
+        Assert.False(connect.ShowStrip);
+        Assert.Equal("Cancelled. Nothing was changed.", host.Announcer.Last);
         Assert.Equal(ConnectionState.ReauthRequired, host.Account("demo-codex-1").Connection);
     }
 
@@ -188,34 +185,64 @@ public sealed class AccountTests
     }
 
     [Fact]
-    public async Task DisconnectRequiresConfirmationKeepsIdentityAndHidesByDefault()
+    public async Task RowSignOutIsImmediateKeepsIdentityAndHistoryAndHidesByDefault()
     {
         using var host = new TestHost(autoDelays: false);
-        var accounts = host.Accounts();
-        accounts.Select("demo-codex-1");
-        host.Dialogs.Next(ConfirmOutcome.Cancelled);
-        await accounts.Detail.DisconnectCommand.ExecuteAsync(null);
-        Assert.Equal(ConnectionState.Connected, host.Account("demo-codex-1").Connection);
+        var overview = host.Overview();
+        var row = overview.FindRow("demo-codex-1")!;
+        var account = host.Account("demo-codex-1");
+        var window = QuotaRules.PrimaryWindow(account, host.Usage.Current.Preferences)!;
+        var now = host.Clock.UtcNow;
+        var query = new HistoryQuery(account.Id, null, null, window.Id, now - TimeSpan.FromDays(7), now, HistoryResolution.Auto, HistoryPreset.Days7);
+        var before = await QueryPointsAsync(host, query);
+        Assert.NotEmpty(before);
+        Assert.True(row.CanSignOut);
+        Assert.Equal("Sign out of Personal", row.SignOutName);
 
-        host.Dialogs.Next(ConfirmOutcome.Confirmed);
-        var disconnect = accounts.Detail.DisconnectCommand.ExecuteAsync(null);
-        Assert.True(host.Dialogs.Requests.Last().Destructive);
-        Assert.Equal("Disconnecting…", host.Dialogs.Requests.Last().BusyLabel);
+        // No confirmation: the command starts the disconnect directly.
+        var signOut = row.SignOutCommand.ExecuteAsync(null);
+        Assert.Empty(host.Dialogs.Requests);
         Assert.Equal(AccountOperation.Disconnecting, host.Account("demo-codex-1").Operation);
         await host.Delays.Drain();
-        await disconnect;
-        var account = host.Account("demo-codex-1");
+        await signOut;
+        account = host.Account("demo-codex-1");
         Assert.Equal((ConnectionState.NotConnected, "Personal"), (account.Connection, account.Label));
-        Assert.Equal("Personal disconnected", host.Announcer.Last);
+        Assert.Equal("Signed out of Personal. History is kept.", host.Announcer.Last);
+        Assert.Equal(before, await QueryPointsAsync(host, query));
+        Assert.False(host.Usage.Current.Preferences.ShowDisconnected);
+        Assert.DoesNotContain(overview.Sections.SelectMany(s => s.Rows), r => r.Id == "demo-codex-1");
+
+        var accounts = host.Accounts();
+        accounts.ShowDisconnected = true;
+        var signedOut = overview.FindRow("demo-codex-1")!;
+        Assert.True(signedOut.IsDisconnected);
+        Assert.False(signedOut.CanSignOut);
+        Assert.True(signedOut.CanSignIn);
+        accounts.Select("demo-codex-1");
         Assert.True(accounts.Detail.IsDisconnected);
         Assert.Equal("Connect", accounts.Detail.ReconnectLabel);
         Assert.True(accounts.Detail.ReconnectIsPrimary);
-        Assert.False(host.Usage.Current.Preferences.ShowDisconnected);
-        Assert.DoesNotContain(host.Overview().Sections.SelectMany(s => s.Rows), r => r.Id == "demo-codex-1");
-        accounts.ShowDisconnected = true;
-        Assert.Contains(host.Overview().Sections.SelectMany(s => s.Rows), r => r.Id == "demo-codex-1" && r.IsDisconnected);
     }
 
+    private static async Task<IReadOnlyList<HistoryPoint>> QueryPointsAsync(TestHost host, HistoryQuery query)
+    {
+        var pending = host.History.QueryHistoryAsync(query, CancellationToken.None);
+        await host.Delays.Drain();
+        return (await pending).Points;
+    }
+
+    [Fact]
+    public async Task DetailSignOutIsImmediateToo()
+    {
+        using var host = new TestHost();
+        var accounts = host.Accounts();
+        accounts.Select("demo-claude-1");
+        Assert.Equal("Sign out", accounts.Detail.DisconnectMenuLabel);
+        await accounts.Detail.DisconnectCommand.ExecuteAsync(null);
+        Assert.Empty(host.Dialogs.Requests);
+        Assert.Equal(ConnectionState.NotConnected, host.Account("demo-claude-1").Connection);
+        Assert.Equal("Signed out of Research. History is kept.", host.Announcer.Last);
+    }
     [Fact]
     public async Task DeleteStoredDataIsSeparateFromDisconnectAndClearsCachedReadings()
     {

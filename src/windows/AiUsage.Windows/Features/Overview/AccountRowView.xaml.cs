@@ -165,6 +165,7 @@ internal sealed partial class AccountRowView : UserControl
         LinesColumn.Width = compact ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
         Grid.SetRow(LinesHost, compact ? 1 : 0);
         Grid.SetColumn(LinesHost, compact ? 0 : 1);
+        Grid.SetColumnSpan(LinesHost, compact ? 3 : 1);
     }
 
     private sealed partial class RowPeer(AccountRowView owner) : FrameworkElementAutomationPeer(owner)

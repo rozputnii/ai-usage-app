@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using AiUsage.Features.Connection;
 using AiUsage.Features.History;
 using AiUsage.Features.Presentation;
 using AiUsage.Features.Settings;
@@ -9,13 +10,15 @@ namespace AiUsage.Features.Accounts;
 
 /// <summary>
 /// S02 account detail for the selected account: hero, contexts, groups, native amounts, extensions, rename and the
-/// account menu (move, hide, mute, delete stored data, disconnect). Disconnect keeps label, order and history (D-093/D-094).
+/// account menu (move, hide, mute, delete stored data, sign out). Sign-out is immediate and keeps label, order and
+/// history (D-093/D-094); Reconnect uses the same inline sign-in as the Add account menu.
 /// </summary>
 internal sealed partial class AccountDetailViewModel : ObservableObject
 {
     private readonly PresentationContext context;
     private readonly IHistorySource history;
     private readonly IDataManagementService data;
+    private readonly IAccountConnector connector;
     private AccountItem? account;
     private AccountOperation previousOperation;
     private DateTimeOffset? previousFetchedAt;
@@ -24,11 +27,12 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
     private int ackGeneration;
     private CancellationTokenSource? sparklineLoad;
 
-    public AccountDetailViewModel(PresentationContext context, IHistorySource history, IDataManagementService data)
+    public AccountDetailViewModel(PresentationContext context, IHistorySource history, IDataManagementService data, IAccountConnector connector)
     {
         this.context = context;
         this.history = history;
         this.data = data;
+        this.connector = connector;
         Rename = new RenameAccountViewModel(SaveLabelAsync, context.Format.Text);
     }
 
@@ -273,7 +277,7 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
     private bool CanReconnect() => account is not null && !IsRefreshing && context.Usage.Current.System.Compatibility != CompatibilityState.SecurityBlocked;
 
     [RelayCommand(CanExecute = nameof(CanReconnect))]
-    private Task ReconnectAsync() => account is null ? Task.CompletedTask : context.Dialogs.ShowAddAccountAsync(new(AddAccountTab.SignIn, account.ProviderId, account.Id));
+    private Task ReconnectAsync() => account is null ? Task.CompletedTask : connector.ReconnectAsync(account.ProviderId, account.Id);
 
     [RelayCommand]
     private Task RetryAsync() => Failure.Action == FailureAction.Reconnect ? ReconnectAsync() : RefreshAsync();
@@ -343,21 +347,16 @@ internal sealed partial class AccountDetailViewModel : ObservableObject
         context.Announcer.Announce(outcome == ConfirmOutcome.Confirmed ? format.F("Announce_DataDeleted", target.Label) : format.T("Announce_Cancelled"));
     }
 
+    /// <summary>Sign-out without confirmation (owner decision 2026-09-24); history, label and order are kept.</summary>
     [RelayCommand(CanExecute = nameof(CanDisconnect))]
     private async Task DisconnectAsync()
     {
         if (account is null)
             return;
-        var target = account;
-        var format = context.Format;
-        var outcome = await context.Dialogs.ConfirmAsync(new(
-            format.F("Disconnect_Title", target.Label), format.T("Disconnect_Body"), format.T("Disconnect_Confirm"), Destructive: true,
-            BusyLabel: format.T("Disconnect_Busy"),
-            ConfirmAction: async token =>
-            {
-                var result = await context.Usage.ExecuteAsync(context.Command(UiCommandKind.Disconnect, target.Id), token);
-                return result.Status == CommandStatus.Succeeded ? null : format.T("Dialog_OperationFailed");
-            }));
-        context.Announcer.Announce(outcome == ConfirmOutcome.Confirmed ? format.F("Announce_Disconnected", target.Label) : format.T("Announce_Cancelled"));
+        var label = account.Label;
+        var result = await context.Usage.ExecuteAsync(context.Command(UiCommandKind.Disconnect, account.Id), CancellationToken.None);
+        context.Announcer.Announce(result.Status == CommandStatus.Succeeded
+            ? context.Format.F("Announce_SignedOut", label)
+            : context.Format.F("Announce_SignOutFailed", label));
     }
 }

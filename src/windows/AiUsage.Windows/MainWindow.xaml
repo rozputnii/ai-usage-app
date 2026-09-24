@@ -7,12 +7,15 @@
     xmlns:recovery="using:AiUsage.Features.Recovery"
     xmlns:shell="using:AiUsage.Features.Shell"
     xmlns:demo="using:AiUsage.Features.Demo"
+    xmlns:connection="using:AiUsage.Features.Connection"
+    xmlns:cli="using:AiUsage.Features.CliImport"
     xmlns:tray="using:H.NotifyIcon">
   <Grid x:Name="RootGrid" Background="{ThemeResource AppBgBrush}" AutomationProperties.AutomationId="AppRoot">
     <Grid.KeyboardAccelerators>
       <KeyboardAccelerator Key="Q" Modifiers="Control" Invoked="OnExitAccelerator" />
       <KeyboardAccelerator Key="F5" Invoked="OnRefreshAllAccelerator" />
       <KeyboardAccelerator Key="Left" Modifiers="Menu" Invoked="OnBackAccelerator" />
+      <KeyboardAccelerator Key="Escape" Invoked="OnEscapeAccelerator" />
     </Grid.KeyboardAccelerators>
 
     <tray:TaskbarIcon x:Name="TrayIcon" ToolTipText="{x:Bind Tray.ToolTip, Mode=OneWay}" NoLeftClickDelay="False"
@@ -74,46 +77,175 @@
               <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Header: top navigation and actions. Below 720 px the actions move under the navigation. -->
+            <!-- Header: no tabs. Back returns from settings, history or account detail; the actions stay on the right. -->
             <Border x:Name="HeaderHost" Margin="40,0,40,0" BorderBrush="{ThemeResource StrokeBrush}" BorderThickness="0,0,0,1">
-              <Grid x:Name="HeaderGrid" MinHeight="48" ColumnSpacing="22">
+              <Grid x:Name="HeaderGrid" MinHeight="50" ColumnSpacing="12" AutomationProperties.AutomationId="MainHeader">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*" />
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                  <RowDefinition Height="Auto" />
-                  <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <controls:WrapPanel x:Name="NavBar" HorizontalSpacing="22" VerticalAlignment="Bottom" AutomationProperties.AutomationId="MainNavigation" x:Uid="Nav_Main" XYFocusKeyboardNavigation="Enabled" controls:ArrowNavigation.Enabled="True"
-                                    TabFocusNavigation="Once">
-                  <RadioButton x:Uid="Nav_Overview" AutomationProperties.AutomationId="NavOverview" Tag="Overview" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
-                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 0), Mode=OneWay}" />
-                  <RadioButton x:Uid="Nav_Accounts" AutomationProperties.AutomationId="NavAccounts" Tag="Accounts" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
-                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 1), Mode=OneWay}" />
-                  <RadioButton controls:CapabilityGate.Key="ViewHistory" x:Uid="Nav_History" AutomationProperties.AutomationId="NavHistory" Tag="History" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
-                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 2), Mode=OneWay}" />
-                  <RadioButton x:Uid="Nav_Settings" AutomationProperties.AutomationId="NavSettings" Tag="Settings" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
-                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 3), Mode=OneWay}" />
-                  <RadioButton x:Uid="Nav_SystemStatus" AutomationProperties.AutomationId="NavSystemStatus" Tag="SystemStatus" GroupName="MainNav" Style="{StaticResource TabRadio}" Padding="0,14,0,14" Click="OnNavClick"
-                               IsChecked="{x:Bind controls:Bind.IsPage(Shell.CurrentPage, 4), Mode=OneWay}" />
-                </controls:WrapPanel>
-                <StackPanel x:Name="HeaderActions" Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="0,6,0,10">
-                  <Button AutomationProperties.AutomationId="RefreshAllButton" Style="{StaticResource SecondaryButton}" MinWidth="118"
+                <Button x:Uid="Header_Back" AutomationProperties.AutomationId="BackButton" Style="{StaticResource QuietLinkButton}" FontSize="13" Padding="2,4" VerticalAlignment="Center"
+                        Visibility="{x:Bind controls:Bind.Collapsed(Shell.IsOverview), Mode=OneWay}" Command="{x:Bind Shell.GoBackCommand}">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE72B;" FontSize="12" VerticalAlignment="Center" />
+                    <TextBlock x:Uid="Header_BackText" VerticalAlignment="Center" />
+                  </StackPanel>
+                </Button>
+                <StackPanel x:Name="HeaderActions" Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" HorizontalAlignment="Right" Padding="0,10">
+                  <Button x:Name="RefreshAllButton" AutomationProperties.AutomationId="RefreshAllButton" Style="{StaticResource SecondaryButton}" MinWidth="40"
                           Command="{x:Bind Shell.RefreshAllCommand}" AutomationProperties.Name="{x:Bind Shell.RefreshAllLabel, Mode=OneWay}"
                           ToolTipService.ToolTip="{x:Bind Shell.RefreshAllDisabledReason, Mode=OneWay}">
                     <StackPanel Orientation="Horizontal" Spacing="7">
                       <controls:RefreshGlyph IsSpinning="{x:Bind Shell.IsRefreshingAll, Mode=OneWay}" Foreground="{ThemeResource TextBrush}" VerticalAlignment="Center" />
-                      <TextBlock Text="{x:Bind Shell.RefreshAllLabel, Mode=OneWay}" />
+                      <TextBlock x:Name="RefreshAllText" Text="{x:Bind Shell.RefreshAllLabel, Mode=OneWay}" />
                     </StackPanel>
                   </Button>
-                  <Button x:Uid="Header_AddAccountButton" AutomationProperties.AutomationId="AddAccountButton" Style="{StaticResource PrimaryButton}" Command="{x:Bind Shell.AddAccountCommand}" />
+                  <!-- Add account: the provider menu opens on hover (and on click or keyboard); one provider click starts sign-in. -->
+                  <Button x:Name="AddAccountButton" x:Uid="Header_AddAccount" AutomationProperties.AutomationId="AddAccountButton" Style="{StaticResource PrimaryButton}"
+                          PointerEntered="OnAddAccountPointerEntered" Click="OnAddAccountClick">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock x:Uid="Header_AddAccountText" VerticalAlignment="Center" />
+                      <FontIcon Glyph="&#xE70D;" FontSize="10" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <FlyoutBase.AttachedFlyout>
+                      <Flyout x:Name="ProviderFlyout" Placement="BottomEdgeAlignedRight" Opened="OnProviderFlyoutOpened">
+                        <Flyout.FlyoutPresenterStyle>
+                          <Style TargetType="FlyoutPresenter">
+                            <Setter Property="Padding" Value="4" />
+                            <Setter Property="MinWidth" Value="0" />
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Background" Value="{ThemeResource CardBrush}" />
+                            <Setter Property="BorderBrush" Value="{ThemeResource Stroke2Brush}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                          </Style>
+                        </Flyout.FlyoutPresenterStyle>
+                        <StackPanel x:Name="ProviderMenu" Width="260" AutomationProperties.AutomationId="ProviderMenu" x:Uid="AddAccount_Menu" XYFocusKeyboardNavigation="Enabled">
+                          <ItemsRepeater ItemsSource="{x:Bind AddAccount.ProviderOptions}" AutomationProperties.AutomationId="ProviderOptions">
+                            <ItemsRepeater.ItemTemplate>
+                              <DataTemplate x:DataType="connection:ProviderOptionViewModel">
+                                <Button Style="{StaticResource MenuItemButton}" Click="OnProviderClick" Tag="{x:Bind}" IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                                        AutomationProperties.AutomationId="{x:Bind AutomationId}" AutomationProperties.Name="{x:Bind Name}" AutomationProperties.HelpText="{x:Bind Availability, Mode=OneWay}">
+                                  <Grid ColumnSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                      <ColumnDefinition Width="Auto" />
+                                      <ColumnDefinition Width="*" />
+                                      <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <controls:ProviderTile ProviderId="{x:Bind ProviderId}" TileSize="20" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{x:Bind Name}" Style="{StaticResource Body13Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="2" Text="{x:Bind Availability, Mode=OneWay}" Style="{StaticResource Caption11Text}" VerticalAlignment="Center"
+                                               Visibility="{x:Bind controls:Bind.Visible(HasAvailability), Mode=OneWay}" />
+                                  </Grid>
+                                </Button>
+                              </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                          </ItemsRepeater>
+                          <Border Style="{StaticResource HairlineRow}" Margin="0,4,0,0" Padding="0,4,0,0" Visibility="{x:Bind controls:Bind.Visible(AddAccount.CanImportFromCli), Mode=OneWay}">
+                            <Button x:Uid="AddAccount_ImportCli" AutomationProperties.AutomationId="AddImportCli" Style="{StaticResource MenuItemButton}" HorizontalContentAlignment="Left"
+                                    Click="OnImportCliClick" />
+                          </Border>
+                        </StackPanel>
+                      </Flyout>
+                    </FlyoutBase.AttachedFlyout>
+                  </Button>
+                  <Button x:Uid="Header_Settings" AutomationProperties.AutomationId="SettingsButton" Style="{StaticResource HeaderIconButton}" Command="{x:Bind Shell.ToggleSettingsCommand}"
+                          controls:Tokens.Background="{x:Bind SettingsBackground(Shell.IsSettings), Mode=OneWay}">
+                    <FontIcon Glyph="&#xE713;" FontSize="15" />
+                  </Button>
                 </StackPanel>
               </Grid>
             </Border>
 
-            <!-- Compatibility banner and Refresh-all result bar. -->
+            <!-- Inline sign-in status, CLI import, compatibility banner and Refresh-all result bar. -->
             <StackPanel x:Name="BannerHost" Grid.Row="1" Margin="40,0,40,0">
+              <Border AutomationProperties.AutomationId="ConnectionStrip" Margin="0,14,0,0" CornerRadius="6" BorderThickness="1" Padding="14,10"
+                      Visibility="{x:Bind controls:Bind.Visible(AddAccount.ShowStrip), Mode=OneWay}"
+                      controls:Tokens.Background="{x:Bind StripBackground(AddAccount.HasNote, AddAccount.NoteSeverity), Mode=OneWay}"
+                      controls:Tokens.Border="{x:Bind StripBorder(AddAccount.HasNote, AddAccount.NoteSeverity), Mode=OneWay}" controls:Motion.Entrance="True">
+                <StackPanel>
+                  <!-- Signing in: status, the device code to type in the browser, the optional manual code, Cancel. -->
+                  <Grid ColumnSpacing="12" Visibility="{x:Bind controls:Bind.Visible(AddAccount.IsActive), Mode=OneWay}">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <controls:ProviderTile ProviderId="{x:Bind ProviderIdOf(AddAccount.Provider), Mode=OneWay}" TileSize="22" VerticalAlignment="Top" />
+                    <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <controls:BusyRing Size="12" Visibility="{x:Bind controls:Bind.Visible(AddAccount.IsBusy), Mode=OneWay}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind AddAccount.StatusText, Mode=OneWay}" Style="{StaticResource Body13Text}" TextWrapping="Wrap" VerticalAlignment="Center"
+                                   AutomationProperties.AutomationId="ConnectStatus" AutomationProperties.LiveSetting="Polite" />
+                      </StackPanel>
+                      <StackPanel Orientation="Horizontal" Spacing="10" Visibility="{x:Bind controls:Bind.Visible(AddAccount.HasDeviceCode), Mode=OneWay}">
+                        <TextBlock Text="{x:Bind AddAccount.DeviceUserCode, Mode=OneWay}" AutomationProperties.AutomationId="DeviceUserCode" FontFamily="{StaticResource MonoFont}"
+                                   FontSize="20" FontWeight="SemiBold" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
+                        <Button x:Uid="Connect_CopyCode" AutomationProperties.AutomationId="CopyDeviceCode" Style="{StaticResource SmallSecondaryButton}" Click="OnCopyDeviceCode" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <Button x:Uid="Connect_EnterCode" AutomationProperties.AutomationId="EnterCodeInstead" Style="{StaticResource SmallLinkButton}" HorizontalAlignment="Left" Padding="0"
+                              Visibility="{x:Bind controls:Bind.Visible(AddAccount.CanEnterCode), Mode=OneWay}" Command="{x:Bind AddAccount.EnterCodeInsteadCommand}" />
+                      <StackPanel Spacing="4" Visibility="{x:Bind controls:Bind.Visible(AddAccount.IsCode), Mode=OneWay}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBox x:Name="CodeBox" AutomationProperties.AutomationId="ManualCode" AutomationProperties.Name="{x:Bind AddAccount.CodePrompt, Mode=OneWay}" Width="280"
+                                   Text="{x:Bind AddAccount.Code, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource MonoFont}" FontSize="14"
+                                   IsSpellCheckEnabled="False" IsTextPredictionEnabled="False" Background="{ThemeResource AppBgBrush}" Padding="10,5" CornerRadius="5" KeyDown="OnCodeKeyDown"
+                                   controls:Tokens.Border="{x:Bind CodeBorder(AddAccount.HasCodeError), Mode=OneWay}" />
+                          <Button x:Uid="Connect_SubmitCode" AutomationProperties.AutomationId="SubmitCode" Style="{StaticResource PrimaryButton}" Command="{x:Bind AddAccount.SubmitCodeCommand}" />
+                        </StackPanel>
+                        <TextBlock Text="{x:Bind AddAccount.CodeError, Mode=OneWay}" Style="{StaticResource ErrorText}" Visibility="{x:Bind controls:Bind.Visible(AddAccount.HasCodeError), Mode=OneWay}"
+                                   AutomationProperties.LiveSetting="Assertive" />
+                        <TextBlock x:Uid="Connect_CodeNeverStored" Style="{StaticResource Caption11Text}" />
+                      </StackPanel>
+                      <StackPanel Spacing="6" Visibility="{x:Bind controls:Bind.VisibleBoth(AddAccount.HasSimulator, AddAccount.IsWaiting), Mode=OneWay}">
+                        <Border Style="{StaticResource OutlineBadge}" Background="{ThemeResource Card2Brush}" BorderBrush="{ThemeResource StrokeBrush}" HorizontalAlignment="Left">
+                          <TextBlock x:Uid="Sim_Badge" Style="{StaticResource CaptionText}" FontWeight="SemiBold" />
+                        </Border>
+                        <ItemsControl ItemsSource="{x:Bind AddAccount.Simulators}" AutomationProperties.AutomationId="ConnectSimulators">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                              <controls:WrapPanel HorizontalSpacing="6" VerticalSpacing="6" />
+                            </ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="connection:SimulatorOption">
+                              <Button Style="{StaticResource SmallSecondaryButton}" Content="{x:Bind Label}" Click="OnSimulatorClick" Tag="{x:Bind}" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </StackPanel>
+                    <Button Grid.Column="2" x:Uid="Dialog_CancelButton" AutomationProperties.AutomationId="ConnectCancel" Style="{StaticResource SmallSecondaryButton}" VerticalAlignment="Top"
+                            Command="{x:Bind AddAccount.CancelCommand}" />
+                  </Grid>
+                  <!-- Outcome that needs attention: denied, expired, failed, already connected. Success shows nothing. -->
+                  <Grid ColumnSpacing="10" Visibility="{x:Bind controls:Bind.Visible(AddAccount.HasNote), Mode=OneWay}">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*" />
+                      <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{x:Bind AddAccount.Note, Mode=OneWay}" Style="{StaticResource Body13Text}" TextWrapping="Wrap" VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="ConnectNote" AutomationProperties.LiveSetting="Polite" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                      <Button x:Uid="Connect_TryAgain" AutomationProperties.AutomationId="ConnectRetry" Style="{StaticResource SmallSecondaryButton}" Command="{x:Bind AddAccount.RetryCommand}"
+                              Visibility="{x:Bind controls:Bind.Visible(AddAccount.CanRetry), Mode=OneWay}" />
+                      <Button x:Uid="RefreshAll_Dismiss" AutomationProperties.AutomationId="ConnectDismiss" Style="{StaticResource QuietLinkButton}" Command="{x:Bind AddAccount.DismissNoteCommand}" />
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+              </Border>
+              <Border AutomationProperties.AutomationId="CliImportPanel" Style="{StaticResource CardSurface}" Margin="0,14,0,0" Padding="16,12"
+                      Visibility="{x:Bind controls:Bind.Visible(AddAccount.IsCliOpen), Mode=OneWay}" controls:Motion.Entrance="True">
+                <StackPanel Spacing="8">
+                  <Grid>
+                    <TextBlock x:Uid="AddAccount_CliTitle" Style="{StaticResource Body13StrongText}" VerticalAlignment="Center" AutomationProperties.HeadingLevel="Level2" />
+                    <Button x:Uid="AddAccount_Close" AutomationProperties.AutomationId="CliImportClose" Style="{StaticResource GhostIconButton}" HorizontalAlignment="Right"
+                            Command="{x:Bind AddAccount.CloseCliImportCommand}">
+                      <TextBlock Text="✕" FontSize="12" />
+                    </Button>
+                  </Grid>
+                  <cli:CliImportView ViewModel="{x:Bind AddAccount.Cli}" CloseCommand="{x:Bind AddAccount.CloseCliImportCommand}" />
+                </StackPanel>
+              </Border>
               <Border AutomationProperties.AutomationId="CompatibilityBanner" Margin="0,14,0,0" CornerRadius="6" BorderThickness="1" Padding="14,10"
                       Visibility="{x:Bind controls:Bind.Visible(Shell.ShowCompatibilityBanner), Mode=OneWay}"
                       controls:Tokens.Background="{x:Bind BannerBackground(Shell.CompatibilityIsSecurity), Mode=OneWay}"

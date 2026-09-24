@@ -6,24 +6,23 @@ namespace AiUsage.Presentation.Tests;
 public sealed class OverviewTests
 {
     [Fact]
-    public async Task F01FirstRunShowsEmptyStateAndAddAccountCancelLeavesItEmpty()
+    public async Task F01FirstRunListsProvidersDirectlyAndCancelLeavesItEmpty()
     {
-        using var host = new TestHost("F01");
+        using var host = new TestHost("F01", autoDelays: false);
         var overview = host.Overview();
         Assert.True(overview.IsFirstRun);
         Assert.False(overview.HasRows);
         Assert.Empty(overview.Sections);
-        await overview.AddAccountCommand.ExecuteAsync(null);
-        Assert.Equal(AddAccountTab.SignIn, host.Dialogs.AddAccount.Single().Tab);
-
-        var sheet = host.AddAccount();
-        sheet.Open(host.Dialogs.AddAccount.Single());
-        Assert.True(sheet.IsPick);
-        sheet.CloseCommand.Execute(null);
+        var connect = overview.AddAccount;
+        Assert.Equal(["codex", "claude", "copilot", "antigravity"], connect.ProviderOptions.Select(p => p.ProviderId));
+        var running = connect.ConnectCommand.ExecuteAsync(connect.ProviderOptions[0]);
+        Assert.True(connect.IsConnecting);
+        connect.CancelCommand.Execute(null);
+        await host.Delays.Drain();
+        await running;
+        Assert.False(connect.ShowStrip);
         Assert.True(overview.IsFirstRun);
         Assert.Empty(host.Usage.Current.Accounts);
-        await overview.ImportFromCliCommand.ExecuteAsync(null);
-        Assert.Equal(AddAccountTab.ImportFromCli, host.Dialogs.AddAccount.Last().Tab);
     }
 
     [Fact]

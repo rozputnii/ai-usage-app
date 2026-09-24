@@ -26,9 +26,11 @@ public interface IClock
     Task Delay(TimeSpan duration, CancellationToken cancellationToken);
 }
 
-public enum PageKey { Overview, Accounts, History, Settings, SystemStatus }
+/// <summary>Overview is the single main view; the others open in its place from the header or an account row, without tabs.</summary>
+public enum PageKey { Overview, Accounts, History, Settings }
 
-public enum SettingsTab { Appearance, Monitoring, DataPrivacy, Updates }
+/// <summary>Sections of the single settings view, in display order.</summary>
+public enum SettingsTab { Appearance, Monitoring, DataPrivacy, Updates, SystemStatus }
 
 public sealed record NavigationRequest(PageKey Page, string? AccountId = null, SettingsTab? Tab = null, string? WindowId = null);
 
@@ -45,7 +47,6 @@ public interface IDialogService
 {
     /// <summary>Shows a confirmation; the returned task completes when the dialog closes.</summary>
     Task<ConfirmOutcome> ConfirmAsync(ConfirmRequest request);
-    Task ShowAddAccountAsync(AddAccountEntry entry);
     bool IsDialogOpen { get; }
 }
 
@@ -65,10 +66,6 @@ public sealed record ConfirmRequest(
     string? BusyLabel = null,
     Func<CancellationToken, Task<string?>>? ConfirmAction = null,
     Func<CancellationToken, Task<string?>>? AlternateAction = null);
-
-public enum AddAccountTab { SignIn, ImportFromCli }
-
-public sealed record AddAccountEntry(AddAccountTab Tab, string? ProviderId = null, string? ReconnectAccountId = null);
 
 public enum EffectiveTheme { Light, Dark }
 

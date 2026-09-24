@@ -30,9 +30,6 @@
   <data name="Account_PlanUnknown" xml:space="preserve">
     <value>Plan unknown</value>
   </data>
-  <data name="Accounts_EmptyAdd.Content" xml:space="preserve">
-    <value>Add account</value>
-  </data>
   <data name="Accounts_EmptyList.Text" xml:space="preserve">
     <value>No accounts.</value>
   </data>
@@ -87,18 +84,6 @@
   <data name="AddAccount_Close.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
     <value>Close</value>
   </data>
-  <data name="AddAccount_ReconnectTitle" xml:space="preserve">
-    <value>Reconnect</value>
-  </data>
-  <data name="AddAccount_TabCli.Content" xml:space="preserve">
-    <value>Import from CLI</value>
-  </data>
-  <data name="AddAccount_TabSignIn.Content" xml:space="preserve">
-    <value>Sign in</value>
-  </data>
-  <data name="AddAccount_Title" xml:space="preserve">
-    <value>Add account</value>
-  </data>
   <data name="Announce_AlwaysOnTopOff" xml:space="preserve">
     <value>Always on top off</value>
   </data>
@@ -140,9 +125,6 @@
   </data>
   <data name="Announce_DensityCompact" xml:space="preserve">
     <value>Density compact</value>
-  </data>
-  <data name="Announce_Disconnected" xml:space="preserve">
-    <value>{0} disconnected</value>
   </data>
   <data name="Announce_Expanded" xml:space="preserve">
     <value>{0} expanded</value>
@@ -423,14 +405,8 @@
   <data name="Compat_UpdatesButton.Content" xml:space="preserve">
     <value>Updates</value>
   </data>
-  <data name="Connect_Available" xml:space="preserve">
-    <value>Available</value>
-  </data>
   <data name="Connect_Cancelled" xml:space="preserve">
     <value>Cancelled. Nothing was changed.</value>
-  </data>
-  <data name="Connect_ChangeProvider.Content" xml:space="preserve">
-    <value>Change provider</value>
   </data>
   <data name="Connect_CodeError" xml:space="preserve">
     <value>Enter the full code shown by the provider (at least 8 characters).</value>
@@ -441,23 +417,8 @@
   <data name="Connect_CodePrompt" xml:space="preserve">
     <value>Enter the code shown by {0}</value>
   </data>
-  <data name="Connect_Connected" xml:space="preserve">
-    <value>Connected</value>
-  </data>
-  <data name="Connect_ConnectedBody" xml:space="preserve">
-    <value>{0} was added. First reading recorded.</value>
-  </data>
-  <data name="Connect_ConnectedNoQuota" xml:space="preserve">
-    <value>Connected · quota unavailable</value>
-  </data>
-  <data name="Connect_ConnectedNoQuotaBody" xml:space="preserve">
-    <value>The provider accepted the connection but reports no quota for this account. It stays listed as connected without measurements.</value>
-  </data>
   <data name="Connect_Connecting" xml:space="preserve">
     <value>Connecting to {0}…</value>
-  </data>
-  <data name="Connect_Continue" xml:space="preserve">
-    <value>Continue</value>
   </data>
   <data name="Connect_Denied" xml:space="preserve">
     <value>Authorization was denied. Nothing was changed.</value>
@@ -468,49 +429,25 @@
   <data name="Connect_DuplicateBodyGeneric" xml:space="preserve">
     <value>This identity is already connected. No duplicate was created.</value>
   </data>
-  <data name="Connect_DuplicateTitle" xml:space="preserve">
-    <value>Already connected</value>
-  </data>
   <data name="Connect_EnterCode.Content" xml:space="preserve">
     <value>Enter a code instead</value>
   </data>
   <data name="Connect_Expired" xml:space="preserve">
     <value>The authorization request expired. Try again when ready.</value>
   </data>
-  <data name="Connect_MethodLabel.Text" xml:space="preserve">
-    <value>Connection method</value>
-  </data>
   <data name="Connect_OpenAccount.Content" xml:space="preserve">
     <value>Open account</value>
-  </data>
-  <data name="Connect_PickHelp.Text" xml:space="preserve">
-    <value>Choose a provider. Planned providers are interactive here but unavailable in the live app until their connection method ships.</value>
   </data>
   <data name="Connect_Planned" xml:space="preserve">
     <value>Planned · demo only</value>
   </data>
-  <data name="Connect_PlannedNote.Text" xml:space="preserve">
-    <value>Planned connection · demo only, not a verified provider flow</value>
-  </data>
-  <data name="Connect_Reconnected" xml:space="preserve">
-    <value>Reconnected</value>
-  </data>
-  <data name="Connect_ReconnectedBody" xml:space="preserve">
-    <value>{0} keeps its label, order and history. Monitoring resumed.</value>
-  </data>
   <data name="Connect_SubmitCode.Content" xml:space="preserve">
     <value>Submit code</value>
-  </data>
-  <data name="Connect_Verifying.Text" xml:space="preserve">
-    <value>Verifying code…</value>
   </data>
   <data name="Connect_WaitingBody" xml:space="preserve">
     <value>Finish signing in to {0} in your browser. Nothing is connected until the provider confirms.</value>
   </data>
   <data name="Connect_WaitingTitle" xml:space="preserve">
-    <value>Waiting for authorization</value>
-  </data>
-  <data name="Connect_WaitingTitleText.Text" xml:space="preserve">
     <value>Waiting for authorization</value>
   </data>
   <data name="Connection_Connected" xml:space="preserve">
@@ -828,26 +765,11 @@
   <data name="Dialog_CancelButton.Content" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="Dialog_CloseButton.Content" xml:space="preserve">
-    <value>Close</value>
-  </data>
   <data name="Dialog_OperationFailed" xml:space="preserve">
     <value>The operation did not complete. Nothing else was changed.</value>
   </data>
   <data name="Dialog_TypeToConfirm" xml:space="preserve">
     <value>Type {0} to confirm</value>
-  </data>
-  <data name="Disconnect_Body" xml:space="preserve">
-    <value>Removes the locally stored credential and stops monitoring. It does not revoke access at the provider. Label, order and history are kept for reconnect.</value>
-  </data>
-  <data name="Disconnect_Busy" xml:space="preserve">
-    <value>Disconnecting…</value>
-  </data>
-  <data name="Disconnect_Confirm" xml:space="preserve">
-    <value>Disconnect</value>
-  </data>
-  <data name="Disconnect_Title" xml:space="preserve">
-    <value>Disconnect {0}?</value>
   </data>
   <data name="Display_NoteRemaining" xml:space="preserve">
     <value>Meters show what is left; thresholds are percentages remaining (default 25, 10 and 0).</value>
@@ -1028,9 +950,6 @@
   </data>
   <data name="Group_SummaryOneLowest" xml:space="preserve">
     <value>{0} window · lowest {1} {2}</value>
-  </data>
-  <data name="Header_AddAccountButton.Content" xml:space="preserve">
-    <value>Add account</value>
   </data>
   <data name="Header_RefreshAll" xml:space="preserve">
     <value>Refresh all</value>
@@ -1213,7 +1132,7 @@
     <value>Delete stored data…</value>
   </data>
   <data name="Menu_Disconnect" xml:space="preserve">
-    <value>Disconnect…</value>
+    <value>Sign out</value>
   </data>
   <data name="Menu_Disconnected" xml:space="preserve">
     <value>Disconnected</value>
@@ -1235,12 +1154,6 @@
   </data>
   <data name="Menu_UnmuteAlerts" xml:space="preserve">
     <value>Unmute alerts</value>
-  </data>
-  <data name="Method_BrowserSignIn" xml:space="preserve">
-    <value>Browser sign-in</value>
-  </data>
-  <data name="Method_ManualCode" xml:space="preserve">
-    <value>Manual code</value>
   </data>
   <data name="Monitoring_AccountOverrides.Text" xml:space="preserve">
     <value>Per-account and per-window overrides</value>
@@ -1308,24 +1221,6 @@
   <data name="Monitoring_WindowsNotifications.Text" xml:space="preserve">
     <value>Windows notifications</value>
   </data>
-  <data name="Nav_Accounts.Content" xml:space="preserve">
-    <value>Accounts</value>
-  </data>
-  <data name="Nav_History.Content" xml:space="preserve">
-    <value>History</value>
-  </data>
-  <data name="Nav_Main.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>Main</value>
-  </data>
-  <data name="Nav_Overview.Content" xml:space="preserve">
-    <value>Overview</value>
-  </data>
-  <data name="Nav_Settings.Content" xml:space="preserve">
-    <value>Settings</value>
-  </data>
-  <data name="Nav_SystemStatus.Content" xml:space="preserve">
-    <value>System Status</value>
-  </data>
   <data name="Operation_Disconnecting" xml:space="preserve">
     <value>Disconnecting</value>
   </data>
@@ -1373,9 +1268,6 @@
   </data>
   <data name="Overview_EmptyBody.Text" xml:space="preserve">
     <value>Connect a provider account to see remaining quota, resets and freshness. Nothing is collected until you connect.</value>
-  </data>
-  <data name="Overview_EmptyImport.Content" xml:space="preserve">
-    <value>Import from CLI…</value>
   </data>
   <data name="Overview_EmptyTitle.Text" xml:space="preserve">
     <value>No accounts yet</value>
@@ -1785,33 +1677,6 @@
   <data name="Scope_WindowType" xml:space="preserve">
     <value>window type</value>
   </data>
-  <data name="Settings_TabAppearance" xml:space="preserve">
-    <value>Appearance</value>
-  </data>
-  <data name="Settings_TabAppearanceButton.Content" xml:space="preserve">
-    <value>Appearance</value>
-  </data>
-  <data name="Settings_TabData" xml:space="preserve">
-    <value>Data &amp; privacy</value>
-  </data>
-  <data name="Settings_TabDataButton.Content" xml:space="preserve">
-    <value>Data &amp; privacy</value>
-  </data>
-  <data name="Settings_TabMonitoring" xml:space="preserve">
-    <value>Monitoring &amp; notifications</value>
-  </data>
-  <data name="Settings_TabMonitoringButton.Content" xml:space="preserve">
-    <value>Monitoring &amp; notifications</value>
-  </data>
-  <data name="Settings_TabsGroup.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve">
-    <value>Settings sections</value>
-  </data>
-  <data name="Settings_TabUpdates" xml:space="preserve">
-    <value>Updates</value>
-  </data>
-  <data name="Settings_TabUpdatesButton.Content" xml:space="preserve">
-    <value>Updates</value>
-  </data>
   <data name="Settings_Title.Text" xml:space="preserve">
     <value>Settings</value>
   </data>
@@ -1919,9 +1784,6 @@
   </data>
   <data name="Status_StorageLabel.Text" xml:space="preserve">
     <value>Storage</value>
-  </data>
-  <data name="Status_Title.Text" xml:space="preserve">
-    <value>System Status</value>
   </data>
   <data name="Status_UpdateLabel.Text" xml:space="preserve">
     <value>Update</value>
@@ -2192,10 +2054,7 @@
   <data name="Detail_LimitReason" xml:space="preserve"><value>Provider limit reason: {0}</value></data>
   <data name="Detail_GroupNotAllowed" xml:space="preserve"><value>Access not allowed for {0}, as reported by the provider.</value></data>
   <data name="Detail_GroupLimitReached" xml:space="preserve"><value>Provider reports a limit reached for {0}.</value></data>
-  <data name="Connect_PickHelpLive" xml:space="preserve"><value>Choose a provider to connect. This version supports one account per provider.</value></data>
-  <data name="Connect_ProviderSlotTitle" xml:space="preserve"><value>One account per provider</value></data>
-  <data name="Connect_ProviderSlotBody" xml:space="preserve"><value>This version supports one account per provider. Open the existing account and use Reconnect to sign in again, or Disconnect before connecting a different account. No browser sign-in was started.</value></data>
-  <data name="Connect_ProviderHelpDemo" xml:space="preserve"><value>Choose a provider. Planned providers are interactive here but unavailable in the live app until their connection method ships.</value></data>
+  <data name="Connect_ProviderSlotBody" xml:space="preserve"><value>This version supports one account per provider. Sign out of the existing account first, or use Sign in on its panel to sign in again. No browser sign-in was started.</value></data>
   <data name="Connect_DeviceInstructions" xml:space="preserve"><value>Enter this code at github.com/login/device in your browser. Authorize the OpenCode application used by this experimental OMP-compatible connection. Keep this window open; Cancel stops waiting.</value></data>
   <data name="Failure_InternalError" xml:space="preserve">
     <value>An internal app error prevented this operation. Restart AI Usage. If it happens again, report the issue.</value>
@@ -2248,4 +2107,31 @@
   <data name="RestoreLive_Body" xml:space="preserve"><value>Restore presentation preferences from checkpoint {0}? Current preferences will be replaced. Provider authorization records will remain unchanged.</value></data>
   <data name="RecoveryLive_Export.Content" xml:space="preserve"><value>Export diagnostics</value></data>
   <data name="RecoveryLive_Exported" xml:space="preserve"><value>Saved recovery-diagnostics.txt in the data folder. It contains recovery status only.</value></data>
+  <data name="Header_Back.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Back to usage</value></data>
+  <data name="Header_BackText.Text" xml:space="preserve"><value>Back</value></data>
+  <data name="Header_AddAccount.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Add account</value></data>
+  <data name="Header_AddAccountText.Text" xml:space="preserve"><value>Add account</value></data>
+  <data name="Header_Settings.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Settings</value></data>
+  <data name="Header_Settings.[using:Microsoft.UI.Xaml.Controls]ToolTipService.ToolTip" xml:space="preserve"><value>Settings</value></data>
+  <data name="AddAccount_Menu.[using:Microsoft.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Providers</value></data>
+  <data name="AddAccount_ImportCli.Content" xml:space="preserve"><value>Import from CLI…</value></data>
+  <data name="AddAccount_CliTitle.Text" xml:space="preserve"><value>Import from CLI</value></data>
+  <data name="Connect_OptionSigningIn" xml:space="preserve"><value>Signing in…</value></data>
+  <data name="Connect_OptionConnected" xml:space="preserve"><value>Connected</value></data>
+  <data name="Connect_OptionSignInAgain" xml:space="preserve"><value>Sign in again</value></data>
+  <data name="Connect_SignedIn" xml:space="preserve"><value>{0} connected</value></data>
+  <data name="Connect_VerifyingText" xml:space="preserve"><value>Verifying code…</value></data>
+  <data name="Connect_CopyCode.Content" xml:space="preserve"><value>Copy</value></data>
+  <data name="Connect_TryAgain.Content" xml:space="preserve"><value>Try again</value></data>
+  <data name="Announce_CodeCopied" xml:space="preserve"><value>Code copied</value></data>
+  <data name="Announce_SignedOut" xml:space="preserve"><value>Signed out of {0}. History is kept.</value></data>
+  <data name="Announce_SignOutFailed" xml:space="preserve"><value>Could not sign out of {0}. Try again.</value></data>
+  <data name="Row_SignOutName" xml:space="preserve"><value>Sign out of {0}</value></data>
+  <data name="Row_SignInName" xml:space="preserve"><value>Sign in to {0} again</value></data>
+  <data name="Row_SignIn.Content" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Settings_SectionAppearance.Text" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Settings_SectionMonitoring.Text" xml:space="preserve"><value>Monitoring &amp; notifications</value></data>
+  <data name="Settings_SectionData.Text" xml:space="preserve"><value>Data &amp; privacy</value></data>
+  <data name="Settings_SectionUpdates.Text" xml:space="preserve"><value>Updates</value></data>
+  <data name="Settings_SectionSystemStatus.Text" xml:space="preserve"><value>System status</value></data>
 </root>

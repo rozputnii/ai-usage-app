@@ -29,6 +29,12 @@ internal sealed partial class OverviewPage : Page
     }
 
     private Thickness Gutter(bool compact) => compact ? new Thickness(18, 0, 18, 18) : new Thickness(40, 0, 40, 24);
+
+    private void OnProviderClick(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).Tag is Connection.ProviderOptionViewModel option)
+            _ = ViewModel.AddAccount.ConnectCommand.ExecuteAsync(option);
+    }
     private string CriticalKey(bool critical) => critical ? "CritBrush" : "TextBrush";
 
     /// <summary>Four headline stats in one row; two per row below 720 px.</summary>

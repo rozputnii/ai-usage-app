@@ -89,6 +89,13 @@ public sealed class ShellAndTrayTests
         Assert.True(shell.CanGoBack);
         shell.GoBackCommand.Execute(null);
         Assert.Equal(PageKey.Overview, shell.CurrentPage);
+        Assert.False(shell.GoBackCommand.CanExecute(null));
+        // The header gear opens settings in place of the usage view and closes it again; no tabs are involved.
+        shell.ToggleSettingsCommand.Execute(null);
+        Assert.True(shell.IsSettings);
+        Assert.True(shell.GoBackCommand.CanExecute(null));
+        shell.ToggleSettingsCommand.Execute(null);
+        Assert.True(shell.IsOverview);
     }
 
     [Fact]

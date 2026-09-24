@@ -46,7 +46,7 @@ public sealed class ProviderCatalogTests
         var context = new PresentationContext(source, host.Dispatcher, host.Clock, host.Text,
             host.Announcer, host.Navigation, host.Dialogs, host.Motion, catalog);
         var flow = new LiveConnectionFlow(source, _ => { });
-        var add = new AddAccountViewModel(context, flow, new CliImportViewModel(context, host.Cli));
+        using var add = new AddAccountViewModel(context, flow, new CliImportViewModel(context, host.Cli));
         var option = Assert.Single(add.ProviderOptions, p => p.ProviderId == id);
         Assert.Equal("Fifth Provider", option.Name);
         Assert.Equal("★", option.Glyph);
@@ -54,12 +54,12 @@ public sealed class ProviderCatalogTests
         var demo = new DemoConnectionFlow(host.State, catalog);
         Assert.Equal("Synthetic brand", Assert.Single(demo.Providers, p => p.ProviderId == id).Name);
 
-        using var overview = new OverviewViewModel(context, host.History, host.Preferences);
+        using var overview = new OverviewViewModel(context, host.History, host.Preferences, add);
         var section = Assert.Single(overview.Sections);
         Assert.Equal("Synthetic brand", section.Name);
         Assert.Equal("★", section.Glyph);
         Assert.Contains("Synthetic brand", Assert.Single(section.Rows).AccessibleName);
-        using var accounts = new AccountsViewModel(context, host.History, host.Data, host.Preferences);
+        using var accounts = new AccountsViewModel(context, host.History, host.Data, host.Preferences, add);
         accounts.Select(id);
         Assert.Contains("Synthetic brand", Assert.Single(accounts.Items).AccessibleName);
         Assert.Equal("★", accounts.Detail.Glyph);

@@ -47,10 +47,18 @@ public sealed record ConnectionStage(ConnectionStageKind Kind, string? AccountId
 public interface IConnectionFlow
 {
     bool ManualCodeUsesActiveConnection => false;
+    /// <summary>True when each provider holds at most one account, so a connected provider cannot be added again.</summary>
+    bool SingleAccountPerProvider => false;
     bool TrySubmitCode(ConnectRequest request, string transientCode) => false;
     IReadOnlyList<ProviderDescriptor> Providers { get; }
 
     IAsyncEnumerable<ConnectionStage> ConnectAsync(ConnectRequest request, CancellationToken cancellationToken);
 
     IAsyncEnumerable<ConnectionStage> SubmitCodeAsync(ConnectRequest request, string transientCode, CancellationToken cancellationToken);
+}
+
+/// <summary>Starts the inline sign-in for an existing account (Reconnect) from a row or account detail.</summary>
+internal interface IAccountConnector
+{
+    Task ReconnectAsync(string providerId, string accountId);
 }

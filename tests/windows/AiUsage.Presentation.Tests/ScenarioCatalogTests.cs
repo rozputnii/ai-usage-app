@@ -125,13 +125,14 @@ public sealed class ScenarioCatalogTests
     public async Task ScenarioSwitchShowsSkeletonThenNavigatesToItsEntrySurface()
     {
         using var host = new TestHost(autoDelays: false);
+        var connect = host.AddAccount();
         var load = host.Controller.LoadScenarioAsync("F11");
         Assert.False(host.Usage.Current.Loaded);
         Assert.Equal(PageKey.Overview, host.Navigation.Current);
         await host.Delays.Drain();
         await load;
         Assert.True(host.Usage.Current.Loaded);
-        Assert.Equal(AiUsage.Features.Presentation.AddAccountTab.ImportFromCli, host.Dialogs.AddAccount.Single().Tab);
+        Assert.True(connect.IsCliOpen);
 
         var second = host.Controller.LoadScenarioAsync("F09");
         await host.Delays.Drain();

@@ -2,7 +2,7 @@ using AiUsage.Features.Presentation;
 
 namespace AiUsage.Features.Demo;
 
-public enum DemoEntrySurface { None, AddAccountSignIn, AddAccountCli }
+public enum DemoEntrySurface { None, AddAccountCli }
 
 /// <summary><paramref name="FixtureId"/> is the docs fixtures.json scenario the seed implements.</summary>
 public sealed record DemoScenario(string Id, string FixtureId, string Name, NavigationRequest Entry, DemoEntrySurface Surface = DemoEntrySurface.None);
@@ -21,14 +21,14 @@ internal static class DemoScenarioCatalog
         new("F02", "F02", "F02 Four providers, multiple accounts", new(PageKey.Overview)),
         new("F03", "F03", "F03 Measurement semantics", new(PageKey.Overview)),
         new("F04", "F04", "F04 Offline cache", new(PageKey.Overview)),
-        new("F05", "F05", "F05 Connection", new(PageKey.Overview), DemoEntrySurface.AddAccountSignIn),
+        new("F05", "F05", "F05 Connection", new(PageKey.Overview)),
         new("F06", "F06", "F06 Reauthentication and rate limit", new(PageKey.Overview)),
         new("F07", "F07", "F07 Contexts and shared pools", new(PageKey.Accounts, "demo-claude-1")),
         new("F08", "F08", "F08 Reset and native amounts", new(PageKey.Accounts, "demo-antigravity-1")),
         new("F09", "F09", "F09 History gaps and reset", new(PageKey.History, "demo-claude-1", WindowId: "cl-a-w1")),
         new("F10", "F10", "F10 Preferences", new(PageKey.Settings, Tab: SettingsTab.Monitoring)),
         new("F11", "F11", "F11 CLI discovery", new(PageKey.Overview), DemoEntrySurface.AddAccountCli),
-        new("F12", "F12", "F12 Diagnostics and data", new(PageKey.SystemStatus)),
+        new("F12", "F12", "F12 Diagnostics and data", new(PageKey.Settings, Tab: SettingsTab.SystemStatus)),
         new("F13a", "F13", "F13 Recovery · interrupted migration", new(PageKey.Overview)),
         new("F13b", "F13", "F13 Recovery · newer schema", new(PageKey.Overview)),
         new("F13c", "F13", "F13 Recovery · restore failed", new(PageKey.Overview)),
