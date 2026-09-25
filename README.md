@@ -119,6 +119,9 @@ partial setup must be inspected, not overwritten or rotated automatically.
 
 Once enabled, successful main-push validation publishes distinct development
 prereleases and deploys `https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`.
+The feed's package and Windows App SDK dependency are served from the same site: App
+Installer failed to fetch GitHub release downloads, which redirect to short-lived storage
+URLs (0x80072EFE). Releases keep their own immutable copies.
 Draft releases reserve versions before building; a failure consumes its version. The
 release queue retains up to 100 pending jobs. Only a candidate containing every prior
 published source can update the feed; a late older source may publish an artifact but
