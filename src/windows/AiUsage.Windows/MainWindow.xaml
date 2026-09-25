@@ -18,12 +18,9 @@
       <KeyboardAccelerator Key="Escape" Invoked="OnEscapeAccelerator" />
     </Grid.KeyboardAccelerators>
 
-    <tray:TaskbarIcon x:Name="TrayIcon" ToolTipText="{x:Bind Tray.ToolTip, Mode=OneWay}" NoLeftClickDelay="False"
+    <!-- Icon and tooltip are applied from code: the notification area can refuse an update, which must not end the app. -->
+    <tray:TaskbarIcon x:Name="TrayIcon" NoLeftClickDelay="False"
                       LeftClickCommand="{x:Bind Tray.ShowPopupCommand}" DoubleClickCommand="{x:Bind Tray.OpenDashboardCommand}">
-      <tray:TaskbarIcon.IconSource>
-        <tray:GeneratedIconSource x:Name="TrayGlyph" Text="AI" FontFamily="Segoe UI" FontSize="70" FontWeight="Bold"
-                                 Foreground="#C8684A" />
-      </tray:TaskbarIcon.IconSource>
       <tray:TaskbarIcon.ContextFlyout>
         <MenuFlyout>
           <MenuFlyoutItem x:Uid="Tray_MenuOpen" Command="{x:Bind Tray.OpenDashboardCommand}" />

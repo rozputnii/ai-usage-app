@@ -39,6 +39,7 @@ internal sealed partial class MainWindow : Window
     private bool pointerOverMenu;
     private bool reopenAfterClose;
     private bool finalClose;
+    private Color? trayColor;
 
     /// <summary>D-181: the compact usage view needs little room; effective pixels, wide enough to keep settings unstacked.</summary>
     private const int DefaultWidth = 760;
@@ -97,6 +98,8 @@ internal sealed partial class MainWindow : Window
         {
             if (e.PropertyName == nameof(TrayViewModel.WorstAttention))
                 UpdateTrayGlyph();
+            else if (e.PropertyName == nameof(TrayViewModel.ToolTip))
+                UpdateTrayToolTip();
         };
         densitySubscription = usage.Subscribe(snapshot => DispatcherQueue.TryEnqueue(() => AppLayout.Current.CompactDensity = snapshot.Preferences.Density == Density.Compact));
         AppLayout.Current.CompactDensity = usage.Current.Preferences.Density == Density.Compact;
@@ -106,6 +109,7 @@ internal sealed partial class MainWindow : Window
                 DispatcherQueue.TryEnqueue(() => CodeBox.Focus(FocusState.Programmatic));
         };
         UpdateTrayGlyph();
+        UpdateTrayToolTip();
         Closed += (_, _) => densitySubscription?.Dispose();
     }
 
@@ -345,17 +349,58 @@ internal sealed partial class MainWindow : Window
         source.SetRegionRects(NonClientRegionKind.Passthrough, [physical]);
     }
 
-    /// <summary>D9: the tray mark reflects the most urgent attention level; the tooltip names cause, account and freshness.</summary>
+    /// <summary>
+    /// D9: the tray mark reflects the most urgent attention level; the tooltip names cause, account and freshness.
+    /// The icon is drawn here, synchronously, and handed to the tray: changing a GeneratedIconSource in place makes
+    /// H.NotifyIcon redraw it in an async void handler, where any GDI+ or shell failure terminated the app.
+    /// </summary>
     private void UpdateTrayGlyph()
     {
-        TrayGlyph.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Tray.WorstAttention switch
+        var color = Tray.WorstAttention switch
         {
             AttentionLevel.ReauthRequired or AttentionLevel.Failure or AttentionLevel.Exhausted or AttentionLevel.Critical => Color.FromArgb(255, 0xB3, 0x30, 0x1E),
             AttentionLevel.Warning => Color.FromArgb(255, 0xE8, 0x81, 0x1C),
             AttentionLevel.Stale => Color.FromArgb(255, 0xB2, 0x5A, 0x00),
             _ => Color.FromArgb(255, 0xC8, 0x68, 0x4A),
-        });
+        };
+        if (trayColor == color)
+            return;
+        try
+        {
+            var glyph = new H.NotifyIcon.GeneratedIconSource
+            {
+                Text = "AI",
+                FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe UI"),
+                FontSize = 70,
+                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(color),
+            };
+            // The tray takes ownership and disposes the previous icon; a refused update keeps the old mark.
+            TrayIcon.Icon = glyph.ToIcon();
+            trayColor = color;
+        }
+        catch (Exception error) when (error is System.Runtime.InteropServices.ExternalException or InvalidOperationException or ArgumentException or OutOfMemoryException)
+        {
+            // GDI+ reports some drawing failures as OutOfMemoryException.
+            RecordTrayFailure(error);
+        }
     }
+
+    /// <summary>The shell can refuse a tooltip update (for example while Explorer is busy); the next change retries.</summary>
+    private void UpdateTrayToolTip()
+    {
+        try
+        {
+            TrayIcon.ToolTipText = Tray.ToolTip;
+        }
+        catch (Exception error) when (error is InvalidOperationException or System.Runtime.InteropServices.ExternalException)
+        {
+            RecordTrayFailure(error);
+        }
+    }
+
+    private void RecordTrayFailure(Exception error) =>
+        services.GetService<Composition.ApplicationDiagnostics>()?.TrayFailure(error);
 
     private void OnClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {

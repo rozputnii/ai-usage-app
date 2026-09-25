@@ -86,6 +86,16 @@ public sealed class LiveAdapterTests
         Assert.DoesNotContain(opaque, record);
     }
 
+    [Fact]
+    public void PlatformFailuresHaveTheirOwnCategoryAndIoKeepsItsCategory()
+    {
+        // Notification-area and GDI+ failures surface as COM or Win32 exceptions.
+        Assert.Equal(DiagnosticCategory.Platform, DiagnosticProjection.Category(new System.Runtime.InteropServices.COMException("x", unchecked((int)0x80040111))));
+        Assert.Equal(DiagnosticCategory.Platform, DiagnosticProjection.Category(new System.ComponentModel.Win32Exception(5)));
+        Assert.Equal(DiagnosticCategory.Io, DiagnosticProjection.Category(new IOException()));
+        Assert.Equal(DiagnosticCategory.Unexpected, DiagnosticProjection.Category(new Exception()));
+    }
+
     private sealed class DiagnosticCapture : IDiagnosticSink
     {
         public List<string> Records { get; } = [];

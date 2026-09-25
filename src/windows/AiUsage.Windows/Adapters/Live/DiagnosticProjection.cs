@@ -11,6 +11,8 @@ internal static class DiagnosticProjection
         System.Text.Json.JsonException or InvalidDataException => DiagnosticCategory.InvalidData,
         UnauthorizedAccessException => DiagnosticCategory.AccessDenied,
         IOException => DiagnosticCategory.Io,
+        // COM, Win32 and GDI+ failures from the desktop platform, such as the notification area.
+        System.Runtime.InteropServices.ExternalException => DiagnosticCategory.Platform,
         _ => DiagnosticCategory.Unexpected
     };
 }

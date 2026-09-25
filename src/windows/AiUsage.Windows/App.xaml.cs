@@ -24,7 +24,22 @@ public partial class App : Application
     private readonly ApplicationDiagnostics diagnostics = new();
     internal ProviderCatalog Providers { get; private set; } = ProviderCatalog.Default;
 
-    public App() => InitializeComponent();
+    public App()
+    {
+        InitializeComponent();
+        UnhandledException += OnUnhandledException;
+    }
+
+    /// <summary>
+    /// A fault that escapes to the dispatcher (for example a library's async void handler) is recorded as a fixed
+    /// event and category, and the dashboard keeps running: provider state is durable and journaled, so staying up is
+    /// safer for the user than terminating mid-sign-in. Faults the runtime treats as fatal still terminate.
+    /// </summary>
+    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        diagnostics.UnhandledFailure(e.Exception);
+        e.Handled = true;
+    }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {

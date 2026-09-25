@@ -16,10 +16,13 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink
         catch (Exception) { /* An unavailable state root must not prevent desktop startup or exit. */ }
     }
 
-    public void Register(IServiceCollection services) => services.AddSingleton<IDiagnosticSink>(this);
+    public void Register(IServiceCollection services) => services.AddSingleton(this).AddSingleton<IDiagnosticSink>(this);
     public void StartupFailure(Exception error) => Record(DiagnosticEvent.StartupFailure, DiagnosticProjection.Category(error));
     public void ShutdownFailure(Exception error) => Record(DiagnosticEvent.ShutdownFailure, DiagnosticProjection.Category(error));
     public void DisposalFailure(Exception error) => Record(DiagnosticEvent.DisposalFailure, DiagnosticProjection.Category(error));
+    public void TrayFailure(Exception error) => Record(DiagnosticEvent.TrayFailure, DiagnosticProjection.Category(error));
+    public void UnhandledFailure(Exception? error) => Record(DiagnosticEvent.UnhandledFailure,
+        error is null ? DiagnosticCategory.Unexpected : DiagnosticProjection.Category(error));
     public void Record(DiagnosticEvent eventCode, DiagnosticCategory category) => sink?.Record(eventCode, category);
 }
 
