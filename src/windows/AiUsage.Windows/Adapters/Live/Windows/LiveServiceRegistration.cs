@@ -62,6 +62,7 @@ internal static class LiveServiceRegistration
         services.AddSingleton<IRecoveryService>(p => p.GetRequiredService<LiveRecoveryService>());
         services.AddSingleton<IUpdateService>(p => p.GetRequiredService<UnavailableServices>());
         services.AddSingleton<INotificationPreview>(p => p.GetRequiredService<UnavailableServices>());
+        services.AddSingleton(p => new LiveAutoRefresh(p.GetRequiredService<LiveUsageSource>(), TimeProvider.System, p.GetRequiredService<IDiagnosticSink>()));
         services.AddSingleton<IProductLifecycle, ProductLifecycle>();
         return services;
     }

@@ -1,4 +1,3 @@
-using AiUsage.Core.Dashboard;
 using AiUsage.Core.History;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Presentation;
@@ -38,13 +37,6 @@ internal sealed partial class LiveUsageSource : IProviderHistorySource
     {
         await pending.WaitAsync(token).ConfigureAwait(false);
         return await GetHistoryAsync(id, range, token).ConfigureAwait(false);
-    }
-
-    private async Task<UiCommandResult> RunAfterHistoryAsync(Task pending, string id, AccountOperation operation,
-        Func<DashboardWorkflow, CancellationToken, Task<ProviderSessionState>> run, CancellationToken token)
-    {
-        await pending.WaitAsync(token).ConfigureAwait(false);
-        return await RunAsync(id, operation, run, token).ConfigureAwait(false);
     }
 
     private async Task<UiCommandResult> ExecuteHistoryAsync(string accountId, Entry entry, IProviderHistorySession session, HistoryRange range,

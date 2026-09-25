@@ -123,6 +123,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - depends_on: [AIU-004]
 - trigger: incremental
 - outcome: Implement threshold inheritance, hysteresis, deduplication, aggregated activation and power/network/sleep/lock behavior with targeted tests.
+- scope-note: The baseline five-minute automatic refresh, its backoff and age-based staleness moved to AIU-033; power, network, lock and provider-specific cadence remain here.
 
 ## AIU-013 - Diagnostics, portable Replace import and resets
 - goal: G-003
@@ -298,6 +299,17 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-032-dark-only-cleanup/verification.md
 - scope-note: Owner request, 2026-09-24, recorded as D-182. The account list beside account detail stays.
 - review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke including the tray rows, and interactive demo checks on 2026-09-24. Rendering under Windows light mode or a contrast theme and the packaged harnesses are NOT_RUN.
+
+## AIU-033 - Automatic quota refresh
+- goal: G-003
+- status: review
+- depends_on: [AIU-004]
+- trigger: owner-selected
+- outcome: Connected accounts are read again every five minutes with failure backoff, sign-in states are left to the user, and readings nobody renewed for 15 minutes show as stale.
+- specification: docs/specs/AIU-033-automatic-refresh/spec.md
+- evidence: docs/specs/AIU-033-automatic-refresh/verification.md
+- scope-note: Owner request, 2026-09-25, after a Codex limit reset stayed invisible for hours. Minimal slice of D-099 split from AIU-012.
+- review-note: Deterministic tests and an empty-state Release run pass. Automatic refresh of a real account in the installed package is NOT_RUN.
 
 ## Deferred clarifications, not forgotten
 

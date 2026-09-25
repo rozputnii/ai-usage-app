@@ -107,6 +107,35 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
             results.All(r => r.Status == CommandStatus.Succeeded) ? UiCommandResult.Succeeded : UiCommandResult.Failed();
     }
 
+    /// <summary>
+    /// D-099 automatic refresh of one connected account. It never interrupts or queues behind another operation on the
+    /// account and publishes no Refresh all summary; an operation the user starts meanwhile runs after it.
+    /// </summary>
+    internal Task<UiCommandResult> RefreshInBackgroundAsync(string id)
+    {
+        lock (sync)
+        {
+            if (stopped || maintenanceBlocked || !current.Loaded || !entries.TryGetValue(id, out var entry) || !entry.Session.HasStoredGrant ||
+                entry.Pending is { IsCompleted: false } || !QuotaRules.IsAvailable(current, nameof(UiCommandKind.RefreshAccount), id))
+                return Task.FromResult(UiCommandResult.Conflict);
+            return entry.Background = RunAsync(id, AccountOperation.Refreshing, (workflow, token) => workflow.RefreshAsync(token), CancellationToken.None);
+        }
+    }
+
+    /// <summary>A reading nobody renewed within <paramref name="maximumAge"/> stops presenting as fresh until the next one arrives.</summary>
+    internal void ExpireReadings(DateTimeOffset now, TimeSpan maximumAge)
+    {
+        Notification notification;
+        lock (sync)
+        {
+            if (stopped || !current.Accounts.Any(IsAged)) return;
+            notification = Publish(current with { Accounts = current.Accounts.Select(a => IsAged(a) ? a with { Freshness = Freshness.Stale } : a).ToArray() });
+        }
+        notification.Deliver();
+
+        bool IsAged(AccountItem account) => account.Freshness == Freshness.Fresh && account.FetchedAt is { } fetched && now - fetched >= maximumAge;
+    }
+
     internal Task<UiCommandResult> ConnectAsync(string id, Action<Uri> openBrowser, CancellationToken token) =>
         RunAsync(id, AccountOperation.Loading, (workflow, ct) => workflow.ConnectAsync(openBrowser, ct), token);
     internal Task<UiCommandResult> ConnectWithChallengeAsync(string id, Action<AuthorizationChallenge> authorize, CancellationToken token) =>
@@ -127,12 +156,22 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
             if (entry.HistoryActive && entry.Pending is { IsCompleted: false } history)
             {
                 entry.Cancellation?.Cancel();
-                return RunAfterHistoryAsync(history, id, operation, run, token);
+                return RunAfterAsync(history, id, operation, run, token);
             }
+            // A background refresh is not cancelled, since it may be rotating the grant; this operation runs after it.
+            if (entry.Pending is { IsCompleted: false } background && ReferenceEquals(background, entry.Background))
+                return RunAfterAsync(background, id, operation, run, token);
             if (entry.Pending is { IsCompleted: false }) return Task.FromResult(UiCommandResult.Conflict);
             entry.Cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
             return entry.Pending = ExecuteCoreAsync(id, entry, operation, run, entry.Cancellation);
         }
+    }
+
+    private async Task<UiCommandResult> RunAfterAsync(Task pending, string id, AccountOperation operation,
+        Func<DashboardWorkflow, CancellationToken, Task<ProviderSessionState>> run, CancellationToken token)
+    {
+        await pending.WaitAsync(token).ConfigureAwait(false);
+        return await RunAsync(id, operation, run, token).ConfigureAwait(false);
     }
 
     private async Task<UiCommandResult> ExecuteCoreAsync(string id, Entry entry, AccountOperation operation,
@@ -270,6 +309,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         public DashboardWorkflow Workflow { get; } = new(session);
         public CancellationTokenSource? Cancellation { get; set; }
         public Task<UiCommandResult>? Pending { get; set; }
+        public Task<UiCommandResult>? Background { get; set; }
         public bool WasConnected { get; set; }
         public bool HistoryActive { get; set; }
         public AiUsage.Core.History.HistoryRange? HistoryRange { get; set; }

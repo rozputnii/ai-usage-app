@@ -8,8 +8,10 @@ internal sealed class ProductLifecycle : IProductLifecycle
     private readonly LiveUsageSource usage;
     private readonly LivePreferenceStore preferences;
     private readonly LiveRecoveryService? recovery;
-    public ProductLifecycle(LiveUsageSource usage, LivePreferenceStore preferences, LiveRecoveryService? recovery = null)
-    { this.usage = usage; this.preferences = preferences; this.recovery = recovery; }
+    private readonly LiveAutoRefresh? autoRefresh;
+    public ProductLifecycle(LiveUsageSource usage, LivePreferenceStore preferences, LiveRecoveryService? recovery = null,
+        LiveAutoRefresh? autoRefresh = null)
+    { this.usage = usage; this.preferences = preferences; this.recovery = recovery; this.autoRefresh = autoRefresh; }
     private readonly object sync = new();
     private Task? initialization;
     private Task? stopping;
@@ -28,6 +30,8 @@ internal sealed class ProductLifecycle : IProductLifecycle
     {
         await preferences.LoadAsync(CancellationToken.None);
         await usage.InitializeAsync();
+        // The initial load already read every account; automatic refresh starts from there.
+        autoRefresh?.Start();
     }
     public Task StopAsync()
     {
@@ -35,6 +39,7 @@ internal sealed class ProductLifecycle : IProductLifecycle
     }
     private async Task StopCoreAsync()
     {
+        autoRefresh?.Dispose();
         var maintenanceStopping = recovery?.StopAsync();
         await Task.Yield();
         await usage.StopAsync();
