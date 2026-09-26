@@ -4,7 +4,7 @@ type: spec
 status: approved
 goal: G-003
 scope_version: 1
-approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis.
+approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis. Owner amendment, 2026-09-26: the agent split for the follow-up implementation items is recorded in the Closing proposal.
 ---
 # AIU-034 - Limit data audit and budget-aware single-window design brief
 
@@ -234,6 +234,23 @@ selected result is imported into the repository as in the
 After Gate B, propose follow-up backlog items with outcomes and acceptance criteria, such as the
 Core budget engine, provider parser extensions and the redesign implementation. They name the
 parts of D-180 and D-181 they supersede. None of them is selected automatically.
+
+Owner direction, 2026-09-26, on how the follow-up implementation work is split between
+agents. Each proposed task title carries the recommended agent tag, as in Phase A.
+
+- **`[opus]` (Claude Code, Opus 5.5)** builds the interface from the imported Claude Design
+  result:
+  - XAML views and controls, and design tokens and styles;
+  - view models with their bindings, commands and inline states;
+  - the presentation contract (the view-model data shape), exercised with demo data.
+- **`[astra]` (ChatGPT Codex, GPT-6 Astra)** connects the backend to that interface:
+  - the Core budget engine and the provider parser extensions, following the Phase A model;
+  - persistence and migrations;
+  - the live adapters that feed the presentation contract.
+
+  Astra also runs interactive Windows checks and independent detail reviews.
+- A change to the presentation contract is agreed between the two tasks. It is never changed
+  silently from either side.
 
 ## Boundaries
 
