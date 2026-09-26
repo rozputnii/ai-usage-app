@@ -509,6 +509,6 @@ tasks extend.
 
 ## Handoff
 
-The Phase A plan is written and agents are assigned. It awaits the owner's approval.
+The owner approved this plan and the agent assignment on 2026-09-26.
 
-Next action, after approval: an `[astra]` session runs T-01 Step 1.
+Next action: an `[astra]` session runs T-01 Step 1.
