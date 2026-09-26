@@ -107,3 +107,26 @@ established history transport compatible with the existing AI Usage grant. Histo
 returns Unsupported without additional requests or authorization. This is a limitation of
 the verified integration, not proof that the provider has no history. No live history check
 was performed. See [research](../specs/AIU-011-provider-history/research.md).
+
+## Limit data audit (AIU-034)
+
+- provider: antigravity
+- source_verified_at: 2026-09-26
+- live_verified_at: null
+- classification: quota undocumented internal summary and official plan/UI descriptions; authentication restriction unchanged
+- confidence: high for source fields; amount unit, paid live coverage and credit transport unresolved
+- sources: [AIU-034 A1-A6](../specs/AIU-034-limit-audit-design-brief/research.md#antigravity-sources-read-2026-09-26)
+
+The pinned OMP summary adapter itself assigns `remainingAmount` an unknown unit. No inspected
+official source establishes a credit/token/request meaning. AI Usage retains it separately
+from remainingFraction and must not recover a denominator by division.
+
+Current official plans distinguish weekly Free baseline from Pro/Ultra five-hour plus weekly
+limits. Overage uses purchased or promotional AI credits; Google One exposes activity/balance
+and acquisition-dependent expiry. Monthly Flow credits belong to another product and are not
+evidence of an Antigravity monthly allotment. The documented CLI credit panel supplies no
+reusable HTTP contract. No CLI or provider call was executed for this audit.
+
+The [matrix and LC-18 through LC-21](../specs/AIU-034-limit-audit-design-brief/research.md)
+preserve these gaps. A moving reset on the previously observed untouched Free bucket remains
+a warning against inferring period start or paid-plan behavior. No new live evidence is claimed.

@@ -264,10 +264,10 @@ tasks extend.
 - [x] **Step 6:** Commit "AIU-034 Phase A: Copilot limit audit" and push.
 
 ### T-05 - [astra] Antigravity audit
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-01, AC-02
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` sections 3, 4, 10 and 12 (Antigravity rows)
@@ -278,16 +278,16 @@ tasks extend.
 - The current quota parser.
 - Official Antigravity and Google AI plan pages for Free, Pro and Ultra limits and AI credits.
 
-- [ ] **Step 1:** A-1 per plan: the five-hour and weekly model-group fractions, the
+- [x] **Step 1:** A-1 per plan: the five-hour and weekly model-group fractions, the
   `remainingAmount` value, and the AI credits pool.
-- [ ] **Step 2:** A-2 field rows, as in T-02 Step 2.
-- [ ] **Step 3:** A-3: the unit of `remainingAmount` and the AI credits source. For each unknown,
+- [x] **Step 2:** A-2 field rows, as in T-02 Step 2.
+- [x] **Step 3:** A-3: the unit of `remainingAmount` and the AI credits source. For each unknown,
   write the closing live check.
-- [ ] **Step 4:** Append the provider-record section, as in T-02 Step 4.
-- [ ] **Step 5 (check):**
+- [x] **Step 4:** Append the provider-record section, as in T-02 Step 4.
+- [x] **Step 5 (check):**
   - `remainingAmount` stays "unit unknown" unless a source establishes the unit;
   - the validator and `git diff --check` pass.
-- [ ] **Step 6:** Commit "AIU-034 Phase A: Antigravity limit audit" and push.
+- [x] **Step 6:** Commit "AIU-034 Phase A: Antigravity limit audit" and push.
 
 ### T-06 - [astra] Live checks with owner authorization
 - status: pending
@@ -509,8 +509,8 @@ tasks extend.
 
 ## Handoff
 
-Completed: T-01 through T-04; primary integrated source/acceptance review PASS. Base: 27564d8. No worker artifacts. Live checks NOT_RUN until separately authorized in T-06.
+Completed: T-01 through T-05; primary integrated source/acceptance review PASS. Base: 27564d8. No worker artifacts. All live checks NOT_RUN; no account request, sign-in or source CLI credential read occurred.
 
-Next action: T-05 [astra] Step 1, inspect Antigravity pinned quota source and official credit/plan pages.
+Next action: T-06 [astra] Step 1, finalize the LC-01 through LC-21 check list and request separate owner authorization for each check.
 
 Checks: validator --json valid=true and git diff --check PASS on 2026-09-26. T-01 evidence-reference correction recorded in verification.md.

@@ -42,3 +42,7 @@ PASS: Codex matrix, G-CX-1 through G-CX-4, O1-O8 and provider append reviewed. O
 ## T-04 - 2026-09-26
 
 PASS: Copilot matrix, G-GH-1 through G-GH-4, G1-G7 and provider record reviewed. Explicit unlimited remains distinct from unknown; current credit billing differs from legacy annual premium requests; Free live evidence is not generalized. Parser date normalization distinguished from documented UTC monthly reset. Validator --json valid=true and diff check exit 0. LC-12 through LC-17 NOT_RUN; no authenticated request.
+
+## T-05 - 2026-09-26
+
+PASS: Antigravity plan/field matrix, G-AG-1 through G-AG-4, A1-A6 and provider append reviewed. remainingAmount remains unit unknown; source credit UI distinguished from reusable transport and monthly Flow credits. No Free-to-paid generalization. Validator --json valid=true and diff check exit 0. LC-18 through LC-21 NOT_RUN; no CLI credential read, provisioning or provider request.

@@ -352,7 +352,83 @@ instant. Current parser accepts both and loses original precision. G5 establishe
 instant for legacy premium-request reset; G3/G4 establish it for AI credits. Neither proves
 all future internal pools share the same clock.
 
+### Antigravity (T-05)
+
+`provider: antigravity`; `source_verified_at: 2026-09-26`; `live_verified_at: null`.
+Quota classification: undocumented internal summary and official product/UI documentation;
+confidence high for observed source fields and unknown-unit treatment, unknown for paid-plan
+live payload coverage or credit transport. Authentication/client reuse remains explicitly
+restricted by the provider (A6); the audit does not change that boundary.
+
+| Family | Free | Pro | Ultra | Native unit / period; sources |
+| --- | --- | --- | --- | --- |
+| AG-5 model-group five-hour | Not documented as included on Free | Baseline refresh every five hours until weekly cap | Baseline refresh every five hours | Fraction remaining normalized to percent; token `5h`, returned reset instant. Exact activation/rolling clock not publicly established by plan wording alone. A1/A2. |
+| AG-W model-group weekly | Baseline refresh weekly | Weekly cap | Higher weekly cap | Fraction remaining normalized to percent; `weekly`/`week`/`7d`, provider reset. Preserve actual group membership, never split shared third-party group by vendor. A1/A2. |
+| AG-R bucket `remainingAmount` | Conditional parser support | Conditional parser support | Conditional parser support | Number/string with **unit unknown**; bucket's window/reset are metadata, not proof of a separately replenished credit pool. A1. |
+| AG-C AI-credit overage balance | Availability not established by plan docs | Purchased or promotional AI credits | Purchased or promotional AI credits | AI credits, possibly shared across products/family. Purchase/offer expiry, no universal monthly allocation established for Antigravity. A2/A3/A4. |
+| AG-T Tab completions | Unlimited | Unlimited | Unlimited | Completion count; official entitlement, no corresponding summary counter established. A2. |
+
+Google AI Pro/Ultra benefit pages confirm extra usage through AI credits. The separate Flow
+page describes monthly **Flow** credits and billing-cycle refresh; it cannot establish an
+Antigravity allotment (A4/A5). The CLI credits panel is documented as showing balance and
+current-cycle consumption; no callable HTTP transport or period-start/reset schema is given.
+No CLI was run and no CLI credential store was read.
+
+| Family / field | Free | Pro | Ultra | Field / qualification |
+| --- | --- | --- | --- | --- |
+| AG-5 / used | unavailable/source | parsed/source | parsed/source | 100 minus valid remainingFraction*100; Free entitlement not established. |
+| AG-W / used | parsed/source | parsed/source | parsed/source | Same percentage derivation, per group. |
+| AG-5 / limit | unavailable/source | unavailable/source | unavailable/source | No absolute entitlement; normalized 100% only. |
+| AG-W / limit | unavailable/source | unavailable/source | unavailable/source | No absolute entitlement. |
+| AG-5 / remaining | unavailable/source | parsed/source | parsed/source | `remainingFraction`; actual paid-plan response presence unverified. |
+| AG-W / remaining | parsed/source | parsed/source | parsed/source | `remainingFraction`; missing means unknown. |
+| AG-5, AG-W / period start | unavailable/source | unavailable/source | unavailable/source | No start; reset-minus-duration is inference. |
+| AG-5 / period end or reset | unavailable/source | parsed/source | parsed/source | `resetTime`; parser UTC assumption for zone-less text is not provider proof. |
+| AG-W / period end or reset | parsed/source | parsed/source | parsed/source | `resetTime`; untouched Free bucket previously showed moving reset, not stable period proof. |
+| AG-5, AG-W / currency | unavailable/source | unavailable/source | unavailable/source | Percentages; inapplicable. |
+| AG-5, AG-W / exponent | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
+| AG-R / used | unavailable/source | unavailable/source | unavailable/source | Not supplied in inspected summary. |
+| AG-R / limit | unavailable/source | unavailable/source | unavailable/source | No denominator; do not infer using fraction. |
+| AG-R / remaining | parsed/source | parsed/source | parsed/source | `remainingAmount`; unknown unit, independently retained. |
+| AG-R / period start | unavailable/source | unavailable/source | unavailable/source | No field. |
+| AG-R / period end or reset | parsed/source | parsed/source | parsed/source | Bucket `resetTime` retained; applicability to amount remains unknown. |
+| AG-R / currency | unknown/none | unknown/none | unknown/none | Unit unknown; no currency field. |
+| AG-R / exponent | unknown/none | unknown/none | unknown/none | No exponent field. |
+| AG-C / used | unknown/none | provider-ui/source | provider-ui/source | Credit activity/consumption UI; not current quota summary. |
+| AG-C / limit | unknown/none | unknown/none | unknown/none | Recurring Antigravity allotment not established. |
+| AG-C / remaining | unknown/none | provider-ui/source | provider-ui/source | Google One AI credits activity / provider credits UI. |
+| AG-C / period start | unknown/none | unknown/none | unknown/none | Billing-cycle summary wording not an exact start; mixed purchase lots possible. |
+| AG-C / period end or reset | unknown/none | provider-ui/source | provider-ui/source | Acquisition-dependent expiry information, not an established recurring reset. |
+| AG-C / currency | unknown/none | unavailable/source | unavailable/source | Credit-native; not currency and not remainingAmount. |
+| AG-C / exponent | unknown/none | unavailable/source | unavailable/source | Credit quantity, not money exponent. |
+| AG-T / used | unavailable/source | unavailable/source | unavailable/source | No counter established. |
+| AG-T / limit | provider-ui/source | provider-ui/source | provider-ui/source | Official unlimited entitlement; no numeric limit. |
+| AG-T / remaining | unavailable/source | unavailable/source | unavailable/source | Unlimited does not have a finite remainder. |
+| AG-T / period start | unavailable/source | unavailable/source | unavailable/source | No quota period for this entitlement. |
+| AG-T / period end or reset | unavailable/source | unavailable/source | unavailable/source | No reset established. |
+| AG-T / currency | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
+| AG-T / exponent | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
+
 ## 4. Gap dispositions
+
+### Antigravity
+
+- **G-AG-1:** `remainingAmount` stays unit unknown. A1's `buildQuotaSummaryAmount` expressly
+  returns `unit: unknown`; it does not establish credits, tokens or requests. LC-18–20 may
+  show an explicit unit label; LC-21 can compare only the existing app projection. If no
+  labeled same-bucket correspondence exists, the gap remains unknown; numerical coincidence
+  is not unit proof.
+- **G-AG-2:** overage AI credits exist in official UI, but no existing-grant credit endpoint
+  is established. The pinned summary contains neither a credit balance nor an allotment
+  schema. LC-19/20 inspect Google One activity and the provider's displayed credit period;
+  they cannot establish an OAuth transport. Purchased-credit expiry is not monthly refill.
+- **G-AG-3:** actual paid-plan groups and reset behavior remain unobserved. Prior Free weekly
+  evidence (2026-09-20) does not validate Pro/Ultra five-hour windows, AI credits or model
+  eligibility. Its moving untouched reset prevents blindly deriving a period start. LC-18–21
+  record displayed/reset semantics without generating usage or waiting for induced exhaustion.
+- **G-AG-4:** any generic calendar-month personal-budget fallback must be labelled assumed,
+  and must not claim that a purchased balance replenishes. A5's monthly Flow allowance is
+  explicitly outside this provider pool. Carry this evidence into T-07/T-09.
 
 ### Copilot
 
@@ -462,6 +538,10 @@ does not expose it; such a result leaves the transport gap open.
 | LC-15 | Copilot Business, provider authorized usage/billing UI | Shared entity pool versus member budget and reset; G-GH-2/3/4 | Work-account permission and existing role; no admin mutation or new role | NOT_RUN |
 | LC-16 | One selected Copilot plan, existing AI Usage connection | Parsed request pools, flags and reset versus that UI; G-GH-1/3 | Private grant read/possible renewal; no new scope; cannot prove dropped credit fields absent | NOT_RUN |
 | LC-17 | Personally paid Pro or Pro+, existing AI Usage history | Bounded one-day AI-credit and premium report eligibility/unit/period; G-GH-2 | Current grant only, at most existing identity check and two reports; stop on denial, no PAT | NOT_RUN |
+| LC-18 | Antigravity Free, provider read-only quota UI | Weekly group/reset labels, any explicit amount unit; G-AG-1/3 | Owner opens already signed-in surface; no onboarding or settings | NOT_RUN |
+| LC-19 | Antigravity Pro, provider quota UI and Google One AI-credit activity | Five-hour/weekly labels, credit unit/expiry versus included allowance; G-AG-1/2/3 | Private credit/family data; no purchases, overage toggles or terms | NOT_RUN |
+| LC-20 | Antigravity Ultra, same provider surfaces | Same for selected Ultra tier; separate plan proof; G-AG-1/2/3 | Same read-only boundary; no activity details or identities retained | NOT_RUN |
+| LC-21 | One selected Antigravity plan, already provisioned existing AI Usage connection | Parsed groups/reset and unknown amount presence; G-AG-1/3 | Explicit provider third-party restriction/account risk; no reconnect, provisioning or client change; renewal may rotate grant | NOT_RUN |
 
 ## 11. Pending owner decisions
 
@@ -531,3 +611,19 @@ will be added by T-02 to T-05. Historical context:
 - G7: [License changes and reset independence](https://docs.github.com/en/copilot/reference/copilot-billing/license-changes).
   Historical Free observation and HTTP 404 attempts remain in [Copilot record](../../providers/copilot.md)
   and [AIU-011 verification](../AIU-011-provider-history/verification.md).
+
+### Antigravity sources (read 2026-09-26)
+
+- A1: [OMP pinned summary adapter](https://github.com/can1357/oh-my-pi/blob/78b753124d11f8dd3ae73e2524125890ff7c977e/packages/ai/src/usage/google-antigravity.ts),
+  `AntigravityQuotaSummaryBucket`, `classifyWindow`, `buildQuotaSummaryAmount`,
+  `buildQuotaSummaryReport`, `fetchAntigravityUsage`. Current parser in section 2 differs
+  deliberately from OMP legacy inference and duplicated ranking groups.
+- A2: [Antigravity plans](https://antigravity.google/docs/plans).
+- A3: [Google One AI credits and activity](https://support.google.com/googleone/answer/16287445?hl=en),
+  [provider credits panel](https://antigravity.google/docs/cli/commands/credits),
+  [provider credit guide](https://antigravity.google/docs/cli/credits).
+- A4: [Google AI Pro benefits](https://support.google.com/googleone/answer/14534406?hl=en),
+  [Ultra benefits](https://support.google.com/googleone/answer/16286513?hl=en).
+- A5: [Flow credit scope and refresh](https://support.google.com/flow/answer/16526234?hl=en),
+  inspected only to prevent importing another product's allotment.
+- A6: [Antigravity FAQ restriction](https://antigravity.google/docs/faq).
