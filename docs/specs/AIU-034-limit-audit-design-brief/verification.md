@@ -119,3 +119,20 @@ forms in the four changed Markdown files. No screenshots/captures or account val
 staged. Validator `--json` returned `valid: true` with no diagnostics, and `git diff --check`
 passed. UI/source separation and the new provider-record link were reviewed. Product tests
 NOT_RUN because this checkpoint changes documentation only.
+
+## T-06 Chrome retry - 2026-09-26
+
+Base 62b5e2f, same Windows/Chrome session; owner explicitly requested another attempt.
+Navigation to `https://chatgpt.com/codex/settings/usage` was submitted through the existing
+Chrome tab. Window inventory subsequently reported ChatGPT. Reading the page timed out
+with `computer-use request timed out: get_window_state`, including one text-capture retry
+after window reselection and a screenshot-only capture. No ChatGPT plan or quota content
+was observed, so LC-06/07 stay NOT_RUN with plan selection BLOCKED. LC-22 stays BLOCKED;
+LC-01 remains the already completed UI observation. No new provider live date or matrix
+evidence is added. No authentication or provider-state mutation occurred. Any transient
+new-tab screen observation was not saved to the repository.
+
+Retry checkpoint checks PASS: validator `--json` returned `valid: true` without diagnostics;
+`git diff --check` passed; added-line secret/personal-data scan returned zero matches.
+Primary review confirmed the two changed Markdown files contain only the blocker and
+handoff update, without private values or captures. Product tests NOT_RUN (documents only).
