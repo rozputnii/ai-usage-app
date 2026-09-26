@@ -4,7 +4,8 @@
 
 Subscription-attached limits only: Claude Pro, Max, Team, Enterprise; Codex on ChatGPT
 Plus, Pro, Business, Enterprise; Copilot Free, Pro, Pro+, Business; Antigravity Free,
-Pro, Ultra. API-key billing is excluded. This is research, not an implementation.
+Pro, Ultra, plus Google AI Plus as the owner's 2026-09-26 LC-22 addition.
+API-key billing is excluded. This is research, not an implementation.
 
 - `source`: inspected repository/upstream code or official documentation. It proves the
   stated contract or product description, not access on any particular account.
@@ -409,10 +410,51 @@ No CLI was run and no CLI credential store was read.
 | AG-T / currency | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
 | AG-T / exponent | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
 
+### Antigravity Google AI Plus (LC-22 addition)
+
+The owner added this personal low-cost tier on 2026-09-26. Its account tier has not yet
+been read in the UI. It has a separate matrix: no Free, Pro or Ultra evidence is inherited.
+The planned read-only surfaces are the provider quota UI and Google One AI-credit activity,
+with the same observation boundary as LC-19. UI labels cannot establish hidden summary fields.
+
+| Family / field | Google AI Plus | Qualification |
+| --- | --- | --- |
+| AG-5, AG-W / used | unknown/none | Window rows and unit not observed. |
+| AG-5, AG-W / limit | unknown/none | Cap presence not observed. |
+| AG-5, AG-W / remaining | unknown/none | Remaining display not observed. |
+| AG-5, AG-W / period start | unknown/none | Period type and start not observed. |
+| AG-5, AG-W / period end or reset | unknown/none | Reset form not observed. |
+| AG-5, AG-W / currency | unknown/none | No unit observed for this tier. |
+| AG-5, AG-W / exponent | unknown/none | No unit observed for this tier. |
+| AG-R / used | unknown/none | No UI-to-wire correspondence established. |
+| AG-R / limit | unknown/none | No denominator established. |
+| AG-R / remaining | unknown/none | Presence and unit unknown; never infer from a credit balance. |
+| AG-R / period start | unknown/none | Not observed. |
+| AG-R / period end or reset | unknown/none | Not observed; same-bucket correspondence required. |
+| AG-R / currency | unknown/none | Unit unknown. |
+| AG-R / exponent | unknown/none | Unit unknown. |
+| AG-C / used | unknown/none | Credit activity not observed. |
+| AG-C / limit | unknown/none | Recurring Antigravity allotment not established. |
+| AG-C / remaining | unknown/none | Balance presence not observed. |
+| AG-C / period start | unknown/none | Period type not observed. |
+| AG-C / period end or reset | unknown/none | Expiry versus recurring reset not observed. |
+| AG-C / currency | unknown/none | Account credit labels not observed. |
+| AG-C / exponent | unknown/none | Account credit labels not observed. |
+| AG-T / used | unknown/none | This check does not establish completion counters. |
+| AG-T / limit | unknown/none | This tier's entitlement not established. |
+| AG-T / remaining | unknown/none | Not established. |
+| AG-T / period start | unknown/none | Not established. |
+| AG-T / period end or reset | unknown/none | Not established. |
+| AG-T / currency | unknown/none | Not established. |
+| AG-T / exponent | unknown/none | Not established. |
+
 ## 4. Gap dispositions
 
 ### Antigravity
 
+- **T-06 disposition (2026-09-26):** LC-22 separately covers Google AI Plus for
+  G-AG-1/2/3; it cannot close Free, Pro or Ultra gaps. LC-18/19/20/21 are NOT_RUN,
+  not authorized. No current UI or transport evidence for those tiers is added.
 - **G-AG-1:** `remainingAmount` stays unit unknown. A1's `buildQuotaSummaryAmount` expressly
   returns `unit: unknown`; it does not establish credits, tokens or requests. LC-18–20 may
   show an explicit unit label; LC-21 can compare only the existing app projection. If no
@@ -432,6 +474,9 @@ No CLI was run and no CLI credential store was read.
 
 ### Copilot
 
+- **T-06 disposition (2026-09-26):** LC-12 through LC-17 are NOT_RUN, reason
+  "postponed by owner: work account or manual lookup". G-GH-1/2/3/4 retain their
+  source findings and explicit live/transport unknowns; no Copilot account was opened.
 - **G-GH-1:** request versus credit billing generation is source-resolved: G5 limits legacy
   request guidance to eligible existing annual Pro/Pro+ subscriptions; current pages describe
   AI credits. Internal request keys do not establish credit parity. LC-12–15 inspect separate
@@ -452,6 +497,10 @@ No CLI was run and no CLI credential store was read.
 
 ### Codex
 
+- **T-06 disposition (2026-09-26):** LC-08/09/11 are NOT_RUN, reason
+  "postponed by owner: work account or manual lookup"; LC-10 is NOT_RUN, not
+  authorized. G-CX-1/2/3/4 transport and work-plan unknowns remain open regardless
+  of the personal-plan UI check.
 - **G-CX-1 (source-resolved candidate, live unknown):** O1 supplies the unparsed individual
   control with amounts, percentages, `source` and resets. It is not a workspace allotment;
   no unit/currency/exponent/start appears in that type. LC-08/09/10 must establish plan,
@@ -471,6 +520,10 @@ No CLI was run and no CLI credential store was read.
 
 ### Claude
 
+- **T-06 disposition (2026-09-26):** LC-03/04 are NOT_RUN, reason
+  "postponed by owner: work account or manual lookup"; LC-05 is NOT_RUN, not
+  authorized. Work subscriptions and G-CL transport unknowns remain open regardless
+  of the personal-plan UI check.
 - **G-CL-1:** CL-X/CL-D period and reset remain unknown at wire level. Official pages establish
   monthly spend controls, not a reset field or its clock in `/api/oauth/usage`. Close with
   LC-01/02 personal plan and LC-03/04 organization UI, then LC-05 existing-connection parity
@@ -514,13 +567,18 @@ T-09 [opus] will supply the numerical acceptance examples.
 
 ## 10. Live checks
 
-Consolidated T-06 list, all NOT_RUN pending separate owner authorization. Each ID is a
-separate request; approval of one does not approve another or a different plan. UI
+Consolidated T-06 list, extended with LC-22 by the owner on 2026-09-26. Each ID is a
+separate check; approval of one does not approve another or a different plan. UI
 observations can establish displayed unit/scope/period, not hidden wire
 fields. An existing app UI cannot prove a field is absent from a raw response if its parser
 does not expose it; such a result leaves the transport gap open.
 
-Execution boundary: the owner signs in and opens the account. Each authorized check reads
+Execution boundary for this session: the owner authorized opening only their already
+signed-in personal accounts. Read the plan in the UI first: run only LC-01 for Claude Pro
+or LC-02 for Max, and only LC-06 for ChatGPT Plus or LC-07 for Pro. LC-22 covers Google AI
+Plus only. Stop the affected check and ask the owner at sign-in, password, code, 2FA,
+account selection or terms acceptance. Read visible page content only; no developer tools,
+network traffic, cookies or local storage. Each authorized check reads
 only the named usage/billing surface and records presence/absence, unit, scope, period type
 and reset form without personal values. No screenshot, identity, actual balance or raw body
 is committed. No terms acceptance, settings change, purchase, redemption, inference, new
@@ -529,35 +587,46 @@ observe a hidden field is not evidence of absence. Do not launch a multi-provide
 as a substitute for a single approved check. App checks require a way to limit requests to
 the approved existing connection; otherwise report BLOCKED without changing product code.
 
-Some provider quota surfaces are native applications. This session's browser control does
-not expose native app control; if an authorized check requires an unavailable native surface,
-record BLOCKED or an explicitly labelled owner report, not agent-observed live success.
+Some provider quota surfaces are native applications. If an authorized check requires an
+unavailable native surface, record BLOCKED or an explicitly labelled owner report, not
+agent-observed live success.
 Historical grants/permissions do not authorize any LC. The per-check verdicts below are
 research outcomes, not an authorization ledger; actual run evidence belongs in verification.md.
+
+Attempt on 2026-09-26: the in-app browser reached signed-out/public pages, without revealing
+any account plan or usage. The owner then required the default PC browser and prohibited
+further in-app-browser use. Windows identifies Edge as the default HTTPS browser; the native
+control tool opened it but stopped the turn because it could not determine the current URL
+with enough confidence to enforce its policy. No personal plan was observed. Claude and
+ChatGPT plan selection are BLOCKED; LC-01/02 and LC-06/07 remain NOT_RUN because no matching
+plan could be selected. LC-22 is BLOCKED before account observation. Existing matrix cells
+remain source/none, every affected live/transport gap remains open, and no provider
+`live_verified_at` is advanced. Resume only through the owner's default PC browser.
 
 | ID | Account type / surface | What it proves / gap | Risk / boundary | Verdict |
 | --- | --- | --- | --- | --- |
 | LC-01 | Claude Pro, provider Settings > Usage | Displayed session/weekly/scoped rows, usage-credit cap, balance, period/reset; G-CL-1/3 | Read-only private billing surface; owner opens signed-in account; no toggles or purchases | NOT_RUN |
 | LC-02 | Claude Max, provider Settings > Usage | Same evidence for Max plus scoped weekly relationship; G-CL-1/3/4 | Same; a Pro result cannot fill Max cells | NOT_RUN |
-| LC-03 | Claude Team, provider member/admin Usage | Whether cap is member/org, period label and balance; G-CL-1/2/3 | Work-account approval and existing role required; no membership/settings changes | NOT_RUN |
-| LC-04 | Claude Enterprise, provider member/admin Usage | Legacy versus consumption plan, org/member/group pooled controls and period; G-CL-1/2/3 | Work-account approval; only already accessible pages; no terms acceptance | NOT_RUN |
-| LC-05 | One owner-selected Claude plan, existing AI Usage connection | Compare exposed money components/window reset with that plan's UI; G-CL-1/2 | Unsupported restricted OAuth boundary; refresh may rotate grant. No new connection/scopes; absent hidden fields remain unknown | NOT_RUN |
+| LC-03 | Claude Team, provider member/admin Usage | Whether cap is member/org, period label and balance; G-CL-1/2/3 | Work-account approval and existing role required; no membership/settings changes | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-04 | Claude Enterprise, provider member/admin Usage | Legacy versus consumption plan, org/member/group pooled controls and period; G-CL-1/2/3 | Work-account approval; only already accessible pages; no terms acceptance | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-05 | One owner-selected Claude plan, existing AI Usage connection | Compare exposed money components/window reset with that plan's UI; G-CL-1/2 | Unsupported restricted OAuth boundary; refresh may rotate grant. No new connection/scopes; absent hidden fields remain unknown | NOT_RUN; not authorized |
 | LC-06 | ChatGPT Plus, provider Usage | Actual window durations, credit balance semantics/expiry; G-CX-2/4 | Read-only private usage page; no purchase or reset | NOT_RUN |
 | LC-07 | ChatGPT Pro, provider Usage | Same for selected Pro tier; no Plus generalization | Read-only; owner opens account; no settings changes | NOT_RUN |
-| LC-08 | ChatGPT Business, provider Billing/Usage | Seat/user monthly controls versus purchased workspace balance; G-CX-1/2 | Work-account approval and existing role; no auto-reload or purchase | NOT_RUN |
-| LC-09 | ChatGPT Enterprise, provider Usage/Admin billing | Credit or USD contract, user period, shared allocation/budget and reset; G-CX-1/2/4 | Work-account approval; no new role, key, settings or terms | NOT_RUN |
-| LC-10 | One selected ChatGPT plan, existing AI Usage connection | Actual returned window durations and exposed credits/restrictions; G-CX-1/2 | Grant refresh may rotate; no new scopes. Current UI drops individual_limit, so cannot close hidden schema presence by itself | NOT_RUN |
-| LC-11 | Existing eligible Business/Enterprise AI Usage connection, history surface | Bounded seven-day retry of existing current-user workspace history reports; G-CX-3 | Private work data and optional denial; no other-user requests, new transport or grants; record only status/field shape | NOT_RUN |
-| LC-12 | Copilot Free, provider Copilot/Billing usage | Included credits versus inline suggestions, reset display; G-GH-1/2/3 | Read-only private page; no upgrade or budget changes | NOT_RUN |
-| LC-13 | Copilot Pro, provider usage/billing | Legacy annual versus credit billing, cap and reset; G-GH-1/2/3 | Owner opens account; no billing changes | NOT_RUN |
-| LC-14 | Copilot Pro+, provider usage/billing | Same for Pro+, including base/flex allowance; G-GH-1/2/3 | Separate plan proof; no billing changes | NOT_RUN |
-| LC-15 | Copilot Business, provider authorized usage/billing UI | Shared entity pool versus member budget and reset; G-GH-2/3/4 | Work-account permission and existing role; no admin mutation or new role | NOT_RUN |
-| LC-16 | One selected Copilot plan, existing AI Usage connection | Parsed request pools, flags and reset versus that UI; G-GH-1/3 | Private grant read/possible renewal; no new scope; cannot prove dropped credit fields absent | NOT_RUN |
-| LC-17 | Personally paid Pro or Pro+, existing AI Usage history | Bounded one-day AI-credit and premium report eligibility/unit/period; G-GH-2 | Current grant only, at most existing identity check and two reports; stop on denial, no PAT | NOT_RUN |
-| LC-18 | Antigravity Free, provider read-only quota UI | Weekly group/reset labels, any explicit amount unit; G-AG-1/3 | Owner opens already signed-in surface; no onboarding or settings | NOT_RUN |
-| LC-19 | Antigravity Pro, provider quota UI and Google One AI-credit activity | Five-hour/weekly labels, credit unit/expiry versus included allowance; G-AG-1/2/3 | Private credit/family data; no purchases, overage toggles or terms | NOT_RUN |
-| LC-20 | Antigravity Ultra, same provider surfaces | Same for selected Ultra tier; separate plan proof; G-AG-1/2/3 | Same read-only boundary; no activity details or identities retained | NOT_RUN |
-| LC-21 | One selected Antigravity plan, already provisioned existing AI Usage connection | Parsed groups/reset and unknown amount presence; G-AG-1/3 | Explicit provider third-party restriction/account risk; no reconnect, provisioning or client change; renewal may rotate grant | NOT_RUN |
+| LC-08 | ChatGPT Business, provider Billing/Usage | Seat/user monthly controls versus purchased workspace balance; G-CX-1/2 | Work-account approval and existing role; no auto-reload or purchase | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-09 | ChatGPT Enterprise, provider Usage/Admin billing | Credit or USD contract, user period, shared allocation/budget and reset; G-CX-1/2/4 | Work-account approval; no new role, key, settings or terms | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-10 | One selected ChatGPT plan, existing AI Usage connection | Actual returned window durations and exposed credits/restrictions; G-CX-1/2 | Grant refresh may rotate; no new scopes. Current UI drops individual_limit, so cannot close hidden schema presence by itself | NOT_RUN; not authorized |
+| LC-11 | Existing eligible Business/Enterprise AI Usage connection, history surface | Bounded seven-day retry of existing current-user workspace history reports; G-CX-3 | Private work data and optional denial; no other-user requests, new transport or grants; record only status/field shape | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-12 | Copilot Free, provider Copilot/Billing usage | Included credits versus inline suggestions, reset display; G-GH-1/2/3 | Read-only private page; no upgrade or budget changes | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-13 | Copilot Pro, provider usage/billing | Legacy annual versus credit billing, cap and reset; G-GH-1/2/3 | Owner opens account; no billing changes | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-14 | Copilot Pro+, provider usage/billing | Same for Pro+, including base/flex allowance; G-GH-1/2/3 | Separate plan proof; no billing changes | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-15 | Copilot Business, provider authorized usage/billing UI | Shared entity pool versus member budget and reset; G-GH-2/3/4 | Work-account permission and existing role; no admin mutation or new role | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-16 | One selected Copilot plan, existing AI Usage connection | Parsed request pools, flags and reset versus that UI; G-GH-1/3 | Private grant read/possible renewal; no new scope; cannot prove dropped credit fields absent | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-17 | Personally paid Pro or Pro+, existing AI Usage history | Bounded one-day AI-credit and premium report eligibility/unit/period; G-GH-2 | Current grant only, at most existing identity check and two reports; stop on denial, no PAT | NOT_RUN; postponed by owner: work account or manual lookup |
+| LC-18 | Antigravity Free, provider read-only quota UI | Weekly group/reset labels, any explicit amount unit; G-AG-1/3 | Owner opens already signed-in surface; no onboarding or settings | NOT_RUN; not authorized |
+| LC-19 | Antigravity Pro, provider quota UI and Google One AI-credit activity | Five-hour/weekly labels, credit unit/expiry versus included allowance; G-AG-1/2/3 | Private credit/family data; no purchases, overage toggles or terms | NOT_RUN; not authorized |
+| LC-20 | Antigravity Ultra, same provider surfaces | Same for selected Ultra tier; separate plan proof; G-AG-1/2/3 | Same read-only boundary; no activity details or identities retained | NOT_RUN; not authorized |
+| LC-21 | One selected Antigravity plan, already provisioned existing AI Usage connection | Parsed groups/reset and unknown amount presence; G-AG-1/3 | Explicit provider third-party restriction/account risk; no reconnect, provisioning or client change; renewal may rotate grant | NOT_RUN; not authorized |
+| LC-22 | Antigravity Google AI Plus, provider quota UI and Google One AI-credit activity | Displayed group/window labels, credit unit, cap/balance presence, period and reset/expiry form; G-AG-1/2/3 | Personal account only; same boundary as LC-19; no Free/Pro/Ultra generalization | BLOCKED; browser access interrupted before account observation |
 
 ## 11. Pending owner decisions
 

@@ -522,8 +522,8 @@ tasks extend.
 
 ## Handoff
 
-Completed: T-01 through T-05; primary integrated source/acceptance review PASS. Base: 27564d8. No worker artifacts. All live checks NOT_RUN; no account request, sign-in or source CLI credential read occurred.
+Completed: T-01 through T-05. T-06 remains in progress: the owner supplied bounded personal-account authorization on 2026-09-26; LC-22 and the postponed/not-authorized dispositions are recorded in research.md. Session base: f42247a (includes AIU-005 scope and the T-07 source-independence amendment). No worker artifacts.
 
-Next action: T-06 [astra], record the owner's response to the pending per-check authorization questions for LC-01 through LC-21 in research.md section 10 before any account access. The questions have been presented; no response has arrived. T-07 [opus] has not been handed off; T-06 is still in progress.
+Next action: resume T-06 [astra] by reading the Claude personal plan in the default PC browser after native browser control is available, then run only the matching LC-01 or LC-02 within the owner's session-scoped authorization. Do not use the in-app browser. Blocker: native Computer Use stopped this turn because it could not determine Edge's current URL confidently enough to enforce policy. No account plan/usage was observed; no sign-in, credential read or state-changing provider action was performed. If continuation is in a different session, obtain renewed authorization because the grant was session-scoped. T-07 [opus] remains the next task after T-06 closure and is not started or handed off as ready.
 
-Checks: validator --json valid=true and git diff --check PASS on 2026-09-26. T-01 evidence-reference correction recorded in verification.md.
+Checks for this interruption checkpoint are recorded in verification.md. No live PASS and no provider live verification date is added.

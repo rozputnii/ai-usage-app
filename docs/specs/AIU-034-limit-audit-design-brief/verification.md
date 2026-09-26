@@ -52,3 +52,37 @@ PASS: Antigravity plan/field matrix, G-AG-1 through G-AG-4, A1-A6 and provider a
 Steps 1 and 2 completed: section 10 consolidates LC-01 through LC-21 with account, surface, evidence target and risk. The owner received per-ID authorization questions grouped by provider; each check requires its own response. Authorization is pending, and every live verdict remains NOT_RUN. No account access, sign-in or authenticated request occurred. T-06 remains in progress; T-07 has not been handed off.
 
 Preparation checks PASS: the Phase A diff contains only eight Markdown files; added-line credential/identity pattern scan returned zero matches, and primary content review found no personal data, raw payloads or captures. Validator --json valid=true and git diff --check exit 0. These checks establish document consistency only and do not establish live-provider success. Repeat the privacy and document checks after any live-outcome edits.
+
+## T-06 interruption checkpoint - 2026-09-26
+
+Environment: Windows, default HTTPS browser Microsoft Edge; base f42247a. The initial
+`git pull` reported already up to date and the working tree was clean. The owner's
+session-scoped authorization covers only personal Claude Pro/Max after UI plan selection,
+personal ChatGPT Plus/Pro after UI plan selection, and new LC-22 for Google AI Plus.
+
+- BLOCKED: selecting the personal Claude and ChatGPT plan and observing LC-22. Initial
+  in-app-browser navigation reached signed-out/public pages; no plan or usage was observed.
+  At the owner's correction, in-app-browser use stopped. Native Computer Use opened the
+  default Edge browser, then stopped this turn because it could not confidently determine
+  the current browser URL to enforce policy. No browser input followed that stop.
+- NOT_RUN: LC-01/02 and LC-06/07, because plan selection did not complete. Neither alternative
+  is reported as the account's plan. LC-22 is separately BLOCKED before account observation.
+- NOT_RUN: LC-03/04/08/09/11 and LC-12 through LC-17, reason
+  "postponed by owner: work account or manual lookup".
+- NOT_RUN: LC-05/10/18/19/20/21, not authorized. No AI Usage connection was accessed.
+- No authenticated usage observation, sign-in, credential entry, account selection, terms
+  acceptance, settings change or purchase occurred. No developer tools, network traffic,
+  cookies, local storage or source CLI credentials were read.
+
+The AI Plus matrix is separate and unknown/none. Existing provider matrices retain their
+evidence levels, and all transport gaps remain open. Provider-record `live_verified_at`
+values are unchanged because there are no UI-observed rows to date. T-06 remains in progress;
+T-07 [opus] is the subsequent task, not ready for handoff on this checkpoint.
+
+Checkpoint verification PASS: added-line secret/identity pattern scan found zero matches;
+primary diff review found no account identities, balances, spend values, raw payloads or
+screenshots. Only research.md, tasks.md and verification.md changed. Document validation
+(`dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`,
+using the existing user-local SDK) returned `valid: true` with no diagnostics;
+`git diff --check` passed. Links and the retained T-07 amendment were reviewed. These are
+document checks only. Live quota checks and product tests did not pass or run at this checkpoint.
