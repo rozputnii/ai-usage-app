@@ -97,7 +97,8 @@ was performed. See [research](../specs/AIU-011-provider-history/research.md).
 
 - provider: claude
 - source_verified_at: 2026-09-26
-- live_verified_at: null
+- live_verified_at: 2026-09-26
+- live_scope: LC-01 personal Pro visible Usage rows only; no wire-field or other-plan verification
 - classification: quota undocumented OAuth schema; official plan/UI descriptions; authentication restriction unchanged
 - confidence: high for source projection; plan-specific payload coverage and monetary scope unresolved
 - sources: [AIU-034 source index C1-C11](../specs/AIU-034-limit-audit-design-brief/research.md#claude-sources-read-2026-09-26)
@@ -112,4 +113,15 @@ reset. Enterprise must be divided into legacy seats with included windows and cu
 consumption plans. Documented organization/member/group controls and prepaid balances do
 not establish the scope of OAuth `spend` or its reset clock. The detailed plan/field matrix,
 unknowns and LC-01 through LC-05 are in [research](../specs/AIU-034-limit-audit-design-brief/research.md).
-No current account or live response was inspected; prior live dates do not verify these findings.
+LC-01 on 2026-09-26 read the already signed-in personal Pro Usage page in Google Chrome.
+Session and weekly percentage-used rows were present, with time-of-day and weekday/time
+reset forms respectively. No model-scoped weekly row was displayed; hidden payload presence
+remains unknown. Usage-credit balance and month-to-date spending were displayed with a dollar
+symbol; the UI explicitly showed no configured finite spend cap. ISO currency identity,
+wire exponent and exact monetary period/reset remain unverified.
+
+A separate cloud-session included-credit balance was displayed with an expiry containing
+time, GMT offset, month and day. It is CL-C in the UI matrix, not a recurring monthly
+allotment or proof of OAuth `spend`/`extra_usage` mapping. No amount, actual reset/expiry value,
+identity or screenshot is retained. All transport gaps and Max/Team/Enterprise evidence
+levels remain unchanged. See the [LC-01 UI matrix](../specs/AIU-034-limit-audit-design-brief/research.md#claude-pro-ui-observations-lc-01-2026-09-26).

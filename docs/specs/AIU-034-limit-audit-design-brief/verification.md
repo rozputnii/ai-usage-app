@@ -86,3 +86,36 @@ screenshots. Only research.md, tasks.md and verification.md changed. Document va
 using the existing user-local SDK) returned `valid: true` with no diagnostics;
 `git diff --check` passed. Links and the retained T-07 amendment were reviewed. These are
 document checks only. Live quota checks and product tests did not pass or run at this checkpoint.
+
+## T-06 Chrome continuation - 2026-09-26
+
+Environment: Windows, owner-selected Google Chrome, existing signed-in personal session;
+base 355599e. The owner corrected the browser selection to Chrome in this same session.
+
+- LC-01 PASS, UI observation only: `https://claude.ai/settings/usage` opened the personal
+  Usage page, whose plan label was Pro. Session and weekly percentage-used rows were present;
+  reset forms were time-of-day and weekday/time respectively. No model-scoped weekly row was
+  displayed. A usage-credit balance and monthly spending section were present, with a dollar
+  symbol and an explicit no-spend-limit label. No actual values were retained.
+- A separate cloud-session included-credit row displayed a balance and expiry with time,
+  GMT offset, month and day. Research now distinguishes this CL-C family from general
+  usage credits and monetary spending. Recurring allotment, exact grant start, ISO currency,
+  wire exponent and transport mapping remain unknown. Product breakdowns are not new limits.
+- LC-02 NOT_RUN: the observed personal plan is Pro. No Max or work-plan inference is made.
+- LC-06/07 remain NOT_RUN: ChatGPT plan selection is BLOCKED. LC-22 remains BLOCKED.
+  After the Claude observation, the native control tool stopped this turn on the new-tab
+  action because it could not confidently determine Chrome's current URL to enforce policy.
+  No further browser input followed that stop. No Codex or Google account observation occurred.
+- Other postponed/not-authorized verdicts remain unchanged. No sign-in, account selection,
+  state-changing provider action, hidden storage/network inspection or credential access.
+
+The Claude audit date is advanced for its explicitly scoped UI observations only. Its
+wire-field matrix retains source/none levels; the separate UI matrix records live cells.
+The Codex and Antigravity provider dates remain unchanged. T-06 is still in progress.
+
+Continuation checks PASS: added-line secret/identity and monetary-value pattern scan returned
+zero matches; primary content review confirmed only sanitized UI structure, units and reset
+forms in the four changed Markdown files. No screenshots/captures or account values are
+staged. Validator `--json` returned `valid: true` with no diagnostics, and `git diff --check`
+passed. UI/source separation and the new provider-record link were reviewed. Product tests
+NOT_RUN because this checkpoint changes documentation only.

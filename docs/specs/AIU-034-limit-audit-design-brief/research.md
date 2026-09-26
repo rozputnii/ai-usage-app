@@ -182,7 +182,9 @@ parser support is source evidence; plan-specific payload presence remains unveri
 
 ### Claude (T-02)
 
-`provider: claude`; `source_verified_at: 2026-09-26`; `live_verified_at: null`.
+`provider: claude`; `source_verified_at: 2026-09-26`;
+`live_verified_at: 2026-09-26` for the LC-01 Pro UI observations below only.
+Wire fields and other plans retain their existing source/none evidence.
 Quota classification: undocumented OAuth schema plus official product/UI descriptions.
 Confidence: high for parser coverage; medium for matching monetary wire data to plan UI;
 unknown for actual payload coverage across plans. Authentication: unchanged restricted,
@@ -239,6 +241,45 @@ current usage-based Enterprise; legacy variants remain separately eligible in th
 No newly inspected source establishes an additional monetary endpoint reachable by this
 app's grant. Enterprise Admin API documentation is a separate authorization boundary, not
 `other-endpoint` evidence. Its nullable-limit semantics must not be transplanted to OAuth.
+
+#### Claude Pro UI observations (LC-01, 2026-09-26)
+
+The signed-in personal Usage page displayed the plan name Pro. These cells describe visible
+UI rows, independently of the wire-field matrix above. No hidden field is verified.
+
+| UI family / field | Pro | Observation / limitation |
+| --- | --- | --- |
+| CL-S / used | provider-ui/live | Current-session percentage used row present. |
+| CL-W / used | provider-ui/live | This-week percentage used row present. |
+| CL-S, CL-W / absolute limit | unknown/none | No absolute token/request cap displayed; percentage meters are not absolute entitlement. |
+| CL-S, CL-W / remaining | unknown/none | A direct remaining counter was not displayed; subtraction would be derived. |
+| CL-S, CL-W / period start | unknown/none | No start displayed; the session row does not itself prove five-hour duration. |
+| CL-S / period end or reset | provider-ui/live | Time of day with AM/PM; no explicit zone on this row. |
+| CL-W / period end or reset | provider-ui/live | Weekday and time with AM/PM; no explicit zone on this row. |
+| CL-S, CL-W / currency, exponent | unavailable/live | Display unit is percentage, not money. |
+| CL-M / row presence | provider-ui/live | No model-scoped weekly row displayed on the observed Usage page; no wire absence inferred. |
+| Monthly spending / used | provider-ui/live | Monetary usage displayed with a dollar symbol and this-month label. |
+| Monthly spending / limit | provider-ui/live | Explicit no-spend-limit label; no configured finite cap displayed. This does not interpret a null OAuth limit. |
+| Monthly spending / remaining | unknown/none | No finite cap remainder displayed. |
+| Monthly spending / period start, end or reset | unknown/none | Monthly label present; exact boundaries, calendar versus anniversary and zone not displayed. |
+| Monthly spending / currency | provider-ui/live | Dollar symbol displayed; ISO currency identity not separately established. |
+| Monthly spending / exponent | unknown/none | Display formatting is not a wire exponent. |
+| CL-B / remaining | provider-ui/live | Usage-credit balance present; no value retained. |
+| CL-B / currency | provider-ui/live | Dollar symbol displayed; no conversion or ISO-code inference. |
+| CL-B / used, limit, period start, end or reset, exponent | unknown/none | No purchase-lot consumption, recurring allotment, exact period or wire scale established by this observation. |
+| CL-C cloud-session included credit / remaining | provider-ui/live | Separate included-credit balance present, restricted to cloud sessions; no value retained. |
+| CL-C / limit | unknown/none | A credit total is displayed, but is not established as a recurring cap or monthly allowance. |
+| CL-C / used | unknown/none | No separate consumed amount established. |
+| CL-C / period start | unknown/none | No grant/start date displayed. |
+| CL-C / period end or reset | provider-ui/live | Expiry displayed as time, explicit GMT offset, month and day; expiry is not replenishment. |
+| CL-C / currency | provider-ui/live | Dollar symbol displayed; ISO identity not separately established. |
+| CL-C / exponent | unknown/none | No wire representation observed. |
+
+The separate cloud-session credit is a new UI family, CL-C, for T-07 mapping. It is not
+merged with CL-B or CL-X/CL-D. The page says regular plan usage applies after this credit
+is consumed or expires. A reset-offer section with an expiry date was also present; no
+redemption was performed or recurrence inferred. Product usage breakdown rows were present;
+they are breakdowns, not additional independent limits. No controls were changed.
 
 ### Codex (T-03)
 
@@ -520,6 +561,12 @@ with the same observation boundary as LC-19. UI labels cannot establish hidden s
 
 ### Claude
 
+- **LC-01 UI disposition (2026-09-26):** Pro session/weekly percentage rows, reset
+  forms, usage-credit balance, no configured finite monthly spend cap, and separate
+  cloud-session credit expiry are observed. G-CL-1's exact monetary period and wire
+  mapping remain unknown; G-CL-3's balance presence is confirmed only on this Pro UI.
+  Add CL-C to T-07 with unknown transport, recurring allowance and grant start.
+  No scoped weekly row displayed does not prove its absence in the payload or on Max.
 - **T-06 disposition (2026-09-26):** LC-03/04 are NOT_RUN, reason
   "postponed by owner: work account or manual lookup"; LC-05 is NOT_RUN, not
   authorized. Work subscriptions and G-CL transport unknowns remain open regardless
@@ -601,12 +648,21 @@ with enough confidence to enforce its policy. No personal plan was observed. Cla
 ChatGPT plan selection are BLOCKED; LC-01/02 and LC-06/07 remain NOT_RUN because no matching
 plan could be selected. LC-22 is BLOCKED before account observation. Existing matrix cells
 remain source/none, every affected live/transport gap remains open, and no provider
-`live_verified_at` is advanced. Resume only through the owner's default PC browser.
+`live_verified_at` was advanced at that checkpoint. This attempt is superseded for Claude
+by the Chrome continuation below; it remains historical evidence of the access interruption.
+
+Chrome continuation, 2026-09-26: the owner explicitly selected Google Chrome. LC-01
+successfully observed the signed-in personal Pro Usage page; see the dedicated UI matrix.
+LC-02 is NOT_RUN because the observed plan is Pro. When opening a subsequent browser tab,
+native Computer Use stopped this turn because it could not confidently determine the
+current URL to enforce policy. No further browser input occurred. ChatGPT plan selection
+and LC-22 remain blocked before observation; transport gaps remain open. Continue in Chrome,
+not Edge or the in-app browser.
 
 | ID | Account type / surface | What it proves / gap | Risk / boundary | Verdict |
 | --- | --- | --- | --- | --- |
-| LC-01 | Claude Pro, provider Settings > Usage | Displayed session/weekly/scoped rows, usage-credit cap, balance, period/reset; G-CL-1/3 | Read-only private billing surface; owner opens signed-in account; no toggles or purchases | NOT_RUN |
-| LC-02 | Claude Max, provider Settings > Usage | Same evidence for Max plus scoped weekly relationship; G-CL-1/3/4 | Same; a Pro result cannot fill Max cells | NOT_RUN |
+| LC-01 | Claude Pro, provider Settings > Usage | Displayed session/weekly/scoped rows, usage-credit cap, balance, period/reset; G-CL-1/3 | Read-only private billing surface; owner opens signed-in account; no toggles or purchases | PASS, UI observation only; exact monetary periods and transport unknowns remain open |
+| LC-02 | Claude Max, provider Settings > Usage | Same evidence for Max plus scoped weekly relationship; G-CL-1/3/4 | Same; a Pro result cannot fill Max cells | NOT_RUN; observed personal plan is Pro, not Max |
 | LC-03 | Claude Team, provider member/admin Usage | Whether cap is member/org, period label and balance; G-CL-1/2/3 | Work-account approval and existing role required; no membership/settings changes | NOT_RUN; postponed by owner: work account or manual lookup |
 | LC-04 | Claude Enterprise, provider member/admin Usage | Legacy versus consumption plan, org/member/group pooled controls and period; G-CL-1/2/3 | Work-account approval; only already accessible pages; no terms acceptance | NOT_RUN; postponed by owner: work account or manual lookup |
 | LC-05 | One owner-selected Claude plan, existing AI Usage connection | Compare exposed money components/window reset with that plan's UI; G-CL-1/2 | Unsupported restricted OAuth boundary; refresh may rotate grant. No new connection/scopes; absent hidden fields remain unknown | NOT_RUN; not authorized |
