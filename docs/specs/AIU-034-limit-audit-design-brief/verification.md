@@ -28,3 +28,5 @@ Phase A source research has started. The owner approved the specification on 202
 ## T-01 - 2026-09-26
 
 PASS: current-source inventory and Core member coverage in research.md section 2, reviewed against baseline 27564d8. All four parsers, clients, state/cache formats and Windows LiveMapping inspected. Document validator command from tasks.md printed valid=true with no diagnostics; git diff --check exited 0. These are document/source checks only; product tests and live requests NOT_RUN. No product or stored-format change.
+
+T-01 bookkeeping correction: the initial draft validated, but marking done with prose in the evidence field produced DONE_WITHOUT_EVIDENCE. Commit 6ee7f42 was mistakenly pushed before resolving that failure. The follow-up uses a repository-relative evidence artifact path; final validation is recorded only after rerun. No source finding changed.

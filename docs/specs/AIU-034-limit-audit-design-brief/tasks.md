@@ -103,7 +103,7 @@ check in the owning task, and T-10 checks all of them again.
 - status: done
 - depends_on: []
 - acceptance: AC-01, AC-03
-- evidence: research.md section 2; verification.md T-01; primary integrated source/acceptance review PASS.
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Create: `docs/specs/AIU-034-limit-audit-design-brief/research.md` (skeleton and section 2)
