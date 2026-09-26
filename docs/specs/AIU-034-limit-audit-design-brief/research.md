@@ -514,10 +514,26 @@ T-09 [opus] will supply the numerical acceptance examples.
 
 ## 10. Live checks
 
-Draft checks, all NOT_RUN; no authorization is implied. T-06 will consolidate and request
-each separately. UI observations can establish displayed unit/scope/period, not hidden wire
+Consolidated T-06 list, all NOT_RUN pending separate owner authorization. Each ID is a
+separate request; approval of one does not approve another or a different plan. UI
+observations can establish displayed unit/scope/period, not hidden wire
 fields. An existing app UI cannot prove a field is absent from a raw response if its parser
 does not expose it; such a result leaves the transport gap open.
+
+Execution boundary: the owner signs in and opens the account. Each authorized check reads
+only the named usage/billing surface and records presence/absence, unit, scope, period type
+and reset form without personal values. No screenshot, identity, actual balance or raw body
+is committed. No terms acceptance, settings change, purchase, redemption, inference, new
+grant/scope or CLI credential read. A denied/unavailable check remains NOT_RUN; failure to
+observe a hidden field is not evidence of absence. Do not launch a multi-provider refresh
+as a substitute for a single approved check. App checks require a way to limit requests to
+the approved existing connection; otherwise report BLOCKED without changing product code.
+
+Some provider quota surfaces are native applications. This session's browser control does
+not expose native app control; if an authorized check requires an unavailable native surface,
+record BLOCKED or an explicitly labelled owner report, not agent-observed live success.
+Historical grants/permissions do not authorize any LC. The per-check verdicts below are
+research outcomes, not an authorization ledger; actual run evidence belongs in verification.md.
 
 | ID | Account type / surface | What it proves / gap | Risk / boundary | Verdict |
 | --- | --- | --- | --- | --- |

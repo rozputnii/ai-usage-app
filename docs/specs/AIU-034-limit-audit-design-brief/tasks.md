@@ -290,21 +290,21 @@ tasks extend.
 - [x] **Step 6:** Commit "AIU-034 Phase A: Antigravity limit audit" and push.
 
 ### T-06 - [astra] Live checks with owner authorization
-- status: pending
+- status: in-progress
 - depends_on: [T-02, T-03, T-04, T-05]
 - acceptance: AC-02
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` section 10, and the affected rows of sections 3 and 4
 - Modify: `verification.md`, and the affected `docs/providers/*.md` sections
 
-- [ ] **Step 1:** Consolidate the live checks from T-02 to T-05 into section 10. Give each check:
+- [x] **Step 1:** Consolidate the live checks from T-02 to T-05 into section 10. Give each check:
   - an ID (`LC-nn`) and the account type;
   - the surface: the existing app connection, or the provider's own web UI;
   - what it proves and which gap it closes;
   - its risk.
-- [ ] **Step 2:** Present the list to the owner and ask for authorization of each check
+- [x] **Step 2:** Present the list to the owner and ask for authorization of each check
   separately. Do not sign in or call a provider unasked.
 - [ ] **Step 3:** Run each authorized check:
   - The owner signs in and opens the account. Screen and mouse control may then be used to
@@ -511,6 +511,6 @@ tasks extend.
 
 Completed: T-01 through T-05; primary integrated source/acceptance review PASS. Base: 27564d8. No worker artifacts. All live checks NOT_RUN; no account request, sign-in or source CLI credential read occurred.
 
-Next action: T-06 [astra] Step 1, finalize the LC-01 through LC-21 check list and request separate owner authorization for each check.
+Next action: T-06 [astra], record the owner's response to the pending per-check authorization questions for LC-01 through LC-21 in research.md section 10 before any account access. The questions have been presented; no response has arrived. T-07 [opus] has not been handed off; T-06 is still in progress.
 
 Checks: validator --json valid=true and git diff --check PASS on 2026-09-26. T-01 evidence-reference correction recorded in verification.md.

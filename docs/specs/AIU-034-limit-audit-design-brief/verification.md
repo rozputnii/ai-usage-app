@@ -46,3 +46,9 @@ PASS: Copilot matrix, G-GH-1 through G-GH-4, G1-G7 and provider record reviewed.
 ## T-05 - 2026-09-26
 
 PASS: Antigravity plan/field matrix, G-AG-1 through G-AG-4, A1-A6 and provider append reviewed. remainingAmount remains unit unknown; source credit UI distinguished from reusable transport and monthly Flow credits. No Free-to-paid generalization. Validator --json valid=true and diff check exit 0. LC-18 through LC-21 NOT_RUN; no CLI credential read, provisioning or provider request.
+
+## T-06 preparation - 2026-09-26
+
+Steps 1 and 2 completed: section 10 consolidates LC-01 through LC-21 with account, surface, evidence target and risk. The owner received per-ID authorization questions grouped by provider; each check requires its own response. Authorization is pending, and every live verdict remains NOT_RUN. No account access, sign-in or authenticated request occurred. T-06 remains in progress; T-07 has not been handed off.
+
+Preparation checks PASS: the Phase A diff contains only eight Markdown files; added-line credential/identity pattern scan returned zero matches, and primary content review found no personal data, raw payloads or captures. Validator --json valid=true and git diff --check exit 0. These checks establish document consistency only and do not establish live-provider success. Repeat the privacy and document checks after any live-outcome edits.
