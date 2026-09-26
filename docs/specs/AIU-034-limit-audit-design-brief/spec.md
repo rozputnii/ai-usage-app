@@ -1,10 +1,10 @@
 ---
 id: AIU-034
 type: spec
-status: draft
+status: approved
 goal: G-003
 scope_version: 1
-approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The written specification awaits owner review.
+approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis.
 ---
 # AIU-034 - Limit data audit and budget-aware single-window design brief
 

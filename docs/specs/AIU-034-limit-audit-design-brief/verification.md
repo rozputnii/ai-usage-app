@@ -1,12 +1,12 @@
 # AIU-034 verification
 
-No phase has run yet. The specification was written on 2026-09-26 and awaits owner review.
+No phase has run yet. The owner approved the specification on 2026-09-26.
 
 ## Gates
 
 | Gate | Status | Record |
 | --- | --- | --- |
-| Specification review | NOT_RUN | Awaiting owner review of [spec.md](spec.md). |
+| Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
 | Gate A | NOT_RUN | Phase A has not started. |
 | Gate B | NOT_RUN | Phase B has not started. |
 
