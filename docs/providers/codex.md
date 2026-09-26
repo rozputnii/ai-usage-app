@@ -102,3 +102,26 @@ and enterprise credit variants returned HTTP 403. No universal retention or plan
 is inferred. History `live_verified_at` is now 2026-09-22 for the successful routes only;
 earlier null statements describe the pre-login implementation stage. See the detailed
 [verification](../specs/AIU-011-provider-history/verification.md).
+
+## Limit data audit (AIU-034)
+
+- provider: codex
+- source_verified_at: 2026-09-26
+- live_verified_at: null
+- classification: quota official client internal schema and official UI documentation; authentication reuse permission unchanged
+- confidence: high for schema; plan-specific payload presence, units and workspace allotment transport unresolved
+- sources: [AIU-034 O1-O8](../specs/AIU-034-limit-audit-design-brief/research.md#codex-sources-read-2026-09-26)
+
+The pinned official `SpendControlLimitDetails` contains string `limit`, `used`, `remaining`,
+percentages, optional `source`, and absolute/relative reset seconds under
+`spend_control.individual_limit`. AI Usage reads only `spend_control.reached`; the amounts
+and resets are unparsed. The type supplies no unit, currency, exponent or start. This
+individual control must not be identified with a shared workspace credit allotment.
+
+Official UI documentation establishes credit allocations and controls, including different
+Enterprise billing models and selectable usage periods; it does not prove current-grant
+access to an allocation endpoint. `credits.balance` remains a balance, not a limit. Personal
+credit documentation allows negative settled balances, which the current parser drops to
+unknown. Window duration remains response-driven. AIU-011 HTTP 400/403 causes stay unresolved.
+See the [matrix and LC-06 through LC-11](../specs/AIU-034-limit-audit-design-brief/research.md).
+No new live observation or provider request was made.

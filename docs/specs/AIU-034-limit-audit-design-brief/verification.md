@@ -34,3 +34,7 @@ T-01 bookkeeping correction: the initial draft validated, but marking done with 
 ## T-02 - 2026-09-26
 
 PASS: research.md Claude plan/field matrix, G-CL-1 through G-CL-5, C1-C11 and provider append reviewed together. Pinned OMP and latest v18.3.2 inspected; no Team/Enterprise live claims, null limits stay unknown, current consumption and legacy Enterprise distinguished. Validator --json valid=true with no diagnostics and git diff --check exit 0. Live LC-01 through LC-05 NOT_RUN; no account requests. T-01 corrected evidence reference also passed validation before commit 4ed5ee4.
+
+## T-03 - 2026-09-26
+
+PASS: Codex matrix, G-CX-1 through G-CX-4, O1-O8 and provider append reviewed. Official pinned spend-control nested type reveals unparsed amounts/resets; units and plan response presence remain unknown. Balance never used as allotment; actual duration is response-driven; historical HTTP 400/403 causes not inferred. Validator --json valid=true and diff check exit 0. LC-06 through LC-11 NOT_RUN; no new account request.

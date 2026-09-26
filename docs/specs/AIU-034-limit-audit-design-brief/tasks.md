@@ -198,10 +198,10 @@ tasks extend.
 - [x] **Step 6:** Commit "AIU-034 Phase A: Claude limit audit" and push.
 
 ### T-03 - [astra] Codex audit
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-01, AC-02
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` sections 3, 4, 10 and 12 (Codex rows)
@@ -215,20 +215,20 @@ tasks extend.
 - Official OpenAI help pages on Codex limits for Plus, Pro, Business and Enterprise,
   including workspace credits and flexible pricing.
 
-- [ ] **Step 1:** A-1 per plan: the primary and secondary windows (their actual durations, not
+- [x] **Step 1:** A-1 per plan: the primary and secondary windows (their actual durations, not
   an assumed five hours and seven days), the credit balance, and any workspace credit allotment
   with its period.
-- [ ] **Step 2:** A-2 field rows, as in T-02 Step 2.
-- [ ] **Step 3:** A-3: establish whether a workspace credit allotment or period exists anywhere:
+- [x] **Step 2:** A-2 field rows, as in T-02 Step 2.
+- [x] **Step 3:** A-3: establish whether a workspace credit allotment or period exists anywhere:
   response fields not parsed today, another endpoint reachable with the existing grant, or
   only the admin UI. Record the AIU-011 HTTP 400 and 403 results as observed, without guessing
   their cause. For each unknown, write the closing live check.
-- [ ] **Step 4:** Append the provider-record section, as in T-02 Step 4.
-- [ ] **Step 5 (check):**
+- [x] **Step 4:** Append the provider-record section, as in T-02 Step 4.
+- [x] **Step 5 (check):**
   - a credit `balance` with no allotment is never presented as a limit;
   - plans without evidence stay `source` or `none`;
   - the validator and `git diff --check` pass.
-- [ ] **Step 6:** Commit "AIU-034 Phase A: Codex limit audit" and push.
+- [x] **Step 6:** Commit "AIU-034 Phase A: Codex limit audit" and push.
 
 ### T-04 - [astra] Copilot audit
 - status: pending
@@ -509,8 +509,8 @@ tasks extend.
 
 ## Handoff
 
-Completed: T-01 and T-02; primary source/acceptance review PASS. Base: 27564d8. No worker artifacts. Live checks remain NOT_RUN, pending per-check owner authorization in T-06.
+Completed: T-01 through T-03; primary integrated source/acceptance review PASS. Base: 27564d8. No worker artifacts. Live checks NOT_RUN until separately authorized in T-06.
 
-Next action: T-03 [astra] Step 1, inspect Codex upstream quota types and official plan documentation.
+Next action: T-04 [astra] Step 1, inspect Copilot official billing and plan documentation against the pinned adapter.
 
-Checks: project validator --json valid=true and git diff --check PASS on 2026-09-26. T-01 evidence-reference correction is recorded in verification.md.
+Checks: validator --json valid=true and git diff --check PASS on 2026-09-26. T-01 evidence-reference correction recorded in verification.md.

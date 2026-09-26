@@ -239,7 +239,87 @@ No newly inspected source establishes an additional monetary endpoint reachable 
 app's grant. Enterprise Admin API documentation is a separate authorization boundary, not
 `other-endpoint` evidence. Its nullable-limit semantics must not be transplanted to OAuth.
 
+### Codex (T-03)
+
+`provider: codex`; `source_verified_at: 2026-09-26`; `live_verified_at: null`.
+Quota classification: official client internal schema, OMP adapter and official plan/UI
+documentation; confidence high for field definitions, unknown for plan-specific response
+presence and spend-control units. Authentication remains public-client reuse with permission
+unknown. Source references O1-O8 below.
+
+| Family | Plus | Pro | Business | Enterprise | Unit, period/reset and evidence |
+| --- | --- | --- | --- | --- | --- |
+| CX-P primary window | Included usage | Included usage, tier-dependent | Included seat usage; legacy Codex-only seats differ | Plan/contract-dependent; flexible credit plans need not have fixed caps | Percentage. Actual duration = returned `limit_window_seconds`, never hardcoded. Official pricing describes five-hour periods (O3). |
+| CX-S secondary window | Conditional | Conditional | Conditional | Conditional | Percentage; actual duration from response. Prior account read had 604800 seconds; not evidence for every plan. No billing-anniversary assumption. O1/O2/provider record. |
+| CX-A additional groups, each primary/secondary | Conditional | Conditional | Conditional | Conditional | Same window fields; independent opaque feature/name/model scope. No guarantee of a particular model group or duration. O1/O2. |
+| CX-B `credits.balance` | Optional purchased credits | Optional purchased credits | Shared purchased workspace balance | Contract credit pool for credit-based agreements | Credits, not currency or total allotment. Purchased personal/Business credits have purchase-relative expiry; Enterprise contractual terms. No periodic refill field. O1/O4/O5. |
+| CX-I individual spend control | Schema exists, applicability unknown | Schema exists, applicability unknown | Monthly credit limits by seat/user described | Monthly user credit or USD control described | `spend_control.individual_limit` is source-established but unparsed. Unit unknown on wire; resets are epoch/relative seconds. No duration/start. O1/O6/O7. |
+| CX-W workspace allocation/overage control | Unavailable | Unavailable | Shared balance and separate controls | Contract allocation, expiry, overage limit | Credits. No universal recurring allotment. Current balance is not the workspace limit. Admin UI/contract is evidence, current-grant transport unresolved. O5/O7. |
+| CX-D workspace monetary budget | Unavailable | Unavailable | Not established | Token-based Enterprise USD budget, separate user limit | Money in USD; monthly budget/control period must be checked independently of invoice/user-limit period. Not OpenAI Platform billing. O7/O8. |
+
+Cells classified `unparsed/source` below mean present in the inspected **response schema**,
+not a newly observed live body. Plan-specific presence remains unknown. The baseline's generic
+ignored-fields statement includes `credits.approx_local_messages`, `approx_cloud_messages`
+and the entire `spend_control.individual_limit`; these were identified in O1 during T-03.
+
+| Family / field | Plus | Pro | Business | Enterprise | Field / qualification |
+| --- | --- | --- | --- | --- | --- |
+| CX-P, CX-S, CX-A / used | parsed/source | parsed/source | parsed/source | parsed/source | `used_percent`; conditional windows. |
+| CX-P, CX-S, CX-A / limit | unavailable/source | unavailable/source | unavailable/source | unavailable/source | 100% scale only; no absolute entitlement. |
+| CX-P, CX-S, CX-A / remaining | parsed/source | parsed/source | parsed/source | parsed/source | 100 minus used. |
+| CX-P, CX-S, CX-A / period start | unavailable/source | unavailable/source | unavailable/source | unavailable/source | No start field; duration is not a start. |
+| CX-P, CX-S, CX-A / period end or reset | parsed/source | parsed/source | parsed/source | parsed/source | Unix `reset_at`; fallback fetchedAt + `reset_after_seconds`. |
+| CX-P, CX-S, CX-A / currency | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
+| CX-P, CX-S, CX-A / exponent | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
+| CX-B / used | unavailable/source | unavailable/source | unavailable/source | unavailable/source | No pool-consumed total. |
+| CX-B / limit | unavailable/source | unavailable/source | unavailable/source | unavailable/source | No allotment; explicit `unlimited` is independent. |
+| CX-B / remaining | parsed/source | parsed/source | parsed/source | parsed/source | `balance`; actual response presence conditional. |
+| CX-B / period start | unknown/none | unknown/none | unknown/none | unknown/none | No purchase-lot start in current reading. |
+| CX-B / period end or reset | unknown/none | unknown/none | unknown/none | unknown/none | No expiry/reset in current reading; purchase/contract terms differ. |
+| CX-B / currency | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Credits; no currency conversion. |
+| CX-B / exponent | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Decimal credit quantity, not money exponent. |
+| CX-I / used | unparsed/source | unparsed/source | unparsed/source | unparsed/source | `individual_limit.used` string and `used_percent`; scope/unit require proof. |
+| CX-I / limit | unparsed/source | unparsed/source | unparsed/source | unparsed/source | `individual_limit.limit` string. |
+| CX-I / remaining | unparsed/source | unparsed/source | unparsed/source | unparsed/source | `remaining` string and `remaining_percent`. |
+| CX-I / period start | unknown/none | unknown/none | unknown/none | unknown/none | Not in type; no duration from which to derive it. |
+| CX-I / period end or reset | unparsed/source | unparsed/source | unparsed/source | unparsed/source | `reset_at`, `reset_after_seconds`; UI can select calendar UTC or billing-aligned Enterprise period. |
+| CX-I / currency | unknown/none | unknown/none | unknown/none | unknown/none | No field in pinned schema; do not assume all plans use credits. |
+| CX-I / exponent | unknown/none | unknown/none | unknown/none | unknown/none | No field; monetary scale not established by decimal strings. |
+| CX-W / used | unavailable/source | unavailable/source | provider-ui/source | provider-ui/source | Workspace reports; not necessarily complete real-time consumption. |
+| CX-W / limit | unavailable/source | unavailable/source | unknown/none | provider-ui/source | Enterprise allocation/control terms; Business balance is not allotment. |
+| CX-W / remaining | unavailable/source | unavailable/source | provider-ui/source | provider-ui/source | Selected workspace credit balance; same-pool match to CX-B still needs proof. |
+| CX-W / period start | unavailable/source | unavailable/source | unknown/none | unknown/none | Contract/purchase terms; no eligible endpoint established. |
+| CX-W / period end or reset | unavailable/source | unavailable/source | unknown/none | unknown/none | Contract allocation expiry is not user-control reset. |
+| CX-W / currency | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Credit-native; dollar estimates are not invoices or native currency. |
+| CX-W / exponent | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Inapplicable to credit quantities. |
+| CX-D / used | unavailable/source | unavailable/source | unknown/none | provider-ui/source | Metered workspace USD spend, contract-dependent. |
+| CX-D / limit | unavailable/source | unavailable/source | unknown/none | provider-ui/source | Configured monthly USD budget. |
+| CX-D / remaining | unavailable/source | unavailable/source | unknown/none | unknown/none | Direct remainder not established by source inspected. |
+| CX-D / period start | unavailable/source | unavailable/source | unknown/none | unknown/none | Verify budget period separately. |
+| CX-D / period end or reset | unavailable/source | unavailable/source | unknown/none | provider-ui/source | Displayed budget reset period; exact instant not observed. |
+| CX-D / currency | unavailable/source | unavailable/source | unknown/none | provider-ui/source | USD; keep separate from estimated cost of credits. |
+| CX-D / exponent | unavailable/source | unavailable/source | unknown/none | unknown/none | UI money does not establish minor-unit wire exponent. |
+
 ## 4. Gap dispositions
+
+### Codex
+
+- **G-CX-1 (source-resolved candidate, live unknown):** O1 supplies the unparsed individual
+  control with amounts, percentages, `source` and resets. It is not a workspace allotment;
+  no unit/currency/exponent/start appears in that type. LC-08/09/10 must establish plan,
+  unit and scope before treating it as a credit or monetary pool.
+- **G-CX-2:** workspace allocation exists in official product/admin descriptions; Enterprise
+  allocations/expiry are contractual, and user controls may be calendar-month UTC or
+  billing-aligned. Business purchases are not a recurring refill. LC-08/09 inspect the UI;
+  current `credits.balance` cannot provide allotment, used or period.
+- **G-CX-3:** AIU-011 on 2026-09-22 observed HTTP 400 for both workspace token variants and
+  HTTP 403 for four enterprise credit variants. Cause not established. Personal history
+  success and empty credit events prove neither workspace access nor absence of allocation.
+  LC-11 is a separately authorized bounded existing-grant history retry; consumption reports
+  still may not contain an allotment. No alternative-grant endpoint is classified reachable.
+- **G-CX-4:** O4 permits negative credit balances after concurrent work settles; our parser
+  converts them to unknown. Retain this discrepancy for T-07; no parser change here. O7/O8
+  also establish subscription-attached USD Enterprise controls, with wire mapping unresolved.
 
 ### Claude
 
@@ -298,6 +378,12 @@ does not expose it; such a result leaves the transport gap open.
 | LC-03 | Claude Team, provider member/admin Usage | Whether cap is member/org, period label and balance; G-CL-1/2/3 | Work-account approval and existing role required; no membership/settings changes | NOT_RUN |
 | LC-04 | Claude Enterprise, provider member/admin Usage | Legacy versus consumption plan, org/member/group pooled controls and period; G-CL-1/2/3 | Work-account approval; only already accessible pages; no terms acceptance | NOT_RUN |
 | LC-05 | One owner-selected Claude plan, existing AI Usage connection | Compare exposed money components/window reset with that plan's UI; G-CL-1/2 | Unsupported restricted OAuth boundary; refresh may rotate grant. No new connection/scopes; absent hidden fields remain unknown | NOT_RUN |
+| LC-06 | ChatGPT Plus, provider Usage | Actual window durations, credit balance semantics/expiry; G-CX-2/4 | Read-only private usage page; no purchase or reset | NOT_RUN |
+| LC-07 | ChatGPT Pro, provider Usage | Same for selected Pro tier; no Plus generalization | Read-only; owner opens account; no settings changes | NOT_RUN |
+| LC-08 | ChatGPT Business, provider Billing/Usage | Seat/user monthly controls versus purchased workspace balance; G-CX-1/2 | Work-account approval and existing role; no auto-reload or purchase | NOT_RUN |
+| LC-09 | ChatGPT Enterprise, provider Usage/Admin billing | Credit or USD contract, user period, shared allocation/budget and reset; G-CX-1/2/4 | Work-account approval; no new role, key, settings or terms | NOT_RUN |
+| LC-10 | One selected ChatGPT plan, existing AI Usage connection | Actual returned window durations and exposed credits/restrictions; G-CX-1/2 | Grant refresh may rotate; no new scopes. Current UI drops individual_limit, so cannot close hidden schema presence by itself | NOT_RUN |
+| LC-11 | Existing eligible Business/Enterprise AI Usage connection, history surface | Bounded seven-day retry of existing current-user workspace history reports; G-CX-3 | Private work data and optional denial; no other-user requests, new transport or grants; record only status/field shape | NOT_RUN |
 
 ## 11. Pending owner decisions
 
@@ -329,3 +415,25 @@ will be added by T-02 to T-05. Historical context:
 - C9: [Enterprise pooled group budgets](https://support.claude.com/en/articles/17005973-manage-pooled-group-budgets-on-enterprise-plans).
 - C10: [Usage bundles](https://support.claude.com/en/articles/14246112-buy-usage-bundles).
 - C11: [Paused Agent SDK monthly-credit announcement](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan).
+
+### Codex sources (read 2026-09-26)
+
+- O1: official `openai/codex` commit `6b9826e3aa83b1a5947db50f4332cb9c65f1b340`,
+  [generated models](https://github.com/openai/codex/tree/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/codex-backend-openapi-models/src/models):
+  `rate_limit_status_payload.rs`, `rate_limit_status_details.rs`, `rate_limit_window_snapshot.rs`,
+  `additional_rate_limit_details.rs`, `credit_status_details.rs`, `spend_control_status_details.rs`,
+  and especially [SpendControlLimitDetails](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/codex-backend-openapi-models/src/models/spend_control_limit_details.rs).
+  [Wrapper types](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/backend-client/src/types.rs),
+  `RateLimitStatusWithResetCredits`, `AdditionalRateLimitWithNormalModel`.
+- O2: [OMP pinned Codex adapter](https://github.com/can1357/oh-my-pi/blob/e4dd2ec3b487f216c569281e2cdb7ec476a81f2e/packages/ai/src/usage/openai-codex.ts),
+  `parseUsageWindow`, `parseUsagePayload`, `resolveResetTime`, `fetchUsage`. Its projection
+  is narrower than O1 and does not establish a credit allotment.
+- O3: [Official pricing](https://learn.chatgpt.com/docs/pricing),
+  [plan usage guide](https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan).
+- O4: [Personal flexible credits](https://help.openai.com/en/articles/12642688-using-credits-for-flexible-usage-in-chatgpt-personal-plans).
+- O5: [Business/Enterprise flexible pricing](https://help.openai.com/en/articles/11487671-flexible-pricing-for-the-enterprise-edu-and-business-plans).
+- O6: [Business monthly controls](https://help.openai.com/en/articles/20001155-managing-credits-and-spend-controls-in-chatgpt-business).
+- O7: [Enterprise usage periods and independent controls](https://help.openai.com/en/articles/20001001-manage-usage-limits-and-overages-in-chatgpt-enterprise-and-edu).
+- O8: [Enterprise USD rate-card scope](https://help.openai.com/en/articles/20001415).
+- Historical result: [AIU-011 live verification](../AIU-011-provider-history/verification.md),
+  2026-09-22 workspace HTTP 400 and enterprise HTTP 403. No new run in T-03.
