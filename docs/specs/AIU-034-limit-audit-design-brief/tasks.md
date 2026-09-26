@@ -340,7 +340,8 @@ tasks extend.
   - unit, used, limit, remaining;
   - period start and period end;
   - reset source: `provider` or `assumed`;
-  - personal cap and effective limit.
+  - personal cap and effective limit;
+  - snapshot source: `provider-api` or `local-cli` (owner amendment, 2026-09-26).
 
 - [ ] **Step 1:** Read sections 2 to 4 critically. Turn any matrix gap or inconsistency that
   affects the model into a section 4 note, a live check or a `PD-034-nn` decision.
@@ -355,16 +356,28 @@ tasks extend.
   R-03.
 - [ ] **Step 4:** Write a mapping table. For every provider limit in the matrix, give each
   model field with its source field, or "unknown", or "assumed".
-- [ ] **Step 5:** Stored-format impact, with no change made now:
+- [ ] **Step 5:** Source independence (owner amendment, 2026-09-26, preparing
+  [AIU-005](../../backlog.md)). A snapshot may later come from the provider API through the
+  app's own connection, or from a locally installed provider CLI that keeps its own
+  credentials. Define:
+  - the snapshot source as metadata on the snapshot, and how it is shown;
+  - that the limit fields, the personal cap, the budget inputs and the estimator observations
+    do not depend on the source;
+  - how two sources for the same account and limit are treated, left as a `PD-034-nn`
+    decision.
+
+  Do not research CLI capabilities here. That is AIU-005's work.
+- [ ] **Step 6:** Stored-format impact, with no change made now:
   - which persisted files from section 2 would change;
   - how opaque provider values and unknown members are preserved;
   - which forward migration the implementation item needs.
-- [ ] **Step 6 (check):**
+- [ ] **Step 7 (check):**
   - every matrix limit has a mapping row;
   - every monetary field uses minor units and exponent;
   - no model field sums or converts across units;
+  - no model field or rule depends on the snapshot source;
   - the validator and `git diff --check` pass.
-- [ ] **Step 7:** Commit "AIU-034 Phase A: normalized limit model proposal" and push.
+- [ ] **Step 8:** Commit "AIU-034 Phase A: normalized limit model proposal" and push.
 
 ### T-08 - [opus] Start-of-day amount and five-hour session estimator
 - status: pending

@@ -4,7 +4,7 @@ type: spec
 status: approved
 goal: G-003
 scope_version: 1
-approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis. Owner amendment, 2026-09-26: the agent split for the follow-up implementation items is recorded in the Closing proposal.
+approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis. Owner amendment, 2026-09-26: the agent split for the follow-up implementation items is recorded in the Closing proposal. Owner amendment, 2026-09-26: A-6 keeps the model independent of the snapshot source (provider API or local CLI) to prepare AIU-005.
 ---
 # AIU-034 - Limit data audit and budget-aware single-window design brief
 
@@ -142,7 +142,11 @@ Answer each question per provider and plan.
   and `CreditBalance`. It covers:
   - kind, unit, used, limit and remaining;
   - period start and end, and the reset source (provider or assumed);
-  - the personal cap.
+  - the personal cap;
+  - the snapshot source (the provider API through the app's connection, or a locally installed
+    provider CLI), carried as metadata so that no limit field or budget rule depends on it.
+    This was added by owner amendment on 2026-09-26 to prepare AIU-005. CLI capabilities are
+    researched there, not here.
 
   Give the mapping for every provider and the impact on stored formats, preserving opaque
   provider values.
