@@ -38,3 +38,7 @@ PASS: research.md Claude plan/field matrix, G-CL-1 through G-CL-5, C1-C11 and pr
 ## T-03 - 2026-09-26
 
 PASS: Codex matrix, G-CX-1 through G-CX-4, O1-O8 and provider append reviewed. Official pinned spend-control nested type reveals unparsed amounts/resets; units and plan response presence remain unknown. Balance never used as allotment; actual duration is response-driven; historical HTTP 400/403 causes not inferred. Validator --json valid=true and diff check exit 0. LC-06 through LC-11 NOT_RUN; no new account request.
+
+## T-04 - 2026-09-26
+
+PASS: Copilot matrix, G-GH-1 through G-GH-4, G1-G7 and provider record reviewed. Explicit unlimited remains distinct from unknown; current credit billing differs from legacy annual premium requests; Free live evidence is not generalized. Parser date normalization distinguished from documented UTC monthly reset. Validator --json valid=true and diff check exit 0. LC-12 through LC-17 NOT_RUN; no authenticated request.

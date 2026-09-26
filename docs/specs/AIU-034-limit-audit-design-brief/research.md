@@ -300,7 +300,79 @@ and the entire `spend_control.individual_limit`; these were identified in O1 dur
 | CX-D / currency | unavailable/source | unavailable/source | unknown/none | provider-ui/source | USD; keep separate from estimated cost of credits. |
 | CX-D / exponent | unavailable/source | unavailable/source | unknown/none | unknown/none | UI money does not establish minor-unit wire exponent. |
 
+### Copilot (T-04)
+
+`provider: copilot`; `source_verified_at: 2026-09-26`; `live_verified_at: null`.
+Quota classification: undocumented internal request snapshots, official credit/billing UI
+and reporting API; confidence high for source distinction, unknown for current paid-plan
+payload parity. Authentication remains the existing device grant/client reuse boundary.
+References G1-G7. No Free-account result is applied to a paid plan.
+
+| Family | Free | Pro | Pro+ | Business | Native unit / period |
+| --- | --- | --- | --- | --- | --- |
+| GH-C `quota_snapshots.chat` | Source parser support; prior Free observation | Conditional wire support; credit plans differ | Conditional wire support | Conditional wire support | Requests in inspected adapter, monthly label; current AI-credit chat not proven equivalent. G1. |
+| GH-I `completions` | Official 2000/month | Unlimited inline completions | Unlimited inline completions | Unlimited inline completions | Completion/request count; explicit unlimited flag is retained, not inferred from missing amount. G1/G2. |
+| GH-P `premium_interactions` | Historical Free zero-entitlement row does not mean credits absent | Legacy annual request billing: 300/month | Legacy annual request billing: 1500/month | Current request-pool meaning unknown | Premium requests. Legacy Pro/Pro+ cycle resets first of month 00:00 UTC; not a current universal credit allowance. G1/G5. |
+| GH-A included AI credits | Allowance exists; exact public amount unspecified in inspected current page | Base 1000 + variable flex 500 = current 1500/month | Base 3900 + variable flex 3100 = current 7000/month | 1900 per assigned license contributes to billing-entity shared pool, not an isolated user bucket | AI credits; calendar month, first day 00:00:00 UTC, no rollover. Figures are public plan terms, not account observations or constants to hardcode. G2/G3/G4. |
+| GH-D additional usage / user spending budget | Eligibility not established | Optional USD budget | Optional USD budget | User, organization, cost-center and enterprise controls differ in scope | Money (USD); configured budget period requires UI scope confirmation; never substitute the credit pool or subscription price. G3/G4/G7. |
+
+G3 describes base versus flex amounts: they are distinct components of the current allowance,
+not guaranteed independent wire pools. G4 says pool contributions can change with seats;
+the effective user budget may bind before the shared pool. The internal endpoint's opaque
+`copilot_plan` cannot decide billing generation. No request-to-credit conversion is adopted.
+
+| Family / field | Free | Pro | Pro+ | Business | Wire / evidence qualification |
+| --- | --- | --- | --- | --- | --- |
+| GH-C, GH-I, GH-P / used | parsed/source | parsed/source | parsed/source | parsed/source | Derived entitlement minus remaining when both valid; percentage separately derived from percent_remaining. Conditional response support. |
+| GH-C, GH-I, GH-P / limit | parsed/source | parsed/source | parsed/source | parsed/source | `entitlement`; explicit `unlimited` independent; missing is unknown. |
+| GH-C, GH-I, GH-P / remaining | parsed/source | parsed/source | parsed/source | parsed/source | `remaining`, percentage independently; `quota_remaining` retained only in SourceDetails. |
+| GH-C, GH-I, GH-P / period start | unavailable/source | unavailable/source | unavailable/source | unavailable/source | No start field. Month start can follow documented semantics only after identifying the applicable pool. |
+| GH-C, GH-I, GH-P / period end or reset | parsed/source | parsed/source | parsed/source | parsed/source | `quota_reset_date` string; wire precision unspecified, parser assumes UTC on date-only/zone-less input. |
+| GH-C, GH-I, GH-P / currency | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Request counts have no currency. |
+| GH-C, GH-I, GH-P / exponent | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Inapplicable. |
+| GH-A / used | provider-ui/source | provider-ui/source | provider-ui/source | provider-ui/source | Usage dashboard; reporting endpoints exist but existing-grant eligibility unresolved. |
+| GH-A / limit | provider-ui/source | provider-ui/source | provider-ui/source | provider-ui/source | Current account allowance/shared pool; public amounts above do not establish account-specific value. |
+| GH-A / remaining | provider-ui/source | provider-ui/source | provider-ui/source | provider-ui/source | Available allowance/pool in UI, not `premium_interactions.remaining`. |
+| GH-A / period start | provider-ui/source | provider-ui/source | provider-ui/source | provider-ui/source | Documented first-of-month UTC; source-established semantic boundary, not a current parser field. |
+| GH-A / period end or reset | provider-ui/source | provider-ui/source | provider-ui/source | provider-ui/source | Next first-of-month UTC; current wire reset-to-credit binding unknown. |
+| GH-A / currency | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Credits; keep money budget separate despite published billing rates. |
+| GH-A / exponent | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Credit-native quantity. |
+| GH-D / used | unknown/none | provider-ui/source | provider-ui/source | provider-ui/source | Billing usage; meter and scope differ by control. |
+| GH-D / limit | unknown/none | provider-ui/source | provider-ui/source | provider-ui/source | Configured USD budget; no current quota parser mapping. |
+| GH-D / remaining | unknown/none | unknown/none | unknown/none | unknown/none | Direct remaining field not established in inspected UI documentation. |
+| GH-D / period start | unknown/none | unknown/none | unknown/none | unknown/none | Verify selected budget's period, not subscription renewal by assumption. |
+| GH-D / period end or reset | unknown/none | unknown/none | unknown/none | unknown/none | UI check must distinguish included-credit reset from budget control period. |
+| GH-D / currency | unknown/none | provider-ui/source | provider-ui/source | provider-ui/source | USD budget. |
+| GH-D / exponent | unknown/none | unknown/none | unknown/none | unknown/none | No established minor-unit wire schema. |
+
+`unlimited: true` differs from absent/null; overage permission is a separate nullable flag,
+not unlimited base usage. An exhausted amount does not prove access denied. The API reset
+property is typed as a string by G1; no source inspected requires exclusively a date or
+instant. Current parser accepts both and loses original precision. G5 establishes the UTC
+instant for legacy premium-request reset; G3/G4 establish it for AI credits. Neither proves
+all future internal pools share the same clock.
+
 ## 4. Gap dispositions
+
+### Copilot
+
+- **G-GH-1:** request versus credit billing generation is source-resolved: G5 limits legacy
+  request guidance to eligible existing annual Pro/Pro+ subscriptions; current pages describe
+  AI credits. Internal request keys do not establish credit parity. LC-12–15 inspect separate
+  plans; LC-16 compares the existing app projection for one selected plan.
+- **G-GH-2:** AI-credit amounts/period are documented in UI; current OAuth quota mapping is
+  unknown. G6 reports have native `unitType`, quantities and money, but do not establish
+  account allotment or current read:user-grant access. AIU-011 returned HTTP 404 for both
+  personal reports on 2026-09-22, with `/user` HTTP 200; no definite cause is claimed.
+  LC-17 is a separate paid-personal-account history check. Organization reports need their
+  own access boundary and are not added to the existing transport.
+- **G-GH-3:** included credits and legacy premium counters reset at calendar-month UTC,
+  independent of renewal. Wire `quota_reset_date` precision and binding to paid-plan credit
+  pools remain unknown. LC-12–16 record only date/instant/zone shape exposed by each surface.
+  A date shown by an app that already normalized it cannot prove raw payload precision.
+- **G-GH-4:** Business pool allocation belongs to the billing entity; user budgets can bind
+  independently. LC-15 checks only authorized work-account pages for pool/control scope and
+  period. Unknown configured budget is never zero or unlimited.
 
 ### Codex
 
@@ -384,6 +456,12 @@ does not expose it; such a result leaves the transport gap open.
 | LC-09 | ChatGPT Enterprise, provider Usage/Admin billing | Credit or USD contract, user period, shared allocation/budget and reset; G-CX-1/2/4 | Work-account approval; no new role, key, settings or terms | NOT_RUN |
 | LC-10 | One selected ChatGPT plan, existing AI Usage connection | Actual returned window durations and exposed credits/restrictions; G-CX-1/2 | Grant refresh may rotate; no new scopes. Current UI drops individual_limit, so cannot close hidden schema presence by itself | NOT_RUN |
 | LC-11 | Existing eligible Business/Enterprise AI Usage connection, history surface | Bounded seven-day retry of existing current-user workspace history reports; G-CX-3 | Private work data and optional denial; no other-user requests, new transport or grants; record only status/field shape | NOT_RUN |
+| LC-12 | Copilot Free, provider Copilot/Billing usage | Included credits versus inline suggestions, reset display; G-GH-1/2/3 | Read-only private page; no upgrade or budget changes | NOT_RUN |
+| LC-13 | Copilot Pro, provider usage/billing | Legacy annual versus credit billing, cap and reset; G-GH-1/2/3 | Owner opens account; no billing changes | NOT_RUN |
+| LC-14 | Copilot Pro+, provider usage/billing | Same for Pro+, including base/flex allowance; G-GH-1/2/3 | Separate plan proof; no billing changes | NOT_RUN |
+| LC-15 | Copilot Business, provider authorized usage/billing UI | Shared entity pool versus member budget and reset; G-GH-2/3/4 | Work-account permission and existing role; no admin mutation or new role | NOT_RUN |
+| LC-16 | One selected Copilot plan, existing AI Usage connection | Parsed request pools, flags and reset versus that UI; G-GH-1/3 | Private grant read/possible renewal; no new scope; cannot prove dropped credit fields absent | NOT_RUN |
+| LC-17 | Personally paid Pro or Pro+, existing AI Usage history | Bounded one-day AI-credit and premium report eligibility/unit/period; G-GH-2 | Current grant only, at most existing identity check and two reports; stop on denial, no PAT | NOT_RUN |
 
 ## 11. Pending owner decisions
 
@@ -437,3 +515,19 @@ will be added by T-02 to T-05. Historical context:
 - O8: [Enterprise USD rate-card scope](https://help.openai.com/en/articles/20001415).
 - Historical result: [AIU-011 live verification](../AIU-011-provider-history/verification.md),
   2026-09-22 workspace HTTP 400 and enterprise HTTP 403. No new run in T-03.
+
+### Copilot sources (read 2026-09-26)
+
+- G1: [OMP v18.2.6 Copilot adapter](https://github.com/can1357/oh-my-pi/blob/78b753124d11f8dd3ae73e2524125890ff7c977e/packages/ai/src/usage/github-copilot.ts),
+  `CopilotQuotaDetail`, `CopilotUsageResponse`, `parseQuotaDetail`, `buildWindow`,
+  `normalizeQuotaSnapshots`, `fetchInternalUsage`. Current parser path in section 2.
+- G2: [Current plan table](https://docs.github.com/en/copilot/get-started/plans).
+- G3: [Individual credit billing](https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/billing).
+- G4: [Organization pooling and billing](https://docs.github.com/en/copilot/concepts/billing-and-usage/organizations-and-enterprises/billing).
+- G5: [Legacy request plans](https://docs.github.com/en/copilot/reference/copilot-billing/request-based-billing-legacy/copilot-requests),
+  [legacy reset clock](https://docs.github.com/en/copilot/reference/copilot-billing/request-based-billing-legacy/monitor-premium-requests).
+- G6: [Billing reporting API](https://docs.github.com/en/rest/billing/usage); personal Plan-read
+  and organization Administration-read are distinct from the existing OAuth grant.
+- G7: [License changes and reset independence](https://docs.github.com/en/copilot/reference/copilot-billing/license-changes).
+  Historical Free observation and HTTP 404 attempts remain in [Copilot record](../../providers/copilot.md)
+  and [AIU-011 verification](../AIU-011-provider-history/verification.md).

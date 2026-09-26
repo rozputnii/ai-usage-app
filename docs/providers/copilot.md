@@ -95,3 +95,25 @@ rows. The cause of 404 is not established and must not be asserted as definitely
 restriction or definitely an OAuth limitation. History transport was live-attempted on
 2026-09-22, but successful history `live_verified_at` remains null. See the detailed
 [verification](../specs/AIU-011-provider-history/verification.md).
+
+## Limit data audit (AIU-034)
+
+- provider: copilot
+- source_verified_at: 2026-09-26
+- live_verified_at: null
+- classification: quota undocumented request snapshot; official credit/billing descriptions and reporting API; authentication unchanged
+- confidence: high for source semantics; paid-plan response parity and current-grant report access unresolved
+- sources: [AIU-034 G1-G7](../specs/AIU-034-limit-audit-design-brief/research.md#copilot-sources-read-2026-09-26)
+
+Current GitHub documentation distinguishes AI-credit billing from retained annual Pro/Pro+
+premium-request billing. Business included credits form a billing-entity pool; a seat's
+contribution is not an isolated per-user allowance. Included credits and legacy premium
+requests reset at the first of the month, 00:00 UTC, independently of subscription renewal.
+
+The pinned adapter still labels `chat`, `completions` and `premium_interactions` as requests;
+it establishes no credit equivalence. AI Usage preserves explicit unlimited and overage
+flags separately. `quota_reset_date` is a string contract; the app accepts dates/instants
+and assumes UTC for zone-less input, so original precision is lost. Published reset semantics
+do not prove every internal pool's clock. Prior Free evidence does not validate paid plans.
+The [matrix and LC-12 through LC-17](../specs/AIU-034-limit-audit-design-brief/research.md)
+retain those gaps and the unresolved earlier report HTTP 404s. No new live check ran.
