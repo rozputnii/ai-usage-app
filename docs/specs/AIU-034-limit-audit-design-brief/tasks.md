@@ -100,10 +100,10 @@ check in the owning task, and T-10 checks all of them again.
 ---
 
 ### T-01 - [astra] Current parsing and storage baseline
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: AC-01, AC-03
-- evidence: not-run
+- evidence: research.md section 2; verification.md T-01; primary integrated source/acceptance review PASS.
 
 **Files:**
 - Create: `docs/specs/AIU-034-limit-audit-design-brief/research.md` (skeleton and section 2)
@@ -120,8 +120,8 @@ check in the owning task, and T-10 checks all of them again.
 **Produces:** research.md headings 1 to 12 (below) and the "parsed today" column that later
 tasks extend.
 
-- [ ] **Step 1:** Set AIU-034 `status: in-progress` in `docs/backlog.md`.
-- [ ] **Step 2:** Create research.md with these fixed headings, each empty except for a
+- [x] **Step 1:** Set AIU-034 `status: in-progress` in `docs/backlog.md`.
+- [x] **Step 2:** Create research.md with these fixed headings, each empty except for a
   one-line statement of what it will contain:
   1. Scope and evidence levels
   2. Current parsing and storage baseline
@@ -135,23 +135,23 @@ tasks extend.
   10. Live checks
   11. Pending owner decisions
   12. Sources
-- [ ] **Step 3:** Fill section 1:
+- [x] **Step 3:** Fill section 1:
   - the three evidence levels: `source`, `live`, `none`;
   - the A-2 availability classes, with the one-word codes used in every matrix cell:
     `parsed`, `unparsed`, `other-endpoint`, `provider-ui`, `unavailable`, and `unknown` when
     research could not decide.
-- [ ] **Step 4:** Fill section 2:
+- [x] **Step 4:** Fill section 2:
   - for each provider parser, every JSON field it reads and the Core type and member it lands
     in (`QuotaWindow`, `QuotaAmount`, `CreditBalance` or `SourceDetails`);
   - every field it drops or ignores;
   - which quota data is persisted (cache files, stored state, preferences), in which format
     and version, and which is memory only.
-- [ ] **Step 5 (check):**
+- [x] **Step 5 (check):**
   - every parser file is cited with its path;
   - every member of `QuotaWindow`, `QuotaAmount` and `CreditBalance` appears in at least one
     row or is listed as unused;
   - the validator and `git diff --check` pass.
-- [ ] **Step 6:** Commit "AIU-034 Phase A: start audit and record current parsing baseline"
+- [x] **Step 6:** Commit "AIU-034 Phase A: start audit and record current parsing baseline"
   and push.
 
 ### T-02 - [astra] Claude audit
@@ -511,4 +511,4 @@ tasks extend.
 
 The owner approved this plan and the agent assignment on 2026-09-26.
 
-Next action: an `[astra]` session runs T-01 Step 1.
+Completed: T-01 baseline and member coverage reviewed; validator JSON valid=true and diff check PASS on 2026-09-26. Base: 27564d851a6ef823741b0b4b260ce1587a8f6fb6. No worker artifacts or blockers. Next action: T-02 [astra] Step 1, inspect Claude public sources.

@@ -313,7 +313,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-034 - Limit data audit and budget-aware single-window design brief
 - goal: G-003
-- status: ready
+- status: in-progress
 - depends_on: []
 - trigger: owner-selected
 - outcome: Phase A audits every limit each provider and plan can report and proposes a normalized limit and daily-budget model with work days, personal caps and five-hour session estimates; after owner review, Phase B writes a Claude Design brief for a single-window redesign with its own visual identity. Ends with proposed implementation items; no product code changes.
