@@ -311,6 +311,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - scope-note: Owner request, 2026-09-25, after a Codex limit reset stayed invisible for hours. Minimal slice of D-099 split from AIU-012.
 - review-note: Deterministic tests and an empty-state Release run pass. Automatic refresh of a real account in the installed package is NOT_RUN.
 
+## AIU-034 - Limit data audit and budget-aware single-window design brief
+- goal: G-003
+- status: ready
+- depends_on: []
+- trigger: owner-selected
+- outcome: Phase A audits every limit each provider and plan can report and proposes a normalized limit and daily-budget model with work days, personal caps and five-hour session estimates; after owner review, Phase B writes a Claude Design brief for a single-window redesign with its own visual identity. Ends with proposed implementation items; no product code changes.
+- specification: docs/specs/AIU-034-limit-audit-design-brief/spec.md
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
+- scope-note: Owner request and answers, 2026-09-26, recorded as D-183. API-key billing is excluded. Phase A starts only on the owner's instruction after the specification review.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
