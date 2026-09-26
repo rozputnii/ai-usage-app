@@ -92,3 +92,24 @@ established history transport compatible with the existing AI Usage grant. Histo
 returns Unsupported without additional requests or authorization. This is a limitation of
 the verified integration, not proof that the provider has no history. No live history check
 was performed. See [research](../specs/AIU-011-provider-history/research.md).
+
+## Limit data audit (AIU-034)
+
+- provider: claude
+- source_verified_at: 2026-09-26
+- live_verified_at: null
+- classification: quota undocumented OAuth schema; official plan/UI descriptions; authentication restriction unchanged
+- confidence: high for source projection; plan-specific payload coverage and monetary scope unresolved
+- sources: [AIU-034 source index C1-C11](../specs/AIU-034-limit-audit-design-brief/research.md#claude-sources-read-2026-09-26)
+
+OMP v18.3.2, commit `7853b4e499936f9dcc13c9b64adb55f6b342aabf`, still supplies no
+money-period fields in `ClaudeExtraUsage`/`ClaudeSpend` or `buildClaudeExtraUsageLimit`.
+New reset inventory does not establish a recurring credit allowance. AI Usage already parses
+money as minor units with separate exponent/currency; null or absent limits remain unknown.
+
+Official Pro/Max/Team descriptions now explicitly identify a fixed account-assigned weekly
+reset. Enterprise must be divided into legacy seats with included windows and current
+consumption plans. Documented organization/member/group controls and prepaid balances do
+not establish the scope of OAuth `spend` or its reset clock. The detailed plan/field matrix,
+unknowns and LC-01 through LC-05 are in [research](../specs/AIU-034-limit-audit-design-brief/research.md).
+No current account or live response was inspected; prior live dates do not verify these findings.

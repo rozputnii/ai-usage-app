@@ -155,10 +155,10 @@ tasks extend.
   and push.
 
 ### T-02 - [astra] Claude audit
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-01, AC-02
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` sections 3, 4, 10 and 12 (Claude rows)
@@ -171,31 +171,31 @@ tasks extend.
 - Official Claude help-center and pricing pages for Pro, Max, Team and Enterprise: usage
   limits, extra usage, spend limits and seat allowances.
 
-- [ ] **Step 1:** A-1 for Claude Pro, Max, Team and Enterprise:
+- [x] **Step 1:** A-1 for Claude Pro, Max, Team and Enterprise:
   - list the five-hour, weekly and model-scoped weekly windows, and the extra-usage and spend
     monetary pools;
   - give each its native unit, period type (rolling, calendar month or billing anniversary)
     and reset behavior;
   - mark each statement with its source.
-- [ ] **Step 2:** A-2: for every limit, write one row per field (used, limit, remaining, period
+- [x] **Step 2:** A-2: for every limit, write one row per field (used, limit, remaining, period
   start, period end or reset, currency, exponent) with the availability class and evidence
   level.
-- [ ] **Step 3:** A-3: resolve, or record as an explicit unknown:
+- [x] **Step 3:** A-3: resolve, or record as an explicit unknown:
   - the period and reset of `spend` and `extra_usage`;
   - how a Team or Enterprise monetary allowance is reported, for example an organization pool
     versus a per-seat pool.
 
   For each unknown, write the live check that would close it: account type, surface (the
   app's existing connection, or the provider's own UI) and what it proves.
-- [ ] **Step 4:** Append the findings to `docs/providers/claude.md` in a new section. Give the
+- [x] **Step 4:** Append the findings to `docs/providers/claude.md` in a new section. Give the
   section its own `source_verified_at: 2026-09-26` line, a `live_verified_at: null` line,
   classification, confidence and sources. Leave the existing frontmatter and sections
   unchanged.
-- [ ] **Step 5 (check):**
+- [x] **Step 5 (check):**
   - no matrix cell for Team or Enterprise claims `live` evidence;
   - a null or absent `monthly_limit` or `limit` is recorded as unknown;
   - the validator and `git diff --check` pass.
-- [ ] **Step 6:** Commit "AIU-034 Phase A: Claude limit audit" and push.
+- [x] **Step 6:** Commit "AIU-034 Phase A: Claude limit audit" and push.
 
 ### T-03 - [astra] Codex audit
 - status: pending
@@ -509,6 +509,8 @@ tasks extend.
 
 ## Handoff
 
-The owner approved this plan and the agent assignment on 2026-09-26.
+Completed: T-01 and T-02; primary source/acceptance review PASS. Base: 27564d8. No worker artifacts. Live checks remain NOT_RUN, pending per-check owner authorization in T-06.
 
-Completed: T-01 baseline and member coverage reviewed; validator JSON valid=true and diff check PASS on 2026-09-26. Base: 27564d851a6ef823741b0b4b260ce1587a8f6fb6. No worker artifacts or blockers. Next action: T-02 [astra] Step 1, inspect Claude public sources.
+Next action: T-03 [astra] Step 1, inspect Codex upstream quota types and official plan documentation.
+
+Checks: project validator --json valid=true and git diff --check PASS on 2026-09-26. T-01 evidence-reference correction is recorded in verification.md.

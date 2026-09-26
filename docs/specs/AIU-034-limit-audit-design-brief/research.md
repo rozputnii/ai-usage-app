@@ -175,11 +175,94 @@ Coverage check: every `QuotaWindow` member (`Id`, `UsedPercent`, `RemainingPerce
 
 ## 3. Limit matrix
 
-Provider/plan limit families and per-field availability will be added by T-02 to T-05.
+Each family below has a field table. A row naming multiple family IDs applies separately to
+each named family, not a summed pool. Plan columns are deliberately explicit. Conditional
+parser support is source evidence; plan-specific payload presence remains unverified.
+
+### Claude (T-02)
+
+`provider: claude`; `source_verified_at: 2026-09-26`; `live_verified_at: null`.
+Quota classification: undocumented OAuth schema plus official product/UI descriptions.
+Confidence: high for parser coverage; medium for matching monetary wire data to plan UI;
+unknown for actual payload coverage across plans. Authentication: unchanged restricted,
+undocumented client reuse; no new permission established.
+
+| Family | Pro | Max (5x / 20x) | Team | Enterprise | Unit, period and reset; sources |
+| --- | --- | --- | --- | --- | --- |
+| CL-S session | Included | Included, different capacity | Standard and Premium seats | Legacy seat-based seats; not established for current usage-based Enterprise | Percentage; five-hour session cycle, API reset instant. Not a calendar-month pool. C1, C2, C3, C4. |
+| CL-W shared weekly | Included | Included | Standard and Premium | Legacy seat-based; current consumption plans have no included allowance | Percentage; fixed account-assigned weekly reset, independent of subscription anniversary. C2, C3, C4. Do not silently call this a sliding seven-day total. |
+| CL-M model-scoped weekly | Generic schema supported; included Fable allowance not established for Pro | Fable uses part of weekly allowance | Fable included on Premium, usage credits on Standard | Legacy Premium includes Fable; current usage-based billed as consumption | Percentage; separately scoped weekly counter with returned reset; do not add to shared weekly. Actual family names remain opaque. C1, C5. |
+| CL-X legacy `extra_usage` | Optional usage-credit spending | Optional usage-credit spending | Optional seat overage spending | Legacy seats: optional overage; modern consumption payload mapping unknown | Money in minor units + exponent + currency. Monthly spending control documented; exact wire period bounds/reset/time zone absent. C1, C6, C7. |
+| CL-D current `spend` | Parser supported if returned | Parser supported if returned | Scope (member/org) unknown | Scope and mapping unknown | Money; preferred representation of the same extra-spend reading, not an additional pool to sum. No wire period/reset. C1. |
+| CL-O organization/member/seat/group spend controls | Unavailable for organization controls | Unavailable for organization controls | Org and member controls; seat-tier control documented for legacy Enterprise | Org/member, group controls and optional pooled monthly group budgets; consumption Enterprise differs from legacy seats | Currency-denominated monthly controls. Shared group budget is not a per-member allowance. UI scope known; OAuth projection unknown. C7, C8, C9. |
+| CL-B prepaid usage balance / bundle inventory | Optional | Optional | Prepaid usage credits | Shared balance for self-serve consumption; sales-assisted uses invoice, not prepaid balance | Money/credit denomination must follow UI; purchased balance is not a monthly allotment. Expiry or purchase cycle must be distinguished from spend-cap reset. C6, C7, C8, C10. |
+
+Field rows: `CL-X` and `CL-D` share the same field availability but use different source paths.
+Enterprise `parsed/source` below means **conditional parser capability**, not evidence that a
+current consumption plan returns that field. CL-S/W/M do not apply as an included allowance to
+current usage-based Enterprise; legacy variants remain separately eligible in the family table.
+
+| Family / field | Pro | Max | Team | Enterprise | Wire field / limitation |
+| --- | --- | --- | --- | --- | --- |
+| CL-S / used | parsed/source | parsed/source | parsed/source | parsed/source | `five_hour.utilization` or `limits[kind=session].percent`. |
+| CL-W / used | parsed/source | parsed/source | parsed/source | parsed/source | `seven_day.utilization` or `limits[kind=weekly_all].percent`. |
+| CL-M / used | parsed/source | parsed/source | parsed/source | parsed/source | Legacy family utilization or `weekly_scoped.percent`; presence conditional. |
+| CL-S, CL-W, CL-M / limit | unavailable/source | unavailable/source | unavailable/source | unavailable/source | No absolute token/request limit; 100% is normalized scale, not supplied numeric entitlement. |
+| CL-S, CL-W, CL-M / remaining | parsed/source | parsed/source | parsed/source | parsed/source | Derived 100 minus valid used percentage. |
+| CL-S, CL-W, CL-M / period start | unavailable/source | unavailable/source | unavailable/source | unavailable/source | No start field; reset-minus-duration is an inference, not parsed start. |
+| CL-S, CL-W, CL-M / period end or reset | parsed/source | parsed/source | parsed/source | parsed/source | Corresponding `resets_at`, offset-bearing ISO timestamp. |
+| CL-S, CL-W, CL-M / currency | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Inapplicable to percentages. |
+| CL-S, CL-W, CL-M / exponent | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Inapplicable to percentages. |
+| CL-X, CL-D / used | parsed/source | parsed/source | parsed/source | parsed/source | `used_credits` or `used.amount_minor`. |
+| CL-X, CL-D / limit | parsed/source | parsed/source | parsed/source | parsed/source | `monthly_limit` or `limit.amount_minor`; null/absent = unknown, never unlimited. |
+| CL-X, CL-D / remaining | unavailable/source | unavailable/source | unavailable/source | unavailable/source | Not parsed; future subtraction needs matching currency/exponent and scope. |
+| CL-X, CL-D / period start | unknown/none | unknown/none | unknown/none | unknown/none | No inspected wire field; monthly product wording is not an exact start. |
+| CL-X, CL-D / period end or reset | unknown/none | unknown/none | unknown/none | unknown/none | Monthly control, but calendar versus billing anniversary and clock unverified for this wire pool. |
+| CL-X, CL-D / currency | parsed/source | parsed/source | parsed/source | parsed/source | Legacy `currency`; each current money object's `currency`. |
+| CL-X, CL-D / exponent | parsed/source | parsed/source | parsed/source | parsed/source | Legacy `decimal_places`; each current money object's `exponent`; no default. |
+| CL-O / used | unavailable/source | unavailable/source | provider-ui/source | provider-ui/source | Month-to-date spend at applicable scope; C7–C9. |
+| CL-O / limit | unavailable/source | unavailable/source | provider-ui/source | provider-ui/source | Configured amount or explicit UI unlimited; not permission to interpret OAuth null as unlimited. |
+| CL-O / remaining | unavailable/source | unavailable/source | unknown/none | unknown/none | Direct UI remainder not established; do not duplicate `spend` without scope proof. |
+| CL-O / period start | unavailable/source | unavailable/source | unknown/none | unknown/none | Monthly label lacks exact boundary/zone. |
+| CL-O / period end or reset | unavailable/source | unavailable/source | unknown/none | unknown/none | Group budget resets for new month; exact instant still unknown. |
+| CL-O / currency | unavailable/source | unavailable/source | provider-ui/source | provider-ui/source | Monetary UI; exact billing currency must be observed. |
+| CL-O / exponent | unavailable/source | unavailable/source | unknown/none | unknown/none | Display precision is not a wire exponent contract. |
+| CL-B / used | unknown/none | unknown/none | unknown/none | unknown/none | Spending history is not necessarily consumption of a particular purchase lot. |
+| CL-B / limit | unknown/none | unknown/none | unknown/none | unknown/none | No recurring allotment established; purchased amount is not a monthly limit. |
+| CL-B / remaining | provider-ui/source | provider-ui/source | provider-ui/source | provider-ui/source | Usage balance; Enterprise self-serve only, not sales-assisted. |
+| CL-B / period start | unknown/none | unknown/none | unknown/none | unknown/none | Purchase/expiry versus recurring period unresolved. |
+| CL-B / period end or reset | unknown/none | unknown/none | unknown/none | unknown/none | No recurring refill implied; inspect UI expiry separately. |
+| CL-B / currency | provider-ui/source | provider-ui/source | provider-ui/source | provider-ui/source | Verify actual denomination; no conversion to percentage windows. |
+| CL-B / exponent | unknown/none | unknown/none | unknown/none | unknown/none | No eligible wire schema established. |
+
+No newly inspected source establishes an additional monetary endpoint reachable by this
+app's grant. Enterprise Admin API documentation is a separate authorization boundary, not
+`other-endpoint` evidence. Its nullable-limit semantics must not be transplanted to OAuth.
 
 ## 4. Gap dispositions
 
-Provider-specific unknowns and the evidence needed to close them will be added by T-02 to T-05.
+### Claude
+
+- **G-CL-1:** CL-X/CL-D period and reset remain unknown at wire level. Official pages establish
+  monthly spend controls, not a reset field or its clock in `/api/oauth/usage`. Close with
+  LC-01/02 personal plan and LC-03/04 organization UI, then LC-05 existing-connection parity
+  if independently authorized and observable without new transport. Local calendar-month
+  fallback would be an assumption under R-06, never a provider reset.
+- **G-CL-2:** Team and Enterprise scope is not resolved by `spend.limit`. UI documentation
+  establishes member, organization and (Enterprise) group/seat controls; it does not identify
+  which one the OAuth object represents. Current Enterprise consumption has no included
+  seat allowance. LC-03/04/05 must distinguish plan generation and scope. Unknown stays unknown.
+- **G-CL-3:** CL-B prepaid balance and CL-O pooled budgets are distinct from a monthly spending
+  control; no app field is established for them. LC-01–04 inspect only existing UI. Do not
+  use the spec's generic allowance example as observed provider evidence.
+- **G-CL-4:** Weekly period semantics differ from a casual rolling-window description:
+  official Pro/Max/Team pages say fixed assigned reset each week. T-07/T-09 must retain that
+  distinction. A returned reset is authoritative; month fallback must not replace it.
+- **G-CL-5:** New OMP v18.3.2 adds reset-credit inventory handling (including usage keys
+  `cedar_ember`/`juniper_tide`) and separate inventory retrieval, while money interfaces and
+  `buildClaudeExtraUsageLimit` still lack period/reset. Reset credits are action inventory,
+  not monetary/usage allowance. No inventory endpoint or redemption is executed or adopted.
+  The paused Agent SDK monthly-credit announcement is not an active allotment (C11).
 
 ## 5. Normalized limit model
 
@@ -203,7 +286,18 @@ T-09 [opus] will supply the numerical acceptance examples.
 
 ## 10. Live checks
 
-T-02 to T-05 will identify checks; T-06 will request separate authorization and record outcomes.
+Draft checks, all NOT_RUN; no authorization is implied. T-06 will consolidate and request
+each separately. UI observations can establish displayed unit/scope/period, not hidden wire
+fields. An existing app UI cannot prove a field is absent from a raw response if its parser
+does not expose it; such a result leaves the transport gap open.
+
+| ID | Account type / surface | What it proves / gap | Risk / boundary | Verdict |
+| --- | --- | --- | --- | --- |
+| LC-01 | Claude Pro, provider Settings > Usage | Displayed session/weekly/scoped rows, usage-credit cap, balance, period/reset; G-CL-1/3 | Read-only private billing surface; owner opens signed-in account; no toggles or purchases | NOT_RUN |
+| LC-02 | Claude Max, provider Settings > Usage | Same evidence for Max plus scoped weekly relationship; G-CL-1/3/4 | Same; a Pro result cannot fill Max cells | NOT_RUN |
+| LC-03 | Claude Team, provider member/admin Usage | Whether cap is member/org, period label and balance; G-CL-1/2/3 | Work-account approval and existing role required; no membership/settings changes | NOT_RUN |
+| LC-04 | Claude Enterprise, provider member/admin Usage | Legacy versus consumption plan, org/member/group pooled controls and period; G-CL-1/2/3 | Work-account approval; only already accessible pages; no terms acceptance | NOT_RUN |
+| LC-05 | One owner-selected Claude plan, existing AI Usage connection | Compare exposed money components/window reset with that plan's UI; G-CL-1/2 | Unsupported restricted OAuth boundary; refresh may rotate grant. No new connection/scopes; absent hidden fields remain unknown | NOT_RUN |
 
 ## 11. Pending owner decisions
 
@@ -214,3 +308,24 @@ Later modeling tasks will record decisions requiring owner input; none is presum
 Local source paths and immutable baseline are in section 2. Provider-specific public sources
 will be added by T-02 to T-05. Historical context:
 [provider records](../../providers/README.md) and [AIU-011 research](../AIU-011-provider-history/research.md).
+
+### Claude sources (read 2026-09-26)
+
+- C1: OMP `packages/ai/src/usage/claude.ts`, `parseApiLimitEntries`,
+  `buildScopedWeeklyUsageLimits`, `parseLegacyExtraUsage`, `parseSpendExtraUsage`,
+  `buildClaudeExtraUsageLimit`, `fetchClaudeUsage`: [pinned v18.1.22](https://github.com/can1357/oh-my-pi/blob/23a5b9ae38864d3f785dc6cbc96eb6d674a1d32d/packages/ai/src/usage/claude.ts)
+  and [v18.3.2](https://github.com/can1357/oh-my-pi/blob/7853b4e499936f9dcc13c9b64adb55f6b342aabf/packages/ai/src/usage/claude.ts).
+  GitHub releases/latest returned v18.3.2, published 2026-09-26T00:00:25Z; tag ref resolved
+  to commit `7853b4e499936f9dcc13c9b64adb55f6b342aabf`. Public source only, never executed.
+- C2: [Pro limits](https://support.claude.com/en/articles/8325606-what-is-the-pro-plan),
+  [Max limits](https://support.claude.com/en/articles/11049741-what-is-the-max-plan).
+- C3: [Team limits](https://support.claude.com/en/articles/9266767-what-is-the-team-plan).
+- C4: [Usage UI and Enterprise distinction](https://support.claude.com/en/articles/9797557-usage-limit-best-practices),
+  [pricing and plan generations](https://claude.com/pricing).
+- C5: [Fable plan scope](https://support.claude.com/en/articles/15424964-claude-fable-models-on-your-plan).
+- C6: [Personal usage credits](https://support.claude.com/en/articles/12429409-manage-usage-credits-for-paid-claude-plans).
+- C7: [Team and legacy Enterprise spending controls](https://support.claude.com/en/articles/12005970-manage-usage-credits-for-team-and-seat-based-enterprise-plans).
+- C8: [Consumption Enterprise billing](https://support.claude.com/en/articles/11526368-how-am-i-billed-for-my-enterprise-plan).
+- C9: [Enterprise pooled group budgets](https://support.claude.com/en/articles/17005973-manage-pooled-group-budgets-on-enterprise-plans).
+- C10: [Usage bundles](https://support.claude.com/en/articles/14246112-buy-usage-bundles).
+- C11: [Paused Agent SDK monthly-credit announcement](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan).
