@@ -283,7 +283,8 @@ they are breakdowns, not additional independent limits. No controls were changed
 
 ### Codex (T-03)
 
-`provider: codex`; `source_verified_at: 2026-09-26`; `live_verified_at: null`.
+`provider: codex`; `source_verified_at: 2026-09-26`;
+`live_verified_at: 2026-09-28` for the LC-07 personal Pro UI observations below only.
 Quota classification: official client internal schema, OMP adapter and official plan/UI
 documentation; confidence high for field definitions, unknown for plan-specific response
 presence and spend-control units. Authentication remains public-client reuse with permission
@@ -341,6 +342,29 @@ and the entire `spend_control.individual_limit`; these were identified in O1 dur
 | CX-D / period end or reset | unavailable/source | unavailable/source | unknown/none | provider-ui/source | Displayed budget reset period; exact instant not observed. |
 | CX-D / currency | unavailable/source | unavailable/source | unknown/none | provider-ui/source | USD; keep separate from estimated cost of credits. |
 | CX-D / exponent | unavailable/source | unavailable/source | unknown/none | unknown/none | UI money does not establish minor-unit wire exponent. |
+
+#### ChatGPT Pro credit UI observations (LC-07, 2026-09-28)
+
+The owner initially reported Pro; the agent then observed ChatGPT Pro on Billing in
+Google Chrome. The visible Usage Overview credit section supplies the following evidence.
+Subscription percentage limits were not rechecked. No values or personal dates are retained.
+
+| UI family / field | Pro | Observation / limitation |
+| --- | --- | --- |
+| CX-B / remaining, unit | provider-ui/live | Credits remaining, labelled Current balance; credit-native quantity. |
+| CX-B / scope | provider-ui/live | Credit-section text names Work and Codex continuation after usage limits are reached. No broader shared-pool inference. |
+| CX-B / used | unknown/none | No credit-pool consumption total displayed in the observed section. |
+| CX-B / limit or allowance | unknown/none | No separate allowance or cap displayed; current balance is not an allotment. |
+| CX-B / period start, end or reset | unknown/none | No credit period, refill clock or credit expiry displayed. Billing subscription renewal is not a credit reset. |
+| CX-B / currency, exponent | unavailable/live | Displayed unit is credits, not money; no wire representation established. |
+| Credit spending control / automatic reload | provider-ui/live | Automatic reload shown disabled; this does not establish a spending cap or unlimited spending. |
+| Credit spending control / numeric cap, period | unknown/none | No numeric spending cap or control period displayed in the observed credit section. |
+
+The adjacent usage-limit reset inventory is a separate action inventory: its expiry is
+not credit-balance expiry. No purchase, reload toggle or redemption was performed.
+UI sources: `https://chatgpt.com/settings/usage?tab=overview` and
+`https://chatgpt.com/settings/billing`. Transport, CX-I mapping and other plans remain
+source/none. Account settings did not establish a marketed plan; Billing did.
 
 ### Copilot (T-04)
 
@@ -538,6 +562,12 @@ with the same observation boundary as LC-19. UI labels cannot establish hidden s
 
 ### Codex
 
+- **LC-07 UI disposition (2026-09-28):** personal Pro plan, credit-native current balance,
+  Work/Codex continuation scope and disabled automatic reload are agent-observed.
+  No separate allowance/cap, credit period/reset/expiry or numeric spending control was
+  displayed in the observed credit section. G-CX-2's balance-versus-allotment distinction
+  is retained; workspace allocation, G-CX-1/3 transport and G-CX-4 negative-balance behavior
+  remain unknown. No Plus evidence or percentage-window regression check is added.
 - **T-06 disposition (2026-09-26):** LC-08/09/11 are NOT_RUN, reason
   "postponed by owner: work account or manual lookup"; LC-10 is NOT_RUN, not
   authorized. G-CX-1/2/3/4 transport and work-plan unknowns remain open regardless
@@ -666,8 +696,8 @@ not Edge or the in-app browser.
 | LC-03 | Claude Team, provider member/admin Usage | Whether cap is member/org, period label and balance; G-CL-1/2/3 | Work-account approval and existing role required; no membership/settings changes | NOT_RUN; postponed by owner: work account or manual lookup |
 | LC-04 | Claude Enterprise, provider member/admin Usage | Legacy versus consumption plan, org/member/group pooled controls and period; G-CL-1/2/3 | Work-account approval; only already accessible pages; no terms acceptance | NOT_RUN; postponed by owner: work account or manual lookup |
 | LC-05 | One owner-selected Claude plan, existing AI Usage connection | Compare exposed money components/window reset with that plan's UI; G-CL-1/2 | Unsupported restricted OAuth boundary; refresh may rotate grant. No new connection/scopes; absent hidden fields remain unknown | NOT_RUN; not authorized |
-| LC-06 | ChatGPT Plus, provider Usage | Actual window durations, credit balance semantics/expiry; G-CX-2/4 | Read-only private usage page; no purchase or reset | NOT_RUN |
-| LC-07 | ChatGPT Pro, provider Usage | Same for selected Pro tier; no Plus generalization | Read-only; owner opens account; no settings changes | NOT_RUN |
+| LC-06 | ChatGPT Plus, provider Usage | Credit balance semantics/expiry; G-CX-2/4; percentage regression excluded | Read-only private usage page; no purchase or reset | NOT_RUN; observed personal plan is Pro, not Plus |
+| LC-07 | ChatGPT Pro, provider Usage | Credit balance, unit/scope, allowance/control and period/expiry presence; no percentage regression | Read-only; owner opens account; no settings changes | PASS, scoped UI observation; undisplayed credit periods/caps and transport remain unknown |
 | LC-08 | ChatGPT Business, provider Billing/Usage | Seat/user monthly controls versus purchased workspace balance; G-CX-1/2 | Work-account approval and existing role; no auto-reload or purchase | NOT_RUN; postponed by owner: work account or manual lookup |
 | LC-09 | ChatGPT Enterprise, provider Usage/Admin billing | Credit or USD contract, user period, shared allocation/budget and reset; G-CX-1/2/4 | Work-account approval; no new role, key, settings or terms | NOT_RUN; postponed by owner: work account or manual lookup |
 | LC-10 | One selected ChatGPT plan, existing AI Usage connection | Actual returned window durations and exposed credits/restrictions; G-CX-1/2 | Grant refresh may rotate; no new scopes. Current UI drops individual_limit, so cannot close hidden schema presence by itself | NOT_RUN; not authorized |

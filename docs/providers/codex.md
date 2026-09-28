@@ -107,7 +107,7 @@ earlier null statements describe the pre-login implementation stage. See the det
 
 - provider: codex
 - source_verified_at: 2026-09-26
-- live_verified_at: null
+- live_verified_at: 2026-09-28 (LC-07 personal Pro credit UI only; no transport verification)
 - classification: quota official client internal schema and official UI documentation; authentication reuse permission unchanged
 - confidence: high for schema; plan-specific payload presence, units and workspace allotment transport unresolved
 - sources: [AIU-034 O1-O8](../specs/AIU-034-limit-audit-design-brief/research.md#codex-sources-read-2026-09-26)
@@ -124,4 +124,12 @@ access to an allocation endpoint. `credits.balance` remains a balance, not a lim
 credit documentation allows negative settled balances, which the current parser drops to
 unknown. Window duration remains response-driven. AIU-011 HTTP 400/403 causes stay unresolved.
 See the [matrix and LC-06 through LC-11](../specs/AIU-034-limit-audit-design-brief/research.md).
-No new live observation or provider request was made.
+The 2026-09-28 LC-07 observation in Google Chrome confirmed ChatGPT Pro on Billing and
+a credit-native current balance on Usage Overview. The credit text names Work and Codex
+continuation after usage limits; automatic reload is disabled. No separate allowance/cap,
+credit period/reset/expiry or numeric spending cap was displayed in the observed credit
+section. Subscription renewal and adjacent reset-inventory expiry do not establish credit
+replenishment or expiry. No values, personal dates or captures are retained. Other plans,
+wire presence, transport eligibility and negative-balance behavior remain unverified.
+No subscription percentage regression, AI Usage connection, CLI or direct provider request
+was performed; this evidence is visible UI only.

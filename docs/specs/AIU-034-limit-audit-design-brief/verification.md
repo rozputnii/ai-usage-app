@@ -1,5 +1,36 @@
 # AIU-034 verification
 
+## T-06 personal Pro continuation - 2026-09-28
+
+Base 2c16f71; initial git pull was already up to date and main was clean. The owner renewed
+read-only personal-account authorization, Chrome only, with owner-led authentication.
+The remaining scope excludes completed LC-01 and Claude/Codex percentage regressions.
+
+LC-07 PASS for scoped UI observation. Pro and initial credit labels were owner-reported,
+then independently confirmed by the agent: Billing showed ChatGPT Pro; Usage Overview
+showed credits remaining / Current balance, Work and Codex continuation scope, and disabled
+Automatic reload. No separate allowance/cap, credit period, reset/expiry or numeric spending
+cap was displayed in the observed credit section. Subscription renewal and reset-inventory
+expiry remain separate from credit expiry. No personal amounts/dates or identities retained.
+LC-06 NOT_RUN because the observed plan is Pro. No transport conclusions follow.
+
+The browser-tab connector returned `Browser is not available: chrome`. The dedicated native
+Computer Use skill successfully read the existing Chrome window. Accessibility text omitted
+the main content with `child_limit`; transient visual observations supplied the evidence,
+without saving captures to files. Only read-only Account/Billing navigation occurred; no
+authentication, account selection, settings change, purchase, redemption, CLI access,
+AI Usage connection or hidden browser/network inspection was performed.
+
+LC-22 remains pending the owner-opened Google AI Plus surface. Work-account and Copilot
+checks remain NOT_RUN: "postponed by owner: work account or manual lookup". Unlisted checks
+remain unauthorized. T-06 is in progress; T-07 has not started.
+
+Checkpoint verification PASS: added-line secret/personal-data pattern scan returned zero
+matches; primary diff/acceptance review found only sanitized structure and semantics in
+four Markdown files, with no captures or account values. Validator `--json` returned
+`valid: true` with no diagnostics; `git diff --check` passed. Links and evidence separation
+were reviewed. Product tests NOT_RUN (documentation only). LC-22 remains outstanding.
+
 Phase A source research has started. The owner approved the specification on 2026-09-26.
 
 ## Gates
