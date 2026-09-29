@@ -649,9 +649,203 @@ and the weekly limit depends on the individual tier. No cross-group pooling is i
   not monetary/usage allowance. No inventory endpoint or redemption is executed or adopted.
   The paused Agent SDK monthly-credit announcement is not an active allotment (C11).
 
+### Model notes (T-07, 2026-09-29)
+
+A critical read of sections 2 to 4 found these gaps or inconsistencies that affect the model.
+Each is resolved in section 5, closed by a named live check, or raised as a decision.
+
+- **M-01 Zero is not unknown.** `LiveMapping` shows a zero Copilot entitlement as an unknown
+  percentage. The model treats a known limit of 0 as "not included": not unknown, not
+  exhausted and without a budget (section 5.2).
+- **M-02 Negative balance (G-CX-4).** O4 allows a negative Codex credit balance; the parser
+  turns it into unknown. The model keeps remaining signed for balance pools. The parser change
+  belongs to the implementation item.
+- **M-03 Claude legacy and modern scoped windows.** Both are retained independently today.
+  The model gives each limit one key (section 5.2); a modern entry replaces a legacy entry
+  with the same key and the two are never shown or summed as separate limits.
+- **M-04 Reset precision.** Copilot `quota_reset_date` and Antigravity zone-less `resetTime`
+  are parsed with a UTC assumption and their original precision is lost. The model records
+  reset precision (instant or date) and whether the zone was assumed. A Copilot date means
+  00:00 UTC on that date, per G3/G5.
+- **M-05 No parsed period start.** No provider supplies a period start. Budgetable windows use
+  a start derived from the provider reset minus a provider or source-established duration. A
+  window with no duration (unknown Claude `kind`, Codex without `limit_window_seconds`, an
+  unrecognized Antigravity token) gets no budget.
+- **M-06 Balance-only pools.** `credits.balance` (CX-B) reports only a remainder: no used and
+  no limit. A budget needs a used amount; raised as PD-034-01.
+- **M-07 Codex individual control (CX-I).** It is unparsed and its unit is unknown. The model
+  admits it on the percentage scale until LC-08/09/10 establish the unit (section 5.5).
+- **M-08 UI-only families.** CL-O, CL-B, CL-C, CX-W, CX-D, GH-A, GH-D, AG-C and AG-T have no
+  app transport. They cannot be represented from a snapshot; raised as PD-034-03.
+- **M-09 Claude `is_active`.** It is discarded today. The model does not use it; any use needs
+  new evidence of its meaning.
+- **M-10 Codex relative reset.** The fallback `fetchedAt + reset_after_seconds` is a provider
+  reset with the fetch clock's error. The model keeps reset source `provider` for it.
+
 ## 5. Normalized limit model
 
-T-07 [opus] will propose the model and stored-format impact; no design is made in T-01 to T-06.
+Proposal by T-07 [opus], 2026-09-29. Prose and field tables only: no code, stored format or
+parser changes are made. Vocabulary defined here is used unchanged in sections 6 to 9.
+
+### 5.1 Principles
+
+- **One limit is one counter.** A limit is one provider-reported counter of one account,
+  identified by its limit key. Limits are never summed or converted across units, currencies,
+  accounts or providers (R-02, R-15).
+- **Four layers.** The model separates:
+  1. provider facts, carried by the snapshot;
+  2. local configuration: the personal cap and the work weekdays;
+  3. local observations: day-start readings and estimator samples (sections 6 and 7);
+  4. derived values: effective limit, budget, states.
+
+  Only layer 1 comes from a snapshot source. Layers 2 to 4 never enter a provider snapshot,
+  cache or provider state file.
+- **Unknown is explicit.** Every field holds a value or unknown. Unknown is never 0 or
+  unlimited. A limit additionally distinguishes an explicit provider null and an explicit
+  provider unlimited flag from absence.
+- **Derived is labelled.** A value computed by the app, such as a remainder by subtraction or
+  a period start from a reset and a duration, carries a derived or assumed source and is never
+  shown as provider data.
+
+### 5.2 Vocabulary
+
+| Field | Values | Rule |
+| --- | --- | --- |
+| limit key | provider, family, native discriminator | Stable identity across readings and snapshot sources. The discriminator is provider-native: Claude limit kind plus opaque scope name, Codex group (`main` or `limit_name`/`metered_feature`) plus `primary`/`secondary`, Copilot `quota_snapshots` key, Antigravity `bucketId`. Never an account identity or a display label. |
+| kind | `percent-window`, `countable-pool`, `monetary-pool` | Chosen from the native unit. Percentage windows have no absolute limit. |
+| unit | `percent`; count units `requests`, `credits`, `unknown`; money: the currency | Native unit only. A count unit comes from the provider or its documented contract, never from a field name. |
+| used, remaining | quantity or unknown | Countable: decimal as reported. Money: minor units (below). Remaining may be negative for a balance (M-02). |
+| limit | quantity, or state `unknown`, `explicit-null`, `unlimited`, `not-applicable` | `explicit-null` is a provider null, which is not unlimited. `unlimited` only from an explicit provider flag. `not-applicable` for percentage windows. A known 0 is "not included" (M-01). |
+| used percent, remaining percent | 0 to 100 or unknown | Provider percentage, kept independently of amounts; for percentage windows these are the used and remaining values with `L = 100 %`. |
+| duration | time span or unknown | Provider-reported or source-established (for example Claude `five_hour`); never assumed. |
+| period start | instant or unknown | No provider supplies it (M-05). |
+| period start source | `provider`, `derived`, `assumed` | `derived` = provider reset minus a known duration, or a documented calendar boundary (Copilot first of month, 00:00 UTC). `assumed` = R-06 fallback. |
+| period end (reset) | instant or unknown | The next instant at which the counter replenishes. |
+| reset source | `provider`, `assumed` | `assumed` only for the R-06 fallback. |
+| reset precision | `instant`, `date`; zone `explicit` or `assumed-utc` | Preserves what the provider actually sent (M-04). |
+| reset meaning | `replenish`, `expire`, `unknown` | Only `replenish` can end a budget period. An expiry (purchased credit, CL-C) is shown as a fact and never used as a reset. |
+| flags | allowed, limit reached, overage permitted | Existing independent nullable flags; never inferred from amounts. |
+| snapshot source | `provider-api`, `local-cli` | Snapshot metadata (section 5.6). |
+| fetched at | instant | Existing client-clock reading time; staleness uses it for every source. |
+
+**Money** is a triple of amount in minor units (signed 64-bit integer), exponent (nonnegative
+integer) and currency (opaque provider text; an ISO 4217 code when the provider sends one).
+There is no floating-point major-unit value, no default currency and no default exponent. Two
+money values are compared or subtracted only when their currencies match exactly and both
+exponents are known. The one with the smaller exponent is rescaled to the larger by an exact,
+overflow-checked multiplication by a power of ten. It is never rescaled down. An overflow or a
+mismatch gives unknown. This is a change of scale within one currency, not a conversion.
+
+**Derived remaining** is used or limit subtracted within one unit, or `100 - used percent`. It
+is computed only when both inputs are known and comparable, and it is labelled derived.
+
+### 5.3 Extension of the Core types
+
+| Current type | Proposed extension |
+| --- | --- |
+| `QuotaWindow` | Adds limit key, kind, period start and its source, reset source, reset precision and reset meaning. `Id`, `UsedPercent`, `RemainingPercent`, `Duration`, `ResetsAt`, `Unlimited` and `SourceDetails` keep their meaning. `ResetsAt` is the period end. |
+| `QuotaAmount` | Used, limit and remaining become quantities: a decimal count or a money triple, never both. Adds the limit state. `Unit` keeps its role; for money it is the currency. |
+| `CreditBalance` | Folded into a `countable-pool` limit with unit `credits`, remaining = signed balance, limit state `unknown` or `unlimited` from the explicit flag. `HasCredits` stays a flag. The snapshot-level `Credits` member becomes an ordinary limit in a credits group, keeping the separation of credit `unlimited` from window `unlimited`. |
+| `ClaudeMoneyAmount`, `ClaudeExtraUsage` | Generalized into the Core money triple and a `monetary-pool` limit. `Source` (legacy or current) is kept as provenance. `HasExplicitNullLimit` becomes limit state `explicit-null`. `Enabled` stays a flag. |
+| `QuotaSnapshot` | Adds snapshot source and an optional opaque source version for diagnostics. |
+| `QuotaSourceDetails` | Unchanged: independent provider fields, never a substitute for normalized amounts. |
+
+### 5.4 Personal cap and effective limit
+
+A **personal cap** is local configuration, stored outside every provider snapshot, cache and
+provider state. It is keyed by the account target ID the app already uses for labels plus the
+limit key. It holds an amount in the pool's native unit, a count or a money triple in the
+pool's currency, and the instant it was set. It is always labelled as the user's cap and is
+never shown as provider data.
+
+- **Eligible:** `countable-pool` and `monetary-pool` limits with a known unit or currency,
+  including pools the provider reports as unlimited or without a limit (R-03).
+- **Not eligible:** `percent-window` limits (R-03) and pools whose unit is unknown (AG-R, CX-I
+  until its unit is established). A cap the user cannot interpret is not offered.
+
+The **effective limit** `L` (R-03):
+
+| Provider limit | Personal cap | Effective limit and binding source |
+| --- | --- | --- |
+| known, comparable | set | the lower of the two; binding source is the lower one, or `provider` when equal |
+| known | not set | provider limit |
+| `unknown` or `explicit-null` | set | personal cap |
+| `unlimited` | set | personal cap |
+| `unlimited` | not set | none: no budget, shown as unlimited |
+| `unknown` or `explicit-null` | not set | none: no budget, shown as limit unknown |
+| known 0 | any | 0: state "not included", no budget |
+| known, currency differs from the cap | set | provider limit; the cap is flagged "currency mismatch" and not applied, never converted |
+
+Percentage windows always have `L = 100 %`. A cap change recomputes `L` at once, and the budget
+follows the recomputation rules of section 8. Only the current cap and its set time are kept.
+
+A cap whose limit key is no longer reported is kept, not applied, and listed in settings as
+unmatched. Sign-out keeps caps, like labels and order (D-093). Delete stored data removes them.
+
+### 5.5 Provider mapping
+
+"Derived" and "assumed" use the sources of section 5.2. "Budget" says whether section 8 can
+compute a daily budget from this limit. Families with no app transport are listed as "not
+represented" (M-08, PD-034-03).
+
+| Family | Kind / unit | Used | Limit | Remaining | Period start | Reset (source, meaning) | Cap / budget |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| CL-S | percent-window / percent | `five_hour.utilization` or `limits[session].percent` | not-applicable | derived 100 - used | derived: reset - 5 h | `resets_at` (provider, replenish) | no cap; five-hour rules only (R-09, R-11) |
+| CL-W | percent-window / percent | `seven_day.utilization` or `limits[weekly_all].percent` | not-applicable | derived | derived: reset - 7 d (fixed assigned weekly cycle, G-CL-4) | `resets_at` (provider, replenish) | no cap; budget with work days |
+| CL-M | percent-window / percent, one limit per scope | legacy family utilization or `weekly_scoped.percent` | not-applicable | derived | derived: reset - 7 d | `resets_at` (provider, replenish) | no cap; budget; never added to CL-W; key = kind + opaque scope name, modern replaces legacy (M-03) |
+| CL-X, CL-D | monetary-pool / currency | `used.amount_minor` or `used_credits` | `limit.amount_minor` or `monthly_limit`; null = `explicit-null`, absent = `unknown` | derived when currency and exponent comparable | assumed: local month start (R-06) | assumed calendar month (assumed, replenish) | cap yes; budget; one limit, current replaces legacy |
+| CL-O, CL-B, CL-C | not represented | - | - | - | - | - | provider UI only; CL-C expiry is `expire` if ever represented |
+| CX-P, CX-S, CX-A | percent-window / percent | `used_percent` | not-applicable | derived | derived: reset - `limit_window_seconds`; unknown without it | `reset_at`, or fetched at + `reset_after_seconds` (provider, replenish; M-10) | no cap; five-hour rules when duration is 5 h, budget when duration is 1 d or longer |
+| CX-B | countable-pool / credits | unknown (PD-034-01) | `unlimited` flag or `unknown` | signed `balance` | assumed | assumed (assumed); provider meaning `unknown`, never replenish | cap yes; budget only per PD-034-01 |
+| CX-I | percent-window scale until unit known; amounts unit `unknown` | `individual_limit.used`, `used_percent` | `individual_limit.limit` | `remaining`, `remaining_percent` | assumed: reset minus one calendar month | `reset_at` or `reset_after_seconds` (provider, replenish) | no cap until unit known; budget on the percentage scale; needs a parser extension (M-07) |
+| CX-W, CX-D | not represented | - | - | - | - | - | provider UI only |
+| GH-C, GH-I, GH-P | countable-pool / `requests` (parser unit) | derived entitlement - remaining | `entitlement`; `unlimited` flag; 0 = not included | `remaining`; percent from `percent_remaining` | derived: first of the reset's previous month, 00:00 UTC (G5) | `quota_reset_date` (provider, replenish; precision per M-04) | cap yes; budget with work days; `quota_remaining` and overage stay source details |
+| GH-A, GH-D | not represented | - | - | - | - | - | provider UI only |
+| AG-5 | percent-window / percent | derived 100 - remaining | not-applicable | `remainingFraction` x 100 | derived: reset - 5 h | `resetTime` (provider, replenish; zone may be assumed UTC) | no cap; five-hour rules only |
+| AG-W | percent-window / percent, one limit per bucket | derived | not-applicable | `remainingFraction` x 100 | derived: reset - 7 d | `resetTime` (provider, replenish) | no cap; budget; group membership as reported, never split by vendor |
+| AG-R | amount of its bucket, unit `unknown` | unknown | unknown | `remainingAmount` | - | the bucket reset is not attached to the amount | no cap, no budget; shown as a secondary amount of its bucket, never a separate limit |
+| AG-C, AG-T | not represented | - | - | - | - | - | provider UI only; API-credit billing excluded (owner, 2026-09-29) |
+
+Every family of section 3 has a row. The spec's owner examples fit as follows. A USD 500
+allowance with a USD 300 cap is a `monetary-pool` where a represented family supplies the
+money (CL-X/CL-D); otherwise the example is served only through PD-034-03. A 17,000-credit
+monthly allotment is a `countable-pool` with unit `credits`: a personal cap on CX-B per
+PD-034-01, or CX-I once its unit is established.
+
+### 5.6 Snapshot source independence
+
+Prepares AIU-005 without researching CLI capabilities.
+
+- The snapshot carries its source, `provider-api` or `local-cli`, and an optional opaque
+  source version. The source is shown as a secondary account attribute, for example "via CLI".
+  It never labels an individual limit and never changes a color, state or figure.
+- A CLI source must produce the same limit keys. When it cannot map a counter to an existing
+  family and discriminator, AIU-005 records it as a new family; it is never merged by guess.
+- Limit fields, personal caps (section 5.4), day-start readings (section 6) and estimator
+  samples (section 7) are keyed by account target ID and limit key, never by source. A local
+  observation records its source only as provenance.
+- Staleness, unknown and assumed rules apply identically to both sources.
+- Two sources for the same account and limit: PD-034-02. Whatever is decided, fields from two
+  sources are never merged within one snapshot.
+
+### 5.7 Stored-format impact
+
+No format is changed now. The implementation item owns the change, with the security-lifecycle
+review and the AIU-006 migration discipline (versioned, backed-up, interruptible, recoverable).
+
+| Store (section 2) | Impact | Forward migration |
+| --- | --- | --- |
+| `codex.quota.json` v1 | New limit fields; credits become an ordinary limit | Envelope v2. A v1 reader maps old members, with period start `unknown` until the next reading. Discarding the cache is acceptable only as recovery, because it loses the offline last reading. |
+| `claude.state`, `copilot.state`, `antigravity.state` v1 (DPAPI) | `CachedQuota` changes; unknown members are disallowed, so the version must change | Version 2 with an in-place forward migration of the whole state. Identity, grant and generation are preserved unchanged. A cached quota that cannot be migrated is dropped alone; the grant is never dropped to simplify a migration. |
+| `preferences/appearance.v1.json` | None | Unchanged. |
+| New budget configuration file | Work weekdays (R-04) and personal caps (section 5.4) | New versioned, size-bounded file in the owned preferences directory, with staged replace, reparse-point checks and extension-data preservation like the appearance file. Separate from appearance so that provider-adjacent amounts never mix with display state. |
+| New local observation store | Day-start readings and estimator samples | Specified in sections 6 and 7. |
+
+**Opaque values** such as plan type, currency text, metered feature, model slug, Claude scope
+name and Antigravity `bucketId` are stored verbatim and never interpreted beyond documented
+keys. No raw provider payload is persisted. Unknown JSON members are still not retained, by the
+existing security rule. The absent versus explicit-null distinction is preserved through the
+limit state.
 
 ## 6. Start-of-day amount
 
@@ -749,7 +943,61 @@ not Edge or the in-app browser.
 
 ## 11. Pending owner decisions
 
-Later modeling tasks will record decisions requiring owner input; none is presumed resolved here.
+Each decision affects AIU-034 and the follow-up implementation items (goal G-003). None is
+presumed resolved; the recommendation applies only after the owner accepts it. T-11 completes
+this section.
+
+### PD-034-01 - Budget for a balance-only pool
+
+- **Question:** CX-B reports only a signed credit balance, with no used amount or allotment
+  (M-06). How can a personal cap and daily budget work on it?
+- **Options:**
+  - (a) Show the balance only; no cap and no budget.
+  - (b) Allow a cap. Used in the budget period is accumulated locally from observed balance
+    decreases; an increase is a top-up and is ignored. The figure is labelled an estimate,
+    "tracked since" the first observation in the period.
+  - (c) Allow a cap and compute used as cap minus balance.
+- **Recommendation:** (b). (c) is wrong whenever the balance includes purchases or carry-over.
+  (a) cannot serve the owner's 17,000-credit example.
+- **Impact:** (b) needs the local observations of section 6. A top-up and consumption between
+  two readings net out, so the estimate can undercount. It must never be shown as provider data.
+- **Evidence:** section 3 CX-B rows, LC-07, O4/O5, M-02, M-06.
+- **Needed:** at Gate A, because it decides which pools the Phase B brief shows with a budget.
+
+### PD-034-02 - Two snapshot sources for one account
+
+- **Question:** after AIU-005, the provider API and a local CLI may both report the same
+  account and limit. Which reading is used?
+- **Options:**
+  - (a) The user selects one primary source per account; the other is used only when the
+    primary fails, and the fallback is shown.
+  - (b) The newest successful whole snapshot wins.
+  - (c) The provider API always wins; the CLI is a fallback.
+- **Recommendation:** (a). Alternating sources, as in (b), would add noise to day-start readings
+  and estimator samples when sources round differently. (c) ignores users who connect only
+  through a CLI. In every option fields are never merged within one snapshot.
+- **Impact:** a per-account setting and a fallback indicator; no change to limit fields, caps,
+  budgets or observations (section 5.6).
+- **Evidence:** section 5.6; AIU-005 scope note in the backlog.
+- **Needed:** when an AIU-005 implementation is selected; not a Gate A blocker.
+
+### PD-034-03 - Limits visible only in the provider's UI
+
+- **Question:** CL-O, CL-B, CL-C, CX-W, CX-D, GH-A, GH-D, AG-C and AG-T have no app transport
+  (M-08). This includes Copilot AI credits on current paid plans. Does the redesign show them?
+- **Options:**
+  - (a) Omit them until a transport with the existing grant is established.
+  - (b) Offer a manual pool: the user types the limit and the used amount.
+  - (c) Show a row without figures that states the limit exists and is visible only in the
+    provider's UI.
+- **Recommendation:** (a). (b) makes the user the data source and goes stale silently, against
+  R-15. (c) adds rows without data to the single window. A personal cap on a represented pool
+  still covers the owner's examples where such a pool exists.
+- **Impact:** GH-A, the main pool of current paid Copilot plans, stays invisible until LC-16/17
+  or a later transport close G-GH-2. The Phase B brief must not design figures for these
+  families.
+- **Evidence:** section 3 `provider-ui` cells; G-CL-3, G-CX-2/3, G-GH-2, G-AG-2.
+- **Needed:** at Gate A, before the Phase B brief lists the data and states (B-2).
 
 ## 12. Sources
 

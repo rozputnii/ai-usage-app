@@ -1,5 +1,21 @@
 # AIU-034 verification
 
+## T-07 normalized limit model - 2026-09-29
+
+Base 036bf81; `git pull` was up to date and main was clean. [opus] session; no account,
+browser, provider request or credential access.
+
+- Step 1: model notes M-01 to M-10 added to research section 4.
+- Steps 2 to 6: research section 5 (vocabulary, Core type extension, personal cap and effective
+  limit, provider mapping, source independence, stored-format impact) and PD-034-01 to
+  PD-034-03 in section 11.
+- Step 7 checks, primary review: every section 3 family (25 families, CL-S to AG-T) has a
+  section 5.5 row, "not represented" rows included. Money is only minor units, exponent and
+  currency, with exact upward rescaling within one currency. No field sums or converts across
+  units. Caps, observations and budget inputs are keyed by account target ID and limit key,
+  never by snapshot source. Validator `--json` returned `valid: true` with no diagnostics;
+  `git diff --check` passed; added-line secret scan found zero matches.
+
 ## T-06 closure - 2026-09-29
 
 Base e4c4535; main was clean at closure start. Earlier continuation records below are

@@ -326,10 +326,10 @@ tasks extend.
   next task T-07 `[opus]`.
 
 ### T-07 - [opus] Normalized limit model
-- status: pending
+- status: done
 - depends_on: [T-06]
 - acceptance: AC-03
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` section 5, and section 11 for new decisions
@@ -345,20 +345,20 @@ tasks extend.
   - personal cap and effective limit;
   - snapshot source: `provider-api` or `local-cli` (owner amendment, 2026-09-26).
 
-- [ ] **Step 1:** Read sections 2 to 4 critically. Turn any matrix gap or inconsistency that
+- [x] **Step 1:** Read sections 2 to 4 critically. Turn any matrix gap or inconsistency that
   affects the model into a section 4 note, a live check or a `PD-034-nn` decision.
-- [ ] **Step 2:** Propose, as prose and a field table (not code), the extension of
+- [x] **Step 2:** Propose, as prose and a field table (not code), the extension of
   `QuotaWindow`, `QuotaAmount` and `CreditBalance`:
   - kind, unit, used, limit and remaining;
   - period start and end, and the reset source;
   - the personal cap;
   - money as minor units plus exponent plus an ISO currency code.
-- [ ] **Step 3:** Specify where the personal cap lives: local configuration keyed by account
+- [x] **Step 3:** Specify where the personal cap lives: local configuration keyed by account
   and limit identity, never inside the provider snapshot. State the effective-limit rule from
   R-03.
-- [ ] **Step 4:** Write a mapping table. For every provider limit in the matrix, give each
+- [x] **Step 4:** Write a mapping table. For every provider limit in the matrix, give each
   model field with its source field, or "unknown", or "assumed".
-- [ ] **Step 5:** Source independence (owner amendment, 2026-09-26, preparing
+- [x] **Step 5:** Source independence (owner amendment, 2026-09-26, preparing
   [AIU-005](../../backlog.md)). A snapshot may later come from the provider API through the
   app's own connection, or from a locally installed provider CLI that keeps its own
   credentials. Define:
@@ -369,17 +369,17 @@ tasks extend.
     decision.
 
   Do not research CLI capabilities here. That is AIU-005's work.
-- [ ] **Step 6:** Stored-format impact, with no change made now:
+- [x] **Step 6:** Stored-format impact, with no change made now:
   - which persisted files from section 2 would change;
   - how opaque provider values and unknown members are preserved;
   - which forward migration the implementation item needs.
-- [ ] **Step 7 (check):**
+- [x] **Step 7 (check):**
   - every matrix limit has a mapping row;
   - every monetary field uses minor units and exponent;
   - no model field sums or converts across units;
   - no model field or rule depends on the snapshot source;
   - the validator and `git diff --check` pass.
-- [ ] **Step 8:** Commit "AIU-034 Phase A: normalized limit model proposal" and push.
+- [x] **Step 8:** Commit "AIU-034 Phase A: normalized limit model proposal" and push.
 
 ### T-08 - [opus] Start-of-day amount and five-hour session estimator
 - status: pending
