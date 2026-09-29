@@ -1,0 +1,348 @@
+# AIU-034 design brief - budget-aware single window
+
+## 1. How to use this brief
+
+This brief is the design input for Claude Design. It asks for a redesign of the AI Usage main
+window, a Windows desktop app that shows how much of each AI subscription limit is left.
+
+- **Binding content.** Sections 2 to 5 fix what the interface must show and how it is
+  organized. Sections 6 to 9 fix the visual identity, the deliverables, the acceptance rubric
+  and the platform limits. A direction may choose layout, form and wording freely within them.
+- **All data is synthetic.** Every account, amount, date and time in this brief is invented
+  for design. No value comes from a real account. Prototypes use only the section 4 scenario
+  or other invented values.
+- **State names are identifiers.** The names in section 3 are used unchanged in the rubric,
+  the review and the prototype's state list. Display wording may be shorter, but every state
+  stays recognizable, and the labels "estimate", "assumed", "tracked since" and "period
+  unknown" keep their meaning.
+- **Figures follow the model.** Symbols such as `N`, `T` and `B` come from the accepted
+  research: [research.md](research.md) sections 5 to 9. A design never computes a figure
+  differently from section 4.
+
+## 2. User and jobs (B-1)
+
+The user is a developer with several work and personal AI subscriptions: Claude, Codex through
+ChatGPT, GitHub Copilot and Antigravity. They open the window or the tray flyout many times a
+day for a few seconds, and they want an answer without reading. This scope has one account per
+provider.
+
+The four glance questions, verbatim from the specification, and the section 3 element that
+answers each:
+
+| Glance question | Answered by (section 3) |
+| --- | --- |
+| Can I keep this pace today? | The budget state of each limit (OK, attention, today used, neutral) with the deviation, "ahead by" or "behind by"; for a five-hour window, its R-09 colour. |
+| How much of today's budget is left? | Left today, beside used today and today's share `T`; "used today since HH:MM" when the start of the day was not observed. |
+| Which limit binds? | The account status, which is its most constraining limit (section 3.11), and the binding source of a pool's effective limit, the personal cap or the provider. |
+| When does it come back? | The reset (provider or assumed), the five-hour countdown from amber, the return time of an exhausted limit and the session estimate. |
+
+Secondary jobs, all inside the same window: rename an account, set work days and personal
+caps, sign in and sign out, and look back at a limit's local history.
+
+## 3. Data and states (B-2)
+
+Every state the interface must be able to show, one row each. "Applies to" names the provider
+families of [research.md](research.md) section 5.5. `L` is the effective limit, `U` the amount
+used now, `U0` the amount used at the start of the local day, `S` and `R` the period start and
+reset.
+
+### 3.1 Limit kinds
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| five-hour window | Claude session (CL-S), Codex primary window with a 5 h duration (CX-P), Antigravity five-hour group (AG-5) | Used and remaining percent, the R-09 colour and, from amber, the countdown to its reset. | A daily budget, a pace mark, a session figure or hour segments. | 5.5, 8.1; R-09, R-11 |
+| weekly window | Claude shared weekly (CL-W), Codex secondary window with a 7 d duration (CX-S), Antigravity weekly group (AG-W) | Used and remaining percent on a 100 % scale, the daily budget with work days, the reset, and sessions when the estimate is ready. | An absolute amount, or a sum with any other limit. | 5.5, 8.1 to 8.4 |
+| model-scoped weekly window | Claude scoped weekly (CL-M), one per opaque scope; Codex additional groups (CX-A) | Its own row with the provider's scope name, the daily budget, and the binding mark when it is the most constraining limit. | A sum with the shared weekly window; a session figure taken from the shared pool (CL-M has none; a CX-A group only from its own pair). | 5.5 (M-03), 7.4 |
+| other percentage window of a day or longer | Codex windows with another returned duration; the Codex individual control (CX-I) on its percentages | As a weekly window, with its own period; a start assumed from the reset is labelled "assumed". | A duration or unit that the provider did not return. | 5.5, 8.3 rules 1 and 2 |
+| countable pool | Copilot request pools (GH-C chat, GH-I completions, GH-P premium), unit requests | Used of the limit in requests, the provider's remaining, the daily budget and the personal cap. | A conversion to percent of another limit or to money. | 5.2, 5.5 |
+| balance-only credit pool | Codex credits (CX-B) | The provider balance as a fact. With a personal cap, the budget on tracked consumption, labelled "estimate" and "tracked since". | The balance as used or as an allotment; tracked use as provider data; a budget without a personal cap. | 5.5, 6.5; D-185 |
+| monetary pool | Claude extra usage (CL-X, CL-D) | Amounts in the pool's currency with its minor units, the provider limit, the personal cap, the binding source, and the budget on tracked consumption in the assumed calendar month. | A default currency, a sum or conversion across currencies, or an amount with more precision than its minor unit. | 5.2, 5.5, 6.5, 8.3 rule 4 |
+| secondary amount, unit unknown | Antigravity `remainingAmount` of a group (AG-R); raw Codex individual-control amounts (CX-I) | The number as a fact of its window, marked "unit unknown". | A bar, budget, cap, unit name or separate limit row. | 5.2, 5.5 |
+
+### 3.2 Reading states
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| fresh | A reading at most 15 minutes old | Values at full emphasis, without an age mark. | A "stale" mark. | 6.2; D-099 |
+| stale (dimmed) | A reading more than 15 minutes old | The reading and every figure computed from it dimmed, with its time, for example "as of 13:38". The day's `N` and `T` stay at full emphasis because they are fixed for the day. | Stale values at full emphasis; stale values hidden or replaced by zero. | 6.2, 8.8; R-15 |
+| unknown | Any field without a value | An explicit unknown mark in place of the value. | 0, an empty bar that reads as 0 %, a full bar, or "unlimited". | 5.1; R-15 |
+| refresh failed | An account whose latest refresh failed | A mark on the account that the refresh failed; the last valid reading stays and turns stale after 15 minutes. | The last reading removed or zeroed. | 6.2; D-099 |
+| gap in history | The inline history of a limit | A gap drawn as a gap between observed stretches. | A gap drawn as zero use or bridged by interpolation. | 6.2; R-14, D-184 |
+
+### 3.3 Period states
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| provider reset | A limit whose provider reports its reset | The reset: relative within the day, weekday and time beyond it; a date-only reset (Copilot) as a date. | More precision than the provider sent, such as a time for a date-only reset. | 5.2 (reset precision), M-04 |
+| assumed reset | Limits without a provider reset: Claude extra usage, Codex credits | The period bounds (the calendar month, from local midnight on the 1st) labelled "assumed". | An assumed bound presented as the provider's. | 8.3 rule 4; R-06 |
+| assumed start | Windows with a provider reset but no duration that are documented as monthly: Copilot request pools, the Codex individual control | The start, one calendar month before the reset, labelled "assumed"; the provider reset stays a fact. | The start presented as provider data. | 8.3 rule 2 |
+| period unknown | A window with a provider reset but no known duration: an unknown Claude kind, a Codex window without `limit_window_seconds`, an unrecognized Antigravity token | Used, remaining and the provider reset as facts, and "period unknown" as the reason there is no budget. | A budget, a work-day split, a calendar-month default, or a name such as "weekly" that implies a duration. | 8.3 rule 3; D-185; E13 |
+| past its reset | A reading whose reset instant has passed, before a reading of the new period arrives | The old reading marked as past its reset, and "budget not ready". | The old period's figures presented as current, or a zero budget. | 6.3, 8.6 |
+
+### 3.4 Limit states
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| within | `U` below `L` | Used against the effective limit. | Nothing extra. | 8.8 |
+| at limit (exhausted) | `U = L` and `L > 0`; for a percentage window, exhausted | "Exhausted" or "at limit" and when it comes back, on a day off too. | A neutral or OK look; an exhausted limit hidden behind a healthy five-hour bar. | 8.8; R-10; E10a |
+| over limit | `U > L` where the provider limit binds (provider overage) | "Over limit by" `U - L` in the native unit. | A negative remainder presented as available. | 8.8; E11b |
+| over cap | `U > L` where the personal cap binds | "Over cap by" `U - L`, the cap labelled as the user's. | The cap presented as the provider's limit. | 8.8; E05b, E05c, E10b, E11d |
+| not included | A provider zero entitlement with `U = 0` | "Not included", neutral; it does not raise the account status. | A zero budget, a bar, or "unknown". | 8.1 (M-01); E11a |
+| capped at 0 | A personal cap of 0 with `U = 0` | "Capped at 0", neutral. | A zero budget or a bar. | 8.1; E11d |
+| unlimited | An explicit provider unlimited flag | "Unlimited" and no budget; a personal cap, when set, becomes `L`. | A bar or remainder without a cap; unlimited inferred from a missing limit. | 5.4; E11c |
+| limit unknown | Provider limit unknown or explicit null, and no personal cap | The used amount as a fact, "limit unknown" as the reason there is no budget, and the offer to set a cap. | 0 or unlimited. | 5.4 |
+
+### 3.5 Budget states
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| OK | Left today at or above 30 % of `T` | The state and left today. | Nothing extra. | 8.8 |
+| attention | Left today above 0 and below 30 % of `T` | The attention state and left today. | Colour as the only signal. | 8.8 |
+| today used | Left today at or below 0 | The state, and left today as 0 or negative. | A negative left today rounded to 0. | 8.8, 8.9 |
+| neutral, day off | Today is not a work day | A neutral day-off state; used today, the remainder and the deviation as facts. | A norm, today's share, left today, or an attention or today-used look. | 8.5; R-11; E04a |
+| neutral, no remaining work days | No work day remains before the reset (`Wr = 0`) | Only the remainder `L - U`, neutral. | A norm. | 8.5; E09 |
+| budget not ready | Before the first valid reading of the day, or past its reset | "Budget not ready" with the limit's facts. | A zero norm or zero left today. | 6.4 rule 3, 8.6 |
+| no budget, with reason | Limit unknown, unlimited, zero limit or period unknown | The reason in words. | An empty budget that reads as zero. | 8.1 |
+
+### 3.6 Budget figures
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| adaptive norm `N` | A limit with a budget, on a work day | The norm per full work day, fixed for the day. | A value that moves during the day; it changes only at local midnight, after a reset and after a cap change. | 8.4 |
+| today's share `T` | As `N` | Today's allowance: `N` on a full work day, less on a partial first or last day. | `N` shown as today's allowance on a partial day. | 8.4 |
+| baseline norm `B` | As `N` | The fixed reference `L / W`. | `B` presented as today's allowance. | 8.4 |
+| deviation | A limit with a budget | "Ahead by" when `B x E - U` is positive, "behind by" when negative, with the amount. | A bare sign without the words. | 8.4 |
+| pace mark | A limit with a budget | A mark at `B x E`, where the fixed baseline puts use at the end of today; the deviation is measured to it. | A mark on a five-hour window. | 8.4 (deviation) |
+| used today | A limit with a budget | `U - U0`, never below 0 after a provider correction. | Use before the day's start counted as today's. | 8.4, 6.3 |
+| left today | A limit with a budget, on a work day | `T` minus used today; it can be negative. | A negative value clamped to 0. | 8.4, 8.9 |
+| used today since HH:MM | `U0` taken from the first reading after midnight | "Used today since" with the time of that reading. | Use before that time counted as today's. | 6.4 rule 2.4; P03 |
+| tracked estimate | `U` of Claude extra usage and Codex credits | The tracked used amount labelled "estimate"; the provider's own used value and limit as facts beside it; a decrease of the provider counter as a fact. When the provider's own used value reaches its limit, that limit state applies even if the tracked amount is lower. | Tracked use presented as provider data. | 6.5, 8.8 |
+| tracked since | Tracking that began after the period start | "Tracked since" with the date of the first reading. | Tracked use presented as complete for the period. | 6.5 |
+| incomplete tracking | Tracked use after a provider counter decrease that follows a gap | An "incomplete" mark on the tracked amount for the rest of the period. | The tracked amount presented as complete. | 6.5 |
+
+### 3.7 Estimates
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| sessions ready | A weekly window paired with a five-hour window in the same pool, with a ready estimate `C` | "≈ n sessions (estimate)" for the weekly remainder and for today, rounded down; 0 when the weekly window is exhausted. | A decimal session count, or the figure without "estimate". | 7.5; S08 |
+| estimate not ready | The same pairs before the confidence rule holds | Nothing: the session figure is hidden. | 0 sessions or a placeholder number. | 7.2, 7.5; S01, S03 |
+| less than one session | A session figure below 1 | "< 1 session". | 0. | 7.5; S09 |
+| no today session figure | A day off, or no remaining work day | The weekly remainder in sessions only. | A today figure. | 7.5 |
+
+### 3.8 Caps
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| personal cap unset | Countable and monetary pools with a known unit or currency | An inline way to set a cap. | A cap offer on percentage windows or on amounts of unknown unit. | 5.4; R-03 |
+| personal cap set | As above | The cap labelled as the user's, beside the provider limit when known. | The cap presented as the provider's limit. | 5.4; R-03 |
+| binding source | A pool with a cap and a known provider limit | Which of the two binds: the lower one, or the provider when equal. | Both presented as limits that apply. | 5.4 |
+| currency mismatch | A cap in a currency other than the provider limit's | The cap flagged "currency mismatch" and not applied; the provider limit applies. | A converted amount. | 5.4 |
+| unmatched cap | A cap whose limit is no longer reported | The cap listed in settings as unmatched, kept and not applied. | The cap applied to another limit or silently deleted. | 5.4 |
+
+### 3.9 Account states
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| signed out | An account after sign-out | Hidden by default, with a way to show signed-out accounts; when shown, no current figures, history and caps kept, and sign-in available. | A confirmation step before sign-out; history removed by sign-out. | 5.4, 6.6; D-093, D-180 |
+| sign-in expired | An account whose sign-in no longer works | A mark on the account and an inline sign-in action; its readings turn stale. | A modal dialog; readings presented as fresh. | Spec B-2; D-180 |
+| first run | No account yet | The providers listed directly, each with one-click sign-in. | Empty bars or zero values. | D-180 |
+| sign-in in progress | An account being added | Inline progress in the sign-in strip; success adds the account without a confirmation step. | A dialog or a separate window inside the app. | D-180 |
+| via CLI | An account read through a local provider CLI (future, AIU-005) | A secondary account attribute such as "via CLI". | A label on a single limit, or a change of colour, state or figure. | 5.6 |
+
+### 3.10 Five-hour colours (R-09)
+
+| State | Applies to | What the user must see | What must never be shown | Research |
+| --- | --- | --- | --- | --- |
+| five-hour, above 30 % left | A five-hour window with more than 30 % remaining | The window without a warning colour or countdown; it ranks as OK. | A countdown. | R-09 |
+| five-hour amber | 30 % or less remaining | Amber and the countdown to its reset beside the bar; ranks with attention. | Hour segments; colour as the only signal. | R-09; 8.8 |
+| five-hour red | 10 % or less remaining, or exhausted | Red and the countdown; ranks with today used. An exhausted window is also at limit, which ranks higher. | Colour as the only signal. | R-09; 8.8 |
+
+### 3.11 Account status
+
+An account's status is its most constraining limit, in this order: over (over limit or over
+cap), at limit, today used (including five-hour red), attention (including five-hour amber),
+OK, neutral (including "not included" and "capped at 0"), and not ready or no budget. The
+status is visible on the account without expanding anything, and it names the limit that sets
+it (R-10, research 8.8). A stale reading dims the status it produces.
+
+### 3.12 Never
+
+- No figure, bar or colour for limits visible only in a provider's own UI: Copilot AI credits,
+  Codex workspace credits and USD budgets, Claude prepaid balances, organization controls and
+  cloud-session credit, and Antigravity credits (PD-034-03, D-185).
+- No zero for unknown, and no unlimited without the provider's explicit flag.
+- No combined percentage across limits, accounts or providers (R-15).
+- No conversion between units or currencies, and no sum of different limits (R-02).
+
+## 4. Synthetic scenario
+
+This scenario is the "four accounts" density reference of section 5: the default window must
+show all of it without scrolling. It is invented; the figures follow research section 8.
+
+- **Moment:** Wednesday 14 October 2026, 14:20, zone Europe/London (BST, UTC+1). Work days
+  Monday to Friday.
+- **Accounts:** four, one per provider, with eleven limits in total.
+- **Rounding:** as research 8.9. Percentages to 0.1 point, money to the cent, credits and
+  requests to whole units. `N`, `T`, `B`, left today and the share of `T` left round down; the
+  deviation rounds toward zero. Bar marks round to the nearest 0.1.
+- **Antigravity:** the account's latest refresh failed, so both of its readings are 42 minutes
+  old and stale. Group 1 keeps its budget, dimmed. Group 2 reports a window token the app does
+  not recognize, so its duration is unknown: it shows "period unknown" and is not called weekly.
+
+### 4.1 Inputs
+
+`S` and `R` are local times. "Derived" means the provider reset minus the provider's duration;
+"assumed" is labelled in the interface.
+
+| Limit | Kind, unit | Effective limit `L` | `U0`, `U` | `S`, `R` | Other inputs |
+| --- | --- | --- | --- | --- | --- |
+| A1 Claude Pro, five-hour | five-hour window, percent | 100 % | -, 72 | reset Wed 14 Oct 16:05 (provider) | - |
+| A2 Claude Pro, weekly | weekly window, percent | 100 % | 38, 47 | Mon 12 Oct 09:00 (derived), Mon 19 Oct 09:00 (provider) | Estimate ready, `C` = 12 |
+| A3 Claude Pro, extra usage | monetary pool, USD, exponent 2 | USD 300.00 personal cap, below the USD 500.00 provider limit | USD 209.00, USD 218.00 (tracked) | Thu 1 Oct 00:00, Sun 1 Nov 00:00 (assumed) | The provider counter reads USD 218.00: the app tracked it from the start of the month without a gap. |
+| B1 Codex Pro, five-hour | five-hour window, percent | 100 % | -, 91 | reset Wed 14 Oct 15:48 (provider) | - |
+| B2 Codex Pro, weekly | weekly window, percent | 100 % | 96, 100 | Fri 9 Oct 09:30 (derived), Fri 16 Oct 09:30 (provider) | Estimate not ready |
+| B3 Codex Pro, credits | balance-only credit pool, credits | 17,000 credits personal cap; provider limit unknown | 6,050, 6,480 (tracked) | Thu 1 Oct 00:00, Sun 1 Nov 00:00 (assumed) | Provider balance 10,160 credits. First reading of the pool Sat 3 Oct 10:12, so tracking started then. |
+| C1 Copilot Free, completions | countable pool, requests | 2,000 (provider) | 1,190, 1,210 | Thu 1 Oct 01:00 (assumed, one month before the reset in UTC), Sun 1 Nov 00:00 (provider date 1 Nov, taken at 00:00 UTC) | Provider remaining 790 |
+| C2 Copilot Free, chat | countable pool, requests | 50 (provider) | 11, 12 | as C1 | Provider remaining 38 |
+| C3 Copilot Free, premium | countable pool, requests | 0, a provider zero entitlement | -, 0 | as C1 | - |
+| D1 Antigravity Google AI Plus, group 1 | weekly window, percent | 100 % | 30, 36 | Sat 10 Oct 11:00 (derived), Sat 17 Oct 11:00 (provider) | Last valid reading 13:38; latest refresh failed |
+| D2 Antigravity Google AI Plus, group 2 | percentage window, duration unknown | 100 % | -, 19 | start unknown, reset Mon 19 Oct 04:00 (provider) | Last valid reading 13:38 |
+
+Work-day weights (research 8.3): A2 `W` 5, `Wr` 3.375, `E` 2.625; A3 and B3 `W` 22, `Wr` 13,
+`E` 10; B2 `W` 5, `Wr` 2.395833, `E` 3.604167; C1 and C2 `W` 21.958333 (1 October weighs
+23/24), `Wr` 13, `E` 9.958333; D1 `W` 5, `Wr` 3, `E` 3.
+
+### 4.2 Displayed figures
+
+| Limit | Reading | Budget figures | Other facts | State |
+| --- | --- | --- | --- | --- |
+| A1 | 72 % used, 28 % left | none (five-hour window) | Resets in 1 h 45 min | within; five-hour amber |
+| A2 | 47 % used, 53 % left | `N` 18.3 %, `T` 18.3 %; used today 9.0 %, left today 9.3 %; `B` 20.0 %; ahead by 5.5 % | Resets Mon 19 Oct 09:00; ≈ 4 sessions left this week, ≈ 1 session today (estimate) | within; OK (51.0 % of `T` left) |
+| A3 | USD 218.00 used of the USD 300.00 cap (estimate); USD 82.00 left under the cap | `N` USD 7.00, `T` USD 7.00; used today USD 9.00, left today -USD 2.00; `B` USD 13.63; behind by USD 81.63 | Cap binds; provider limit USD 500.00; period 1 Oct to 1 Nov, assumed | within; today used |
+| B1 | 91 % used, 9 % left | none (five-hour window) | Resets in 1 h 28 min | within; five-hour red |
+| B2 | 100 % used, exhausted | Not the displayed state; kept available: `N` 1.6 %, `T` 1.6 %; used today 4.0 %, left today -2.4 %; `B` 20.0 %; behind by 27.9 % | Back Fri 16 Oct 09:30, in 1 d 19 h 10 min; sessions hidden (estimate not ready) | at limit (exhausted) |
+| B3 | 6,480 credits used of the 17,000-credit cap (estimate, tracked since 3 Oct); 10,520 left under the cap | `N` 842, `T` 842; used today 430, left today 412; `B` 772; ahead by 1,247 | Provider balance 10,160 credits; cap binds, provider limit unknown; period 1 Oct to 1 Nov, assumed | within; OK (48.9 % of `T` left) |
+| C1 | 1,210 of 2,000 requests used | `N` 62, `T` 62; used today 20, left today 42; `B` 91; behind by 302 | 790 remaining (provider); resets 1 Nov; start assumed | within; OK (67.9 % of `T` left) |
+| C2 | 12 of 50 requests used | `N` 3, `T` 3; used today 1, left today 2; `B` 2; ahead by 10 | 38 remaining (provider); resets 1 Nov; start assumed | within; OK (66.6 % of `T` left) |
+| C3 | Not included | none | - | not included (neutral) |
+| D1 | 36 % used, 64 % left, dimmed, as of 13:38 | `N` 23.3 %, `T` 23.3 %; used today 6.0 %, left today 17.3 %, dimmed; `B` 20.0 %; ahead by 24.0 %, dimmed | Resets Sat 17 Oct 11:00 | within; OK, dimmed (74.2 % of `T` left) |
+| D2 | 19 % used, 81 % left, dimmed, as of 13:38 | none: period unknown | Resets Mon 19 Oct 04:00 | no budget, period unknown |
+
+### 4.3 Bar marks
+
+Positions as a percentage of `L`, for the signature visualization of section 6. Today's
+budget runs from `U0` to `U0 + T`; the pace mark is at `B x E`.
+
+| Limit | `U0` | `U` | `U0 + T` | Pace mark |
+| --- | --- | --- | --- | --- |
+| A2 | 38.0 | 47.0 | 56.4 | 52.5 |
+| A3 | 69.7 | 72.7 | 72.0 | 45.5 |
+| B2 | 96.0 | 100.0 | 97.7 | 72.1 |
+| B3 | 35.6 | 38.1 | 40.5 | 45.5 |
+| C1 | 59.5 | 60.5 | 62.6 | 45.4 |
+| C2 | 22.0 | 24.0 | 28.0 | 45.4 |
+| D1 | 30.0 | 36.0 | 53.3 | 60.0 |
+
+### 4.4 Account status
+
+| Account | Status | Set by |
+| --- | --- | --- |
+| Claude Pro | today used | A3. The amber five-hour window and the OK weekly window do not hide it (R-10). |
+| Codex Pro | at limit | B2, which outranks the red five-hour window. |
+| Copilot Free | OK | C1 and C2; C3 is neutral and does not raise the status. |
+| Antigravity Google AI Plus | OK, dimmed, with the refresh-failed mark | D1; D2 has no budget. |
+
+## 5. Information architecture (B-3)
+
+### 5.1 One window
+
+- **Single window (R-01).** Every provider, account and limit of section 3, including
+  model-scoped weekly windows and credit and monetary pools, is in the one main window. There
+  is no account detail view, modal dialog or pop-up window.
+- **Hierarchy.** Provider, then account, then limits. This scope has one account per provider,
+  but the account level stays so that a name, status and actions belong to the account.
+- **Account line.** Each account shows its name, its status with the limit that sets it
+  (section 3.11), its reading marks (stale, refresh failed, sign-in expired) and an icon-only
+  sign-out. The status is readable without expanding the account.
+- **Limit rows.** Each limit shows its reading and, when it has one, its budget: left today,
+  the budget state and the deviation are visible on the row. The limit order stays the same
+  between refreshes; a change of state never reorders rows.
+- **History (R-14).** A limit's history expands inline under its row. It is built from the
+  app's local reading series only (D-184), covers at least 35 days, and shows gaps as gaps.
+  Provider-supplied history (AIU-011) is not shown.
+
+### 5.2 Editing and confirmation
+
+- **Inline rename.** The account name is edited in place; Enter saves and Escape cancels.
+- **Inline cap editing.** A personal cap is set, changed or removed on the pool's row and in the
+  settings panel, in the pool's unit or currency.
+- **Confirmation in place (R-12).** An action that needs confirmation, such as Delete stored
+  data, turns its control into "Confirm · Cancel" in place. There is no dialog.
+- **Undo.** A reversible action, such as removing a cap or changing work days, offers undo.
+- **Sign-out.** Sign-out is immediate, without confirmation, and keeps history, labels, order
+  and caps (D-093).
+
+### 5.3 Settings, sign-in and the tray
+
+- **Settings (R-13).** Settings open as an inline panel in the same window, not a replacement
+  view. They contain the work days (Monday to Friday by default), the personal caps including
+  unmatched caps, and the existing sections with System status last (D-180).
+- **Sign-in strip.** Adding an account uses the provider menu (D-180): one provider click starts
+  browser sign-in, progress stays inline in a strip, and success adds the account.
+- **Tray flyout.** The tray flyout, currently 360 effective pixels wide, stays a secondary
+  surface. It summarizes each account's status; no information exists only in the flyout.
+
+### 5.4 Density and disclosure
+
+- **Tooltips.** No information needed for a decision lives only in a tooltip. Every figure that
+  answers a section 2 question is visible, or one keyboard step away on the focused row.
+  Tooltips may repeat visible information.
+- **Fit.** The section 4 scenario, four accounts with eleven limits, fits the default window of
+  760 × 600 effective pixels at 100 % scaling without scrolling. That is the current main window
+  default size. A direction that proposes another default size states it and why.
+
+### 5.5 Replaced behaviour
+
+The redesign replaces these parts of D-180 and D-181, through the follow-up implementation
+items only; until they land, the current behaviour stays (D-183):
+
+- Account detail and history pages opened from the account panel with Back (D-180): replaced
+  by inline limit rows and inline history.
+- Settings replacing the usage view (D-180): replaced by the inline settings panel.
+- Confirmation outside the control (D-180, Delete stored data): replaced by "Confirm · Cancel"
+  in place.
+- Readings only in bar hover text and accessible names (D-181): replaced by visible figures.
+- One status mark per account for a failed refresh, a stale reading or pace attention (D-181):
+  replaced by the account status of section 3.11 plus the reading marks.
+- The 20 % red floor for windows shorter than a day (D-181): replaced by the R-09 amber and red
+  thresholds.
+- Even local-calendar-day shares with carry-over (D-181): replaced by the work-day adaptive norm
+  with its baseline and deviation.
+
+Kept from D-180 and D-182: no navigation tabs, the Settings icon, the provider menu with
+one-click sign-in, first run that lists providers, immediate icon-only sign-out, and one dark
+appearance.
+
+## 6. Visual identity (B-4)
+
+The forbidden, required and kept lists of the specification, and what a direction delivers for
+each required item.
+
+## 7. Deliverables (B-5)
+
+Two or three distinct directions first, then the full prototype of the selected direction with
+its token, component, keyboard, accessible-name and reduced-motion specifications.
+
+## 8. Acceptance rubric (B-6)
+
+Pass or fail checklists for accepting a direction and for accepting the final prototype.
+
+## 9. Platform constraints
+
+WinUI 3 on Windows 11, dark-only, fonts licensed for embedding in an MSIX package, keyboard and
+screen-reader access, reduced motion and display scaling.
+
+## 10. Sources
+
+The specification, the research sections, the decisions and the licence pages this brief
+relies on.

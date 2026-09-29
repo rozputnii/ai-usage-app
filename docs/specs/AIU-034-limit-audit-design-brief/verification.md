@@ -1,5 +1,75 @@
 # AIU-034 verification
 
+## T-12 design brief part 1 - 2026-09-29
+
+Primary [opus] session. Base `3d544cd`; the initial `git pull` reported `main` up to date and
+the tree was clean.
+
+**Phase B plan approval.** The owner was asked in the session conversation whether the Phase B
+plan (T-12 to T-18) is approved as written. They replied with the instruction to execute T-12,
+and after a tool-permission interruption confirmed "approved, create the brief" (translated
+from Ukrainian). Phase B started on that instruction; this is the separate owner instruction that
+spec.md's Gate A section requires.
+
+**Scope.** `design-brief.md` sections 1 to 5, with sections 6 to 10 as headings and one-line
+content statements for T-13. Documents only: no product code, stored format, transport,
+provider request, sign-in, live check or Claude Design contact.
+
+### Brief choices for T-14
+
+The research and the plan leave these points open or state them differently. Each is a brief
+choice, not a new decision; T-14 checks them and T-15 raises any that needs the owner.
+
+1. **Antigravity staleness.** The plan names one stale group and one "period unknown" group.
+   The model has staleness per reading, not per limit, so the scenario makes the whole
+   Antigravity refresh fail: both groups are stale, group 1 keeps a dimmed budget and group 2
+   has "period unknown".
+2. **Group 2 is not called weekly.** Its window token is unrecognized, so its duration is
+   unknown (research 8.3 rule 3). Calling it weekly would imply a duration.
+3. **Pace mark.** Research does not place the pace mark. The brief puts it at `B x E`, the
+   baseline position at the end of today that the deviation is measured to, and today's budget
+   on the bar from `U0` to `U0 + T`.
+4. **Rounding.** Research 8.9 does not give a direction for `B`; the brief rounds it down like
+   `N`. The share of `T` left, shown for review, rounds down. Bar marks round to the nearest 0.1.
+5. **Five-hour window above 30 % remaining ranks as OK.** Research 8.8 ranks only amber and red.
+6. **Stale emphasis.** The reading and every figure computed from it are dimmed; `N` and `T`
+   stay at full emphasis because they are fixed for the day (research 8.8 with R-15).
+7. **Stable limit order.** Rows do not reorder when a state changes; the account status carries
+   the binding limit. This is a brief requirement not stated in the spec.
+8. **Catalogue rows beyond the plan list:** other percentage window of a day or longer,
+   secondary amount of unknown unit, gap in history, assumed start, pace mark, tracked
+   estimate (with the provider's own limit state, research 8.8), no today session figure, and
+   sign-in in progress.
+9. **Claude extra usage.** The provider counter equals the tracked amount, USD 218.00, because
+   the app tracked the counter from the start of the month without a gap. The catalogue row
+   still requires both to be shown when they differ.
+10. **Exhausted weekly budget figures.** For Codex weekly (B2) the budget figures are computed
+    and kept available, but the displayed state is "at limit" (research 8.8).
+
+### Checks (Step 6)
+
+- **Figures:** `check_brief.py`, a new scratch script that is not committed, recomputes the
+  section 4 scenario from its inputs with exact fractions and the 2026 Europe/London rule, then
+  parses the brief's section 4 tables. The first run found 4 mismatches: the C1 pace mark
+  (45.3, expected 45.4) and three shares of `T` rounded to nearest instead of down. After the
+  fixes: 68 comparisons, 0 mismatches.
+- **States:** `check_coverage.py` checks 62 states named in research 5.4, 6.4, 6.5, 7.5, 8.1,
+  8.5 and 8.8, spec B-2 and the T-12 Step 3 list against the 61 catalogue rows, plus the never
+  list and the account ranking: 0 missing.
+- **Privacy:** `scan_privacy.py`, a scratch script that is not committed, scanned the whole of
+  design-brief.md, tasks.md, verification.md and docs/backlog.md. E-mail, bearer, JWT, `sk-`,
+  GitHub, AWS and Slack tokens, secret assignments, UUIDs, owner identity strings and local
+  user paths: 0. Currency and credit amounts are the spec's generic examples (USD 500, USD 300,
+  17,000 credits) or the synthetic section 4 values. No account names, balances, captures or
+  payloads.
+- **Documents:** on the final tree, `dotnet run --project tools/AiUsage.ProjectValidation
+  --no-restore -- --root . --json` returned `{"valid":true,"diagnostics":[]}` after the T-12
+  evidence field was corrected to the file path (the first run reported
+  `DONE_WITHOUT_EVIDENCE`), and `git diff --check` reported no errors.
+
+AC-08 stays NOT_RUN: the brief is incomplete until T-13, and Gate B has not been held. AC-10
+stays NOT_RUN for the whole item; this task's own scan and document checks pass.
+
 ## Gate A owner review - 2026-09-29
 
 Base `b53e1d0`. The owner reviewed the Phase A outputs in the session conversation, answering
@@ -644,7 +714,7 @@ Phase A source research has started. The owner approved the specification on 202
 | --- | --- | --- |
 | Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
 | Gate A | PASS | Owner accepted Phase A in the session conversation on 2026-09-29, with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11 readings (D-185). |
-| Gate B | NOT_RUN | Phase B has not started. |
+| Gate B | NOT_RUN | Phase B started on 2026-09-29 with the owner's approval of the plan; T-12 is done and the brief is not yet ready for review. |
 
 ## Results by acceptance criterion
 

@@ -532,8 +532,8 @@ tasks extend.
 
 ## Phase B plan - design brief, Claude Design round and closing proposal
 
-Planned by [opus] on 2026-09-29 after Gate A, at the owner's instruction. The owner reviews
-this plan before T-12 starts.
+Planned by [opus] on 2026-09-29 after Gate A, at the owner's instruction. The owner approved
+the plan and instructed T-12 on 2026-09-29 (verification.md).
 
 **Goal:** Write `design-brief.md` (B-1 to B-6) for the owner's Gate B review, then propose the
 follow-up implementation items, run the Claude Design round and import the selected result,
@@ -601,10 +601,10 @@ proposed item.
    both at 100 % and 150 % scaling (T-13).
 
 ### T-12 - [opus] Brief part 1: user, data and states, information architecture
-- status: pending
+- status: done
 - depends_on: [T-11]
 - acceptance: AC-08, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Create: `docs/specs/AIU-034-limit-audit-design-brief/design-brief.md`
@@ -615,7 +615,7 @@ proposed item.
 
 **Produces:** the state names and the synthetic scenario used by T-13, T-14 and the prototype.
 
-- [ ] **Step 1:** Create design-brief.md with these headings, each with a one-line statement
+- [x] **Step 1:** Create design-brief.md with these headings, each with a one-line statement
   of its content:
   1. How to use this brief (for Claude Design; all data synthetic; the text is design input)
   2. User and jobs (B-1)
@@ -627,10 +627,10 @@ proposed item.
   8. Acceptance rubric (B-6)
   9. Platform constraints
   10. Sources
-- [ ] **Step 2:** Section 2, B-1: the user, a developer with several work and personal AI
+- [x] **Step 2:** Section 2, B-1: the user, a developer with several work and personal AI
   subscriptions, and the spec's four glance questions verbatim, each answered by a named
   element of section 3.
-- [ ] **Step 3:** Section 3, B-2: a state catalogue with columns state, applies to, what the
+- [x] **Step 3:** Section 3, B-2: a state catalogue with columns state, applies to, what the
   user must see, what must never be shown, research reference. One row each for:
   - limit kinds: five-hour window, weekly window, model-scoped weekly window, countable pool
     (requests), balance-only credit pool tracked as an estimate (D-185), monetary pool;
@@ -654,7 +654,7 @@ proposed item.
 
   End with the "never" list: no figures for UI-only pools (PD-034-03, D-185), no zero for
   unknown, no combined percentage, no conversion between units or currencies.
-- [ ] **Step 4:** Section 4, synthetic scenario: exactly four accounts on one synthetic local
+- [x] **Step 4:** Section 4, synthetic scenario: exactly four accounts on one synthetic local
   date and time, work days Monday to Friday, with a table of each limit's inputs and displayed
   figures computed by research section 8:
   - Claude Pro: five-hour 72 % used; weekly 47 % used with a ready estimate `C` = 12; monthly
@@ -669,7 +669,7 @@ proposed item.
 
   Compute every displayed figure with a scratch script that is not committed. State that this
   scenario is the "four accounts" density reference of B-3.
-- [ ] **Step 5:** Section 5, B-3: R-01, R-12, R-13 and R-14 (history inline, built from the
+- [x] **Step 5:** Section 5, B-3: R-01, R-12, R-13 and R-14 (history inline, built from the
   local series with gaps shown as gaps, D-184); hierarchy provider → account → limits; inline
   rename and inline cap editing; inline "Confirm · Cancel" and undo; immediate sign-out that
   keeps history (D-093); each account's status shows its most constraining limit (R-10,
@@ -679,12 +679,12 @@ proposed item.
   states it; the tray flyout (currently 360 effective pixels wide) stays secondary; the D-180
   and D-181 behaviours this replaces (account detail and history pages, confirmation dialogs,
   hover-only readings, the 20 % floor and even calendar-day shares).
-- [ ] **Step 6 (check):**
+- [x] **Step 6 (check):**
   - every state named in research 5.4, 6.4, 6.5, 7.5, 8.1, 8.5 and 8.8 has a catalogue row;
   - the scratch script reproduces every section 4 figure;
   - the privacy scan finds only the spec's generic examples and synthetic values;
   - the validator and `git diff --check` pass.
-- [ ] **Step 7:** Commit "AIU-034 Phase B: design brief data, states and structure" and push.
+- [x] **Step 7:** Commit "AIU-034 Phase B: design brief data, states and structure" and push.
 
 ### T-13 - [opus] Brief part 2: visual identity, deliverables and acceptance rubric
 - status: pending
@@ -861,17 +861,24 @@ requirement re-check and the privacy scan in verification.md. Gate A passed on 2
 the owner accepted Phase A with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11
 readings (D-185); AC-07 is PASS. Phase A is complete.
 
-Phase B plan: T-12 to T-18 above, written on 2026-09-29 at the owner's instruction. Backend
-code in the proposed follow-up items is `[astra]`; `[opus]` builds only the presentation.
+Phase B plan: T-12 to T-18 above, written on 2026-09-29 at the owner's instruction and
+approved by the owner the same day. Backend code in the proposed follow-up items is `[astra]`;
+`[opus]` builds only the presentation.
 
-Next action: the owner reviews the Phase B plan; after approval, T-12 `[opus]`, Step 1.
+T-12 done on 2026-09-29: design-brief.md sections 1 to 5 are written; sections 6 to 10 hold
+their headings and one-line content statements for T-13. The state names and the synthetic
+scenario (section 3 and section 4) are fixed for T-13, T-14 and the prototype. Ten brief
+choices that go beyond the plan or the research are listed in verification.md for T-14 to
+check.
+
+Next action: T-13 `[opus]`, Step 1 (section 6, visual identity).
 
 Checks: validator `--json` valid true with no diagnostics; `git diff --check` clean; scratch
-coverage (700 of 700 cells), recomputation (213 comparisons, 0 mismatches) and privacy scans
-pass. Primary review only; no subagents or pending worker artifacts.
+figure check (68 comparisons, 0 mismatches), state coverage (62 required states, 0 missing)
+and privacy scan pass. Primary review only; no subagents or pending worker artifacts.
 
-Blockers: the owner's approval of the Phase B plan. Sending the brief
-to Claude Design needs Gate B and a working Claude Design connection (`/design-login`).
+Blockers: none for T-13. Sending the brief to Claude Design needs Gate B and a working Claude
+Design connection (`/design-login`).
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
 NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in
