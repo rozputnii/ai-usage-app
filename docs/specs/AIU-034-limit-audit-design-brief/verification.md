@@ -1,5 +1,88 @@
 # AIU-034 verification
 
+## T-17 Claude Design round: directions - 2026-09-30
+
+Primary [opus] session. Base `1997206`; the tree was clean. The owner authorized T-17 in the
+session conversation ("так", yes) after being told that it creates one Claude Design project,
+uploads only design-brief.md and asks for two or three directions.
+
+**Connection (Step 1): PASS.** A read-only `list_projects` call through the `claude_design`
+MCP succeeded without `/design-login`.
+
+**Project and upload (Step 2).**
+- Project: `9a6b2cdd-1c9c-4abe-9477-2869aa10f9bd`, "AIU-034 budget-aware single window". No
+  design system is bound, so Claude Design's default theme is not applied (R-08).
+- Upload: `uploads/design-brief.md`, the only repository file sent. The project listing reports
+  53,169 bytes, the same size as the local file (SHA-256 `c6206ed4…18f7`, unchanged since
+  `3cec434`). The content was not hashed on the server.
+- How the directions were made: the MCP has no call that hands a prompt to a separate Claude
+  Design agent. It gives the calling agent Claude Design's system prompt and design skills
+  (`frontend-design`, `hifi-design`), and that agent writes the project files. The three
+  directions were therefore authored by this [opus] session under that prompt and are stored
+  in the project as Claude Design files. The owner can also prompt Claude Design's own agent
+  in the app with the uploaded brief.
+- Files: `support.js` (the runtime the server writes); `LedgerWindow`, `SignalWindow` and
+  `BroadsheetWindow` (each main window at 760 × 600 with the section 4 scenario, with an
+  optional focused row); `DirectionSheet` (one sheet per direction); and `AIU-034 Directions`
+  (the canvas with options 1a, 1b and 1c). All `.dc.html`. A scratch probe file was written
+  and then deleted.
+
+**Directions.**
+- **1a Ledger.** A ruled day book. Source Serif 4 with IBM Plex Mono, on umber.
+  Visualization: an ink stroke on a rule, today's budget as a bracket, the pace as a caret,
+  sessions as tally marks.
+- **1b Signal Box.** A signal panel with lamps whose shape carries the state. Barlow Semi
+  Condensed with JetBrains Mono, on bottle green. Visualization: an occupied block on a track,
+  today's budget as an outlined block section, the pace as a milepost, sessions as sleepers.
+- **1c Broadsheet.** Account columns in which every limit leads with its headline figure.
+  Newsreader with Public Sans, on oxblood. Visualization: a heavy rule segment, today's budget
+  as a bright band, the pace as a hairline cut.
+
+**Checks (Step 3).** Measured in the in-app browser on the served project files. The served
+links carry a token and are not recorded.
+
+| Check | 1a | 1b | 1c |
+| --- | --- | --- | --- |
+| Lowest content in the 600 px window, effective px | 596.2 | 583.8 | 556.6 |
+| Truncated text (ellipsis) | 0 | 0 | 0 |
+| Bar positions against section 4.3: 7 budget rows × 4 marks and 3 fill-only rows; largest deviation in points of L | 0.000 | 0.009 | 0.012 |
+| Contrast pairs computed on the page, pass / total | 28 / 28 | 34 / 34 | 30 / 30 |
+| Text below 12 px, excluding Windows icon glyphs | 0 | 0 | 0 |
+
+Further checks:
+- A PowerShell scratch script, not committed, recomputed the same palettes with WCAG 2.2
+  luminance truncated to two decimals, with 0 failures.
+- With `tnum`, the digits 1, 0, 4 and 7 have equal advance in all six families.
+- The browser console showed no errors.
+
+Direction checklist (brief section 8.1). PASS means the direction file shows the item. It
+does not mean a built interface passes.
+
+| Row | 1a | 1b | 1c | Notes |
+| --- | --- | --- | --- | --- |
+| DA-1 Concept and rationale | PASS | PASS | PASS | Each sheet gives the concept, why it suits the user of section 2, and how the palette, type, visualization and layout follow from it. |
+| DA-2 No forbidden element | PASS | PASS | PASS | Items (a) to (i) each have a sentence. The grey backdrop and option labels of the canvas belong to Claude Design's canvas, not to any direction. |
+| DA-3 Palette contrast | PASS | PASS | PASS | Tokens with hex values and roles, all six semantic colours and the stale level. Attention is amber, critical is red, and neutral states never use ok. Marks carry a 1 px keyline in the background colour. |
+| DA-4 Type pairing and licence | PASS | PASS | PASS | Two families with separate roles, tabular figures, text of 12 px or more. Each font is named as SIL OFL 1.1 with its repository. Checking each font file against its official licence page and for `tnum` is still due before import (brief section 9). The 1b and 1c fonts lack Cyrillic, so such names fall back to Segoe UI Variable, as the sheets state. |
+| DA-5 Signature visualization | PASS | PASS | PASS | Every section 6.4 row is drawn at the section 4.3 positions (checks above), and B2's budget marks are subordinate. In 1c the five-hour countdown sits in the line directly above the strip, not on the same line. |
+| DA-6 Four accounts fit | PASS | PASS | PASS | All at 760 × 600 and 100 %, measured. Status, left today, the displayed state and the deviation are visible without expanding. 150 % is a prototype check (PA-10), NOT_RUN. |
+| DA-7 Buildable in WinUI 3 | PASS | PASS | PASS | Each sheet maps every element to XAML: Grid, Rectangle, Border, Polygon, Ellipse, solid brushes and packaged TTF. No XAML was built, so implementation is not proven. |
+
+Also recorded:
+- **B3 correction.** A cross-check against brief 4.2 found "10,520 left under the cap"
+  missing from B3; it was added in all three windows before these checks.
+- **Pace mark on B2.** The subordinate pace mark now differs by colour, not size, so that it
+  keeps its exact position.
+
+**Owner selection (Step 4): pending.** The directions are presented to the owner, and the
+selection and the project identifier are recorded here when made.
+
+Scope and limits:
+- Only design-brief.md left the repository.
+- No product code, research, brief text, sign-in, provider request or live check.
+- No screenshot, capture or account data is committed.
+- AC-10 stays NOT_RUN until T-18.
+
 ## T-16 closing proposal - 2026-09-29
 
 Primary [opus] session. Base `3cec434`; `git pull` reported `main` up to date and the tree was

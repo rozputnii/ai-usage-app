@@ -812,16 +812,16 @@ Starts only after the owner's Gate B review.
 - [x] **Step 5:** Commit "AIU-034: propose follow-up implementation items" and push.
 
 ### T-17 - [opus] Claude Design round: directions
-- status: pending
+- status: in-progress
 - depends_on: [T-16]
 - acceptance: AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
-- [ ] **Step 1:** Check the `claude_design` MCP connection read-only by listing projects. If it
+- [x] **Step 1:** Check the `claude_design` MCP connection read-only by listing projects. If it
   is not authenticated, record BLOCKED, ask the owner to run `/design-login`, and stop.
-- [ ] **Step 2:** Create one Claude Design project for AIU-034, upload design-brief.md only,
+- [x] **Step 2:** Create one Claude Design project for AIU-034, upload design-brief.md only,
   and ask for two or three directions as brief sections 6 to 8 require.
-- [ ] **Step 3:** Check each direction against the section 8 direction checklist and record
+- [x] **Step 3:** Check each direction against the section 8 direction checklist and record
   pass or fail per item in verification.md, without images or account data.
 - [ ] **Step 4:** Present the directions to the owner and ask them to select one. Record the
   selection and the project identifier in verification.md.
@@ -946,13 +946,27 @@ AC-08 and AC-09 are PASS. AC-10 stays NOT_RUN until T-18.
 T-16 checks: entry field check, 6 of 6; validator `--json` valid true with no diagnostics;
 `git diff --check` clean. No subagents or pending worker artifacts.
 
-Next action: T-17 `[opus]` Step 1. Check the `claude_design` MCP connection read-only by
-listing projects; if it is not authenticated, record BLOCKED and ask the owner to run
-`/design-login`. T-17 starts only on the owner's instruction, because Step 2 creates a Claude
-Design project and uploads design-brief.md.
+T-17 Steps 1 to 3 were done on 2026-09-30, base `1997206`, on the owner's instruction:
+- The Claude Design connection worked, and project `9a6b2cdd-1c9c-4abe-9477-2869aa10f9bd` was
+  created with only design-brief.md uploaded.
+- There are three directions: 1a Ledger, 1b Signal Box and 1c Broadsheet. The canvas file is
+  `AIU-034 Directions.dc.html`.
+- DA-1 to DA-7 are PASS for all three, with the notes in verification.md.
+- The MCP gives this session Claude Design's prompt and skills, so the directions were authored
+  by this [opus] session; verification.md records this.
 
-Blockers: the owner's instruction to start T-17, and a working Claude Design connection
-(`/design-login`).
+T-17 checks:
+- fit: 596.2, 583.8 and 556.6 px of 600;
+- no truncated text;
+- section 4.3 positions within 0.012 points;
+- contrast: 92 of 92 pairs pass;
+- no text below 12 px;
+- no console errors.
+
+Next action: the owner selects one direction (T-17 Step 4). Then record the selection in
+verification.md, commit and push (Step 5), and start T-18 Step 1 on the owner's instruction.
+
+Blockers: the owner's selection.
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
 NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in
