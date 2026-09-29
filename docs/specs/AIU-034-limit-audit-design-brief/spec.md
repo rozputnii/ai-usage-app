@@ -4,7 +4,7 @@ type: spec
 status: approved
 goal: G-003
 scope_version: 1
-approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis. Owner amendment, 2026-09-26: the agent split for the follow-up implementation items is recorded in the Closing proposal. Owner amendment, 2026-09-26: A-6 keeps the model independent of the snapshot source (provider API or local CLI) to prepare AIU-005.
+approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis. Owner amendment, 2026-09-26: the agent split for the follow-up implementation items is recorded in the Closing proposal. Owner amendment, 2026-09-26: A-6 keeps the model independent of the snapshot source (provider API or local CLI) to prepare AIU-005. Owner amendment, 2026-09-29: usage history is local only, never provider-supplied (D-184).
 ---
 # AIU-034 - Limit data audit and budget-aware single-window design brief
 
@@ -287,6 +287,20 @@ not find the proposed activity section. Preserve those fields as unknown; do not
 credit-integration requirement from source-only descriptions or from weekly percentage
 quotas. Google One product credits are distinct from API-key billing. This clarification
 reinforces the API-key billing exclusion and does not remove subscription quota support.
+
+## Owner amendment - 2026-09-29, local-only history
+
+The owner directed that usage history comes only from the app's own local tracking, never
+from provider-supplied history (D-184). History is kept, not removed. For this item:
+
+- A-4 is answered by local tracking for every provider. Provider history is not a candidate
+  source for `U0`, the estimator or budget splits.
+- Phase A specifies one local reading series from which `U0`, the five-hour estimate and the
+  work-day splits derive. AIU-029 later extends its retention, rollups and history queries.
+- R-14 now means: Phase B shows history built from the local series, inline in the main
+  window. Provider history from AIU-011 is not shown as a data source.
+- The closing proposal includes an item that removes AIU-011's provider-history retrieval.
+  It is not selected automatically.
 
 ## Acceptance criteria
 

@@ -482,6 +482,9 @@ tasks extend.
   - every matrix limit (section 3) has a mapping row (section 5);
   - every section 5 field is used consistently in sections 6 to 9;
   - each of review focus items 1 to 6 is answered.
+  - no rule, figure or history display depends on provider-supplied history: `U0`, the
+    estimator, budget splits and history derive only from the local reading series (D-184,
+    owner direction 2026-09-29).
 - [ ] **Step 3:** Check the rules against R-03 to R-07 and R-11 of the spec, word by word, for
   contradictions or missing cases.
 - [ ] **Step 4:** Fix mechanical defects directly: arithmetic, a missing mapping row, a wrong
@@ -526,16 +529,19 @@ tasks extend.
 
 Completed: T-01 through T-09. T-07 (c8fa7ca) wrote research section 5, model notes M-01 to
 M-10 at the end of section 4 and PD-034-01 to PD-034-03 in section 11. T-08 (e0ef2e6) wrote
-sections 6 and 7: `U0` is a local day-start reading for every provider, and the five-hour
-estimator is specified with its exclusions. T-09 wrote sections 8 and 9: one budget rule set
-and fifteen worked examples, E01 to E09 with sub-cases. The security-lifecycle review of the
-two proposed local files is an implementation precondition, not done. No worker artifacts.
+sections 6 and 7. T-09 (1e79352) wrote sections 8 and 9: one budget rule set and fifteen
+worked examples, E01 to E09 with sub-cases. Owner direction D-184 (2026-09-29): usage history
+is local only. Sections 6.3, 6.4 and 7.6 now specify one local reading series, retained at
+least 35 days, from which `U0`, estimator samples, balance decreases and history display
+derive; AIU-029 later extends it. The spec, backlog (AIU-011, AIU-029) and T-10 Step 2 carry
+the direction. The security-lifecycle review of the series and the budget configuration file
+is an implementation precondition, not done. No worker artifacts.
 
 Next action: T-10 [astra], Step 1: recompute every section 9 row with an independent scratch
 script, using only the row inputs and the section 8 rules, then continue with T-10 Steps 2 to
-6. Record architectural findings as `F-nn` in verification.md without changing the design.
+6, including the new D-184 check. Record architectural findings as `F-nn` in verification.md
+without changing the design.
 
 Blockers: none for T-10. PD-034-01 and PD-034-03 are needed at Gate A; PD-034-02 is needed only
 when an AIU-005 implementation is selected. Live-check verdicts are unchanged from T-06. Gate A
-and Phase B remain NOT_RUN. Checks for T-09: validator `--json` valid, `git diff --check`
-passed, added-line secret scan zero matches.
+and Phase B remain NOT_RUN.

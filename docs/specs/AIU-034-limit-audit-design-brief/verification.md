@@ -1,5 +1,17 @@
 # AIU-034 verification
 
+## Owner direction D-184, local-only history - 2026-09-29
+
+Base e5013fa. The owner directed that usage history comes only from local tracking, never
+from provider-supplied history, and that history is kept rather than removed. Recorded as
+D-184 in the decision register, an owner amendment in spec.md, direction notes on AIU-011
+and AIU-029 in the backlog, and a new T-10 Step 2 check. Research sections 6.3, 6.4 and 7.6
+replace the two-day day-start records and separate estimator records with one local reading
+series (runs of unchanged values, gaps kept, at least 35 days). Section 5 references were
+aligned. No rule or figure of sections 8 and 9 changes: `U0` rules 1 to 4 are unchanged in
+meaning. No product code, transport or stored format changed; removing AIU-011 retrieval is
+left to an unselected follow-up item. Validator `--json` returned `valid: true` with no
+diagnostics; `git diff --check` passed; added-line secret scan found zero matches.
 ## T-09 budget rules and worked examples - 2026-09-29
 
 Base e0ef2e6, same [opus] session; no account, provider request or credential access.

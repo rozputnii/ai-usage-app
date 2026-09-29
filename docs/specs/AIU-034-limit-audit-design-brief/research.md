@@ -695,7 +695,7 @@ parser changes are made. Vocabulary defined here is used unchanged in sections 6
 - **Four layers.** The model separates:
   1. provider facts, carried by the snapshot;
   2. local configuration: the personal cap and the work weekdays;
-  3. local observations: day-start readings and estimator samples (sections 6 and 7);
+  3. local observations: the local reading series, the only history source (D-184, section 6.3);
   4. derived values: effective limit, budget, states.
 
   Only layer 1 comes from a snapshot source. Layers 2 to 4 never enter a provider snapshot,
@@ -821,7 +821,7 @@ Prepares AIU-005 without researching CLI capabilities.
   It never labels an individual limit and never changes a color, state or figure.
 - A CLI source must produce the same limit keys. When it cannot map a counter to an existing
   family and discriminator, AIU-005 records it as a new family; it is never merged by guess.
-- Limit fields, personal caps (section 5.4), day-start readings (section 6) and estimator
+- Limit fields, personal caps (section 5.4), the local reading series (section 6.3) and estimator
   samples (section 7) are keyed by account target ID and limit key, never by source. A local
   observation records its source only as provenance.
 - Staleness, unknown and assumed rules apply identically to both sources.
@@ -839,7 +839,7 @@ review and the AIU-006 migration discipline (versioned, backed-up, interruptible
 | `claude.state`, `copilot.state`, `antigravity.state` v1 (DPAPI) | `CachedQuota` changes; unknown members are disallowed, so the version must change | Version 2 with an in-place forward migration of the whole state. Identity, grant and generation are preserved unchanged. A cached quota that cannot be migrated is dropped alone; the grant is never dropped to simplify a migration. |
 | `preferences/appearance.v1.json` | None | Unchanged. |
 | New budget configuration file | Work weekdays (R-04) and personal caps (section 5.4) | New versioned, size-bounded file in the owned preferences directory, with staged replace, reparse-point checks and extension-data preservation like the appearance file. Separate from appearance so that provider-adjacent amounts never mix with display state. |
-| New local observation store | Day-start readings and estimator samples | Specified in sections 6 and 7. |
+| New local reading series | The only history source (D-184): `U0`, estimator samples, balance decreases and history display derive from it | Specified in sections 6.3 and 6.4. |
 
 **Opaque values** such as plan type, currency text, metered feature, model slug, Claude scope
 name and Antigravity `bucketId` are stored verbatim and never interpreted beyond documented
@@ -854,7 +854,10 @@ local day (R-05). Vocabulary from section 5.
 
 ### 6.1 Source per provider (A-4)
 
-Provider history cannot supply `U0` for any provider in scope, for three reasons:
+Owner direction, 2026-09-29 (D-184): usage history comes only from local tracking. Provider
+history is not a candidate source for `U0`, the estimator, budget splits or history display.
+The evidence below, recorded before that direction, reaches the same result independently:
+provider history cannot supply `U0` for any provider in scope, for three reasons.
 
 - **Different counter.** The history reports parsed today are consumption reports in tokens,
   credits, USD or `unitType` quantities (`CodexHistoryParser.cs`, `CopilotHistoryParser.cs`).
@@ -868,10 +871,10 @@ Provider history cannot supply `U0` for any provider in scope, for three reasons
 
 | Provider | Budgetable limits (section 5.5) | Provider history usable for `U0` | Decided `U0` source |
 | --- | --- | --- | --- |
-| Claude | CL-W, CL-M, CL-X/CL-D | none exists | local day-start reading |
-| Codex | CX-S and CX-A windows of 1 d or longer; CX-I on the percentage scale; CX-B per PD-034-01 | no: tokens and credits per provider date, not the window percentage; workspace routes unavailable | local day-start reading |
-| Copilot | GH-C, GH-I, GH-P | no: the billing report is a different meter, and personal access returned 404 | local day-start reading |
-| Antigravity | AG-W | none exists | local day-start reading |
+| Claude | CL-W, CL-M, CL-X/CL-D | none exists | local reading series (section 6.3) |
+| Codex | CX-S and CX-A windows of 1 d or longer; CX-I on the percentage scale; CX-B per PD-034-01 | no: tokens and credits per provider date, not the window percentage; workspace routes unavailable | local reading series (section 6.3) |
+| Copilot | GH-C, GH-I, GH-P | no: the billing report is a different meter, and personal access returned 404 | local reading series (section 6.3) |
+| Antigravity | AG-W | none exists | local reading series (section 6.3) |
 
 Five-hour windows have no `U0`: they have no daily budget (R-11).
 
@@ -897,43 +900,56 @@ The app refreshes each account every 5 minutes and marks a reading stale after 1
 A reading is valid when it succeeded, is not stale, and its used value is known. Readings from
 different snapshot sources are equally valid (section 5.6).
 
-### 6.3 Minimal local record
+### 6.3 Local reading series
 
-One record per account target ID, limit key and local date:
+Owner direction D-184 makes local tracking the only history source. One series per account
+target ID and limit key holds the readings the app already takes every 5 minutes, stored
+compactly as runs of an unchanged value:
 
 | Field | Content |
 | --- | --- |
 | account target ID, limit key | Section 5.2 identity; no account identity or label. |
-| local date | ISO calendar date of the budget day. |
-| day start | The local midnight instant with its UTC offset, so that 23- and 25-hour days are exact. |
-| used value | Quantity in the limit's unit: percent, decimal count or money triple. |
-| reading time | Fetched-at instant of the reading that supplied the value. |
-| rule | `carried-over`, `first-of-day` or `after-reset` (section 6.2). |
-| period end | The provider or assumed reset of the period the reading belongs to, to detect a reading from another period. |
+| used value | Quantity in the limit's unit: percent, decimal count or money triple. A pool that also reports a provider percentage keeps it beside the amount. |
+| first seen, last confirmed | Fetched-at instants of the first reading with this value and of the latest reading that confirmed it. A new run starts when the value, the period end or the snapshot source changes. |
+| period end, reset source | The provider or assumed reset of the period, to detect a rollover and a reading from another period. |
+| plan type | Opaque provider text, used to invalidate estimator samples (section 7.3). |
 | snapshot source | Provenance only (section 5.6). |
 
-PD-034-01 option (b), if accepted, adds one record per balance-only pool and budget period:
-the accumulated balance decreases, the last balance and its reading time, and "tracked since".
+A failed or stale refresh does not extend "last confirmed", so gaps in observation stay
+visible. A gap is never written as zero use. Local day boundaries are computed from the zone
+rules when needed, so 23- and 25-hour days are exact and need no stored offset.
+
+Everything else derives from the series:
+
+- **`U0`:** rule 1 of section 6.2 uses a run whose "last confirmed" is within 15 minutes
+  before local midnight and whose period end matches the current period. Rule 2 uses the first
+  run seen after midnight. Rules 3 and 4 are unchanged.
+- **Five-hour estimator:** section 7 samples are computed from the series of the pair.
+- **Balance-only pools (PD-034-01 option b):** decreases between consecutive runs within the
+  budget period are summed; increases are top-ups and are ignored.
+- **History display (R-14):** built from the series, with gaps shown as gaps.
 
 ### 6.4 Retention, storage and AIU-029
 
-- **Retention:** today's and yesterday's records only. Yesterday's covers a midnight crossing
-  and a daylight-saving day. Older records are pruned on write. This is a working value, not
-  history.
-- **Relation to AIU-029:** AIU-029 owns local usage history, rollups and retention. These
-  records are not a series and must not grow into one. When AIU-029 is selected it may supply
-  `U0` from its observations, and this store is then retired by a forward migration.
-- **Storage:** one new versioned, size-bounded file under the app-owned state root, separate
-  from provider state and from the budget configuration file of section 5.7. It holds no
-  credential, identity or raw payload, so it follows the plaintext Codex cache precedent.
-  Staged replace and reparse-point checks as for the preference file.
-- **Lifecycle:** sign-out keeps the records (D-093), and a record from a finished period is
-  ignored on reconnect by its period end. Delete stored data and factory reset remove the file.
-  A corrupt or version-mismatched file is set aside and treated as empty. The only loss is
-  today's `U0`, which falls back to rule 2 of section 6.2 with the "since" label.
+- **Retention:** at least 35 days, which covers the longest calendar period (31 days) with a
+  margin and the estimator's 28-day window. Older runs are pruned on write.
+- **Relation to AIU-029:** AIU-029 later extends this same series with longer retention,
+  rollups and history queries (D-184). It does not add a second series or a provider source.
+- **Size:** a run is added only when a value changes, so an idle limit adds almost nothing.
+  The worst case is one run per 5-minute reading, 288 per limit per day. The implementation
+  chooses a bounded file or an embedded database for that volume.
+- **Storage:** a new versioned store under the app-owned state root, separate from provider
+  state and from the budget configuration file of section 5.7. It holds no credential,
+  identity or raw payload. Writes are staged, with reparse-point checks as for the preference
+  file.
+- **Lifecycle:** sign-out keeps the series (D-093). A run from a finished period is history,
+  never `U0` for the new one. Delete stored data and factory reset remove the store. A corrupt
+  or version-mismatched store is set aside, not deleted, and a new series starts. The loss is
+  the history, today's `U0`, which falls back to rule 2 of section 6.2 with the "since" label,
+  and the estimator, which returns to "not ready" until it has samples again.
 
 **Precondition, not done:** the implementation item must run the security-lifecycle review
-for this file and for the budget configuration file before merge. It covers app-owned storage
+for this store and for the budget configuration file before merge. It covers app-owned storage
 and owned-root cleanup, sign-out retention under D-093, forward migration, corrupt-file
 recovery and factory-reset coverage. T-08 records the requirement only.
 
@@ -1009,13 +1025,12 @@ Its ratio is not a stable `C`. So:
 
 ### 7.6 Observations kept locally
 
-One record per account target ID and pool pair: the current five-hour instance (its reset
-instant, and its first valid reading and latest valid reading below `s = 100`, each with `s`,
-`w`, time and source) and the accepted
-samples (`c`, instance reset instant, time, plan type). At most 10 samples and 28 days are
-kept; the rest are pruned on write. The records live in the same file as section 6.3, with the
-same lifecycle, and the same security-lifecycle precondition applies. They are not history
-and do not serve AIU-024 forecasting.
+No separate record is needed. Samples are computed from the local reading series of section
+6.3 for the two windows of the pair: the runs give each five-hour instance's first valid
+reading and its latest valid reading below `s = 100`, with `w`, time, source and plan type.
+The 35-day retention covers the estimator's 28-day window. An implementation may cache the
+accepted samples, but the cache must be recomputable from the series. The series' lifecycle and
+security-lifecycle precondition apply. The estimator does not serve AIU-024 forecasting.
 
 ## 8. Budget rules
 
