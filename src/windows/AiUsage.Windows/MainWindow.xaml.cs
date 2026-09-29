@@ -351,8 +351,8 @@ internal sealed partial class MainWindow : Window
 
     /// <summary>
     /// D9: the tray mark reflects the most urgent attention level; the tooltip names cause, account and freshness.
-    /// The icon is drawn here, synchronously, and handed to the tray: changing a GeneratedIconSource in place makes
-    /// H.NotifyIcon redraw it in an async void handler, where any GDI+ or shell failure terminated the app.
+    /// The icon is drawn here, synchronously, and handed to the tray: a bound icon source makes H.NotifyIcon redraw it
+    /// in an async void handler, where any GDI+ or shell failure terminated the app.
     /// </summary>
     private void UpdateTrayGlyph()
     {
@@ -367,16 +367,8 @@ internal sealed partial class MainWindow : Window
             return;
         try
         {
-            var glyph = new H.NotifyIcon.GeneratedIconSource
-            {
-                Text = "AI",
-                FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe UI"),
-                FontSize = 70,
-                FontWeight = Microsoft.UI.Text.FontWeights.Bold,
-                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(color),
-            };
             // The tray takes ownership and disposes the previous icon; a refused update keeps the old mark.
-            TrayIcon.Icon = glyph.ToIcon();
+            TrayIcon.Icon = TrayGlyph.Create(color);
             trayColor = color;
         }
         catch (Exception error) when (error is System.Runtime.InteropServices.ExternalException or InvalidOperationException or ArgumentException or OutOfMemoryException)
