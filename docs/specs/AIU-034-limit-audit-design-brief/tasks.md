@@ -2,7 +2,10 @@
 id: AIU-034
 schema_version: 1
 ---
-# AIU-034 Phase A plan - provider limit-data audit
+# AIU-034 plan - limit-data audit (Phase A) and design brief (Phase B)
+
+Phase A (T-01 to T-11) is complete and was accepted at Gate A (D-185). The Phase B plan
+(T-12 to T-18) follows T-11.
 
 > **For agentic workers:** execute the tasks tagged for your agent in order. Steps use checkbox
 > (`- [ ]`) syntax for tracking. This is research: the "tests" are the document checks named in
@@ -525,6 +528,330 @@ tasks extend.
 
   Do not start Phase B.
 
+---
+
+## Phase B plan - design brief, Claude Design round and closing proposal
+
+Planned by [opus] on 2026-09-29 after Gate A, at the owner's instruction. The owner reviews
+this plan before T-12 starts.
+
+**Goal:** Write `design-brief.md` (B-1 to B-6) for the owner's Gate B review, then propose the
+follow-up implementation items, run the Claude Design round and import the selected result,
+satisfying AC-08 to AC-10.
+
+**Architecture:** One brief in this directory, written from the accepted research and D-183 to
+D-185 in two [opus] tasks, then an independent [astra] detail review and an [opus] resolution
+task that stops at Gate B. After the owner's Gate B review, [opus] writes the follow-up backlog
+items, sends the brief to Claude Design and imports the owner-selected result as in the
+[AIU-010 design reference](../AIU-010-ui-ux/design-reference/README.md).
+
+**Tech stack:** Markdown documents; the `claude_design` MCP in T-17 and T-18 only; the project
+validator; scratch check scripts that are never committed.
+
+**Spec:** [spec.md](spec.md) (Phase B, Gate B, Closing proposal, AC-08 to AC-10) and
+[research.md](research.md), accepted at Gate A.
+
+### Phase B agent assignment
+
+The Phase A handoff rules apply unchanged: one session at a time, each the primary; `git pull`
+at the start; commit and push after each task; a handoff at the end. Order: T-12 and T-13
+`[opus]` → T-14 `[astra]` → T-15 `[opus]` → Gate B (owner) → T-16 and T-17 `[opus]` → the
+owner selects a direction → T-18 `[opus]`.
+
+Implementation split (owner direction 2026-09-26, reconfirmed 2026-09-29): all backend code is
+`[astra]`: the Core budget engine, provider parser extensions, the local reading series and
+budget configuration stores, persistence and migrations, and the live adapters. `[opus]` builds
+only the presentation: XAML views, tokens and styles, view models, and the presentation
+contract exercised with demo data. Phase B writes no code; T-16 carries this split into every
+proposed item.
+
+### Phase B global constraints
+
+- Documents only: `design-brief.md`, the imported design reference, the backlog proposals and
+  this directory's records. No product code, stored format, transport or provider change; no
+  live check, sign-in or provider request.
+- Claude Design is contacted only in T-17 and T-18, after the Gate B owner review is recorded,
+  through the `claude_design` MCP after the owner's `/design-login`. No authentication
+  material is stored.
+- The brief follows the accepted research and D-183 to D-185. It never gives figures to a
+  UI-only pool (PD-034-03), never shows unknown as zero or unlimited, and never combines
+  percentages across limits (R-15).
+- Synthetic data only: no account identities, real amounts or dates, screenshots or captures.
+- All documents are in English. The validator `--json` must print `"valid":true` and
+  `git diff --check` must pass before every commit. Commit and push to `main` after each task.
+- Phase B findings continue the Phase A numbering from F-13; new decisions from PD-034-04.
+
+### Phase B review focus
+
+1. **Tooltip-only information.** D-181 moved readings into hover text, and B-3 forbids
+   decision information that lives only in a tooltip. Every figure a decision needs is visible
+   or one keyboard step away (T-13 rubric; T-14 check).
+2. **Figures without data.** A UI-only pool, an unknown limit, a not-ready estimate or a
+   no-budget state never gets a bar, number or colour that reads as data (T-12 catalogue;
+   T-14 check).
+3. **Default-look drift.** Directions slide back to a near-black slate with one indigo accent,
+   glass, identical rounded cards or Inter alone. The rubric rejects each forbidden item by
+   name (T-13; T-17 check).
+4. **Not buildable in WinUI 3 or MSIX.** Web-only effects, or fonts without a licence that
+   permits embedding. The brief states the platform limits and the licence rule, and T-14
+   verifies the licence statements against the official licence pages.
+5. **Density versus accessibility.** Four accounts fit the default window without scrolling
+   while text meets WCAG AA on the dark background and status never relies on colour alone.
+   The synthetic scenario fixes what "four accounts" contains (T-12), and the rubric checks
+   both at 100 % and 150 % scaling (T-13).
+
+### T-12 - [opus] Brief part 1: user, data and states, information architecture
+- status: pending
+- depends_on: [T-11]
+- acceptance: AC-08, AC-10
+- evidence: not-run
+
+**Files:**
+- Create: `docs/specs/AIU-034-limit-audit-design-brief/design-brief.md`
+- Read only: research sections 3 to 9 and 11; spec R-01 to R-15 and Phase B; D-180 to D-185
+  in `docs/decisions/accepted.md`; `src/windows/AiUsage.Windows/MainWindow.xaml.cs`
+  (`DefaultWidth` 760, `DefaultHeight` 600); `src/windows/AiUsage.Windows/Features/Tray/TrayPopupWindow.xaml.cs`
+  (`PopupWidth` 360).
+
+**Produces:** the state names and the synthetic scenario used by T-13, T-14 and the prototype.
+
+- [ ] **Step 1:** Create design-brief.md with these headings, each with a one-line statement
+  of its content:
+  1. How to use this brief (for Claude Design; all data synthetic; the text is design input)
+  2. User and jobs (B-1)
+  3. Data and states (B-2)
+  4. Synthetic scenario
+  5. Information architecture (B-3)
+  6. Visual identity (B-4)
+  7. Deliverables (B-5)
+  8. Acceptance rubric (B-6)
+  9. Platform constraints
+  10. Sources
+- [ ] **Step 2:** Section 2, B-1: the user, a developer with several work and personal AI
+  subscriptions, and the spec's four glance questions verbatim, each answered by a named
+  element of section 3.
+- [ ] **Step 3:** Section 3, B-2: a state catalogue with columns state, applies to, what the
+  user must see, what must never be shown, research reference. One row each for:
+  - limit kinds: five-hour window, weekly window, model-scoped weekly window, countable pool
+    (requests), balance-only credit pool tracked as an estimate (D-185), monetary pool;
+  - reading states: fresh, stale (dimmed), unknown, refresh failed;
+  - period states: provider reset, assumed reset, period unknown (research 8.3, rule 3),
+    past its reset with the budget not ready;
+  - limit states: within, at limit (exhausted), over limit, over cap, not included, capped at
+    0, unlimited, limit unknown;
+  - budget states: OK, attention, today used, neutral day off, no remaining work days
+    (`Wr = 0`), budget not ready, no budget with its reason;
+  - budget figures: adaptive norm `N`, today's share `T`, baseline `B`, deviation (ahead by or
+    behind by), used today, left today (may be negative), "used today since HH:MM",
+    "tracked since", incomplete tracking;
+  - estimates: sessions ready, estimate not ready (hidden, not zero), "< 1 session";
+  - caps: personal cap set or unset, currency mismatch, unmatched cap in settings, binding
+    source (cap or provider);
+  - account states: signed out, sign-in expired, first run, and the future "via CLI" source
+    attribute (research 5.6);
+  - R-09 five-hour colours: amber at 30 % or less remaining, red at 10 % or less or exhausted,
+    countdown from amber.
+
+  End with the "never" list: no figures for UI-only pools (PD-034-03, D-185), no zero for
+  unknown, no combined percentage, no conversion between units or currencies.
+- [ ] **Step 4:** Section 4, synthetic scenario: exactly four accounts on one synthetic local
+  date and time, work days Monday to Friday, with a table of each limit's inputs and displayed
+  figures computed by research section 8:
+  - Claude Pro: five-hour 72 % used; weekly 47 % used with a ready estimate `C` = 12; monthly
+    extra usage USD 218.00 against a USD 300.00 personal cap within a USD 500.00 provider
+    limit, assumed period;
+  - Codex Pro: five-hour 91 % used (red, with countdown); weekly exhausted; credit balance
+    tracked since the 3rd of the month with a 17,000-credit personal cap;
+  - Copilot Free: completions 1,210 of 2,000 requests, chat 12 of 50, premium requests with a
+    zero entitlement ("not included");
+  - Antigravity Google AI Plus: two weekly model groups, one stale (dimmed) and one with
+    "period unknown".
+
+  Compute every displayed figure with a scratch script that is not committed. State that this
+  scenario is the "four accounts" density reference of B-3.
+- [ ] **Step 5:** Section 5, B-3: R-01, R-12, R-13 and R-14 (history inline, built from the
+  local series with gaps shown as gaps, D-184); hierarchy provider → account → limits; inline
+  rename and inline cap editing; inline "Confirm · Cancel" and undo; immediate sign-out that
+  keeps history (D-093); each account's status shows its most constraining limit (R-10,
+  research 8.8); no decision information only in a tooltip; the four scenario accounts
+  fit the default window of 760 × 600 effective pixels at 100 % scaling (the current
+  `MainWindow` default) without scrolling, and a direction that proposes another default size
+  states it; the tray flyout (currently 360 effective pixels wide) stays secondary; the D-180
+  and D-181 behaviours this replaces (account detail and history pages, confirmation dialogs,
+  hover-only readings, the 20 % floor and even calendar-day shares).
+- [ ] **Step 6 (check):**
+  - every state named in research 5.4, 6.4, 6.5, 7.5, 8.1, 8.5 and 8.8 has a catalogue row;
+  - the scratch script reproduces every section 4 figure;
+  - the privacy scan finds only the spec's generic examples and synthetic values;
+  - the validator and `git diff --check` pass.
+- [ ] **Step 7:** Commit "AIU-034 Phase B: design brief data, states and structure" and push.
+
+### T-13 - [opus] Brief part 2: visual identity, deliverables and acceptance rubric
+- status: pending
+- depends_on: [T-12]
+- acceptance: AC-08, AC-10
+- evidence: not-run
+
+**Files:**
+- Modify: `design-brief.md` sections 6 to 10; `verification.md` (clause mapping)
+
+- [ ] **Step 1:** Section 6, B-4: copy the spec's forbidden, required and kept lists verbatim.
+  For each required item, state what a direction delivers: a named concept with its rationale;
+  a palette derived from it with the six semantic state colours ok, attention, critical,
+  stale, estimate and assumed, each with its contrast ratio against its background (text at
+  least 4.5:1, non-text marks at least 3:1, WCAG AA); a type pairing with tabular numerals for
+  every figure; one signature limit visualisation that combines the bar, today's budget, the
+  pace mark and five-hour sessions, shown for every limit kind of the scenario.
+- [ ] **Step 2:** Section 9, platform constraints: WinUI 3 on Windows 11; dark-only (D-182),
+  also with Windows in light mode or a contrast theme; no WebView; effects limited to WinUI 3
+  composition and XAML; fonts packaged in the MSIX under a licence that permits embedding and
+  redistribution in an application, for example the SIL Open Font License 1.1 or Apache 2.0,
+  with the licence named for each font; keyboard access to every action, accessible names,
+  reduced motion, and display scaling at 100 %, 150 % and 200 %; status never by colour alone.
+- [ ] **Step 3:** Section 7, B-5: two or three distinct directions first. After the owner
+  selects one: a full prototype of the main window in every section 3 state using the section 4
+  scenario; the tray flyout; the inline settings panel (work days, personal caps, unmatched
+  caps); inline editing, confirmation and undo; first run; the sign-in strip; token and
+  component specifications; keyboard, accessible-name and reduced-motion notes.
+- [ ] **Step 4:** Section 8, B-6: two pass/fail checklists.
+  - Direction acceptance: concept and rationale; no forbidden element, each named; palette
+    contrast; type pairing and font licence; signature visualisation; four accounts fit.
+  - Prototype acceptance: every section 3 state visible; no tooltip-only decision
+    information; figures match section 4; R-09 colours; no figures for UI-only pools;
+    keyboard and screen-reader notes; layouts at 100 % and 150 %; buildable in WinUI 3.
+- [ ] **Step 5:** Section 10, sources: the spec, research sections, D-180 to D-185, the AIU-010
+  design reference as the import precedent, and each licence page cited in section 9.
+- [ ] **Step 6 (check):**
+  - every B-4, B-5 and B-6 clause of the spec maps to a brief sentence; write the mapping
+    table into verification.md;
+  - review focus items 1 to 5 each have a rubric row;
+  - the privacy scan, the validator and `git diff --check` pass.
+- [ ] **Step 7:** Commit "AIU-034 Phase B: design brief identity, deliverables and rubric" and
+  push. Write the handoff: next task T-14 `[astra]`.
+
+### T-14 - [astra] Independent detail review of the brief
+- status: pending
+- depends_on: [T-13]
+- acceptance: AC-08, AC-10
+- evidence: not-run
+
+**Files:**
+- Modify: `design-brief.md` (mechanical corrections only), `verification.md` (review record)
+- Scratch only, never committed: a recomputation script in the session's temporary directory
+
+- [ ] **Step 1:** Check every clause of spec B-1 to B-6, R-01 to R-15 and D-183 to D-185
+  against the brief, word by word.
+- [ ] **Step 2:** Recompute every section 4 figure with a new script from its inputs and
+  research section 8, and compare every value.
+- [ ] **Step 3:** Check review focus 1 to 5: no figure for a UI-only pool, an unknown or a
+  not-ready state; no tooltip-only decision information; every forbidden look item named in
+  the rubric; every WinUI 3 and MSIX statement; the font licence statements against the
+  official licence pages (read-only web access).
+- [ ] **Step 4:** Fix mechanical defects directly: arithmetic, a missing reference, a wrong
+  state name. Record every other finding in verification.md as `F-nn`, from F-13, with
+  location, problem, evidence and suggested resolution, without changing the design.
+- [ ] **Step 5 (check):** the privacy scan, the validator and `git diff --check` pass.
+- [ ] **Step 6:** Commit "AIU-034 Phase B: independent brief review" and push. Write the
+  handoff: next task T-15 `[opus]`, with the count of open findings.
+
+### T-15 - [opus] Resolve brief findings and prepare Gate B
+- status: pending
+- depends_on: [T-14]
+- acceptance: AC-08, AC-10
+- evidence: not-run
+
+**Files:**
+- Modify: `design-brief.md`, `verification.md`, `tasks.md` (handoff); research section 11
+  only if a new decision is raised
+
+- [ ] **Step 1:** Resolve each finding by changing the brief, or raise it as a decision from
+  PD-034-04 with question, options, recommendation, impact, evidence and when needed. Record
+  the resolution next to the finding.
+- [ ] **Step 2:** Check B-1 to B-6 coverage and record the result in verification.md. AC-08
+  stays NOT_RUN until the Gate B review is recorded.
+- [ ] **Step 3:** Run the privacy scan over every Phase B file, then the validator and
+  `git diff --check`.
+- [ ] **Step 4:** Write the handoff: next action "owner reviews design-brief.md at Gate B".
+- [ ] **Step 5:** Commit "AIU-034 Phase B: brief ready for Gate B review" and push.
+- [ ] **Step 6:** Stop and report to the owner in Ukrainian: the brief's content, the rubric
+  and any open decisions. Do not contact Claude Design.
+
+### T-16 - [opus] Closing proposal: follow-up implementation items
+- status: pending
+- depends_on: [T-15]
+- acceptance: AC-08, AC-09, AC-10
+- evidence: not-run
+
+Starts only after the owner's Gate B review.
+
+**Files:**
+- Modify: `docs/backlog.md` (new entries), `verification.md` (Gate B record, AC-08, AC-09)
+
+- [ ] **Step 1:** Record the owner's Gate B review in verification.md: the Gates table, AC-08
+  and any decisions.
+- [ ] **Step 2:** Add these backlog entries with the next free IDs (currently AIU-035 to
+  AIU-040), goal G-003, status `idea`, trigger `owner-selection`, an outcome, dependencies,
+  acceptance criteria and the responsible agent in the title:
+  - `[astra]` Core limit model and budget engine: research 5.2 to 5.4 and 8, with section 9
+    cases E01 to E13, P01 to P11 and S01 to S09 as tests; no UI.
+  - `[astra]` Local reading series and budget configuration store: research 5.7 and 6.2 to
+    6.6; security-lifecycle review before merge; forward migrations; depends on the engine.
+  - `[astra]` Provider parser extensions and stored-format version 2: research 5.3, 5.5 and
+    5.7 with M-02, M-04 and M-07; forward migrations; depends on the engine.
+  - `[opus]` Redesigned presentation from the imported design: XAML views, tokens and styles,
+    view models and the presentation contract with demo data; depends on the T-18 import.
+  - `[astra]` Live adapters for the new presentation and Windows acceptance: feeds the
+    presentation contract; carries the AIU-030 to AIU-033 checks listed in the spec's closing
+    proposal as acceptance criteria; depends on the four items above.
+  - `[astra]` Remove the AIU-011 provider-history retrieval (D-184).
+- [ ] **Step 3:** In each entry name the parts of D-180 and D-181 it supersedes, and state that
+  a presentation-contract change is agreed between the `[opus]` and `[astra]` items, never
+  made silently.
+- [ ] **Step 4 (check):** every entry has an outcome, acceptance criteria, dependencies and an
+  agent; none is selected; the validator and `git diff --check` pass.
+- [ ] **Step 5:** Commit "AIU-034: propose follow-up implementation items" and push.
+
+### T-17 - [opus] Claude Design round: directions
+- status: pending
+- depends_on: [T-16]
+- acceptance: AC-10
+- evidence: not-run
+
+- [ ] **Step 1:** Check the `claude_design` MCP connection read-only by listing projects. If it
+  is not authenticated, record BLOCKED, ask the owner to run `/design-login`, and stop.
+- [ ] **Step 2:** Create one Claude Design project for AIU-034, upload design-brief.md only,
+  and ask for two or three directions as brief sections 6 to 8 require.
+- [ ] **Step 3:** Check each direction against the section 8 direction checklist and record
+  pass or fail per item in verification.md, without images or account data.
+- [ ] **Step 4:** Present the directions to the owner and ask them to select one. Record the
+  selection and the project identifier in verification.md.
+- [ ] **Step 5:** Commit "AIU-034 Phase B: Claude Design directions" and push.
+
+### T-18 - [opus] Full prototype, owner acceptance and import
+- status: pending
+- depends_on: [T-17]
+- acceptance: AC-10
+- evidence: not-run
+
+**Files:**
+- Create: `docs/specs/AIU-034-limit-audit-design-brief/design-reference/` with a README
+- Modify: `verification.md`, `tasks.md`, `docs/backlog.md` (AIU-034 status)
+
+- [ ] **Step 1:** Ask Claude Design for the full prototype of the selected direction, as brief
+  section 7 requires.
+- [ ] **Step 2:** Check it against the section 8 prototype checklist. Ask for fixes until it
+  passes, or until the owner accepts listed exceptions.
+- [ ] **Step 3:** Record the owner's acceptance of the prototype in verification.md.
+- [ ] **Step 4:** Import the prototype, specification and support files into
+  `design-reference/`, with the AIU-010 `.gitattributes` rule and a README recording source,
+  project, import date, revision and the SHA-256 of each file, as in the AIU-010 design
+  reference. Store no authentication material.
+- [ ] **Step 5 (check):** the privacy scan over every Phase B file, the validator and
+  `git diff --check` pass; record AC-10. When T-16 is done, set AIU-034 to `done` in the
+  backlog with its evidence.
+- [ ] **Step 6:** Commit "AIU-034 Phase B complete: design imported" and push. Write the
+  handoff: next action "owner selects follow-up items".
+
 ## Handoff
 
 Completed: T-01 through T-11 on 2026-09-29. T-11 resolved all twelve T-10 findings by design
@@ -534,14 +861,16 @@ requirement re-check and the privacy scan in verification.md. Gate A passed on 2
 the owner accepted Phase A with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11
 readings (D-185); AC-07 is PASS. Phase A is complete.
 
-Next action: when the owner instructs, plan Phase B (`design-brief.md`, B-1 to B-6) as new
-tagged tasks in this file. Phase B has not started and needs that separate instruction.
+Phase B plan: T-12 to T-18 above, written on 2026-09-29 at the owner's instruction. Backend
+code in the proposed follow-up items is `[astra]`; `[opus]` builds only the presentation.
+
+Next action: the owner reviews the Phase B plan; after approval, T-12 `[opus]`, Step 1.
 
 Checks: validator `--json` valid true with no diagnostics; `git diff --check` clean; scratch
 coverage (700 of 700 cells), recomputation (213 comparisons, 0 mismatches) and privacy scans
 pass. Primary review only; no subagents or pending worker artifacts.
 
-Blockers: none for planning Phase B; its start needs the owner's instruction. Sending the brief
+Blockers: the owner's approval of the Phase B plan. Sending the brief
 to Claude Design needs Gate B and a working Claude Design connection (`/design-login`).
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
