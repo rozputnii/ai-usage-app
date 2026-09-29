@@ -4,7 +4,7 @@ type: spec
 status: approved
 goal: G-003
 scope_version: 1
-approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis. Owner amendment, 2026-09-26: the agent split for the follow-up implementation items is recorded in the Closing proposal. Owner amendment, 2026-09-26: A-6 keeps the model independent of the snapshot source (provider API or local CLI) to prepare AIU-005. Owner amendment, 2026-09-29: usage history is local only, never provider-supplied (D-184).
+approval_basis: Owner request and answers, 2026-09-26, in the session conversation - the owner does not accept the current UI and asked for a global, laconic single-window redesign with no pop-ups or confirmation dialogs, every limit of every account shown inline instead of an account detail view, automatic "5-hour sessions left in the weekly window", support for credit and monetary limits besides subscription windows, a personal cap on credit and monetary pools, a work-day calendar (Saturday and Sunday off by default) and a daily budget for every limit type, with provider data analysed first and a Claude Design brief written afterwards that must not use Claude Design's default look. The owner chose subscription-attached limits plus an always-available personal cap (API-key billing excluded), an adaptive daily budget shown with the fixed baseline, remaining weekly quota expressed in 5-hour sessions, and one research item with two review gates. The recommended defaults in R-09 to R-15 were presented and accepted. Recorded as D-183. The owner approved the written specification on 2026-09-26 and confirmed that the Claude Design brief is written only after the Phase A analysis. Owner amendment, 2026-09-26: the agent split for the follow-up implementation items is recorded in the Closing proposal. Owner amendment, 2026-09-26: A-6 keeps the model independent of the snapshot source (provider API or local CLI) to prepare AIU-005. Owner amendment, 2026-09-29: usage history is local only, never provider-supplied (D-184). Owner decisions at Gate A, 2026-09-29: Phase A accepted, with PD-034-01 option (b), PD-034-03 option (a) and the R-05, R-06 and R-11 readings of research sections 8.1, 8.3 and 8.8 (D-185).
 ---
 # AIU-034 - Limit data audit and budget-aware single-window design brief
 
@@ -313,6 +313,24 @@ from provider-supplied history (D-184). History is kept, not removed. For this i
   window. Provider history from AIU-011 is not shown as a data source.
 - The closing proposal includes an item that removes AIU-011's provider-history retrieval.
   It is not selected automatically.
+
+## Owner decisions at Gate A - 2026-09-29
+
+The owner reviewed the Phase A outputs and accepted them (D-185):
+
+- PD-034-01, option (b): a balance-only credit pool accepts a personal cap, and its use is
+  tracked locally from observed balance decreases and labelled an estimate.
+- PD-034-03, option (a): limits visible only in a provider's own UI are not shown until a
+  current quota source is established through the existing connection.
+- R-06: a window with a known provider reset but no known duration has no budget and shows
+  "period unknown"; the calendar-month default applies only where no reset is supplied.
+- R-11: on a day off only the daily budget is neutral; an exhausted or over-cap limit still
+  shows that state, as R-10 requires.
+- R-05: a zero limit shows "not included" or "capped at 0" instead of a zero budget, and
+  "over" once used; an explicit unlimited flag outranks any reported amount.
+
+PD-034-02 stays open until an AIU-005 implementation is selected. Phase B starts only on a
+separate owner instruction.
 
 ## Acceptance criteria
 

@@ -1197,7 +1197,7 @@ unlimited flag is never a zero limit, whatever amount accompanies it (E11c).
 
 **Period from supplied facts (R-06).** Every provider fact that is supplied is used, and only
 missing facts are filled, each labelled with its source. This is the per-family confirmation of
-the R-06 default that R-06 asks Phase A for:
+the R-06 default that R-06 asks Phase A for; the owner accepted it at Gate A (D-185):
 
 1. **Reset and duration known**, the duration from the provider or established by the source
    (section 5.5): `S = R - duration` in elapsed time, start source `derived`. This covers CL-W,
@@ -1474,10 +1474,11 @@ or history data, and neither is a route to showing a pool (section 11, PD-034-03
 
 ## 11. Pending owner decisions
 
-Each decision affects AIU-034 and the follow-up implementation items (goal G-003). None is
-presumed resolved; the recommendation applies only after the owner accepts it. T-11 resolved
-the twelve T-10 findings in the design (verification.md). None needed a new decision; the
-resolutions updated the impact of PD-034-01 and PD-034-03.
+Each decision affects AIU-034 and the follow-up implementation items (goal G-003). T-11
+resolved the twelve T-10 findings in the design (verification.md). None needed a new decision;
+the resolutions updated the impact of PD-034-01 and PD-034-03. At the Gate A review on
+2026-09-29 the owner decided PD-034-01 and PD-034-03 as recommended (D-185). PD-034-02 remains
+pending until an AIU-005 implementation is selected.
 
 ### PD-034-01 - Budget for a balance-only pool
 
@@ -1498,6 +1499,7 @@ resolutions updated the impact of PD-034-01 and PD-034-03.
   shown as provider data.
 - **Evidence:** section 3 CX-B rows, LC-07, O4/O5, M-02, M-06; F-02 in verification.md.
 - **Needed:** at Gate A, because it decides which pools the Phase B brief shows with a budget.
+- **Decision:** owner, 2026-09-29, at Gate A: option (b) (D-185).
 
 ### PD-034-02 - Two snapshot sources for one account
 
@@ -1536,6 +1538,7 @@ resolutions updated the impact of PD-034-01 and PD-034-03.
 - **Evidence:** section 3 `provider-ui` cells; G-CL-3, G-CX-2/3, G-GH-2, G-AG-2; D-184; F-12 in
   verification.md.
 - **Needed:** at Gate A, before the Phase B brief lists the data and states (B-2).
+- **Decision:** owner, 2026-09-29, at Gate A: option (a) (D-185).
 
 ## 12. Sources
 

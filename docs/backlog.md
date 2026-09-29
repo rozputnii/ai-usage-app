@@ -327,6 +327,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - specification: docs/specs/AIU-034-limit-audit-design-brief/spec.md
 - evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 - scope-note: Owner request and answers, 2026-09-26, recorded as D-183. API-key billing is excluded. Phase A starts only on the owner's instruction after the specification review.
+- gate-note: Gate A passed on 2026-09-29 (D-185): Phase A is complete and accepted. Phase B starts only on a separate owner instruction.
 
 ## Deferred clarifications, not forgotten
 

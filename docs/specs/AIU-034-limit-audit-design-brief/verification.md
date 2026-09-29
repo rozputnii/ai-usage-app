@@ -1,5 +1,24 @@
 # AIU-034 verification
 
+## Gate A owner review - 2026-09-29
+
+Base `b53e1d0`. The owner reviewed the Phase A outputs in the session conversation, answering
+one question at a time with a suggested answer each, and accepted Phase A. Decisions, recorded
+as D-185 and in spec.md:
+
+- PD-034-01: option (b), local tracking of balance decreases for balance-only pools.
+- PD-034-03: option (a), UI-only limits are not shown until a current quota source exists.
+- R-06 reading accepted: a known provider reset without a known duration gives no budget.
+- R-11 reading accepted: a day off makes only the daily budget neutral.
+- R-05 reading accepted: a zero limit is shown as a state, not as a zero budget.
+- PD-034-02 stays pending until an AIU-005 implementation is selected.
+
+Gate A: PASS. AC-07: PASS, recorded before any Phase B work. Phase B has not started and
+starts only on a separate owner instruction. The owner also chose to replace the local clone
+path in `docs/providers/codex.md` line 53 that the T-11 scan reported; that is a separate
+commit, and published history is not rewritten. Checks for this record: validator `--json`
+`valid:true` with no diagnostics and `git diff --check` clean before the commit.
+
 ## T-11 findings resolution and Gate A package - 2026-09-29
 
 Primary [opus] session. Base `9a96024`; the initial `git pull` reported `main` up to date, and
@@ -624,7 +643,7 @@ Phase A source research has started. The owner approved the specification on 202
 | Gate | Status | Record |
 | --- | --- | --- |
 | Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
-| Gate A | NOT_RUN | Phase A outputs are complete (T-11, 2026-09-29) and await the owner's review; no review is recorded yet. |
+| Gate A | PASS | Owner accepted Phase A in the session conversation on 2026-09-29, with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11 readings (D-185). |
 | Gate B | NOT_RUN | Phase B has not started. |
 
 ## Results by acceptance criterion
@@ -637,7 +656,7 @@ Phase A source research has started. The owner approved the specification on 202
 | AC-04 | PASS | T-11: section 8 re-checked against R-03 to R-07 and R-11; section 9.1 recomputed, 0 mismatches. |
 | AC-05 | PASS | T-11: `U0` source per provider (6.1), local series and retention (6.2 to 6.6), security-lifecycle precondition noted. |
 | AC-06 | PASS | T-11: section 7 inputs, formula, minimum samples, invalidation and label; cases S01 to S09. |
-| AC-07 | NOT_RUN | |
+| AC-07 | PASS | Gate A owner review recorded on 2026-09-29, before any Phase B work (D-185). |
 | AC-08 | NOT_RUN | |
 | AC-09 | NOT_RUN | |
 | AC-10 | NOT_RUN | |

@@ -530,19 +530,20 @@ tasks extend.
 Completed: T-01 through T-11 on 2026-09-29. T-11 resolved all twelve T-10 findings by design
 changes in research.md (sections 4 to 12); none became a new decision. It completed the AC-01
 matrix (CL-C cells for Max, Team and Enterprise), recorded AC-01 to AC-06 as PASS with the
-requirement re-check and the privacy scan in verification.md, and kept AC-07 to AC-10 and
-Gate A NOT_RUN.
+requirement re-check and the privacy scan in verification.md. Gate A passed on 2026-09-29:
+the owner accepted Phase A with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11
+readings (D-185); AC-07 is PASS. Phase A is complete.
 
-Next action: the owner reviews research.md at Gate A, including PD-034-01, PD-034-03 and the
-R-06 per-family confirmation in section 8.3. Phase B starts only after that review is recorded
-in verification.md.
+Next action: when the owner instructs, plan Phase B (`design-brief.md`, B-1 to B-6) as new
+tagged tasks in this file. Phase B has not started and needs that separate instruction.
 
 Checks: validator `--json` valid true with no diagnostics; `git diff --check` clean; scratch
 coverage (700 of 700 cells), recomputation (213 comparisons, 0 mismatches) and privacy scans
 pass. Primary review only; no subagents or pending worker artifacts.
 
-Blockers: the Gate A owner review. PD-034-02 is needed only when an AIU-005 implementation is
-selected. The security-lifecycle review of the series and the budget configuration remains an
-implementation precondition, NOT_RUN. Live checks keep their T-06 verdicts. A pre-existing
-local path containing the Windows user name in docs/providers/codex.md line 53 (AIU-003) is
-reported to the owner and was not changed.
+Blockers: none for planning Phase B; its start needs the owner's instruction. Sending the brief
+to Claude Design needs Gate B and a working Claude Design connection (`/design-login`).
+PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
+review of the series and the budget configuration remains an implementation precondition,
+NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in
+docs/providers/codex.md line 53 is replaced by owner choice in a separate commit.
