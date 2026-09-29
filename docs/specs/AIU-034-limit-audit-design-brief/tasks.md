@@ -423,15 +423,15 @@ tasks extend.
   push.
 
 ### T-09 - [opus] Budget rules and worked examples
-- status: pending
+- status: done
 - depends_on: [T-07, T-08]
 - acceptance: AC-04
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` sections 8 and 9
 
-- [ ] **Step 1:** Section 8: restate R-03 to R-07 and R-11 as one consistent rule set in the
+- [x] **Step 1:** Section 8: restate R-03 to R-07 and R-11 as one consistent rule set in the
   section 5 vocabulary. Define:
   - the local day and the "today" boundary;
   - a reset in the middle of the local day: the day's norm is recomputed from the new period,
@@ -442,7 +442,7 @@ tasks extend.
     provider pools use it per the matrix;
   - the over-cap state: when `U0 >= L`, the norm is 0 and the state is "over cap by `U - L`";
   - day-off behavior and `Wr = 0`.
-- [ ] **Step 2:** Section 9: write a table with columns for:
+- [x] **Step 2:** Section 9: write a table with columns for:
   - case;
   - inputs: L, unit, S, R, work days, U0, U, cap;
   - results: W, Wr, N, B, deviation, used today, left today;
@@ -458,12 +458,12 @@ tasks extend.
   - a daylight-saving transition day;
   - a month with 20 work days and a month with 23;
   - no remaining work days before the reset.
-- [ ] **Step 3 (check):**
+- [x] **Step 3 (check):**
   - recompute each row by hand;
   - confirm that no rule contradicts another, for example the day-off rule versus the adaptive
     norm;
   - the validator and `git diff --check` pass.
-- [ ] **Step 4:** Commit "AIU-034 Phase A: budget rules and worked examples" and push. Write
+- [x] **Step 4:** Commit "AIU-034 Phase A: budget rules and worked examples" and push. Write
   the handoff: next task T-10 `[astra]`.
 
 ### T-10 - [astra] Independent detail review of T-07 to T-09
@@ -524,8 +524,18 @@ tasks extend.
 
 ## Handoff
 
-Completed: T-01 through T-06. LC-01 retains its earlier personal Claude Pro observation; LC-07 records agent-observed personal ChatGPT Pro credit UI. LC-22 records owner-supplied Google AI Plus quota-image structure only; Google One credit activity is NOT_RUN after the owner reported the section was not found and ended the lookup. Missing fields and all transport gaps remain explicit unknowns. No work-account, Copilot, unlisted or percentage-regression checks were added. Closure base: e4c4535. No worker artifacts.
+Completed: T-01 through T-09. T-07 (c8fa7ca) wrote research section 5, model notes M-01 to
+M-10 at the end of section 4 and PD-034-01 to PD-034-03 in section 11. T-08 (e0ef2e6) wrote
+sections 6 and 7: `U0` is a local day-start reading for every provider, and the five-hour
+estimator is specified with its exclusions. T-09 wrote sections 8 and 9: one budget rule set
+and fifteen worked examples, E01 to E09 with sub-cases. The security-lifecycle review of the
+two proposed local files is an implementation precondition, not done. No worker artifacts.
 
-Next action: T-07 [opus], Step 1: read research.md sections 2 to 4 and propose the normalized limit model, retaining the evidence provenance and explicit unknowns. Do not start new live checks. The owner excludes Antigravity API-credit billing from implementation; Google One product credits are distinct and unverified, not an inferred implementation requirement. Preserve the existing T-07 source-independence amendment for AIU-005.
+Next action: T-10 [astra], Step 1: recompute every section 9 row with an independent scratch
+script, using only the row inputs and the section 8 rules, then continue with T-10 Steps 2 to
+6. Record architectural findings as `F-nn` in verification.md without changing the design.
 
-No blocker to T-07: AC-02 permits explicitly recorded unknowns with closing-check IDs. Work-account and Copilot checks remain NOT_RUN: "postponed by owner: work account or manual lookup"; other unlisted checks remain unauthorized. Privacy scan, validator --json, diff check and primary review results are recorded in verification.md. T-07 is not started; Gate A and Phase B remain NOT_RUN. Stop after committing and pushing this T-06 closure to main.
+Blockers: none for T-10. PD-034-01 and PD-034-03 are needed at Gate A; PD-034-02 is needed only
+when an AIU-005 implementation is selected. Live-check verdicts are unchanged from T-06. Gate A
+and Phase B remain NOT_RUN. Checks for T-09: validator `--json` valid, `git diff --check`
+passed, added-line secret scan zero matches.

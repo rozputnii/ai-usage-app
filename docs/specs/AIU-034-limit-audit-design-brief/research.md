@@ -1019,11 +1019,151 @@ and do not serve AIU-024 forecasting.
 
 ## 8. Budget rules
 
-T-09 [opus] will define work-day, period, cap, reset and local-day rules.
+Proposal by T-09 [opus], 2026-09-29. One rule set for R-03 to R-07 and R-11, in the section 5
+vocabulary. Figures are computed in exact decimal arithmetic; rounding is a display rule only
+(section 8.9).
+
+### 8.1 Eligibility
+
+A limit has a daily budget when all of these hold:
+
+- its effective limit `L` is known (section 5.4); a known 0 is "not included";
+- its period start `S` and reset `R` are known, whatever their source;
+- `R - S` is at least one day. Five-hour windows never have a budget (R-11); they keep R-09
+  colors and feed the estimator of section 7;
+- its used value `U` is known in the unit of `L`. For percentage windows `L = 100 %` (R-05).
+
+Otherwise the limit shows its facts and the reason there is no budget: limit unknown,
+unlimited, not included, period unknown or budget not ready (section 6.2, rule 4).
+
+### 8.2 Local day and work days
+
+- The local zone is the Windows time zone at the time of computation. The local day is
+  `[local midnight, next local midnight)`, which lasts 23, 24 or 25 hours.
+- "Today" is the local date that contains now.
+- A work day is a local date whose weekday is in the global work weekday set, Monday to Friday
+  by default (R-04). Every limit uses the same set.
+
+### 8.3 Period and partial days
+
+- **Day weight.** For a work day `d`, `f(d)` is the length of the overlap of `d` with `[S, R)`
+  divided by the length of `d`, both in elapsed time. A full day weighs 1, including a 23- or
+  25-hour day. A day off weighs 0. This is the proportional partial-day handling of AIU-031,
+  restricted to work days.
+- `W` is the sum of `f(d)` over all days (R-05).
+- `Wr` is the sum of `f(d)` over today and the later days (R-05: today counts when it is a
+  work day).
+- `E` is the sum of `f(d)` from the day of `S` through today, inclusive.
+- **Rolling and fixed weekly windows** (CL-W, CL-M, CX-S, AG-W) use the derived start
+  `S = R - duration` in elapsed time. The start therefore moves in local time across a
+  daylight-saving change (example E07a).
+- **Calendar periods** use their boundaries in the provider's zone. For Copilot that is the
+  first of the month at 00:00 UTC, which is 01:00 local in British Summer Time (E08b).
+- **Assumed period (R-06).** When the provider gives no period, `S` is local midnight on the
+  1st of the current month and `R` is local midnight on the 1st of the next month, reset
+  source `assumed`. Per section 5.5 it applies to CL-X/CL-D and to CX-B under PD-034-01.
+  CX-I has a provider reset but no start, so it uses `S` = reset minus one calendar month,
+  start source `assumed`. Copilot request pools have a derived start and do not use the
+  fallback. An assumed reset is always labelled, and an expiry never replaces it (G-AG-4).
+
+### 8.4 Figures
+
+- **Adaptive norm** `N = max(0, L - U0) / Wr`, per full work day. It is fixed for the day and
+  recomputed only at local midnight, after a reset and after a cap change (R-05).
+- **Today's share** `T = N x f(today)`. It equals `N` on a full work day. It is the day's
+  allowance on a partial first or last day.
+- **Baseline norm** `B = L / W`.
+- **Deviation** `B x E - U`: "ahead by" when positive, "behind by" when negative (R-05).
+- **Used today** `U - U0`. **Left today** `T - (U - U0)`; it can be negative. This is R-05's
+  `N - (U - U0)` with the partial-day share that R-05 asks Phase A to define.
+- **Sessions** (R-07): `(100 - U) / C` for the weekly remainder and `T / C` for today, only
+  for a weekly window with a ready estimate (section 7.5).
+
+### 8.5 Day off and no remaining work days
+
+- **Day off (R-11):** `f(today) = 0`, so there is no norm, no today's share and no left today.
+  The state is neutral, and the remainder and deviation are still shown as facts. Usage on the
+  day off raises `U`, which becomes part of the next work day's `U0` and so lowers its norm
+  (E04a, E04b).
+- **`Wr = 0`:** no work day remains before `R`. There is no norm; only the remainder `L - U` is
+  shown (R-05). The state is neutral (E09).
+- At-limit and over-cap states (section 8.8) override neutral, so an exhausted limit is never
+  hidden by a day off (R-10).
+
+### 8.6 Resets during the day
+
+- **Provider reset.** When now passes `R`, or a new reading reports a different reset instant,
+  the limit enters a new period with `S`, `R` from that reading. For a replenishing provider
+  reset `U0 = 0` (section 6.2, rule 3). `N`, `T`, `B`, `W`, `Wr` and `E` are recomputed from the
+  new period, and the pre-reset part of the day belongs to the old period (E06a, E06b).
+- **Between the reset and the next reading** the old reading is past its reset. The budget is
+  "not ready", as AIU-031 already treats already-reset readings.
+- **Observed reset.** When `U` decreases without a provider reset, typically under an assumed
+  period whose real boundary differs, the decrease is treated as a reset during the day: `U0`
+  becomes the first reading after the decrease, `N` is recomputed with the same `R`, and the
+  label reads "provider reset observed; period assumed". A change within the provider's
+  rounding (one unit of the last reported digit) is not a decrease.
+
+### 8.7 Cap changes
+
+A cap change recomputes `L` (section 5.4), then `N`, `T` and `B` at once, with the day's `U0`
+unchanged. The result is therefore independent of the time of day of the change (E05a to
+E05c). When the new `L` is at or below `U0`, `N = 0`. There is never a negative norm (review
+focus 5).
+
+### 8.8 States
+
+In order of precedence:
+
+1. **Over cap by `U - L`**: `U > L`. Possible with a personal cap or provider overage.
+2. **At limit**: `U = L`. For a percentage window this is exhausted.
+3. **Today used**: left today at or below 0.
+4. **Attention**: left today below 30 % of `T`, as in AIU-031.
+5. **OK**: otherwise.
+6. **Neutral**: day off or `Wr = 0`, unless state 1 or 2 applies.
+7. **Not ready** or **no budget**: section 8.1.
+
+A stale reading keeps the day's `N` and `T` but dims used today, left today and the state
+(R-15). An account's status is its most constraining limit by this order, with the five-hour
+R-09 colors ranked red with "today used" and amber with "attention" (R-10).
+
+### 8.9 Display rounding
+
+Values are computed exactly. For display, `N`, `T` and left today round down, and deviation
+rounds toward zero. Money rounds to its minor unit, percentages to 0.1 point, and credits and
+requests to the precision the provider reports. A rounding direction never turns a negative
+left today into zero.
 
 ## 9. Worked examples
 
-T-09 [opus] will supply the numerical acceptance examples.
+Synthetic acceptance cases for the budget engine. Local zone Europe/London (GMT, and BST from
+29 March to 25 October 2026). Work days Monday to Friday unless stated. Inputs are exact; results
+are rounded half-up to two decimals for this table only. Implementation tests use exact decimal
+arithmetic. Money is in minor units with exponent 2 and currency `USD`, so 30000 is USD 300.00.
+Percent is percentage points of the window. `S` and `R` are local unless marked UTC.
+
+| Case | L, unit | S, R | Today | U0, U | Cap | W | Wr | N | B | Deviation | Used / left today | State and notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| E01 USD 300 cap within USD 500 | 30000 minor USD | 2026-09-01 00:00, 2026-10-01 00:00 (assumed) | Tue 2026-09-29 | 21000, 21800 | 30000 below provider 50000 | 22 | 2 | 4500 | 1363.64 | +6836.36 | 800 / 3700 | OK. Binding source personal cap. CL-X/CL-D fallback period. |
+| E02 17,000 credits a month | 17000 credits | 2026-10-01 00:00, 2026-11-01 00:00 (assumed) | Wed 2026-10-14 | 7200, 7650 | 17000, provider unknown | 22 | 13 | 753.85 | 772.73 | +77.27 | 450 / 303.85 | OK (40.3 % of `T` left). Used per PD-034-01 (b), labelled estimate. |
+| E03 weekly window with work days | 100 % | Thu 2026-10-01 15:00, Thu 2026-10-08 15:00 | Tue 2026-10-06 | 38, 47 | none | 5 | 2.63 | 23.62 | 20 | +20.50 | 9 / 14.62 | OK. `f` = 0.375 on 1 Oct and 0.625 on 8 Oct. With `C` = 12: weekly remainder ≈ 4 sessions, today ≈ 1 session (1.97 rounded down). |
+| E04a usage on a day off | 100 % | as E03 | Sat 2026-10-03 | 25, 31 | none | 5 | 3.63 | none | 20 | -3.50 | 6 / none | Neutral. No norm on a day off. |
+| E04b next work day | 100 % | as E03 | Mon 2026-10-05 | 31, 31 | none | 5 | 3.63 | 19.03 | 20 | +16.50 | 0 / 19.03 | OK. Weekend use lowered `N`; without it `U0` = 25 and `N` = 20.69. |
+| E05a cap lowered mid-period | 25000 minor USD | as E01 | Tue 2026-09-29, change at 14:00 | 21000, 21800 | 30000 to 25000 | 22 | 2 | 2000 | 1136.36 | +2063.64 | 800 / 1200 | OK. Same result at any time of day. |
+| E05b cap between U0 and U | 21500 minor USD | as E01 | as E05a | 21000, 21800 | 30000 to 21500 | 22 | 2 | 250 | 977.27 | -1277.27 | 800 / -550 | Over cap by 300. |
+| E05c cap below U0 | 20000 minor USD | as E01 | as E05a | 21000, 21800 | 30000 to 20000 | 22 | 2 | 0 | 909.09 | -2709.09 | 800 / -800 | Over cap by 1800. `N` is 0, never negative. |
+| E06a reset during the day, before | 100 % | Thu 2026-10-01 15:00, Thu 2026-10-08 15:00 | Thu 2026-10-08, 14:00 | 88, 95 | none | 5 | 0.63 | 19.20 | 20 | +5.00 | 7 / 5.00 | OK (41.7 %). `T` = 12, the whole remainder on the last partial day. |
+| E06b reset during the day, after | 100 % | Thu 2026-10-08 15:00, Thu 2026-10-15 15:00 | Thu 2026-10-08, 18:00 | 0, 4 | none | 5 | 5 | 20 | 20 | +3.50 | 4 / 3.50 | OK (46.7 %). `U0` = 0 after a provider reset; `T` = 7.5. |
+| E07a weekly window across the DST change | 100 % | 2026-10-21 10:00 UTC (11:00 BST), 2026-10-28 10:00 UTC (10:00 GMT) | Mon 2026-10-26 | 52, 60 | none | 4.96 | 2.42 | 19.86 | 20.17 | +11.43 | 8 / 11.86 | OK. `S` = `R` - 168 h; `f` = 13/24 on 21 Oct and 10/24 on 28 Oct. |
+| E07b 25-hour day | 100 % | 2026-10-25 12:00 UTC, 2026-11-01 12:00 UTC | Sun 2026-10-25 | 0, 3 | none | 6.98 | 6.98 | 14.33 | 14.33 | +3.88 | 3 / 3.88 | OK. Work days all seven. `f` = 12/25 on the 25-hour day, not 12/24. |
+| E08a month with 20 work days | 300 requests | 2026-02-01 00:00 UTC, 2026-03-01 00:00 UTC | Mon 2026-02-02 | 0, 12 | none | 20 | 20 | 15 | 15 | +3.00 | 12 / 3.00 | Attention (20 % of `T` left). Copilot calendar month. |
+| E08b month with 23 work days | 300 requests | 2026-07-01 00:00 UTC (01:00 BST), 2026-08-01 00:00 UTC | Wed 2026-07-01 | 0, 5 | none | 22.96 | 22.96 | 13.07 | 13.07 | +7.52 | 5 / 7.52 | OK. 23 weekdays, but 1 July weighs 23/24 because the UTC month starts at 01:00 BST; `T` = 12.52. |
+| E09 no remaining work days | 100 % | Sun 2026-10-04 09:00, Sun 2026-10-11 09:00 | Sat 2026-10-10 | 70, 72 | none | 5 | 0 | none | 20 | +28.00 | 2 / none | Neutral. Only the remainder, 28 %, is shown. |
+
+Hand checks: E01 `N` = (30000 - 21000) / 2; `E` = 21 work days through 29 September.
+E03 `E` = 0.375 + 3. E07a `W` = 13/24 + 4 + 10/24. E08b `W` = 23/24 + 22. The other rows
+follow from the same terms. Every row was also recomputed by a scratch script that was not
+committed. T-10 recomputes them independently.
 
 ## 10. Live checks
 

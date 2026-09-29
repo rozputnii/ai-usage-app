@@ -1,5 +1,25 @@
 # AIU-034 verification
 
+## T-09 budget rules and worked examples - 2026-09-29
+
+Base e0ef2e6, same [opus] session; no account, provider request or credential access.
+
+- Research section 8: eligibility, local day and work days, day weights for partial and
+  23/25-hour days, calendar, rolling and assumed periods, figures, day off and `Wr = 0`,
+  resets during the day, including an observed reset under an assumed period, cap changes,
+  state precedence and display rounding.
+- Research section 9: fifteen rows covering every A-7 case with 2026 dates in Europe/London:
+  a USD 300 cap within USD 500 in minor units, 17,000 credits, a weekly window with work days,
+  day-off usage, cap changes including below `U0` and between `U0` and `U`, a reset during the
+  day, a weekly window across the DST change, a 25-hour day, months with 20 and 23 work days,
+  and no remaining work days.
+- Step 3 checks: every row was recomputed by hand for its defining terms and by an
+  uncommitted scratch script in the session's temporary directory; all derived values
+  matched. No rule contradicts another: the day-off rule removes the norm only on the day off,
+  and usage flows into the next `U0`. Review focus 3: a reset in the middle of the day and DST
+  days have defined behavior. Review focus 5: `N` is clamped at 0 and the state is over cap.
+  Validator `--json` returned `valid: true` with no diagnostics; `git diff --check` passed;
+  added-line secret scan found zero matches.
 ## T-08 start-of-day source and five-hour estimator - 2026-09-29
 
 Base c8fa7ca, same [opus] session; no account, provider request or credential access.
