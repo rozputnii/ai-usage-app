@@ -287,6 +287,14 @@ is consumed or expires. A reset-offer section with an expiry date was also prese
 redemption was performed or recurrence inferred. Product usage breakdown rows were present;
 they are breakdowns, not additional independent limits. No controls were changed.
 
+CL-C on the other plans (T-11 completion of AC-01): no evidence establishes the family there,
+so every field is unknown. LC-02 to LC-04 did not run, and a Pro observation never fills
+another plan's cells.
+
+| UI family / field | Max | Team | Enterprise | Qualification |
+| --- | --- | --- | --- | --- |
+| CL-C / used, limit, remaining, period start, period end or reset, currency, exponent | unknown/none | unknown/none | unknown/none | Observed only on the Pro UI (LC-01); presence on these plans is not established. |
+
 ### Codex (T-03)
 
 `provider: codex`; `source_verified_at: 2026-09-26`;
@@ -655,8 +663,9 @@ A critical read of sections 2 to 4 found these gaps or inconsistencies that affe
 Each is resolved in section 5, closed by a named live check, or raised as a decision.
 
 - **M-01 Zero is not unknown.** `LiveMapping` shows a zero Copilot entitlement as an unknown
-  percentage. The model treats a known limit of 0 as "not included": not unknown, not
-  exhausted and without a budget (section 5.2).
+  percentage. The model treats a known limit of 0 as a zero entitlement: not unknown, not
+  exhausted, without a budget, and overage once used (section 8.1). An explicit unlimited flag
+  takes precedence over a zero or any other reported amount (section 5.4).
 - **M-02 Negative balance (G-CX-4).** O4 allows a negative Codex credit balance; the parser
   turns it into unknown. The model keeps remaining signed for balance pools. The parser change
   belongs to the implementation item.
@@ -665,16 +674,18 @@ Each is resolved in section 5, closed by a named live check, or raised as a deci
   with the same key and the two are never shown or summed as separate limits.
 - **M-04 Reset precision.** Copilot `quota_reset_date` and Antigravity zone-less `resetTime`
   are parsed with a UTC assumption and their original precision is lost. The model records
-  reset precision (instant or date) and whether the zone was assumed. A Copilot date means
-  00:00 UTC on that date, per G3/G5.
+  reset precision (instant or date) and whether the zone was assumed. A Copilot date is taken
+  as 00:00 UTC on that date with the zone marked assumed: G3/G5 document that clock only for AI
+  credits and legacy premium requests, which the wire does not identify (section 8.3).
 - **M-05 No parsed period start.** No provider supplies a period start. Budgetable windows use
   a start derived from the provider reset minus a provider or source-established duration. A
   window with no duration (unknown Claude `kind`, Codex without `limit_window_seconds`, an
-  unrecognized Antigravity token) gets no budget.
+  unrecognized Antigravity token) gets no budget (section 8.3, rule 3).
 - **M-06 Balance-only pools.** `credits.balance` (CX-B) reports only a remainder: no used and
   no limit. A budget needs a used amount; raised as PD-034-01.
 - **M-07 Codex individual control (CX-I).** It is unparsed and its unit is unknown. The model
-  admits it on the percentage scale until LC-08/09/10 establish the unit (section 5.5).
+  budgets only its percentages; its raw amounts are a secondary amount of unknown unit, never
+  budgeted, until LC-08/09/10 establish the unit (section 5.5).
 - **M-08 UI-only families.** CL-O, CL-B, CL-C, CX-W, CX-D, GH-A, GH-D, AG-C and AG-T have no
   app transport. They cannot be represented from a snapshot; raised as PD-034-03.
 - **M-09 Claude `is_active`.** It is discarded today. The model does not use it; any use needs
@@ -695,7 +706,7 @@ parser changes are made. Vocabulary defined here is used unchanged in sections 6
 - **Four layers.** The model separates:
   1. provider facts, carried by the snapshot;
   2. local configuration: the personal cap and the work weekdays;
-  3. local observations: the local reading series, the only history source (D-184, section 6.3);
+  3. local observations: the local reading series, the only history source (D-184, section 6.2);
   4. derived values: effective limit, budget, states.
 
   Only layer 1 comes from a snapshot source. Layers 2 to 4 never enter a provider snapshot,
@@ -712,14 +723,14 @@ parser changes are made. Vocabulary defined here is used unchanged in sections 6
 | Field | Values | Rule |
 | --- | --- | --- |
 | limit key | provider, family, native discriminator | Stable identity across readings and snapshot sources. The discriminator is provider-native: Claude limit kind plus opaque scope name, Codex group (`main` or `limit_name`/`metered_feature`) plus `primary`/`secondary`, Copilot `quota_snapshots` key, Antigravity `bucketId`. Never an account identity or a display label. |
-| kind | `percent-window`, `countable-pool`, `monetary-pool` | Chosen from the native unit. Percentage windows have no absolute limit. |
+| kind | `percent-window`, `countable-pool`, `monetary-pool` | Chosen from the native unit. A percent-window has no absolute limit: its used and remaining are its percentages, with `L = 100 %`. An amount it also reports is a secondary amount (unit as reported, or `unknown`), shown as a fact and never budgeted, tracked or capped (AG-R, CX-I). |
 | unit | `percent`; count units `requests`, `credits`, `unknown`; money: the currency | Native unit only. A count unit comes from the provider or its documented contract, never from a field name. |
 | used, remaining | quantity or unknown | Countable: decimal as reported. Money: minor units (below). Remaining may be negative for a balance (M-02). |
-| limit | quantity, or state `unknown`, `explicit-null`, `unlimited`, `not-applicable` | `explicit-null` is a provider null, which is not unlimited. `unlimited` only from an explicit provider flag. `not-applicable` for percentage windows. A known 0 is "not included" (M-01). |
+| limit | quantity, or state `unknown`, `explicit-null`, `unlimited`, `not-applicable` | `explicit-null` is a provider null, which is not unlimited. `unlimited` only from an explicit provider flag. `not-applicable` for percentage windows. The `unlimited` flag takes precedence over any amount reported as the limit. A known 0 without that flag is a zero entitlement (M-01, section 8.1). |
 | used percent, remaining percent | 0 to 100 or unknown | Provider percentage, kept independently of amounts; for percentage windows these are the used and remaining values with `L = 100 %`. |
 | duration | time span or unknown | Provider-reported or source-established (for example Claude `five_hour`); never assumed. |
 | period start | instant or unknown | No provider supplies it (M-05). |
-| period start source | `provider`, `derived`, `assumed` | `derived` = provider reset minus a known duration, or a documented calendar boundary (Copilot first of month, 00:00 UTC). `assumed` = R-06 fallback. |
+| period start source | `provider`, `derived`, `assumed` | `derived` = provider reset minus a provider or source-established duration. `assumed` = a start filled under R-06 (section 8.3, rules 2 and 4). |
 | period end (reset) | instant or unknown | The next instant at which the counter replenishes. |
 | reset source | `provider`, `assumed` | `assumed` only for the R-06 fallback. |
 | reset precision | `instant`, `date`; zone `explicit` or `assumed-utc` | Preserves what the provider actually sent (M-04). |
@@ -743,7 +754,7 @@ is computed only when both inputs are known and comparable, and it is labelled d
 
 | Current type | Proposed extension |
 | --- | --- |
-| `QuotaWindow` | Adds limit key, kind, period start and its source, reset source, reset precision and reset meaning. `Id`, `UsedPercent`, `RemainingPercent`, `Duration`, `ResetsAt`, `Unlimited` and `SourceDetails` keep their meaning. `ResetsAt` is the period end. |
+| `QuotaWindow` | Adds limit key, kind, period start and its source, reset source, reset precision and reset meaning. `Id`, `UsedPercent`, `RemainingPercent`, `Duration`, `ResetsAt`, `Unlimited` and `SourceDetails` keep their meaning. `ResetsAt` is the period end. `Amount` stays the window's secondary amount and is never a budget input (AG-R, CX-I). |
 | `QuotaAmount` | Used, limit and remaining become quantities: a decimal count or a money triple, never both. Adds the limit state. `Unit` keeps its role; for money it is the currency. |
 | `CreditBalance` | Folded into a `countable-pool` limit with unit `credits`, remaining = signed balance, limit state `unknown` or `unlimited` from the explicit flag. `HasCredits` stays a flag. The snapshot-level `Credits` member becomes an ordinary limit in a credits group, keeping the separation of credit `unlimited` from window `unlimited`. |
 | `ClaudeMoneyAmount`, `ClaudeExtraUsage` | Generalized into the Core money triple and a `monetary-pool` limit. `Source` (legacy or current) is kept as provenance. `HasExplicitNullLimit` becomes limit state `explicit-null`. `Enabled` stays a flag. |
@@ -770,12 +781,15 @@ The **effective limit** `L` (R-03):
 | known, comparable | set | the lower of the two; binding source is the lower one, or `provider` when equal |
 | known | not set | provider limit |
 | `unknown` or `explicit-null` | set | personal cap |
-| `unlimited` | set | personal cap |
-| `unlimited` | not set | none: no budget, shown as unlimited |
+| `unlimited` flag | set | personal cap |
+| `unlimited` flag | not set | none: no budget, shown as unlimited |
 | `unknown` or `explicit-null` | not set | none: no budget, shown as limit unknown |
-| known 0 | any | 0: state "not included", no budget |
 | known, currency differs from the cap | set | provider limit; the cap is flagged "currency mismatch" and not applied, never converted |
 
+An explicit `unlimited` flag takes precedence over any amount the provider reports as the
+limit, including 0: that amount is kept as a provider detail and is never `L` (E11c). A known
+provider limit of 0 without the flag is a zero entitlement. A personal cap of 0 is allowed and
+means that no use is intended. Either way `L = 0`, which section 8.1 handles as a zero limit.
 Percentage windows always have `L = 100 %`. A cap change recomputes `L` at once, and the budget
 follows the recomputation rules of section 8. Only the current cap and its set time are kept.
 
@@ -793,13 +807,13 @@ represented" (M-08, PD-034-03).
 | CL-S | percent-window / percent | `five_hour.utilization` or `limits[session].percent` | not-applicable | derived 100 - used | derived: reset - 5 h | `resets_at` (provider, replenish) | no cap; five-hour rules only (R-09, R-11) |
 | CL-W | percent-window / percent | `seven_day.utilization` or `limits[weekly_all].percent` | not-applicable | derived | derived: reset - 7 d (fixed assigned weekly cycle, G-CL-4) | `resets_at` (provider, replenish) | no cap; budget with work days |
 | CL-M | percent-window / percent, one limit per scope | legacy family utilization or `weekly_scoped.percent` | not-applicable | derived | derived: reset - 7 d | `resets_at` (provider, replenish) | no cap; budget; never added to CL-W; key = kind + opaque scope name, modern replaces legacy (M-03) |
-| CL-X, CL-D | monetary-pool / currency | `used.amount_minor` or `used_credits` | `limit.amount_minor` or `monthly_limit`; null = `explicit-null`, absent = `unknown` | derived when currency and exponent comparable | assumed: local month start (R-06) | assumed calendar month (assumed, replenish) | cap yes; budget; one limit, current replaces legacy |
+| CL-X, CL-D | monetary-pool / currency | `used.amount_minor` or `used_credits`, the provider's counter; the budget's `U` is tracked consumption (section 6.5) | `limit.amount_minor` or `monthly_limit`; null = `explicit-null`, absent = `unknown` | derived when currency and exponent comparable | assumed: local month start (R-06) | assumed calendar month (assumed; it restarts tracking, not the provider's counter) | cap yes; budget; one limit, current replaces legacy |
 | CL-O, CL-B, CL-C | not represented | - | - | - | - | - | provider UI only; CL-C expiry is `expire` if ever represented |
 | CX-P, CX-S, CX-A | percent-window / percent | `used_percent` | not-applicable | derived | derived: reset - `limit_window_seconds`; unknown without it | `reset_at`, or fetched at + `reset_after_seconds` (provider, replenish; M-10) | no cap; five-hour rules when duration is 5 h, budget when duration is 1 d or longer |
-| CX-B | countable-pool / credits | unknown (PD-034-01) | `unlimited` flag or `unknown` | signed `balance` | assumed | assumed (assumed); provider meaning `unknown`, never replenish | cap yes; budget only per PD-034-01 |
-| CX-I | percent-window scale until unit known; amounts unit `unknown` | `individual_limit.used`, `used_percent` | `individual_limit.limit` | `remaining`, `remaining_percent` | assumed: reset minus one calendar month | `reset_at` or `reset_after_seconds` (provider, replenish) | no cap until unit known; budget on the percentage scale; needs a parser extension (M-07) |
+| CX-B | countable-pool / credits | unknown; under PD-034-01 (b), tracked from balance decreases (section 6.5) | `unlimited` flag or `unknown` | signed `balance` | assumed: local month start (R-06) | assumed (assumed); provider meaning `unknown`, never replenish | cap yes; budget only per PD-034-01 |
+| CX-I | percent-window / percent until its unit is known; the raw `used`, `limit` and `remaining` strings are a secondary amount of unit `unknown` | `individual_limit.used_percent` | not-applicable (`L = 100 %`) | `remaining_percent`, else derived | assumed: reset minus one calendar month (section 8.3, rule 2) | `reset_at` or `reset_after_seconds` (provider, replenish) | no cap until its unit is known; budget on the percentages only, none when they are absent; needs a parser extension (M-07) |
 | CX-W, CX-D | not represented | - | - | - | - | - | provider UI only |
-| GH-C, GH-I, GH-P | countable-pool / `requests` (parser unit) | derived entitlement - remaining | `entitlement`; `unlimited` flag; 0 = not included | `remaining`; percent from `percent_remaining` | derived: first of the reset's previous month, 00:00 UTC (G5) | `quota_reset_date` (provider, replenish; precision per M-04) | cap yes; budget with work days; `quota_remaining` and overage stay source details |
+| GH-C, GH-I, GH-P | countable-pool / `requests` (parser unit) | derived entitlement - remaining | `entitlement`; the `unlimited` flag takes precedence; 0 without it is a zero entitlement | `remaining`; percent from `percent_remaining` | assumed: reset minus one calendar month in UTC (section 8.3, rule 2); a documented clock applies only to an identified pool | `quota_reset_date` (provider, replenish; precision per M-04) | cap yes; budget with work days; `quota_remaining` and overage stay source details |
 | GH-A, GH-D | not represented | - | - | - | - | - | provider UI only |
 | AG-5 | percent-window / percent | derived 100 - remaining | not-applicable | `remainingFraction` x 100 | derived: reset - 5 h | `resetTime` (provider, replenish; zone may be assumed UTC) | no cap; five-hour rules only |
 | AG-W | percent-window / percent, one limit per bucket | derived | not-applicable | `remainingFraction` x 100 | derived: reset - 7 d | `resetTime` (provider, replenish) | no cap; budget; group membership as reported, never split by vendor |
@@ -821,7 +835,7 @@ Prepares AIU-005 without researching CLI capabilities.
   It never labels an individual limit and never changes a color, state or figure.
 - A CLI source must produce the same limit keys. When it cannot map a counter to an existing
   family and discriminator, AIU-005 records it as a new family; it is never merged by guess.
-- Limit fields, personal caps (section 5.4), the local reading series (section 6.3) and estimator
+- Limit fields, personal caps (section 5.4), the local reading series (section 6.2) and estimator
   samples (section 7) are keyed by account target ID and limit key, never by source. A local
   observation records its source only as provenance.
 - Staleness, unknown and assumed rules apply identically to both sources.
@@ -839,7 +853,7 @@ review and the AIU-006 migration discipline (versioned, backed-up, interruptible
 | `claude.state`, `copilot.state`, `antigravity.state` v1 (DPAPI) | `CachedQuota` changes; unknown members are disallowed, so the version must change | Version 2 with an in-place forward migration of the whole state. Identity, grant and generation are preserved unchanged. A cached quota that cannot be migrated is dropped alone; the grant is never dropped to simplify a migration. |
 | `preferences/appearance.v1.json` | None | Unchanged. |
 | New budget configuration file | Work weekdays (R-04) and personal caps (section 5.4) | New versioned, size-bounded file in the owned preferences directory, with staged replace, reparse-point checks and extension-data preservation like the appearance file. Separate from appearance so that provider-adjacent amounts never mix with display state. |
-| New local reading series | The only history source (D-184): `U0`, estimator samples, balance decreases and history display derive from it | Specified in sections 6.3 and 6.4. |
+| New local reading series | The only history source (D-184): `U0`, tracked consumption, estimator samples and history display derive from it | Specified in sections 6.2 to 6.6. |
 
 **Opaque values** such as plan type, currency text, metered feature, model slug, Claude scope
 name and Antigravity `bucketId` are stored verbatim and never interpreted beyond documented
@@ -871,73 +885,159 @@ provider history cannot supply `U0` for any provider in scope, for three reasons
 
 | Provider | Budgetable limits (section 5.5) | Provider history usable for `U0` | Decided `U0` source |
 | --- | --- | --- | --- |
-| Claude | CL-W, CL-M, CL-X/CL-D | none exists | local reading series (section 6.3) |
-| Codex | CX-P, CX-S and CX-A windows of 1 d or longer; CX-I on the percentage scale; CX-B per PD-034-01 | no: tokens and credits per provider date, not the window percentage; workspace routes unavailable | local reading series (section 6.3) |
-| Copilot | GH-C, GH-I, GH-P | no: the billing report is a different meter, and personal access returned 404 | local reading series (section 6.3) |
-| Antigravity | AG-W | none exists | local reading series (section 6.3) |
+| Claude | CL-W, CL-M, CL-X/CL-D | none exists | local reading series (sections 6.2 and 6.4) |
+| Codex | CX-P, CX-S and CX-A windows of 1 d or longer; CX-I on the percentage scale; CX-B per PD-034-01 | no: tokens and credits per provider date, not the window percentage; workspace routes unavailable | local reading series (sections 6.2 and 6.4) |
+| Copilot | GH-C, GH-I, GH-P | no: the billing report is a different meter, and personal access returned 404 | local reading series (sections 6.2 and 6.4) |
+| Antigravity | AG-W | none exists | local reading series (sections 6.2 and 6.4) |
 
 Five-hour windows have no `U0`: they have no daily budget (R-11).
 
-### 6.2 Day-start reading rule
-
-The app refreshes each account every 5 minutes and marks a reading stale after 15 minutes
-(`LiveAutoRefresh`, D-099). For each budgetable limit and local day:
-
-1. **Carried over.** If the app has a valid reading taken in the 15 minutes before local
-   midnight, in the same provider period as now, its used value is `U0`. The app was
-   observing at midnight.
-2. **First of day.** Otherwise `U0` is the used value of the first valid reading of the local
-   day, and the budget shows "used today since HH:MM". Usage between midnight and that reading
-   is part of `U0`, so it reduces today's norm but is not counted as used today. It is never
-   silently attributed to today.
-3. **Reset during the day.** After a provider reset (section 8), the new period starts with
-   `U0 = 0` for a replenishing provider reset, which by definition restores the counter. After
-   an unexpected decrease of the used value (an observed reset), `U0` is the first reading after
-   the decrease.
-4. **No reading yet.** Before the first valid reading of the day there is no `U0` and no norm.
-   The limit shows its facts and "budget not ready"; unknown is not zero.
-
-A reading is valid when it succeeded, is not stale, and its used value is known. Readings from
-different snapshot sources are equally valid (section 5.6).
-
-### 6.3 Local reading series
+### 6.2 Local reading series
 
 Owner direction D-184 makes local tracking the only history source. One series per account
-target ID and limit key holds the readings the app already takes every 5 minutes, stored
-compactly as runs of an unchanged value:
+target ID and limit key holds the readings the app already takes, about every 5 minutes
+(D-099). A reading is **valid** when the account's refresh succeeded, returned the limit, and
+its used value is known, or for a balance pool its remaining balance. Five-hour windows are
+recorded too, for the estimator. A cached last reading shown at startup is not a new reading.
+
+Valid readings are stored as **runs**. A run is a maximal sequence of consecutive valid
+readings with identical stored values, one period instance (section 6.3), one plan type and
+one snapshot source, in which each reading follows the previous one by at most 15 minutes, the
+staleness threshold.
 
 | Field | Content |
 | --- | --- |
 | account target ID, limit key | Section 5.2 identity; no account identity or label. |
-| used value | Quantity in the limit's unit: percent, decimal count or money triple. A pool that also reports a provider percentage keeps it beside the amount. |
-| first seen, last confirmed | Fetched-at instants of the first reading with this value and of the latest reading that confirmed it. A new run starts when the value, the period end or the snapshot source changes. |
-| period end, reset source | The provider or assumed reset of the period, to detect a rollover and a reading from another period. |
-| plan type | Opaque provider text, used to invalidate estimator samples (section 7.3). |
+| value | The used value in the limit's unit: percent, decimal count or money triple. A balance pool stores its signed remaining balance instead (M-02). A pool that also reports a provider percentage keeps it beside the amount. Secondary amounts of unknown unit (AG-R, CX-I) are not stored. |
+| first seen, last confirmed | Fetched-at instants of the run's first and last readings. Only the open run's last confirmed advances; a closed run is never rewritten. |
+| period end | The provider reset reported by the run's latest reading, with its precision (section 5.2), or none. Assumed boundaries are computed when needed, never stored. |
+| new period | Set when the run's first reading starts a new period instance (section 6.3). |
+| plan type | Opaque provider text; a change invalidates estimator samples (section 7.3). |
 | snapshot source | Provenance only (section 5.6). |
 
-A failed or stale refresh does not extend "last confirmed", so gaps in observation stay
-visible. A gap is never written as zero use. Local day boundaries are computed from the zone
-rules when needed, so 23- and 25-hour days are exact and need no stored offset.
+- **Gaps.** Consecutive valid readings more than 15 minutes apart are separated by a gap: the
+  app was not running, refreshes failed or the limit was not returned. A gap always ends a run,
+  even when the value is the same on both sides, so every gap is visible between one run's last
+  confirmed and the next run's first seen. A failed refresh followed within 15 minutes by a
+  valid reading is not a gap, because the previous reading was still fresh (D-099). A gap is
+  never written as zero use.
+- **Values between readings.** Within one period instance a used value does not decrease except
+  by a provider correction (section 6.3), and a balance does not increase except by a top-up.
+  A used value is therefore known exactly at every instant a run covers, and across a gap whose
+  two sides have the same value in the same period instance. For a balance, equal values on both
+  sides of a gap mean that no consumption was observed, not that none happened (section 6.5).
+- **Derivations.** `U0` (section 6.4), tracked consumption (section 6.5), estimator samples
+  (section 7.6) and the history display (R-14, gaps shown as gaps) are computed from the stored
+  runs alone, so recomputing them after a restart gives the same results (section 9.2). Local
+  day boundaries come from the zone rules when needed, so 23- and 25-hour days are exact
+  without a stored offset.
 
-Everything else derives from the series:
+### 6.3 Period instances
 
-- **`U0`:** rule 1 of section 6.2 uses a run whose "last confirmed" is within 15 minutes
-  before local midnight and whose period end matches the current period. Rule 2 uses the first
-  run seen after midnight. Rules 3 and 4 are unchanged.
-- **Five-hour estimator:** section 7 samples are computed from the series of the pair.
-- **Balance-only pools (PD-034-01 option b):** decreases between consecutive runs within the
-  budget period are summed; increases are top-ups and are ignored.
-- **History display (R-14):** built from the series, with gaps shown as gaps.
+A period instance is the life of a provider counter from one replenishment to the next. The app
+decides it when it writes a reading, by comparing the reading with the previous valid reading of
+the same limit, and records the result in the run's "new period" mark. The model treats every
+provider period as a fixed interval that ends at its reset (section 8.3). No budgetable family
+is established as a sliding window, and G-CL-4 establishes fixed weekly resets for Claude.
 
-### 6.4 Retention, storage and AIU-029
+A reading starts a new period instance when either:
+
+1. **Rollover:** the previous reading's reset instant has passed at the new reading's fetch
+   time, and the new reading reports a reset more than 60 seconds later than the previous one.
+   The instance starts at the previous reset instant.
+2. **Early replenishment:** the used value decreased by more than the provider's rounding unit,
+   which is one unit of the last digit the provider reports, and the reported reset moved by
+   more than 60 seconds, for example after a reset credit is redeemed. The instance starts at an
+   unknown instant after the previous reading.
+
+Otherwise the reading continues the current instance:
+
+- A reset that moves without either condition updates the displayed reset only: the fetch-clock
+  error of a relative reset (M-10), an untouched Antigravity bucket whose reset moves with time,
+  or a provider adjustment. The day's budget keeps the bounds it was computed with until its
+  next recomputation (section 8.6).
+- A decrease by more than the rounding unit without a moved reset is a provider correction. The
+  day's `U0` and norm stay, used today is shown as at least 0, and the corrected value counts
+  from the next recomputation.
+- A reading taken after its reset instant that still reports that reset is past its reset: the
+  provider has not rolled over yet, and the budget is "not ready" (section 8.6).
+
+The 60 seconds cover the fetch-clock error of relative resets (M-10). Limits without a provider
+reset (CL-X/CL-D, CX-B) have one continuing instance; section 6.5 handles their decreases. The
+same rule decides `U0` (section 6.4) and estimator samples (section 7.3).
+
+### 6.4 Day-start amount
+
+`U0` is the budget's used value at the start of the local day (R-05); for a tracked limit it is
+the tracked consumption of section 6.5. For each budgetable limit and local day, in order:
+
+1. **Restarted today.** When the current period instance is known to have started after
+   today's local midnight, `U0 = 0`: the counter restarted today, so all of its current value
+   was used today. The start is known for a rollover (the previous reset instant), for a start
+   derived from a provider duration (`S = R - duration`), and for an early replenishment
+   observed after a valid reading taken today. This holds even when the first post-reset
+   reading comes hours after the reset (E06b).
+2. **Value at midnight.** Otherwise `U0` is the value at local midnight, taken from the series
+   by the first of these that applies. Readings before midnight count only when they belong to
+   the current period instance.
+   - **2.1 Covered:** a run covers midnight; its value is exact.
+   - **2.2 Carried:** the last valid reading before midnight is at most 15 minutes old at
+     midnight; its value is used. Usage between that reading and midnight counts as used
+     today, because the app was observing at midnight.
+   - **2.3 Bracketed:** the last valid reading before midnight and the first after it have the
+     same used value; that value is exact (section 6.2).
+   - **2.4 First of day:** the first valid reading after midnight is used, and the budget shows
+     "used today since HH:MM". Usage between midnight and that reading is part of `U0`: it
+     reduces today's norm but is not counted as used today. It is never silently attributed to
+     today.
+3. **No reading yet.** Before the first valid reading of the day there is no `U0` and no norm.
+   The limit shows its facts and "budget not ready"; unknown is not zero.
+
+`U0` is decided by the first valid reading after midnight and then stays for the day; only a
+new period instance starts a new `U0`, by the same rules (section 8.6). The rules read only
+the stored runs up to that reading, so rereading the series after a restart gives the same
+`U0` (section 9.2). A time-zone change takes effect at the next local midnight in the new
+zone. Rule 1 replaces the phrase "`U0` becomes the post-reset reading" of the T-09 plan step,
+which would move that day's post-reset use into `U0` and out of used today.
+
+### 6.5 Tracked consumption
+
+When the provider reports no reset (CL-X/CL-D, and CX-B under PD-034-01 (b)), the budget period
+is R-06's assumed calendar month (section 8.3, rule 4). The provider's counter does not restart
+at those bounds, so its value is not the amount used in the period. The budget's `U` is the
+consumption the app observed in the period instead:
+
+- **Increases.** Between consecutive valid readings, the increase of a used value, or the
+  decrease of a balance, is consumption on the later reading's day.
+- **Decreases.** A decrease of a used value, or an increase of a balance, by more than the
+  rounding unit counts nothing. It may be a provider reset on the provider's own clock, a
+  correction or a top-up; the app shows it as a fact and does not guess which. When it follows
+  a gap, use after a provider reset may be missing, and `U` is marked incomplete for the rest of
+  the period.
+- **Period start.** Tracking starts from the provider value at `S`, found by rules 2.1 to 2.3 of
+  section 6.4. Otherwise it starts from the last valid reading before `S`, and consumption
+  across the gap counts in the new period because its timing is unknown. When the limit has no
+  earlier reading, a used value's first reading counts in full, which is exact when the
+  provider's month is the calendar month and otherwise errs toward a smaller budget, while a
+  balance starts at zero. In both cases `U` is labelled "tracked since" the first reading
+  after `S`.
+- **Day start.** `U0` is `U` at local midnight by rule 2 of section 6.4; used today is `U - U0`.
+
+`U` is always labelled an estimate and is never shown as provider data. The provider's own used
+value and limit stay facts beside it; when the provider's used value reaches its own limit, that
+fact is shown and ranked by section 8.8 even when `U` is lower. A top-up and consumption between
+two readings net out, so a balance-based `U` can undercount (PD-034-01). See E12a and E12b.
+
+### 6.6 Retention, storage and AIU-029
 
 - **Retention:** at least 35 days, which covers the longest calendar period (31 days) with a
   margin and the estimator's 28-day window. Older runs are pruned on write.
 - **Relation to AIU-029:** AIU-029 later extends this same series with longer retention,
   rollups and history queries (D-184). It does not add a second series or a provider source.
-- **Size:** a run is added only when a value changes, so an idle limit adds almost nothing.
-  The worst case is one run per 5-minute reading, 288 per limit per day. The implementation
-  chooses a bounded file or an embedded database for that volume.
+- **Size:** a run is added only when a stored value, the period instance, the plan type or the
+  source changes, or after a gap, so an idle limit adds almost nothing. The worst case is one
+  run per 5-minute reading, 288 per limit per day. The implementation chooses a bounded file or
+  an embedded database for that volume.
 - **Storage:** a new versioned store under the app-owned state root, separate from provider
   state and from the budget configuration file of section 5.7. It holds no credential,
   identity or raw payload. Writes are staged, with reparse-point checks as for the preference
@@ -945,8 +1045,9 @@ Everything else derives from the series:
 - **Lifecycle:** sign-out keeps the series (D-093). A run from a finished period is history,
   never `U0` for the new one. Delete stored data and factory reset remove the store. A corrupt
   or version-mismatched store is set aside, not deleted, and a new series starts. The loss is
-  the history, today's `U0`, which falls back to rule 2 of section 6.2 with the "since" label,
-  and the estimator, which returns to "not ready" until it has samples again.
+  the history; today's `U0`, which falls back to rule 2.4 of section 6.4 with the "since"
+  label; tracked consumption, which restarts by the no-earlier-reading rule of section 6.5; and
+  the estimator, which returns to "not ready" until it has samples again.
 
 **Precondition, not done:** the implementation item must run the security-lifecycle review
 for this store and for the budget configuration file before merge. It covers app-owned storage
@@ -973,34 +1074,43 @@ identified by duration (5 hours and 7 days) within the same pool, never by name.
 
 `C` is the weekly percentage consumed by one fully used five-hour window.
 
-- **Sample.** For one five-hour window instance (one five-hour reset instant), take the first
-  and the last valid reading of the pair inside that instance: `s` is five-hour used percent and
-  `w` is weekly used percent. The sample is `c = 100 x (w_last - w_first) / (s_last - s_first)`.
-  One instance gives at most one sample. Using the span of the whole instance rather than
-  consecutive readings limits the error from integer-rounded percentages.
+- **Sample.** For one five-hour period instance (section 6.3), take the first and the last
+  instant inside it at which the pair has stored values (section 7.6): `s` is five-hour used
+  percent and `w` is weekly used percent. The sample is
+  `c = 100 x (w_last - w_first) / (s_last - s_first)`. One instance gives at most one sample.
+  Using the span of the whole instance rather than consecutive readings limits the error from
+  integer-rounded percentages. A weekly change of 0 is a valid sample: the weekly moved less
+  than its rounding.
 - **Aggregation.** `C` is the median of the most recent 10 accepted samples not older than
   28 days.
 - **Minimum samples.** 3 accepted samples from 3 different five-hour instances.
-- **Confidence.** Ready when the minimum is met and the median absolute deviation of the
-  samples is at most 25 % of their median. Otherwise "estimate not ready", and nothing is shown.
+- **Confidence.** Ready when the minimum is met, the median is greater than 0, the median
+  absolute deviation of the samples is at most 25 % of their median, and their weekly changes
+  add up to at least 5 percentage points, so that `C` rests on measurable weekly movement
+  rather than rounding. Otherwise "estimate not ready", and nothing is shown. A zero `C` is
+  therefore never shown and never divides (S01, S03).
 
 ### 7.3 Exclusions and invalidation
 
 A sample is rejected when:
 
-- the five-hour reset instant or the weekly reset instant differs between its first and last
-  reading, allowing 60 seconds of jitter for relative resets (M-10). The span then straddles
-  a reset or a window rollover;
+- its first and last instants are not in the same period instance, of the five-hour window or
+  of the weekly window (section 6.3). The span then straddles a reset or a window rollover;
 - `s_last - s_first` is below 10 percentage points, which is too small to divide reliably;
-- either difference is negative, which is a provider correction or an unobserved reset;
-- any reading in the span is stale, failed or has an unknown value;
+- either difference is negative, which is a provider correction;
+- either window has no stored value at the first or the last instant (section 7.6);
 - the last reading has `s = 100`; the last reading below 100 is used instead, because an
   exhausted window stops counting while other spending may continue;
 - its first and last readings come from different snapshot sources, which may round
   differently.
 
-All samples of a pool are discarded when its plan type changes, when the pool stops being
-returned, and when they age past 28 days. The estimate is then "not ready" again.
+A gap inside the span does not reject a sample. Both counters only grow within their instances,
+so the differences between the span's ends are exact whatever happened between them (S05).
+
+All samples of a pool are discarded when its plan type changes, which is a run boundary
+(section 6.2), and when they age past 28 days. The estimate is then "not ready" again. A pool
+that is not returned for a while keeps its samples: its limit key is its identity (section 5.2),
+the gap stays visible in the series, and a changed ratio shows as dispersion (section 7.2).
 
 ### 7.4 Model-scoped weekly limits
 
@@ -1017,20 +1127,26 @@ Its ratio is not a stable `C`. So:
 ### 7.5 Output and label
 
 - **Weekly remainder:** `(100 - w) / C` sessions, where `w` is the current weekly used percent.
-- **Today:** today's weekly norm `N` (section 8) divided by `C`. On a day off, or when `Wr = 0`,
-  there is no today figure.
+- **Today:** today's share `T` of the weekly norm (section 8.4) divided by `C`. `T` equals `N`
+  on a full work day and is the partial-day allowance on a partial first or last day, so the
+  figure has the same basis as left today; this is how R-07's "today's weekly norm" is read.
+  On a day off, or when `Wr = 0`, there is no today figure (S08, S09).
 - **Display:** rounded down to a whole session, shown as "≈ n sessions (estimate)", "< 1
   session" below 1, and 0 when the weekly window is exhausted. Always labelled an estimate
   (R-07, R-15). Hidden, not zero, while not ready.
 
 ### 7.6 Observations kept locally
 
-No separate record is needed. Samples are computed from the local reading series of section
-6.3 for the two windows of the pair: the runs give each five-hour instance's first valid
-reading and its latest valid reading below `s = 100`, with `w`, time, source and plan type.
-The 35-day retention covers the estimator's 28-day window. An implementation may cache the
-accepted samples, but the cache must be recomputable from the series. The series' lifecycle and
-security-lifecycle precondition apply. The estimator does not serve AIU-024 forecasting.
+No separate record is needed. Samples are computed from the local reading series (section 6.2)
+of the two windows of the pair. A sample's first instant is the first seen of the five-hour
+instance's first run; its last instant is the last confirmed of the instance's last run below
+`s = 100`. At each instant, each window's value, source and plan type come from its run that
+covers the instant, which is exact because a run's value does not change (section 6.2). Both
+windows come from the same refreshes, so their runs normally cover the same instants; an
+instant that either window does not cover gives no sample. The 35-day retention covers the
+estimator's 28-day window. An implementation may cache the accepted samples, but the cache must
+be recomputable from the series. The series' lifecycle and security-lifecycle precondition
+apply. The estimator does not serve AIU-024 forecasting.
 
 ## 8. Budget rules
 
@@ -1042,14 +1158,23 @@ vocabulary. Figures are computed in exact decimal arithmetic; rounding is a disp
 
 A limit has a daily budget when all of these hold:
 
-- its effective limit `L` is known (section 5.4); a known 0 is "not included";
-- its period start `S` and reset `R` are known, whatever their source;
+- its effective limit `L` is known and greater than 0 (section 5.4);
+- its period start `S` and reset `R` are known by section 8.3, whatever their source;
 - `R - S` is at least one day. Five-hour windows never have a budget (R-11); they keep R-09
   colors and feed the estimator of section 7;
 - its used value `U` is known in the unit of `L`. For percentage windows `L = 100 %` (R-05).
+  For a limit with an assumed reset, `U` is the tracked consumption of section 6.5.
 
 Otherwise the limit shows its facts and the reason there is no budget: limit unknown,
-unlimited, not included, period unknown or budget not ready (section 6.2, rule 4).
+unlimited, zero limit, period unknown or budget not ready (section 6.4, rule 3).
+
+**Zero limit.** When `L = 0`, from a provider zero entitlement or a personal cap of 0, R-05's
+formulas give `N = B = 0` and left today `-(U - U0)`. Every figure is zero or restates the use,
+so no budget is offered; this presents R-05's result and does not replace it. The limit shows
+its state instead (section 8.8): "not included" for a provider zero or "capped at 0" for a cap
+while `U = 0`, which is neutral and does not bind the account, and over by `U` once there is
+use, for example provider overage (E11a, E11b, E11d). Zero is never unknown (M-01). An explicit
+unlimited flag is never a zero limit, whatever amount accompanies it (E11c).
 
 ### 8.2 Local day and work days
 
@@ -1069,17 +1194,33 @@ unlimited, not included, period unknown or budget not ready (section 6.2, rule 4
 - `Wr` is the sum of `f(d)` over today and the later days (R-05: today counts when it is a
   work day).
 - `E` is the sum of `f(d)` from the day of `S` through today, inclusive.
-- **Rolling and fixed weekly windows** (CL-W, CL-M, CX-S, AG-W) use the derived start
-  `S = R - duration` in elapsed time. The start therefore moves in local time across a
-  daylight-saving change (example E07a).
-- **Calendar periods** use their boundaries in the provider's zone. For Copilot that is the
-  first of the month at 00:00 UTC, which is 01:00 local in British Summer Time (E08b).
-- **Assumed period (R-06).** When the provider gives no period, `S` is local midnight on the
-  1st of the current month and `R` is local midnight on the 1st of the next month, reset
-  source `assumed`. Per section 5.5 it applies to CL-X/CL-D and to CX-B under PD-034-01.
-  CX-I has a provider reset but no start, so it uses `S` = reset minus one calendar month,
-  start source `assumed`. Copilot request pools have a derived start and do not use the
-  fallback. An assumed reset is always labelled, and an expiry never replaces it (G-AG-4).
+
+**Period from supplied facts (R-06).** Every provider fact that is supplied is used, and only
+missing facts are filled, each labelled with its source. This is the per-family confirmation of
+the R-06 default that R-06 asks Phase A for:
+
+1. **Reset and duration known**, the duration from the provider or established by the source
+   (section 5.5): `S = R - duration` in elapsed time, start source `derived`. This covers CL-W,
+   CL-M, CX-S, CX-P and CX-A windows of one day or longer, and AG-W. For a fixed or rolling
+   weekly window the start therefore moves in local time across a daylight-saving change
+   (E07a).
+2. **Reset known, duration unknown, family documented as monthly:** `S` is `R` minus one
+   calendar month in UTC, clamped to the last day of a shorter month, start source `assumed`;
+   the provider's reset is kept. This covers CX-I and the Copilot request pools GH-C, GH-I and
+   GH-P. A documented calendar clock (G3/G5) applies only to an identified pool, and the wire
+   does not identify these pools (section 3), so the start is assumed, not derived. A Copilot
+   date is taken at 00:00 UTC (M-04), so a first-of-month reset starts the local day at 01:00
+   in British Summer Time (E08b).
+3. **Reset known, duration and period type unknown:** an unknown Claude kind, a Codex window
+   without `limit_window_seconds` or an unrecognized Antigravity token. There is no budget,
+   "period unknown" (E13). R-06's calendar month cannot be used, because it would replace a
+   supplied reset that R-06 keeps, and the window may be shorter than a day (R-11).
+4. **No reset:** CL-X/CL-D, and CX-B under PD-034-01. R-06's fallback applies: `S` is local
+   midnight on the 1st of the current month and `R` is local midnight on the 1st of the next
+   month, reset source `assumed`. `U` is the tracked consumption of section 6.5, because the
+   provider's counter does not restart at these bounds.
+
+An assumed start or reset is always labelled, and an expiry never replaces a reset (G-AG-4).
 
 ### 8.4 Figures
 
@@ -1097,27 +1238,31 @@ unlimited, not included, period unknown or budget not ready (section 6.2, rule 4
 ### 8.5 Day off and no remaining work days
 
 - **Day off (R-11):** `f(today) = 0`, so there is no norm, no today's share and no left today.
-  The state is neutral, and the remainder and deviation are still shown as facts. Usage on the
-  day off raises `U`, which becomes part of the next work day's `U0` and so lowers its norm
-  (E04a, E04b).
+  The budget state is neutral, and the remainder and deviation are still shown as facts. Usage
+  on the day off raises `U`, which becomes part of the next work day's `U0` and so lowers its
+  norm (E04a, E04b).
 - **`Wr = 0`:** no work day remains before `R`. There is no norm; only the remainder `L - U` is
-  shown (R-05). The state is neutral (E09).
-- At-limit and over-cap states (section 8.8) override neutral, so an exhausted limit is never
-  hidden by a day off (R-10).
+  shown (R-05). The budget state is neutral (E09).
+- Neutral is the state of the day's budget. A limit that is at or over its limit shows that on
+  a day off too, because it is a state of the limit, not of the day (section 8.8; R-10, R-15;
+  E10a, E10b).
 
 ### 8.6 Resets during the day
 
-- **Provider reset.** When now passes `R`, or a new reading reports a different reset instant,
-  the limit enters a new period with `S`, `R` from that reading. For a replenishing provider
-  reset `U0 = 0` (section 6.2, rule 3). `N`, `T`, `B`, `W`, `Wr` and `E` are recomputed from the
-  new period, and the pre-reset part of the day belongs to the old period (E06a, E06b).
+- **New period instance.** When a reading starts a new period instance (section 6.3), the limit
+  enters the new period with `S` and `R` from that reading, and `U0` follows section 6.4: 0 when
+  the counter restarted today, otherwise the value at midnight. `N`, `T`, `B`, `W`, `Wr` and `E`
+  are recomputed from the new period, and the pre-reset part of the day belongs to the old
+  period (E06a, E06b). A reset instant that merely changes, by jitter, a moving bound or an
+  adjustment, is not a new period: the displayed reset follows the provider, and the day's
+  figures keep their bounds until the next recomputation.
 - **Between the reset and the next reading** the old reading is past its reset. The budget is
   "not ready", as AIU-031 already treats already-reset readings.
-- **Observed reset.** When `U` decreases without a provider reset, typically under an assumed
-  period whose real boundary differs, the decrease is treated as a reset during the day: `U0`
-  becomes the first reading after the decrease, `N` is recomputed with the same `R`, and the
-  label reads "provider reset observed; period assumed". A change within the provider's
-  rounding (one unit of the last reported digit) is not a decrease.
+- **Correction.** A decrease by more than the rounding unit without a new period instance leaves
+  the day's `U0` and norm unchanged; used today is shown as at least 0 (section 6.3).
+- **Assumed periods.** A limit with an assumed reset has no provider reset to observe. A
+  decrease of its provider counter is shown as a fact and adds nothing to the tracked `U`, and
+  the assumed bounds do not move (section 6.5, E12b).
 
 ### 8.7 Cap changes
 
@@ -1128,19 +1273,33 @@ focus 5).
 
 ### 8.8 States
 
-In order of precedence:
+A limit has two states. The **limit state** is a fact about its counter and its effective
+limit, on every day including days off:
 
-1. **Over cap by `U - L`**: `U > L`. Possible with a personal cap or provider overage.
-2. **At limit**: `U = L`. For a percentage window this is exhausted.
-3. **Today used**: left today at or below 0.
-4. **Attention**: left today below 30 % of `T`, as in AIU-031.
-5. **OK**: otherwise.
-6. **Neutral**: day off or `Wr = 0`, unless state 1 or 2 applies.
-7. **Not ready** or **no budget**: section 8.1.
+- **over by `U - L`** when `U > L`, read "over cap" when the personal cap binds and "over
+  limit" for provider overage;
+- **at limit** when `U = L` and `L > 0`; for a percentage window this is exhausted;
+- **within** when `U < L`. With `L` unknown or unlimited there is no limit state.
 
-A stale reading keeps the day's `N` and `T` but dims used today, left today and the state
-(R-15). An account's status is its most constraining limit by this order, with the five-hour
-R-09 colors ranked red with "today used" and amber with "attention" (R-10).
+For a tracked limit (section 6.5) the provider's own used value and limit, when both are known,
+give a second limit state, and the more constraining of the two applies.
+
+The **budget state** is exactly one of:
+
+- **not ready** or **no budget**, with its reason (section 8.1);
+- **neutral** on a day off or when `Wr = 0` (R-11): there is no norm to keep or break;
+- **today used** when left today is at or below 0;
+- **attention** when left today is below 30 % of `T`, as in AIU-031;
+- **OK** otherwise.
+
+A limit displays its limit state when that is over or at limit, and its budget state otherwise.
+A zero limit (section 8.1) displays "not included" or "capped at 0" while `U = 0`.
+
+An account's status is its most constraining limit, in this order: over, at limit, today used,
+attention, OK, neutral (including "not included" and "capped at 0"), and not ready or no
+budget. The five-hour R-09 colors rank red with "today used" and amber with "attention"
+(R-10). A stale reading keeps the day's `N` and `T` but dims used today, left today and the
+state (R-15).
 
 ### 8.9 Display rounding
 
@@ -1151,34 +1310,85 @@ left today into zero.
 
 ## 9. Worked examples
 
+### 9.1 Budget cases
+
 Synthetic acceptance cases for the budget engine. Local zone Europe/London (GMT, and BST from
 29 March to 25 October 2026). Work days Monday to Friday unless stated. Inputs are exact; results
 are rounded half-up to two decimals for this table only. Implementation tests use exact decimal
 arithmetic. Money is in minor units with exponent 2 and currency `USD`, so 30000 is USD 300.00.
-Percent is percentage points of the window. `S` and `R` are local unless marked UTC.
+Percent is percentage points of the window. `S` and `R` are local unless marked UTC. For
+monetary and credit rows with an assumed period, `U0` and `U` are tracked consumption since `S`
+(section 6.5). "none" means that the figure is not offered.
 
 | Case | L, unit | S, R | Today | U0, U | Cap | W | Wr | N | B | Deviation | Used / left today | State and notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| E01 USD 300 cap within USD 500 | 30000 minor USD | 2026-09-01 00:00, 2026-10-01 00:00 (assumed) | Tue 2026-09-29 | 21000, 21800 | 30000 below provider 50000 | 22 | 2 | 4500 | 1363.64 | +6836.36 | 800 / 3700 | OK. Binding source personal cap. CL-X/CL-D fallback period. |
-| E02 17,000 credits a month | 17000 credits | 2026-10-01 00:00, 2026-11-01 00:00 (assumed) | Wed 2026-10-14 | 7200, 7650 | 17000, provider unknown | 22 | 13 | 753.85 | 772.73 | +77.27 | 450 / 303.85 | OK (40.3 % of `T` left). Used per PD-034-01 (b), labelled estimate. |
-| E03 weekly window with work days | 100 % | Thu 2026-10-01 15:00, Thu 2026-10-08 15:00 | Tue 2026-10-06 | 38, 47 | none | 5 | 2.63 | 23.62 | 20 | +20.50 | 9 / 14.62 | OK. `f` = 0.375 on 1 Oct and 0.625 on 8 Oct. With `C` = 12: weekly remainder ≈ 4 sessions, today ≈ 1 session (1.97 rounded down). |
+| E01 USD 300 cap within USD 500 | 30000 minor USD | 2026-09-01 00:00, 2026-10-01 00:00 (assumed) | Tue 2026-09-29 | 21000, 21800 | 30000 below provider 50000 | 22 | 2 | 4500 | 1363.64 | +6836.36 | 800 / 3700 | OK. Binding source personal cap. CL-X/CL-D assumed period (section 8.3, rule 4); `U0` and `U` are tracked since `S`. |
+| E02 17,000 credits a month | 17000 credits | 2026-10-01 00:00, 2026-11-01 00:00 (assumed) | Wed 2026-10-14 | 7200, 7650 | 17000, provider unknown | 22 | 13 | 753.85 | 772.73 | +77.27 | 450 / 303.85 | OK (40.3 % of `T` left). CX-B under PD-034-01 (b): `U0` and `U` are tracked balance decreases since `S`, labelled an estimate. |
+| E03 weekly window with work days | 100 % | Thu 2026-10-01 15:00, Thu 2026-10-08 15:00 | Tue 2026-10-06 | 38, 47 | none | 5 | 2.63 | 23.62 | 20 | +20.50 | 9 / 14.62 | OK. `f` = 0.375 on 1 Oct and 0.625 on 8 Oct. With `C` = 12: weekly remainder ≈ 4 sessions, today ≈ 1 session (1.97 rounded down); S08. |
 | E04a usage on a day off | 100 % | as E03 | Sat 2026-10-03 | 25, 31 | none | 5 | 3.63 | none | 20 | -3.50 | 6 / none | Neutral. No norm on a day off. |
 | E04b next work day | 100 % | as E03 | Mon 2026-10-05 | 31, 31 | none | 5 | 3.63 | 19.03 | 20 | +16.50 | 0 / 19.03 | OK. Weekend use lowered `N`; without it `U0` = 25 and `N` = 20.69. |
 | E05a cap lowered mid-period | 25000 minor USD | as E01 | Tue 2026-09-29, change at 14:00 | 21000, 21800 | 30000 to 25000 | 22 | 2 | 2000 | 1136.36 | +2063.64 | 800 / 1200 | OK. Same result at any time of day. |
 | E05b cap between U0 and U | 21500 minor USD | as E01 | as E05a | 21000, 21800 | 30000 to 21500 | 22 | 2 | 250 | 977.27 | -1277.27 | 800 / -550 | Over cap by 300. |
 | E05c cap below U0 | 20000 minor USD | as E01 | as E05a | 21000, 21800 | 30000 to 20000 | 22 | 2 | 0 | 909.09 | -2709.09 | 800 / -800 | Over cap by 1800. `N` is 0, never negative. |
 | E06a reset during the day, before | 100 % | Thu 2026-10-01 15:00, Thu 2026-10-08 15:00 | Thu 2026-10-08, 14:00 | 88, 95 | none | 5 | 0.63 | 19.20 | 20 | +5.00 | 7 / 5.00 | OK (41.7 %). `T` = 12, the whole remainder on the last partial day. |
-| E06b reset during the day, after | 100 % | Thu 2026-10-08 15:00, Thu 2026-10-15 15:00 | Thu 2026-10-08, 18:00 | 0, 4 | none | 5 | 5 | 20 | 20 | +3.50 | 4 / 3.50 | OK (46.7 %). `U0` = 0 after a provider reset; `T` = 7.5. |
+| E06b reset during the day, after | 100 % | Thu 2026-10-08 15:00, Thu 2026-10-15 15:00 | Thu 2026-10-08, 18:00 | 0, 4 | none | 5 | 5 | 20 | 20 | +3.50 | 4 / 3.50 | OK (46.7 %). `U0` = 0: the counter restarted at 15:00 today, although the first post-reset reading is at 18:00 (section 6.4, rule 1). `T` = 7.5; S09. |
 | E07a weekly window across the DST change | 100 % | 2026-10-21 10:00 UTC (11:00 BST), 2026-10-28 10:00 UTC (10:00 GMT) | Mon 2026-10-26 | 52, 60 | none | 4.96 | 2.42 | 19.86 | 20.17 | +11.43 | 8 / 11.86 | OK. `S` = `R` - 168 h; `f` = 13/24 on 21 Oct and 10/24 on 28 Oct. |
 | E07b 25-hour day | 100 % | 2026-10-25 12:00 UTC, 2026-11-01 12:00 UTC | Sun 2026-10-25 | 0, 3 | none | 6.98 | 6.98 | 14.33 | 14.33 | +3.88 | 3 / 3.88 | OK. Work days all seven. `f` = 12/25 on the 25-hour day, not 12/24. |
-| E08a month with 20 work days | 300 requests | 2026-02-01 00:00 UTC, 2026-03-01 00:00 UTC | Mon 2026-02-02 | 0, 12 | none | 20 | 20 | 15 | 15 | +3.00 | 12 / 3.00 | Attention (20 % of `T` left). Copilot calendar month. |
-| E08b month with 23 work days | 300 requests | 2026-07-01 00:00 UTC (01:00 BST), 2026-08-01 00:00 UTC | Wed 2026-07-01 | 0, 5 | none | 22.96 | 22.96 | 13.07 | 13.07 | +7.52 | 5 / 7.52 | OK. 23 weekdays, but 1 July weighs 23/24 because the UTC month starts at 01:00 BST; `T` = 12.52. |
+| E08a month with 20 work days | 300 requests | 2026-02-01 00:00 UTC, 2026-03-01 00:00 UTC | Mon 2026-02-02 | 0, 12 | none | 20 | 20 | 15 | 15 | +3.00 | 12 / 3.00 | Attention (20 % of `T` left). Copilot request pool: `S` assumed one month before the provider reset (section 8.3, rule 2). |
+| E08b month with 23 work days | 300 requests | 2026-07-01 00:00 UTC (01:00 BST), 2026-08-01 00:00 UTC | Wed 2026-07-01 | 0, 5 | none | 22.96 | 22.96 | 13.07 | 13.07 | +7.52 | 5 / 7.52 | OK. 23 weekdays, but 1 July weighs 23/24 because the UTC month starts at 01:00 BST; `T` = 12.52. Start assumed as in E08a. |
 | E09 no remaining work days | 100 % | Sun 2026-10-04 09:00, Sun 2026-10-11 09:00 | Sat 2026-10-10 | 70, 72 | none | 5 | 0 | none | 20 | +28.00 | 2 / none | Neutral. Only the remainder, 28 %, is shown. |
+| E10a day off, weekly window exhausted | 100 % | as E03 | Sat 2026-10-03 | 90, 100 | none | 5 | 3.63 | none | 20 | -72.50 | 10 / none | At limit (exhausted), not neutral: a limit state, shown on a day off too (section 8.8). |
+| E10b day off, over the cap | 30000 minor USD | as E01 | Sat 2026-09-26 | 29500, 30500 | 30000 below provider 50000 | 22 | 3 | none | 1363.64 | -4590.91 | 1000 / none | Over cap by 500, not neutral. |
+| E11a zero entitlement | 0 requests | as E08a | Mon 2026-02-02 | none, 0 | none | none | none | none | none | none | none / none | Not included: neutral, does not bind the account. R-05 gives `N` = `B` = 0, so no budget is offered (section 8.1). |
+| E11b zero entitlement with overage | 0 requests | as E08a | Mon 2026-02-02 | none, 3 | none | none | none | none | none | none | none / none | Over limit by 3, provider overage. |
+| E11c unlimited flag with a zero amount | unlimited flag; reported limit 0 kept as a detail | as E08a | Mon 2026-02-02 | none, 40 | none | none | none | none | none | none | none / none | Unlimited: no budget, and not a zero limit because the flag takes precedence (section 5.4). A personal cap would become `L`. |
+| E11d personal cap of 0 | 0 minor USD | as E01 | Tue 2026-09-29 | none, 250 | 0, provider 50000 | none | none | none | none | none | none / none | Over cap by 250. While `U` = 0 it reads "capped at 0". `U` is tracked since `S`. |
+| E12a assumed month, provider counter not reset at `S` | 30000 minor USD | 2026-10-01 00:00, 2026-11-01 00:00 (assumed) | Thu 2026-10-01 | 0, 300 | 30000 below provider 50000 | 22 | 22 | 1363.64 | 1363.64 | +1063.64 | 300 / 1063.64 | OK. The provider counter read 21800 at 23:55 on 30 Sep, carried to `S`, and 22100 at 08:00: only the increase of 300 is October's use. With the counter as `U`, used today would read 22100. |
+| E12b provider counter reset in the middle of the period | 30000 minor USD | as E12a | Thu 2026-10-15 | 7000, 7460 | as E12a | 22 | 12 | 1916.67 | 1363.64 | +7540.00 | 460 / 1456.67 | OK. The counter read 28900 at midnight, 29000 at 10:00, 40 at 10:05 (a decrease, which counts nothing) and 400 at 17:00, so `U` = 7000 + 100 + 360. The provider's own 400 of 50000 stays a separate fact. |
+| E13 window without a duration | 100 % | reset in 3 days; start unknown | Mon 2026-10-05 | none, 30 | none | none | none | none | none | none | none / none | No budget: period unknown (section 8.3, rule 3), for example a Codex window without `limit_window_seconds`. Its facts and reset are shown. |
 
 Hand checks: E01 `N` = (30000 - 21000) / 2; `E` = 21 work days through 29 September.
-E03 `E` = 0.375 + 3. E07a `W` = 13/24 + 4 + 10/24. E08b `W` = 23/24 + 22. The other rows
-follow from the same terms. Every row was also recomputed by a scratch script that was not
-committed. T-10 recomputes them independently.
+E03 `E` = 0.375 + 3. E07a `W` = 13/24 + 4 + 10/24. E08b `W` = 23/24 + 22. E10b `E` = 19 work
+days through 26 September. E12b `B` x `E` = 30000 / 22 x 11 = 15000. The other rows follow
+from the same terms. T-10 recomputed E01 to E09 independently, and T-11 recomputed every row
+of this table with a new scratch script; neither script is committed (verification.md).
+
+### 9.2 Day-start and period cases
+
+Synthetic cases for sections 6.2 to 6.4, one limit each, with local times around one midnight
+or during one day. Each case must give the same result when it is recomputed from the stored
+series after a restart.
+
+| Case | Stored series | Rule | Result |
+| --- | --- | --- | --- |
+| P01 run across midnight | one run of 40, first seen 23:40, last confirmed 00:05 | section 6.4, rule 2.1 | `U0` = 40, exact |
+| P02 equal values across a gap | a run of 40 ends at 23:40; refreshes fail; a run of 40 starts at 00:20 | gap stored as two runs; rule 2.3 | `U0` = 40, exact |
+| P03 changed value across a gap | a run of 40 ends at 23:40; a run of 43 starts at 00:20 | rule 2.4 | `U0` = 43, "used today since 00:20" |
+| P04 carried | a run of 40 ends at 23:55; a run of 41 starts at 00:05 | rule 2.2 | `U0` = 40; the 1 counts as used today |
+| P05 reset jitter | reset 15:00:00, then 15:00:01 at the next reading; used 40, then 41 | section 6.3: same instance | no new period; `U0` unchanged; used today rises by 1 |
+| P06 late first reading after a reset | reset at 15:00 today; last old reading 14:55 at 95; next reading 18:00 reports a reset 7 days later, used 4 | section 6.3 rollover; rule 1 | new instance from 15:00; `U0` = 0; used today 4 (E06b) |
+| P07 reset before midnight | reset at 23:00; last old reading 22:55; first new reading 00:05, used 1 | rollover; rule 2.4 | `U0` = 1, "used today since 00:05" |
+| P08 moving bound | used 0; each reading reports a reset 7 days after its fetch time | section 6.3: same instance | one run; the day's bounds stay those of its first computation |
+| P09 early replenishment | 10:55 used 60, reset on Thursday; 11:00 used 0, reset 3 days later | section 6.3 early replenishment; rule 1 | new instance; `U0` = 0 from 11:00 |
+| P10 correction | `U0` = 58; used 60, then 55 with the same reset | section 6.3 correction | `U0` 58 and the norm unchanged; used today shown as 0; the next day starts from the corrected series |
+| P11 plan change | the plan type changes at 12:00, value unchanged | new run in the same instance | `U0` unchanged; the pool's estimator samples before 12:00 are discarded |
+
+### 9.3 Session estimator cases
+
+Synthetic cases for section 7. A sample is written as (Δs, Δw), the five-hour and weekly
+changes over one five-hour instance, and `c = 100 x Δw / Δs`.
+
+| Case | Samples or inputs | Result |
+| --- | --- | --- |
+| S01 three zero samples | (20, 0), (30, 0), (40, 0) | `c` = 0, 0, 0; median 0: not ready. Nothing is shown and nothing divides. |
+| S02 ready | (50, 6), (40, 4), (70, 9.8) | `c` = 12, 10, 14; median 12; MAD 2, which is 16.7 % of the median; weekly changes add up to 19.8 points: ready, `C` = 12 |
+| S03 too little weekly movement | (10, 1), (10, 1), (10, 1) | `c` = 10, 10, 10; MAD 0; weekly changes add up to 3 points, below 5: not ready |
+| S04 dispersed | (50, 3), (50, 6), (50, 10) | `c` = 6, 12, 20; median 12; MAD 6, which is 50 %: not ready |
+| S05 gap inside the span | 09:00 `s` 10, `w` 30; no readings from 10:00 to 12:00; 13:00 `s` 60, `w` 36; both windows in one instance | accepted: `c` = 12 |
+| S06 weekly rollover inside the span | the weekly window starts a new instance between the first and the last instant | rejected |
+| S07 plan change | the plan type changes after three accepted samples | all samples discarded: not ready until three new ones |
+| S08 sessions on a full day | E03 with `C` = 12: `w` = 47, `T` = `N` = 23.62 | weekly (100 - 47) / 12 = 4.42: "≈ 4 sessions"; today 1.97: "≈ 1 session" |
+| S09 sessions on a partial day | E06b with `C` = 12: `w` = 4, `T` = 7.5 | weekly 96 / 12 = 8: "≈ 8 sessions"; today 0.63: "< 1 session" |
 
 ## 10. Live checks
 
@@ -1233,6 +1443,10 @@ current URL to enforce policy. No further browser input occurred. ChatGPT plan s
 and LC-22 remain blocked before observation; transport gaps remain open. Continue in Chrome,
 not Edge or the in-app browser.
 
+D-184 note (T-11, 2026-09-29): LC-11 and LC-17 inspect provider history reports. They stay
+listed with their verdicts as a record, but after D-184 neither can supply budget, estimator
+or history data, and neither is a route to showing a pool (section 11, PD-034-03).
+
 | ID | Account type / surface | What it proves / gap | Risk / boundary | Verdict |
 | --- | --- | --- | --- | --- |
 | LC-01 | Claude Pro, provider Settings > Usage | Displayed session/weekly/scoped rows, usage-credit cap, balance, period/reset; G-CL-1/3 | Read-only private billing surface; owner opens signed-in account; no toggles or purchases | PASS, UI observation only; exact monetary periods and transport unknowns remain open |
@@ -1261,8 +1475,9 @@ not Edge or the in-app browser.
 ## 11. Pending owner decisions
 
 Each decision affects AIU-034 and the follow-up implementation items (goal G-003). None is
-presumed resolved; the recommendation applies only after the owner accepts it. T-11 completes
-this section.
+presumed resolved; the recommendation applies only after the owner accepts it. T-11 resolved
+the twelve T-10 findings in the design (verification.md). None needed a new decision; the
+resolutions updated the impact of PD-034-01 and PD-034-03.
 
 ### PD-034-01 - Budget for a balance-only pool
 
@@ -1276,9 +1491,12 @@ this section.
   - (c) Allow a cap and compute used as cap minus balance.
 - **Recommendation:** (b). (c) is wrong whenever the balance includes purchases or carry-over.
   (a) cannot serve the owner's 17,000-credit example.
-- **Impact:** (b) needs the local observations of section 6. A top-up and consumption between
-  two readings net out, so the estimate can undercount. It must never be shown as provider data.
-- **Evidence:** section 3 CX-B rows, LC-07, O4/O5, M-02, M-06.
+- **Impact:** (b) uses the tracked consumption of section 6.5, computed from the signed balances
+  that the local reading series stores (section 6.2), in R-06's assumed calendar month (section
+  8.3, rule 4). A top-up and consumption between two readings net out, so the estimate can
+  undercount, and tracking starts at zero when the app first sees the pool. It must never be
+  shown as provider data.
+- **Evidence:** section 3 CX-B rows, LC-07, O4/O5, M-02, M-06; F-02 in verification.md.
 - **Needed:** at Gate A, because it decides which pools the Phase B brief shows with a budget.
 
 ### PD-034-02 - Two snapshot sources for one account
@@ -1310,17 +1528,25 @@ this section.
 - **Recommendation:** (a). (b) makes the user the data source and goes stale silently, against
   R-15. (c) adds rows without data to the single window. A personal cap on a represented pool
   still covers the owner's examples where such a pool exists.
-- **Impact:** GH-A, the main pool of current paid Copilot plans, stays invisible until LC-16/17
-  or a later transport close G-GH-2. The Phase B brief must not design figures for these
-  families.
-- **Evidence:** section 3 `provider-ui` cells; G-CL-3, G-CX-2/3, G-GH-2, G-AG-2.
+- **Impact:** GH-A, the main pool of current paid Copilot plans, stays invisible until a current
+  quota source is established with the existing grant, for example if LC-16 finds the pool in
+  the existing connection's quota response. A provider history report cannot close this gap:
+  after D-184 it is not a data source, and a report does not establish a current allotment
+  (G-GH-2). The Phase B brief must not design figures for these families.
+- **Evidence:** section 3 `provider-ui` cells; G-CL-3, G-CX-2/3, G-GH-2, G-AG-2; D-184; F-12 in
+  verification.md.
 - **Needed:** at Gate A, before the Phase B brief lists the data and states (B-2).
 
 ## 12. Sources
 
-Local source paths and immutable baseline are in section 2. Provider-specific public sources
-will be added by T-02 to T-05. Historical context:
+Local source paths and the immutable baseline are in section 2. Provider-specific public
+sources, added by T-02 to T-05, follow. Historical context:
 [provider records](../../providers/README.md) and [AIU-011 research](../AIU-011-provider-history/research.md).
+
+Project references for sections 5 to 11: D-093 (sign-out keeps history), D-099 (refresh
+cadence and staleness), D-183 (redesign direction) and D-184 (local-only history) in the
+[decision register](../../decisions/accepted.md), and the T-10 findings F-01 to F-12 with their
+T-11 resolutions in [verification](verification.md).
 
 ### Claude sources (read 2026-09-26)
 

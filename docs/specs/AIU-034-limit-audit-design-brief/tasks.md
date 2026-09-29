@@ -495,28 +495,28 @@ tasks extend.
   handoff: next task T-11 `[opus]`, with the count of open `F-nn` findings.
 
 ### T-11 - [opus] Resolve findings and assemble the Gate A package
-- status: pending
+- status: done
 - depends_on: [T-10]
 - acceptance: AC-01, AC-02, AC-03, AC-04, AC-05, AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` sections 11 and 12, the sections the findings touch,
   `verification.md` and `tasks.md` (handoff)
 
-- [ ] **Step 1:** Resolve each `F-nn` by changing the design, or turn it into a `PD-034-nn`
+- [x] **Step 1:** Resolve each `F-nn` by changing the design, or turn it into a `PD-034-nn`
   decision. Record the resolution next to the finding.
-- [ ] **Step 2:** Section 11: pending owner decisions. For each `PD-034-nn`, give the question,
+- [x] **Step 2:** Section 11: pending owner decisions. For each `PD-034-nn`, give the question,
   the options, a recommendation, the impact, the evidence and when it is needed.
-- [ ] **Step 3:** Check AC-01 to AC-06 against research.md one by one, and record each verdict
+- [x] **Step 3:** Check AC-01 to AC-06 against research.md one by one, and record each verdict
   and its evidence in `verification.md`. Gate A stays NOT_RUN until the owner review. AC-07 to
   AC-10 stay NOT_RUN.
-- [ ] **Step 4:** Scan every file changed in Phase A for secrets and personal data. Then run the
+- [x] **Step 4:** Scan every file changed in Phase A for secrets and personal data. Then run the
   validator and `git diff --check`.
-- [ ] **Step 5:** Write the handoff in this file: completed facts, the exact next action ("owner
+- [x] **Step 5:** Write the handoff in this file: completed facts, the exact next action ("owner
   reviews research.md at Gate A") and blockers.
-- [ ] **Step 6:** Commit "AIU-034 Phase A complete: ready for Gate A review" and push.
-- [ ] **Step 7:** Stop, and report to the owner in Ukrainian:
+- [x] **Step 6:** Commit "AIU-034 Phase A complete: ready for Gate A review" and push.
+- [x] **Step 7:** Stop, and report to the owner in Ukrainian:
   - the limit matrix highlights;
   - the gap dispositions;
   - the model and the budget rules;
@@ -527,29 +527,22 @@ tasks extend.
 
 ## Handoff
 
-Completed: T-01 through T-10. T-10 independently reviewed T-07 to T-09 and D-184 against
-base `4c4318fe65b48f38911b395a3172fbdf0788491f`, after `git pull` on clean main. All fifteen
-section 9 rows matched the new temporary script: 139 comparisons, zero mismatches. All
-25 section 3 families have section 5.5 mappings. The only research correction adds CX-P
-to section 6.1's budgetable-family list, consistent with section 5.5. The design is unchanged.
-The review evidence, requirement/focus checks and open findings are in verification.md.
-The scratch script is outside Git; no subagents or pending worker artifacts.
+Completed: T-01 through T-11 on 2026-09-29. T-11 resolved all twelve T-10 findings by design
+changes in research.md (sections 4 to 12); none became a new decision. It completed the AC-01
+matrix (CL-C cells for Max, Team and Enterprise), recorded AC-01 to AC-06 as PASS with the
+requirement re-check and the privacy scan in verification.md, and kept AC-07 to AC-10 and
+Gate A NOT_RUN.
 
-Next action: T-11 [opus], Step 1.
+Next action: the owner reviews research.md at Gate A, including PD-034-01, PD-034-03 and the
+R-06 per-family confirmation in section 8.3. Phase B starts only after that review is recorded
+in verification.md.
 
-Open findings: 12, F-01 through F-12. Resolve each or turn it into a PD-034-nn decision,
-recording the resolution next to the finding. They concern the local series, balance inputs,
-estimator readiness, reset/period rules, partial-day sessions, mapping semantics, requirement
-exceptions and the remaining provider-history dependency in PD-034-03.
+Checks: validator `--json` valid true with no diagnostics; `git diff --check` clean; scratch
+coverage (700 of 700 cells), recomputation (213 comparisons, 0 mismatches) and privacy scans
+pass. Primary review only; no subagents or pending worker artifacts.
 
-Checks: document validator `dotnet run --project tools/AiUsage.ProjectValidation --no-restore
--- --root . --json` PASS (`"valid":true`, no diagnostics); `git diff --check` PASS;
-added-line secret/personal-data scan and primary diff review recorded in verification.md.
-Publication: this review is delivered in "AIU-034 Phase A: independent detail review" on main.
-
-Blockers: none for starting T-11 Step 1. The 12 open findings prevent treating the design
-as accepted for implementation. PD-034-01 and PD-034-03 remain needed at Gate A; PD-034-02
-is needed only when an AIU-005 implementation is selected. Security-lifecycle review of the
-local series and budget configuration remains an implementation precondition, NOT_RUN.
-Live-check verdicts are unchanged from T-06; no new web, browser, provider or credential
-access occurred. T-11, Gate A and Phase B have not started.
+Blockers: the Gate A owner review. PD-034-02 is needed only when an AIU-005 implementation is
+selected. The security-lifecycle review of the series and the budget configuration remains an
+implementation precondition, NOT_RUN. Live checks keep their T-06 verdicts. A pre-existing
+local path containing the Windows user name in docs/providers/codex.md line 53 (AIU-003) is
+reported to the owner and was not changed.

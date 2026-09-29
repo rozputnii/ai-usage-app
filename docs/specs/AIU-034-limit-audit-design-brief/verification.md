@@ -1,5 +1,116 @@
 # AIU-034 verification
 
+## T-11 findings resolution and Gate A package - 2026-09-29
+
+Primary [opus] session. Base `9a96024`; the initial `git pull` reported `main` up to date, and
+the tree was clean. T-11 was set to in-progress before work. Scope: resolve F-01 to F-12,
+complete research section 11, check AC-01 to AC-06, scan the Phase A files and hand off to the
+owner's Gate A review. No product code, stored format, transport, provider request, sign-in,
+browser, live check or credential access. This is a primary review, not an independent review.
+
+### Findings (Step 1)
+
+All twelve findings are resolved by changes to the research design; none became a new
+PD-034 decision. Each resolution is recorded under its finding in the T-10 section below.
+
+| Finding | Resolution | Research sections | Cases |
+| --- | --- | --- | --- |
+| F-01 | Runs end at every gap, period instance, plan or source change; explicit day-start rules; samples read from covering runs | 6.2, 6.4, 7.3, 7.6 | P01-P04, P11, S05, S07 |
+| F-02 | Series stores signed balances; tracked consumption defines baseline, top-ups and reset policy | 5.5, 6.2, 6.5, 11 | E02 |
+| F-03 | Readiness needs a median above 0 and 5 weekly points across the samples | 7.2 | S01, S03 |
+| F-04 | One period-instance rule for `U0` and the estimator; `U0 = 0` when the restart is known to be today | 6.3, 6.4, 8.6 | P05-P09, E06b |
+| F-05 | Under an assumed period, `U` is tracked from the series; the provider counter stays a fact | 6.5, 8.3, 8.6, 8.8 | E12a, E12b |
+| F-06 | Today's sessions are `T / C` in both sections | 7.5 | S08, S09 |
+| F-07 | R-06 applied per supplied fact; an unknown duration gives "period unknown" | 8.3, M-05 | E13 |
+| F-08 | Copilot request pools get an assumed start one month before the provider reset | M-04, 5.2, 5.5, 8.3 | E08a, E08b |
+| F-09 | CX-I budgets only its percentages; raw strings are a secondary amount of unknown unit | M-07, 5.2, 5.3, 5.5 | none |
+| F-10 | Limit state (a fact on every day) separated from budget state (neutral on a day off) | 8.5, 8.8 | E10a, E10b |
+| F-11 | Unlimited flag precedence; zero entitlement and cap 0 presented as states; R-05 arithmetic unchanged | M-01, 5.2, 5.4, 8.1, 8.8 | E11a-E11d |
+| F-12 | PD-034-03 depends only on a current quota source; LC-11 and LC-17 cannot supply data | 10, 11 | none |
+
+The Step 3 coverage check also found a gap in AC-01: CL-C had no cells for Max, Team and
+Enterprise. Section 3 now records them as unknown/none; the family was observed only on the
+Pro UI. Section 6 was reorganized (series 6.2, period instances 6.3, day-start amount 6.4,
+tracked consumption 6.5, retention 6.6), cross-references in sections 5.1, 5.6, 5.7 and 6.1
+follow the new numbering, and section 12 gained project references.
+
+### Checks written before the changes
+
+Both scripts are scratch files in the session's temporary directory and are not committed.
+
+- **AC-01 matrix coverage** (`ac01_coverage.py`, SHA-256
+  `371AAECF02D4B25D1A19BA6082CC8AD6B9924C62DDE41F6DB001F0CDD593EB06`): parses every section 3
+  field table and requires a class/level cell for every family, plan and A-2 field. Before the
+  change it failed as expected: 679 cells, 0 malformed, 21 missing (CL-C for Max, Team and
+  Enterprise). After: 700 of 700 (25 families, 4 plans each, 7 fields), 0 malformed. PASS.
+- **Section 9 recomputation** (`recompute_t11.py`, SHA-256
+  `503732B3C73130D7DC2921FFE48CD001A248EFDBD10CD97BD067831380477539`), newly written and
+  independent of the T-09 and T-10 scripts: recomputes every 9.1 row from its inputs with the
+  section 8 rules, explicit Europe/London 2026 transition instants and exact decimals; compares
+  `W`, `Wr`, `N`, `B`, deviation, used and left today, the state and percentage notes, the
+  note-level figures and the S01 to S04 readiness results. Before the change it failed as
+  expected: the 15 existing rows reproduced exactly and 13 new rows were missing. After: 213
+  comparisons, 0 mismatches. PASS.
+
+### Requirement re-check
+
+Each clause of R-03 to R-07 and R-11 was re-read against the changed research.
+
+| Requirement | Result |
+| --- | --- |
+| R-03 | PASS. Local cap on every represented countable or monetary pool with a known unit, including pools reported as unlimited or without a limit; the lower of cap and provider limit; cap 0 allowed; never provider data; no cap on percentage windows. A currency mismatch leaves the cap unapplied because R-02 forbids conversion. UI-only pools depend on PD-034-03. |
+| R-04 | PASS. One global weekday set, Monday to Friday by default (8.2). |
+| R-05 | PASS. `U0`, `U`, `W`, `Wr`, `N`, `B`, deviation and used and left today match. `N` is fixed for the day and recomputed only at midnight, for a new period instance and after a cap change; jitter and corrections do not recompute it (6.3, 8.6). Partial days are defined (8.3). Under an assumed period `U` is the use in that period (6.5). A zero limit presents R-05's result (8.1). |
+| R-06 | PASS, with the per-family confirmation R-06 asks Phase A for (8.3): supplied resets are always kept, the calendar-month fallback applies where no reset is supplied, and an unknown duration gives "period unknown". Listed for the owner at Gate A. |
+| R-07 | PASS. `C` from local paired readings; weekly remainder and today as `T / C`; labelled estimates; hidden until ready; a zero `C` can never be ready. |
+| R-11 | PASS. Work days apply only to windows of a day or longer; the day-off budget state is neutral; day-off use lowers the next norm; holidays deferred. Exhausted and over-cap limits keep their limit state (R-10). |
+| D-184 | PASS. `U0`, tracked consumption, the estimator and history derive only from the local series; no provider history remains a dependency (F-12). |
+
+Review focus re-check: 1 PASS, absent, zero and unlimited stay distinct, now including an
+unlimited flag with an amount; 2 PASS, the money triple is unchanged; 3 PASS, reset identity and
+assumed periods are defined (F-04, F-05); 4 PASS, no plan generalization and the Copilot start
+is no longer overstated (F-08); 5 PASS, `N` is never negative and zero limits are defined
+(F-11); 6 PASS, straddling spans are rejected by period instance and a zero `C` is not ready
+(F-01, F-03, F-04).
+
+### Acceptance criteria (Step 3)
+
+| AC | Verdict | Evidence |
+| --- | --- | --- |
+| AC-01 | PASS | Section 3 has a matrix for every provider and plan in scope, plus Google AI Plus, with class and evidence level for every field; coverage script 700 of 700, 0 malformed. |
+| AC-02 | PASS | T-06 verdict re-checked: every A-3 gap keeps its evidence or an explicit unknown with a closing live check. After D-184, LC-11 and LC-17 cannot supply data, but the Codex allotment and Copilot credit gaps keep their other closing checks (LC-08 to LC-10, LC-12 to LC-16). Unrun checks stay NOT_RUN. |
+| AC-03 | PASS | Section 5 covers kind, unit, used, limit, remaining, period start and end, reset source, personal cap and snapshot source; 25 of 25 families are mapped in 5.5 (recounted); stored-format impact is in 5.7. |
+| AC-04 | PASS | Section 8 was re-checked against R-03 to R-07 and R-11 (table above) without contradiction; section 9.1 has every A-7 case (E01 to E09) plus E10 to E13, recomputed with 0 mismatches. |
+| AC-05 | PASS | Section 6.1 decides the `U0` source per provider, the local series; the series, period instances, day-start rules and tracked consumption are in 6.2 to 6.5; retention and the security-lifecycle precondition are in 6.6. |
+| AC-06 | PASS | Section 7: inputs (7.1, 7.6), formula and aggregation (7.2), minimum samples (7.2), invalidation (7.3) and label (7.5); cases S01 to S09. |
+| AC-07 to AC-10 | NOT_RUN | Gate A, Phase B, the follow-up proposals and the whole-item AC-10 check are outside T-11. |
+
+These verdicts say that research.md meets the Phase A documentation criteria. They do not
+approve the design; that is the owner's Gate A review. The security-lifecycle review of the
+series and the budget configuration remains an implementation precondition, NOT_RUN.
+
+### Privacy scan and publication checks (Step 4)
+
+- **Scope:** all 18 files changed by the 19 AIU-034 commits from the first Phase A commit
+  `6ee7f42` to `HEAD`, plus the T-11 working tree. The only other commit in that range,
+  `e5013fa`, is a product fix outside Phase A. Whole files were scanned, not only added lines,
+  by `scan_phase_a.py` (SHA-256 `530DC0644715879037B1CB64DDEC6D2DFA9F370F315B69518E63F924E9D8E30E`).
+- **Patterns and results:** e-mail, bearer, JWT, `sk-`, GitHub, AWS and Slack tokens and
+  secret assignments: 0. Currency amounts, 10 lines, and credit amounts, 5 lines: all are the
+  spec's generic examples (USD 500, USD 300, 17,000 credits) or synthetic worked examples. UUID,
+  1: `docs/providers/claude.md` line 41, the public upstream OAuth client ID recorded in
+  AIU-007, not a credential. Owner identity strings, 1: `docs/providers/codex.md` line 53, a
+  local clone path that contains the Windows user name. It dates from 2026-09-14 (AIU-003), was
+  not added in Phase A, and is reported to the owner, not changed here.
+- **Manual review of the T-11 changes:** synthetic values only; no account or organization
+  names, balances, captures, payloads or credentials.
+- **Document checks on the final tree before the commit:** `dotnet run --project
+  tools/AiUsage.ProjectValidation --no-restore -- --root . --json` returned
+  `{"valid":true,"diagnostics":[]}`, and `git diff --check` reported no errors.
+
+Gate A: NOT_RUN. The Phase A outputs are complete and await the owner's review. Phase B has not
+started.
+
 ## T-10 independent detail review - 2026-09-29
 
 Reviewer: primary [astra] session, independent of the T-07 to T-09 author; no subagent.
@@ -102,9 +213,20 @@ NOT_RUN, still a precondition. Gate A and Phase B: NOT_RUN.
 All counterexamples below are synthetic. Each finding is open and must be resolved or
 turned into an owner decision by T-11; none authorizes a design change in T-10.
 
+T-11 resolved all twelve on 2026-09-29 by design changes; none became a new decision. Each
+finding's status line records this, and its resolution follows the status line.
+
 #### F-01 - Run compression cannot reproduce day-start and estimator validity
 
-- **Status:** OPEN; material to AC-05/AC-06 and D-184.
+- **Status:** RESOLVED by T-11; material to AC-05/AC-06 and D-184.
+- **Resolution (T-11):** changed the design in research sections 6.2 to 6.4, 7.3 and 7.6. A run
+  now ends at every gap (more than 15 minutes between valid readings), at a new period instance
+  and at a plan or source change, so a run means continuous observation and every gap is stored.
+  `U0` uses explicit midnight rules: covered, carried, bracketed (equal values around a gap) and
+  first of day. Estimator samples read both windows from the runs covering the span's ends; gaps
+  inside a span no longer matter because both ends must share one period instance. The
+  invalidation "when the pool stops being returned" was dropped: it cannot be rebuilt from
+  per-limit runs, and the limit key is the identity. Cases P01 to P04, P11, S05 and S07.
 - **Location:** research sections 6.2 to 6.4, 7.3 and 7.6.
 - **Problem:** first-seen/last-confirmed endpoints alone do not preserve the confirmations,
   gaps and invalidation events needed by the consumers of the single local series.
@@ -122,7 +244,12 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-02 - Balance-only consumption has no stored balance input
 
-- **Status:** OPEN; material to AC-03/AC-05 and PD-034-01.
+- **Status:** RESOLVED by T-11; material to AC-03/AC-05 and PD-034-01.
+- **Resolution (T-11):** changed the design in sections 5.5, 6.2 and 6.5. The series stores a
+  balance pool's signed remaining balance. Tracked consumption (6.5) defines the first baseline
+  (the value at `S`, the gap rule, or zero on first sight), ignores top-ups and restarts with
+  R-06's assumed month. The figure stays a labelled estimate and no allotment is invented.
+  PD-034-01 stays an owner decision; its impact now points to section 6.5.
 - **Location:** research sections 5.3, 5.5 CX-B, 6.3 and 11 PD-034-01(b).
 - **Problem:** the series stores used value, but CX-B has only remaining balance. The
   recommended local accumulation cannot be reconstructed from the proposed fields.
@@ -135,7 +262,10 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-03 - Zero weekly delta can make a zero estimator denominator ready
 
-- **Status:** OPEN; material to AC-06/R-07.
+- **Status:** RESOLVED by T-11; material to AC-06/R-07.
+- **Resolution (T-11):** changed section 7.2. Readiness now also needs a median above 0 and
+  weekly changes adding up to at least 5 percentage points; a zero weekly change remains a valid
+  sample. Three zero samples and too little weekly movement both give "not ready" (S01, S03).
 - **Location:** research sections 7.2, 7.3 and 7.5.
 - **Problem:** confidence accepts C=0, then both session figures divide by it.
 - **Evidence:** three otherwise valid distinct instances with delta-s=10 and delta-w=0
@@ -148,7 +278,15 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-04 - Changed reset timestamps are not sufficient proof of replenishment
 
-- **Status:** OPEN; material to AC-04/AC-05/AC-06.
+- **Status:** RESOLVED by T-11; material to AC-04/AC-05/AC-06.
+- **Resolution (T-11):** changed sections 6.3, 6.4 and 8.6. A new period instance needs a
+  rollover (the previous reset has passed and the new reset is more than 60 seconds later) or
+  an early replenishment (a decrease beyond rounding with a reset moved by more than 60
+  seconds). Jitter, moving bounds and adjustments change only the displayed reset, and the same
+  rule serves `U0` and the estimator. The authoritative boundary rule is section 6.4, rule 1:
+  `U0 = 0` when the counter is known to have restarted today, including a late first post-reset
+  reading; otherwise the midnight rules apply within the new instance. It replaces the T-09
+  Step 1 phrase. Cases P05 to P09 and E06b.
 - **Location:** research M-10, sections 6.2 rule 3, 7.3 and 8.6; tasks T-09 Step 1.
 - **Problem:** section 8.6 treats any different reset instant as a new period and sets U0=0,
   while the estimator explicitly tolerates 60 seconds of relative-reset jitter. Section 3
@@ -164,7 +302,13 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-05 - Assumed calendar reset has no period-relative consumption rule
 
-- **Status:** OPEN; material to AC-04/AC-05/R-05/R-06.
+- **Status:** RESOLVED by T-11; material to AC-04/AC-05/R-05/R-06.
+- **Resolution (T-11):** changed sections 6.5, 8.3 (rule 4), 8.6 and 8.8. Under an assumed
+  period, `U` is the consumption tracked from the series since `S`, not the provider's cumulative
+  counter. Decreases count nothing and are shown as facts; a missing boundary reading follows
+  explicit rules; the provider's cumulative value and limit stay separate facts and can still set
+  the limit state. E12a reproduces this finding's counter across `S`, and E12b shows a provider
+  reset in the middle of the period.
 - **Location:** research sections 5.5 CL-X/CL-D, 6.2, 8.3 and 8.6.
 - **Problem:** a local assumed month boundary is not necessarily the provider counter's
   boundary. The rules change S/R without defining how provider cumulative U becomes used
@@ -181,7 +325,10 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-06 - Today's session figure disagrees on partial days
 
-- **Status:** OPEN; material to AC-04/AC-06/R-07.
+- **Status:** RESOLVED by T-11; material to AC-04/AC-06/R-07.
+- **Resolution (T-11):** changed section 7.5 to `T / C`, as in section 8.4, and stated that
+  R-07's "today's weekly norm" is read as today's share `T`. Partial-day result: S09, where E06b
+  with `C` = 12 gives "< 1 session".
 - **Location:** research sections 7.5 and 8.4, E06b.
 - **Problem:** 7.5 uses N/C; 8.4 uses T/C, where T=N*f(today). These differ on partial days.
 - **Evidence:** E06b has N=20 and T=7.5. With a synthetic ready C=12, 7.5 displays about
@@ -193,7 +340,14 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-07 - Missing-duration windows bypass the specified period fallback
 
-- **Status:** OPEN; material to AC-03/AC-04/R-06.
+- **Status:** RESOLVED by T-11; material to AC-03/AC-04/R-06.
+- **Resolution (T-11):** changed section 8.3 ("Period from supplied facts"). Supplied provider
+  facts are always kept and only missing ones are filled: reset and duration known gives a
+  derived start; reset known and a family documented as monthly gives a start one month before
+  the reset, marked assumed; reset known without a duration or period type gives no budget and
+  "period unknown", because the calendar month would replace a supplied reset that R-06 keeps;
+  no reset gives R-06's calendar-month fallback. This is the per-family confirmation R-06 asks
+  Phase A for, not a silent narrowing, and it is listed for the owner at Gate A. Case E13.
 - **Location:** research M-05, sections 5.5, 8.1 and 8.3; spec R-06.
 - **Problem:** R-06 says a missing provider period defaults to the calendar month, but M-05
   says an unknown-duration window gets no budget; 8.3 limits fallback to CL-X/CL-D and
@@ -208,7 +362,12 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-08 - Copilot calendar start is generalized beyond the cited evidence
 
-- **Status:** OPEN; material to AC-03/AC-04/R-06.
+- **Status:** RESOLVED by T-11; material to AC-03/AC-04/R-06.
+- **Resolution (T-11):** changed M-04 and sections 5.2, 5.5 and 8.3 (rule 2). GH-C, GH-I and
+  GH-P get a start one calendar month before the provider reset in UTC, marked assumed, instead
+  of a derived first-of-month start. A documented clock applies only to an identified pool, and
+  neither the plan label nor the Free evidence identifies one. The E08a and E08b figures are
+  unchanged; their notes now say that the start is assumed.
 - **Location:** research section 3 Copilot field table/closing paragraph, M-04,
   section 5.5 GH-C/GH-I/GH-P and section 8.3.
 - **Problem:** all three request families receive a provider-derived first-of-month UTC
@@ -224,7 +383,12 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-09 - CX-I mixes unknown-unit amounts with a percentage-window contract
 
-- **Status:** OPEN; material to AC-03/AC-04 and review focus 1/2.
+- **Status:** RESOLVED by T-11; material to AC-03/AC-04 and review focus 1/2.
+- **Resolution (T-11):** changed M-07 and sections 5.2, 5.3 and 5.5. CX-I is a percent-window
+  whose used and remaining are the provider percentages, with `L = 100 %`. Its raw strings are a
+  secondary amount of unknown unit on the window's existing `Amount` member, shown as a fact and
+  never budgeted, tracked or capped. Without percentages there is no budget, and the raw amounts
+  never stand in for them.
 - **Location:** research sections 5.2, 5.3 and 5.5 CX-I; sections 6.3 and 8.1.
 - **Problem:** the row calls CX-I a percent-window but maps raw used/limit/remaining amounts
   beside percentages. Section 5.2 says a percent-window has no absolute limit and its used
@@ -241,7 +405,12 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-10 - Day-off state exception is not reconciled with R-11
 
-- **Status:** OPEN; material to AC-04/R-11.
+- **Status:** RESOLVED by T-11; material to AC-04/R-11.
+- **Resolution (T-11):** changed sections 8.5 and 8.8. A limit has a limit state (over, at
+  limit, within), a fact on every day, and a budget state (not ready, neutral, today used,
+  attention, OK). R-11's neutral is the budget state of a day off; an exhausted or over-cap limit
+  shows its limit state on a day off too, as R-10 and R-15 require. E10a and E10b add both
+  day-off cases; R-11's text needs no change.
 - **Location:** research sections 8.5 and 8.8; spec R-10/R-11.
 - **Problem:** R-11 requires a neutral state on a day off, but 8.5/8.8 explicitly let at-limit
   and over-cap states override neutral. The safety intent of R-10 is understandable, but the
@@ -254,7 +423,13 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-11 - Known-zero limit exception conflicts with R-05
 
-- **Status:** OPEN; material to AC-04/R-03/R-05.
+- **Status:** RESOLVED by T-11; material to AC-04/R-03/R-05.
+- **Resolution (T-11):** changed M-01 and sections 5.2, 5.4, 8.1 and 8.8. An explicit unlimited
+  flag takes precedence over any amount, including 0 (E11c). A known provider 0 is a zero
+  entitlement, and a personal cap of 0 is allowed. For `L = 0`, R-05's formulas give
+  `N = B = 0`, so no budget is offered: this presents R-05's result and is not an exception to
+  it. The state reads "not included" or "capped at 0" while unused, which does not bind the
+  account, and over by `U` with use, including provider overage (E11a, E11b, E11d).
 - **Location:** research M-01, sections 5.4, 8.1 and 8.8; spec R-05.
 - **Problem:** R-05 applies to a known L/S/R and defines a zero-clamped norm. Research
   instead makes a provider limit of zero "not included, no budget", without explaining
@@ -268,7 +443,12 @@ turned into an owner decision by T-11; none authorizes a design change in T-10.
 
 #### F-12 - UI-only-pool decision still points to provider history as a way forward
 
-- **Status:** OPEN; material to D-184 and the 2026-09-29 local-only amendment.
+- **Status:** RESOLVED by T-11; material to D-184 and the 2026-09-29 local-only amendment.
+- **Resolution (T-11):** changed section 11 (PD-034-03) and section 10. The impact now names
+  only a current quota source, for example LC-16 finding the pool in the existing connection's
+  response, and states that a provider history report cannot close the gap after D-184. A
+  section 10 note keeps LC-11 and LC-17 as historical, unexecuted checks that cannot supply data.
+  History display stays derived only from the local series.
 - **Location:** research section 11 PD-034-03 Impact, with G-GH-2 and LC-17 as context.
 - **Problem:** the pending decision says the main Copilot credit pool stays invisible until
   "LC-16/17 or a later transport" closes the gap. LC-17 is explicitly an AI Usage provider
@@ -444,19 +624,19 @@ Phase A source research has started. The owner approved the specification on 202
 | Gate | Status | Record |
 | --- | --- | --- |
 | Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
-| Gate A | NOT_RUN | Owner review has not run; Phase A research is in progress. |
+| Gate A | NOT_RUN | Phase A outputs are complete (T-11, 2026-09-29) and await the owner's review; no review is recorded yet. |
 | Gate B | NOT_RUN | Phase B has not started. |
 
 ## Results by acceptance criterion
 
 | AC | Verdict | Evidence |
 | --- | --- | --- |
-| AC-01 | NOT_RUN | |
-| AC-02 | PASS | T-06 closure: research.md section 4 preserves each gap's evidence or explicit unknown and closing LC; deferred checks are not claimed as executed. |
-| AC-03 | NOT_RUN | |
-| AC-04 | NOT_RUN | |
-| AC-05 | NOT_RUN | |
-| AC-06 | NOT_RUN | |
+| AC-01 | PASS | T-11: section 3 matrix for every provider and plan in scope; coverage script 700 of 700 cells. |
+| AC-02 | PASS | T-06 closure: research.md section 4 preserves each gap's evidence or explicit unknown and closing LC; deferred checks are not claimed as executed. Re-checked by T-11 after D-184. |
+| AC-03 | PASS | T-11: section 5 model, 25 of 25 families mapped, stored-format impact in 5.7. |
+| AC-04 | PASS | T-11: section 8 re-checked against R-03 to R-07 and R-11; section 9.1 recomputed, 0 mismatches. |
+| AC-05 | PASS | T-11: `U0` source per provider (6.1), local series and retention (6.2 to 6.6), security-lifecycle precondition noted. |
+| AC-06 | PASS | T-11: section 7 inputs, formula, minimum samples, invalidation and label; cases S01 to S09. |
 | AC-07 | NOT_RUN | |
 | AC-08 | NOT_RUN | |
 | AC-09 | NOT_RUN | |
