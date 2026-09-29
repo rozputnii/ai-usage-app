@@ -1,5 +1,48 @@
 # AIU-034 verification
 
+## T-06 closure - 2026-09-29
+
+Base e4c4535; main was clean at closure start. Earlier continuation records below are
+historical checkpoints, superseded by this closure for outstanding task state.
+
+- LC-01: retained earlier PASS; no repeat.
+- LC-07: retained PASS for agent-observed personal Pro credit UI only. Balance is not a
+  recurring allowance; disabled reload is not a spending cap. Missing periods/expiry and
+  transport remain unknown. No Claude/Codex percentage regression was performed.
+- LC-22 quota structure: PASS for inspection of an owner-supplied image only, not an
+  agent-operated live session. Google AI Plus label; Gemini Flash/Pro group and shared
+  Claude Opus/Sonnet/GPT-OSS group; weekly remaining percentages and within-group sharing.
+  No absolute cap, period start, reset/expiry or five-hour row visible in the supplied image.
+  Capture time and completeness of the page are unknown. No amount-unit mapping to
+  `remainingAmount` or inference about Free, Pro or Ultra follows.
+- LC-22 Google One activity: NOT_RUN. The owner reports the proposed section was not found
+  and ended the lookup. The agent's earlier navigation guidance was not verified for this
+  tier. Credit unit/scope/balance/allowance/period/reset/expiry stay unknown, not absent or zero.
+- LC-03/04/08/09/11 and LC-12 through LC-17: NOT_RUN,
+  "postponed by owner: work account or manual lookup". LC-02/06 are nonmatching plans;
+  LC-05/10/18/19/20/21 remain NOT_RUN, not authorized.
+
+Owner clarification is recorded in spec.md: ordinary personal Google AI Plus, no work/API
+subscription; no Antigravity API-credit billing implementation. Google One product credits
+are distinct and remain unverified. No CLI access, account operation or browser action was
+performed during this closure. The supplied image is not copied or staged; only sanitized
+structure/semantics are recorded. The Antigravity audit date is explicitly scoped to recording
+owner-supplied image evidence, with capture time unknown; no transport live date advances.
+
+Primary acceptance review: every G-CL, G-CX, G-GH and G-AG gap retains either source/UI
+evidence or an explicit unknown with the LC that could close it if separately authorized.
+AC-02 PASS for that documentation criterion, not all live checks. T-06 acceptance is met
+with the owner's ended lookup and explicit limitations; T-07 [opus] is the exact next task
+and has not started. No product code or security/lifecycle behavior changed; independent
+review is not required for this documentation-only closure under CONTRIBUTING.md.
+
+Closure checks PASS: secret/personal-data pattern scan of added lines found zero matches;
+primary content review found no identities, actual balances, percentages, personal dates or
+captures in the five changed Markdown files. Primary diff/acceptance review found no open
+material findings; evidence provenance, links, scope clarification and T-07 handoff agree.
+Document validator `--json` returned `valid: true` and no diagnostics; `git diff --check`
+passed. Product tests and new transport/live-account probes NOT_RUN (documentation only).
+
 ## T-06 personal Pro continuation - 2026-09-28
 
 Base 2c16f71; initial git pull was already up to date and main was clean. The owner renewed
@@ -46,7 +89,7 @@ Phase A source research has started. The owner approved the specification on 202
 | AC | Verdict | Evidence |
 | --- | --- | --- |
 | AC-01 | NOT_RUN | |
-| AC-02 | NOT_RUN | |
+| AC-02 | PASS | T-06 closure: research.md section 4 preserves each gap's evidence or explicit unknown and closing LC; deferred checks are not claimed as executed. |
 | AC-03 | NOT_RUN | |
 | AC-04 | NOT_RUN | |
 | AC-05 | NOT_RUN | |

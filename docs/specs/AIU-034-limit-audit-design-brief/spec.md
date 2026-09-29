@@ -278,6 +278,16 @@ agents. Each proposed task title carries the recommended agent tag, as in Phase 
 - More than one account per provider.
 - Platforms other than Windows.
 
+## Owner clarification - 2026-09-29
+
+During T-06 the owner confirmed that their Antigravity account is a personal Google AI Plus
+subscription, not a work/API subscription, and explicitly excluded Antigravity API-credit
+billing from implementation. The Google One credit lookup was ended after the owner could
+not find the proposed activity section. Preserve those fields as unknown; do not infer a
+credit-integration requirement from source-only descriptions or from weekly percentage
+quotas. Google One product credits are distinct from API-key billing. This clarification
+reinforces the API-key billing exclusion and does not remove subscription quota support.
+
 ## Acceptance criteria
 
 - AC-01: `research.md` contains a limit matrix for every provider and plan in scope, with the

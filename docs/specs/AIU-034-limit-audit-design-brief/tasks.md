@@ -290,7 +290,7 @@ tasks extend.
 - [x] **Step 6:** Commit "AIU-034 Phase A: Antigravity limit audit" and push.
 
 ### T-06 - [astra] Live checks with owner authorization
-- status: in-progress
+- status: done
 - depends_on: [T-02, T-03, T-04, T-05]
 - acceptance: AC-02
 - evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
@@ -306,21 +306,23 @@ tasks extend.
   - its risk.
 - [x] **Step 2:** Present the list to the owner and ask for authorization of each check
   separately. Do not sign in or call a provider unasked.
-- [ ] **Step 3:** Run each authorized check:
+- [x] **Step 3:** Run each authorized check:
+  - Closure qualification: LC-22 uses owner-supplied image evidence; its credit-activity
+    lookup was ended by the owner and remains NOT_RUN with explicit unknowns.
   - The owner signs in and opens the account. Screen and mouse control may then be used to
     open read-only usage and billing pages within that check's authorization.
   - Never type credentials, accept terms, change settings, buy or redeem anything.
   - Record only the sanitized outcome: field present or absent, unit, period type and reset
     form.
   - Update the matrix cell, the gap disposition and the provider record's `live_verified_at`.
-- [ ] **Step 4:** A check that is not authorized stays listed with verdict NOT_RUN, and its gap
+- [x] **Step 4:** A check that is not authorized stays listed with verdict NOT_RUN, and its gap
   stays an explicit unknown.
-- [ ] **Step 5 (check):**
+- [x] **Step 5 (check):**
   - scan the diff for secrets and personal data: e-mail addresses, UUIDs, `Bearer`, `eyJ`,
     `sk-`, account or organization names, real balances;
   - no screenshot or capture is staged;
   - the validator and `git diff --check` pass.
-- [ ] **Step 6:** Commit "AIU-034 Phase A: live check outcomes" and push. Write the handoff:
+- [x] **Step 6:** Commit "AIU-034 Phase A: live check outcomes" and push. Write the handoff:
   next task T-07 `[opus]`.
 
 ### T-07 - [opus] Normalized limit model
@@ -522,8 +524,8 @@ tasks extend.
 
 ## Handoff
 
-Completed: T-01 through T-05, T-06 LC-01 personal Claude Pro UI observation, and LC-07 personal ChatGPT Pro credit UI observation. T-06 remains in progress. LC-02 and LC-06 are NOT_RUN because the observed plans are Pro. Base for this continuation: 2c16f71. The T-07 source-independence amendment is intact. No worker artifacts.
+Completed: T-01 through T-06. LC-01 retains its earlier personal Claude Pro observation; LC-07 records agent-observed personal ChatGPT Pro credit UI. LC-22 records owner-supplied Google AI Plus quota-image structure only; Google One credit activity is NOT_RUN after the owner reported the section was not found and ended the lookup. Missing fields and all transport gaps remain explicit unknowns. No work-account, Copilot, unlisted or percentage-regression checks were added. Closure base: e4c4535. No worker artifacts.
 
-Next action: read the owner-opened Antigravity Google AI Plus quota page in Chrome for LC-22, then guide the owner to Google One AI-credit activity. The owner has been asked to open the quota surface or report if no Chrome surface exists. Native Computer Use now reads Chrome successfully; the browser-tab connector is unavailable. Observe visible tier/row/unit/scope/cap/balance/period/reset/expiry structure only. Preserve unknown transport and do not repeat LC-01 or Claude/Codex percentage checks. The owner handles authentication and account selection. No other checks are authorized; work-account and Copilot checks remain postponed.
+Next action: T-07 [opus], Step 1: read research.md sections 2 to 4 and propose the normalized limit model, retaining the evidence provenance and explicit unknowns. Do not start new live checks. The owner excludes Antigravity API-credit billing from implementation; Google One product credits are distinct and unverified, not an inferred implementation requirement. Preserve the existing T-07 source-independence amendment for AIU-005.
 
-LC-07 evidence and scoped provider date are recorded in research.md, verification.md and the Codex provider record. Checkpoint document/privacy verification is recorded in verification.md. T-07 [opus] is the next task only after T-06 closure and has not started.
+No blocker to T-07: AC-02 permits explicitly recorded unknowns with closing-check IDs. Work-account and Copilot checks remain NOT_RUN: "postponed by owner: work account or manual lookup"; other unlisted checks remain unauthorized. Privacy scan, validator --json, diff check and primary review results are recorded in verification.md. T-07 is not started; Gate A and Phase B remain NOT_RUN. Stop after committing and pushing this T-06 closure to main.

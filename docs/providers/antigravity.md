@@ -112,7 +112,7 @@ was performed. See [research](../specs/AIU-011-provider-history/research.md).
 
 - provider: antigravity
 - source_verified_at: 2026-09-26
-- live_verified_at: null
+- live_verified_at: 2026-09-29 (evidence recorded from owner-supplied Google AI Plus quota UI image only; capture time unknown, no agent live-session or transport verification)
 - classification: quota undocumented internal summary and official plan/UI descriptions; authentication restriction unchanged
 - confidence: high for source fields; amount unit, paid live coverage and credit transport unresolved
 - sources: [AIU-034 A1-A6](../specs/AIU-034-limit-audit-design-brief/research.md#antigravity-sources-read-2026-09-26)
@@ -129,4 +129,17 @@ reusable HTTP contract. No CLI or provider call was executed for this audit.
 
 The [matrix and LC-18 through LC-21](../specs/AIU-034-limit-audit-design-brief/research.md)
 preserve these gaps. A moving reset on the previously observed untouched Free bucket remains
-a warning against inferring period start or paid-plan behavior. No new live evidence is claimed.
+a warning against inferring period start or paid-plan behavior.
+
+LC-22 evidence recorded on 2026-09-29 is an owner-supplied Models & Quota image labelled
+Google AI Plus. It shows Gemini Flash/Pro in one group and Claude Opus/Sonnet/GPT-OSS in
+another, with weekly remaining percentages and within-group sharing. No absolute cap,
+period start, reset or expiry is shown; no five-hour row is visible in the supplied image.
+This is not proof of full-page or payload absence. No actual values, identities or image
+files are retained. The agent did not operate the CLI or inspect its credentials.
+
+Google One activity was not found (owner-reported); the owner ended that lookup. Credit
+balance, allowance, unit, scope, period/expiry and eligible transport stay unknown. Source
+descriptions above do not establish availability for Google AI Plus. The owner clarified
+that this is a personal subscription, not a work/API subscription, and excluded Antigravity
+API-credit billing from implementation. Product credits and API billing remain distinct.

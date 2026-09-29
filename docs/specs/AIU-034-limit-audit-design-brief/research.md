@@ -7,6 +7,12 @@ Plus, Pro, Business, Enterprise; Copilot Free, Pro, Pro+, Business; Antigravity 
 Pro, Ultra, plus Google AI Plus as the owner's 2026-09-26 LC-22 addition.
 API-key billing is excluded. This is research, not an implementation.
 
+Owner clarification, 2026-09-29: the observed Antigravity account is an ordinary personal
+Google AI Plus subscription, not a work/API subscription. Do not implement Antigravity
+API-credit billing. The owner ended the Google One credit lookup; retain its unresolved
+fields as unknown, with no credit-integration requirement inferred for T-07 or implementation.
+Google One product credits and API-key billing are distinct; neither is proved by weekly quotas.
+
 - `source`: inspected repository/upstream code or official documentation. It proves the
   stated contract or product description, not access on any particular account.
 - `live`: a specifically authorized observation, limited to the observed plan and surface.
@@ -420,7 +426,10 @@ all future internal pools share the same clock.
 
 ### Antigravity (T-05)
 
-`provider: antigravity`; `source_verified_at: 2026-09-26`; `live_verified_at: null`.
+`provider: antigravity`; `source_verified_at: 2026-09-26`;
+`live_verified_at: 2026-09-29` only for recording the owner-supplied Google AI Plus UI
+image evidence below (capture time unknown; no agent live-session or transport verification).
+Free, Pro and Ultra field evidence is unchanged.
 Quota classification: undocumented internal summary and official product/UI documentation;
 confidence high for observed source fields and unknown-unit treatment, unknown for paid-plan
 live payload coverage or credit transport. Authentication/client reuse remains explicitly
@@ -477,20 +486,28 @@ No CLI was run and no CLI credential store was read.
 
 ### Antigravity Google AI Plus (LC-22 addition)
 
-The owner added this personal low-cost tier on 2026-09-26. Its account tier has not yet
-been read in the UI. It has a separate matrix: no Free, Pro or Ultra evidence is inherited.
-The planned read-only surfaces are the provider quota UI and Google One AI-credit activity,
-with the same observation boundary as LC-19. UI labels cannot establish hidden summary fields.
+The owner added this personal tier on 2026-09-26. Evidence recorded on 2026-09-29 is an
+owner-supplied image of the provider's Models & Quota UI, labelled Google AI Plus. The agent
+read the supplied image, not a live application session; capture time is unknown. No CLI was
+accessed or executed and no image was copied into the repository. The `live` cells below
+are limited to this owner-supplied UI evidence, not agent-operated account/transport proof.
+No Free, Pro or Ultra evidence is inherited. UI labels cannot establish hidden summary fields.
+
+Two groups are displayed: Gemini models (Gemini Flash, Gemini Pro), and Claude and GPT models
+(Claude Opus, Claude Sonnet, GPT-OSS). Each has Weekly Limit Remaining in percent and a quota
+availability label. The explanatory text says models share a weekly limit within each group
+and the weekly limit depends on the individual tier. No cross-group pooling is inferred.
 
 | Family / field | Google AI Plus | Qualification |
 | --- | --- | --- |
-| AG-5, AG-W / used | unknown/none | Window rows and unit not observed. |
-| AG-5, AG-W / limit | unknown/none | Cap presence not observed. |
-| AG-5, AG-W / remaining | unknown/none | Remaining display not observed. |
-| AG-5, AG-W / period start | unknown/none | Period type and start not observed. |
-| AG-5, AG-W / period end or reset | unknown/none | Reset form not observed. |
-| AG-5, AG-W / currency | unknown/none | No unit observed for this tier. |
-| AG-5, AG-W / exponent | unknown/none | No unit observed for this tier. |
+| AG-W / used | unknown/none | No direct used counter displayed; subtraction would be derived. |
+| AG-W / limit | unknown/none | No absolute cap displayed; percentage scale is not a numeric entitlement. |
+| AG-W / remaining | provider-ui/live | Weekly remaining percentage per displayed group; owner-supplied image only, values omitted. |
+| AG-W / period type | provider-ui/live | Weekly label and within-group sharing; rolling versus fixed boundary not established. |
+| AG-W / period start | unknown/none | No start displayed. |
+| AG-W / period end or reset | unknown/none | No reset date, countdown, time zone or expiry displayed in supplied image. |
+| AG-W / currency, exponent | unavailable/live | Display is percentage, not money; no wire scale established. |
+| AG-5 / used, limit, remaining, period start, end or reset, currency, exponent | unknown/none | No five-hour row in supplied image; neither full-page nor transport absence established. |
 | AG-R / used | unknown/none | No UI-to-wire correspondence established. |
 | AG-R / limit | unknown/none | No denominator established. |
 | AG-R / remaining | unknown/none | Presence and unit unknown; never infer from a credit balance. |
@@ -517,6 +534,15 @@ with the same observation boundary as LC-19. UI labels cannot establish hidden s
 
 ### Antigravity
 
+- **LC-22 closure (2026-09-29):** owner-supplied Google AI Plus UI image establishes two
+  weekly percentage groups and their within-group sharing only. G-AG-3 is narrowed for
+  this tier; absolute caps and reset boundaries remain unknown. G-AG-1's amount unit and
+  G-AG-2's credit balance/allowance/unit/scope/period/expiry/transport remain unknown.
+  The owner reports the proposed Google One activity section was not found; the lookup
+  is ended by owner direction, not proof that credits do not exist. The agent had suggested
+  a navigation path from A3 without verifying it for this tier. No further account lookup
+  is pending. Antigravity API-credit billing is excluded from implementation; carry these
+  limitations into T-07 without promoting Google One credits to API billing.
 - **T-06 disposition (2026-09-26):** LC-22 separately covers Google AI Plus for
   G-AG-1/2/3; it cannot close Free, Pro or Ultra gaps. LC-18/19/20/21 are NOT_RUN,
   not authorized. No current UI or transport evidence for those tiers is added.
@@ -529,7 +555,8 @@ with the same observation boundary as LC-19. UI labels cannot establish hidden s
   is established. The pinned summary contains neither a credit balance nor an allotment
   schema. LC-19/20 inspect Google One activity and the provider's displayed credit period;
   they cannot establish an OAuth transport. Purchased-credit expiry is not monthly refill.
-- **G-AG-3:** actual paid-plan groups and reset behavior remain unobserved. Prior Free weekly
+- **G-AG-3:** Pro/Ultra groups and reset behavior remain unobserved; Google AI Plus has only
+  the owner-supplied UI evidence above. Prior Free weekly
   evidence (2026-09-20) does not validate Pro/Ultra five-hour windows, AI credits or model
   eligibility. Its moving untouched reset prevents blindly deriving a period start. LC-18–21
   record displayed/reset semantics without generating usage or waiting for induced exhaustion.
@@ -670,6 +697,12 @@ agent-observed live success.
 Historical grants/permissions do not authorize any LC. The per-check verdicts below are
 research outcomes, not an authorization ledger; actual run evidence belongs in verification.md.
 
+Final T-06 scope, 2026-09-29: completed LC-01 was not repeated; LC-07 was narrowed to
+unresolved personal Pro credit/billing fields, excluding percentage regression. LC-22 quota
+evidence came from an owner-supplied image; its Google One activity part is NOT_RUN after
+the owner reported no such section and ended the lookup. All other exclusions in the
+verdict table remain effective. T-06 closes with explicit unknowns, not universal live proof.
+
 Attempt on 2026-09-26: the in-app browser reached signed-out/public pages, without revealing
 any account plan or usage. The owner then required the default PC browser and prohibited
 further in-app-browser use. Windows identifies Edge as the default HTTPS browser; the native
@@ -712,7 +745,7 @@ not Edge or the in-app browser.
 | LC-19 | Antigravity Pro, provider quota UI and Google One AI-credit activity | Five-hour/weekly labels, credit unit/expiry versus included allowance; G-AG-1/2/3 | Private credit/family data; no purchases, overage toggles or terms | NOT_RUN; not authorized |
 | LC-20 | Antigravity Ultra, same provider surfaces | Same for selected Ultra tier; separate plan proof; G-AG-1/2/3 | Same read-only boundary; no activity details or identities retained | NOT_RUN; not authorized |
 | LC-21 | One selected Antigravity plan, already provisioned existing AI Usage connection | Parsed groups/reset and unknown amount presence; G-AG-1/3 | Explicit provider third-party restriction/account risk; no reconnect, provisioning or client change; renewal may rotate grant | NOT_RUN; not authorized |
-| LC-22 | Antigravity Google AI Plus, provider quota UI and Google One AI-credit activity | Displayed group/window labels, credit unit, cap/balance presence, period and reset/expiry form; G-AG-1/2/3 | Personal account only; same boundary as LC-19; no Free/Pro/Ultra generalization | BLOCKED; browser access interrupted before account observation |
+| LC-22 | Antigravity Google AI Plus, owner-supplied quota UI image; proposed Google One activity | Group/window/unit/scope evidence; unresolved cap/balance/period/reset/expiry; G-AG-1/2/3 | No agent CLI access; no Free/Pro/Ultra generalization | PASS for supplied-image structure only; credit activity NOT_RUN, section not found (owner-reported), lookup ended by owner; unknowns retained |
 
 ## 11. Pending owner decisions
 
