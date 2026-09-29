@@ -1,5 +1,23 @@
 # AIU-034 verification
 
+## T-08 start-of-day source and five-hour estimator - 2026-09-29
+
+Base c8fa7ca, same [opus] session; no account, provider request or credential access.
+
+- Research sections 6 and 7. `U0` is a local day-start reading for all four providers:
+  history reports measure a different counter on an unestablished provider day and are
+  unavailable for work and Copilot routes. Minimal record, two-day retention, relation to
+  AIU-029 and storage are specified. The security-lifecycle review is recorded as an
+  implementation precondition, not performed.
+- Estimator: pairs by duration within one pool (Claude CL-S/CL-W, Codex per group,
+  Antigravity per model group); per-instance span sample, median of 10 within 28 days,
+  minimum 3, MAD at most 25 % of the median, explicit exclusions for either reset, small or
+  negative change, stale readings, saturation and source switch. Review focus 6: straddling
+  pairs are rejected and model-scoped weekly limits get no session figure (section 7.4).
+- Step 4 checks: every provider has a decided `U0` source; the estimator names inputs,
+  formula, minimum samples, invalidation and label. Validator `--json` returned
+  `valid: true` with no diagnostics; `git diff --check` passed; added-line secret scan found
+  zero matches.
 ## T-07 normalized limit model - 2026-09-29
 
 Base 036bf81; `git pull` was up to date and main was clean. [opus] session; no account,

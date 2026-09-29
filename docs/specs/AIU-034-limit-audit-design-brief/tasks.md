@@ -382,10 +382,10 @@ tasks extend.
 - [x] **Step 8:** Commit "AIU-034 Phase A: normalized limit model proposal" and push.
 
 ### T-08 - [opus] Start-of-day amount and five-hour session estimator
-- status: pending
+- status: done
 - depends_on: [T-07]
 - acceptance: AC-05, AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` sections 6 and 7
@@ -394,10 +394,10 @@ tasks extend.
   - the AIU-029 entry in `docs/backlog.md`;
   - `CodexHistoryParser.cs` and `CopilotHistoryParser.cs`.
 
-- [ ] **Step 1:** A-4 per provider: decide whether `U0` can come from provider history (Codex
+- [x] **Step 1:** A-4 per provider: decide whether `U0` can come from provider history (Codex
   daily usage, Copilot daily billing) at the granularity and freshness needed, or needs a
   local day-start reading.
-- [ ] **Step 2:** For local data, specify:
+- [x] **Step 2:** For local data, specify:
   - the minimal record: account and limit identity, local date, used value, unit, reading
     time and reset instant;
   - its retention, its schema impact and its relation to AIU-029.
@@ -405,7 +405,7 @@ tasks extend.
   Apply the security-lifecycle skill: app-owned storage, owned-root cleanup, sign-out behavior
   (D-093 keeps history), forward migration and corrupt-file recovery. Record the review as a
   precondition of the implementation item, not as done.
-- [ ] **Step 3:** A-5: list the pools that have both a five-hour and a weekly window. Define:
+- [x] **Step 3:** A-5: list the pools that have both a five-hour and a weekly window. Define:
   - the estimator for `C` from paired readings: Δweekly % divided by Δfive-hour % over the
     same interval;
   - the minimum sample count and the aggregation, for example a median;
@@ -414,12 +414,12 @@ tasks extend.
   - the handling of model-scoped weekly limits;
   - the confidence rule and the label shown to the user;
   - the observations kept locally.
-- [ ] **Step 4 (check):**
+- [x] **Step 4 (check):**
   - every provider has a decided `U0` source;
   - the estimator names its inputs, formula, minimum samples, invalidation and label;
   - review focus 6 is answered explicitly;
   - the validator and `git diff --check` pass.
-- [ ] **Step 5:** Commit "AIU-034 Phase A: start-of-day source and five-hour estimator" and
+- [x] **Step 5:** Commit "AIU-034 Phase A: start-of-day source and five-hour estimator" and
   push.
 
 ### T-09 - [opus] Budget rules and worked examples

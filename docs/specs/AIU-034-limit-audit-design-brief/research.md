@@ -849,11 +849,173 @@ limit state.
 
 ## 6. Start-of-day amount
 
-T-08 [opus] will decide U0 sources and minimal local observation retention.
+Proposal by T-08 [opus], 2026-09-29. `U0` is the used value of a limit at the start of the
+local day (R-05). Vocabulary from section 5.
+
+### 6.1 Source per provider (A-4)
+
+Provider history cannot supply `U0` for any provider in scope, for three reasons:
+
+- **Different counter.** The history reports parsed today are consumption reports in tokens,
+  credits, USD or `unitType` quantities (`CodexHistoryParser.cs`, `CopilotHistoryParser.cs`).
+  None is a reading of the quota counter that the budget uses: a percentage window, a request
+  pool or a monetary spend counter.
+- **Different day.** Report buckets are provider calendar dates (`DateOnly`) whose zone is not
+  established. The budget day is the local calendar day (section 8).
+- **Access and freshness.** Workspace and enterprise routes returned HTTP 400 and 403, and the
+  personal Copilot reports HTTP 404 (G-CX-3, G-GH-2). Report lag is not established. Claude and
+  Antigravity expose no provider history at all (AIU-011).
+
+| Provider | Budgetable limits (section 5.5) | Provider history usable for `U0` | Decided `U0` source |
+| --- | --- | --- | --- |
+| Claude | CL-W, CL-M, CL-X/CL-D | none exists | local day-start reading |
+| Codex | CX-S and CX-A windows of 1 d or longer; CX-I on the percentage scale; CX-B per PD-034-01 | no: tokens and credits per provider date, not the window percentage; workspace routes unavailable | local day-start reading |
+| Copilot | GH-C, GH-I, GH-P | no: the billing report is a different meter, and personal access returned 404 | local day-start reading |
+| Antigravity | AG-W | none exists | local day-start reading |
+
+Five-hour windows have no `U0`: they have no daily budget (R-11).
+
+### 6.2 Day-start reading rule
+
+The app refreshes each account every 5 minutes and marks a reading stale after 15 minutes
+(`LiveAutoRefresh`, D-099). For each budgetable limit and local day:
+
+1. **Carried over.** If the app has a valid reading taken in the 15 minutes before local
+   midnight, in the same provider period as now, its used value is `U0`. The app was
+   observing at midnight.
+2. **First of day.** Otherwise `U0` is the used value of the first valid reading of the local
+   day, and the budget shows "used today since HH:MM". Usage between midnight and that reading
+   is part of `U0`, so it reduces today's norm but is not counted as used today. It is never
+   silently attributed to today.
+3. **Reset during the day.** After a provider reset (section 8), the new period starts with
+   `U0 = 0` for a replenishing provider reset, which by definition restores the counter. After
+   an unexpected decrease of the used value (an observed reset), `U0` is the first reading after
+   the decrease.
+4. **No reading yet.** Before the first valid reading of the day there is no `U0` and no norm.
+   The limit shows its facts and "budget not ready"; unknown is not zero.
+
+A reading is valid when it succeeded, is not stale, and its used value is known. Readings from
+different snapshot sources are equally valid (section 5.6).
+
+### 6.3 Minimal local record
+
+One record per account target ID, limit key and local date:
+
+| Field | Content |
+| --- | --- |
+| account target ID, limit key | Section 5.2 identity; no account identity or label. |
+| local date | ISO calendar date of the budget day. |
+| day start | The local midnight instant with its UTC offset, so that 23- and 25-hour days are exact. |
+| used value | Quantity in the limit's unit: percent, decimal count or money triple. |
+| reading time | Fetched-at instant of the reading that supplied the value. |
+| rule | `carried-over`, `first-of-day` or `after-reset` (section 6.2). |
+| period end | The provider or assumed reset of the period the reading belongs to, to detect a reading from another period. |
+| snapshot source | Provenance only (section 5.6). |
+
+PD-034-01 option (b), if accepted, adds one record per balance-only pool and budget period:
+the accumulated balance decreases, the last balance and its reading time, and "tracked since".
+
+### 6.4 Retention, storage and AIU-029
+
+- **Retention:** today's and yesterday's records only. Yesterday's covers a midnight crossing
+  and a daylight-saving day. Older records are pruned on write. This is a working value, not
+  history.
+- **Relation to AIU-029:** AIU-029 owns local usage history, rollups and retention. These
+  records are not a series and must not grow into one. When AIU-029 is selected it may supply
+  `U0` from its observations, and this store is then retired by a forward migration.
+- **Storage:** one new versioned, size-bounded file under the app-owned state root, separate
+  from provider state and from the budget configuration file of section 5.7. It holds no
+  credential, identity or raw payload, so it follows the plaintext Codex cache precedent.
+  Staged replace and reparse-point checks as for the preference file.
+- **Lifecycle:** sign-out keeps the records (D-093), and a record from a finished period is
+  ignored on reconnect by its period end. Delete stored data and factory reset remove the file.
+  A corrupt or version-mismatched file is set aside and treated as empty. The only loss is
+  today's `U0`, which falls back to rule 2 of section 6.2 with the "since" label.
+
+**Precondition, not done:** the implementation item must run the security-lifecycle review
+for this file and for the budget configuration file before merge. It covers app-owned storage
+and owned-root cleanup, sign-out retention under D-093, forward migration, corrupt-file
+recovery and factory-reset coverage. T-08 records the requirement only.
 
 ## 7. Five-hour session estimator
 
-T-08 [opus] will define paired inputs, confidence, invalidation and retained observations.
+Proposal by T-08 [opus], 2026-09-29, answering A-5 and review focus 6.
+
+### 7.1 Pools with both windows
+
+A pair is a five-hour window and a weekly window that count the same consumption. The pair is
+identified by duration (5 hours and 7 days) within the same pool, never by name.
+
+| Provider | Five-hour window | Weekly window of the same pool | Condition |
+| --- | --- | --- | --- |
+| Claude | CL-S | CL-W shared weekly | Any plan that returns both. CL-M is excluded (section 7.4). |
+| Codex | CX-P with duration 5 h | CX-S with duration 7 d in the same group | Per group: the main limit and each CX-A group separately, only when both durations are returned. |
+| Antigravity | AG-5 of a model group | AG-W of the same model group | Pro and Ultra only when returned. Not observed live; Google AI Plus showed no five-hour row. |
+| Copilot | none | none | No five-hour window. |
+
+### 7.2 Estimator
+
+`C` is the weekly percentage consumed by one fully used five-hour window.
+
+- **Sample.** For one five-hour window instance (one five-hour reset instant), take the first
+  and the last valid reading of the pair inside that instance: `s` is five-hour used percent and
+  `w` is weekly used percent. The sample is `c = 100 x (w_last - w_first) / (s_last - s_first)`.
+  One instance gives at most one sample. Using the span of the whole instance rather than
+  consecutive readings limits the error from integer-rounded percentages.
+- **Aggregation.** `C` is the median of the most recent 10 accepted samples not older than
+  28 days.
+- **Minimum samples.** 3 accepted samples from 3 different five-hour instances.
+- **Confidence.** Ready when the minimum is met and the median absolute deviation of the
+  samples is at most 25 % of their median. Otherwise "estimate not ready", and nothing is shown.
+
+### 7.3 Exclusions and invalidation
+
+A sample is rejected when:
+
+- the five-hour reset instant or the weekly reset instant differs between its first and last
+  reading, allowing 60 seconds of jitter for relative resets (M-10). The span then straddles
+  a reset or a window rollover;
+- `s_last - s_first` is below 10 percentage points, which is too small to divide reliably;
+- either difference is negative, which is a provider correction or an unobserved reset;
+- any reading in the span is stale, failed or has an unknown value;
+- the last reading has `s = 100`; the last reading below 100 is used instead, because an
+  exhausted window stops counting while other spending may continue;
+- its first and last readings come from different snapshot sources, which may round
+  differently.
+
+All samples of a pool are discarded when its plan type changes, when the pool stops being
+returned, and when they age past 28 days. The estimate is then "not ready" again.
+
+### 7.4 Model-scoped weekly limits
+
+A model-scoped weekly limit (CL-M, or a CX-A group scoped to a model) counts only part of the
+consumption that the shared five-hour window counts, in a mix that changes with model choice.
+Its ratio is not a stable `C`. So:
+
+- no session figure is shown for CL-M;
+- a CX-A group gets an estimate only from its own five-hour and weekly windows, never the main
+  group's;
+- the shared-pool session figure never implies anything about a scoped limit. The binding-limit
+  rule (R-10) still shows a scoped limit that binds first.
+
+### 7.5 Output and label
+
+- **Weekly remainder:** `(100 - w) / C` sessions, where `w` is the current weekly used percent.
+- **Today:** today's weekly norm `N` (section 8) divided by `C`. On a day off, or when `Wr = 0`,
+  there is no today figure.
+- **Display:** rounded down to a whole session, shown as "≈ n sessions (estimate)", "< 1
+  session" below 1, and 0 when the weekly window is exhausted. Always labelled an estimate
+  (R-07, R-15). Hidden, not zero, while not ready.
+
+### 7.6 Observations kept locally
+
+One record per account target ID and pool pair: the current five-hour instance (its reset
+instant, and its first valid reading and latest valid reading below `s = 100`, each with `s`,
+`w`, time and source) and the accepted
+samples (`c`, instance reset instant, time, plan type). At most 10 samples and 28 days are
+kept; the rest are pruned on write. The records live in the same file as section 6.3, with the
+same lifecycle, and the same security-lifecycle precondition applies. They are not history
+and do not serve AIU-024 forecasting.
 
 ## 8. Budget rules
 
