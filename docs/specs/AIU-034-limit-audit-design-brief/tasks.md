@@ -755,25 +755,25 @@ proposed item.
   handoff: next task T-15 `[opus]`, with the count of open findings.
 
 ### T-15 - [opus] Resolve brief findings and prepare Gate B
-- status: pending
+- status: done
 - depends_on: [T-14]
 - acceptance: AC-08, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `design-brief.md`, `verification.md`, `tasks.md` (handoff); research section 11
   only if a new decision is raised
 
-- [ ] **Step 1:** Resolve each finding by changing the brief, or raise it as a decision from
+- [x] **Step 1:** Resolve each finding by changing the brief, or raise it as a decision from
   PD-034-04 with question, options, recommendation, impact, evidence and when needed. Record
   the resolution next to the finding.
-- [ ] **Step 2:** Check B-1 to B-6 coverage and record the result in verification.md. AC-08
+- [x] **Step 2:** Check B-1 to B-6 coverage and record the result in verification.md. AC-08
   stays NOT_RUN until the Gate B review is recorded.
-- [ ] **Step 3:** Run the privacy scan over every Phase B file, then the validator and
+- [x] **Step 3:** Run the privacy scan over every Phase B file, then the validator and
   `git diff --check`.
-- [ ] **Step 4:** Write the handoff: next action "owner reviews design-brief.md at Gate B".
-- [ ] **Step 5:** Commit "AIU-034 Phase B: brief ready for Gate B review" and push.
-- [ ] **Step 6:** Stop and report to the owner in Ukrainian: the brief's content, the rubric
+- [x] **Step 4:** Write the handoff: next action "owner reviews design-brief.md at Gate B".
+- [x] **Step 5:** Commit "AIU-034 Phase B: brief ready for Gate B review" and push.
+- [x] **Step 6:** Stop and report to the owner in Ukrainian: the brief's content, the rubric
   and any open decisions. Do not contact Claude Design.
 
 ### T-16 - [opus] Closing proposal: follow-up implementation items
@@ -906,12 +906,29 @@ clean. No subagents or pending worker artifacts. Scratch scripts/results stay ou
 No product code, live checks, sign-in, provider requests or Claude Design contact.
 Gate B and AC-08 remain NOT_RUN; the review is complete, not design acceptance.
 
-Next action: T-15 `[opus]`, Step 1: resolve F-13 to F-16, beginning with F-13's unlimited/cap
-catalogue conflict, or raise an owner decision from PD-034-04. T-15 remains pending; T-14 did
-not start it.
+T-15 done on 2026-09-29, base `0eee0ef`, on the owner's instruction to continue with T-15:
+all four T-14 findings are resolved by brief changes, and no new decision was raised.
+- F-13: an unlimited pool with a personal cap is budgeted on the cap.
+- F-14: an exhausted weekly window shows 0 sessions for the week and for today, which takes
+  precedence over "< 1 session".
+- F-15: the budget marks and figures of an exhausted limit are mandatory and subordinate to
+  its limit state; PA-3 is aligned.
+- F-16: there is one default window, 760 × 600 unless the owner accepts another size with the
+  selected direction.
 
-Blockers: none for T-15; the four open findings need resolution before Gate B preparation.
-Sending the brief to Claude Design needs Gate B and a working Claude
+The section 4 figures are unchanged. B-1 to B-6 coverage is PASS in verification.md. Open
+findings: 0. AC-08 and Gate B stay NOT_RUN until the owner's review is recorded.
+
+T-15 checks: scratch coverage and resolution check, 93 of 93 with 6 of 6 injected defects
+detected; privacy scan 0 hits; validator `--json` valid true with no diagnostics;
+`git diff --check` clean. No subagents or pending worker artifacts.
+
+Next action: the owner reviews design-brief.md at Gate B. Two T-15 presentation choices are
+open to the owner's override there: F-14's today figure of 0 on an exhausted window, and
+F-15's mandatory subordinate marks. After the Gate B review is recorded, T-16 `[opus]` Step 1
+starts. Claude Design is not contacted before T-17.
+
+Blockers: Gate B (owner review). Sending the brief to Claude Design also needs a working Claude
 Design connection (`/design-login`).
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,

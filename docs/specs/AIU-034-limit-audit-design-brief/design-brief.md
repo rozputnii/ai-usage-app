@@ -89,7 +89,7 @@ reset.
 | over cap | `U > L` where the personal cap binds | "Over cap by" `U - L`, the cap labelled as the user's. | The cap presented as the provider's limit. | 8.8; E05b, E05c, E10b, E11d |
 | not included | A provider zero entitlement with `U = 0` | "Not included", neutral; it does not raise the account status. | A zero budget, a bar, or "unknown". | 8.1 (M-01); E11a |
 | capped at 0 | A personal cap of 0 with `U = 0` | "Capped at 0", neutral. | A zero budget or a bar. | 8.1; E11d |
-| unlimited | An explicit provider unlimited flag | "Unlimited" and no budget; a personal cap, when set, becomes `L`. | A bar or remainder without a cap; unlimited inferred from a missing limit. | 5.4; E11c |
+| unlimited | An explicit provider unlimited flag | "Unlimited" as the provider's fact. Without a personal cap: no bar, remainder or budget. With a personal cap: the cap is `L` and binds, and the pool shows its bar, budget and states on the cap like any capped pool, with "unlimited" beside it as the provider's fact. | A bar or remainder without a cap; a set cap ignored because the provider is unlimited; unlimited inferred from a missing limit; an amount the provider reports beside the flag used as `L`. | 5.4, 8.1; E11c |
 | limit unknown | Provider limit unknown or explicit null, and no personal cap | The used amount as a fact, "limit unknown" as the reason there is no budget, and the offer to set a cap. | 0 or unlimited. | 5.4 |
 
 ### 3.5 Budget states
@@ -102,7 +102,7 @@ reset.
 | neutral, day off | Today is not a work day | A neutral day-off state; used today, the remainder and the deviation as facts. | A norm, today's share, left today, or an attention or today-used look. | 8.5; R-11; E04a |
 | neutral, no remaining work days | No work day remains before the reset (`Wr = 0`) | Only the remainder `L - U`, neutral. | A norm. | 8.5; E09 |
 | budget not ready | Before the first valid reading of the day, or past its reset | "Budget not ready" with the limit's facts. | A zero norm or zero left today. | 6.4 rule 3, 8.6 |
-| no budget, with reason | Limit unknown, unlimited, zero limit or period unknown | The reason in words. | An empty budget that reads as zero. | 8.1 |
+| no budget, with reason | Limit unknown or unlimited without a personal cap, zero limit, or period unknown | The reason in words. | An empty budget that reads as zero; no budget for a pool whose personal cap gives it an effective limit. | 5.4, 8.1 |
 
 ### 3.6 Budget figures
 
@@ -124,9 +124,9 @@ reset.
 
 | State | Applies to | What the user must see | What must never be shown | Research |
 | --- | --- | --- | --- | --- |
-| sessions ready | A weekly window paired with a five-hour window in the same pool, with a ready estimate `C` | "≈ n sessions (estimate)" for the weekly remainder and for today, rounded down; 0 when the weekly window is exhausted. | A decimal session count, or the figure without "estimate". | 7.5; S08 |
+| sessions ready | A weekly window paired with a five-hour window in the same pool, with a ready estimate `C` | "≈ n sessions (estimate)", rounded down, for the weekly remainder `(100 - U) / C` and for today's share `T / C`, today's allowance rather than what is left of it. When the weekly window is exhausted, both figures are 0 sessions: this takes precedence over "< 1 session". | A decimal session count, the figure without "estimate", or a today figure above 0 on an exhausted weekly window. | 7.5; S08 |
 | estimate not ready | The same pairs before the confidence rule holds | Nothing: the session figure is hidden. | 0 sessions or a placeholder number. | 7.2, 7.5; S01, S03 |
-| less than one session | A session figure below 1 | "< 1 session". | 0. | 7.5; S09 |
+| less than one session | A session figure above 0 and below 1, while the weekly window is not exhausted | "< 1 session". | 0, which is reserved for an exhausted weekly window. | 7.5; S09 |
 | no today session figure | A day off, or no remaining work day | The weekly remainder in sessions only. | A today figure. | 7.5 |
 
 ### 3.8 Caps
@@ -135,7 +135,7 @@ reset.
 | --- | --- | --- | --- | --- |
 | personal cap unset | Countable and monetary pools with a known unit or currency | An inline way to set a cap. | A cap offer on percentage windows or on amounts of unknown unit. | 5.4; R-03 |
 | personal cap set | As above | The cap labelled as the user's, beside the provider limit when known. | The cap presented as the provider's limit. | 5.4; R-03 |
-| binding source | A pool with a cap and a known provider limit | Which of the two binds: the lower one, or the provider when equal. | Both presented as limits that apply. | 5.4 |
+| binding source | A pool with a personal cap | Which binds: the lower of the cap and a known provider limit, or the provider when equal; the cap when the provider limit is unknown or unlimited. | Both presented as limits that apply. | 5.4 |
 | currency mismatch | A cap in a currency other than the provider limit's | The cap flagged "currency mismatch" and not applied; the provider limit applies. | A converted amount. | 5.4 |
 | unmatched cap | A cap whose limit is no longer reported | The cap listed in settings as unmatched, kept and not applied. | The cap applied to another limit or silently deleted. | 5.4 |
 
@@ -220,7 +220,7 @@ Work-day weights (research 8.3): A2 `W` 5, `Wr` 3.375, `E` 2.625; A3 and B3 `W` 
 | A2 | 47 % used, 53 % left | `N` 18.3 %, `T` 18.3 %; used today 9.0 %, left today 9.3 %; `B` 20.0 %; ahead by 5.5 % | Resets Mon 19 Oct 09:00; ≈ 4 sessions left this week, ≈ 1 session today (estimate) | within; OK (51.0 % of `T` left) |
 | A3 | USD 218.00 used of the USD 300.00 cap (estimate); USD 82.00 left under the cap | `N` USD 7.00, `T` USD 7.00; used today USD 9.00, left today -USD 2.00; `B` USD 13.63; behind by USD 81.63 | Cap binds; provider limit USD 500.00; period 1 Oct to 1 Nov, assumed | within; today used |
 | B1 | 91 % used, 9 % left | none (five-hour window) | Resets in 1 h 28 min | within; five-hour red |
-| B2 | 100 % used, exhausted | Not the displayed state; kept available: `N` 1.6 %, `T` 1.6 %; used today 4.0 %, left today -2.4 %; `B` 20.0 %; behind by 27.9 % | Back Fri 16 Oct 09:30, in 1 d 19 h 10 min; sessions hidden (estimate not ready) | at limit (exhausted) |
+| B2 | 100 % used, exhausted | Shown subordinate to the exhausted state, which replaces the budget state: `N` 1.6 %, `T` 1.6 %; used today 4.0 %, left today -2.4 %; `B` 20.0 %; behind by 27.9 % | Back Fri 16 Oct 09:30, in 1 d 19 h 10 min; sessions hidden (estimate not ready) | at limit (exhausted) |
 | B3 | 6,480 credits used of the 17,000-credit cap (estimate, tracked since 3 Oct); 10,520 left under the cap | `N` 842, `T` 842; used today 430, left today 412; `B` 772; ahead by 1,247 | Provider balance 10,160 credits; cap binds, provider limit unknown; period 1 Oct to 1 Nov, assumed | within; OK (48.9 % of `T` left) |
 | C1 | 1,210 of 2,000 requests used | `N` 62, `T` 62; used today 20, left today 42; `B` 91; behind by 302 | 790 remaining (provider); resets 1 Nov; start assumed | within; OK (67.9 % of `T` left) |
 | C2 | 12 of 50 requests used | `N` 3, `T` 3; used today 1, left today 2; `B` 2; ahead by 10 | 38 remaining (provider); resets 1 Nov; start assumed | within; OK (66.6 % of `T` left) |
@@ -265,8 +265,10 @@ budget runs from `U0` to `U0 + T`; the pace mark is at `B x E`.
   (section 3.11), its reading marks (stale, refresh failed, sign-in expired) and an icon-only
   sign-out. The status is readable without expanding the account.
 - **Limit rows.** Each limit shows its reading and, when it has one, its budget: left today,
-  the budget state and the deviation are visible on the row. The limit order stays the same
-  between refreshes; a change of state never reorders rows.
+  the budget state and the deviation are visible on the row. A limit at or over its limit
+  shows that limit state in place of its budget state (research 8.8); its budget figures and
+  bar marks stay, subordinate to it (B2). The limit order stays the same between refreshes; a
+  change of state never reorders rows.
 - **History (R-14).** A limit's history expands inline under its row. It is built from the
   app's local reading series only (D-184), covers at least 35 days, and shows gaps as gaps.
   Provider-supplied history (AIU-011) is not shown.
@@ -297,9 +299,12 @@ budget runs from `U0` to `U0 + T`; the pace mark is at `B x E`.
 - **Tooltips.** No information needed for a decision lives only in a tooltip. Every figure that
   answers a section 2 question is visible, or one keyboard step away on the focused row.
   Tooltips may repeat visible information.
-- **Fit.** The section 4 scenario, four accounts with eleven limits, fits the default window of
-  760 × 600 effective pixels at 100 % scaling without scrolling. That is the current main window
-  default size. A direction that proposes another default size states it and why.
+- **Fit.** The section 4 scenario, four accounts with eleven limits, fits the default window at
+  100 % scaling without scrolling. The default window is 760 × 600 effective pixels, the current
+  main window default size. A direction may propose another default size with its reason; that
+  size must fit the work area of a 1920 × 1080 display at 150 % scaling, 1280 × 720 effective
+  pixels less the taskbar (section 9). When the owner selects a direction, its accepted size is
+  the default window for the prototype and for every later check (DA-6, PA-10, section 9).
 
 ### 5.5 Replaced behaviour
 
@@ -419,11 +424,11 @@ Each direction delivers one visualization used on every limit row. It combines:
 
 - **the bar:** used against the effective limit `L`, at the positions of section 4.3;
 - **today's budget:** the stretch from `U0` to `U0 + T`, so that used today and left today
-  read from the bar, and use past `U0 + T` visibly overruns it (A3, and B2 when its budget
-  marks are drawn);
+  read from the bar, and use past `U0 + T` visibly overruns it (A3 and B2);
 - **the pace mark:** at `B x E`, with the deviation in words, "ahead by" or "behind by";
 - **five-hour sessions:** "≈ n sessions (estimate)" for the weekly remainder and for today,
-  where the estimate is ready.
+  where the estimate is ready, and 0 sessions for both on an exhausted weekly window
+  (section 3.7).
 
 Beside it, the row keeps left today, the budget state and the deviation visible (section 5.1).
 Graphic session marks, if a direction draws any, follow the section 3.7 states of the session
@@ -435,7 +440,7 @@ The visualization is shown for every limit kind of the section 4 scenario:
 | --- | --- | --- | --- |
 | A2 | weekly window; OK; sessions ready | The bar, today's budget, the pace mark with "ahead by 5.5 %", and ≈ 4 sessions this week and ≈ 1 session today, labelled as an estimate. | A decimal session count. |
 | D1 | weekly window; OK; stale (dimmed) | The used fill dimmed with "as of 13:38"; today's budget and the pace mark, fixed for the day like `N` and `T`, at full emphasis. | The stale reading at full emphasis; a session figure, because the scenario gives it no paired five-hour window. |
-| B2 | weekly window; at limit (exhausted); estimate not ready | A full bar, "exhausted" and "back Fri 16 Oct 09:30". The section 4.3 budget marks may stay, subordinate to the exhausted state. | An OK or attention look; a session figure or a placeholder for one. |
+| B2 | weekly window; at limit (exhausted); estimate not ready | A full bar, "exhausted" and "back Fri 16 Oct 09:30", with the section 4.3 budget marks and the section 4.2 budget figures, subordinate to the exhausted state. | An OK or attention look; the budget state in place of the exhausted state; a session figure or a placeholder for one. |
 | A1, B1 | five-hour windows; five-hour amber and five-hour red | The used bar in the R-09 colour, with the countdown beside it: 1 h 45 min and 1 h 28 min. | Today's budget, a pace mark, a session figure or hour segments. |
 | A3 | monetary pool; today used; tracked estimate | The bar on the USD 300.00 cap labelled as the user's, today's budget overrun, the pace mark with "behind by USD 81.63", "estimate", the USD 500.00 provider limit as a fact, and the assumed period. | The cap as the provider's limit; a converted amount or more precision than cents. |
 | B3 | balance-only credit pool; OK; tracked estimate, tracked since | The bar on the 17,000-credit cap labelled as the user's, today's budget, the pace mark with "ahead by 1,247", "estimate" and "tracked since 3 Oct", and the provider balance of 10,160 credits as a fact beside it. | The balance as used or as an allotment. |
@@ -469,7 +474,10 @@ After the owner selects a direction, Claude Design delivers its full prototype:
 
 - **Main window in every state.** The section 4 scenario, and a state list that names every
   section 3 state by its identifier and shows it in place: in the scenario where the scenario
-  has it, otherwise with other invented values.
+  has it, otherwise with other invented values. The list includes two combinations the
+  scenario lacks: an unlimited countable pool with a personal cap, which has its budget on the
+  cap, the cap as binding source and "unlimited" as the provider's fact; and an exhausted
+  weekly window with a ready estimate, which shows 0 sessions for the week and for today.
 - **Inline history.** The expanded history of one limit over at least 35 days, with a gap
   (section 5.1).
 - **Tray flyout.** The secondary flyout, currently 360 effective pixels wide, with each
@@ -517,23 +525,23 @@ row names the element that fails it. The rows use the section 3 state names unch
 | DA-3 | Palette contrast | The section 6.2 table gives every text level and all six semantic colours: text at least 4.5:1, non-text marks at least 3:1 against every colour they touch, the dimmed stale level included. Attention is amber, critical is red, and neutral states do not use ok. |
 | DA-4 | Type pairing and font licence | Two families with separate roles; tabular numerals for every figure; no text below 12 effective pixels; each packaged font names a licence that permits embedding and redistribution in an application, and the source of its files; a system font is at most one half of the pairing (section 6.3). |
 | DA-5 | Signature visualization | One visualization combines the bar, today's budget, the pace mark and five-hour sessions. It is shown for every row of the section 6.4 table, with everything in its "Draws" column and nothing in its "Never draws" column, and its marks sit at the section 4.3 positions. |
-| DA-6 | Four accounts fit | The whole section 4 scenario, four accounts with eleven limits, fits 760 × 600 effective pixels at 100 % scaling without scrolling, or a stated other default size with its reason. Each account's status is visible without expanding anything; left today, the budget state and the deviation are visible on each row with a budget; and the text meets DA-3 and DA-4 at that density. |
+| DA-6 | Four accounts fit | The whole section 4 scenario, four accounts with eleven limits, fits the default window of section 5.4 at 100 % scaling without scrolling: 760 × 600 effective pixels, or the direction's stated default size with its reason, which also fits the section 9 work area at 150 %. Each account's status is visible without expanding anything; left today, the displayed state and the deviation are visible on each row with a budget; and the text meets DA-3 and DA-4 at that density. |
 | DA-7 | Buildable in WinUI 3 | Every effect is available in WinUI 3 XAML or composition, the background is solid, nothing needs a WebView, and colours come from the direction's own tokens (section 9). |
 
 ### 8.2 Prototype acceptance
 
 | Row | Criterion | Passes when |
 | --- | --- | --- |
-| PA-1 | Every section 3 state visible | The state list names every section 3 state by its identifier and shows each one in place (section 7.2). |
+| PA-1 | Every section 3 state visible | The state list names every section 3 state by its identifier and shows each one in place, with the two combinations section 7.2 names (section 7.2). |
 | PA-2 | No tooltip-only decision information | Every figure that answers a section 2 question is visible, or one keyboard step away on the focused row; tooltips only repeat visible information; no reading lives only in hover text (section 5.4). |
-| PA-3 | Figures match section 4 | Every value of section 4.2, every bar position of section 4.3 to 0.1 point, and every account status of section 4.4 is shown as written, with the same rounding. |
+| PA-3 | Figures match section 4 | Every value of section 4.2, every bar position of section 4.3 to 0.1 point, and every account status of section 4.4 is shown as written, with the same rounding. B2's budget figures and marks are included, subordinate to its exhausted state (section 6.4). |
 | PA-4 | R-09 colours | A1 is amber with "1 h 45 min" and B1 red with "1 h 28 min" beside the bar; a five-hour window above 30 % left has no countdown; no five-hour window is split into hours; the colour never stands alone. |
 | PA-5 | No figures without data | No figure, bar or colour for the provider-UI-only limits of section 3.12; unknown shown by an unknown mark, never as 0 or unlimited; a not-ready estimate hidden; each no-budget state gives its reason in words, never an empty budget; not included and capped at 0 without a bar. |
 | PA-6 | Labels and truthfulness | "estimate", "assumed", "tracked since", "incomplete" and "period unknown" appear wherever section 3 requires them; stale readings are dimmed with their time; there is no combined percentage, no sum of different limits and no conversion between units or currencies (section 3.12). |
 | PA-7 | Identity kept | The prototype uses the selected direction's concept, tokens and type pairing, and DA-2 passes again on every screen. |
 | PA-8 | Contrast and colour alone | On the final tokens, text is at least 4.5:1 and non-text marks at least 3:1, the dimmed stale level included; every coloured state also has a word or a shape. |
 | PA-9 | Keyboard and screen-reader notes | The focus order, a visible focus indicator, a key for every action, the accessible name of every control and every figure with its state words, and the reduced-motion behaviour are specified (section 7.2). |
-| PA-10 | Layouts at 100 % and 150 % | The section 4 scenario fits the default window without scrolling at 100 % and at 150 % display scaling, thin marks stay distinguishable at 150 %, and at 200 % the content scrolls vertically with nothing clipped (section 9). |
+| PA-10 | Layouts at 100 % and 150 % | The section 4 scenario fits the default window accepted with the direction (section 5.4) without scrolling at 100 % and at 150 % display scaling, thin marks stay distinguishable at 150 %, and at 200 % the content scrolls vertically with nothing clipped (section 9). |
 | PA-11 | Surfaces complete | Inline history with a gap, the tray flyout, the settings panel with work days, caps, an unmatched cap and a currency mismatch, inline rename and cap editing, "Confirm · Cancel", undo, first run and the sign-in strip are delivered, with no modal dialog, pop-up window or account detail view (R-01). |
 | PA-12 | Buildable in WinUI 3 | Every effect and component maps to WinUI 3 XAML or composition, each packaged font is a .ttf or .otf file with a named licence, and nothing needs a WebView (section 9). |
 | PA-13 | Token and component specifications | The tokens and components of section 7.2 are complete, with values and sizes in effective pixels that an implementer can transfer to XAML without measuring the prototype. |
@@ -571,12 +579,13 @@ The shipped interface is native. These limits decide what a direction may propos
 - **Reduced motion.** When Windows animation effects are off, state changes are instant, and
   no information is carried by motion alone.
 - **Display scaling.** Layouts are in effective pixels and are checked at 100 %, 150 % and
-  200 %. The section 4 scenario fits the 760 × 600 default at 100 %. At 150 % the same layout
-  fits a 1920 × 1080 display, which offers 1280 × 720 effective pixels less the taskbar, and
-  thin marks stay distinguishable at 1.5 physical pixels per effective pixel. At 200 % such a
-  display offers 960 × 540 effective pixels less the taskbar, which is lower than the default
-  window: the window then fits the work area and its content scrolls vertically, with nothing
-  clipped.
+  200 %. The section 4 scenario fits the default window of section 5.4 at 100 %: 760 × 600,
+  unless the owner accepted another size with the selected direction. At 150 % the same window
+  and layout fit a 1920 × 1080 display, which offers 1280 × 720 effective pixels less the
+  taskbar, and thin marks stay distinguishable at 1.5 physical pixels per effective pixel. At
+  200 % such a display offers 960 × 540 effective pixels less the taskbar, which can be smaller
+  than the default window: the window then fits the work area and its content scrolls
+  vertically, with nothing clipped.
 - **Text size.** The fit applies at the Windows text size of 100 %. At a larger text size the
   content scrolls, and no figure is truncated.
 - **Status never by colour alone.** Every coloured state also has a word, and marks differ in

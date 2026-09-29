@@ -1,5 +1,80 @@
 # AIU-034 verification
 
+## T-15 brief findings resolution and Gate B preparation - 2026-09-29
+
+Primary [opus] session. Base `0eee0ef`; the initial `git pull` brought `main` up to date and
+the tree was clean.
+
+**Authorization.** In the session conversation the owner reported T-14 complete and
+instructed "continue with T-15". This covers T-15 as written, including the commit and push
+to `main`. It does not cover Gate B, T-16 or any Claude Design contact.
+
+**Scope.** `design-brief.md` sections 3.4, 3.5, 3.7, 3.8, 4.2 (B2 wording only), 5.1, 5.4,
+6.4, 7.2, 8.1 (DA-6), 8.2 (PA-1, PA-3, PA-10) and 9 (display scaling); this record; the T-15
+status and handoff in tasks.md. No section 4 input, figure or bar position changed, and no
+state was renamed. research.md is unchanged: no new decision was raised. Documents only. No
+product code, stored format, transport, provider request, sign-in, live check or Claude Design
+contact.
+
+### Findings (Step 1)
+
+All four T-14 findings are resolved by brief changes. The resolution is recorded next to each
+finding in the T-14 section below.
+
+| Finding | Resolution | Brief locations |
+| --- | --- | --- |
+| F-13 unlimited with a personal cap | RESOLVED as suggested: with a cap, the cap is `L` and binds, and the pool is budgeted on it with "unlimited" as the provider's fact; no budget only without a cap. | 3.4, 3.5, 3.8, 7.2, PA-1 |
+| F-14 exhausted zero versus less than one session | RESOLVED: on an exhausted weekly window both session figures are 0, and this takes precedence over "< 1 session". Departs from the suggestion for today's figure; the reasoning is under F-14. | 3.7, 6.4, 7.2, PA-1 |
+| F-15 optional exhausted budget marks | RESOLVED: the marks and figures are mandatory and subordinate to the limit state; PA-3 is aligned. Supersedes brief choice 17. | 4.2, 5.1, 6.4, DA-6, PA-3 |
+| F-16 alternate default size | RESOLVED as suggested: one default window, 760 × 600 unless the owner accepts another size with the selected direction; a proposed size must fit a 1920 × 1080 display at 150 %. | 5.4, DA-6, PA-10, 9 |
+
+Open findings after T-15: **0**. New owner decisions: none. PD-034-04 is not used.
+
+Two resolutions are presentation choices that the owner can override at Gate B: F-14's today
+figure of 0 on an exhausted window, and F-15's mandatory subordinate marks. Both are listed in
+the Gate B report.
+
+### B-1 to B-6 coverage (Step 2)
+
+Checked on the changed brief against [spec.md](spec.md) Phase B. PASS means the brief carries
+the clause. It does not mean that a direction or prototype has passed it.
+
+| Clause | Result | Brief evidence |
+| --- | --- | --- |
+| B-1 user and jobs | PASS | Section 2 names the user, copies the four glance questions verbatim, and answers each one with a section 3 element. |
+| B-2 data and states | PASS | Sections 3.1 to 3.12 list every limit kind and every spec-named state: unknown, stale, assumed reset, exhausted, signed out, sign-in expired, day off, estimate not ready, cap set or unset, currency mismatch. The F-13 and F-14 overlaps are removed. |
+| B-3 information architecture | PASS | 5.1 R-01 and the hierarchy; 5.2 inline rename, inline cap editing and R-12; 5.3 R-13; 5.4 tooltips and fit to one consistent default window (F-16). |
+| B-4 visual identity | PASS | Section 6 carries the forbidden, required and kept lists verbatim (13 spec lines and 2 continuation lines found), with 6.1 to 6.4 and section 9; DA-1 to DA-5 and DA-7. |
+| B-5 deliverables | PASS | 7.1 two or three directions and the owner's selection; 7.2 the full prototype in every state, surfaces, token and component specifications, and keyboard, accessible-name and reduced-motion notes. |
+| B-6 acceptance rubric | PASS | DA-1 to DA-7 and PA-1 to PA-13 are present and consistent with sections 3 to 7 after F-15 (PA-3) and F-16 (DA-6, PA-10). |
+
+AC-08 stays NOT_RUN: it also needs the Gate B owner review, which is not recorded.
+
+### Checks (Step 3)
+
+- **Scratch coverage and resolution check.** A bash script in the session scratchpad, not
+  committed, made 93 checks with 0 failures:
+  - the four glance questions, verbatim in the spec and in the section 2 table;
+  - 16 section 3 state identifiers, including every B-2 state;
+  - 9 B-3 phrases;
+  - the 13 B-4 list lines verbatim from the spec, plus 2 continuation lines;
+  - 10 B-5 deliverables and the 20 rubric rows;
+  - 18 checks that each F-13 to F-16 resolution text is present and each superseded text is
+    absent.
+
+  Six injected defects were detected (one per finding, one in B-1, one in B-6), 6 of 6.
+- **Figures.** The section 4 inputs, 4.2 figures, 4.3 positions and 4.4 statuses are
+  unchanged: the diff changes only the wording of B2's budget cell. T-14's 166-comparison
+  recomputation therefore still holds.
+- **Privacy scan.** design-brief.md, tasks.md and verification.md were scanned for e-mail
+  addresses, UUIDs, bearer or JWT tokens, `sk-` keys, secret assignments, local user paths and
+  owner identity strings: 0 hits. The added text has only synthetic values and document
+  references.
+- **Validator and whitespace.** `dotnet run --project tools/AiUsage.ProjectValidation
+  --no-restore -- --root . --json` returned `{"valid":true,"diagnostics":[]}` (exit 0), and
+  `git diff --check` was clean (exit 0). Both were run on the final tree, including this
+  record and the tasks.md handoff.
+
 ## T-14 independent brief review - 2026-09-29
 
 Primary [astra] review of base `9115984a67af971338819356c952edbd2d2126ab`. Initial
@@ -183,6 +258,16 @@ No new owner decision was created; T-15 owns resolution or escalation from PD-03
 - **Suggested resolution:** qualify no-budget/unlimited as no comparable personal cap; keep
   provider unlimited as a fact while showing an eligible cap budget and its binding source.
   Include this combination in prototype coverage.
+- **Resolution (T-15): RESOLVED by brief change, as suggested.** 3.4 `unlimited` now splits
+  the two cases: without a cap there is no bar, remainder or budget; with a cap, `L` is the cap,
+  which binds, and the pool shows its bar, budget and states on the cap with "unlimited" as the
+  provider's fact. Its "never" column adds a cap ignored because the provider is unlimited, and
+  a flag-side amount used as `L` (E11c). 3.5 `no budget, with reason` now applies to limit
+  unknown or unlimited *without a personal cap*. 3.8 `binding source` now applies to every
+  pool with a cap and names the cap as binding when the provider limit is unknown or
+  unlimited, as research 5.4's table does. 7.2 and PA-1 add the combination to the prototype
+  state list. The synthetic example of the finding (unlimited provider, cap 100 requests, known
+  month, `U` = 20) now matches only the budgeted reading.
 
 #### F-14 - Less-than-one session forbids the exhausted zero exception
 
@@ -195,6 +280,20 @@ No new owner decision was created; T-15 owns resolution or escalation from PD-03
 - **Suggested resolution:** state exhausted-zero precedence for the weekly figure and scope
   less-than-one accordingly; retain readiness/estimate rules for text and graphics. Derive
   today's figure from T/C separately from the weekly exhausted-zero exception.
+- **Resolution (T-15): RESOLVED by brief change, with one departure from the suggestion.**
+  3.7 `sessions ready` states both formulas, weekly `(100 - U) / C` and today `T / C`, and
+  that today's figure is today's allowance rather than what is left of it. When the weekly
+  window is exhausted, **both** figures show 0 sessions, and this takes precedence over "< 1
+  session". `less than one session` now applies to a figure above 0 and below 1 while the
+  weekly window is not exhausted. Readiness and the estimate label are unchanged. 6.4 repeats
+  the rule, and 7.2 and PA-1 add an exhausted weekly window with a ready estimate to the
+  prototype state list.
+  **Departure:** the suggestion kept today's figure at `T / C` on an exhausted window. Research
+  7.5 puts "0 when the weekly window is exhausted" in its Display rule, which covers both
+  figures, not only the weekly one. A positive today figure beside "exhausted" would also
+  answer "When does it come back?" wrongly: no session is available until the reset. `T`
+  itself stays as a subordinate budget figure under F-15. This reads research 7.5; it does not
+  change it, so no new decision was raised.
 
 #### F-15 - Optional exhausted budget marks become mandatory in PA-3
 
@@ -206,6 +305,17 @@ No new owner decision was created; T-15 owns resolution or escalation from PD-03
   permits subordinate budget marks; PA-3 makes no omission exception. Arithmetic passes.
 - **Suggested resolution:** choose mandatory or optional exhausted marks and align PA-3;
   if optional, check positions when drawn and specify access to kept-available budget figures.
+- **Resolution (T-15): RESOLVED by brief change: mandatory and subordinate.** A limit at or
+  over its limit shows that limit state in place of its budget state (research 8.8), and its
+  budget figures and bar marks stay, subordinate to it. This is written in 5.1 (limit rows),
+  4.2 B2 ("shown subordinate to the exhausted state, which replaces the budget state"), 6.4
+  (today's budget overrun on A3 and B2; the B2 row draws the 4.3 marks and the 4.2 figures,
+  and never draws the budget state in place of the exhausted state) and PA-3 (B2's figures and
+  marks included). DA-6 now reads "the displayed state" so that B2's exhausted state satisfies
+  it. Mandatory rather than optional because it keeps one acceptance target and needs no new
+  disclosure mechanism. Research 8.8 changes the displayed state, not the budget arithmetic.
+  The overrun from 97.7 to 100 and the pace mark at 72.1 also show why the window ran out.
+  This supersedes brief choice 17 (optional marks); choice 10 stands.
 
 #### F-16 - Alternate default size conflicts with the fixed platform requirement
 
@@ -219,6 +329,17 @@ No new owner decision was created; T-15 owns resolution or escalation from PD-03
 - **Suggested resolution:** use one owner-selected default consistently, with 760 by 600 as
   the reference starting size; specify the work-area/scroll fallback and 150 % density test
   when the size changes.
+- **Resolution (T-15): RESOLVED by brief change, as suggested.** 5.4 now defines one "default
+  window": 760 × 600 effective pixels, unless a direction proposes another size with its
+  reason. A proposed size must fit the work area of a 1920 × 1080 display at 150 % scaling,
+  1280 × 720 effective pixels less the taskbar. The owner accepts the size when selecting the
+  direction, and from then on it is the default window for the prototype and for DA-6, PA-10
+  and section 9. DA-6 checks the 760 × 600 size, or the stated size with its reason and the
+  150 % work-area fit. PA-10 checks the size accepted with the direction. Section 9 refers to
+  the default window of 5.4 and keeps the 200 % work-area and vertical-scroll fallback for any
+  default size ("can be smaller than the default window"). The example of an 800 × 640
+  proposal now has one target: 800 × 640 at 100 % and 150 %, if the owner accepts it with the
+  direction.
 
 ### Publication checks and limits (Steps 5 and 6)
 
@@ -1072,7 +1193,7 @@ Phase A source research has started. The owner approved the specification on 202
 | --- | --- | --- |
 | Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
 | Gate A | PASS | Owner accepted Phase A in the session conversation on 2026-09-29, with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11 readings (D-185). |
-| Gate B | NOT_RUN | T-14 independent review completed on 2026-09-29 with four open findings, F-13 to F-16. T-15 must resolve them and prepare the brief for owner review. |
+| Gate B | NOT_RUN | T-14 found four findings, F-13 to F-16. T-15 resolved all four by brief changes on 2026-09-29, with no new decision. design-brief.md is ready for the owner's Gate B review. |
 
 ## Results by acceptance criterion
 
@@ -1085,7 +1206,7 @@ Phase A source research has started. The owner approved the specification on 202
 | AC-05 | PASS | T-11: `U0` source per provider (6.1), local series and retention (6.2 to 6.6), security-lifecycle precondition noted. |
 | AC-06 | PASS | T-11: section 7 inputs, formula, minimum samples, invalidation and label; cases S01 to S09. |
 | AC-07 | PASS | Gate A owner review recorded on 2026-09-29, before any Phase B work (D-185). |
-| AC-08 | NOT_RUN | |
+| AC-08 | NOT_RUN | T-15: the brief covers B-1 to B-6 (coverage table in the T-15 section). The Gate B owner review is not yet recorded. |
 | AC-09 | NOT_RUN | |
 | AC-10 | NOT_RUN | |
 
