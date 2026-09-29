@@ -272,7 +272,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-030 - Single-window shell, one-click sign-in and immediate sign-out
 - goal: G-003
-- status: review
+- status: done
 - depends_on: [AIU-010]
 - trigger: owner-selected
 - outcome: One usage window without tabs and a Settings icon on the right that shows every settings section, System status included. Add account opens a provider menu on hover; one provider click starts browser sign-in with inline progress and no dialog or confirmation, and success simply adds the account. Each account panel has an icon-only sign-out that disconnects immediately and keeps history.
@@ -280,10 +280,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-030-single-window/verification.md
 - scope-note: Owner request, 2026-09-24, recorded as D-180. Provider connection flows, credential storage and D-093 retention are unchanged; only the presentation around them changes.
 - review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke and interactive demo checks on 2026-09-24. A live provider sign-in and sign-out through the new menu and panel button are NOT_RUN and await the owner's own check; the tray smoke rows were not run locally because the owner's instance was running.
+- closure-note: Owner decision, 2026-09-29: closed. The owner reports that live sign-in and sign-out through the new menu and panel button work (owner's own check, not agent-observed). The remaining NOT_RUN rows (tray smoke rows, packaged harnesses, screen-reader acceptance) are not repeated on a UI that the AIU-034 redesign replaces; they are deferred to its implementation items.
 
 ## AIU-031 - Compact usage view with daily pace colors
 - goal: G-003
-- status: review
+- status: done
 - depends_on: [AIU-030]
 - trigger: owner-selected
 - outcome: The usage view shows only the limit bars, one line per account with window names once per provider and details on hover. Bar color is pace advice: weekly and longer windows split the remainder into even daily shares and turn orange, then red, as today's share runs out; windows shorter than a day turn red at 20 % or less.
@@ -291,10 +292,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-031-compact-pace/verification.md
 - scope-note: Owner requests, 2026-09-24, recorded as D-181. Advice only; readings, detail, the tray and notification thresholds stay factual. History-based forecasting remains AIU-024.
 - review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke and interactive demo checks on 2026-09-24. Pace colors on live provider readings and the tray smoke rows are NOT_RUN.
+- closure-note: Owner decision, 2026-09-29: closed. Pace colors on live readings are not verified because the AIU-034 work-day budget replaces them. The remaining NOT_RUN rows are deferred to the AIU-034 implementation items.
 
 ## AIU-032 - Dark-only appearance and removed-UI cleanup
 - goal: G-003
-- status: review
+- status: done
 - depends_on: [AIU-031]
 - trigger: owner-selected
 - outcome: The app always uses the dark palette with no theme setting, and code, styles, strings and demo controls left over from removed screens and themes are deleted.
@@ -302,10 +304,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-032-dark-only-cleanup/verification.md
 - scope-note: Owner request, 2026-09-24, recorded as D-182. The account list beside account detail stays.
 - review-note: Implemented and verified with deterministic tests, demo and empty-product Windows smoke including the tray rows, and interactive demo checks on 2026-09-24. Rendering under Windows light mode or a contrast theme and the packaged harnesses are NOT_RUN.
+- closure-note: Owner decision, 2026-09-29: closed. Rendering under Windows light mode or a contrast theme and the packaged harnesses are deferred to the AIU-034 implementation items, which keep dark-only (D-182) and verify it on the new interface.
 
 ## AIU-033 - Automatic quota refresh
 - goal: G-003
-- status: review
+- status: done
 - depends_on: [AIU-004]
 - trigger: owner-selected
 - outcome: Connected accounts are read again every five minutes with failure backoff, sign-in states are left to the user, and readings nobody renewed for 15 minutes show as stale.
@@ -313,6 +316,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-033-automatic-refresh/verification.md
 - scope-note: Owner request, 2026-09-25, after a Codex limit reset stayed invisible for hours. Minimal slice of D-099 split from AIU-012.
 - review-note: Deterministic tests and an empty-state Release run pass. Automatic refresh of a real account in the installed package is NOT_RUN.
+- closure-note: Owner decision, 2026-09-29: closed. Automatic refresh of a real account in the installed package is deferred to the AIU-034 implementation items, which rework the live adapters and whose local reading series depends on this refresh.
 
 ## AIU-034 - Limit data audit and budget-aware single-window design brief
 - goal: G-003

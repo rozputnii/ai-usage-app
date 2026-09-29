@@ -53,3 +53,7 @@ already did for most buttons, and passed.
 - NOT_RUN: packaged install, update and recovery harnesses. `RecoverySmoke` and `UpdateSmoke`
   now find settings through the gear or, for older packages, the former Settings tab.
 - NOT_RUN: screen-reader acceptance beyond automation names and the live-region announcement.
+
+## Owner closure - 2026-09-29
+
+Owner decision, 2026-09-29: closed. The owner reports that live sign-in and sign-out through the new menu and panel button work (owner's own check, not agent-observed). The remaining NOT_RUN rows (tray smoke rows, packaged harnesses, screen-reader acceptance) are not repeated on a UI that the AIU-034 redesign replaces; they are deferred to its implementation items. The NOT_RUN rows above stay NOT_RUN; they are not converted to PASS.

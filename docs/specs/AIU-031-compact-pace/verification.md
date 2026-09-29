@@ -32,3 +32,7 @@ Demo time is Monday 15 Sept 2026 12:00 UTC with weekly windows resetting Thursda
   tray icon is found by name).
 - NOT_RUN: packaged install and update harnesses, and screen-reader acceptance beyond automation
   names.
+
+## Owner closure - 2026-09-29
+
+Owner decision, 2026-09-29: closed. Pace colors on live readings are not verified because the AIU-034 work-day budget replaces them. The remaining NOT_RUN rows are deferred to the AIU-034 implementation items. The NOT_RUN rows above stay NOT_RUN; they are not converted to PASS.

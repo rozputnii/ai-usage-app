@@ -1,7 +1,7 @@
 ---
 id: AIU-031
 type: spec
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner requests, 2026-09-24, in the session conversation - make the usage view compact and show only the limit bars (remove the top summary panel, the captions left of the bars, and the percentages, reset times and dates right of them), then color weekly limits by an even daily share so the bar turns orange when today's share is nearly used and red once it is used, and for the 5-hour window simply turn red at 20 % or less remaining without time pacing. The owner accepted the proposed details (window names once per provider, reset time only when a limit is exhausted, a stale mark instead of error text, other groups left to account detail, a smaller window). The bar split with a pace mark, the 30 % warning level and deferring working-day settings are the recommended defaults, recorded as D-181.

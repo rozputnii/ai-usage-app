@@ -27,3 +27,7 @@ directory under the session scratch folder, and each was closed afterwards.
 - NOT_RUN: rendering with Windows in light app mode or with a Windows contrast theme active.
 - NOT_RUN: packaged install, upgrade and feed-update harnesses (their preference assertion
   changed from the theme note to the always-on-top switch).
+
+## Owner closure - 2026-09-29
+
+Owner decision, 2026-09-29: closed. Rendering under Windows light mode or a contrast theme and the packaged harnesses are deferred to the AIU-034 implementation items, which keep dark-only (D-182) and verify it on the new interface. The NOT_RUN rows above stay NOT_RUN; they are not converted to PASS.

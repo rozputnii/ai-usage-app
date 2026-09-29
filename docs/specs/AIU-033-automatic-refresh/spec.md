@@ -1,7 +1,7 @@
 ---
 id: AIU-033
 type: spec
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner request, 2026-09-25, in the session conversation - the dashboard kept showing a Codex limit the owner had already reset, because nothing refreshed quota after startup; the owner asked to fix it with the minimal slice of D-099 proposed in that conversation.

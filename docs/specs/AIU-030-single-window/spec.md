@@ -1,7 +1,7 @@
 ---
 id: AIU-030
 type: spec
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner request, 2026-09-24, in the session conversation - simplify the interface because it has too many steps and transitions; one window without tabs and a separate settings button on the right; no Add account dialog, with a provider list that opens on hover and starts browser sign-in on one click, adding usage without any confirmation; an icon-only exit button on the right of each account usage panel that signs out without confirmation and does not delete history. Remaining layout choices below are derived within that request and recorded as D-180.

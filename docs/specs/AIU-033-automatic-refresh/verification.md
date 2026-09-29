@@ -29,3 +29,7 @@ scheduler for quota reads; D-099 was accepted but unimplemented (AIU-012 remaine
   install the next Dev build, leave it open for more than five minutes and confirm the row's
   reading time advances without a click.
 - NOT_RUN: Infrastructure suite (no Infrastructure change), package build and Windows smoke rows.
+
+## Owner closure - 2026-09-29
+
+Owner decision, 2026-09-29: closed. Automatic refresh of a real account in the installed package is deferred to the AIU-034 implementation items, which rework the live adapters and whose local reading series depends on this refresh. The NOT_RUN rows above stay NOT_RUN; they are not converted to PASS.

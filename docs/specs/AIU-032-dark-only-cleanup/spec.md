@@ -1,7 +1,7 @@
 ---
 id: AIU-032
 type: spec
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner request, 2026-09-24, in the session conversation - remove the light and the contrast theme together with the theme settings, and clean out the leftovers of the interface removed by AIU-030 and AIU-031. Recorded as D-182.

@@ -256,6 +256,18 @@ agents. Each proposed task title carries the recommended agent tag, as in Phase 
 - A change to the presentation contract is agreed between the two tasks. It is never changed
   silently from either side.
 
+Owner decision, 2026-09-29: AIU-030 to AIU-033 were closed without repeating checks on a UI
+that this redesign replaces. The follow-up items must carry these checks as acceptance
+criteria and run them on the new interface:
+
+- dark-only rendering (D-182) with Windows in light app mode and with a contrast theme;
+- budget and five-hour colors on live provider readings;
+- live sign-in and sign-out through the new controls, with history kept (D-093);
+- automatic refresh of a real account in the installed package, including the local reading
+  series written by each refresh (D-184);
+- the tray smoke rows, the packaged install, update and recovery harnesses, and screen-reader
+  acceptance.
+
 ## Boundaries
 
 - Research is read-only and uses the provider-evidence skill. There are no new authorizations,
