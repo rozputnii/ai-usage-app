@@ -730,28 +730,28 @@ proposed item.
   push. Write the handoff: next task T-14 `[astra]`.
 
 ### T-14 - [astra] Independent detail review of the brief
-- status: pending
+- status: done
 - depends_on: [T-13]
 - acceptance: AC-08, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `design-brief.md` (mechanical corrections only), `verification.md` (review record)
 - Scratch only, never committed: a recomputation script in the session's temporary directory
 
-- [ ] **Step 1:** Check every clause of spec B-1 to B-6, R-01 to R-15 and D-183 to D-185
+- [x] **Step 1:** Check every clause of spec B-1 to B-6, R-01 to R-15 and D-183 to D-185
   against the brief, word by word.
-- [ ] **Step 2:** Recompute every section 4 figure with a new script from its inputs and
+- [x] **Step 2:** Recompute every section 4 figure with a new script from its inputs and
   research section 8, and compare every value.
-- [ ] **Step 3:** Check review focus 1 to 5: no figure for a UI-only pool, an unknown or a
+- [x] **Step 3:** Check review focus 1 to 5: no figure for a UI-only pool, an unknown or a
   not-ready state; no tooltip-only decision information; every forbidden look item named in
   the rubric; every WinUI 3 and MSIX statement; the font licence statements against the
   official licence pages (read-only web access).
-- [ ] **Step 4:** Fix mechanical defects directly: arithmetic, a missing reference, a wrong
+- [x] **Step 4:** Fix mechanical defects directly: arithmetic, a missing reference, a wrong
   state name. Record every other finding in verification.md as `F-nn`, from F-13, with
   location, problem, evidence and suggested resolution, without changing the design.
-- [ ] **Step 5 (check):** the privacy scan, the validator and `git diff --check` pass.
-- [ ] **Step 6:** Commit "AIU-034 Phase B: independent brief review" and push. Write the
+- [x] **Step 5 (check):** the privacy scan, the validator and `git diff --check` pass.
+- [x] **Step 6:** Commit "AIU-034 Phase B: independent brief review" and push. Write the
   handoff: next task T-15 `[opus]`, with the count of open findings.
 
 ### T-15 - [opus] Resolve brief findings and prepare Gate B
@@ -885,17 +885,33 @@ MSIX, font-licence, accessibility and scaling limits; section 10 the sources. Se
 are unchanged. verification.md holds the B-4 to B-6 clause mapping, the review focus to rubric
 table and brief choices 11 to 23 for T-14.
 
-Next action: T-14 `[astra]`, Step 1 (check every clause of spec B-1 to B-6, R-01 to R-15 and
-D-183 to D-185 against the brief). T-14 Step 3 also verifies the section 9 licence statements
-against the official licence pages: T-13 only confirmed that the SIL OFL official-text page
-resolves, and could not fetch the Apache License page.
-
 T-13 checks: validator `--json` valid true with no diagnostics; `git diff --check` clean;
 scratch clause and rubric check (25 mapping rows, 25 spec and 42 brief quotes found, 20 rubric
 rows, 51 state names, 17 scenario figures, 0 failures; 8 of 8 injected defects detected) and
 privacy scan (0 hits) pass. Primary review only; no subagents or pending worker artifacts.
 
-Blockers: none for T-14. Sending the brief to Claude Design needs Gate B and a working Claude
+T-14 done on 2026-09-29, base `9115984`: primary [astra] independently checked B-1 to B-6,
+R-01 to R-15, D-183 to D-185, all five Phase B review focus items and all 23 brief choices.
+The new temporary recomputation script made 166 comparisons with 0 mismatches. Official OFL
+1.1 and Apache 2.0 licence texts were read and their embedding/redistribution statements
+checked. No mechanical defects were found, so design-brief.md is unchanged.
+
+Open findings: **4**, F-13 to F-16 in verification.md: unlimited with a personal cap;
+exhausted zero sessions versus less-than-one; optional exhausted budget marks versus PA-3;
+alternate default size versus section 9. No new owner decision was created.
+
+T-14 checks: privacy scan over all three Phase B records, 0 hits; 15 relative document links,
+0 missing; validator `--json` returned `{"valid":true,"diagnostics":[]}`; `git diff --check`
+clean. No subagents or pending worker artifacts. Scratch scripts/results stay outside Git.
+No product code, live checks, sign-in, provider requests or Claude Design contact.
+Gate B and AC-08 remain NOT_RUN; the review is complete, not design acceptance.
+
+Next action: T-15 `[opus]`, Step 1: resolve F-13 to F-16, beginning with F-13's unlimited/cap
+catalogue conflict, or raise an owner decision from PD-034-04. T-15 remains pending; T-14 did
+not start it.
+
+Blockers: none for T-15; the four open findings need resolution before Gate B preparation.
+Sending the brief to Claude Design needs Gate B and a working Claude
 Design connection (`/design-login`).
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,

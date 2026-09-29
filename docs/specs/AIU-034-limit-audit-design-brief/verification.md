@@ -1,5 +1,244 @@
 # AIU-034 verification
 
+## T-14 independent brief review - 2026-09-29
+
+Primary [astra] review of base `9115984a67af971338819356c952edbd2d2126ab`. Initial
+`git pull`: already up to date; `main` and working tree clean. T-14 was set in-progress
+before review. This is a fresh review of the committed brief against the accepted spec and
+research, not reliance on T-12/T-13's results. The convergence-review skill was applied by the
+primary; no subagents or write workers were used.
+
+**Result:** arithmetic PASS; brief consistency FAIL pending **four open findings, F-13 to
+F-16**, for T-15. No mechanical correction was needed; design-brief.md is unchanged.
+Publishing the review does not approve the design or resolve its findings. Only T-14's task
+and verification records changed; no product code, research rules, provider records or backlog.
+
+### Clause-by-clause review (Step 1)
+
+Locations are in design-brief.md unless stated otherwise. PASS means the brief carries the
+clause, not that a prototype or implementation has passed it.
+
+| Clause | Brief evidence and result |
+| --- | --- |
+| B-1 user and all four questions | PASS: section 2 names the developer and work/personal subscriptions, copies all four questions verbatim and maps each to a displayed element. |
+| B-2 kinds and every Phase A state | Catalogue checked against research 5.4, 6.4, 6.5, 7.5, 8.1, 8.5 and 8.8. Sections 3.1-3.12 cover native kinds, unknown/stale/assumed/exhausted, signed out/expired sign-in, day off/not-ready estimate, caps set/unset and currencies. FAIL on unlimited/cap and session rule overlaps, F-13/F-14; other required states are present. |
+| B-3 R-01/R-12/R-13; hierarchy; editing | PASS: 5.1 provider/account/limit hierarchy; 5.2 inline rename/caps/confirmation/undo and immediate sign-out; 5.3 inline settings and secondary tray. |
+| B-3 decision information and density | Coverage present in 5.4, DA-6 and PA-2: no tooltip-only decision information, four-account reference. Alternative default size conflicts with section 9, F-16. Actual layout fit NOT_RUN. |
+| B-4 forbidden items | PASS: all five bullets copied verbatim in section 6; DA-2 explicitly checks all eight constituent prohibitions plus R-08's default theme; PA-7 repeats the check. |
+| B-4 concept and palette | PASS: 6.1 name/rationale and consequences for palette/type/visualization; 6.2 all six semantic colours, dark surfaces, text/non-text contrast including stale; DA-1/DA-3/PA-8. |
+| B-4 type and visualization | Coverage present: 6.3 distinctive pairing/tabular figures; 6.4 bar/budget/pace/sessions with per-kind exceptions; DA-4/DA-5. Exhausted marks need F-15. |
+| B-4 kept clauses | PASS: 6/9 retain dark-only, non-colour status, WinUI 3/Windows 11 and licensed MSIX fonts; source checks below. |
+| B-5 directions and selection | PASS: 7.1 requires two or three distinct directions and owner selection before 7.2. |
+| B-5 prototype and surfaces | PASS: 7.2 requires every section 3 state, main window, tray, settings, inline editing/confirmation, first run and sign-in strip; PA-1/PA-11. History and undo also included. |
+| B-5 specifications/accessibility | PASS: 7.2 tokens/components, keyboard, accessible-name and reduced-motion notes; PA-9/PA-13. |
+| B-6 both acceptance checklists | Present: DA-1-DA-7 and PA-1-PA-13. FAIL on consistency issues F-15/F-16, not on missing checklists. |
+| R-01 | PASS: 3.1/5.1 include scoped windows/pools in one main window, inline names/status, no account-detail/modal/pop-up view; PA-11. |
+| R-02 | PASS: 3.1 preserves percent/requests/credits/money; 3.12/PA-6 forbid conversion, sums of limits and combined percentages. |
+| R-03 | 3.8/5.2 carry local caps, native units, provider/cap separation and lower-of-two binding; B3 demonstrates cap with unknown provider limit; percentage windows have no cap. FAIL for unlimited with cap, F-13. |
+| R-04 | PASS: 4/5.3 use one global Monday-Friday default; 7.2 exposes its settings. |
+| R-05 | PASS: 3.6/4 carry U0/U, fixed N, partial-day T, baseline B, deviation, used/left today and recomputation triggers; 3.5 carries Wr = 0. All scenario calculations match research 8. Zero-limit exceptions follow D-185. |
+| R-06 | PASS: 3.3/4 preserve supplied resets, label assumed starts/month bounds, and keep unknown-duration periods unknown. Copilot displays the date only and uses UTC month subtraction for its assumed start. |
+| R-07 | 3.7/A2 carry weekly/today sessions from the same pool, ready-only display and estimate labels; 3.1 excludes shared estimates for scoped limits. FAIL on zero versus less-than-one, F-14. |
+| R-08 | PASS: section 6 and DA-2(i)/PA-7 reject Claude Design's default theme/colours. |
+| R-09 | PASS: 3.10/A1/B1/6.4/PA-4 carry amber at <= 30 %, red at <= 10 % or exhaustion, countdown beside the bar from amber, no hour segments. Red takes precedence within amber's threshold. |
+| R-10 | PASS: 3.11 gives accepted precedence, names the binding limit and dims stale status; all four 4.4 results reproduce it. |
+| R-11 | PASS: 3.1/3.5 exclude five-hour daily budgets; day-off budget is neutral while 3.4/3.11 preserve exhausted/over-cap states. No holiday/vacation feature is introduced. |
+| R-12 | PASS: 5.2/7.2/PA-11 carry in-place Confirm/Cancel, undo and immediate sign-out retaining history, consistent with D-093. |
+| R-13 | PASS: 5.3/7.2/PA-11 keep settings inline and tray secondary. |
+| R-14, amended by D-184 | PASS: 3.2/5.1/7.2 require inline local history and gaps; provider history is excluded. |
+| R-15 | Explicit rules present in 3.2/3.3/3.7/3.12 and PA-5/PA-6 for unknown, stale, estimates, assumed bounds and no combined percentages. F-13/F-14 qualify edge-state consistency. |
+| D-183 | Coverage present for single-window structure, subscription limits, caps, work days, adaptive/baseline budgets, periods, sessions, five-hour colours and binding status, subject to F-13/F-14. Sections 2/3 enumerate subscription families, not API billing. Section 5.5 keeps current behaviour until implementation; Gate A preceded Phase B. |
+| D-184 | PASS: 5.1 excludes provider history; 1/3.6/3.7 reference accepted local-series derivations for day-start, tracked use and sessions. No new transport or retrieval removal is performed. |
+| D-185 | Balance-only cap/estimate (3.1/3.6/B3), UI-only exclusion (3.12), period unknown (3.3/D2), day-off precedence (3.4/3.11) and zero entitlement/cap (3.4) are present. Unlimited's cap exception needs F-13. The future CLI attribute does not resolve PD-034-02 or start AIU-005. |
+
+The T-13 25-row B-4/B-5/B-6 mapping was re-read against the actual spec and brief, including
+the verbatim lists. Gate A amendments govern R-05/R-06/R-11/R-14; superseded literal readings
+were not reinstated.
+
+### Independent recomputation (Step 2)
+
+PASS: newly authored `recompute_t14.py` in the session temporary directory parses section 4's
+tables and recomputes from their inputs using exact fractions and `Europe/London` zone rules.
+Neither script nor JSON output is committed. **166 comparisons, 0 mismatches.**
+
+Coverage: all seven budget rows (N/T/used today/left today/B/deviation); all 28 bar positions;
+displayed shares of T; all W/Wr/E weights; Copilot's 23/24 first day and UTC month subtraction;
+October DST day; both five-hour readings/countdowns; exhausted weekly countdown; ready
+sessions; native remainders/provider facts; 42-minute staleness; no-budget/zero-entitlement
+cases; all four account states and their binding limits. Invented provider balance and ready
+C are inputs, not observations of an account.
+
+| Limits | W | Wr | E | N | B | Deviation |
+| --- | --- | --- | --- | --- | --- | --- |
+| A2 | 5 | 27/8 | 21/8 | 496/27 | 20 | 11/2 |
+| A3 | 22 | 13 | 10 | 7 | 150/11 | -898/11 |
+| B2 | 5 | 115/48 | 173/48 | 192/115 | 20 | -335/12 |
+| B3 | 22 | 13 | 10 | 10950/13 | 8500/11 | 13720/11 |
+| C1 | 527/24 | 13 | 239/24 | 810/13 | 48000/527 | -159670/527 |
+| C2 | 527/24 | 13 | 239/24 | 3 | 1200/527 | 5626/527 |
+| D1 | 5 | 3 | 3 | 70/3 | 20 | 24 |
+
+T equals N on this synthetic work day. Figures use each row's native unit. B2 left today is
+-268/115, floored to -2.4 %; C1 pace is 23900/527 = 45.351... %, rounded to 45.4. B rounds down
+by brief choice 4, not an additional research rule. A2's whole-session results are 4 and 1.
+
+### Phase B review focus and official sources (Step 3)
+
+| Focus | Result |
+| --- | --- |
+| 1 Tooltip-only information | PASS: 5.1 keeps left today/state/deviation visible; 5.4/PA-2 require other decision figures visible or one keyboard step away. Tooltips only repeat visible content. |
+| 2 Figures without data | PASS on the data boundary: 3.12/PA-5 exclude UI-only pools; unknown is not zero/unlimited; not-ready sessions hidden. D2's known 19 %/81 % and reset remain facts despite its unknown period, with no budget. C3 has no bar/zero budget. F-13/F-14 concern known-data exceptions. |
+| 3 Default-look drift | PASS: every forbidden component is named in DA-2(a)-(i), repeated by PA-7. Functional sign-out icons are not decorative icons. |
+| 4 WinUI 3/MSIX | PASS as a document feasibility/constraint review with evidence below. No selected font/design or packaged UI is tested; runtime/packaging acceptance NOT_RUN. |
+| 5 Density/accessibility | DA-3/DA-4/DA-6 and PA-8/PA-10 require four accounts/eleven limits, 100 %/150 %, contrast and non-colour signals. FAIL on default-size consistency, F-16. Actual fit, palette contrast and assistive-technology behaviour NOT_RUN. |
+
+Official pages read without sign-in on 2026-09-29:
+
+- **OFL 1.1:** [official text](https://openfontlicense.org/open-font-license-official-text/),
+  permissions and conditions 1-5 permit bundling/embedding/redistribution with software.
+  Copies retain copyright/licence; modified fonts respect reserved names and remain under
+  OFL. Section 9's example is supported, conditional on actual files being licensed that way.
+  It is not approval of an unnamed future font.
+- **Apache 2.0:** [official text](https://www.apache.org/licenses/LICENSE-2.0), sections 2/4
+  permit reproduction/distribution in source or object form, including application bundling.
+  Licence and applicable notices must be retained, modified files identified, and applicable
+  NOTICE attribution carried. Section 9's example is supported. Naming a licence does not
+  waive its conditions; per-font verification remains due before import. Unlike T-13, this
+  review fetched and read the complete page.
+- **Target/native effects:** the Windows project declares WinUI, Windows 11 build 26100 and
+  MSIX tooling. [XAML/composition interop](https://learn.microsoft.com/en-us/windows/apps/develop/composition/xaml-comp-interop),
+  [composition visuals](https://learn.microsoft.com/en-us/windows/apps/develop/composition/composition-visual-tree),
+  [brushes](https://learn.microsoft.com/en-us/windows/apps/develop/composition/composition-brushes)
+  and [ThemeShadow](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.media.themeshadow?view=windows-app-sdk-1.6)
+  support the named primitives. Solid backgrounds, no WebView/Mica/Acrylic and native
+  equivalents for effects are brief constraints, not claims that Windows lacks those effects.
+- **Dark-only:** D-182 is the authority. [RequestedTheme](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.frameworkelement.requestedtheme)
+  alone does not enforce it in contrast themes; [HighContrastAdjustment](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.application.highcontrastadjustment?view=windows-app-sdk-1.8)
+  controls automatic adjustments. The brief requires own tokens and the resulting appearance,
+  not RequestedTheme alone. Actual contrast-theme behaviour remains an implementation check.
+- **Typography/fonts:** [Windows typography](https://learn.microsoft.com/en-us/windows/apps/design/signature-experiences/typography)
+  supports 12-pixel regular-text guidance and Segoe UI Variable as a system font; it also
+  provides weight/language-specific guidance, so 12 is not proof of every font's legibility.
+  [NumeralAlignment](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.documents.typography.numeralalignment?view=windows-app-sdk-1.8)
+  supports tabular figures. Native .ttf/.otf files and not packaging Windows fonts are compatible
+  choices, not an exhaustive list of Windows formats. Per-file glyph/tabular support and
+  rendering remain NOT_RUN until fonts are selected.
+- **Accessibility:** [AutomationProperties.Name](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.automation.automationproperties.name?view=windows-app-sdk-1.8)
+  and [AnimationsEnabled](https://learn.microsoft.com/en-us/uwp/api/windows.ui.viewmanagement.uisettings.animationsenabled?view=winrt-28000)
+  provide the named mechanisms. Keyboard reachability and instant changes with motion off
+  are implementable requirements, not runtime results. [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
+  supports non-colour information, normal-text 4.5:1 and applicable non-text 3:1. The uniform
+  brief thresholds are stricter where WCAG allows exceptions.
+- **Scaling/sizes:** [effective-pixel guidance](https://learn.microsoft.com/en-in/windows/apps/design/layout/screen-sizes-and-breakpoints-for-responsive-design)
+  supports the unit model. 1920/1.5 by 1080/1.5 is 1280 by 720; at 2 it is 960 by 540 before
+  subtracting the taskbar. MainWindow scales its 760/600 defaults on load; TrayPopupWindow
+  scales its 360 width. The 200 %/larger-text scroll fallback is a proposal, not existing
+  behaviour verified here. F-16 concerns the allowed alternate default.
+
+### Re-check of all 23 brief choices (Steps 1, 3 and 4)
+
+PASS means a compatible design choice, not a new owner decision.
+
+| Choice | Verdict and reasoning |
+| --- | --- |
+| 1 Antigravity staleness | PASS: whole-account refresh failure legitimately leaves both readings stale; the plan does not require a fresh second group. |
+| 2 Group 2 not weekly | PASS: research 8.3 rule 3/D-185 forbid inferring a week from an unknown token. |
+| 3 Pace/budget positions | PASS: B x E visualizes the accepted deviation reference; U0 to U0 + T visualizes today's allowance without changing formulas. |
+| 4 Extra rounding | PASS: B/share flooring is explicit and conservative; rounded bar marks never feed calculations. All figures match. |
+| 5 Healthy five-hour rank | PASS: OK completes the non-warning case without hiding higher-ranked limits. |
+| 6 Stale emphasis | PASS: dependent current-use figures/state dim; fixed N/T remain, as research 8.8 requires. |
+| 7 Stable order | PASS: compatible presentation choice; visible binding status preserves R-10 without row movement. |
+| 8 Extra catalogue rows | PASS: the eight additions carry research/history/sign-in requirements, without a new provider source or budget kind. |
+| 9 Claude counter/tracked equality | PASS: valid synthetic case if the counter begins at zero at month start with continuous tracking; not a provider guarantee. |
+| 10 Exhausted budget figures | PASS on model: research 8.8 changes displayed state, not arithmetic eligibility. Marks/disclosure acceptance needs F-15. |
+| 11 Amber/red state colours | PASS: compatible semantics for research 8.8 ranks. |
+| 12 Solid background | PASS: explicit constraint for predictable contrast, compatible with B-4. |
+| 13 Own tokens | PASS: compatible with D-182; implementation still must control contrast-theme adjustments. |
+| 14 Minimum text size | PASS: matches cited regular-text guidance; actual font/script readability still needs checking. |
+| 15 Contrast arithmetic | PASS: truncation cannot turn a sub-threshold ratio into a pass; stale text retains its minimum. |
+| 16 Stale bar parts | PASS: U0/T and baseline end-of-day position are fixed; current used fill/deviation/state carry staleness. |
+| 17 Exhausted marks optional | FAIL on acceptance consistency, F-15; no arithmetic defect. |
+| 18 Session graphics | PASS: inherit readiness/estimate requirements; shared zero-boundary ambiguity is F-14. |
+| 19 Neutral colours | PASS: keeps neutral distinct from OK, preserving all six required semantic colours. |
+| 20 Scaling/scroll | Compatible fallback, but FAIL on fixed-size wording after allowing another default, F-16. Actual fit not claimed. |
+| 21 Font files/fallback | PASS as constraints: native files, OS fonts not redistributed, script coverage disclosed, fallback allowed. Specific fonts unselected. |
+| 22 Extra rubric rows | PASS on scope: check existing truthfulness/identity/accessibility/surfaces/specification requirements. Wider PA-5 serves focus 2. |
+| 23 Accessible-name example | PASS: illustrative wording carries account/limit/state/return time without fixing product copy. |
+
+### Open findings (Step 4)
+
+All four are OPEN. They require semantic/rubric decisions, so T-14 did not edit the design.
+No new owner decision was created; T-15 owns resolution or escalation from PD-034-04.
+
+#### F-13 - Unlimited with a personal cap also matches the no-budget rule
+
+- **Location:** design-brief.md 3.4 `unlimited`, 3.5 `no budget, with reason`, 3.8; PA-1/PA-5.
+- **Problem:** the unlimited row requires no budget while also saying a set cap becomes L.
+  The generic no-budget row includes unlimited without that exception. A designer can suppress
+  the cap budget that R-03 requires.
+- **Evidence:** research 5.4 makes a known personal cap L when the provider is unlimited,
+  irrespective of a reported amount; 8.1 permits its budget with known period/use. Synthetic
+  unlimited provider, cap 100 requests, known month and U = 20 is budgetable but matches both
+  brief rows.
+- **Suggested resolution:** qualify no-budget/unlimited as no comparable personal cap; keep
+  provider unlimited as a fact while showing an eligible cap budget and its binding source.
+  Include this combination in prototype coverage.
+
+#### F-14 - Less-than-one session forbids the exhausted zero exception
+
+- **Location:** design-brief.md 3.7 `sessions ready`/`less than one session`, 6.2/6.4; PA-1.
+- **Problem:** sessions ready requires 0 for exhausted weekly quota, but less-than-one applies
+  to any figure below 1 and forbids 0. Both match an exhausted window with a ready estimate.
+  B2 is not-ready, so the scenario does not exercise this conflict.
+- **Evidence:** research 7.5 preserves exhausted zero. Weekly U = 100 and ready C = 12 gives
+  weekly remainder/C = 0, conflicting with the other catalogue row's prohibition.
+- **Suggested resolution:** state exhausted-zero precedence for the weekly figure and scope
+  less-than-one accordingly; retain readiness/estimate rules for text and graphics. Derive
+  today's figure from T/C separately from the weekly exhausted-zero exception.
+
+#### F-15 - Optional exhausted budget marks become mandatory in PA-3
+
+- **Location:** design-brief.md 4.2 B2, 4.3 B2, 6.4 B2, PA-3; choices 10/17.
+- **Problem:** 6.4 permits omission of exhausted budget marks, but PA-3 requires every 4.3
+  position to be shown. A prototype following the optional treatment can fail literal
+  acceptance.
+- **Evidence:** B2 has four 4.3 positions, including U0 + T = 97.7 and pace = 72.1. Section 6.4
+  permits subordinate budget marks; PA-3 makes no omission exception. Arithmetic passes.
+- **Suggested resolution:** choose mandatory or optional exhausted marks and align PA-3;
+  if optional, check positions when drawn and specify access to kept-available budget figures.
+
+#### F-16 - Alternate default size conflicts with the fixed platform requirement
+
+- **Location:** design-brief.md 5.4, 7.1 item 5, DA-6, PA-10, section 9 Display scaling;
+  choice 20.
+- **Problem:** another default size with a reason can pass DA-6, but section 9 still requires
+  the scenario to fit 760 by 600. It does not clarify the 150 % example for that alternative.
+- **Evidence:** T-12 Step 5 permits another stated default; 5.4/7.1/DA-6 retain that option.
+  Section 9 fixes 760 by 600 again, while PA-10 says only the default. An 800 by 640 proposal,
+  for example, has two possible acceptance targets.
+- **Suggested resolution:** use one owner-selected default consistently, with 760 by 600 as
+  the reference starting size; specify the work-area/scroll fallback and 150 % density test
+  when the size changes.
+
+### Publication checks and limits (Steps 5 and 6)
+
+PASS: the scratch privacy scan examined all of design-brief.md, tasks.md and verification.md
+for e-mail addresses, bearer/JWT/API tokens, secret assignments, UUIDs, local user paths and
+owner identity strings: 0 hits. Manual review of added text found only synthetic quota
+examples and public-source/document references. All 15 relative document links resolve.
+
+PASS: `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`
+returned `{"valid":true,"diagnostics":[]}` (exit 0); `git diff --check` was clean (exit 0).
+These checks are repeated on the final task/handoff record before committing because those
+record edits change the checked tree. Integrated diff review is limited to this record and
+tasks.md; design-brief.md remains byte-identical to the review base.
+
+Source/web review was read-only.
+No live checks, sign-in, provider requests, CLI credential access or Claude Design contact.
+No screenshots, real-account data or scratch artifacts enter this commit. AC-08/Gate B remain
+NOT_RUN; T-15 must resolve the four findings before preparing Gate B. Whole-item AC-10 remains
+NOT_RUN until the later Phase B work is complete.
+
 ## T-13 design brief part 2 - 2026-09-29
 
 Primary [opus] session. Base `edeefc3`; the initial `git pull` reported `main` up to date and
@@ -833,7 +1072,7 @@ Phase A source research has started. The owner approved the specification on 202
 | --- | --- | --- |
 | Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
 | Gate A | PASS | Owner accepted Phase A in the session conversation on 2026-09-29, with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11 readings (D-185). |
-| Gate B | NOT_RUN | Phase B started on 2026-09-29 with the owner's approval of the plan; T-12 and T-13 are done, and the brief awaits the T-14 independent review before Gate B. |
+| Gate B | NOT_RUN | T-14 independent review completed on 2026-09-29 with four open findings, F-13 to F-16. T-15 must resolve them and prepare the brief for owner review. |
 
 ## Results by acceptance criterion
 
