@@ -1,5 +1,302 @@
 # AIU-034 verification
 
+## T-10 independent detail review - 2026-09-29
+
+Reviewer: primary [astra] session, independent of the T-07 to T-09 author; no subagent.
+Frozen review base: `4c4318fe65b48f38911b395a3172fbdf0788491f`. Initial `git pull` on
+`main` reported already up to date; the working tree was clean. T-10 was set to in-progress
+before review. Scope: research sections 3, 5 to 9 and 11, the relevant section 4 notes,
+spec R-03 to R-07 and R-11, both 2026-09-29 owner amendments/clarifications, and D-184.
+This is a document review, not new provider evidence or approval of the proposed design.
+
+### Independent recomputation (Step 1)
+
+PASS: a newly authored PowerShell script in the session temporary directory recomputed
+all 15 E01 to E09 rows, including every sub-case. It used only transcribed row inputs
+(including referenced dates, the E07b weekday override and E03's C), section 8 formulas,
+and Windows `GMT Standard Time` rules for Europe/London. It enumerated local dates,
+intersected each day with the period in UTC ticks, computed decimal day weights, W, Wr,
+E, N, T, B, deviation, used/left today and state, then applied section 9's table-only
+half-up rounding. Expected cells were read only after computation. No previous author's
+scratch script was read or reused. The script is outside the repository and is not committed.
+
+Script: `recompute.ps1`; SHA-256
+`CABE1163A457E9A5F9731E97F965B3BB476F406B99F1FCC7AD11365B026B53B2`.
+Execution exited 0: **139 comparisons, zero mismatches**. These comprise seven numerical
+cells and the state for every row (120), plus 19 checks of numerical notes: day weights,
+session estimates, percentage-left notes, today's shares, the E04b counterfactual and E09
+remainder. Cap binding was also checked against each row's provider limit/cap inputs.
+Decimal intermediates were retained to runtime precision until final rounding; no rounded
+W/Wr cell was used as an input. This verifies the published two-decimal results, not an
+implementation's future exact-rational arithmetic or display rounding.
+
+| Case | W / Wr | N / B | Deviation | Used / left today | State |
+| --- | --- | --- | --- | --- | --- |
+| E01 | 22 / 2 | 4500 / 1363.64 | +6836.36 | 800 / 3700 | OK |
+| E02 | 22 / 13 | 753.85 / 772.73 | +77.27 | 450 / 303.85 | OK |
+| E03 | 5 / 2.63 | 23.62 / 20 | +20.50 | 9 / 14.62 | OK |
+| E04a | 5 / 3.63 | none / 20 | -3.50 | 6 / none | Neutral |
+| E04b | 5 / 3.63 | 19.03 / 20 | +16.50 | 0 / 19.03 | OK |
+| E05a | 22 / 2 | 2000 / 1136.36 | +2063.64 | 800 / 1200 | OK |
+| E05b | 22 / 2 | 250 / 977.27 | -1277.27 | 800 / -550 | Over cap by 300 |
+| E05c | 22 / 2 | 0 / 909.09 | -2709.09 | 800 / -800 | Over cap by 1800 |
+| E06a | 5 / 0.63 | 19.20 / 20 | +5.00 | 7 / 5.00 | OK |
+| E06b | 5 / 5 | 20 / 20 | +3.50 | 4 / 3.50 | OK |
+| E07a | 4.96 / 2.42 | 19.86 / 20.17 | +11.43 | 8 / 11.86 | OK |
+| E07b | 6.98 / 6.98 | 14.33 / 14.33 | +3.88 | 3 / 3.88 | OK |
+| E08a | 20 / 20 | 15 / 15 | +3.00 | 12 / 3.00 | Attention |
+| E08b | 22.96 / 22.96 | 13.07 / 13.07 | +7.52 | 5 / 7.52 | OK |
+| E09 | 5 / 0 | none / 20 | +28.00 | 2 / none | Neutral |
+
+The script interprets the explicit neutral rule in section 8.5 before budget-only states;
+E09's deviation and used-today cells are calculated audit values, while the prescribed UI
+shows only the remainder. Passing arithmetic does not resolve the architectural findings.
+
+### Coverage, vocabulary and requirements (Steps 2 and 3)
+
+PASS, family coverage: independent set comparison found 25 section 3 family IDs and 25
+mapped IDs in section 5.5, zero missing: Claude 8, Codex 7, Copilot 5, Antigravity 5.
+UI-only families explicitly marked not represented count as mappings, not implemented
+support or owner approval of PD-034-03. No missing section 5.5 row required correction.
+
+Mechanical correction only: section 6.1's Codex budgetable-family list omitted CX-P even
+though section 5.5 explicitly covers primary windows whose returned duration is at least
+one day. Added CX-P to that list; no rule, eligibility threshold or provider claim changed.
+No arithmetic or cross-reference correction was needed. All other findings below are open;
+research's design is unchanged.
+
+Vocabulary review covered every section 5.2 field, the money triple, cap/effective-limit
+separation and source metadata through sections 6 to 9. Native units, explicit unknown/null/
+unlimited states, opaque keys, independent flags, money scaling and cap provenance are
+preserved in the ordinary cases. Consistency is FAIL for the specific series, period and
+mixed-unit cases F-01, F-02, F-04, F-05, F-07 to F-09; this is not blanket model acceptance.
+
+| Review focus | Verdict and evidence |
+| --- | --- |
+| 1. Absent versus zero/unlimited | PASS for absence semantics: sections 5.1, 5.2 and 5.4 keep all three distinct; no E-row fills unknown with zero. The separate known-zero budget exception is F-11. |
+| 2. Minor units and exponents | PASS: section 5.2 retains signed minor units, exponent and currency, exact upward rescaling and overflow-to-unknown; E01/E05 use minor USD with exponent 2. No major-unit float or cross-currency conversion is introduced. |
+| 3. Local day versus reset and DST | PASS for explicit weights and E06/E07 arithmetic (including the 25-hour day); FAIL for reset identity and assumed-period rollover, F-04/F-05. Full 23-hour days also weigh 1 by section 8.3; no new live check is claimed. |
+| 4. One account versus all plans | PASS for evidence provenance: section 3 keeps Claude Pro, Codex Pro and supplied-image Google AI Plus observations separate from other plans. Mapping does not create live evidence. The distinct source-clock overgeneralization is F-08. |
+| 5. Cap at/below usage | PASS for arithmetic: E05b/E05c prove positive/zero norm with over-cap state, never negative N. At exact equality section 8.8 says at limit, not over cap by zero; a known-zero provider limit still needs F-11 resolved. |
+| 6. Reset/scoped estimator samples | PASS for stated exclusions: sections 7.1 to 7.4 reject cross-reset spans and CL-M/main-to-scoped pairing, with independent CX-A pairs only. FAIL for reliable reconstruction and the zero-C case, F-01/F-03/F-04. |
+
+Word-by-word requirement check (every clause, including exceptions):
+
+| Requirement | Result against research |
+| --- | --- |
+| R-03 | Sections 5.4/8.7 implement local caps, min(provider, cap), either known value, cap provenance and no percentage cap. Unknown-unit pools and UI-only pools remain explicitly restricted/pending, not proof of the word "always"; PD-034-01/03 remain owner decisions. Zero-limit handling needs F-11. |
+| R-04 | PASS for one global weekday set, Monday to Friday by default, section 8.2. E07b explicitly overrides the default for a synthetic case. |
+| R-05 | W/Wr/E, adaptive max, baseline/deviation signs, ordinary U-U0, cap recomputation and fractional days match the text and all rows. FAIL for reconstructing fixed day-start data (F-01), period-relative U (F-05), and the known-zero exception (F-11). Wr=0 explicitly hides the norm and displays only remainder. Section 6.2's first-observation "since" label is an explicit approximation, not actual midnight measurement. |
+| R-06 | Provider resets, derived starts, assumed-month labelling and expiry separation are described. FAIL for inconsistent missing-period fallback (F-07) and the generalized Copilot start (F-08); assumed-cycle consumption also needs F-05. |
+| R-07 | Local paired formula, three-instance minimum, median/MAD, labels and hidden-until-ready rule are stated. FAIL for a ready C=0 (F-03), reproducibility (F-01), and N/C versus T/C on partial days (F-06). |
+| R-11 | One-day-or-longer eligibility, five-hour exclusion, work-day weighting, day-off usage reducing the next norm, and deferred holidays are explicit. Day-off neutrality has an unresolved exception, F-10. |
+| 2026-09-29 amendments / D-184 | Sections 6/7 expressly require one local series, retain history, defer its extension to AIU-029 and keep security-lifecycle review as an implementation precondition. No section 8/9 calculation currently calls for provider history. FAIL for the surviving PD-034-03 dependency on LC-17, F-12. Google AI Plus remains a personal subscription with unknown credit fields; no API-credit billing requirement or new lookup is inferred. |
+
+This table is T-10 review evidence only. T-11 still owns the consolidated AC-01 to AC-06
+verdicts and Gate A package. Product tests, browser use, web research, live checks, provider
+requests, sign-in and credential access: NOT_RUN. Security-lifecycle implementation review:
+NOT_RUN, still a precondition. Gate A and Phase B: NOT_RUN.
+
+### Open architectural findings (Step 4)
+
+All counterexamples below are synthetic. Each finding is open and must be resolved or
+turned into an owner decision by T-11; none authorizes a design change in T-10.
+
+#### F-01 - Run compression cannot reproduce day-start and estimator validity
+
+- **Status:** OPEN; material to AC-05/AC-06 and D-184.
+- **Location:** research sections 6.2 to 6.4, 7.3 and 7.6.
+- **Problem:** first-seen/last-confirmed endpoints alone do not preserve the confirmations,
+  gaps and invalidation events needed by the consumers of the single local series.
+- **Evidence:** an unchanged value confirmed at 23:55 and 00:05 has one run with last
+  confirmed 00:05. Section 6.3 can no longer find a last-confirmed time in the 15 minutes
+  before midnight, and there is no run first seen after midnight either. A failure between
+  two equal successful values disappears when the same run's last-confirmed time advances.
+  Plan changes or pool disappearance do not start a run under the listed triggers, although
+  section 7.3 must invalidate samples on those events. Section 7.6 therefore cannot always
+  reconstruct the claimed valid paired span or history gaps from stored fields.
+- **Suggested resolution:** specify sufficient local confirmation/validity and invalidation
+  events or mandatory run boundaries, including midnight carry and gaps. Define how paired
+  timestamps are recovered. Prove day-start stability and sample rejection after a reread
+  of the series, including equal values before/after a failure or plan change.
+
+#### F-02 - Balance-only consumption has no stored balance input
+
+- **Status:** OPEN; material to AC-03/AC-05 and PD-034-01.
+- **Location:** research sections 5.3, 5.5 CX-B, 6.3 and 11 PD-034-01(b).
+- **Problem:** the series stores used value, but CX-B has only remaining balance. The
+  recommended local accumulation cannot be reconstructed from the proposed fields.
+- **Evidence:** two local balances of 100 and 90 imply an observed decrease of 10. Both
+  CX-B used values are unknown, so storing the specified used-value field preserves neither
+  input. Section 6.3 nevertheless says balance decreases derive from this same series.
+- **Suggested resolution:** if (b) is accepted, include signed remaining balances and their
+  validity/period provenance in the single series, with a defined first baseline and reset
+  policy. Keep usage explicitly estimated and do not invent a provider allotment.
+
+#### F-03 - Zero weekly delta can make a zero estimator denominator ready
+
+- **Status:** OPEN; material to AC-06/R-07.
+- **Location:** research sections 7.2, 7.3 and 7.5.
+- **Problem:** confidence accepts C=0, then both session figures divide by it.
+- **Evidence:** three otherwise valid distinct instances with delta-s=10 and delta-w=0
+  each produce c=0; none meets a listed exclusion. Median=0 and MAD=0 satisfy the stated
+  MAD <= 25% of median threshold. Remaining weekly/C and today's norm/C are undefined.
+  Integer-rounded weekly values can produce these inputs without a negative delta.
+- **Suggested resolution:** define a strictly positive, meaningful C requirement and a
+  not-ready result for zero/insufficient weekly movement; retain the estimate label and
+  include a three-zero-sample acceptance case.
+
+#### F-04 - Changed reset timestamps are not sufficient proof of replenishment
+
+- **Status:** OPEN; material to AC-04/AC-05/AC-06.
+- **Location:** research M-10, sections 6.2 rule 3, 7.3 and 8.6; tasks T-09 Step 1.
+- **Problem:** section 8.6 treats any different reset instant as a new period and sets U0=0,
+  while the estimator explicitly tolerates 60 seconds of relative-reset jitter. Section 3
+  also records a moving Antigravity reset. A boundary update need not mean the counter reset.
+- **Evidence:** a same-period reading changing reset from 15:00:00 to 15:00:01 and usage
+  from 40 to 41 resets U0 to zero under 8.6, inflating used today to 41 and changing a norm
+  that R-05 fixes for the day. Section 6.3's exact period-end match also loses the carried
+  baseline. Separately, T-09 Step 1 calls for the post-reset reading as U0, whereas sections
+  6.2/8.6 and E06b prescribe zero; the intended boundary rule needs one authoritative form.
+- **Suggested resolution:** distinguish reset identity/replenishment from timestamp jitter,
+  moving bounds and corrections, and use the same identity rule for U0 and estimator spans.
+  Resolve and document the zero-versus-first-reading choice, including late post-reset reads.
+
+#### F-05 - Assumed calendar reset has no period-relative consumption rule
+
+- **Status:** OPEN; material to AC-04/AC-05/R-05/R-06.
+- **Location:** research sections 5.5 CL-X/CL-D, 6.2, 8.3 and 8.6.
+- **Problem:** a local assumed month boundary is not necessarily the provider counter's
+  boundary. The rules change S/R without defining how provider cumulative U becomes used
+  within the assumed period; treating the boundary as replenishment incorrectly sets U0=0.
+- **Evidence:** an unreset counter of 100 just before local month start and 120 afterwards
+  represents a locally observed increase of 20. With new U0=0, used today becomes 120;
+  retaining U0=100 instead still deducts the prior period's 100 from the new month's cap.
+  The later "observed reset" rule only handles decreases, not this unchanged/increasing
+  counter at the assumed boundary. The matrix explicitly leaves the true clock unknown.
+- **Suggested resolution:** define period-relative usage/offsets from the local series for
+  assumed periods, with observed provider resets, missing boundary readings and corrections
+  handled explicitly; or keep the affected figures unavailable pending an owner decision.
+  Preserve provider cumulative facts separately from any local estimate.
+
+#### F-06 - Today's session figure disagrees on partial days
+
+- **Status:** OPEN; material to AC-04/AC-06/R-07.
+- **Location:** research sections 7.5 and 8.4, E06b.
+- **Problem:** 7.5 uses N/C; 8.4 uses T/C, where T=N*f(today). These differ on partial days.
+- **Evidence:** E06b has N=20 and T=7.5. With a synthetic ready C=12, 7.5 displays about
+  1 session, while 8.4 displays less than 1. The E03 check cannot expose this because its
+  today is a full work day. R-07 says today's weekly norm, while R-05 permits defined
+  proportional partial days; the chosen interpretation must be consistent.
+- **Suggested resolution:** select one daily-session input, align both sections and the
+  labels, and add a partial-day session result to the examples.
+
+#### F-07 - Missing-duration windows bypass the specified period fallback
+
+- **Status:** OPEN; material to AC-03/AC-04/R-06.
+- **Location:** research M-05, sections 5.5, 8.1 and 8.3; spec R-06.
+- **Problem:** R-06 says a missing provider period defaults to the calendar month, but M-05
+  says an unknown-duration window gets no budget; 8.3 limits fallback to CL-X/CL-D and
+  conditional CX-B, while CX-I receives a different assumed-start rule.
+- **Evidence:** a Codex percentage window without limit_window_seconds cannot obtain S in
+  5.5 and is period unknown in 8.1, even if its current percentage is known. The case with
+  a known reset but unknown start/duration also lacks a common rule; substituting a new
+  reset would conflict with R-06's instruction to retain a supplied provider reset.
+- **Suggested resolution:** explicitly cover missing start, reset and duration separately
+  for each family/plan, preserving known provider facts. Reconcile the exclusions with R-06
+  or raise a precise amendment decision rather than silently narrowing its fallback.
+
+#### F-08 - Copilot calendar start is generalized beyond the cited evidence
+
+- **Status:** OPEN; material to AC-03/AC-04/R-06.
+- **Location:** research section 3 Copilot field table/closing paragraph, M-04,
+  section 5.5 GH-C/GH-I/GH-P and section 8.3.
+- **Problem:** all three request families receive a provider-derived first-of-month UTC
+  start based on G5, although the matrix limits that clock evidence to identified legacy
+  premium requests (and separately documented AI-credit pools).
+- **Evidence:** section 3 says month start follows documented semantics only after
+  identifying the applicable pool and that neither source proves all internal pools share
+  that clock. Section 5.5 instead applies the previous-month UTC start to GH-C, GH-I and
+  GH-P together, without that condition. Source-derived certainty is overstated.
+- **Suggested resolution:** gate derived calendar bounds on the established pool semantics;
+  preserve unresolved starts or apply an explicitly assumed fallback otherwise. Do not use
+  a plan label or personal Free evidence to identify paid-plan billing generation.
+
+#### F-09 - CX-I mixes unknown-unit amounts with a percentage-window contract
+
+- **Status:** OPEN; material to AC-03/AC-04 and review focus 1/2.
+- **Location:** research sections 5.2, 5.3 and 5.5 CX-I; sections 6.3 and 8.1.
+- **Problem:** the row calls CX-I a percent-window but maps raw used/limit/remaining amounts
+  beside percentages. Section 5.2 says a percent-window has no absolute limit and its used
+  and remaining are percentages; its type extension does not define a separate unknown-unit
+  amount channel. Missing percentages therefore have no unambiguous budgetable projection.
+- **Evidence:** synthetic used="40", limit="200", used_percent=20 yields two different
+  used quantities. Pairing raw 40 with L=100 violates 8.1; pairing raw 200 with percentage
+  used violates the percent-window vocabulary. Only the percentage channel is currently
+  interpretable, and absent percentage must not be silently replaced by an amount.
+- **Suggested resolution:** define the normalized percentage fields and L=100 explicitly,
+  retaining opaque/unknown-unit amounts separately if required, or specify another type
+  arrangement. Keep the raw amount out of budget and local-series arithmetic until its unit
+  is established; define behavior when only raw amounts are present.
+
+#### F-10 - Day-off state exception is not reconciled with R-11
+
+- **Status:** OPEN; material to AC-04/R-11.
+- **Location:** research sections 8.5 and 8.8; spec R-10/R-11.
+- **Problem:** R-11 requires a neutral state on a day off, but 8.5/8.8 explicitly let at-limit
+  and over-cap states override neutral. The safety intent of R-10 is understandable, but the
+  two requirements need a stated distinction between budget state and binding-limit state.
+- **Evidence:** a day-off case with L=100 and U=100 is at limit under the research and
+  neutral under the literal R-11 wording. E04a and E09 are below L and cannot resolve this.
+- **Suggested resolution:** distinguish the factual exhausted/binding state from the neutral
+  daily-budget state, or record an owner decision approving the exception; add the exhausted
+  and over-cap day-off cases. Do not silently change R-11 in T-10.
+
+#### F-11 - Known-zero limit exception conflicts with R-05
+
+- **Status:** OPEN; material to AC-04/R-03/R-05.
+- **Location:** research M-01, sections 5.4, 8.1 and 8.8; spec R-05.
+- **Problem:** R-05 applies to a known L/S/R and defines a zero-clamped norm. Research
+  instead makes a provider limit of zero "not included, no budget", without explaining
+  whether known usage/overage and a zero personal cap follow a different state policy.
+- **Evidence:** with provider L=0, known period, U0=0, U=5 and Wr>0, R-05 yields N=B=0,
+  used today=5 and left today=-5; section 8.8 also implies over cap by 5. Section 5.4's
+  known-zero row and 8.1 suppress the budget. This is a design exception, not unknown data.
+- **Suggested resolution:** define zero entitlement, explicit unlimited with an amount,
+  and zero personal cap separately, including precedence of factual overage and budget
+  availability. Reconcile the no-budget exception with R-05 or seek an owner amendment.
+
+#### F-12 - UI-only-pool decision still points to provider history as a way forward
+
+- **Status:** OPEN; material to D-184 and the 2026-09-29 local-only amendment.
+- **Location:** research section 11 PD-034-03 Impact, with G-GH-2 and LC-17 as context.
+- **Problem:** the pending decision says the main Copilot credit pool stays invisible until
+  "LC-16/17 or a later transport" closes the gap. LC-17 is explicitly an AI Usage provider
+  history report check, which D-184 no longer allows as a data source.
+- **Evidence:** the currently operative recommendation still offers LC-17 as a route to
+  showing that pool, while sections 6/7 correctly prohibit provider-history-derived figures.
+  A history report also does not establish a current allotment (G-GH-2). Historical LC
+  records can remain, but cannot be a dependency for future budget or history display.
+- **Suggested resolution:** remove provider-history retrieval from the decision's prospective
+  dependencies; identify a current quota source if one is ever established, or retain the
+  explicit unknown. Keep any history display derived only from the one local series.
+
+### Publication checks (Steps 5 and 6)
+
+Document validator PASS: the required `dotnet run --project
+tools/AiUsage.ProjectValidation --no-restore -- --root . --json` command returned
+`{"valid":true,"diagnostics":[]}`. Diff check PASS: `git diff --check` returned no errors.
+Added-line secret/personal-data pattern scan PASS: zero email, UUID, bearer/JWT, API-key,
+secret-assignment or local-identity matches. Primary content review PASS: all new numerical
+examples are synthetic; no account names, actual balances, credentials, payloads or captures
+were added. Integrated diff/scope and reference review PASS for delivery of this review:
+only research.md, tasks.md and verification.md change, with one mechanical research edit;
+T-11 remains pending. Final task/handoff bookkeeping is included in pre-commit validation.
+Open findings:
+**12 (F-01 to F-12)**. These findings block treating the design as accepted for implementation;
+they do not block committing this requested review record. No design resolution, T-11 work,
+Gate A review or Phase B work is included.
+
 ## Owner direction D-184, local-only history - 2026-09-29
 
 Base e5013fa. The owner directed that usage history comes only from local tracking, never

@@ -467,31 +467,31 @@ tasks extend.
   the handoff: next task T-10 `[astra]`.
 
 ### T-10 - [astra] Independent detail review of T-07 to T-09
-- status: pending
+- status: done
 - depends_on: [T-09]
 - acceptance: AC-03, AC-04, AC-05, AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `research.md` (mechanical corrections only), `verification.md` (review record)
 - Scratch only, never committed: a recomputation script in the session's temporary directory
 
-- [ ] **Step 1:** Recompute every worked-example row with an independent script, using only the
+- [x] **Step 1:** Recompute every worked-example row with an independent script, using only the
   row's inputs and the section 8 rules. Compare every derived value.
-- [ ] **Step 2:** Check that:
+- [x] **Step 2:** Check that:
   - every matrix limit (section 3) has a mapping row (section 5);
   - every section 5 field is used consistently in sections 6 to 9;
   - each of review focus items 1 to 6 is answered.
   - no rule, figure or history display depends on provider-supplied history: `U0`, the
     estimator, budget splits and history derive only from the local reading series (D-184,
     owner direction 2026-09-29).
-- [ ] **Step 3:** Check the rules against R-03 to R-07 and R-11 of the spec, word by word, for
+- [x] **Step 3:** Check the rules against R-03 to R-07 and R-11 of the spec, word by word, for
   contradictions or missing cases.
-- [ ] **Step 4:** Fix mechanical defects directly: arithmetic, a missing mapping row, a wrong
+- [x] **Step 4:** Fix mechanical defects directly: arithmetic, a missing mapping row, a wrong
   cross-reference. Record every architectural finding in `verification.md` as `F-nn`, with
   location, problem, evidence and suggested resolution, without changing the design.
-- [ ] **Step 5 (check):** the validator and `git diff --check` pass.
-- [ ] **Step 6:** Commit "AIU-034 Phase A: independent detail review" and push. Write the
+- [x] **Step 5 (check):** the validator and `git diff --check` pass.
+- [x] **Step 6:** Commit "AIU-034 Phase A: independent detail review" and push. Write the
   handoff: next task T-11 `[opus]`, with the count of open `F-nn` findings.
 
 ### T-11 - [opus] Resolve findings and assemble the Gate A package
@@ -527,21 +527,29 @@ tasks extend.
 
 ## Handoff
 
-Completed: T-01 through T-09. T-07 (c8fa7ca) wrote research section 5, model notes M-01 to
-M-10 at the end of section 4 and PD-034-01 to PD-034-03 in section 11. T-08 (e0ef2e6) wrote
-sections 6 and 7. T-09 (1e79352) wrote sections 8 and 9: one budget rule set and fifteen
-worked examples, E01 to E09 with sub-cases. Owner direction D-184 (2026-09-29): usage history
-is local only. Sections 6.3, 6.4 and 7.6 now specify one local reading series, retained at
-least 35 days, from which `U0`, estimator samples, balance decreases and history display
-derive; AIU-029 later extends it. The spec, backlog (AIU-011, AIU-029) and T-10 Step 2 carry
-the direction. The security-lifecycle review of the series and the budget configuration file
-is an implementation precondition, not done. No worker artifacts.
+Completed: T-01 through T-10. T-10 independently reviewed T-07 to T-09 and D-184 against
+base `4c4318fe65b48f38911b395a3172fbdf0788491f`, after `git pull` on clean main. All fifteen
+section 9 rows matched the new temporary script: 139 comparisons, zero mismatches. All
+25 section 3 families have section 5.5 mappings. The only research correction adds CX-P
+to section 6.1's budgetable-family list, consistent with section 5.5. The design is unchanged.
+The review evidence, requirement/focus checks and open findings are in verification.md.
+The scratch script is outside Git; no subagents or pending worker artifacts.
 
-Next action: T-10 [astra], Step 1: recompute every section 9 row with an independent scratch
-script, using only the row inputs and the section 8 rules, then continue with T-10 Steps 2 to
-6, including the new D-184 check. Record architectural findings as `F-nn` in verification.md
-without changing the design.
+Next action: T-11 [opus], Step 1.
 
-Blockers: none for T-10. PD-034-01 and PD-034-03 are needed at Gate A; PD-034-02 is needed only
-when an AIU-005 implementation is selected. Live-check verdicts are unchanged from T-06. Gate A
-and Phase B remain NOT_RUN.
+Open findings: 12, F-01 through F-12. Resolve each or turn it into a PD-034-nn decision,
+recording the resolution next to the finding. They concern the local series, balance inputs,
+estimator readiness, reset/period rules, partial-day sessions, mapping semantics, requirement
+exceptions and the remaining provider-history dependency in PD-034-03.
+
+Checks: document validator `dotnet run --project tools/AiUsage.ProjectValidation --no-restore
+-- --root . --json` PASS (`"valid":true`, no diagnostics); `git diff --check` PASS;
+added-line secret/personal-data scan and primary diff review recorded in verification.md.
+Publication: this review is delivered in "AIU-034 Phase A: independent detail review" on main.
+
+Blockers: none for starting T-11 Step 1. The 12 open findings prevent treating the design
+as accepted for implementation. PD-034-01 and PD-034-03 remain needed at Gate A; PD-034-02
+is needed only when an AIU-005 implementation is selected. Security-lifecycle review of the
+local series and budget configuration remains an implementation precondition, NOT_RUN.
+Live-check verdicts are unchanged from T-06; no new web, browser, provider or credential
+access occurred. T-11, Gate A and Phase B have not started.

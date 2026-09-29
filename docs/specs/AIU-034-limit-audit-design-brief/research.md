@@ -872,7 +872,7 @@ provider history cannot supply `U0` for any provider in scope, for three reasons
 | Provider | Budgetable limits (section 5.5) | Provider history usable for `U0` | Decided `U0` source |
 | --- | --- | --- | --- |
 | Claude | CL-W, CL-M, CL-X/CL-D | none exists | local reading series (section 6.3) |
-| Codex | CX-S and CX-A windows of 1 d or longer; CX-I on the percentage scale; CX-B per PD-034-01 | no: tokens and credits per provider date, not the window percentage; workspace routes unavailable | local reading series (section 6.3) |
+| Codex | CX-P, CX-S and CX-A windows of 1 d or longer; CX-I on the percentage scale; CX-B per PD-034-01 | no: tokens and credits per provider date, not the window percentage; workspace routes unavailable | local reading series (section 6.3) |
 | Copilot | GH-C, GH-I, GH-P | no: the billing report is a different meter, and personal access returned 404 | local reading series (section 6.3) |
 | Antigravity | AG-W | none exists | local reading series (section 6.3) |
 
