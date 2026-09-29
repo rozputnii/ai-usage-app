@@ -777,19 +777,19 @@ proposed item.
   and any open decisions. Do not contact Claude Design.
 
 ### T-16 - [opus] Closing proposal: follow-up implementation items
-- status: pending
+- status: done
 - depends_on: [T-15]
 - acceptance: AC-08, AC-09, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 Starts only after the owner's Gate B review.
 
 **Files:**
 - Modify: `docs/backlog.md` (new entries), `verification.md` (Gate B record, AC-08, AC-09)
 
-- [ ] **Step 1:** Record the owner's Gate B review in verification.md: the Gates table, AC-08
+- [x] **Step 1:** Record the owner's Gate B review in verification.md: the Gates table, AC-08
   and any decisions.
-- [ ] **Step 2:** Add these backlog entries with the next free IDs (currently AIU-035 to
+- [x] **Step 2:** Add these backlog entries with the next free IDs (currently AIU-035 to
   AIU-040), goal G-003, status `idea`, trigger `owner-selection`, an outcome, dependencies,
   acceptance criteria and the responsible agent in the title:
   - `[astra]` Core limit model and budget engine: research 5.2 to 5.4 and 8, with section 9
@@ -804,12 +804,12 @@ Starts only after the owner's Gate B review.
     presentation contract; carries the AIU-030 to AIU-033 checks listed in the spec's closing
     proposal as acceptance criteria; depends on the four items above.
   - `[astra]` Remove the AIU-011 provider-history retrieval (D-184).
-- [ ] **Step 3:** In each entry name the parts of D-180 and D-181 it supersedes, and state that
+- [x] **Step 3:** In each entry name the parts of D-180 and D-181 it supersedes, and state that
   a presentation-contract change is agreed between the `[opus]` and `[astra]` items, never
   made silently.
-- [ ] **Step 4 (check):** every entry has an outcome, acceptance criteria, dependencies and an
+- [x] **Step 4 (check):** every entry has an outcome, acceptance criteria, dependencies and an
   agent; none is selected; the validator and `git diff --check` pass.
-- [ ] **Step 5:** Commit "AIU-034: propose follow-up implementation items" and push.
+- [x] **Step 5:** Commit "AIU-034: propose follow-up implementation items" and push.
 
 ### T-17 - [opus] Claude Design round: directions
 - status: pending
@@ -923,13 +923,36 @@ T-15 checks: scratch coverage and resolution check, 93 of 93 with 6 of 6 injecte
 detected; privacy scan 0 hits; validator `--json` valid true with no diagnostics;
 `git diff --check` clean. No subagents or pending worker artifacts.
 
-Next action: the owner reviews design-brief.md at Gate B. Two T-15 presentation choices are
-open to the owner's override there: F-14's today figure of 0 on an exhausted window, and
-F-15's mandatory subordinate marks. After the Gate B review is recorded, T-16 `[opus]` Step 1
-starts. Claude Design is not contacted before T-17.
+T-15's privacy scan had one false positive: its own record's word "bearer" (verification.md,
+T-15 checks, corrected by T-16).
 
-Blockers: Gate B (owner review). Sending the brief to Claude Design also needs a working Claude
-Design connection (`/design-login`).
+Gate B passed on 2026-09-29. The owner approved design-brief.md at `3cec434` without changes,
+so F-14's today session figure of 0 on an exhausted weekly window and F-15's mandatory
+subordinate marks stand.
+
+T-16 done on 2026-09-29, base `3cec434`, after the Gate B approval. The backlog proposes
+AIU-035 to AIU-040, all `idea` with trigger `owner-selection` and in G-003 scope; none is
+selected:
+- AIU-035 `[astra]`: Core limit model and budget engine;
+- AIU-036 `[astra]`: local reading series and budget configuration store;
+- AIU-037 `[astra]`: parser extensions and stored-format version 2;
+- AIU-038 `[opus]`: redesigned presentation;
+- AIU-039 `[astra]`: live adapters and Windows acceptance, carrying the AIU-030 to AIU-033
+  deferred checks;
+- AIU-040 `[astra]`: removal of the AIU-011 retrieval, after AIU-039.
+
+AC-08 and AC-09 are PASS. AC-10 stays NOT_RUN until T-18.
+
+T-16 checks: entry field check, 6 of 6; validator `--json` valid true with no diagnostics;
+`git diff --check` clean. No subagents or pending worker artifacts.
+
+Next action: T-17 `[opus]` Step 1. Check the `claude_design` MCP connection read-only by
+listing projects; if it is not authenticated, record BLOCKED and ask the owner to run
+`/design-login`. T-17 starts only on the owner's instruction, because Step 2 creates a Claude
+Design project and uploads design-brief.md.
+
+Blockers: the owner's instruction to start T-17, and a working Claude Design connection
+(`/design-login`).
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
 NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in

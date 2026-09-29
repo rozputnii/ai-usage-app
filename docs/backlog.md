@@ -327,7 +327,72 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - specification: docs/specs/AIU-034-limit-audit-design-brief/spec.md
 - evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 - scope-note: Owner request and answers, 2026-09-26, recorded as D-183. API-key billing is excluded. Phase A starts only on the owner's instruction after the specification review.
-- gate-note: Gate A passed on 2026-09-29 (D-185): Phase A is complete and accepted. The owner approved the Phase B plan on 2026-09-29, and Phase B started with T-12.
+- gate-note: Gate A passed on 2026-09-29 (D-185): Phase A is complete and accepted. The owner approved the Phase B plan on 2026-09-29, and Phase B started with T-12. Gate B passed on 2026-09-29: the owner approved design-brief.md, and AIU-035 to AIU-040 are proposed as its follow-up items, none of them selected.
+
+## AIU-035 - [astra] Core limit model and budget engine
+- goal: G-003
+- status: idea
+- depends_on: []
+- trigger: owner-selection
+- outcome: Credential-free Core types and pure computations for the AIU-034 limit model and budget rules, with no UI, persistence or provider transport. The model covers limit kinds and units; money as minor units, exponent and currency; limit values that are unknown, explicit null, unlimited or zero; the personal cap, effective limit and binding source; and resets from the provider, derived or assumed, including period unknown. The engine computes the work-day calendar; `N`, `T`, `B`, the deviation, used today and left today; limit, budget and account states; display rounding; the day-start amount and tracked consumption over supplied readings; and the five-hour session estimator. Sources: research 5.2 to 5.4, 6.3 to 6.5, 7 and 8.
+- acceptance: (1) Research section 9 cases E01 to E13, P01 to P11 and S01 to S09 are deterministic Core tests with exact decimal arithmetic, and all pass. (2) The design-brief section 4 scenario reproduces every section 4.2 figure, every 4.3 bar position and every 4.4 account status. (3) Unknown is never zero or unlimited; no value is summed or converted across units or currencies; a percentage window never takes a cap. (4) Core keeps its boundary: no credential, transport, file or UI dependency.
+- supersedes: As computation rules, D-181's even local-calendar-day shares with carry-over, its 20 % floor for windows shorter than a day, and its single account status mark. They are replaced by the work-day adaptive norm with baseline and deviation, the R-09 thresholds and the research 8.8 account status. The current rules stay in the product until AIU-039 switches it (D-183). No part of D-180.
+- contract-note: The engine's outputs feed the presentation contract through AIU-039. A change to that contract is agreed between the [opus] AIU-038 item and the [astra] items, never made silently from either side.
+- source: docs/specs/AIU-034-limit-audit-design-brief/research.md
+
+## AIU-036 - [astra] Local reading series and budget configuration store
+- goal: G-003
+- status: idea
+- depends_on: [AIU-033, AIU-035]
+- trigger: owner-selection
+- outcome: Every automatic or manual refresh writes the local reading series of research 6.2 to 6.6. It is the only history source (D-184), is kept for at least 35 days, and supplies the day-start amount, tracked consumption, estimator samples and inline history. A new budget configuration file holds the work days (Monday to Friday by default) and the personal caps, including unmatched caps and currency mismatches (research 5.4, 5.7).
+- acceptance: (1) A security-lifecycle review of both stores is recorded before merge. It covers app-owned storage, owned-root cleanup, sign-out retention under D-093, factory reset, forward migration and corrupt-file recovery (research 6.6 precondition). (2) Both stores are versioned and size-bounded, with staged replace and reparse-point checks, and are separate from provider state and appearance preferences. (3) Sign-out keeps the series and the caps; Delete stored data and factory reset remove them. A corrupt store is set aside and a new series starts, with the losses research 6.6 lists. (4) No credential, raw payload or identity beyond the existing account target ID is stored. (5) Research cases P01 to P11 pass on a persisted round trip of the series.
+- supersedes: No part of D-180 or D-181. It supplies the local history that replaces D-180's History page through AIU-038 and AIU-039.
+- contract-note: Series and configuration data reach the presentation contract only through AIU-039. A change to that contract is agreed between the [opus] AIU-038 item and the [astra] items, never made silently from either side.
+- source: docs/specs/AIU-034-limit-audit-design-brief/research.md
+
+## AIU-037 - [astra] Provider parser extensions and stored-format version 2
+- goal: G-003
+- status: idea
+- depends_on: [AIU-035]
+- trigger: owner-selection
+- outcome: The Claude, Codex, Copilot and Antigravity parsers fill the AIU-035 model for every provider limit in the research 5.5 mapping. This includes the Codex negative credit balance (M-02), the reset precision the provider actually sent (M-04) and the Codex individual control (M-07): its percentages become a window, and its raw amounts become a secondary amount of unknown unit. The Codex quota cache moves to envelope version 2 and the Claude, Copilot and Antigravity states to version 2, each with a forward migration (research 5.7).
+- acceptance: (1) Every research 5.5 mapping row has a parser test with synthetic payloads, and each test keeps absent, explicit null, unlimited and zero distinct. (2) Opaque provider values are stored verbatim, and no raw payload is persisted. (3) Each v1 to v2 migration is tested. It preserves identity, grant and generation, drops only a cached quota that cannot be migrated, and follows the AIU-006 discipline: versioned, backed up, interruptible and recoverable. (4) A security-lifecycle review is recorded before merge. (5) No new transport, grant, scope, provider request or UI-only pool figure (PD-034-03).
+- supersedes: No part of D-180 or D-181.
+- contract-note: Parser output reaches the presentation contract only through AIU-035 and AIU-039. A change to that contract is agreed between the [opus] AIU-038 item and the [astra] items, never made silently from either side.
+- source: docs/specs/AIU-034-limit-audit-design-brief/research.md
+
+## AIU-038 - [opus] Redesigned presentation from the imported design
+- goal: G-003
+- status: idea
+- depends_on: [AIU-034]
+- trigger: owner-selection
+- outcome: The owner-accepted AIU-034 design reference is rebuilt in native WinUI 3 XAML: design tokens and styles, controls, views and view models with their bindings, commands and inline states, and a written presentation contract (the view-model data shape). The surfaces are the single main window with inline limit rows and history, the inline settings panel, inline rename and cap editing, "Confirm · Cancel" in place, undo, first run, the sign-in strip and the tray flyout. All of it runs on demo data: the design-brief section 4 scenario and every section 3 state.
+- acceptance: (1) Design-brief rows PA-1 to PA-13 hold in the running demo app, at 100 % and 150 % display scaling, with vertical scrolling and nothing clipped at 200 %. (2) The presentation contract is documented and exercised by view-model tests with demo data. (3) Dark-only (D-182) renders the same with Windows in light app mode and with a contrast theme, in the demo. (4) Keyboard access, accessible names with state words and reduced motion are checked interactively. (5) There is no modal dialog, pop-up window or account detail view. (6) Every packaged font's licence is verified against its official page before merge.
+- supersedes: From D-180: account detail and history pages opened from the account panel with Back; settings replacing the usage view; confirmation outside the control for Delete stored data. From D-181: readings only in bar hover text and accessible names; one status mark per account; the 20 % floor and even-day pace colours with the end-of-today mark. It keeps D-180's missing tabs, Settings icon, provider menu with one-click sign-in, first run that lists providers and immediate icon-only sign-out, and D-182's single dark appearance. The replaced views leave the product only when AIU-039 switches it (D-183).
+- contract-note: This item owns the presentation contract's shape. A change to it is agreed with the [astra] AIU-039 item, never made silently from either side.
+- source: docs/specs/AIU-034-limit-audit-design-brief/design-brief.md
+
+## AIU-039 - [astra] Live adapters for the new presentation and Windows acceptance
+- goal: G-003
+- status: idea
+- depends_on: [AIU-035, AIU-036, AIU-037, AIU-038]
+- trigger: owner-selection
+- outcome: Live adapters feed the AIU-038 presentation contract from the engine, the parsers, the reading series and the budget configuration. The product then switches from the current views to the new presentation. The retired D-180 and D-181 views, view models and pace code are removed, not left behind. The XAML and view-model removal is agreed with the [opus] owner of AIU-038.
+- acceptance: (1) Adapter tests with synthetic fixtures reproduce the design-brief section 4 figures and statuses through the contract. (2) The checks deferred from AIU-030 to AIU-033 pass on the new interface: dark-only rendering (D-182) with Windows in light app mode and with a contrast theme; budget and five-hour colours on live provider readings; live sign-in and sign-out through the new controls, with history kept (D-093); automatic refresh of a real account in the installed package, including the reading-series rows each refresh writes (D-184); the tray smoke rows, the packaged install, update and recovery harnesses, and screen-reader acceptance. (3) Live checks run only with the owner's authorization and an owner-led sign-in. Their results are recorded as PASS, FAIL, NOT_RUN or BLOCKED, never inferred from demo data.
+- supersedes: Retires in the product every D-180 and D-181 part listed under AIU-038, through the switch to the new presentation.
+- contract-note: The adapters consume the AIU-038 contract as written. A needed change is agreed with the [opus] AIU-038 item before either side changes, never made silently.
+- source: docs/specs/AIU-034-limit-audit-design-brief/spec.md
+
+## AIU-040 - [astra] Remove the AIU-011 provider-history retrieval
+- goal: G-003
+- status: idea
+- depends_on: [AIU-039]
+- trigger: owner-selection
+- outcome: Following D-184, the AIU-011 provider-history retrieval is removed: the Core provider-history contract, the Codex and Copilot history clients, parsers and session routes, and the live and demo history sources and their registration. No provider-history request remains. Local history from AIU-036 is the only history shown.
+- acceptance: (1) No code path requests a provider-history route, and no test or composition registration refers to the removed types. (2) Any stored data or preference that belonged only to provider history is handled under a recorded security-lifecycle review: removed within the owned root, or kept as unknown data, never silently rewritten with other data. (3) All suites, the validator and `git diff --check` pass. (4) AIU-011 is closed in the backlog with a reference to D-184.
+- supersedes: No further part of D-180 or D-181. The History page this retrieval fed is replaced by inline local history through AIU-038 and AIU-039, so this item follows that switch and the current History view never goes empty early (D-183).
+- contract-note: No presentation-contract change is expected. If one is needed, it is agreed with the [opus] AIU-038 item, never made silently.
 
 ## Deferred clarifications, not forgotten
 

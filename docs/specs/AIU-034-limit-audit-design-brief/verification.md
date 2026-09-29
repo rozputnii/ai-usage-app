@@ -1,5 +1,61 @@
 # AIU-034 verification
 
+## T-16 closing proposal - 2026-09-29
+
+Primary [opus] session. Base `3cec434`; `git pull` reported `main` up to date and the tree was
+clean.
+
+### Gate B owner review (Step 1)
+
+The owner approved the brief in the session conversation on 2026-09-29 ("погоджую", "I
+approve"). This answered the T-15 report, which summarized the brief and its rubric, reported
+no open decisions, and named two T-15 presentation choices the owner could override: F-14's
+today session figure of 0 on an exhausted weekly window, and F-15's mandatory budget marks,
+subordinate to the exhausted state. The owner approved without changes, so both stand as
+written. No new decision was raised, and D-183 to D-185 are unchanged. The approval covers
+design-brief.md at `3cec434` and the proposal of follow-up items (T-16). It does not select an
+implementation item. Claude Design contact (T-17) stays a separate step.
+
+### Follow-up items (Steps 2 and 3)
+
+[backlog.md](../../backlog.md) now has six new entries, AIU-035 to AIU-040. Each has goal
+G-003, status `idea` and trigger `owner-selection`, with the responsible agent in its title.
+[goals.md](../../product/goals.md) adds them to the G-003 scope.
+
+| Item | Agent | Depends on | Supersedes (D-180, D-181) |
+| --- | --- | --- | --- |
+| AIU-035 Core limit model and budget engine | [astra] | none | D-181 day shares with carry-over, 20 % floor, single status mark, as computation rules |
+| AIU-036 Local reading series and budget configuration store | [astra] | AIU-033, AIU-035 | none; supplies the history that replaces D-180's History page |
+| AIU-037 Provider parser extensions and stored-format version 2 | [astra] | AIU-035 | none |
+| AIU-038 Redesigned presentation from the imported design | [opus] | AIU-034 | D-180 detail and history pages, settings replacing the view, confirmation outside the control; D-181 hover-only readings, single status mark, 20 % floor and day-share colours |
+| AIU-039 Live adapters and Windows acceptance | [astra] | AIU-035 to AIU-038 | retires every AIU-038 part in the product by the switch |
+| AIU-040 Remove the AIU-011 provider-history retrieval | [astra] | AIU-039 | none further; follows the switch so the current History view never goes empty early |
+
+Dependency choices:
+
+- AIU-035 depends on nothing: its source, the research, was accepted at Gate A, so it need not
+  wait for the design import.
+- AIU-040 follows AIU-039 because the current History page shows only provider history. Until
+  the new presentation replaces that page, D-183 keeps the current behaviour.
+
+Every entry carries a contract note: a change to the presentation contract is agreed between
+the [opus] AIU-038 item and the [astra] items, never made silently. AIU-039 carries the five
+checks the spec's closing proposal defers from AIU-030 to AIU-033 as acceptance criteria.
+
+### Checks (Step 4)
+
+- **Scratch entry check.** For each of the six entries it confirmed an agent tag in the title,
+  status `idea`, and the depends_on, trigger, outcome, acceptance, supersedes and contract-note
+  fields: 6 of 6 OK. No backlog item has status `selected`.
+- **Validator and whitespace.** The validator `--json` returned
+  `{"valid":true,"diagnostics":[]}`, which includes goal-scope membership and dependency
+  references. `git diff --check` was clean. Both were run again on the final tree with this
+  record.
+
+AC-08 is now PASS: T-15 recorded B-1 to B-6 coverage, and the Gate B owner review is recorded
+above. AC-09 is PASS: the items have outcomes and acceptance criteria and none is selected.
+AC-10 stays NOT_RUN until T-18 completes the design import.
+
 ## T-15 brief findings resolution and Gate B preparation - 2026-09-29
 
 Primary [opus] session. Base `0eee0ef`; the initial `git pull` brought `main` up to date and
@@ -69,7 +125,9 @@ AC-08 stays NOT_RUN: it also needs the Gate B owner review, which is not recorde
 - **Privacy scan.** design-brief.md, tasks.md and verification.md were scanned for e-mail
   addresses, UUIDs, bearer or JWT tokens, `sk-` keys, secret assignments, local user paths and
   owner identity strings: 0 hits. The added text has only synthetic values and document
-  references.
+  references. Correction by T-16: the final T-15 run matched one line, this bullet's own word
+  "bearer" in the list of scanned patterns. That is a false positive, not a token, and there
+  were no other hits.
 - **Validator and whitespace.** `dotnet run --project tools/AiUsage.ProjectValidation
   --no-restore -- --root . --json` returned `{"valid":true,"diagnostics":[]}` (exit 0), and
   `git diff --check` was clean (exit 0). Both were run on the final tree, including this
@@ -1193,7 +1251,7 @@ Phase A source research has started. The owner approved the specification on 202
 | --- | --- | --- |
 | Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
 | Gate A | PASS | Owner accepted Phase A in the session conversation on 2026-09-29, with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11 readings (D-185). |
-| Gate B | NOT_RUN | T-14 found four findings, F-13 to F-16. T-15 resolved all four by brief changes on 2026-09-29, with no new decision. design-brief.md is ready for the owner's Gate B review. |
+| Gate B | PASS | The owner approved design-brief.md at `3cec434` in the session conversation on 2026-09-29, without changes and after T-15 resolved F-13 to F-16. See the T-16 section. |
 
 ## Results by acceptance criterion
 
@@ -1206,8 +1264,8 @@ Phase A source research has started. The owner approved the specification on 202
 | AC-05 | PASS | T-11: `U0` source per provider (6.1), local series and retention (6.2 to 6.6), security-lifecycle precondition noted. |
 | AC-06 | PASS | T-11: section 7 inputs, formula, minimum samples, invalidation and label; cases S01 to S09. |
 | AC-07 | PASS | Gate A owner review recorded on 2026-09-29, before any Phase B work (D-185). |
-| AC-08 | NOT_RUN | T-15: the brief covers B-1 to B-6 (coverage table in the T-15 section). The Gate B owner review is not yet recorded. |
-| AC-09 | NOT_RUN | |
+| AC-08 | PASS | T-15: the brief covers B-1 to B-6 (coverage table in the T-15 section). T-16: the Gate B owner review is recorded. |
+| AC-09 | PASS | T-16: AIU-035 to AIU-040 are in the backlog with outcomes, acceptance criteria, dependencies and agents; all are `idea` and none is selected. |
 | AC-10 | NOT_RUN | |
 
 ## T-01 - 2026-09-26
