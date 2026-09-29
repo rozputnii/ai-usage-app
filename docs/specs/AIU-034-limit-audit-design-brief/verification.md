@@ -1,5 +1,124 @@
 # AIU-034 verification
 
+## T-13 design brief part 2 - 2026-09-29
+
+Primary [opus] session. Base `edeefc3`; the initial `git pull` reported `main` up to date and
+the tree was clean.
+
+**Authorization.** In the session conversation the owner stated that they approved the Phase B
+plan on 2026-09-29 and authorized T-13 as written, including the commit and push to `main`.
+
+**Scope.** `design-brief.md` sections 6 to 10, this record, and the T-13 status and handoff in
+tasks.md. Sections 1 to 5, the section 3 state names and the section 4 scenario are unchanged.
+Documents only: no product code, stored format, transport, provider request, sign-in, live
+check or Claude Design contact. Read-only web access confirmed the cited pages only: the SIL
+Open Font License official-text page (title and version 1.1) and Microsoft Learn
+(`Typography.NumeralAlignment` in `Microsoft.UI.Xaml.Documents`; the Windows 11 type ramp and
+its 12-pixel minimum for regular text). The Apache License page could not be fetched from this
+session. The licence statements themselves are verified by T-14.
+
+### Clause mapping (Step 6)
+
+Each B-4, B-5 and B-6 clause of spec.md, with the brief sentences that carry it. The quoted
+spec text is verbatim from spec.md; the quoted brief text is verbatim from design-brief.md.
+
+| Clause | Spec text | Brief sentences |
+| --- | --- | --- |
+| B-4 forbidden 1 | "a near-black slate or zinc background with a single indigo, violet or blue accent" | Section 6 list, verbatim; 8.1 DA-2 "(a) a near-black slate or zinc background" |
+| B-4 forbidden 2 | "purple-to-blue gradients and glassmorphism" | Section 6 list, verbatim; DA-2 "(b) a purple-to-blue gradient" and "(c) glassmorphism"; 9 "without Mica or Acrylic" |
+| B-4 forbidden 3 | "a grid of identical rounded cards with soft shadows" | Section 6 list, verbatim; DA-2 "(d) a grid of identical rounded cards" |
+| B-4 forbidden 4 | "Inter or a system font as the only typographic idea" | Section 6 list, verbatim; 6.3 "may be one half of the pairing, never the only typographic idea"; DA-2 "(e) Inter or a system font" |
+| B-4 forbidden 5 | "KPI tiles, pill badges everywhere, and decorative emoji or icons" | Section 6 list, verbatim; DA-2 "(f) KPI tiles", "(g) pill badges everywhere" and "(h) decorative emoji or icons" |
+| R-08 | "does not reuse Claude Design's default theme and colors" | Section 6 "does not reuse Claude Design's default theme and colours"; DA-2 "(i) Claude Design's default theme and colours" |
+| B-4 required 1 | "a named design concept with its rationale" | 6.1 "Each direction has a name and a concept"; 7.1 "its name, concept and rationale"; DA-1 |
+| B-4 required 2 | "a palette derived from that concept, with semantic state colors (ok, attention, critical, stale, estimate, assumed) meeting WCAG AA contrast on the dark background" | 6.2 "the six semantic state colours, each tied to the section 3 states it marks" and "at least 4.5:1 against each"; 7.1 "its palette tokens and contrast table"; DA-3; PA-8 |
+| B-4 required 3 | "a distinctive type pairing with tabular numerals" | 6.3 "Every figure uses tabular numerals"; 9 "Typography.NumeralAlignment"; DA-4 |
+| B-4 required 4 | "a signature limit visualization that combines the bar, today's budget, the pace mark and five-hour sessions" | 6.4 "Each direction delivers one visualization used on every limit row" and "The visualization is shown for every limit kind of the section 4 scenario"; DA-5 |
+| B-4 kept 1 | "dark-only (D-182)" | 6.2 "all dark (D-182) and solid"; 9 "One dark appearance in the main window" |
+| B-4 kept 2 | "status never relies on color alone" | 9 "Every coloured state also has a word"; PA-4 "the colour never stands alone"; PA-8 |
+| B-4 kept 3 | "everything implementable in WinUI 3 on Windows 11" | 9 "A WinUI 3 desktop app on Windows 11, packaged as MSIX" and "Only what WinUI 3 XAML and the Windows composition layer render"; DA-7; PA-12 |
+| B-4 kept 4 | "fonts licensed for embedding in an MSIX package" | 9 "under a licence that permits embedding and redistribution in an"; 6.3 "the direction names its licence"; DA-4; PA-12 |
+| B-5 directions | "Two or three distinct directions, of which the owner selects one." | 7.1 "Claude Design first delivers two or three distinct directions, and the owner selects one." |
+| B-5 prototype | "a full prototype of the main window in every state" | 7.2 "a state list that names every"; PA-1 |
+| B-5 tray flyout | "including the tray flyout" | 7.2 "The secondary flyout, currently 360 effective pixels wide"; PA-11 |
+| B-5 settings panel | "the settings panel" | 7.2 "The inline panel with the work days"; PA-11 |
+| B-5 inline editing and confirmation | "inline editing and confirmation" | 7.2 "Inline editing, confirmation and undo."; PA-11 |
+| B-5 first run | "first run and the sign-in strip" | 7.2 "The providers listed directly, each with one-click sign-in."; PA-11 |
+| B-5 sign-in strip | "first run and the sign-in strip" | 7.2 "Sign-in in progress and its success"; PA-11 |
+| B-5 specifications | "Token and component specifications." | 7.2 "Token specification." and "Component specification."; PA-13 |
+| B-5 notes | "Keyboard, accessible-name and reduced-motion notes." | 7.2 "Keyboard, accessible-name and reduced-motion notes."; 9 "Every action is reachable and operable by keyboard"; PA-9 |
+| B-6 direction | "The criteria the owner uses to accept or reject a direction" | 8 "section 8.1 to accept or reject a direction"; DA-1 to DA-7 |
+| B-6 prototype | "and the final prototype" | 8 "section 8.2 to accept or reject the final prototype"; PA-1 to PA-13 |
+
+### Review focus to rubric rows
+
+| Phase B review focus | Rubric rows |
+| --- | --- |
+| 1 Tooltip-only information | PA-2; DA-6 (left today, budget state and deviation visible on each row) |
+| 2 Figures without data | DA-5 (the "Never draws" column of section 6.4); PA-5 |
+| 3 Default-look drift | DA-2 (a) to (i), each forbidden item by name; PA-7 |
+| 4 Not buildable in WinUI 3 or MSIX | DA-4 (font licence); DA-7; PA-12 |
+| 5 Density versus accessibility | DA-3; DA-6 (100 %); PA-8; PA-10 (100 % and 150 %) |
+
+### Brief choices for T-14, continued
+
+T-12 listed choices 1 to 10. Sections 6 to 10 add these; T-14 checks them and T-15 raises any
+that needs the owner.
+
+11. **R-09 colours are state colours.** Attention is the amber and critical the red of R-09,
+    so a five-hour window and a budget in the same rank share one colour.
+12. **Solid background.** No Mica or Acrylic, so every contrast ratio holds against a known
+    colour. B-4 forbids glassmorphism; excluding Mica is a brief choice.
+13. **Own tokens only.** No Windows accent colour or system theme brushes, so that the dark
+    appearance holds in light app mode and in contrast themes (D-182).
+14. **Minimum text size.** 12 effective pixels, the Windows 11 minimum for regular text.
+15. **Contrast arithmetic.** WCAG 2.2 relative luminance, truncated to two decimals; the dimmed
+    stale level must meet AA like any text.
+16. **Stale bar parts.** On D1 the used fill is dimmed, while today's budget and the pace mark
+    stay at full emphasis because `U0`, `T` and `B x E` are fixed for the day, as section 3.2
+    keeps `N` and `T`.
+17. **Exhausted weekly budget marks.** B2's section 4.3 marks may be drawn, subordinate to the
+    exhausted state (choice 10).
+18. **Graphic session marks** follow the states of the session figure.
+19. **Neutral is not a semantic colour,** and neutral states never use ok.
+20. **Scaling behaviour.** The fit applies at 100 % and 150 % display scaling and at 100 % text
+    size. At 200 % on a 1920 × 1080 display, or at a larger text size, the content scrolls.
+21. **Font files.** .ttf or .otf, not WOFF or WOFF2; a system font is used from Windows and not
+    packaged; each direction states the scripts its fonts cover, because account names are
+    user text.
+22. **Rubric rows beyond the plan list:** DA-7, PA-6, PA-7, PA-8, PA-11 and PA-13. PA-5 widens
+    the plan's "no figures for UI-only pools" to all of review focus 2.
+23. **Accessible-name example.** "Codex Pro weekly, exhausted, back Friday 09:30" is
+    illustrative wording, not fixed copy.
+
+### Checks (Step 6)
+
+- **Clauses and rubric:** `check_t13.py`, a scratch script that is not committed, parses this
+  record and the brief. Sections 1 to 5 are byte-identical to `edeefc3`, and the ten top-level
+  headings are in order. All 13 B-4 bullets appear verbatim in section 6. The 25 mapping rows
+  cover every expected B-4, B-5, B-6 and R-08 clause: 25 of 25 quoted spec texts are found in
+  spec.md and 42 of 42 quoted brief texts in sections 6 to 10, and every cited rubric row
+  exists. Review focus 1 to 5 each cite existing rows. The rubric has DA-1 to DA-7 and PA-1 to
+  PA-13 without gaps, and DA-2 names all nine forbidden items. The 51 state names used in the
+  section 6.2 and 6.4 tables are section 3 identifiers or the section 4.1 kind "percentage
+  window". The 17 scenario figures quoted in section 6.4 are found in section 4, and the 4
+  relative links resolve. Result: 0 failures. A mutation run of the same script detected 8 of 8
+  injected defects: a changed forbidden bullet, a renamed rubric row, a changed figure, a
+  changed state name, a changed section 5 heading, a missing clause row, a changed brief quote
+  and a review focus without a row.
+- **Privacy:** `scan_privacy_t13.py`, a scratch script that is not committed, scanned the whole
+  of design-brief.md, verification.md and tasks.md for e-mail addresses, bearer, JWT, `sk-`,
+  GitHub, AWS and Slack tokens, secret assignments, UUIDs, local user paths and owner identity
+  strings: 0 hits. The amounts on lines added by T-13 are the spec's generic examples (USD
+  300.00, USD 500.00, 17,000 credits) or synthetic section 4 values (USD 81.63, 1,247, 10,160).
+- **Documents:** on the final tree, `dotnet run --project tools/AiUsage.ProjectValidation
+  --no-restore -- --root . --json` returned `{"valid":true,"diagnostics":[]}`, and
+  `git diff --check` reported no errors.
+
+AC-08 stays NOT_RUN: the brief is complete for review, but T-14 has not reviewed it and Gate B
+has not been held. AC-10 stays NOT_RUN for the whole item; this task's own scan and document
+checks pass.
+
 ## T-12 design brief part 1 - 2026-09-29
 
 Primary [opus] session. Base `3d544cd`; the initial `git pull` reported `main` up to date and
@@ -714,7 +833,7 @@ Phase A source research has started. The owner approved the specification on 202
 | --- | --- | --- |
 | Specification review | PASS | Owner approved [spec.md](spec.md) in the session conversation on 2026-09-26. |
 | Gate A | PASS | Owner accepted Phase A in the session conversation on 2026-09-29, with PD-034-01 (b), PD-034-03 (a) and the R-05, R-06 and R-11 readings (D-185). |
-| Gate B | NOT_RUN | Phase B started on 2026-09-29 with the owner's approval of the plan; T-12 is done and the brief is not yet ready for review. |
+| Gate B | NOT_RUN | Phase B started on 2026-09-29 with the owner's approval of the plan; T-12 and T-13 are done, and the brief awaits the T-14 independent review before Gate B. |
 
 ## Results by acceptance criterion
 

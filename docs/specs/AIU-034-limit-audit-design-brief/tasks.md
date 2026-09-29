@@ -687,46 +687,46 @@ proposed item.
 - [x] **Step 7:** Commit "AIU-034 Phase B: design brief data, states and structure" and push.
 
 ### T-13 - [opus] Brief part 2: visual identity, deliverables and acceptance rubric
-- status: pending
+- status: done
 - depends_on: [T-12]
 - acceptance: AC-08, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Modify: `design-brief.md` sections 6 to 10; `verification.md` (clause mapping)
 
-- [ ] **Step 1:** Section 6, B-4: copy the spec's forbidden, required and kept lists verbatim.
+- [x] **Step 1:** Section 6, B-4: copy the spec's forbidden, required and kept lists verbatim.
   For each required item, state what a direction delivers: a named concept with its rationale;
   a palette derived from it with the six semantic state colours ok, attention, critical,
   stale, estimate and assumed, each with its contrast ratio against its background (text at
   least 4.5:1, non-text marks at least 3:1, WCAG AA); a type pairing with tabular numerals for
   every figure; one signature limit visualisation that combines the bar, today's budget, the
   pace mark and five-hour sessions, shown for every limit kind of the scenario.
-- [ ] **Step 2:** Section 9, platform constraints: WinUI 3 on Windows 11; dark-only (D-182),
+- [x] **Step 2:** Section 9, platform constraints: WinUI 3 on Windows 11; dark-only (D-182),
   also with Windows in light mode or a contrast theme; no WebView; effects limited to WinUI 3
   composition and XAML; fonts packaged in the MSIX under a licence that permits embedding and
   redistribution in an application, for example the SIL Open Font License 1.1 or Apache 2.0,
   with the licence named for each font; keyboard access to every action, accessible names,
   reduced motion, and display scaling at 100 %, 150 % and 200 %; status never by colour alone.
-- [ ] **Step 3:** Section 7, B-5: two or three distinct directions first. After the owner
+- [x] **Step 3:** Section 7, B-5: two or three distinct directions first. After the owner
   selects one: a full prototype of the main window in every section 3 state using the section 4
   scenario; the tray flyout; the inline settings panel (work days, personal caps, unmatched
   caps); inline editing, confirmation and undo; first run; the sign-in strip; token and
   component specifications; keyboard, accessible-name and reduced-motion notes.
-- [ ] **Step 4:** Section 8, B-6: two pass/fail checklists.
+- [x] **Step 4:** Section 8, B-6: two pass/fail checklists.
   - Direction acceptance: concept and rationale; no forbidden element, each named; palette
     contrast; type pairing and font licence; signature visualisation; four accounts fit.
   - Prototype acceptance: every section 3 state visible; no tooltip-only decision
     information; figures match section 4; R-09 colours; no figures for UI-only pools;
     keyboard and screen-reader notes; layouts at 100 % and 150 %; buildable in WinUI 3.
-- [ ] **Step 5:** Section 10, sources: the spec, research sections, D-180 to D-185, the AIU-010
+- [x] **Step 5:** Section 10, sources: the spec, research sections, D-180 to D-185, the AIU-010
   design reference as the import precedent, and each licence page cited in section 9.
-- [ ] **Step 6 (check):**
+- [x] **Step 6 (check):**
   - every B-4, B-5 and B-6 clause of the spec maps to a brief sentence; write the mapping
     table into verification.md;
   - review focus items 1 to 5 each have a rubric row;
   - the privacy scan, the validator and `git diff --check` pass.
-- [ ] **Step 7:** Commit "AIU-034 Phase B: design brief identity, deliverables and rubric" and
+- [x] **Step 7:** Commit "AIU-034 Phase B: design brief identity, deliverables and rubric" and
   push. Write the handoff: next task T-14 `[astra]`.
 
 ### T-14 - [astra] Independent detail review of the brief
@@ -871,15 +871,33 @@ scenario (section 3 and section 4) are fixed for T-13, T-14 and the prototype. T
 choices that go beyond the plan or the research are listed in verification.md for T-14 to
 check.
 
-Next action: T-13 `[opus]`, Step 1 (section 6, visual identity).
+T-12 checks: validator `--json` valid true with no diagnostics; `git diff --check` clean;
+scratch figure check (68 comparisons, 0 mismatches), state coverage (62 required states, 0
+missing) and privacy scan pass.
 
-Checks: validator `--json` valid true with no diagnostics; `git diff --check` clean; scratch
-figure check (68 comparisons, 0 mismatches), state coverage (62 required states, 0 missing)
-and privacy scan pass. Primary review only; no subagents or pending worker artifacts.
+T-13 done on 2026-09-29, base `edeefc3`, on the owner's authorization of T-13 as written:
+design-brief.md sections 6 to 10 are written. Section 6 copies the spec's forbidden, required
+and kept lists verbatim and states what a direction delivers: concept, palette with the six
+state colours and a contrast table, type pairing, and the signature visualization for every
+scenario limit kind. Section 7 lists the directions and the full prototype; section 8 holds
+the direction rows DA-1 to DA-7 and the prototype rows PA-1 to PA-13; section 9 the WinUI 3,
+MSIX, font-licence, accessibility and scaling limits; section 10 the sources. Sections 1 to 5
+are unchanged. verification.md holds the B-4 to B-6 clause mapping, the review focus to rubric
+table and brief choices 11 to 23 for T-14.
 
-Blockers: none for T-13. Sending the brief to Claude Design needs Gate B and a working Claude
+Next action: T-14 `[astra]`, Step 1 (check every clause of spec B-1 to B-6, R-01 to R-15 and
+D-183 to D-185 against the brief). T-14 Step 3 also verifies the section 9 licence statements
+against the official licence pages: T-13 only confirmed that the SIL OFL official-text page
+resolves, and could not fetch the Apache License page.
+
+T-13 checks: validator `--json` valid true with no diagnostics; `git diff --check` clean;
+scratch clause and rubric check (25 mapping rows, 25 spec and 42 brief quotes found, 20 rubric
+rows, 51 state names, 17 scenario figures, 0 failures; 8 of 8 injected defects detected) and
+privacy scan (0 hits) pass. Primary review only; no subagents or pending worker artifacts.
+
+Blockers: none for T-14. Sending the brief to Claude Design needs Gate B and a working Claude
 Design connection (`/design-login`).
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
 NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in
-docs/providers/codex.md line 53 is replaced by owner choice in a separate commit.
+docs/providers/codex.md was replaced by owner choice in `2087bc3`.

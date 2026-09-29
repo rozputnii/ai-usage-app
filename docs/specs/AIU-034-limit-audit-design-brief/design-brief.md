@@ -325,24 +325,281 @@ appearance.
 
 ## 6. Visual identity (B-4)
 
-The forbidden, required and kept lists of the specification, and what a direction delivers for
-each required item.
+The design has its own identity and does not reuse Claude Design's default theme and colours
+(R-08). The three lists below are copied verbatim from the specification. Sections 6.1 to 6.4
+state what a direction delivers for each required item, section 9 states the platform rules
+behind the kept items, and section 8 checks every item by name.
+
+**Forbidden:**
+
+- a near-black slate or zinc background with a single indigo, violet or blue accent;
+- purple-to-blue gradients and glassmorphism;
+- a grid of identical rounded cards with soft shadows;
+- Inter or a system font as the only typographic idea;
+- KPI tiles, pill badges everywhere, and decorative emoji or icons.
+
+**Required:**
+
+- a named design concept with its rationale;
+- a palette derived from that concept, with semantic state colors (ok, attention,
+  critical, stale, estimate, assumed) meeting WCAG AA contrast on the dark background;
+- a distinctive type pairing with tabular numerals;
+- a signature limit visualization that combines the bar, today's budget, the pace mark and
+  five-hour sessions.
+
+**Kept:**
+
+- dark-only (D-182);
+- status never relies on color alone;
+- everything implementable in WinUI 3 on Windows 11;
+- fonts licensed for embedding in an MSIX package.
+
+### 6.1 Design concept
+
+Each direction has a name and a concept of a few sentences: the one idea the whole interface
+follows, and why it suits the user of section 2, who looks for a few seconds many times a day
+and wants an answer without reading. The palette, the type pairing and the signature
+visualization each state how they follow from the concept. A name alone, or a mood with no
+consequence for form, is not a concept.
+
+### 6.2 Palette
+
+Each direction delivers its palette as named colour tokens with hex values, derived from its
+concept:
+
+- the window background and every surface, all dark (D-182) and solid (section 9);
+- the text levels, including the dimmed level of stale readings;
+- the neutral colours of the bar track and of the neutral states, which never use ok;
+- the six semantic state colours, each tied to the section 3 states it marks:
+
+| Colour | Section 3 states it marks |
+| --- | --- |
+| ok | OK. |
+| attention | attention; five-hour amber. Attention is the amber of R-09. |
+| critical | today used; five-hour red; at limit (exhausted); over limit; over cap. Critical is the red of R-09. |
+| stale | stale (dimmed): the dimmed reading, every figure computed from it, and its time. |
+| estimate | tracked estimate; tracked since; incomplete tracking; sessions ready; less than one session. |
+| assumed | assumed reset; assumed start. |
+| neutral, not one of the six | neutral, day off; neutral, no remaining work days; not included; capped at 0; budget not ready; no budget, with reason; unknown; limit unknown; period unknown; secondary amount, unit unknown. |
+
+A value can carry a state and a label at once: A3 is today used and an estimate, and B3 is OK,
+an estimate and tracked since. The direction shows how the estimate and assumed marks combine
+with a state colour without replacing it.
+
+Each direction also delivers a contrast table, computed with the WCAG 2.2 relative luminance
+and truncated to two decimals, so that 4.49:1 fails 4.5:1:
+
+- every text level, and every semantic colour used as text: at least 4.5:1 against each
+  background or surface it appears on;
+- every semantic and neutral colour used as a non-text mark, such as a bar fill, today's
+  budget, the pace mark or a focus indicator: at least 3:1 against every colour it touches,
+  the bar track included;
+- the dimmed level of stale readings meets the same ratios: stale is dimmed, never illegible.
+
+### 6.3 Type pairing
+
+Each direction delivers a distinctive type pairing, two families with separate roles such as
+figures and labels, and its type ramp: sizes, weights and line heights in effective pixels.
+
+- **Tabular numerals.** Every figure uses tabular numerals: percentages, amounts, counts,
+  times and countdowns, so that figures align in columns and keep their width when they
+  change. The figure font supports OpenType tabular figures.
+- **Not a system font alone.** Inter or a system font such as Segoe UI Variable may be one
+  half of the pairing, never the only typographic idea.
+- **Licence.** For each font packaged with the app, the direction names its licence and the
+  source of its files (section 9).
+- **Size.** No text is smaller than 12 effective pixels, the Windows 11 minimum for regular
+  text.
+- **Scripts.** Interface text is English. Account names are user text: the direction states
+  which scripts its fonts cover, and a name outside them falls back to the Windows system font.
+
+### 6.4 Signature limit visualization
+
+Each direction delivers one visualization used on every limit row. It combines:
+
+- **the bar:** used against the effective limit `L`, at the positions of section 4.3;
+- **today's budget:** the stretch from `U0` to `U0 + T`, so that used today and left today
+  read from the bar, and use past `U0 + T` visibly overruns it (A3, and B2 when its budget
+  marks are drawn);
+- **the pace mark:** at `B x E`, with the deviation in words, "ahead by" or "behind by";
+- **five-hour sessions:** "≈ n sessions (estimate)" for the weekly remainder and for today,
+  where the estimate is ready.
+
+Beside it, the row keeps left today, the budget state and the deviation visible (section 5.1).
+Graphic session marks, if a direction draws any, follow the section 3.7 states of the session
+figure: hidden when the estimate is not ready, and marked as an estimate.
+
+The visualization is shown for every limit kind of the section 4 scenario:
+
+| Scenario limits | Kind and state | Draws | Never draws |
+| --- | --- | --- | --- |
+| A2 | weekly window; OK; sessions ready | The bar, today's budget, the pace mark with "ahead by 5.5 %", and ≈ 4 sessions this week and ≈ 1 session today, labelled as an estimate. | A decimal session count. |
+| D1 | weekly window; OK; stale (dimmed) | The used fill dimmed with "as of 13:38"; today's budget and the pace mark, fixed for the day like `N` and `T`, at full emphasis. | The stale reading at full emphasis; a session figure, because the scenario gives it no paired five-hour window. |
+| B2 | weekly window; at limit (exhausted); estimate not ready | A full bar, "exhausted" and "back Fri 16 Oct 09:30". The section 4.3 budget marks may stay, subordinate to the exhausted state. | An OK or attention look; a session figure or a placeholder for one. |
+| A1, B1 | five-hour windows; five-hour amber and five-hour red | The used bar in the R-09 colour, with the countdown beside it: 1 h 45 min and 1 h 28 min. | Today's budget, a pace mark, a session figure or hour segments. |
+| A3 | monetary pool; today used; tracked estimate | The bar on the USD 300.00 cap labelled as the user's, today's budget overrun, the pace mark with "behind by USD 81.63", "estimate", the USD 500.00 provider limit as a fact, and the assumed period. | The cap as the provider's limit; a converted amount or more precision than cents. |
+| B3 | balance-only credit pool; OK; tracked estimate, tracked since | The bar on the 17,000-credit cap labelled as the user's, today's budget, the pace mark with "ahead by 1,247", "estimate" and "tracked since 3 Oct", and the provider balance of 10,160 credits as a fact beside it. | The balance as used or as an allotment. |
+| C1, C2 | countable pools; OK | The bar in requests, today's budget, the pace mark, the provider's remaining as a fact, and the assumed start. | A percentage of another limit, or money. |
+| C3 | not included | The words "not included", neutral. | A bar or a zero budget. |
+| D2 | percentage window; period unknown; stale (dimmed) | The used bar at 19 %, dimmed, with "as of 13:38", "period unknown" and the reset Mon 19 Oct 04:00. | Today's budget, a pace mark, or a name such as "weekly". |
 
 ## 7. Deliverables (B-5)
 
-Two or three distinct directions first, then the full prototype of the selected direction with
-its token, component, keyboard, accessible-name and reduced-motion specifications.
+### 7.1 Directions first
+
+Claude Design first delivers two or three distinct directions, and the owner selects one.
+Directions are distinct when each has its own concept, palette, type pairing and signature
+visualization; colour variants of one layout count as one direction. Each direction contains:
+
+1. its name, concept and rationale (section 6.1);
+2. its palette tokens and contrast table (section 6.2);
+3. its type pairing, its type ramp, and the licence and source of each packaged font
+   (section 6.3);
+4. its signature visualization for every row of the section 6.4 table;
+5. the main window with the whole section 4 scenario at 760 × 600 effective pixels and 100 %
+   scaling, without scrolling, or at the direction's own default size with its reason
+   (section 5.4);
+6. for each forbidden item of section 6, one sentence on how the direction avoids it.
+
+Section 8.1 decides whether a direction can be selected. Nothing else is needed at this stage.
+
+### 7.2 Full prototype of the selected direction
+
+After the owner selects a direction, Claude Design delivers its full prototype:
+
+- **Main window in every state.** The section 4 scenario, and a state list that names every
+  section 3 state by its identifier and shows it in place: in the scenario where the scenario
+  has it, otherwise with other invented values.
+- **Inline history.** The expanded history of one limit over at least 35 days, with a gap
+  (section 5.1).
+- **Tray flyout.** The secondary flyout, currently 360 effective pixels wide, with each
+  account's status (section 5.3).
+- **Settings panel.** The inline panel with the work days, the personal caps including an
+  unmatched cap and a currency mismatch, and the existing sections with System status last.
+- **Inline editing, confirmation and undo.** Rename with Enter and Escape; setting, changing
+  and removing a cap on its row; "Confirm · Cancel" in place for Delete stored data; undo
+  after removing a cap and after changing the work days.
+- **First run.** The providers listed directly, each with one-click sign-in.
+- **Sign-in strip.** Sign-in in progress and its success; sign-in expired with its inline
+  sign-in action; sign-out, and showing signed-out accounts.
+- **Scaling.** The main window at 100 % and 150 % display scaling.
+- **Token specification.** Colour tokens with hex values and roles; the type ramp; spacing,
+  sizes, corner radii and stroke widths in effective pixels; motion durations and easing.
+- **Component specification.** The account line, the limit row, the signature visualization
+  with each of its marks, the history expansion, the inline editors, "Confirm · Cancel",
+  undo, the settings panel, the sign-in strip and the tray flyout row, each with its states
+  and its sizes in effective pixels.
+- **Keyboard, accessible-name and reduced-motion notes.** The focus order and a visible focus
+  indicator; the key for every action; the accessible name of every control and every figure
+  with its state words, for example "Codex Pro weekly, exhausted, back Friday 09:30"; and what
+  replaces each motion when Windows animation effects are off.
+
+### 7.3 Form
+
+The directions and the prototype are Claude Design project files, as in the AIU-010 design
+reference: a clickable prototype, a design specification and their support files. They use
+synthetic data only and contain no screenshot or capture of a real account. They are a design
+reference: the app recreates them in native WinUI 3 XAML (section 9).
 
 ## 8. Acceptance rubric (B-6)
 
-Pass or fail checklists for accepting a direction and for accepting the final prototype.
+The owner uses two pass/fail checklists: section 8.1 to accept or reject a direction, and
+section 8.2 to accept or reject the final prototype. A direction or the prototype is accepted
+only when every row passes, or when the owner accepts a listed exception by its row. A failed
+row names the element that fails it. The rows use the section 3 state names unchanged.
+
+### 8.1 Direction acceptance
+
+| Row | Criterion | Passes when |
+| --- | --- | --- |
+| DA-1 | Concept and rationale | The direction has a name and a concept that answers section 2, and its palette, type pairing and signature visualization each state how they follow from it (section 6.1). |
+| DA-2 | No forbidden element, each named | Each item is checked and absent: (a) a near-black slate or zinc background with a single indigo, violet or blue accent; (b) a purple-to-blue gradient; (c) glassmorphism; (d) a grid of identical rounded cards with soft shadows; (e) Inter or a system font as the only typographic idea; (f) KPI tiles; (g) pill badges everywhere; (h) decorative emoji or icons; (i) Claude Design's default theme and colours (R-08). |
+| DA-3 | Palette contrast | The section 6.2 table gives every text level and all six semantic colours: text at least 4.5:1, non-text marks at least 3:1 against every colour they touch, the dimmed stale level included. Attention is amber, critical is red, and neutral states do not use ok. |
+| DA-4 | Type pairing and font licence | Two families with separate roles; tabular numerals for every figure; no text below 12 effective pixels; each packaged font names a licence that permits embedding and redistribution in an application, and the source of its files; a system font is at most one half of the pairing (section 6.3). |
+| DA-5 | Signature visualization | One visualization combines the bar, today's budget, the pace mark and five-hour sessions. It is shown for every row of the section 6.4 table, with everything in its "Draws" column and nothing in its "Never draws" column, and its marks sit at the section 4.3 positions. |
+| DA-6 | Four accounts fit | The whole section 4 scenario, four accounts with eleven limits, fits 760 × 600 effective pixels at 100 % scaling without scrolling, or a stated other default size with its reason. Each account's status is visible without expanding anything; left today, the budget state and the deviation are visible on each row with a budget; and the text meets DA-3 and DA-4 at that density. |
+| DA-7 | Buildable in WinUI 3 | Every effect is available in WinUI 3 XAML or composition, the background is solid, nothing needs a WebView, and colours come from the direction's own tokens (section 9). |
+
+### 8.2 Prototype acceptance
+
+| Row | Criterion | Passes when |
+| --- | --- | --- |
+| PA-1 | Every section 3 state visible | The state list names every section 3 state by its identifier and shows each one in place (section 7.2). |
+| PA-2 | No tooltip-only decision information | Every figure that answers a section 2 question is visible, or one keyboard step away on the focused row; tooltips only repeat visible information; no reading lives only in hover text (section 5.4). |
+| PA-3 | Figures match section 4 | Every value of section 4.2, every bar position of section 4.3 to 0.1 point, and every account status of section 4.4 is shown as written, with the same rounding. |
+| PA-4 | R-09 colours | A1 is amber with "1 h 45 min" and B1 red with "1 h 28 min" beside the bar; a five-hour window above 30 % left has no countdown; no five-hour window is split into hours; the colour never stands alone. |
+| PA-5 | No figures without data | No figure, bar or colour for the provider-UI-only limits of section 3.12; unknown shown by an unknown mark, never as 0 or unlimited; a not-ready estimate hidden; each no-budget state gives its reason in words, never an empty budget; not included and capped at 0 without a bar. |
+| PA-6 | Labels and truthfulness | "estimate", "assumed", "tracked since", "incomplete" and "period unknown" appear wherever section 3 requires them; stale readings are dimmed with their time; there is no combined percentage, no sum of different limits and no conversion between units or currencies (section 3.12). |
+| PA-7 | Identity kept | The prototype uses the selected direction's concept, tokens and type pairing, and DA-2 passes again on every screen. |
+| PA-8 | Contrast and colour alone | On the final tokens, text is at least 4.5:1 and non-text marks at least 3:1, the dimmed stale level included; every coloured state also has a word or a shape. |
+| PA-9 | Keyboard and screen-reader notes | The focus order, a visible focus indicator, a key for every action, the accessible name of every control and every figure with its state words, and the reduced-motion behaviour are specified (section 7.2). |
+| PA-10 | Layouts at 100 % and 150 % | The section 4 scenario fits the default window without scrolling at 100 % and at 150 % display scaling, thin marks stay distinguishable at 150 %, and at 200 % the content scrolls vertically with nothing clipped (section 9). |
+| PA-11 | Surfaces complete | Inline history with a gap, the tray flyout, the settings panel with work days, caps, an unmatched cap and a currency mismatch, inline rename and cap editing, "Confirm · Cancel", undo, first run and the sign-in strip are delivered, with no modal dialog, pop-up window or account detail view (R-01). |
+| PA-12 | Buildable in WinUI 3 | Every effect and component maps to WinUI 3 XAML or composition, each packaged font is a .ttf or .otf file with a named licence, and nothing needs a WebView (section 9). |
+| PA-13 | Token and component specifications | The tokens and components of section 7.2 are complete, with values and sizes in effective pixels that an implementer can transfer to XAML without measuring the prototype. |
 
 ## 9. Platform constraints
 
-WinUI 3 on Windows 11, dark-only, fonts licensed for embedding in an MSIX package, keyboard and
-screen-reader access, reduced motion and display scaling.
+The shipped interface is native. These limits decide what a direction may propose.
+
+- **Target.** A WinUI 3 desktop app on Windows 11, packaged as MSIX. Views are XAML; the
+  Claude Design files are recreated in XAML and never shipped (section 7.3).
+- **No WebView.** No part of the interface is HTML in a WebView.
+- **Dark-only (D-182).** One dark appearance in the main window, the tray flyout and the title
+  bar. It stays the same when Windows is in light app mode or a contrast theme is on; no light
+  or high-contrast variant is designed. Colours come from the direction's own tokens, not from
+  the Windows accent colour or the system theme brushes.
+- **Solid background.** Backgrounds and surfaces are solid colours, without Mica or Acrylic,
+  so that every contrast ratio of section 6.2 holds against a known colour.
+- **Effects.** Only what WinUI 3 XAML and the Windows composition layer render: solid and
+  gradient brushes, shapes and paths, opacity, clipping, theme shadows, and XAML or
+  composition animations. CSS-only effects such as backdrop blur, blend modes, filters,
+  masks, gradient text and scroll-driven animation are not used unless the direction names
+  their XAML or composition equivalent.
+- **Fonts.** Each font that is not part of Windows is packaged in the MSIX as a .ttf or .otf
+  file, not WOFF or WOFF2, under a licence that permits embedding and redistribution in an
+  application, for example the SIL Open Font License 1.1 or the Apache License 2.0. The
+  direction names the licence for each font, and the licence is checked against its official
+  page before import. A Windows 11 system font such as Segoe UI Variable is used from Windows
+  and not packaged.
+- **Tabular numerals.** XAML sets them with `Typography.NumeralAlignment="Tabular"`, so the
+  figure font must provide tabular figures.
+- **Keyboard.** Every action is reachable and operable by keyboard, with a visible focus
+  indicator of at least 3:1 against the colours next to it.
+- **Accessible names.** Every control and every figure has an accessible name for UI
+  Automation and Narrator that includes its state words (section 7.2).
+- **Reduced motion.** When Windows animation effects are off, state changes are instant, and
+  no information is carried by motion alone.
+- **Display scaling.** Layouts are in effective pixels and are checked at 100 %, 150 % and
+  200 %. The section 4 scenario fits the 760 × 600 default at 100 %. At 150 % the same layout
+  fits a 1920 × 1080 display, which offers 1280 × 720 effective pixels less the taskbar, and
+  thin marks stay distinguishable at 1.5 physical pixels per effective pixel. At 200 % such a
+  display offers 960 × 540 effective pixels less the taskbar, which is lower than the default
+  window: the window then fits the work area and its content scrolls vertically, with nothing
+  clipped.
+- **Text size.** The fit applies at the Windows text size of 100 %. At a larger text size the
+  content scrolls, and no figure is truncated.
+- **Status never by colour alone.** Every coloured state also has a word, and marks differ in
+  shape or position, not only in hue.
 
 ## 10. Sources
 
-The specification, the research sections, the decisions and the licence pages this brief
-relies on.
+- [spec.md](spec.md): R-01 to R-15, B-1 to B-6 and Gate B.
+- [research.md](research.md): sections 5 (limit model and personal cap), 6 (local reading
+  series and tracked consumption), 7 (five-hour session estimator), 8 (budget rules, states and
+  rounding), 9 (worked examples) and 11 (owner decisions PD-034-01 to PD-034-03).
+- D-180 to D-185 in [accepted decisions](../../decisions/accepted.md): the single-window shell,
+  the compact view and pace colours, the dark-only appearance, the redesign direction,
+  local-only history, and the limit model accepted at Gate A.
+- Current window sizes: `MainWindow.xaml.cs` (`DefaultWidth` 760, `DefaultHeight` 600) and
+  `Features/Tray/TrayPopupWindow.xaml.cs` (`PopupWidth` 360) in `src/windows/AiUsage.Windows`.
+- Import precedent: the [AIU-010 design reference](../AIU-010-ui-ux/design-reference/README.md).
+- Licences named in section 9: the
+  [SIL Open Font License 1.1, official text](https://openfontlicense.org/open-font-license-official-text/)
+  and the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+- WCAG 2.2: [1.4.1 Use of Color](https://www.w3.org/TR/WCAG22/#use-of-color),
+  [1.4.3 Contrast (Minimum)](https://www.w3.org/TR/WCAG22/#contrast-minimum) and
+  [1.4.11 Non-text Contrast](https://www.w3.org/TR/WCAG22/#non-text-contrast).
+- Windows: [Typography in Windows](https://learn.microsoft.com/windows/apps/design/signature-experiences/typography)
+  (type ramp and the 12-pixel minimum) and
+  [Typography.NumeralAlignment](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.documents.typography.numeralalignment).
