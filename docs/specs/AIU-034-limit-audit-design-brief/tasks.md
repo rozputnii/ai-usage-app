@@ -828,7 +828,7 @@ Starts only after the owner's Gate B review.
 - [x] **Step 5:** Commit "AIU-034 Phase B: Claude Design directions" and push.
 
 ### T-18 - [opus] Full prototype, owner acceptance and import
-- status: ready
+- status: in-progress
 - depends_on: [T-17]
 - acceptance: AC-10
 - evidence: not-run
@@ -978,13 +978,24 @@ This session verified the page and corrected it in the project; the original is 
 
 The record is in verification.md.
 
-Next action: T-18, on the owner's instruction. Step 1 is narrowed by D-186: Claude Design
-designs the surfaces the reference lacks (settings, history, tray, first run, the sign-in
-strip, inline editing, Confirm · Cancel, undo) and checks the four-account fit at 760 × 600.
-Alternatively, the owner accepts these surfaces as AIU-038 design work, and T-18 imports the
-current reference.
+T-18 Step 1 was started on 2026-10-01 at the owner's instruction ("design the missing designs
+yourself"). This session wrote `Surfaces Handoff.dc.html` in the project with frames S1 to S11:
+- the brief scenario fitting 760 × 600 in Compact density (579 px);
+- inline rename and cap editing, undo and focus;
+- inline history with a gap;
+- the settings panel;
+- first run;
+- the sign-in strip states;
+- the tray flyout;
+- the token and component specification.
 
-Blockers: the owner's choice for T-18 Step 1.
+The record is in verification.md.
+
+Next action: the owner reviews both pages and confirms or rejects Compact as the default
+density (T-18 Steps 2 and 3). Then T-18 Step 4 imports both pages and `support.js` into
+`design-reference/`.
+
+Blockers: the owner's review of the two pages.
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
 NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in

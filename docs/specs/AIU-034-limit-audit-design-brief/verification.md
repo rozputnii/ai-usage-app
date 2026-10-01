@@ -96,6 +96,40 @@ conflict check: the concurrent change was a same-size re-save by Claude Design.
   `.ttf` files, the licence pages and `tnum` support (Hanken Grotesk in particular) are still
   to be verified before import (brief section 9).
 
+**Missing surfaces, designed by this session on the owner's instruction (2026-10-01).** The
+owner asked this session to design the missing surfaces itself. The new page
+`Surfaces Handoff.dc.html` in the same project uses the same tokens and cards. Its frames:
+
+| Frame | Content |
+| --- | --- |
+| S1, S2 | Main window, Used and Left, with the design-brief section 4 scenario: 4 accounts, 9 cards (the two scenario Copilot request pools and "not included" premium, Codex credits on the 17,000 cap with "≈", Antigravity stale with the sync-failed pill, and group 2 period unknown). |
+| S3 | Inline rename (F2); the cap editor on a card and on a limit-unknown card; the card after a cap is removed; the undo bar; the focus ring; History and Sign out on a focused card. |
+| S4 | Inline history: 36 days from local readings, a gap of 25–28 Sep drawn as a gap, 7d reset ticks, the baseline and a keyboard-focused day. |
+| S5 | Inline settings panel:<br>- Budget, with the work days and their undo;<br>- Personal caps, with a cap that binds, a balance-only pool, unlimited plus cap, an unmatched cap and a currency mismatch;<br>- Appearance, with Used/Left, Density, show signed-out and always on top;<br>- Monitoring;<br>- Data & privacy, with Delete stored data turned into Confirm · Cancel;<br>- Updates;<br>- System status last. |
+| S6 | First run: four providers with one-click sign-in, one waiting. |
+| S7, S8, S9 | Sign-in strip: the provider menu, in progress, success, failed with Try again, and sign-in expired on every card of the account. |
+| S10 | Tray flyout, 360 wide. |
+| S11 | Token and component specification: colours, type ramp, sizes, keyboard map, accessible names and motion with its reduced-motion behaviour. |
+
+Checks in the in-app browser:
+- console errors: 0;
+- truncated text: 0;
+- text below 12 px: only the 11 px state captions, which are not app content.
+
+**Fit at 760 × 600 needs Compact density.** S1 and S2 fit only with Compact density:
+- Compact cards are 97 px, and the content is 579 px of 600;
+- the Comfortable cards of Provider States Handoff are 123–143 px and need about 731 px.
+
+The page therefore makes Compact the default of the existing Appearance › Density setting.
+This is a proposal for the owner to confirm or reject.
+
+**Still NOT_RUN:**
+- the 150 % and 200 % checks;
+- the hatch spike;
+- the font licence and `tnum` checks;
+- states shown only as text in these pages: capped at 0, incomplete tracking,
+  "used today since HH:MM" and the secondary amount of unknown unit.
+
 **Verdict.** The page is accepted as the design reference under D-186. The rubric rows that
 D-186 replaces are not judged against the old brief. AC-10 stays NOT_RUN until T-18 imports
 the reference.
