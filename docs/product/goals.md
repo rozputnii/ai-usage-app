@@ -31,7 +31,7 @@ active_goal: G-002
 
 ## G-005 - Later platforms and extensions
 - status: idea
-- scope: AIU-018, AIU-019, AIU-020, AIU-021, AIU-022, AIU-023, AIU-024, AIU-025
+- scope: AIU-018, AIU-019, AIU-020, AIU-021, AIU-022, AIU-023, AIU-024, AIU-025, AIU-041
 - outcome: Stabilize Windows before implementing Android, Store distribution, Widgets, WSL import, ARM64, multi-window/palette, forecasting or always-on coding infrastructure.
 
 ## Current direction

@@ -394,6 +394,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - supersedes: No further part of D-180 or D-181. The History page this retrieval fed is replaced by inline local history through AIU-038 and AIU-039, so this item follows that switch and the current History view never goes empty early (D-183).
 - contract-note: No presentation-contract change is expected. If one is needed, it is agreed with the [opus] AIU-038 item, never made silently.
 
+## AIU-041 - Paid API token spend (Anthropic API, OpenAI API)
+- goal: G-005
+- status: idea
+- depends_on: [AIU-039]
+- trigger: owner-selection
+- outcome: The owner proposed this in the AIU-034 Claude Design round (D-186). The main window would show the month-to-date spend, and today's spend, of pay-as-you-go API tokens as an "Extra" group, separate from subscription quotas. The handoff draft showed Anthropic API and OpenAI API cards with a monthly total, today's spend and no cap. They were removed from the design reference, because D-183 and the constitution exclude API-key billing from consumer quotas.
+- acceptance: (1) Before any work, an owner decision amends the constitution line "Do not confuse consumer quotas with API billing" and D-183's exclusion, and names the authorized credentials (admin or usage API keys), their storage under DPAPI and a security-lifecycle review. (2) Provider evidence, from source and live, establishes each usage or billing endpoint, its unit, its currency and minor units, its period and its freshness. (3) API spend is never summed with, converted into or shown as part of a subscription quota. (4) No figure appears without an established source; an unknown value is never 0.
+- supersedes: Nothing. It needs an owner amendment of D-183.
+- source: docs/decisions/accepted.md (D-186)
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

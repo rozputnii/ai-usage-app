@@ -812,7 +812,7 @@ Starts only after the owner's Gate B review.
 - [x] **Step 5:** Commit "AIU-034: propose follow-up implementation items" and push.
 
 ### T-17 - [opus] Claude Design round: directions
-- status: in-progress
+- status: done
 - depends_on: [T-16]
 - acceptance: AC-10
 - evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
@@ -823,12 +823,12 @@ Starts only after the owner's Gate B review.
   and ask for two or three directions as brief sections 6 to 8 require.
 - [x] **Step 3:** Check each direction against the section 8 direction checklist and record
   pass or fail per item in verification.md, without images or account data.
-- [ ] **Step 4:** Present the directions to the owner and ask them to select one. Record the
+- [x] **Step 4:** Present the directions to the owner and ask them to select one. Record the
   selection and the project identifier in verification.md.
-- [ ] **Step 5:** Commit "AIU-034 Phase B: Claude Design directions" and push.
+- [x] **Step 5:** Commit "AIU-034 Phase B: Claude Design directions" and push.
 
 ### T-18 - [opus] Full prototype, owner acceptance and import
-- status: pending
+- status: ready
 - depends_on: [T-17]
 - acceptance: AC-10
 - evidence: not-run
@@ -963,10 +963,28 @@ T-17 checks:
 - no text below 12 px;
 - no console errors.
 
-Next action: the owner selects one direction (T-17 Step 4). Then record the selection in
-verification.md, commit and push (Step 5), and start T-18 Step 1 on the owner's instruction.
+T-17 done on 2026-10-01, base `2609404`. The owner developed 1a Ledger with Claude Design and
+selected `Provider States Handoff.dc.html` as the design reference (D-186). D-186 lifts the
+brief's visual-identity restrictions and amends the five-hour, colour, Used/Left and tooltip
+rules.
 
-Blockers: the owner's selection.
+This session verified the page and corrected it in the project; the original is kept as
+`... v1`.
+- Fixed: C4; the Codex balance shown without a plan size; the "(assumed)" period; red for a
+  reached limit or cap; the AA contrast tokens and the stale styling.
+- Removed: the API cards, which became AIU-041 (G-005; it needs a constitution and D-183
+  amendment).
+- Added: the Copilot and other missing card states.
+
+The record is in verification.md.
+
+Next action: T-18, on the owner's instruction. Step 1 is narrowed by D-186: Claude Design
+designs the surfaces the reference lacks (settings, history, tray, first run, the sign-in
+strip, inline editing, Confirm · Cancel, undo) and checks the four-account fit at 760 × 600.
+Alternatively, the owner accepts these surfaces as AIU-038 design work, and T-18 imports the
+current reference.
+
+Blockers: the owner's choice for T-18 Step 1.
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
 NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in

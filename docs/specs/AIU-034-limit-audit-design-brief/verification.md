@@ -1,5 +1,108 @@
 # AIU-034 verification
 
+## T-17 owner selection and handoff verification - 2026-10-01
+
+Primary [opus] session. Base `2609404`; the tree was clean. The owner asked for a verification of
+the Claude Design page `Provider States Handoff.dc.html` in project
+`9a6b2cdd-1c9c-4abe-9477-2869aa10f9bd`, and of the `support.js` it loads, before
+implementation.
+
+**Selection (Step 4).** Between 2026-09-30 and 2026-10-01 the owner developed direction 1a
+Ledger with Claude Design. The work went through the files `LedgerTrackWindow`,
+`Today Windows Hypothesis`, `Budget Window`, `Provider States` and finally
+`Provider States Handoff`. Twenty-one owner comments were resolved along the way. On
+2026-10-01 the owner lifted the brief's visual-identity restrictions in that chat, keeping
+dark-only, and asked for a final page of all states for development, with English captions
+that are not part of the app. This session read the project transcript and comments as data.
+The owner then answered four questions in this session:
+- the API cards become a separate backlog item (AIU-041);
+- this session corrects the page and adds the missing states;
+- an exhausted 7d limit is red;
+- the selection and the brief amendments are recorded.
+
+The decisions are recorded as D-186.
+
+**`support.js`.** The generated Claude Design runtime (`dc-runtime`): the template parser,
+`sc-for`, `sc-if` and `DCLogic`. It holds no app content or data and is not a design
+deliverable. The XAML rebuild does not use it.
+
+**Checks on the owner's page (served in the in-app browser; the token links are not recorded).**
+- Both windows (Used and Left) render at 760 px, the three fonts load, and the console shows
+  no errors.
+- The owner's rules hold:
+  - Used mode puts the current window left, and the last window and its grey part right; Left
+    mode mirrors this;
+  - the hatching sits right of the solid fill;
+  - an over label appears only when over today;
+  - percentages are whole numbers;
+  - today low is orange and over today is red.
+- The state arithmetic matches for A1 to A7, B1 to B5, C1 to C3, C5, C6 and D1 to D6. Examples:
+  B4 is 17 / 14, which gives 121 %; D6 is $12.60 over, with $187.40 left on the provider limit;
+  A4 has 64 / 12 windows, about 5.
+
+**Defects found, and fixed by this session in the page.** The original is kept as
+`Provider States Handoff v1.dc.html`. The page was rewritten with `if_match` after the
+conflict check: the concurrent change was a same-size re-save by Claude Design.
+- C4: the tooltip said "300 of usual 500", but today's allowance is 15,000 - 14,600 = 400.
+- E1 and E2 (Anthropic API, OpenAI API): API-key billing is excluded (D-183, constitution).
+  The cards were removed and the idea is proposed as AIU-041. E2 also showed "—" (unknown) for
+  today beside a month of $0.00.
+- Codex showed a "20k credits · month" plan and "plan has N more". D-185 allows only a balance
+  and a tracked estimate on the cap. The page now scales the bar to the cap, marks used as "≈"
+  (tracked since 3 Oct, an estimate) and shows the provider balance as a fact.
+- The Codex and Claude Work month was not marked as assumed; it now reads
+  "resets 1 Nov (assumed)".
+- A6 (7d used up), C5 and D5 (cap reached) were orange. They are now red: an exhausted 7d
+  limit by the owner's answer, and the reached caps for consistency with it. The owner can
+  revert the caps.
+- Contrast, WCAG 2.2, truncated to two decimals. "Before" is the owner's page, "After" this
+  session's correction.
+
+| Element | Before | After |
+| --- | --- | --- |
+| Tertiary text (labels, resets) | `#8C887E` 4.28 | `#9D998E` 5.32 on card, 5.10 on card top |
+| Red text (over labels) | `#E5604A` 4.40 | `#F07A65` 5.54 |
+| Attention pill text | 3.99 | `#E58C6C` 4.92 |
+| Critical pill text | 3.60 | `#F07A65` 4.53 |
+| Stale card, whole-card opacity 0.55 | secondary 3.21, tertiary 2.24 | text at the normal tokens (name `#B7B3A8`, 7.23); only the bars are dimmed (opacity 0.7) |
+| Grey "not available today" | `#57544E`, 2.00 against the card | `#75716A`, 3.12 against the card |
+
+**States added (groups G and H), in the page's own style.**
+- Copilot: a countable pool within today's allowance; one with today used up; unlimited from
+  the provider with a custom cap that binds; not included (no bar); limit unknown with
+  "Set cap" (no bar).
+- Other states: period unknown, never called 7d; the estimate not ready (one today strip, no
+  "× 5h"); day off; no work day before the reset; past its reset with the budget not ready;
+  value unknown (no bar, never 0); sync failed while still fresh; sign-in expired with an
+  inline "Sign in"; signed out with "Sign in"; a model-scoped 7d row.
+- After the rewrite: no console errors, no truncated text, and no app text below 12 px. Only
+  the 11 px state captions are smaller, and they are not app content.
+
+**Not covered by the reference, to settle in AIU-038 or a later design round:**
+- the surfaces: settings, including work days, unmatched cap and currency mismatch; inline
+  history with a gap; the tray flyout; first run; the sign-in strip; rename; Confirm · Cancel;
+  undo;
+- the states: capped at 0, incomplete tracking, "used today since HH:MM" and the secondary
+  amount of unknown unit;
+- the fit of the section 4 scenario (4 accounts, about 9 cards) in 760 × 600 without
+  scrolling: NOT_RUN;
+- 150 % and 200 % scaling: NOT_RUN;
+- WinUI 3 mapping:
+  - `corner-shape: squircle` has no XAML equivalent; circular `CornerRadius` is used;
+  - the ring glow is a CSS box-shadow;
+  - the hatching from `repeating-linear-gradient` needs a spike: a tiled brush, or a
+    composition surface;
+- fonts: Hanken Grotesk, IBM Plex Mono and Source Serif 4 are named as SIL OFL 1.1. Their
+  `.ttf` files, the licence pages and `tnum` support (Hanken Grotesk in particular) are still
+  to be verified before import (brief section 9).
+
+**Verdict.** The page is accepted as the design reference under D-186. The rubric rows that
+D-186 replaces are not judged against the old brief. AC-10 stays NOT_RUN until T-18 imports
+the reference.
+
+Scope: no product code; no sign-in, provider request or live check; only the Claude Design
+project was changed (the page and its v1 copy). No screenshot or account data is committed.
+
 ## T-17 Claude Design round: directions - 2026-09-30
 
 Primary [opus] session. Base `1997206`; the tree was clean. The owner authorized T-17 in the
@@ -74,8 +177,7 @@ Also recorded:
 - **Pace mark on B2.** The subordinate pace mark now differs by colour, not size, so that it
   keeps its exact position.
 
-**Owner selection (Step 4): pending.** The directions are presented to the owner, and the
-selection and the project identifier are recorded here when made.
+**Owner selection (Step 4):** recorded on 2026-10-01 in the section above (D-186).
 
 Scope and limits:
 - Only design-brief.md left the repository.
