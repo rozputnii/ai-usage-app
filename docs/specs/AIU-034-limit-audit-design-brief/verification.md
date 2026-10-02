@@ -1,5 +1,28 @@
 # AIU-034 verification
 
+## Surfaces corners aligned with Provider States - 2026-10-02
+
+Primary [opus] session. Base `01360d7`.
+
+**Owner request.** Provider States draws its rounded elements as squircles, but Surfaces drew
+them as plain circles. The owner asked for Surfaces to match Provider States.
+
+**Edit.**
+- `Surfaces Handoff.dc.html` gains one CSS rule: `corner-shape: squircle` on every element with
+  an inline `border-radius`, except radius 50 % (dots) and 99 px (pills). This matches Provider
+  States.
+- S11 gains a "Corners" row, and the Card row now says squircle.
+- No colour, size or layout value changed.
+
+**Checks.**
+- Local render: 0 console errors.
+- Computed `corner-shape` is `superellipse(2)` (squircle) for every rounded element. Dots and pills
+  are `superellipse(1)` (round).
+- S1 and S2 fit as before.
+- The upload used `if_match`; the new etag is `1790946476159183`. The fetched page equals the
+  local file once the host blocks are removed (a style line and a script).
+- The owner's visual review is NOT_RUN.
+
 ## D-187 addition: used-up limits - 2026-10-02
 
 Primary [opus] session. Base `c8a05f2`.

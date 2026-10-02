@@ -10,7 +10,7 @@
 <helmet>
 <meta name="design_doc_mode" content="canvas">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;display=swap">
-<style>html{background:#0F0C09!important}body{margin:0;background:#0F0C09}@keyframes caret{50%{opacity:0}}@keyframes slide{0%{left:-30%}100%{left:100%}}.sv-caret{display:inline-block;width:1px;height:14px;background:#F0EEE6;margin-left:1px;vertical-align:-2px;animation:caret 1s steps(1) infinite}.sv-prog{position:absolute;top:0;bottom:0;width:30%;background:#B7B3A8;animation:slide 1.4s ease-in-out infinite}.sv-tbl{border-collapse:collapse;font-size:12px;line-height:16px}.sv-tbl td,.sv-tbl th{padding:4px 10px 4px 0;text-align:left;vertical-align:top;border-bottom:1px solid #2E2D2A}.sv-tbl th{color:#9D998E;font-weight:600}.sv-sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-3px;margin-right:6px;border:1px solid #3A3936}</style>
+<style>html{background:#0F0C09!important}body{margin:0;background:#0F0C09}@keyframes caret{50%{opacity:0}}@keyframes slide{0%{left:-30%}100%{left:100%}}.sv-caret{display:inline-block;width:1px;height:14px;background:#F0EEE6;margin-left:1px;vertical-align:-2px;animation:caret 1s steps(1) infinite}.sv-prog{position:absolute;top:0;bottom:0;width:30%;background:#B7B3A8;animation:slide 1.4s ease-in-out infinite}.sv-tbl{border-collapse:collapse;font-size:12px;line-height:16px}.sv-tbl td,.sv-tbl th{padding:4px 10px 4px 0;text-align:left;vertical-align:top;border-bottom:1px solid #2E2D2A}.sv-tbl th{color:#9D998E;font-weight:600}.sv-sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-3px;margin-right:6px;border:1px solid #3A3936}[style*="border-radius"]:not([style*="radius: 50%"]):not([style*="radius:50%"]):not([style*="radius: 99px"]):not([style*="radius:99px"]){corner-shape:squircle}</style>
 </helmet>
 <section style="padding:40px;display:flex;flex-direction:column;gap:20px;font-family:'Hanken Grotesk',sans-serif;color:#F0EEE6">
   <div style="display:flex;flex-direction:column;gap:4px;max-width:960px">
@@ -287,7 +287,8 @@
                 <table class="sv-tbl">
                   <tr><td>Window</td><td>760 × 600 default · radius 8 · title bar 38 · grid 2 × 1fr</td></tr>
                   <tr><td>Density</td><td>Compact (default): body padding 12, gap 8, card padding 8 12, inner gap 6, strip–bar gap 3, over label on the strip row, card 97 high · Comfortable: body padding 14, gap 12, card padding 13 15 12, inner gap 10, strip–bar gap 8, over label below the strip, card 123 high</td></tr>
-                  <tr><td>Card</td><td>radius 20 (circular in XAML) · border 1 · label column 40 + gap 10</td></tr>
+                  <tr><td>Card</td><td>radius 20, squircle as in Provider States · border 1 · label column 40 + gap 10</td></tr>
+                  <tr><td>Corners</td><td>corner-shape squircle on every rounded element (cards, buttons, strips, bars, ring, tooltips, menus, panels, tray); pills and dots stay round</td></tr>
                   <tr><td>Today strip</td><td>cells gap 4 · height 14 · radius 6 · hatch 135°, 3 + 3 px</td></tr>
                   <tr><td>Bar</td><td>track 8, radius 4 · today ring 16 high, stroke 1.5, radius 7, 4 px past each end · cap tick 2 × 14 · over tick 2 × 12 ink · 5h dividers 2 px card colour</td></tr>
                   <tr><td>Pill</td><td>height 20 · padding 0 9 · dot 6 · gap 5</td></tr>
