@@ -75,7 +75,7 @@ public sealed class BudgetEngineTests
         Assert.Equal(AccountLimitState.Neutral, BudgetEngine.Calculate(zero).State);
         Assert.Equal(NoBudgetReason.ZeroLimit, BudgetEngine.Calculate(zero).Reason);
         Assert.Equal(AccountLimitState.Over, BudgetEngine.Calculate(zero with { Used = new CountQuantity(3, "requests") }).State);
-        var unlimited = zero with { Facts = zero.Facts with { Limit = LimitValue.Unlimited }, Used = new CountQuantity(40, "requests") };
+        var unlimited = zero with { Facts = zero.Facts with { Limit = LimitValue.Unlimited, ReportedLimit = new CountQuantity(0, "requests") }, Used = new CountQuantity(40, "requests") };
         Assert.Equal(NoBudgetReason.Unlimited, BudgetEngine.Calculate(unlimited).Reason);
         var capped = zero with { Facts = zero.Facts with { Limit = LimitValue.Finite(new CountQuantity(50000, "requests")) }, Cap = new(new CountQuantity(0, "requests"), zero.Now), Used = new CountQuantity(250, "requests") };
         Assert.Equal(LimitBinding.PersonalCap, BudgetEngine.Calculate(capped).Binding);
@@ -108,6 +108,7 @@ public sealed class BudgetEngineTests
         Assert.Equal(BudgetState.Neutral, result.BudgetState);
         Assert.Null(result.TodayShare);
         Assert.Equal(BudgetState.Ok, BudgetEngine.Calculate(input with { WorkToday = new(2026, 10, 3) }).BudgetState);
+        Assert.Equal(result.LeftToday, BudgetEngine.Calculate(input with { WorkToday = new(2026, 10, 3) }).LeftToday);
         Assert.Equal(BudgetState.Neutral, BudgetEngine.Calculate(input with { WorkToday = new(2026, 10, 2) }).BudgetState);
         var last = input with { Now = Local("2026-10-08 04:00"), DayStart = new CountQuantity(88, "percent"), Used = new CountQuantity(95, "percent") };
         var rush = BudgetEngine.Calculate(last);

@@ -26,6 +26,7 @@ public sealed record BudgetResult
     public decimal? Norm { get; init; }
     public decimal? TodayShare { get; init; }
     public decimal? DayOffShare { get; init; }
+    public decimal? DayOffLeftToday => DayOffShare - UsedToday;
     public decimal? Baseline { get; init; }
     public decimal? Deviation { get; init; }
     public decimal? UsedToday { get; init; }
@@ -97,9 +98,10 @@ public static class BudgetEngine
         decimal? share = norm * weights.Today;
         decimal? dayOffShare = weights.Today == 0 ? Math.Max(0, limit - u0) / (weights.Remaining + 1) : null;
         bool workToday = weights.Today == 0 && input.WorkToday == WorkCalendar.Date(input.Now, input.Zone);
-        decimal? left = (workToday ? dayOffShare : share) - usedToday;
-        var budgetState = left is null ? BudgetState.Neutral : left <= 0 ? BudgetState.TodayUsed
-            : left < (workToday ? dayOffShare : share) * .3m ? BudgetState.Attention : BudgetState.Ok;
+        decimal? left = share - usedToday;
+        decimal? coloredLeft = workToday ? dayOffShare - usedToday : left;
+        var budgetState = coloredLeft is null ? BudgetState.Neutral : coloredLeft <= 0 ? BudgetState.TodayUsed
+            : coloredLeft < (workToday ? dayOffShare : share) * .3m ? BudgetState.Attention : BudgetState.Ok;
         bool rush = !result.ProviderUsedUp && input.Cap is null && weights.Today > 0 && weights.Remaining == weights.Today &&
             period.EndOrigin == ValueOrigin.Provider && input.Facts.Reset is { Meaning: ResetMeaning.Replenish } &&
             input.Facts.Kind != LimitKind.MonetaryPool && input.Facts.Unit != "credits";

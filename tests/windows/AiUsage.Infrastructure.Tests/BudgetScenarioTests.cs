@@ -49,6 +49,9 @@ public sealed class BudgetScenarioTests
         Assert.Equal(AccountLimitState.AtLimit, BudgetEngine.AccountState([b1, b2, b3]));
         Assert.Equal(AccountLimitState.Ok, BudgetEngine.AccountState([c1, c2, c3]));
         Assert.Equal(AccountLimitState.Ok, BudgetEngine.AccountState([d1, d2]));
+        var ready = new SessionEstimate(true, 12, 2, 19.8m, []);
+        Assert.Equal(new SessionFigures(new(4, false), new(1, false)), SessionEstimator.Figures(ready, a2.Used!.Value, a2.TodayShare));
+        Assert.Null(SessionEstimator.Figures(new(false, null, null, 0, []), b2.Used!.Value, b2.TodayShare).Weekly);
     }
 
     [Fact]
@@ -59,6 +62,26 @@ public sealed class BudgetScenarioTests
         Assert.Equal(30000, result.Limit);
         Assert.Equal(4500, result.Norm);
         Assert.Equal(800, result.UsedToday);
+    }
+
+    [Theory]
+    [InlineData(30000, 4500, 3700, AccountLimitState.Ok)]
+    [InlineData(25000, 2000, 1200, AccountLimitState.Ok)]
+    [InlineData(21500, 250, -550, AccountLimitState.Over)]
+    [InlineData(20000, 0, -800, AccountLimitState.Over)]
+    public void E01E05CapChangesKeepDayStartAndIgnoreChangeTime(long cap, decimal norm, decimal left, AccountLimitState state)
+    {
+        var now = Local("2026-09-29 14:00");
+        var facts = new LimitFacts(new("claude", "extra", "extra"), LimitKind.MonetaryPool, "USD", LimitValue.Finite(new MoneyQuantity(50000, 2, "USD")))
+        { Used = new MoneyQuantity(21800, 2, "USD") };
+        var input = new BudgetInput(facts, new(new MoneyQuantity(cap, 2, "USD"), now), Period("2026-09-01", "2026-10-01") with { EndOrigin = ValueOrigin.Assumed },
+            new MoneyQuantity(21800, 2, "USD"), new MoneyQuantity(21000, 2, "USD"), now, Zone);
+        var result = BudgetEngine.Calculate(input);
+        Assert.Equal(norm, result.Norm);
+        Assert.Equal(left, result.LeftToday);
+        Assert.Equal(state, result.State);
+        Assert.Equal(LimitBinding.PersonalCap, result.Binding);
+        Assert.Equal(result, BudgetEngine.Calculate(input with { Now = now.AddHours(4), Cap = input.Cap! with { SetAt = now.AddHours(4) } }));
     }
 
     private static void Figures(BudgetResult r, decimal quantum, decimal norm, decimal used, decimal left,

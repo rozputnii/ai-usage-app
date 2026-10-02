@@ -32,3 +32,17 @@ from accepted AIU-034 research and D-187; it has not received a separate owner r
 - Additional failing boundary tests led to rejecting negative entitlements and to requiring
   provider-used evidence for the provider-used-up flag on tracked pools. Their targeted rerun
   passed (29 tests). Unknown reset meaning preserves period-unknown rather than assuming a reset.
+
+- PASS: Presentation Release regression suite, 176 tests, zero failures/skips, 2026-10-02.
+- PASS: document validator after metadata correction (`valid: true`, zero diagnostics).
+- PASS: four additional E01/E05 money-cap cases, including unchanged day-start and independence
+  from cap-change time, plus scenario session counts (BudgetScenarioTests: 6 tests).
+- PASS: Work today keeps numerical outputs unchanged and affects coloring states only. The
+  new assertion failed against the initial implementation; a separate DayOffLeftToday
+  projection fixed it. BudgetEngineTests reran successfully, 25 tests. E11c now explicitly
+  retains the provider's reported zero beside the winning unlimited state.
+- Primary dependency inspection: new Core code has no file, transport, credential, UI,
+  process-clock or local-timezone dependency; no project dependencies changed. All arithmetic
+  uses decimal or checked integer/tick operations. SDK selection: 10.0.401/latestPatch.
+- Independent read-only review requested from GPT-5.6 Luna, reasoning max, for the frozen
+  73553fb..e2970ea range. Result pending; subsequent Work today fix communicated separately.

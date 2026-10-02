@@ -36,6 +36,9 @@ public sealed record LimitFacts(LimitKey Key, LimitKind Kind, string Unit, Limit
     public decimal? UsedPercent { get; init; }
     public decimal? RemainingPercent { get; init; }
     public Quantity? SecondaryAmount { get; init; }
+    // An explicit unlimited flag wins; any accompanying entitlement remains a source fact.
+    public Quantity? ReportedLimit { get; init; }
+    public QuotaSourceDetails? SourceDetails { get; init; }
     public TimeSpan? Duration { get; init; }
     public DateTimeOffset? PeriodStart { get; init; }
     public ValueOrigin? PeriodStartOrigin { get; init; }
