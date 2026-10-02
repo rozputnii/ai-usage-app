@@ -56,5 +56,37 @@ by T-04; future factory reset includes this file as app-owned mutable data.
 - Cleanup with malicious relative path/reparse points does not delete outside roots.
 - Same package upgrade retains credentials; local remove/reset cleans owned records under tested Windows settings.
 
+## AIU-036 budget data
+
+`budget` is an additive, credential-free owned namespace, separate from provider files and
+the preferences-only AIU-006 checkpoint. Version 1 has no predecessor to migrate. Older
+installations begin with an empty series and Monday-Friday configuration; future versions
+must supply a tested forward conversion, or preserve unsupported bytes and restart tracking.
+No credential generation or layout manifest is changed, and restoring the appearance
+checkpoint does not claim to restore these independently committed observations.
+
+Each series file has a structured-key SHA-256 filename, a version and the original key inside
+the envelope. It is bounded to 16 MiB/25,000 runs; configuration is 256 KiB/1,024 caps. The
+namespace is bounded to 256 distinct series and 512 MiB including recovery copies and staged
+replacements. Writes retain all 35-day observations plus a boundary run; capacity failure
+refuses new data rather than silently truncating this interval. Recovery preserves at most
+three corrupt/unsupported files per active filename and then fails closed. Same-user path
+substitution races remain outside the filesystem checks' guarantees.
+
+One live singleton and an exclusive file lease serialize operations. Staging, flush and
+replace are per file, not a transaction across a refresh's limits or configuration plus
+cleanup. An interrupted batch may contain only some limits; missing paired observations
+do not become estimator samples. On retry, duplicate or older timestamps cannot overwrite
+committed runs. Diagnostics receive only existing fixed event/category codes.
+
+Sign-out and appearance reset leave this namespace alone. `IBudgetDataCleanup` is only the
+new stores' cleanup boundary, not complete product reset. Call after refresh/writers drain.
+It preflights exact owned names and reparse points, preserves unknown entries, and supports
+idempotent retry after partial filesystem failure. Account cleanup removes its hashed series
+and matching caps; a corrupt shared configuration may contain any account's caps, so selective
+cleanup reports failure while retaining that recovery file. Whole-store cleanup removes all
+recognized active, staged and quarantined files, retaining the operation lock. The owner
+explicitly deferred product delete/reset button wiring on 2026-10-02.
+
 ## Deferred security scope
 Manifest PKI/expiry/replay and actual signing legal-identity eligibility are AIU-015/014, not bootstrap code. No custom crypto framework or secret manager server before needed.

@@ -50,6 +50,15 @@ Retry completes the pending operation; confirmed Restore replaces preferences fr
 verified checkpoint. Newer layouts refuse downgrade. Recovery diagnostics export contains
 fixed status fields only and is saved as `recovery-diagnostics.txt` in the owned data folder.
 
+AIU-036 records normalized local observations after successful live quota refreshes under
+the separate `budget` directory. It keeps at least 35 days for daily budgets and five-hour
+session estimates; the new display is connected in AIU-039. Cached startup readings are not
+new observations, and sign-out preserves this history. Work days and personal caps have a
+separate versioned configuration file. Corrupt or unsupported files are retained as recovery
+copies and tracking restarts; estimates need fresh samples again. Storage capacity failure is
+reported without discarding retained readings. This item supplies cleanup for these stores;
+the currently unavailable product delete-data/factory-reset buttons are not enabled by it.
+
 History opens with automatic loading for connected accounts, or one selected account from
 its card. Codex analytics and Copilot personal billing reports use existing AI Usage
 sessions; availability depends on the provider, plan and current permissions. Claude and

@@ -115,6 +115,23 @@ public sealed class BudgetStorageSafetyTests : IDisposable
         Assert.Empty(Directory.GetFiles(Path.Combine(root, "budget"), "series-*"));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SelectiveCleanupCannotClaimSuccessWhileUnparsedConfigurationMayRetainCaps(bool staged)
+    {
+        using var store = new LocalBudgetStore(root);
+        await store.AppendAsync([Observation], Token);
+        await store.SaveConfigurationAsync(new([DayOfWeek.Monday], [new(Key, new(new CountQuantity(10, "requests"), Start))]), Token);
+        var path = Path.Combine(root, "budget", "configuration.v1.json");
+        if (staged) path += ".stage-" + Guid.NewGuid().ToString("N");
+        await File.WriteAllTextAsync(path, "unreadable prior cap data", Token);
+        await Assert.ThrowsAsync<IOException>(() => store.DeleteAccountAsync(Key.AccountTarget, Token));
+        Assert.Single((await store.ReadAsync(Key, Token)).Value);
+        await store.DeleteAllAsync(Token);
+        Assert.Empty(Directory.GetFiles(Path.Combine(root, "budget"), "*.json*"));
+    }
+
     private static async Task Junction(string link, string destination)
     {
         var start = new ProcessStartInfo("cmd.exe") { CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };

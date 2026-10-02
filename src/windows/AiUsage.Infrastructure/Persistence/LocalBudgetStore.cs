@@ -142,8 +142,13 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
     public Task DeleteAccountAsync(string accountTarget, CancellationToken token) => ExclusiveAsync(async () =>
     {
         ValidateText(accountTarget);
-        var paths = OwnedPaths(); // Validate the complete namespace before any mutation.
+        _ = OwnedPaths(); // Validate the complete namespace before any mutation.
         var configuration = await LoadConfigurationCoreAsync(token).ConfigureAwait(false);
+        var paths = OwnedPaths(); // Recovery can have just created a new quarantine.
+        // Unparsed shared configuration may contain this target's caps and other targets'
+        // caps too. Preserve it, and do not claim that selective deletion removed all data.
+        if (paths.Any(p => Path.GetFileName(p).StartsWith(ConfigurationName + ".", StringComparison.Ordinal)))
+            throw new IOException("Configuration recovery data requires whole-store cleanup.");
         await files.WriteAsync(ConfigurationName, ToDocument(configuration.Value with
         { Caps = configuration.Value.Caps.Where(c => c.Series.AccountTarget != accountTarget).ToArray() }), ConfigurationBytes, token).ConfigureAwait(false);
         foreach (var path in paths.Where(p => Path.GetFileName(p).StartsWith("series-" + Hash(accountTarget) + "-", StringComparison.Ordinal)))
@@ -152,10 +157,6 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
             files.Check(path);
             File.Delete(path);
         }
-        // Configuration quarantines may contain this account's caps; selective deletion cannot
-        // safely parse corrupt data. Keep them and report the limitation to the cleanup caller.
-        if (paths.Any(p => Path.GetFileName(p).StartsWith(ConfigurationName + ".quarantine-", StringComparison.Ordinal)))
-            throw new IOException("Configuration recovery data requires whole-store cleanup.");
     }, token);
 
     public Task DeleteAllAsync(CancellationToken token) => ExclusiveAsync(() =>
