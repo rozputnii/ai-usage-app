@@ -44,6 +44,7 @@ public sealed record LimitFacts(LimitKey Key, LimitKind Kind, string Unit, Limit
     public ValueOrigin? PeriodStartOrigin { get; init; }
     public ResetFact? Reset { get; init; }
     public bool IsMonthly { get; init; }
+    public bool AllowsCalendarFallback { get; init; }
     public bool? Allowed { get; init; }
     public bool? LimitReached { get; init; }
     public bool? OveragePermitted { get; init; }

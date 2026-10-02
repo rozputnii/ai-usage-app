@@ -46,7 +46,7 @@ public static class ReadingCalculations
         var first = runs.FirstOrDefault(x => x.LastConfirmed >= midnight);
         if (first is null) return new(null, DayStartOrigin.Unknown);
         bool restarted = runs.Any(x => x.PeriodStartedAt >= midnight && x.PeriodStartedAt <= now ||
-            x.RestartAfter >= midnight && x.FirstSeen <= now);
+            x.RestartAfter >= midnight && x.RestartAfter <= now && x.RestartAfter < x.FirstSeen && x.FirstSeen <= now);
         if (restarted) return new(WithAmount(first.Value, 0), DayStartOrigin.RestartedToday);
         var covered = runs.FirstOrDefault(x => x.FirstSeen <= midnight && x.LastConfirmed >= midnight);
         if (covered is not null) return new(covered.Value, DayStartOrigin.Exact);
@@ -110,6 +110,9 @@ public static class ReadingCalculations
 
     internal static ReadingRun[] Ordered(IEnumerable<ReadingRun> readings, ReadingSeriesKey key, DateTimeOffset now) =>
         readings.Where(x => x.Series == key && x.FirstSeen <= now && x.LastConfirmed >= x.FirstSeen)
+            // A run does not retain intermediate confirmation times. During replay only its
+            // first observation is proven when its final confirmation is still in the future.
+            .Select(x => x.LastConfirmed > now ? x with { LastConfirmed = x.FirstSeen } : x)
             .OrderBy(x => x.FirstSeen).ToArray();
 
     internal static Quantity? WithAmount(Quantity scale, decimal value)

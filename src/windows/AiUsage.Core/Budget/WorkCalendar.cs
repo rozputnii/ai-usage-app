@@ -56,6 +56,7 @@ public static class PeriodResolver
                 return new(reset.At - duration, reset.At, ValueOrigin.Derived, reset.Origin);
             return facts.IsMonthly ? new(reset.At.ToUniversalTime().AddMonths(-1), reset.At, ValueOrigin.Assumed, reset.Origin) : null;
         }
+        if (!facts.AllowsCalendarFallback || facts.Kind == LimitKind.PercentWindow) return null;
         var date = WorkCalendar.Date(now, zone);
         var first = new DateOnly(date.Year, date.Month, 1);
         return new(WorkCalendar.Midnight(first, zone), WorkCalendar.Midnight(first.AddMonths(1), zone), ValueOrigin.Assumed, ValueOrigin.Assumed);

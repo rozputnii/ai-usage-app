@@ -90,13 +90,18 @@ public sealed class BudgetEngineTests
         var facts = Window with { Reset = new(Local("2026-10-28 10:00"), ValueOrigin.Provider, ResetMeaning.Replenish) };
         Assert.Equal(DateTimeOffset.Parse("2026-10-21T10:00:00Z", CultureInfo.InvariantCulture), PeriodResolver.Resolve(facts, now, Zone)!.Start);
         Assert.Null(PeriodResolver.Resolve(facts with { Duration = null }, now, Zone));
+        Assert.Null(PeriodResolver.Resolve(facts with { Reset = null }, now, Zone));
         var monthly = PeriodResolver.Resolve(facts with { Duration = null, IsMonthly = true, Reset = new(Local("2026-03-31"), ValueOrigin.Provider, ResetMeaning.Replenish) }, now, Zone)!;
         Assert.Equal(28, monthly.Start.UtcDateTime.Day);
         Assert.Equal(ValueOrigin.Assumed, monthly.StartOrigin);
-        var assumed = PeriodResolver.Resolve(facts with { Reset = facts.Reset with { Meaning = ResetMeaning.Expire } }, now, Zone)!;
+        var balance = facts with { Kind = LimitKind.CountablePool, Unit = "credits", AllowsCalendarFallback = true, Reset = facts.Reset with { Meaning = ResetMeaning.Expire } };
+        var assumed = PeriodResolver.Resolve(balance, now, Zone)!;
         Assert.Equal(Local("2026-10-01"), assumed.Start);
         Assert.Equal(Local("2026-11-01"), assumed.End);
         Assert.Equal(ValueOrigin.Assumed, assumed.EndOrigin);
+        Assert.Equal(assumed, PeriodResolver.Resolve(balance with { Reset = null }, now, Zone));
+        Assert.Null(PeriodResolver.Resolve(balance with { AllowsCalendarFallback = false }, now, Zone));
+        Assert.Null(PeriodResolver.Resolve(facts with { Reset = null, AllowsCalendarFallback = true }, now, Zone));
     }
 
     [Fact]
@@ -117,7 +122,7 @@ public sealed class BudgetEngineTests
         Assert.Equal(2, rush.FiveHourWindowsBeforeReset);
         Assert.False(BudgetEngine.Calculate(last with { Cap = new(new CountQuantity(20, "percent"), last.Now) }).Rush);
         Assert.False(BudgetEngine.Calculate(last with { Period = last.Period! with { EndOrigin = ValueOrigin.Assumed } }).Rush);
-        var full = BudgetEngine.Calculate(last with { Used = new CountQuantity(100, "percent") });
+        var full = BudgetEngine.Calculate(last with { Used = new CountQuantity(100, "percent"), Facts = last.Facts with { UsedPercent = 100 } });
         Assert.True(full.ProviderUsedUp);
         Assert.False(full.Rush);
         Assert.Equal(AccountLimitState.AtLimit, full.State);
@@ -138,9 +143,10 @@ public sealed class BudgetEngineTests
     }
 
     [Fact]
-    public void TrackedUseCannotInventProviderExhaustionAndNoFutureReadingIsUsed()
+    public void ProviderExhaustionRequiresProviderUsedEvidence()
     {
         var input = Input(100, 30, 110, "2026-10-01", "2026-11-01", "2026-10-06");
+        Assert.False(BudgetEngine.Calculate(input).ProviderUsedUp);
         input = input with { Period = input.Period! with { EndOrigin = ValueOrigin.Assumed } };
         Assert.False(BudgetEngine.Calculate(input).ProviderUsedUp);
         Assert.True(BudgetEngine.Calculate(input with { Facts = input.Facts with { Used = new CountQuantity(100, "requests") } }).ProviderUsedUp);

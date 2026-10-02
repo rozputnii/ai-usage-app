@@ -13,7 +13,7 @@ public sealed class BudgetScenarioTests
         var now = Local("2026-10-14 14:20");
         var monthly = Period("2026-10-01", "2026-11-01") with { EndOrigin = ValueOrigin.Assumed };
         BudgetResult Weekly(decimal u0, decimal u, string start, string end, bool stale = false) => BudgetEngine.Calculate(
-            new(Window with { Reset = new(Local(end), ValueOrigin.Provider, ResetMeaning.Replenish) }, null, Period(start, end),
+            new(Window with { Reset = new(Local(end), ValueOrigin.Provider, ResetMeaning.Replenish), UsedPercent = u }, null, Period(start, end),
                 new CountQuantity(u, "percent"), new CountQuantity(u0, "percent"), now, Zone) { IsStale = stale });
         BudgetResult Short(decimal used, string end) => BudgetEngine.Calculate(new(Window with { Duration = TimeSpan.FromHours(5) }, null,
             new(Local(end).AddHours(-5), Local(end), ValueOrigin.Derived, ValueOrigin.Provider), new CountQuantity(used, "percent"), null, now, Zone));
@@ -47,6 +47,7 @@ public sealed class BudgetScenarioTests
         Assert.True(d1.IsStale && d2.IsStale);
         Assert.Equal(AccountLimitState.TodayUsed, BudgetEngine.AccountState([a1, a2, a3]));
         Assert.Equal(AccountLimitState.AtLimit, BudgetEngine.AccountState([b1, b2, b3]));
+        Assert.True(b2.ProviderUsedUp);
         Assert.Equal(AccountLimitState.Ok, BudgetEngine.AccountState([c1, c2, c3]));
         Assert.Equal(AccountLimitState.Ok, BudgetEngine.AccountState([d1, d2]));
         var ready = new SessionEstimate(true, 12, 2, 19.8m, []);

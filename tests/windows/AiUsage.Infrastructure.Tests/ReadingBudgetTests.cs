@@ -73,6 +73,17 @@ public sealed class ReadingBudgetTests
     }
 
     [Fact]
+    public void ReplayDoesNotUseFutureConfirmationsOrRestartEvidence()
+    {
+        var future = Run(40, "2026-10-05 23:40", "2026-10-06 12:00");
+        Assert.Null(ReadingCalculations.DayStart([future], Key, "p1", Local("2026-10-06 00:01"), Zone).Value);
+        var impossibleRestart = Run(40, "2026-10-06 10:00") with { RestartAfter = Local("2026-10-06 12:00") };
+        Assert.Equal(new CountQuantity(40, "percent"), ReadingCalculations.DayStart([impossibleRestart], Key, "p1", Local("2026-10-06 11:00"), Zone).Value);
+        var period = Period("2026-10-06", "2026-11-01");
+        Assert.Null(ReadingCalculations.Track([future], Key, period, Local("2026-10-06 00:01"), false, 1).Used);
+    }
+
+    [Fact]
     public void TrackingCountsIncreasesAndBalanceDecreasesWithoutInventingResets()
     {
         var period = Period("2026-10-01", "2026-11-01");
