@@ -6,9 +6,82 @@
     <ResourceDictionary Source="ms-appx:///Themes/Ledger/Tokens.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
+  <!-- Native control templates must also use Ledger paints in a Windows contrast theme. -->
+  <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="{StaticResource LedgerInk3Color}" />
+  <SolidColorBrush x:Key="ScrollBarPanningThumbBackgroundDisabled" Color="{StaticResource LedgerRailColor}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFill" Color="{StaticResource LedgerInk3Color}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{StaticResource LedgerInk2Color}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{StaticResource LedgerInkColor}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="{StaticResource LedgerRailColor}" />
+  <SolidColorBrush x:Key="ScrollBarThumbBorderBrush" Color="{StaticResource LedgerInk3Color}" />
+  <SolidColorBrush x:Key="ScrollBarTrackFill" Color="{StaticResource LedgerBgPageColor}" />
+  <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="{StaticResource LedgerCardColor}" />
+  <SolidColorBrush x:Key="ScrollBarTrackFillDisabled" Color="{StaticResource LedgerBgPageColor}" />
+  <SolidColorBrush x:Key="ScrollBarTrackStroke" Color="{StaticResource LedgerBgPageColor}" />
+  <SolidColorBrush x:Key="ScrollBarTrackStrokePointerOver" Color="{StaticResource LedgerLineColor}" />
+  <SolidColorBrush x:Key="ScrollBarTrackStrokeDisabled" Color="{StaticResource LedgerBgPageColor}" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForeground" Color="{StaticResource LedgerInk3Color}" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForegroundPointerOver" Color="{StaticResource LedgerInkColor}" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForegroundPressed" Color="{StaticResource LedgerInkColor}" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForegroundDisabled" Color="{StaticResource LedgerInk3Color}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="{StaticResource LedgerInkColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{StaticResource LedgerInkColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{StaticResource LedgerInkColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemForegroundDisabled" Color="{StaticResource LedgerInk3Color}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="{StaticResource LedgerTipColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{StaticResource LedgerControlColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{StaticResource LedgerControlOnColor}" />
+  <SolidColorBrush x:Key="MenuFlyoutItemBackgroundDisabled" Color="{StaticResource LedgerTipColor}" />
+
+  <Style TargetType="MenuFlyoutPresenter">
+    <Setter Property="RequestedTheme" Value="Dark" />
+    <Setter Property="HighContrastAdjustment" Value="None" />
+    <Setter Property="Background" Value="{StaticResource LedgerTipBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LedgerLineWindowBrush}" />
+  </Style>
+
   <Style TargetType="MenuFlyoutItem">
+    <Setter Property="HighContrastAdjustment" Value="None" />
     <Setter Property="FontFamily" Value="{StaticResource LedgerSansFont}" />
     <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <Style x:Key="LedgerCheckBox" TargetType="CheckBox">
+    <Setter Property="HighContrastAdjustment" Value="None" />
+    <Setter Property="FontFamily" Value="{StaticResource LedgerSansFont}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{StaticResource LedgerInkBrush}" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="FocusVisualPrimaryBrush" Value="{StaticResource LedgerFocusBrush}" />
+    <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+    <Setter Property="FocusVisualSecondaryThickness" Value="0" />
+    <Setter Property="FocusVisualMargin" Value="-3" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="CheckBox">
+          <Grid x:Name="CheckRoot" Background="Transparent" ColumnSpacing="8">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Border x:Name="Box" Width="16" Height="16" CornerRadius="3" Background="{StaticResource LedgerInputBrush}" BorderBrush="{StaticResource LedgerInk3Brush}" BorderThickness="1">
+              <Path x:Name="Check" Data="M3,7 L6,10 L12,3" Stroke="{StaticResource LedgerInkBrush}" StrokeThickness="1.5" Opacity="0" />
+            </Border>
+            <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" VerticalAlignment="Center" Foreground="{TemplateBinding Foreground}" FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}" />
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CheckStates">
+                <VisualState x:Name="Unchecked" />
+                <VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Check.Opacity" Value="1" /></VisualState.Setters></VisualState>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Box.BorderBrush" Value="{StaticResource LedgerInkBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Box.Background" Value="{StaticResource LedgerControlOnBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="CheckRoot.Opacity" Value="0.55" /></VisualState.Setters></VisualState>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
   </Style>
 
   <!-- Text: tabular numerals everywhere a figure can appear. -->

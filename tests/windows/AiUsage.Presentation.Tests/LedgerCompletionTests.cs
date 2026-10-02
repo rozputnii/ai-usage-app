@@ -37,6 +37,21 @@ public sealed class LedgerCompletionTests
         Assert.Equal(["claude-week"], focused);
     }
 
+    [Fact]
+    public async Task ReorderingReturnsFocusToTheMovedCardAfterTheOrderChanges()
+    {
+        var scheduler = new ManualScheduler();
+        using var window = new LedgerViewModel(new DemoLedgerSource(scheduler), scheduler);
+        var card = window.Cards[0];
+        var focused = new List<(string Id, int Position)>();
+        window.FocusCardRequested += (_, id) => focused.Add((id, window.Cards.IndexOf(card)));
+
+        await card.MoveDownAsync();
+        await card.MoveUpAsync();
+
+        Assert.Equal([("claude-week", 1), ("claude-week", 0)], focused);
+    }
+
     [Theory]
     [InlineData(false, true)]
     [InlineData(true, true)]

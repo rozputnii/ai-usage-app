@@ -8,10 +8,12 @@ Feature acceptance remains open; this is a verified WIP save point.
 ## Environment and automated checks
 
 Windows interactive desktop, local unpackaged x64 WinUI app, .NET SDK 10.0.401.
-Commands ran in the existing Claude worktree. No provider credentials were imported,
-no live sign-in occurred, and no host display, accessibility or trust settings changed.
+Commands ran in the existing Claude worktree. No provider credentials were imported
+and no live sign-in or host trust changes occurred. The initial continuation left host
+settings unchanged; the owner-authorized Windows matrix below temporarily changed
+display/theme/accessibility preferences and restored them.
 The SDK executable was `C:/Users/danii/.dotnet/ai-usage-sdk/dotnet.exe`.
-Checks ran during the 2026-10-02 continuation; final MSIX completed at 20:32:16 UTC.
+Initial checks ran during the 2026-10-02 continuation; that MSIX completed at 20:32:16 UTC.
 Earlier regression results remain applicable: subsequent changes were confined to
 WinUI controls and documentation.
 
@@ -63,13 +65,13 @@ Accessibility-tree inspection does not establish an actual Narrator reading.
 | AC-01 | PASS | V-01 contract/boundary tests and primary source review; no Core/Infrastructure dependency in Ledger features. |
 | AC-02 | PASS | V-01 drawing/state tests plus gallery coverage in Used/Left and Compact/Comfortable; no-cap is reached by removing a cap. |
 | AC-03 | PASS | V-01 explicit reference positions/figures and UI-01. |
-| AC-04 | NOT_RUN | Scenarios implemented and major flows exercised; exhaustive side-by-side S1-S13/reference-state audit remains open. |
+| AC-04 | PASS | UI-01 through UI-10, font gallery and W-06 establish surface/state reachability, including signed-out H9 and S10c/S10d. This does not close the separate PD-038-02 corner fidelity gap. |
 | AC-05 | PASS | V-01 command/editor/undo regressions plus UI-02 through UI-06. |
 | AC-06 | PASS | V-01 tray rules and UI-07 actual miniature/open-account interaction. |
 | AC-07 | PASS | V-01 reads Tokens.xaml, computes composited pill contrast and truncates ratios to two decimals; source review confirms token-derived paints. |
-| AC-08 | NOT_RUN | Owner-controlled 100/150/200% display matrix required by spec section 11. |
-| AC-09 | NOT_RUN | Owner-controlled Windows light app mode and contrast theme checks. |
-| AC-10 | NOT_RUN | Keyboard/focus/tooltip subset passed; full keyboard map, Narrator and Windows animations-off matrix remain unverified. |
+| AC-08 | PASS | W-01 actual Windows 100/150/200% settings; 200% clipping fixed and the last card/footer reached by scrolling. |
+| AC-09 | FAIL | W-02: owned content stays dark in light/contrast mode after fixes, but Windows changes the native frame and caption buttons. PD-038-05 is pending; no acceptance exception is assumed. |
+| AC-10 | PASS | Prior keyboard/editor/undo/tray checks plus W-03 through W-05: actual Narrator speech recap, reduced motion, focused cell tooltips and consecutive reorder shortcuts. Exact animation durations are not instrumented. |
 | AC-11 | PASS | Owner-approved static fonts and OFL licences packaged; internal names, weights, tabular advances and actual rendering checked in F-01 through F-04 below. |
 | AC-12 | PASS | V-01 through V-07, UI-09 and F-01 through F-04. Scoped Ledger code, guarded hook, approved font Content declaration, task documents and presentation regressions. |
 
@@ -86,7 +88,7 @@ Accessibility-tree inspection does not establish an actual Narrator reading.
 - Tray sizing waits for the real XamlRoot scale; names trim within their column.
   Row/strip keyboard navigation includes rows without strips.
 - Width transitions and panel/history/undo/strip fades check Windows animation settings.
-  Exact timings and disabled-animation behaviour still need interactive verification.
+  W-03 verifies disabled-animation behaviour; exact timings are not instrumented.
 - Clipped stripe geometry replaces the repeat gradient that dimmed adjacent text.
   Attention text, critical text and neutral-track tokens were minimally adjusted to
   satisfy composited contrast without weakening AC-07.
@@ -162,6 +164,48 @@ Captures: `fonts-gallery-01.jpg` through `fonts-gallery-07.jpg` and
 `fonts-gallery-left-rush.jpg`. This is additional native UI evidence, not the full
 side-by-side reference or display-scale acceptance matrix.
 
+## Owner-authorized Windows matrix after 1e89073
+
+Date: 2026-10-02, actual Windows desktop, 1920 x 1200, unpackaged Debug Ledger.
+The owner explicitly allowed temporary display/theme/Narrator/animation changes and
+restoration. Settings were changed through Windows Settings, not content-scale simulation.
+Original and restored snapshots are in the ignored `windows-settings-original.json`
+and `windows-settings-restored.json`; final restoration check was 22:55:20 UTC.
+Original values restored: 125% recommended scale, dark system/app mode, contrast None,
+animation effects on, Narrator off. Resolution and security/privacy settings were unchanged.
+
+| Check | Result and actual evidence |
+| --- | --- |
+| W-01, display scale | PASS: all nine S1/S2 cards fit at actual 100% and 150%; thin marks remain distinguishable at 150%. At 200%, the original 600-DIP outer height exceeded the monitor work area and clipped the last card. Initial sizing now clamps size and position to the work area; both modes scroll to the complete last footer. Captures: `scale-100-s1.jpg`, `scale-100-s2.jpg`, `scale-150-s1.jpg`, `scale-150-s2.jpg`, `scale-200-before.jpg`, `scale-200-top.jpg`, `scale-200-bottom.jpg`, `scale-200-s2.jpg`. |
+| W-02, light/contrast | Light PASS: main, settings and history stay dark. Night sky contrast initially changed popup text backgrounds, checkbox and scrollbars; Ledger-owned template paints now use Ledger tokens, and the two-state checkbox has an explicit template with native CheckBox semantics. Rechecked menu selection and panel scrolling. Native outer frame becomes purple and native caption buttons yellow/black despite AppWindow colour settings: AC-09 FAIL, owner decision pending. Captures: `windows-light-main.jpg`, `windows-light-panel-history.jpg`, `contrast-before.jpg`, `contrast-main.jpg`, `contrast-menu-checked.jpg`, `contrast-panel-scroll.jpg`. |
+| W-03, reduced motion | PASS: actual Animation effects off; settings opens without motion and synthetic sign-in waiting uses static waiting text. Restored on. Capture: `animations-off-waiting.jpg`. No millisecond timing claim. |
+| W-04, Narrator | PASS: actual Narrator running with the existing Microsoft David voice. Speech recap displays the strings spoken for a card with expired sign-in, separate today cells, Show values: left, tray account rows and a used-up limit. Names carry state, figures and reset information; arrows expose the focused cell tooltip. Captures: `narrator-card.jpg`, `narrator-cells-controls-tray.jpg`. This is the real Narrator speech recap, not an inference from UI Automation names; no claim of separately recorded/listened-to audio. Narrator restored off. |
+| W-05, keyboard regressions | PASS: actual Alt+Down originally moved the card but lost focus, so Alt+Up failed. Added a regression and observed RED (1 failed / 262), then GREEN (262/262) after emitting focus after the source update and queuing focus until the grid rebuild completes. Final Debug live consecutive Alt+Down/Alt+Up returns the card to its original position with visible focus (`reorder-focus-restored.jpg`). Used previously acquired the Left button's name in Left mode; its label is now fixed and final live UIA shows distinct Used/Left names. F5 smoke caused no error; the synthetic fixture intentionally keeps its fixed time. |
+| W-06, reference reachability | PASS: opened the rendered imported Surfaces page and inspected S1-S13 against the corresponding native surfaces from this and earlier captures. Native day-off and Work today trays are reached (`s10c-day-off.jpg`, `s10d-work-today.jpg`); H9 is visible after Show signed-out accounts (`gallery-h9.jpg`). The full Provider States DOM and earlier native A1-R8 gallery were inspected, with the reference A1-A4 visually displayed. Not an exhaustive per-card pixel comparison. PD-038-02 remains open: native popup/panel/control/tray corners have not all been replaced with the approved squircle treatment or justified by the specified fallback evidence. |
+
+Microsoft documents that Windows contrast settings can override title-bar colours in
+[title bar customization](https://learn.microsoft.com/en-us/windows/apps/develop/title-bar?tabs=winui3).
+The observed native-chrome exception is therefore recorded as PD-038-05, not silently
+excluded from AC-09. Narrator's Speech recap is documented in the
+[Narrator guide](https://support.microsoft.com/en-us/accessibility/windows/narrator/complete-guide-to-narrator).
+Temporary reference browser tabs and the localhost reference server were closed afterward.
+
+Final automated checks for this continuation: Presentation 262/262; Debug build zero
+warnings/errors. Infrastructure 421/421 and validator regressions 80/80 remain applicable
+because those areas did not change. Final document validation, diff review and unsigned
+package evidence are recorded below.
+
+Final package: `Build-Package.ps1 -MsixVersion 2026.10.205.0 -NoRestore
+-OutputDirectory .ai-usage-local/AIU-038/packages`, PASS at 22:55:03 UTC.
+Unsigned MSIX SHA-256:
+`5B77E75F8A8930FA5385C56742178223C66B9499238C082F95AF204787399F4F`.
+All four fonts and three licences match the source bytes in this MSIX and Debug output.
+The previously recorded missing-symbol-tool warning is unchanged; no package was installed.
+Final document validator: PASS, `valid: true`, no diagnostics. Final `git diff --check`:
+PASS. Primary integrated review checked the source update/focus ordering, work-area
+clamp, token-only paints and retained CheckBox automation semantics; acceptance gaps
+remain explicitly recorded above.
+
 ## Review and remaining boundaries
 
 Primary reviewed the integrated branch against the spec and fixed the defects above.
@@ -171,5 +215,6 @@ No main merge or push occurred; the owner requested continuation/commit in this 
 This branch has not been rebased onto AIU-042's later main commits.
 
 Live provider operation, packaged installation/update, product switch and release
-approval are NOT_RUN and outside this change. Remaining interactive/reference
-acceptance prevents AIU-038 closure; the font blocker is resolved.
+approval are NOT_RUN and outside this change. Native contrast chrome (PD-038-05) and
+remaining corner fidelity (PD-038-02) prevent AIU-038 closure. Font, display-scale,
+Narrator and reduced-motion blockers are resolved.

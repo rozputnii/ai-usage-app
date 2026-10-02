@@ -39,7 +39,8 @@ Font-loading verification is tracked in T-02.
 - [x] State/geometry/figure tests, cards, bars, today strips and spoken names.
 - [x] Correct nullable binding visibility, squircle padding and footer truncation.
 - [x] With real fonts, preserve complete footer figures using the reference wrapping flow.
-- [ ] Final font-dependent visual comparison and display-scale matrix.
+- [x] Actual S1/S2 display-scale matrix at 100%, 150% and 200%; fix high-DPI clipping.
+- [ ] Close remaining corner fidelity differences under PD-038-02.
 
 ### T-04 - Main window, tray and interactions
 - status: in-progress
@@ -51,7 +52,9 @@ Font-loading verification is tracked in T-02.
 - [x] Fix Work today edit retention, settings Escape, preference notification,
   delete/undo lifetime, focus return, keyboard detail navigation and first-show tray DPI.
 - [x] Actual local smoke of main surfaces and selected keyboard interactions.
-- [ ] Complete reference comparison, Narrator and animations-off acceptance.
+- [x] Reference surface reachability, actual Narrator speech recap and animations-off checks.
+- [x] Restore focus after Alt+Up/Down reorder; preserve the Used button's accessible name.
+- [ ] Resolve native contrast-theme chrome under PD-038-05 and remaining corner fidelity.
 
 ### T-05 - Verification and record
 - status: in-progress
@@ -62,7 +65,8 @@ Font-loading verification is tracked in T-02.
 - [x] Regression suites, Debug build, unsigned Release MSIX, product/plain-demo smoke.
 - [x] Integrated primary review and explicit per-AC evidence/limitations.
 - [x] Font completion and byte-for-byte font/licence checks in unpackaged/MSIX output.
-- [ ] Owner-controlled Windows matrix; feature closure.
+- [x] Owner-authorized Windows matrix and restoration of original settings.
+- [ ] Feature closure after PD-038-02 fidelity and PD-038-05 resolution.
 
 ## Handoff
 
@@ -83,15 +87,18 @@ Font continuation after `e27dafd`: PD-038-03 approved and implemented; Presentat
 contains all seven font/licence files byte-for-byte. Verified actual Compact Used/Left,
 Comfortable, settings/editor, inline confirmation/cancel and tray typography.
 
-NOT_RUN: actual 100/150/200% display settings, light/contrast
-themes, Narrator, animations off and full side-by-side fidelity comparison.
-Current display smoke does not substitute for these checks. No system settings changed.
+Windows continuation after `1e89073`: owner approved the temporary settings changes.
+Actual 100/150/200% S1/S2, light mode, Narrator speech recap and animations-off checks
+passed after fixes. High contrast exposed native-control colour leakage (fixed) and
+OS-owned frame/caption colours (PD-038-05, pending owner decision). Original 125%, dark,
+contrast None, animations on and Narrator off are restored and recorded.
 
-Font/code commit: `aa416aa`. Additional current-display gallery observations are in
-verification.md. A request to allow temporary agent-controlled display/theme/Narrator/
-animation changes, followed by restoration, is pending; no such changes were made.
+Presentation now passes 262/262, including a regression that failed before the reorder
+focus fix. Actual consecutive Alt+Down/Alt+Up retains card focus. Debug builds with zero
+warnings/errors. Final unsigned package and evidence are recorded in verification.md.
+PD-038-02 still requires completing the corner fidelity work or demonstrating its
+approved fallback condition; no blanket fallback is claimed.
 
-Exact next action: obtain the pending Windows-settings answer, then run S1/S2 at actual
-100% display scaling with either owner or newly authorized agent setting it, followed
-by 150%/200% and the remaining reference/accessibility checks. No font approval is outstanding.
-Do not mark AIU-038 done from this save point.
+Exact next action: resolve the pending PD-038-05 native-chrome choice, then finish
+PD-038-02 corner fidelity and verify the affected surfaces before closing AIU-038.
+No font or Windows-settings permission is outstanding. Do not mark this save point done.

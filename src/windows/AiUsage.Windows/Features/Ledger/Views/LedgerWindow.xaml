@@ -67,7 +67,7 @@
           <StackPanel Orientation="Horizontal" Spacing="2">
             <Button x:Name="UsedButton" Content="Used" Style="{StaticResource LedgerSegmentButton}" Click="OnUsedClick"
                     Background="{x:Bind SegmentBackground(ViewModel.IsLeft, x:False), Mode=OneWay}" Foreground="{x:Bind SegmentForeground(ViewModel.IsLeft, x:False), Mode=OneWay}"
-                    AutomationProperties.Name="{x:Bind ViewModel.ValueModeName, Mode=OneWay}" />
+                    AutomationProperties.Name="Show values: used" />
             <Button x:Name="LeftButton" Content="Left" Style="{StaticResource LedgerSegmentButton}" Click="OnLeftClick"
                     Background="{x:Bind SegmentBackground(ViewModel.IsLeft, x:True), Mode=OneWay}" Foreground="{x:Bind SegmentForeground(ViewModel.IsLeft, x:True), Mode=OneWay}"
                     AutomationProperties.Name="Show values: left" />
@@ -79,6 +79,10 @@
             <Flyout x:Name="ProviderFlyout" Placement="BottomEdgeAlignedRight">
               <Flyout.FlyoutPresenterStyle>
                 <Style TargetType="FlyoutPresenter">
+                  <Setter Property="RequestedTheme" Value="Dark" />
+                  <Setter Property="HighContrastAdjustment" Value="None" />
+                  <Setter Property="Background" Value="{StaticResource LedgerTipBrush}" />
+                  <Setter Property="BorderBrush" Value="{StaticResource LedgerLineWindowBrush}" />
                   <Setter Property="Padding" Value="4" />
                   <Setter Property="CornerRadius" Value="9" />
                   <Setter Property="MinWidth" Value="250" />
@@ -99,7 +103,7 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <Border Height="1" Background="{StaticResource LedgerLineBrush}" Margin="0,4,0,4" />
-                <CheckBox Content="Show signed-out accounts" IsChecked="{x:Bind ViewModel.ShowSignedOut, Mode=OneWay}" Click="OnShowSignedOutClick" Margin="10,0,0,0"
+                <CheckBox Style="{StaticResource LedgerCheckBox}" Content="Show signed-out accounts" IsChecked="{x:Bind ViewModel.ShowSignedOut, Mode=OneWay}" Click="OnShowSignedOutClick" Margin="10,0,0,0"
                           FontSize="12" Foreground="{StaticResource LedgerInkBrush}" />
               </StackPanel>
             </Flyout>

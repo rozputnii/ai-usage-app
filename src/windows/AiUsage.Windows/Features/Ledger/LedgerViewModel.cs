@@ -314,7 +314,12 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         return true;
     }
 
-    public Task MoveAsync(string cardId, int offset) => source.MoveCardAsync(cardId, offset, CancellationToken.None);
+    public async Task MoveAsync(string cardId, int offset)
+    {
+        await source.MoveCardAsync(cardId, offset, CancellationToken.None);
+        if (Cards.Any(card => card.CardId == cardId))
+            FocusCardRequested?.Invoke(this, cardId);
+    }
 
     public async Task ToggleHistoryAsync(LimitCardViewModel card)
     {

@@ -58,7 +58,7 @@ internal sealed partial class LedgerWindow : Window
 
         ViewModel.Cards.CollectionChanged += OnCardsChanged;
         ViewModel.PropertyChanged += OnViewModelChanged;
-        ViewModel.FocusCardRequested += (_, cardId) => FocusCard(cardId);
+        ViewModel.FocusCardRequested += (_, cardId) => DispatcherQueue.TryEnqueue(() => FocusCard(cardId));
         RebuildGrid();
         ApplyPreferences();
         UpdateTrayGlyph();
@@ -83,8 +83,13 @@ internal sealed partial class LedgerWindow : Window
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         var scale = Root.XamlRoot?.RasterizationScale ?? 1;
-        if (Math.Abs(scale - 1) > 0.01)
-            AppWindow.Resize(new SizeInt32((int)(DefaultWidth * scale), (int)(DefaultHeight * scale)));
+        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        var width = Math.Min((int)(DefaultWidth * scale), area.Width);
+        var height = Math.Min((int)(DefaultHeight * scale), area.Height);
+        // Keep the entire window reachable at high DPI; the card scroller handles the shorter viewport.
+        var x = Math.Clamp(AppWindow.Position.X, area.X, area.X + area.Width - width);
+        var y = Math.Clamp(AppWindow.Position.Y, area.Y, area.Y + area.Height - height);
+        AppWindow.MoveAndResize(new RectInt32(x, y, width, height));
         UpdateTitleBarRegions();
     }
 

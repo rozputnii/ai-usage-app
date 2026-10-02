@@ -458,6 +458,7 @@ progress becomes static "waiting" text.
 | PD-038-02 | How are squircle corners built? | (a) a squircle surface control drawing a superellipse path for cards, panel, tray, flyouts, undo bar, first-run rows and buttons, with `CornerRadius` for elements whose radius is at most 7 px (strip cells, bar track, ring, pills keep round); (b) `CornerRadius` everywhere, as the S11 note "corner-shape squircle → CornerRadius" allows | (a), verified for cost on the S1 grid; fall back to (b) for any element where (a) fails the 150 % or performance check, recorded in verification | Visual fidelity versus effort |
 | PD-038-03 | Fonts (resolved 2026-10-02) | Source Serif 4, Hanken Grotesk and IBM Plex Mono static .ttf from their official repositories, SIL OFL 1.1, licence and tabular figures checked before merge | Owner explicitly approved the four named files after sources and sizes were presented | Package the files and licences, use explicit regular/semibold resources; provenance and validation are in verification.md |
 | PD-038-04 | Monitoring, Updates and System status sections | (a) collapsed rows with the contract summaries, expanding inline to the existing section views; (b) summary rows only, full content in AIU-039 | (a) when the existing views host cleanly in the panel; otherwise (b), recorded | Settings completeness in the demo |
+| PD-038-05 | Does AC-09 include OS-owned window borders and caption buttons? | (a) retain native chrome and require dark appearance for Ledger-owned content; (b) replace native chrome to control its appearance too | (a), pending owner answer; Windows overrides caption colours in contrast themes, as observed in verification.md | AC-09 cannot pass as currently written; (b) adds custom window interaction and accessibility work. Needed before acceptance closure; no exception is approved |
 
 ## 10. Acceptance
 
@@ -533,9 +534,10 @@ Design-brief rows and their reading after D-186 and D-187:
   NOT_RUN or BLOCKED with environment and time:
   - S1 to S13 and the `states` scenario against the reference pages, side by side;
   - 100 %, 150 % and 200 % display scaling, and Windows light app mode and a contrast
-    theme. These need Windows display and accessibility settings changed; the agent does
-    not change system settings, so the owner sets them or the rows stay NOT_RUN. The demo's
-    content-scale simulation is recorded separately and never as display scaling;
+    theme. The owner explicitly authorized temporary agent-controlled changes to these
+    settings, Narrator and animation effects on 2026-10-02, followed by restoration.
+    Record the original values and restoration. The demo's content-scale simulation is
+    recorded separately and never as display scaling;
   - keyboard-only walk-through of section 8, focus visibility and tooltips on focus;
   - Narrator reading of cards, cells, controls and the tray;
   - Windows animation effects off;
