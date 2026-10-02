@@ -22,7 +22,7 @@ public static class QuantityMath
             int exponent = Math.Max(m.Exponent.Value, n.Exponent.Value);
             a = Scale(m.MinorUnits, exponent - m.Exponent.Value);
             b = Scale(n.MinorUnits, exponent - n.Exponent.Value);
-            scale = m with { Exponent = exponent };
+            scale = m with { MinorUnits = checked((long)a), Exponent = exponent };
             return true;
         }
         catch (OverflowException) { return false; }

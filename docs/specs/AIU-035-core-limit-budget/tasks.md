@@ -9,27 +9,27 @@ Use test-first behavioral checks in the existing Infrastructure test executable,
 already references Core. No new test dependencies or restore are needed.
 
 ### T-01 - Normalized facts and arithmetic
-- status: in-progress
+- status: done
 - depends_on: []
 - acceptance: AC-01, AC-07
-- evidence: not-run
+- evidence: docs/specs/AIU-035-core-limit-budget/verification.md
 
-- [ ] Add quantity/cap tests, verify missing behavior, implement normalized immutable facts,
+- [x] Add quantity/cap tests, verify missing behavior, implement normalized immutable facts,
   checked comparison/subtraction and effective limit resolution.
-- [ ] Run targeted tests, inspect the diff, commit and push a save point.
+- [x] Run targeted tests, inspect the diff, commit and push a save point.
 
 ### T-02 - Calendar, budget and display
-- status: pending
+- status: in-progress
 - depends_on: [T-01]
 - acceptance: AC-02, AC-05, AC-06
 - evidence: not-run
 
-- [ ] Add E cases and the full design scenario with independently stated expected numbers.
-- [ ] Implement period resolution, local-day weights, budget results, state ranking,
+- [x] Add E cases and the full design scenario with independently stated expected numbers.
+- [x] Implement period resolution, local-day weights, budget results, state ranking,
   display rounding, bar positions, day-off and rush outputs; run targeted tests.
 
 ### T-03 - Reading calculations and sessions
-- status: pending
+- status: in-progress
 - depends_on: [T-01, T-02]
 - acceptance: AC-03, AC-04, AC-06
 - evidence: not-run
@@ -55,4 +55,4 @@ unknown values versus zero; readings from another period/pool; reset jitter and 
 ## Handoff
 
 Base: 73553fb. Existing uncommitted AIU-034 closure edits in backlog.md and its tasks and
-verification are preserved. Next action: implement T-01 tests and normalized contracts.
+verification are preserved. Next action: implement session-estimator and extra-spend tests.
