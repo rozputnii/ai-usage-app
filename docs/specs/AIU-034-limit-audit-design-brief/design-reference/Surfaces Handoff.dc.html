@@ -15,7 +15,7 @@
 <section style="padding:40px;display:flex;flex-direction:column;gap:20px;font-family:'Hanken Grotesk',sans-serif;color:#F0EEE6">
   <div style="display:flex;flex-direction:column;gap:4px;max-width:960px">
     <div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:600">Surfaces — handoff</div>
-    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Companion to Provider States Handoff (D-186). Same tokens, same cards. Reference time Wed 14 Oct 14:20. Orange frame labels and grey mono captions are not part of the app. S1 and S2 carry the design-brief section 4 scenario and must fit 760 × 600 without scrolling; they use Compact density. Everything is in the one window: no dialog, pop-up window or detail view; the provider menu and tooltips are light-dismiss flyouts.</div>
+    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Companion to Provider States Handoff (D-186). Same tokens, same cards. Reference time Wed 14 Oct 14:20. Orange frame labels and grey mono captions are not part of the app. S1 and S2 carry the design-brief section 4 scenario and must fit 760 × 600 without scrolling; they use Compact density. Everything is in the one window: no dialog, pop-up window or detail view; the provider menu and tooltips are light-dismiss flyouts. OK has no pill. S10 to S10d: the tray is a miniature of the window with today strips only. S12 and S13: the same scenario on a day off, without and with Work today.</div>
   </div>
   <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
     <sc-for list="{{ frames }}" as="w" hint-placeholder-count="3">
@@ -26,7 +26,8 @@
           <sc-if value="{{ w.hasBar }}">
             <div style="height:38px;flex:none;display:flex;align-items:center;gap:10px;padding-left:16px;padding-right:8px;border-bottom:1px solid #2E2D2A">
               <span style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;font-weight:600;white-space:nowrap">AI Usage</span>
-              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9D998E;white-space:nowrap">Wed 14 Oct · 14:20</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9D998E;white-space:nowrap">{{ w.clock }}</span>
+              <sc-if value="{{ w.hasDay }}"><span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ w.dayText }}</span><span style="{{ w.dayBtnSt }}">{{ w.dayBtn }}</span></sc-if>
               <span style="flex:1"></span>
               <sc-if value="{{ w.hasToggle }}">
                 <div style="display:flex;padding:2px;gap:2px;background:#2A2927;border-radius:7px;margin-right:4px">
@@ -60,13 +61,13 @@
                           <sc-if value="{{ a.nameNotEdit }}"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">{{ a.name }}</span></sc-if>
                           <sc-if value="{{ a.editName }}"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;height:26px;line-height:24px;box-sizing:border-box;padding:0 8px;background:#1A1918;border:1px solid #F0EEE6;border-radius:6px;min-width:150px">{{ a.name }}<span class="sv-caret"></span></span></sc-if>
                           <span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ a.tag }}</span>
-                          <sc-if value="{{ a.hasMark }}"><span style="font-size:12px;font-weight:600;color:#E58C6C;white-space:nowrap;cursor:default" onMouseEnter="{{ a.markEnter }}" onMouseLeave="{{ leave }}">{{ a.mark }}</span></sc-if>
+                          <sc-if value="{{ a.hasMark }}"><span style="{{ a.markSt }}" onMouseEnter="{{ a.markEnter }}" onMouseLeave="{{ leave }}">{{ a.mark }}</span></sc-if>
                           <span style="flex:1"></span>
                           <sc-if value="{{ a.icons }}">
                             <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:#3A3936" title="History (Enter)"><svg width="14" height="14" viewBox="0 0 14 14" fill="#F0EEE6"><rect x="1" y="7" width="2.4" height="6" rx=".6"/><rect x="5.8" y="3" width="2.4" height="10" rx=".6"/><rect x="10.6" y="5" width="2.4" height="8" rx=".6"/></svg></span>
                             <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px" title="Sign out"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#B7B3A8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 2H2.5v10h3M9 4.5L11.5 7 9 9.5M11.5 7H5.5"/></svg></span>
                           </sc-if>
-                          <span style="{{ a.pillSt }}" onMouseEnter="{{ a.pillEnter }}" onMouseLeave="{{ leave }}"><span style="{{ a.dotSt }}"></span>{{ a.pill }}</span>
+                          <sc-if value="{{ a.hasPill }}"><span style="{{ a.pillSt }}" onMouseEnter="{{ a.pillEnter }}" onMouseLeave="{{ leave }}"><span style="{{ a.dotSt }}"></span>{{ a.pill }}</span></sc-if>
                         </div>
                         <sc-if value="{{ a.editName }}"><div style="font-size:12px;line-height:14px;color:#9D998E;margin-top:-4px">Enter saves · Esc cancels · the name is yours, the provider is unchanged</div></sc-if>
                         <sc-if value="{{ a.hasBars }}">
@@ -86,6 +87,7 @@
                               <span style="grid-column:2;grid-row:1;min-width:0;height:14px;font-size:12px;line-height:14px;color:#B7B3A8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.todayNote }}</span>
                             </sc-if>
                             <sc-if value="{{ a.hasLab }}"><span style="{{ a.labSt }}">{{ a.lab1 }}</span></sc-if>
+                            <sc-if value="{{ a.hasPeriodBar }}">
                             <div style="{{ a.spSt }}"></div>
                             <span style="grid-column:1;grid-row:4;font-size:12px;color:#9D998E">{{ a.unit }}</span>
                             <div style="{{ a.barSt }}" onMouseEnter="{{ a.barEnter }}" onMouseLeave="{{ leave }}">
@@ -96,6 +98,7 @@
                               <sc-if value="{{ a.hasCapMark }}"><div style="{{ a.capMarkSt }}"></div></sc-if>
                               <sc-if value="{{ a.hasOverTick }}"><div style="{{ a.overTickSt }}"></div></sc-if>
                             </div>
+                            </sc-if>
                             <sc-if value="{{ a.noCapEdit }}">
                               <div style="grid-column:2;grid-row:5;min-width:0;display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:2px;margin-top:4px;font-size:12px;line-height:16px">
                                 <span style="color:#B7B3A8;white-space:nowrap;cursor:default;text-decoration:underline dotted #5A5853;text-underline-offset:3px" onMouseEnter="{{ a.f1Enter }}" onMouseLeave="{{ leave }}">{{ a.f1 }}</span>
@@ -172,7 +175,7 @@
                       <span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Mon</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Tue</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Wed</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Thu</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Fri</span><span style="padding:2px 0;width:42px;text-align:center;border-radius:6px;border:1px solid #4A4844;color:#9D998E">Sat</span><span style="padding:2px 0;width:42px;text-align:center;border-radius:6px;border:1px solid #4A4844;color:#9D998E">Sun</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#2A2927"><span style="color:#F0EEE6">Saturday removed from work days</span><span style="flex:1"></span><span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">Undo</span><span style="color:#9D998E">Ctrl+Z</span></div>
-                    <div style="color:#9D998E">Daily budgets split each period over work days (Mon–Fri by default). A day off shows facts only. Changes apply from the next local midnight.</div>
+                    <div style="color:#9D998E">Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight. Changes apply from the next local midnight.</div>
                   </div>
                   <div style="display:flex;flex-direction:column;gap:6px">
                     <div style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">Personal caps</div>
@@ -227,14 +230,24 @@
           </sc-if>
           <sc-if value="{{ w.isTray }}">
             <div style="display:flex;flex-direction:column">
-              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #2E2D2A"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;font-weight:600">AI Usage</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9D998E">14:20</span></div>
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #2E2D2A"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;font-weight:600">AI Usage</span></div>
               <sc-for list="{{ w.trows }}" as="r">
-                <div style="display:flex;flex-direction:column;gap:4px;padding:9px 14px;border-bottom:1px solid #2E2D2A">
-                  <div style="display:flex;align-items:center;gap:8px"><span style="{{ r.nameSt }}">{{ r.n }}</span><sc-if value="{{ r.hasMark }}"><span style="font-size:12px;font-weight:600;color:#E58C6C">{{ r.mark }}</span></sc-if><span style="flex:1"></span><span style="{{ r.pillSt }}"><span style="{{ r.dotSt }}"></span>{{ r.pill }}</span></div>
-                  <div style="font-size:12px;line-height:16px;color:#B7B3A8">{{ r.line }}</div>
+                <div style="{{ r.rowSt }}">
+                  <div style="{{ r.nameBoxSt }}" onMouseEnter="{{ r.nameEnter }}" onMouseLeave="{{ leave }}">
+                    <sc-if value="{{ r.err }}"><svg width="12" height="12" viewBox="0 0 12 12" style="flex:none"><path d="M6 1.2L11.2 10.4H.8z" fill="none" stroke="#F07A65" stroke-width="1.3" stroke-linejoin="round"/><path d="M6 4.6v2.8" stroke="#F07A65" stroke-width="1.3" stroke-linecap="round"/><circle cx="6" cy="8.9" r=".75" fill="#F07A65"/></svg></sc-if>
+                    <span style="{{ r.nameSt }}">{{ r.n }}</span>
+                  </div>
+                  <sc-for list="{{ r.strips }}" as="s">
+                    <div style="{{ s.stripSt }}" onMouseEnter="{{ s.enter }}" onMouseLeave="{{ leave }}">
+                      <sc-for list="{{ s.cells }}" as="c"><div style="{{ c.st }}"><sc-for list="{{ c.parts }}" as="p"><div style="{{ p.st }}"></div></sc-for></div></sc-for>
+                    </div>
+                    <span style="{{ s.markBoxSt }}" onMouseEnter="{{ s.markEnter }}" onMouseLeave="{{ leave }}">
+                      <sc-if value="{{ s.isRush }}"><svg width="10" height="12" viewBox="0 0 10 12"><path d="M6.2.6L1 7h3.4l-.9 4.4L8.8 5H5.3z" fill="#7FB98F"/></svg></sc-if>
+                      <sc-if value="{{ s.isExu }}"><svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5.2" fill="none" stroke="#E58C6C" stroke-width="1.2"/><path d="M7.6 4.2c-.3-.5-.9-.8-1.6-.8-.9 0-1.6.5-1.6 1.2 0 1.6 3.3.9 3.3 2.6 0 .7-.7 1.3-1.7 1.3-.8 0-1.4-.3-1.7-.9M6 2.4v1M6 8.5v1" fill="none" stroke="#E58C6C" stroke-width="1.1" stroke-linecap="round"/></svg></sc-if>
+                    </span>
+                  </sc-for>
                 </div>
               </sc-for>
-              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px"><span style="padding:3px 10px;border-radius:6px;background:#E8E4DA;color:#1A1410;font-weight:600">Open AI Usage</span><span style="padding:2px 10px;border-radius:6px;border:1px solid #55534E;font-weight:600">Refresh</span><span style="flex:1"></span><span style="color:#9D998E">Esc closes</span></div>
             </div>
           </sc-if>
           <sc-if value="{{ w.isSpec }}">
@@ -280,13 +293,19 @@
                   <tr><td>Pill</td><td>height 20 · padding 0 9 · dot 6 · gap 5</td></tr>
                   <tr><td>Controls</td><td>buttons 22–24 high, radius 6 · icon buttons 24 (28 in the title bar) · text box 24–26, border 1 ink when focused · switch 32 × 18</td></tr>
                   <tr><td>Strip, undo bar</td><td>sign-in strip 34 under the title bar · undo bar 36 high, 16 from the bottom, radius 9</td></tr>
-                  <tr><td>Tray</td><td>360 wide · row padding 9 14 · radius 8</td></tr>
+                  <tr><td>Tray</td><td>360 wide · radius 8 · title row only · row padding 9 14 · name column 150 + gap 10, serif 14 · one today strip per limit, 8 high, rows gap 5, cells gap 3, radius 4 · mark column 12 · no pills, captions, period bars or buttons</td></tr>
+                  <tr><td>Tray marks</td><td>⚠ crit before the name, name in crit text: sign-in expired, signed out, stale after a failed sync, provider error · ⚡ ok: rush · $ att: on extra usage · period unknown: empty dashed track · not included and no-cap pools are left out</td></tr>
+                  <tr><td>Day off</td><td>today strip = the share today would get as a work day · used neutral m, rest transparent, dashed outline 1 px #8C887E · no orange or red, no over label · a used-up limit stays red · pill “day off”</td></tr>
+                  <tr><td>Work today</td><td>title bar button on a day off; on: pressed (#3A3936), normal colours until local midnight, settings unchanged, Ctrl+Z undoes · cards carry an ink2 “extra day” mark</td></tr>
+                  <tr><td>Rush</td><td>last work day before a provider-replenished reset, no custom cap · ok pill “rush” · no period bar, no grey · last 5h cell only as long as what is left · only 5h windows that fit before the reset · never for money, credits or capped pools</td></tr>
+                  <tr><td>On extra usage</td><td>att mark on the 5h + 7d card while its window is full and extra-usage spend rose since then; tooltip: until when, and the spend since</td></tr>
                 </table>
               </div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">Keyboard</div>
                 <table class="sv-tbl">
-                  <tr><td>Tab order</td><td>Used/Left → + → Settings → sign-in strip action → cards in reading order → undo bar</td></tr>
+                  <tr><td>Tab order</td><td>Work today (day off only) → Used/Left → + → Settings → sign-in strip action → cards in reading order → undo bar</td></tr>
+                  <tr><td>Tray</td><td>↑ ↓ move between accounts, ← → between strips; Enter opens the window at that account; Esc closes</td></tr>
                   <tr><td>On a card</td><td>Enter history · F2 rename · C edit cap · Tab reaches History and Sign out · Alt+↑/↓ reorder</td></tr>
                   <tr><td>Card tooltips</td><td>shown on keyboard focus as on hover; ← → move between today cells, bar and footer; nothing is hover-only</td></tr>
                   <tr><td>Editors</td><td>Enter saves · Esc cancels · an empty cap + Enter removes it (undo offered)</td></tr>
@@ -301,6 +320,8 @@
                   <tr><td>Card, red</td><td>“Codex Pro, 7 day limit used up, back Friday 09:30.” · “Claude Pro extra usage, over today by 2 dollars, 218 dollars of your 300 dollar cap, period assumed.”</td></tr>
                   <tr><td>Stale</td><td>“Antigravity AI Plus group 1, sync failed, reading from 13:38, 42 minutes old. 36 percent used.”</td></tr>
                   <tr><td>Today cell</td><td>“Current 5 hour window until 16:05, 72 percent used, 28 percent allowed today.”</td></tr>
+                  <tr><td>Tray row</td><td>“Claude Pro. 5 hour and 7 day: OK, 28 percent of the current window allowed today. Extra usage: over today by 2 dollars.” · “Antigravity AI Plus, sync failed, reading 42 minutes old. …”</td></tr>
+                  <tr><td>Day off, rush</td><td>“Claude Max, 5 hour and 7 day, day off, 6 percent used today, a work day would allow 12.5.” · “Antigravity AI Plus 7 day, rush, 30 percent left, resets Thursday 09:00.”</td></tr>
                   <tr><td>Controls</td><td>“Add account”, “Settings”, “Show values: used”, “Sign out Claude Pro”, “History, Claude Pro 7 day”, “Cap for Codex Pro credits, 17,000”</td></tr>
                 </table>
                 <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;margin-top:8px">Motion</div>
@@ -338,7 +359,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  refs = Array.from({ length: 12 }, () => React.createRef());
+  refs = Array.from({ length: 20 }, () => React.createRef());
   state = { tip: null, fit: {} };
   C = { card: '#262624', rail: '#34332F', prev: '#8C887E', gray: '#75716A', ink: '#F0EEE6',
     ok: { m: '#7FB98F', p: '#5E8A6B', tx: '#7FB98F', bg: 'rgba(127,185,143,.14)' }, att: { m: '#D97757', p: '#A35C44', tx: '#E58C6C', bg: 'rgba(217,119,87,.14)' }, crit: { m: '#E5604A', p: '#B04A3A', d: '#6E2E25', tx: '#F07A65', bg: 'rgba(229,96,74,.16)' }, neutral: { m: '#B7B3A8', p: '#6B6862', tx: '#B7B3A8', bg: 'rgba(183,179,168,.12)' } };
@@ -400,40 +421,60 @@ class Component extends DCLogic {
       }
       let A = (d.t - d.u) / d.ws * 100;
       const rest = 100 - d.cwU, a0 = Math.min(rest, A); A -= a0;
-      out.push({ parts: [['used', d.cwU], ['allow', a0], ['gray', A > 0.01 ? 0 : rest - a0]] });
-      while (A > 0.01) { const a = Math.min(100, A); A -= a; out.push({ parts: [['allow', a], ['gray', A > 0.01 ? 0 : 100 - a]] }); }
+      const rush = !!d.rush, fit = d.fit || 99;
+      const c0 = A > 0.01 ? { gray: 0 } : rush ? { w: (d.cwU + a0) / 100 } : { gray: rest - a0 };
+      out.push({ parts: [['used', d.cwU], ['allow', a0], ['gray', c0.gray || 0]], w: c0.w });
+      while (A > 0.01 && out.length < fit) { const a = Math.min(100, A); A -= a; const tl = A > 0.01 ? { gray: 0 } : rush ? { w: a / 100 } : { gray: 100 - a }; out.push({ parts: [['allow', a], ['gray', tl.gray || 0]], w: tl.w }); }
       out.forEach((c, i) => {
         const u = c.parts.find(p => p[0] === 'used'), al = c.parts.find(p => p[0] === 'allow')[1], g = c.parts.find(p => p[0] === 'gray');
-        const lines = [i === 0 ? 'Current 5h window · until ' + d.winEnd : (g && g[1] > 0 ? 'Last 5h window today' : 'Next 5h window')];
+        const last = i === out.length - 1;
+        const lines = [i === 0 ? 'Current 5h window · until ' + d.winEnd : (rush && last ? 'Last 5h window before the reset' : g && g[1] > 0 ? 'Last 5h window today' : 'Next 5h window')];
         if (left) lines.push(al > 0 ? r(al) + ' % of window left today' : 'Window full');
         else lines.push((u && u[1] > 0 ? r(u[1]) + ' % used · ' : '') + (al > 0 ? r(al) + ' % allowed today' : 'window full'));
-        if (g && g[1] > 0) lines.push('Grey: counts against tomorrow');
+        if (g && g[1] > 0) lines.push(d.off ? 'Grey: beyond today’s would-be share' : 'Grey: counts against tomorrow');
+        if (rush && last) lines.push(A > 0.01 ? 'Only ' + out.length + ' × 5h fit before the reset · ≈ ' + r(A * d.ws / 100) + ' % resets unused' : 'Rush · nothing carries past ' + d.reset[1].replace('Resets ', ''));
+        if (d.off && i === 0) lines.push('Day off · no colours · Work today colours it');
         c.tip = lines;
       });
       return out;
     }
-    const base = d.t - d.u0, ut = d.u - d.u0, gray = Math.max(0, (d.D || 0) - base);
-    const lines = ['Today'];
+    const base = d.t - d.u0, ut = d.u - d.u0, gray = d.rush ? 0 : Math.max(0, (d.D || 0) - base);
+    const lines = [d.off ? 'Today · day off' : d.rush ? 'Today · rush' : 'Today'];
     let parts;
-    if (d.u > d.t) { parts = [['usedCrit', base], ['over', d.u - d.t], ['gray', gray]]; lines.push(fm(ut) + ' used of ' + fm(base) + ' allowed', fm(d.u - d.t) + ' over today’s allowance'); }
+    if (d.u > d.t) { parts = [['usedCrit', base], ['over', d.u - d.t], ['gray', gray]]; lines.push(d.off ? fm(ut) + ' used · a work day would allow ' + fm(base) : fm(ut) + ' used of ' + fm(base) + ' allowed', ...(d.off ? [] : [fm(d.u - d.t) + ' over today’s allowance'])); }
     else { parts = [['used', ut], ['allow', d.t - d.u], ['gray', gray]]; lines.push(left ? fm(d.t - d.u) + ' of ' + fm(base) + ' left' : fm(ut) + ' of ' + fm(base) + ' used'); }
     if (gray > 0) lines.push('Grey: ' + (d.kind === 'd7' ? '7d limit cuts today’s share' : 'cap cuts today’s share'));
     if (d.todayTip) lines.push(d.todayTip);
+    if (d.off) lines.push(d.u > d.t ? 'More than a work day’s share · the next work days shrink evenly' : 'No colours on a day off · Work today colours it');
+    if (d.rush) lines.push('Whole remainder · nothing carries past ' + d.reset[1].replace('Resets ', ''));
     return [{ parts, tip: lines }];
+  }
+  offKey(d, k) { return d.off ? ({ usedCrit: 'used', over: 'overOff', critRest: 'gray', allow: 'offAllow' }[k] || k) : k; }
+  bgOf(d, left) {
+    const C = this.C, tn = C[d.st];
+    const stripe = (a, b) => 'repeating-linear-gradient(135deg,' + a + ' 0 3px,' + b + ' 3px 6px)';
+    const m = left
+      ? { used: stripe(tn.p, C.rail), allow: tn.m, gray: C.gray, usedCrit: stripe(C.crit.p, C.crit.d), over: stripe(C.crit.m, C.crit.p), critRest: C.crit.d, overOff: stripe(C.neutral.m, C.neutral.p), offAllow: tn.m }
+      : { used: tn.m, allow: stripe(tn.p, C.rail), gray: C.gray, usedCrit: C.crit.p, over: C.crit.m, critRest: C.crit.d, overOff: stripe(C.neutral.m, C.neutral.p), offAllow: 'transparent' };
+    return k => m[k];
+  }
+  stripCells(d, wi, left, h) {
+    const C = this.C, bg = this.bgOf(d, left);
+    const rank = k => (k === 'gray' || k === 'critRest') ? (left ? 0 : 4) : (left ? k === 'allow' : k !== 'allow') ? 1 : 2;
+    return this.cells(d, left).map(c => ({ st: { flex: (c.w || 1) + ' 1 0', minWidth: 0, display: 'flex', borderRadius: h > 10 ? '6px' : '4px', overflow: 'hidden', cursor: 'default', boxSizing: 'border-box', outline: d.off ? '1px dashed #8C887E' : 'none', outlineOffset: '-1px' },
+      parts: c.parts.filter(p => p[1] > 0.01).sort((a, b) => rank(a[0]) - rank(b[0])).map(p => ({ st: { flex: p[1] + ' 1 0', background: bg(this.offKey(d, p[0])), boxShadow: this.offKey(d, p[0]) === 'over' ? 'inset 2px 0 0 ' + C.ink : 'none' } })), enter: this.tipOn(wi, c.tip), tip: c.tip }));
   }
   card(d, wi, left, dense) {
     const C = this.C, tn = C[d.st];
     const stripe = (a, b) => 'repeating-linear-gradient(135deg,' + a + ' 0 3px,' + b + ' 3px 6px)';
     const f = v => (Math.round(v * 100) / 100) + '%';
-    const bg = k => (left
-      ? { used: stripe(tn.p, C.rail), allow: tn.m, gray: C.gray, usedCrit: stripe(C.crit.p, C.crit.d), over: stripe(C.crit.m, C.crit.p), critRest: C.crit.d }
-      : { used: tn.m, allow: stripe(tn.p, C.rail), gray: C.gray, usedCrit: C.crit.p, over: C.crit.m, critRest: C.crit.d })[k];
-    const rank = k => (k === 'gray' || k === 'critRest') ? (left ? 0 : 4) : (left ? k === 'allow' : k !== 'allow') ? 1 : 2;
+    const bg = this.bgOf(d, left);
     const actSt = { padding: '1px 9px', border: '1px solid #55534E', borderRadius: '6px', color: '#F0EEE6', fontSize: '12px', fontWeight: 600, lineHeight: '16px', whiteSpace: 'nowrap', marginLeft: 'auto' };
     const ce = d.capEdit || null;
-    const base = { isHist: false, isCard: true, hasCas: !!d.cas, cas: d.cas || '', name: d.name, tag: d.tag, pill: d.pill,
+    const base = { isHist: false, isCard: true, hasCas: !!d.cas, cas: d.cas || '', name: d.name, tag: d.tag, pill: d.pill, hasPill: !!d.pill && d.pill !== 'OK',
       editName: !!d.editName, nameNotEdit: !d.editName, icons: !!d.icons,
       hasMark: !!d.mark, mark: d.mark || '', markEnter: this.tipOn(wi, d.markT || [d.mark || '']),
+      markSt: { fontSize: '12px', fontWeight: 600, color: d.markTone === 'neutral' ? '#B7B3A8' : '#E58C6C', whiteSpace: 'nowrap', cursor: 'default' },
       hasAction: !!d.action && !ce, noteAction: !!d.action && !ce, action: d.action || '', actSt,
       capEdit: !!ce, noCapEdit: !ce, capVal: ce ? ce.v : '', capUnit: ce ? ce.u : '', capCanRemove: ce ? !!ce.rm : false, capHint: ce ? ce.h : '',
       cardSt: { background: d.fresh ? 'linear-gradient(180deg,#2F2D2A 0%,#262624 60%)' : 'linear-gradient(180deg,#2A2927 0%,#262624 60%)', border: '1px solid ' + (d.fresh ? '#5E8A6B' : '#33322F'), borderRadius: '20px', boxShadow: '0 1px 0 rgba(255,255,255,.03) inset,0 6px 18px rgba(0,0,0,.22)', outline: d.focus ? '2px solid #F0EEE6' : 'none', outlineOffset: '2px', padding: dense ? '8px 12px 8px' : '13px 15px 12px', display: 'flex', flexDirection: 'column', gap: dense ? '6px' : '10px', minWidth: 0, color: d.stale ? '#B7B3A8' : '#F0EEE6' },
@@ -452,7 +493,7 @@ class Component extends DCLogic {
     if (d.kind === 'pw') {
       const segs = [seg(0, d.u, bg('used'))];
       if (left) segs.push(seg(d.u, 100 - d.u, bg('allow')));
-      return { ...common, unit: d.unitL || '7d', hasStrip: false, hasTodayNote: true, todayNote: d.todayNote, cells: [], stripSt: {}, hasLab: false, lab1: '', labSt: {}, segs, ringSt: { display: 'none' }, hasOverTick: false, overTickSt: {}, hasCapMark: false, capMarkSt: {},
+      return { ...common, hasPeriodBar: true, unit: d.unitL || '7d', hasStrip: false, hasTodayNote: true, todayNote: d.todayNote, cells: [], stripSt: {}, hasLab: false, lab1: '', labSt: {}, segs, ringSt: { display: 'none' }, hasOverTick: false, overTickSt: {}, hasCapMark: false, capMarkSt: {},
         barEnter: this.tipOn(wi, ['Window', left ? fm(100 - d.u) + ' left' : fm(d.u) + ' used']), f1: left ? fm(100 - d.u) + ' left' : fm(d.u) + ' used', f1Enter: this.tipOn(wi, d.f1t) };
     }
     const u0 = pc(d.u0), u = pc(d.u), t = pc(d.t), hi = Math.max(u, t), lo = Math.min(u, t);
@@ -460,14 +501,14 @@ class Component extends DCLogic {
     const segs = [];
     if (left) segs.push(seg(hi, Math.max(0, capP - hi), C.prev)); else segs.push(seg(0, u0, C.prev));
     if (capP < 100) segs.push(seg(Math.max(capP, hi), 100 - Math.max(capP, hi), stripe('#2A2927', '#34332F')));
-    segs.push(seg(u0, lo - u0, bg(d.u > d.t ? 'usedCrit' : 'used')));
+    segs.push(seg(u0, lo - u0, bg(d.u > d.t && !d.off ? 'usedCrit' : 'used')));
     if (t > u) segs.push(seg(u, t - u, bg('allow')));
-    if (u > t) segs.push(seg(t, u - t, bg('over')));
+    if (u > t) segs.push(seg(t, u - t, bg(this.offKey(d, 'over'))));
     if (d.kind === 'w5') { const st = d.started ? d.u - d.cwU * d.ws / 100 : d.u; for (let k = st + d.ws; k < 99.5; k += d.ws) if (k > d.u + 0.5) segs.push({ st: { position: 'absolute', left: f(left ? 100 - k : k), width: '2px', marginLeft: left ? '-2px' : 0, top: 0, bottom: 0, background: C.card } }); }
     const rg = X(u0, hi - u0);
     let lab = '';
-    if (d.u > d.t) { if (d.kind === 'w5' || d.kind === 'd7') { const p = Math.round((d.u - d.u0) / (d.t - d.u0) * 100); lab = left ? '−' + (p - 100) + ' %' : p + ' %'; } else lab = left ? '−' + fm(d.u - d.t) : '+' + fm(d.u - d.t); }
-    const wN = d.kind === 'w5' ? ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left' : '';
+    if (d.u > d.t && !d.off) { if (d.kind === 'w5' || d.kind === 'd7') { const p = Math.round((d.u - d.u0) / (d.t - d.u0) * 100); lab = left ? '−' + (p - 100) + ' %' : p + ' %'; } else lab = left ? '−' + fm(d.u - d.t) : '+' + fm(d.u - d.t); }
+    const wN = d.kind === 'w5' ? (d.rush && d.fit ? ' · ' + d.fit + ' × 5h fit before the reset' : ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left') : '';
     let f1, f1t;
     if (d.cap) { const pre = d.est ? '≈ ' : ''; f1 = pre + (left ? (d.u <= d.cap ? fm(d.cap - d.u) + ' left to cap' : fm(d.u - d.cap) + ' over cap') : fm(d.u) + ' of ' + fm(d.cap) + ' cap'); f1t = d.f1t || ['Custom cap ' + fm(d.cap), 'Provider limit ' + fm(P) + ' · ' + fm(P - d.u) + ' left']; }
     else if (d.kind === 'rq') { f1 = left ? fm(P - d.u) + ' of ' + fm(P) + ' left' : fm(d.u) + ' of ' + fm(P) + ' used'; f1t = d.f1t; }
@@ -475,10 +516,9 @@ class Component extends DCLogic {
     const top = d.cap ? d.cap : P;
     const barTip = [d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'Month', (left ? fm(top - d.u) + ' of ' + fm(top) + ' left' : fm(d.u) + ' of ' + fm(top) + ' used')];
     const labTxt = { fontSize: '12px', fontWeight: 600, color: '#F07A65', whiteSpace: 'nowrap', justifySelf: 'end' };
-    return { ...common, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: true, hasTodayNote: false, todayNote: '',
+    return { ...common, hasPeriodBar: !d.rush, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: true, hasTodayNote: false, todayNote: '',
       stripSt: { gridColumn: 2, gridRow: 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '4px', height: '14px', boxSizing: 'border-box', paddingRight: dense && lab ? '56px' : 0, opacity: dim },
-      cells: this.cells(d, left).map(c => ({ st: { flex: '1 1 0', minWidth: 0, display: 'flex', borderRadius: '6px', overflow: 'hidden', cursor: 'default' },
-        parts: c.parts.filter(p => p[1] > 0.01).sort((a, b) => rank(a[0]) - rank(b[0])).map(p => ({ st: { flex: p[1] + ' 1 0', background: bg(p[0]), boxShadow: p[0] === 'over' ? 'inset 2px 0 0 ' + C.ink : 'none' } })), enter: this.tipOn(wi, c.tip) })),
+      cells: this.stripCells(d, wi, left, 14),
       hasLab: !!lab, lab1: lab, labSt: dense ? { ...labTxt, gridColumn: 2, gridRow: 1, lineHeight: '14px' } : { ...labTxt, gridColumn: 2, gridRow: 2, lineHeight: '15px', marginTop: '5px' }, segs,
       ringSt: { position: 'absolute', left: 'calc(' + f(rg[0]) + ' - 4px)', width: 'calc(' + f(rg[1]) + ' + 8px)', top: '2px', height: '16px', boxSizing: 'border-box', border: '1.5px solid ' + tn.m, borderRadius: '7px' },
       hasOverTick: d.u > d.t, overTickSt: { position: 'absolute', left: f(left ? 100 - t : t), top: '4px', width: '2px', height: '12px', marginLeft: '-1px', background: C.ink, borderRadius: '1px' },
@@ -521,9 +561,31 @@ class Component extends DCLogic {
     const prim = { padding: '3px 12px', borderRadius: '6px', background: '#E8E4DA', color: '#1A1410', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' };
     const busy = { padding: '3px 12px', borderRadius: '6px', border: '1px solid #55534E', color: '#B7B3A8', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' };
     const mrow = (n, r, on, dis) => ({ n, r, st: { display: 'flex', alignItems: 'center', gap: '8px', height: '30px', padding: '0 10px', borderRadius: '6px', background: on ? '#2E2D2A' : 'transparent', outline: on ? '2px solid #F0EEE6' : 'none', outlineOffset: '-2px' }, nSt: { color: dis ? '#9D998E' : '#F0EEE6', fontWeight: dis ? 400 : 600 } });
-    const pillOf = st => ({ pillSt: { display: 'inline-flex', alignItems: 'center', gap: '5px', height: '20px', padding: '0 9px', borderRadius: '99px', background: this.C[st].bg, color: this.C[st].tx, fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }, dotSt: { width: '6px', height: '6px', borderRadius: '50%', background: this.C[st].m } });
     const expired = { stale: true, st: 'neutral', pill: '1 h old', mark: 'sign-in expired', markT: ['Sign-in expired', 'Sign in again to refresh'], pt: ['Last reading 13:20', 'Sign in again to refresh'] };
-    const tName = { fontFamily: "'Source Serif 4',Georgia,serif", fontSize: '14px', fontWeight: 600 };
+    const tName = { fontFamily: "'Source Serif 4',Georgia,serif", fontSize: '14px', fontWeight: 600, lineHeight: '18px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 };
+    const rqR = ['resets 1 Nov', 'Resets 1 Nov (date from provider)', 'Start assumed 1 Oct'];
+    const offT = ['Day off', 'No colours today · Work today colours it'];
+    const xdT = ['Extra work day', 'Work today is on until midnight · settings unchanged'];
+    const D = {
+      c5: { ...S.claude5, u0: 47, u: 50, t: 60, cwU: 25, winEnd: '15:05' }, cX: { ...S.claudeX, st: 'ok', pill: 'OK', u0: 218, u: 219.5, t: 226 },
+      x7: { ...S.codex7, u0: 99, u: 100, t: 100, D: 0, pt: ['7d limit used up', 'Back Mon 09:30 · a day off does not change it'], reset: ['back Mon 09:30', 'Resets Mon 19 Oct 09:30', 'in 2 d 22 h 10 min'] },
+      xC: { ...S.codexC, u0: 6480, u: 6480, t: 6900 }, pC: { ...S.cpC, u0: 1210, u: 1214, t: 1262 }, pH: { ...S.cpH, u0: 12, u: 12, t: 15 },
+      a1: { ...S.ag1, stale: false, u0: 36, u: 36, t: 52 }, a2: { ...S.ag2, stale: false, pt: ['Period unknown', 'Window length not sent · no daily budget'] }
+    };
+    const offOf = d => d.st === 'crit' || d.kind === 'note' || d.kind === 'pw' ? d : { ...d, off: true, st: 'neutral', pill: 'day off', pt: offT };
+    const xdOf = d => d.st === 'crit' || d.kind === 'note' || d.kind === 'pw' ? d : { ...d, st: 'ok', pill: 'OK', mark: 'extra day', markTone: 'neutral', markT: xdT };
+    const dayScen = [D.c5, D.cX, D.x7, D.xC, D.pC, D.pH, S.cpP, D.a1, D.a2];
+    const acc = (n, ds, err) => ({ n, ds, err: err || null });
+    const fri = {
+      c5: { kind: 'w5', name: 'Claude Pro', tag: '5h + 7d', P: 100, ws: 12, started: true, winEnd: '18:05', st: 'att', pill: '5h full', pt: ['5h window full', 'Next window opens 18:05'], u0: 40, u: 46, t: 58, cwU: 100, exu: true, mark: 'on extra usage', markT: ['Window full until 18:05 · continuing on extra usage', '+$1.40 since 13:05'], reset: ['resets Mon 09:00', 'Resets Mon 2 Nov 09:00', 'in 2 d 16 h 50 min'] },
+      cX: { ...S.claudeX, st: 'ok', pill: 'OK', u0: 209, u: 211, t: 216 },
+      x7: { kind: 'd7', name: 'Codex Pro', tag: '5h + 7d', P: 100, D: 20, rush: true, st: 'ok', pill: 'rush', pt: ['Rush · 34 % left', 'Resets Sat 31 Oct 09:30 · use it today'], u0: 62, u: 66, t: 100, reset: ['resets Sat 09:30', 'Resets Sat 31 Oct 09:30', 'in 17 h 20 min'] },
+      xC: { ...S.codexC, u0: 16700, u: 16760, t: 17000 },
+      pC: { kind: 'rq', name: 'Copilot Free', tag: 'completions', P: 2000, D: 62, rush: true, st: 'ok', pill: 'rush', pt: ['Rush · 150 left', 'Resets 1 Nov · use it today'], u0: 1800, u: 1850, t: 2000, reset: rqR },
+      pH: { kind: 'rq', name: 'Copilot Free', tag: 'chat', P: 50, cap: 40, D: 5, st: 'ok', pill: 'OK', u0: 37, u: 38, t: 40, reset: rqR }
+    };
+    const agErr = ['Sync failed 14:15', 'Showing the reading from 13:38 · retry in 5 min'];
+    const agExp = ['Sign-in expired', 'Sign in again in the window to refresh'];
     const F = [
       { id: 'S1', title: 'Main window · brief scenario · Used · Compact · 760 × 600', note: 'Four accounts, nine cards, no scrolling. Each card carries its account name; hover or focus shows History and Sign out (S3). The order is the user’s and never changes with state. Compact is the default density; Comfortable (the Provider States cards) needs about 730 px for this scenario and scrolls.', h: 600, dense: true, items: scen.map(d => ({ ...d })), measure: true },
       { id: 'S2', title: 'Main window · brief scenario · Left · Compact', h: 600, dense: true, left: true, items: scen.map(d => ({ ...d })), measure: true },
@@ -547,9 +609,36 @@ class Component extends DCLogic {
       { id: 'S9', title: 'Sign-in failed · sign-in expired', note: 'A failed or cancelled sign-in keeps the strip with Try again. An expired sign-in marks every card of the account, dims its readings and offers Sign in on the card; no dialog.', items: [
         { ...S.claude5, ...expired, action: 'Sign in' }, { ...S.claudeX, ...expired }],
         strip: { dot: 'att', text: 'Codex sign-in was cancelled in the browser', sub: '', act: 'Try again', busy: false } },
-      { id: 'S10', title: 'Tray flyout · 360 wide', note: 'Secondary surface: one row per account with its most constraining state. Everything here is also in the window.', tray: true, w: 360 },
-      { id: 'S11', title: 'Tokens and components', spec: true, w: 940 }
+      { id: 'S10', title: 'Tray flyout · 360 wide · the S1 scenario', note: 'A miniature of the window: per account its name, then one today strip per limit in the window’s order, Used or Left as in the window. No pills, captions, period bars or buttons; hover, keyboard focus and the accessible name carry the limit and figures. A red name with ⚠: sign-in expired, signed out, stale after a failed sync, or a provider error. Not included and no-cap pools are left out; period unknown is an empty dashed track. A row click opens the window at that account; Refresh stays in the tray menu.', tray: true, w: 360,
+        accs: [acc('Claude Pro', [S.claude5, S.claudeX]), acc('Codex Pro', [S.codex7, S.codexC]), acc('Copilot Free', [S.cpC, S.cpH, S.cpP]), acc('Antigravity AI Plus', [S.ag1, S.ag2], agErr)] },
+      { id: 'S10b', title: 'Tray · Fri 30 Oct 16:10 · last work day before resets', note: '⚡ rush on Codex 7d (resets Sat 09:30) and Copilot completions (1 Nov): provider resets, no cap. Copilot chat has your cap 40 and Codex credits a cap: no rush, grey stays. $ on Claude: the 5h window is full and the session continues on extra usage. Antigravity: sign-in expired.', tray: true, w: 360,
+        accs: [acc('Claude Pro', [fri.c5, fri.cX]), acc('Codex Pro', [fri.x7, fri.xC]), acc('Copilot Free', [fri.pC, fri.pH]), acc('Antigravity AI Plus', [{ ...S.ag1, pt: agExp }, S.ag2], agExp)] },
+      { id: 'S10c', title: 'Tray · Sat 17 Oct · day off', note: 'Every strip is neutral with a dashed outline: what is used today against the share a work day would get. The used-up Codex 7d stays red.', tray: true, w: 360,
+        accs: [acc('Claude Pro', [D.c5, D.cX].map(offOf)), acc('Codex Pro', [D.x7, D.xC].map(offOf)), acc('Copilot Free', [D.pC, D.pH, S.cpP].map(offOf)), acc('Antigravity AI Plus', [D.a1, D.a2].map(offOf))] },
+      { id: 'S10d', title: 'Tray · Sat 17 Oct · Work today on', note: 'The same strips in normal colours until midnight.', tray: true, w: 360,
+        accs: [acc('Claude Pro', [D.c5, D.cX].map(xdOf)), acc('Codex Pro', [D.x7, D.xC].map(xdOf)), acc('Copilot Free', [D.pC, D.pH, S.cpP].map(xdOf)), acc('Antigravity AI Plus', [D.a1, D.a2].map(xdOf))] },
+      { id: 'S11', title: 'Tokens and components', spec: true, w: 940 },
+      { id: 'S12', title: 'Main window · day off (Sat 17 Oct) · Compact', note: 'On a day off every today strip shows what is used against the share today would get as a work day, neutral with a dashed outline; no orange or red, no over label. A used-up limit stays red. Work today sits in the title bar: one switch for the whole window.', h: 600, dense: true, clock: 'Sat 17 Oct · 11:20', day: 'off', items: dayScen.map(offOf) },
+      { id: 'S13', title: 'Main window · day off · Work today on', note: 'Work today colours the same strips as on a work day until local midnight. Work days in settings do not change; a second click or Ctrl+Z turns it off. Cards on track carry “extra day” instead of a pill.', h: 600, dense: true, clock: 'Sat 17 Oct · 11:20', day: 'on', items: dayScen.map(xdOf) }
     ];
+    const trayRows = (accs, wi, left) => accs.map(a => {
+      const ds = a.ds.filter(d => d.kind !== 'note');
+      const strips = ds.map((d, i) => {
+        const pw = d.kind === 'pw';
+        const cells = pw ? [{ st: { flex: '1 1 0', borderRadius: '4px', boxSizing: 'border-box', outline: '1px dashed #6B6862', outlineOffset: '-1px' }, parts: [] }] : this.stripCells(d, wi, left, 8);
+        const tipL = pw ? (d.pt || ['Period unknown']) : cells[0].tip.slice(1);
+        const isRush = !!d.rush && d.pill === 'rush', isExu = !!d.exu;
+        return { cells, isRush, isExu,
+          stripSt: { gridColumn: 2, gridRow: i + 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '3px', height: '8px', opacity: d.stale ? 0.7 : 1, cursor: 'default' },
+          enter: this.tipOn(wi, [d.name + ' · ' + d.tag].concat(tipL)),
+          markBoxSt: { gridColumn: 3, gridRow: i + 1, width: '12px', height: '12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+          markEnter: this.tipOn(wi, isRush ? d.pt : isExu ? d.markT : ['']) };
+      });
+      return { n: a.n, err: !!a.err, strips, nameEnter: this.tipOn(wi, a.err || [a.n]),
+        rowSt: { display: 'grid', gridTemplateColumns: '150px minmax(0,1fr) 12px', columnGap: '10px', rowGap: '5px', alignItems: 'center', padding: '9px 14px', borderBottom: '1px solid #2E2D2A' },
+        nameBoxSt: { gridColumn: 1, gridRow: '1 / span ' + Math.max(1, strips.length), display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0, cursor: 'default' },
+        nameSt: { ...tName, color: a.err ? '#F07A65' : '#F0EEE6' } };
+    });
     const frames = F.map((fr, wi) => {
       const W = fr.w || 760, left = !!fr.left, dense = !!fr.dense;
       const items = [];
@@ -571,12 +660,9 @@ class Component extends DCLogic {
         isTray: !!fr.tray, isSpec: !!fr.spec, hasMenu: !!fr.menu,
         menu: [mrow('Claude', 'added', false, true), mrow('Codex', 'added', false, true), mrow('GitHub Copilot', 'added', false, true), mrow('Antigravity', 'waiting…', true, false)],
         hasUndo: !!fr.undo, undoText: fr.undo || '',
-        trows: [
-          { n: 'Claude Pro', hasMark: false, mark: '', pill: 'over today', ...pillOf('crit'), line: 'extra usage +$2.00 today · $218.00 of $300.00 cap · 7d 47 % used', nameSt: tName },
-          { n: 'Codex Pro', hasMark: false, mark: '', pill: '7d used up', ...pillOf('crit'), line: 'back Fri 09:30 · credits ≈ 6,480 of 17,000 cap', nameSt: tName },
-          { n: 'Copilot Free', hasMark: false, mark: '', pill: 'OK', ...pillOf('ok'), line: 'completions 1,210 of 2,000 · chat 12 of 50 · premium not included', nameSt: tName },
-          { n: 'Antigravity AI Plus', hasMark: false, mark: '', pill: 'sync failed · 13:38', ...pillOf('neutral'), line: 'reading 42 min old · group 1 36 % used · group 2 19 % used', nameSt: { ...tName, color: '#B7B3A8' } }
-        ],
+        trows: fr.tray ? trayRows(fr.accs || [], wi, left) : [],
+        clock: fr.clock || 'Wed 14 Oct · 14:20', hasDay: !!fr.day, dayText: fr.day === 'on' ? 'Extra work day · until midnight' : 'Day off',
+        dayBtn: 'Work today', dayBtnSt: fr.day === 'on' ? { padding: '3px 10px', borderRadius: '6px', background: '#3A3936', color: '#F0EEE6', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' } : { padding: '2px 10px', borderRadius: '6px', border: '1px solid #55534E', color: '#F0EEE6', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' },
         hasMeasure: !!fr.measure, measure: meas,
         hasTip: !!tt,
         tipSt: tt ? { position: 'absolute', zIndex: 10, left: tt.x + 'px', top: tt.y + 'px', maxWidth: '272px', padding: '6px 10px', background: '#151413', border: '1px solid #3A3936', borderRadius: '9px', boxShadow: '0 8px 24px rgba(0,0,0,.4)', fontSize: '12px', lineHeight: '17px', pointerEvents: 'none' } : {},

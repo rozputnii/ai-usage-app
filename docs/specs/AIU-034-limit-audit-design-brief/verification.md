@@ -1,5 +1,59 @@
 # AIU-034 verification
 
+## D-187 design amendment and re-import - 2026-10-02
+
+Primary [opus] session. Base `d26971f`.
+
+**Owner decisions.** The owner agreed every point in the session conversation before any design
+edit ("так" to each round). D-187 records them:
+- the tray as a miniature of the window;
+- no OK pill in the window;
+- the neutral day-off share and the window-wide Work today switch;
+- rush on the last work day before a provider-replenished reset with no cap;
+- the "on extra usage" mark;
+- extra usage and Codex credits stay as in D-186 (option A);
+- no display of a prepaid balance that only the provider's UI shows.
+
+**Design edits.**
+- `Provider States Handoff.dc.html` gains:
+  - A8, on extra usage;
+  - O1 to O6, day off and Work today;
+  - R1 to R8, rush and the cases that never rush.
+- H3 and H4 are replaced by O1 and O3; the other H identifiers are unchanged.
+- `Surfaces Handoff.dc.html` changes:
+  - S10 is rewritten as the tray miniature;
+  - S10b to S10d are added: last work day, day off, Work today;
+  - S12 and S13 add the scenario on a day off;
+  - S11 gains the tray, day off, Work today, rush and extra-usage rows, the tray keyboard row
+    and two accessible-name examples;
+  - the settings work-days hint follows D-187.
+- Both pages hide the pill when it is "OK".
+
+**Upload and import.**
+- Both pages were written to the Claude Design project under a path-scoped plan, with `if_match`
+  on the imported etags. No conflict occurred.
+- New etags: `1790943367342176` and `1790943639391931`. `list_files` sizes are 40,181 and
+  80,624 bytes, equal to the local files.
+- The pages fetched back from the serve endpoint differ from the local files only by the
+  host-injected `<style data-omelette-injected>` line. README.md records the new SHA-256 values.
+
+**Checks.**
+- Local render: a scratch static server, React from unpkg through `support.js`, built-in browser.
+  - Both pages render with no console errors.
+  - No card shows an OK pill.
+  - O, R, A8, S10 to S13 were inspected in screenshots.
+  - Three defects were fixed before upload:
+    - a truncated tray name;
+    - a red extra-usage strip in the day-off frames;
+    - a 5h footer that contradicted R3.
+- Host render: the uploaded Surfaces page renders in the Claude Design serve host; S1 and S2
+  report "content 579 px of 600 · fits without scrolling".
+- The validator printed `valid: true`, and `git diff --check` is clean.
+- Privacy scan over the changed files: no new hits. The only matches are the words "bearer"
+  in earlier verification text and an earlier decision.
+- The owner's visual review of the uploaded pages is NOT_RUN at the time of this entry.
+- AIU-038 carries the WinUI implementation. No product code changed.
+
 ## T-18 owner acceptance and import - 2026-10-02
 
 Primary [opus] session. Base `d7b5706`.

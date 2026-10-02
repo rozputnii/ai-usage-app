@@ -328,6 +328,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 - scope-note: Owner request and answers, 2026-09-26, recorded as D-183. API-key billing is excluded. Phase A starts only on the owner's instruction after the specification review.
 - gate-note: Gate A passed on 2026-09-29 (D-185): Phase A is complete and accepted. The owner approved the Phase B plan on 2026-09-29, and Phase B started with T-12. Gate B passed on 2026-09-29: the owner approved design-brief.md, and AIU-035 to AIU-040 are proposed as its follow-up items, none of them selected. Phase B completed on 2026-10-02: the owner accepted the Claude Design reference (D-186), which is imported in docs/specs/AIU-034-limit-audit-design-brief/design-reference/; AIU-041 was added. None of AIU-035 to AIU-041 is selected.
+- amendment-note: Owner amendment, 2026-10-02 (D-187): the design reference was updated and re-imported with the tray miniature, no OK pill, the neutral day-off share with Work today, the last-work-day rush and the on-extra-usage mark. The status stays done; AIU-038 implements the amended reference.
 
 ## AIU-035 - [astra] Core limit model and budget engine
 - goal: G-003
