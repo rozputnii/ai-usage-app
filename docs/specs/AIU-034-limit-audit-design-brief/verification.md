@@ -1,5 +1,33 @@
 # AIU-034 verification
 
+## D-187 addition: used-up limits - 2026-10-02
+
+Primary [opus] session. Base `c8a05f2`.
+
+**Owner decision.** The owner noted that a today strip has no meaning once the weekly or monthly
+provider limit (not a custom cap) is fully used. The owner agreed the proposal ("так"). The tray
+uses option a, one solid red strip. D-187 now records this.
+
+**Design edits.**
+- A provider limit that is fully used shows no today strip, no 5h cells and no over label. The
+  card keeps the full red period bar, without the today ring, and "back …".
+- This wins over rush (R4).
+- In the tray the limit becomes one solid red strip.
+- Cards changed:
+  - Provider States: A6, O4 and R4;
+  - Surfaces: Codex 7d in S1, S2, S4, S5, S12 and S13, and in the trays S10, S10c and S10d;
+  - S11 gains a "Used up" row.
+
+**Upload and checks.**
+- Both pages were written under a path-scoped plan with `if_match`. New etags:
+  `1790944602007782` and `1790944867594707`.
+- The fetched pages equal the local files byte for byte, once the host-injected block is removed.
+  That block is now a `<script data-omelette-injected>` of several lines.
+- Local render: there are no console errors, and S1 and S2 still fit (579 px of 600).
+- A DOM check confirmed the tray Codex rows: one solid strip in `#E5604A` in S10, S10c and S10d.
+  The A6, O4 and R4 cards have no today row.
+- The owner's visual review is NOT_RUN.
+
 ## D-187 design amendment and re-import - 2026-10-02
 
 Primary [opus] session. Base `d26971f`.

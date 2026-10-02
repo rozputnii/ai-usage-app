@@ -15,7 +15,7 @@
 <section style="padding:40px;display:flex;flex-direction:column;gap:20px;font-family:'Hanken Grotesk',sans-serif;color:#F0EEE6">
   <div style="display:flex;flex-direction:column;gap:4px;max-width:900px">
     <div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:600">Provider states — handoff</div>
-    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Reference time Wed 14 Oct 14:20. Grey mono captions above cards name the state and are not part of the app. Used mode: solid = used, hatched = left. Left mode: solid = left, hatched = used. Grey = not available today (rest of the last 5h window, or the daily share cut by the 7d limit or custom cap). Orange = today almost used up but not yet: today low, today short, cap close, current 5h window full. Red = today's allowance reached or over, a cap reached or over, or a limit used up. Neutral grey pill = no budget state (day off, not ready, unknown, period unknown, not included, signed out). OK has no pill: a card without a pill is on track (accessible name still says OK). Day off (O): the today strip keeps the share today would get as a work day, drawn neutral with a dashed outline and never orange or red; an exhausted limit stays red. Work today (window-wide, until midnight, settings unchanged) colours the same strip as on a work day. Rush (R): on the last work day before a provider-replenished reset with no custom cap, today is the whole remainder: green “rush” pill, no 7d or month bar, no grey. Money, credits and capped pools never rush. ≈ marks an estimate; (assumed) marks a period the app assumes. Dimmed bars = stale reading. Hover bars, pills, marks and footers for tooltips.</div>
+    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Reference time Wed 14 Oct 14:20. Grey mono captions above cards name the state and are not part of the app. Used mode: solid = used, hatched = left. Left mode: solid = left, hatched = used. Grey = not available today (rest of the last 5h window, or the daily share cut by the 7d limit or custom cap). Orange = today almost used up but not yet: today low, today short, cap close, current 5h window full. Red = today's allowance reached or over, a cap reached or over, or a limit used up. Neutral grey pill = no budget state (day off, not ready, unknown, period unknown, not included, signed out). OK has no pill: a card without a pill is on track (accessible name still says OK). Day off (O): the today strip keeps the share today would get as a work day, drawn neutral with a dashed outline and never orange or red; an exhausted limit stays red. Work today (window-wide, until midnight, settings unchanged) colours the same strip as on a work day. Rush (R): on the last work day before a provider-replenished reset with no custom cap, today is the whole remainder: green “rush” pill, no 7d or month bar, no grey. Money, credits and capped pools never rush. Used up (a provider limit, not a custom cap, fully used): no today strip, only the red 7d or month bar and when it comes back; this wins over rush. ≈ marks an estimate; (assumed) marks a period the app assumes. Dimmed bars = stale reading. Hover bars, pills, marks and footers for tooltips.</div>
   </div>
   <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
     <sc-for list="{{ wins }}" as="w" hint-placeholder-count="2">
@@ -66,7 +66,7 @@
                           <div style="grid-column:2;grid-row:2;min-width:0;display:flex;gap:8px;margin-top:5px;font-size:12px;line-height:15px;font-weight:600;color:#F07A65"><span style="white-space:nowrap">{{ a.lab0 }}</span><span style="margin-left:auto;white-space:nowrap">{{ a.lab1 }}</span></div>
                         </sc-if>
                         <sc-if value="{{ a.hasPeriodBar }}">
-                        <div style="grid-column:2;grid-row:3;height:8px"></div>
+                        <div style="{{ a.spSt }}"></div>
                         <span style="grid-column:1;grid-row:4;font-size:12px;color:#9D998E">{{ a.unit }}</span>
                         <div style="{{ a.barSt }}" style-hover="filter:brightness(1.12)" onMouseEnter="{{ a.barEnter }}" onMouseLeave="{{ leave }}">
                           <div style="position:absolute;left:0;right:0;top:6px;height:8px;background:#34332F;border-radius:4px;corner-shape:squircle;overflow:hidden">
@@ -133,7 +133,7 @@ class Component extends DCLogic {
         w5({ cas: 'A3 · today over', name: 'Claude Team', st: 'crit', pill: 'over today', u0: 32, u: 43, t: 42, cwU: 60 }),
         w5({ cas: 'A4 · current 5h window full, more windows later today', st: 'att', pill: '5h full', pt: ['5h window full', 'Next window opens 16:20'], u0: 30, u: 36, t: 54, cwU: 100, winEnd: '16:20' }),
         w5({ cas: 'A5 · not used yet today', st: 'ok', pill: 'OK', u0: 20, u: 20, t: 50, cwU: 0, started: false }),
-        w5({ cas: 'A6 · 7d limit used up (limit reached = red)', name: 'Claude Pro', st: 'crit', pill: '7d used up', pt: ['7d limit used up', 'Nothing left until Mon 09:00'], u0: 96, u: 100, t: 100, cwU: 35 }),
+        w5({ cas: 'A6 · 7d limit used up: no today strip, only the red 7d bar and when it comes back', name: 'Claude Pro', st: 'crit', pill: '7d used up', pt: ['7d limit used up', 'Nothing left until Mon 09:00'], u0: 96, u: 100, t: 100, cwU: 35, reset: ['back Mon 09:00', 'Resets Mon 19 Oct 09:00', 'in 4 d 18 h 40 min'] }),
         w5({ cas: 'A7 · stale data, sync failed', stale: true, st: 'neutral', pill: '2 h old', pt: ['Last sync 12:18', 'Sync failed · retry in 5 min'], u0: 44, u: 50, t: 82.4, cwU: 30 }),
         w5({ cas: 'A8 · 5h window full, session continues on extra usage (spend rose since the window filled)', name: 'Claude Pro', st: 'att', pill: '5h full', pt: ['5h window full', 'Next window opens 16:05'], mark: 'on extra usage', markT: ['Window full until 16:05 · continuing on extra usage', '+$2.00 since 13:05'], u0: 30, u: 36, t: 54, cwU: 100, winEnd: '16:05' })
       ]],
@@ -181,7 +181,7 @@ class Component extends DCLogic {
         w5({ cas: 'O1 · day off: neutral strip = the share today would get as a work day (remainder ÷ remaining work days + today); dashed, no orange or red', off: true, st: 'neutral', pill: 'day off', pt: ['Day off · 6 % used today', 'Monday’s share 16.7 % → 14.7 %'], u0: 50, u: 56, t: 62.5, cwU: 50 }),
         d7({ cas: 'O2 · day off, more than that share used: still neutral, the next work days shrink evenly', off: true, st: 'neutral', pill: 'day off', pt: ['Day off · 18 % used today', 'Monday’s share 20.0 % → 14.0 %'], u0: 40, u: 58, t: 55 }),
         d7({ cas: 'O3 · day off, no work day before the reset: the share is the whole remainder (Work today turns it into rush)', off: true, st: 'neutral', pill: 'day off', pt: ['Day off · no work day before the reset', 'Whole remainder 38 % · Work today turns on rush'], u0: 62, u: 62, t: 100, D: 0 }),
-        d7({ cas: 'O4 · day off, limit used up: stays red (state of the limit, not of the day)', name: 'Codex Pro', tag: '5h + 7d', st: 'crit', pill: '7d used up', pt: ['7d limit used up', 'Back Mon 09:30'], u0: 97, u: 100, t: 100, D: 0, reset: ['back Mon 09:30', 'Resets Mon 19 Oct 09:30', 'in 2 d 22 h 10 min'] }),
+        d7({ cas: 'O4 · day off, limit used up: stays red, no today strip (state of the limit, not of the day)', name: 'Codex Pro', tag: '5h + 7d', st: 'crit', pill: '7d used up', pt: ['7d limit used up', 'Back Mon 09:30'], u0: 97, u: 100, t: 100, D: 0, reset: ['back Mon 09:30', 'Resets Mon 19 Oct 09:30', 'in 2 d 22 h 10 min'] }),
         w5({ cas: 'O5 · Work today on: same strip, normal colours; “extra day” mark, no pill when on track', st: 'ok', pill: 'OK', mark: 'extra day', markTone: 'neutral', markT: ['Extra work day', 'Work today is on until midnight · settings unchanged'], u0: 50, u: 56, t: 62.5, cwU: 50 }),
         d7({ cas: 'O6 · Work today on, more than the share used: red as on a work day', st: 'crit', pill: 'over today', mark: 'extra day', markTone: 'neutral', markT: ['Extra work day', 'Work today is on until midnight · settings unchanged'], u0: 40, u: 58, t: 55 })
       ]],
@@ -189,7 +189,7 @@ class Component extends DCLogic {
         d7({ cas: 'R1 · 7d, last work day, provider replenishes, no cap: rush; today = whole remainder, no 7d bar, no grey', rush: true, st: 'ok', pill: 'rush', pt: ['Rush · 30 % left', 'Resets Thu 15 Oct 09:00 · use it today'], u0: 62, u: 70, t: 100, reset: ['resets Thu 09:00', 'Resets Thu 15 Oct 09:00', 'in 18 h 40 min'] }),
         w5({ cas: 'R2 · 5h + 7d rush: the remainder in 5h windows; the last cell is only as long as what is left', name: 'Claude Pro', rush: true, st: 'ok', pill: 'rush', pt: ['Rush · 33 % left', 'Resets Thu 15 Oct 09:00 · use it today'], u0: 61, u: 67, t: 100, cwU: 50, reset: ['resets Thu 09:00', 'Resets Thu 15 Oct 09:00', 'in 18 h 40 min'] }),
         w5({ cas: 'R3 · rush, but only 2 × 5h fit before the reset: only those windows are drawn', rush: true, fit: 2, started: false, st: 'ok', pill: 'rush', pt: ['Rush · 60 % left', 'Only 2 × 5h fit before 21:00 · ≈ 36 % resets unused'], u0: 40, u: 40, t: 100, cwU: 0, reset: ['resets 21:00', 'Resets Wed 14 Oct 21:00', 'in 6 h 40 min'] }),
-        d7({ cas: 'R4 · rush day, today used up: red as always, no rush pill', rush: true, st: 'crit', pill: 'today used', pt: ['Today used', 'Nothing left until Thu 09:00'], u0: 62, u: 100, t: 100, reset: ['resets Thu 09:00', 'Resets Thu 15 Oct 09:00', 'in 18 h 40 min'] }),
+        d7({ cas: 'R4 · last work day, whole remainder used: the limit is used up, which wins over rush: red 7d bar back, no today strip, no rush pill', rush: true, st: 'crit', pill: '7d used up', pt: ['7d limit used up', 'Nothing left until Thu 09:00'], u0: 62, u: 100, t: 100, reset: ['back Thu 09:00', 'Resets Thu 15 Oct 09:00', 'in 18 h 40 min'] }),
         rq({ cas: 'R5 · Copilot pool, provider reset, no cap: rush', tag: 'completions', rush: true, st: 'ok', pill: 'rush', pt: ['Rush · 150 left', 'Resets 1 Nov · use it today'], P: 2000, u0: 1800, u: 1850, t: 2000, D: 62, f1t: ['Provider limit 2,000 requests', 'Provider remaining 150'] }),
         rq({ cas: 'R6 · same day, your cap 40 on the pool: no rush, month bar and grey stay', tag: 'chat', st: 'ok', pill: 'OK', P: 50, cap: 40, u0: 37, u: 38, t: 40, D: 5, f1t: ['Custom cap 40', 'Provider limit 50 · 12 left'] }),
         cr({ cas: 'R7 · credits with a cap on the last work day: never rush (credits do not expire at the assumed month end)', st: 'ok', pill: 'OK', u0: 14700, u: 14760, t: 15000 }),
@@ -306,7 +306,7 @@ class Component extends DCLogic {
           if (d.kind === 'pw') {
             const segs = [seg(0, d.u, bg('used', tn, left))];
             if (left) segs.push(seg(d.u, 100 - d.u, bg('allow', tn, left)));
-            items.push({ ...common, hasPeriodBar: true, unit: d.unitL || '7d', hasStrip: false, hasTodayNote: true, todayNote: d.todayNote, cells: [], stripSt: {},
+            items.push({ ...common, hasPeriodBar: true, spSt: { gridColumn: 2, gridRow: 3, height: '8px' }, unit: d.unitL || '7d', hasStrip: false, hasTodayNote: true, todayNote: d.todayNote, cells: [], stripSt: {},
               hasLab: false, lab0: '', lab1: '', segs, ringSt: { display: 'none' }, hasCap: false, capSt: {}, hasCapMark: false, capMarkSt: {},
               f1: left ? fm(100 - d.u) + ' left' : fm(d.u) + ' used', f1Enter: this.tipOn(wi, d.f1t) });
             return;
@@ -317,6 +317,7 @@ class Component extends DCLogic {
           if (left) segs.push(seg(hi, Math.max(0, capP - hi), C.prev)); else segs.push(seg(0, u0, C.prev));
           if (capP < 100) segs.push(seg(Math.max(capP, hi), 100 - Math.max(capP, hi), stripe('#2A2927', '#34332F')));
           const crit = d.u > d.t && !d.off;
+          const exh = d.kind !== 'cr' && d.u >= d.P;
           segs.push(seg(u0, lo - u0, bg(crit ? 'usedCrit' : 'used', tn, left)));
           if (t > u) segs.push(seg(u, t - u, bg('allow', tn, left)));
           if (u > t) segs.push(seg(t, u - t, bg(offKey(d, 'over'), tn, left)));
@@ -324,13 +325,14 @@ class Component extends DCLogic {
             const st = d.started ? d.u - d.cwU * d.ws / 100 : d.u;
             for (let k = st + d.ws; k < 99.5; k += d.ws) if (k > d.u + 0.5) segs.push({ st: { position: 'absolute', left: f(left ? 100 - k : k), width: '2px', marginLeft: left ? '-2px' : 0, top: 0, bottom: 0, background: C.card } });
           }
+          if (exh) segs.splice(0, segs.length, seg(0, 100, left ? stripe(C.crit.p, C.crit.d) : C.crit.m));
           const rg = X(u0, hi - u0);
           let lab = null;
-          if (d.u > d.t && !d.off) {
+          if (d.u > d.t && !d.off && !exh) {
             if (d.kind === 'w5' || d.kind === 'd7') { const p = Math.round((d.u - d.u0) / (d.t - d.u0) * 100); lab = left ? ['', '−' + (p - 100) + ' %'] : ['', p + ' %']; }
             else lab = left ? ['', '−' + fm(d.u - d.t)] : ['', '+' + fm(d.u - d.t)];
           }
-          const wN = d.kind === 'w5' ? (d.rush && d.fit ? ' · ' + d.fit + ' × 5h fit before the reset' : ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left') : '';
+          const wN = d.kind === 'w5' && d.u < d.P ? (d.rush && d.fit ? ' · ' + d.fit + ' × 5h fit before the reset' : ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left') : '';
           let f1, f1t;
           if (d.cap) {
             const pre = d.est ? '≈ ' : '';
@@ -348,7 +350,7 @@ class Component extends DCLogic {
           const scaleTop = d.cap ? d.cap : P;
           const barTip = [unitName, (left ? fm(scaleTop - d.u) + ' of ' + fm(scaleTop) + ' left' : fm(d.u) + ' of ' + fm(scaleTop) + ' used') + ' · ' + todayLine];
           if (capP < 100) barTip.push(d.u > d.cap ? 'Past the tick: over custom cap ' + fm(d.cap) : 'Hatched: above custom cap ' + fm(d.cap));
-          items.push({ ...common, hasPeriodBar: !d.rush, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: true, hasTodayNote: false, todayNote: '',
+          items.push({ ...common, hasPeriodBar: !d.rush || exh, spSt: { gridColumn: 2, gridRow: 3, height: exh ? 0 : '8px' }, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: !exh, hasTodayNote: false, todayNote: '',
             stripSt: { gridColumn: 2, gridRow: 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '4px', height: '14px', opacity: dim },
             cells: this.cells(d, left).map(c => ({
               st: { flex: (c.w || 1) + ' 1 0', minWidth: 0, boxSizing: 'border-box', outline: d.off ? '1px dashed #8C887E' : 'none', outlineOffset: '-1px', display: 'flex', flexDirection: 'row', borderRadius: '6px', cornerShape: 'squircle', overflow: 'hidden', cursor: 'default' },
@@ -357,8 +359,8 @@ class Component extends DCLogic {
             })),
             hasLab: !!lab, lab0: lab ? lab[0] : '', lab1: lab ? lab[1] : '',
             segs,
-            ringSt: { position: 'absolute', left: 'calc(' + f(rg[0]) + ' - 4px)', width: 'calc(' + f(rg[1]) + ' + 8px)', top: '2px', height: '16px', boxSizing: 'border-box', border: '1.5px solid ' + tn.m, borderRadius: '7px', cornerShape: 'squircle', boxShadow: '0 0 12px ' + tn.bg },
-            hasCap: d.u > d.t,
+            ringSt: exh ? { display: 'none' } : { position: 'absolute', left: 'calc(' + f(rg[0]) + ' - 4px)', width: 'calc(' + f(rg[1]) + ' + 8px)', top: '2px', height: '16px', boxSizing: 'border-box', border: '1.5px solid ' + tn.m, borderRadius: '7px', cornerShape: 'squircle', boxShadow: '0 0 12px ' + tn.bg },
+            hasCap: d.u > d.t && !exh,
             capSt: { position: 'absolute', left: f(left ? 100 - t : t), top: '4px', width: '2px', height: '12px', marginLeft: '-1px', background: C.ink, borderRadius: '1px' },
             hasCapMark: capP < 100,
             capMarkSt: { position: 'absolute', left: f(left ? 100 - capP : capP), top: '3px', width: '2px', height: '14px', marginLeft: '-1px', background: '#9D998E', borderRadius: '1px' },

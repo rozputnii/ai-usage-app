@@ -298,6 +298,7 @@
                   <tr><td>Day off</td><td>today strip = the share today would get as a work day · used neutral m, rest transparent, dashed outline 1 px #8C887E · no orange or red, no over label · a used-up limit stays red · pill “day off”</td></tr>
                   <tr><td>Work today</td><td>title bar button on a day off; on: pressed (#3A3936), normal colours until local midnight, settings unchanged, Ctrl+Z undoes · cards carry an ink2 “extra day” mark</td></tr>
                   <tr><td>Rush</td><td>last work day before a provider-replenished reset, no custom cap · ok pill “rush” · no period bar, no grey · last 5h cell only as long as what is left · only 5h windows that fit before the reset · never for money, credits or capped pools</td></tr>
+                  <tr><td>Used up</td><td>a provider limit (not a custom cap) fully used · no today strip, no 5h cells, no over label · the red period bar and “back …” stay · wins over rush · tray: one solid crit strip, tooltip says when it comes back</td></tr>
                   <tr><td>On extra usage</td><td>att mark on the 5h + 7d card while its window is full and extra-usage spend rose since then; tooltip: until when, and the spend since</td></tr>
                 </table>
               </div>
@@ -464,7 +465,9 @@ class Component extends DCLogic {
     return this.cells(d, left).map(c => ({ st: { flex: (c.w || 1) + ' 1 0', minWidth: 0, display: 'flex', borderRadius: h > 10 ? '6px' : '4px', overflow: 'hidden', cursor: 'default', boxSizing: 'border-box', outline: d.off ? '1px dashed #8C887E' : 'none', outlineOffset: '-1px' },
       parts: c.parts.filter(p => p[1] > 0.01).sort((a, b) => rank(a[0]) - rank(b[0])).map(p => ({ st: { flex: p[1] + ' 1 0', background: bg(this.offKey(d, p[0])), boxShadow: this.offKey(d, p[0]) === 'over' ? 'inset 2px 0 0 ' + C.ink : 'none' } })), enter: this.tipOn(wi, c.tip), tip: c.tip }));
   }
+  exh(d) { return (d.kind === 'w5' || d.kind === 'd7' || d.kind === 'rq' || d.kind === 'us') && d.u >= d.P; }
   card(d, wi, left, dense) {
+    const exh = this.exh(d);
     const C = this.C, tn = C[d.st];
     const stripe = (a, b) => 'repeating-linear-gradient(135deg,' + a + ' 0 3px,' + b + ' 3px 6px)';
     const f = v => (Math.round(v * 100) / 100) + '%';
@@ -488,7 +491,7 @@ class Component extends DCLogic {
     const seg = (l, w, b) => { const p = X(l, w); return { st: { position: 'absolute', left: f(p[0]), width: f(Math.max(0, p[1])), top: 0, bottom: 0, background: b } }; };
     const common = { ...base, hasBars: true, isNote: false,
       barSt: { gridColumn: 2, gridRow: 4, position: 'relative', height: '20px', margin: dense ? '-2px 0' : 0, minWidth: 0, opacity: dim },
-      spSt: { gridColumn: 2, gridRow: 3, height: dense ? '3px' : '8px' },
+      spSt: { gridColumn: 2, gridRow: 3, height: exh ? 0 : dense ? '3px' : '8px' },
       f2: d.reset[0], f2Enter: this.tipOn(wi, d.reset.slice(1)) };
     if (d.kind === 'pw') {
       const segs = [seg(0, d.u, bg('used'))];
@@ -505,10 +508,11 @@ class Component extends DCLogic {
     if (t > u) segs.push(seg(u, t - u, bg('allow')));
     if (u > t) segs.push(seg(t, u - t, bg(this.offKey(d, 'over'))));
     if (d.kind === 'w5') { const st = d.started ? d.u - d.cwU * d.ws / 100 : d.u; for (let k = st + d.ws; k < 99.5; k += d.ws) if (k > d.u + 0.5) segs.push({ st: { position: 'absolute', left: f(left ? 100 - k : k), width: '2px', marginLeft: left ? '-2px' : 0, top: 0, bottom: 0, background: C.card } }); }
+    if (exh) segs.splice(0, segs.length, seg(0, 100, left ? stripe(C.crit.p, C.crit.d) : C.crit.m));
     const rg = X(u0, hi - u0);
     let lab = '';
-    if (d.u > d.t && !d.off) { if (d.kind === 'w5' || d.kind === 'd7') { const p = Math.round((d.u - d.u0) / (d.t - d.u0) * 100); lab = left ? '−' + (p - 100) + ' %' : p + ' %'; } else lab = left ? '−' + fm(d.u - d.t) : '+' + fm(d.u - d.t); }
-    const wN = d.kind === 'w5' ? (d.rush && d.fit ? ' · ' + d.fit + ' × 5h fit before the reset' : ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left') : '';
+    if (d.u > d.t && !d.off && !exh) { if (d.kind === 'w5' || d.kind === 'd7') { const p = Math.round((d.u - d.u0) / (d.t - d.u0) * 100); lab = left ? '−' + (p - 100) + ' %' : p + ' %'; } else lab = left ? '−' + fm(d.u - d.t) : '+' + fm(d.u - d.t); }
+    const wN = d.kind === 'w5' && d.u < d.P ? (d.rush && d.fit ? ' · ' + d.fit + ' × 5h fit before the reset' : ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left') : '';
     let f1, f1t;
     if (d.cap) { const pre = d.est ? '≈ ' : ''; f1 = pre + (left ? (d.u <= d.cap ? fm(d.cap - d.u) + ' left to cap' : fm(d.u - d.cap) + ' over cap') : fm(d.u) + ' of ' + fm(d.cap) + ' cap'); f1t = d.f1t || ['Custom cap ' + fm(d.cap), 'Provider limit ' + fm(P) + ' · ' + fm(P - d.u) + ' left']; }
     else if (d.kind === 'rq') { f1 = left ? fm(P - d.u) + ' of ' + fm(P) + ' left' : fm(d.u) + ' of ' + fm(P) + ' used'; f1t = d.f1t; }
@@ -516,12 +520,12 @@ class Component extends DCLogic {
     const top = d.cap ? d.cap : P;
     const barTip = [d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'Month', (left ? fm(top - d.u) + ' of ' + fm(top) + ' left' : fm(d.u) + ' of ' + fm(top) + ' used')];
     const labTxt = { fontSize: '12px', fontWeight: 600, color: '#F07A65', whiteSpace: 'nowrap', justifySelf: 'end' };
-    return { ...common, hasPeriodBar: !d.rush, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: true, hasTodayNote: false, todayNote: '',
+    return { ...common, hasPeriodBar: !d.rush || exh, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: !exh, hasTodayNote: false, todayNote: '',
       stripSt: { gridColumn: 2, gridRow: 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '4px', height: '14px', boxSizing: 'border-box', paddingRight: dense && lab ? '56px' : 0, opacity: dim },
       cells: this.stripCells(d, wi, left, 14),
       hasLab: !!lab, lab1: lab, labSt: dense ? { ...labTxt, gridColumn: 2, gridRow: 1, lineHeight: '14px' } : { ...labTxt, gridColumn: 2, gridRow: 2, lineHeight: '15px', marginTop: '5px' }, segs,
-      ringSt: { position: 'absolute', left: 'calc(' + f(rg[0]) + ' - 4px)', width: 'calc(' + f(rg[1]) + ' + 8px)', top: '2px', height: '16px', boxSizing: 'border-box', border: '1.5px solid ' + tn.m, borderRadius: '7px' },
-      hasOverTick: d.u > d.t, overTickSt: { position: 'absolute', left: f(left ? 100 - t : t), top: '4px', width: '2px', height: '12px', marginLeft: '-1px', background: C.ink, borderRadius: '1px' },
+      ringSt: exh ? { display: 'none' } : { position: 'absolute', left: 'calc(' + f(rg[0]) + ' - 4px)', width: 'calc(' + f(rg[1]) + ' + 8px)', top: '2px', height: '16px', boxSizing: 'border-box', border: '1.5px solid ' + tn.m, borderRadius: '7px' },
+      hasOverTick: d.u > d.t && !exh, overTickSt: { position: 'absolute', left: f(left ? 100 - t : t), top: '4px', width: '2px', height: '12px', marginLeft: '-1px', background: C.ink, borderRadius: '1px' },
       hasCapMark: capP < 100, capMarkSt: { position: 'absolute', left: f(left ? 100 - capP : capP), top: '3px', width: '2px', height: '14px', marginLeft: '-1px', background: '#9D998E', borderRadius: '1px' },
       barEnter: this.tipOn(wi, barTip), f1, f1Enter: this.tipOn(wi, f1t) };
   }
@@ -625,8 +629,9 @@ class Component extends DCLogic {
       const ds = a.ds.filter(d => d.kind !== 'note');
       const strips = ds.map((d, i) => {
         const pw = d.kind === 'pw';
-        const cells = pw ? [{ st: { flex: '1 1 0', borderRadius: '4px', boxSizing: 'border-box', outline: '1px dashed #6B6862', outlineOffset: '-1px' }, parts: [] }] : this.stripCells(d, wi, left, 8);
-        const tipL = pw ? (d.pt || ['Period unknown']) : cells[0].tip.slice(1);
+        const used = this.exh(d);
+        const cells = pw ? [{ st: { flex: '1 1 0', borderRadius: '4px', boxSizing: 'border-box', outline: '1px dashed #6B6862', outlineOffset: '-1px' }, parts: [] }] : used ? [{ st: { flex: '1 1 0', borderRadius: '4px', background: this.C.crit.m }, parts: [] }] : this.stripCells(d, wi, left, 8);
+        const tipL = pw || used ? (d.pt || ['Period unknown']) : cells[0].tip.slice(1);
         const isRush = !!d.rush && d.pill === 'rush', isExu = !!d.exu;
         return { cells, isRush, isExu,
           stripSt: { gridColumn: 2, gridRow: i + 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '3px', height: '8px', opacity: d.stale ? 0.7 : 1, cursor: 'default' },
