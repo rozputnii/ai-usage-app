@@ -1,10 +1,10 @@
 ---
 id: AIU-038
 type: feature
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: Owner selection, 2026-10-02, of AIU-038 on a dedicated worktree branch, with the instruction to write this specification and stop for approval before implementation. Behavior derives from the owner-accepted AIU-034 design reference (D-186, D-187) and the Gate B design brief as those decisions amend it. Owner approval of this specification is pending and is not claimed here.
+approval_basis: Owner selection, 2026-10-02, of AIU-038 on a dedicated worktree branch. The owner approved this specification on 2026-10-02 ("approve"), including the section 9 recommendations; downloading font files still needs the per-file confirmation PD-038-03 names. Behavior derives from the owner-accepted AIU-034 design reference (D-186, D-187) and the Gate B design brief as those decisions amend it.
 ---
 
 # Redesigned presentation from the imported design

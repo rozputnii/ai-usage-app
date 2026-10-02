@@ -1,0 +1,170 @@
+using AiUsage.Features.Ledger.Contract;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+
+namespace AiUsage.Features.Ledger;
+
+/// <summary>Delayed UI work (undo expiry, success outline, strip hide); tests run it on demand.</summary>
+internal interface ILedgerScheduler
+{
+    IDisposable Schedule(TimeSpan delay, Action action);
+}
+
+/// <summary>Inline amount editor for a personal cap (spec S3, S5): Enter saves, Esc cancels, empty + Enter removes.</summary>
+internal sealed partial class CapEditorViewModel : ObservableObject
+{
+    private readonly Func<decimal?, Task<bool>> commit;
+    private readonly Action close;
+
+    public CapEditorViewModel(ScaleModel scale, decimal? current, string period, Func<decimal?, Task<bool>> commit, Action close)
+    {
+        Scale = scale;
+        HasCap = current is not null;
+        Text = current is { } amount ? LedgerFormat.EditText(scale, amount) : string.Empty;
+        UnitText = LedgerFormat.Unit(scale);
+        Hint = HasCap
+            ? "per " + period + " · Enter saves · Esc cancels · empty + Enter removes"
+            : "per " + period + " · the cap is yours, not the provider’s limit";
+        this.commit = commit;
+        this.close = close;
+    }
+
+    public ScaleModel Scale { get; }
+    public bool HasCap { get; }
+    public string UnitText { get; }
+    public string Hint { get; }
+    [ObservableProperty] public partial string Text { get; set; }
+    [ObservableProperty] public partial string? Error { get; set; }
+
+    [RelayCommand]
+    public async Task SaveAsync()
+    {
+        decimal? amount = null;
+        if (!string.IsNullOrWhiteSpace(Text))
+        {
+            if (!LedgerFormat.TryParseAmount(Text, Scale, out var parsed))
+            {
+                Error = Scale.Kind == ScaleKind.Money ? "Enter an amount with at most " + (Scale.Exponent ?? 2) + " decimals" : "Enter a whole number";
+                return;
+            }
+            amount = parsed;
+        }
+        else if (!HasCap)
+        {
+            Error = "Enter a cap";
+            return;
+        }
+        Error = null;
+        if (await commit(amount))
+            close();
+        else
+            Error = "The cap was not saved";
+    }
+
+    [RelayCommand]
+    public Task RemoveAsync()
+    {
+        Text = string.Empty;
+        return SaveAsync();
+    }
+
+    [RelayCommand]
+    public void Cancel() => close();
+}
+
+/// <summary>One card of the main window. The owner supplies every command; the card holds only view state.</summary>
+internal sealed partial class LimitCardViewModel : ObservableObject
+{
+    private readonly LedgerViewModel owner;
+
+    public LimitCardViewModel(LedgerViewModel owner, LimitCardModel model, AccountModel account, ValueMode mode, DateTimeOffset now)
+    {
+        this.owner = owner;
+        Model = model;
+        Account = account;
+        Visual = CardVisuals.Build(model, account, mode, now);
+    }
+
+    public LimitCardModel Model { get; private set; }
+    public AccountModel Account { get; private set; }
+    public string CardId => Model.CardId;
+    [ObservableProperty] public partial CardVisual Visual { get; private set; }
+    [ObservableProperty] public partial bool IsRenaming { get; private set; }
+    [ObservableProperty] public partial string RenameText { get; set; } = string.Empty;
+    [ObservableProperty] public partial CapEditorViewModel? CapEditor { get; private set; }
+    [ObservableProperty] public partial bool IsNew { get; set; }
+    [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
+
+    public string Name => Account.DisplayName;
+    public string? Tag => Model.ScopeLabel;
+    public bool HasTag => !string.IsNullOrEmpty(Model.ScopeLabel);
+    public bool CanEditCap => Model.CapTargetId is not null;
+    public bool CanSignOut => Account.Health != AccountHealth.SignedOut;
+    public bool CanOpenHistory => Model.Layout != CardLayout.Note;
+    public bool IsStale => Model.Freshness.IsStale;
+    public string SignOutName => "Sign out " + Account.DisplayName;
+    public string HistoryName => "History, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
+    public string CapEditorName => "Cap for " + Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty) + (Model.Cap is { } cap ? ", " + LedgerFormat.EditText(Model.Scale, cap.Amount) : ", none");
+
+    public void Update(LimitCardModel model, AccountModel account, ValueMode mode, DateTimeOffset now)
+    {
+        Model = model;
+        Account = account;
+        Visual = CardVisuals.Build(model, account, mode, now);
+        OnPropertyChanged(string.Empty);
+    }
+
+    [RelayCommand]
+    public void BeginRename()
+    {
+        RenameText = Account.DisplayName;
+        IsRenaming = true;
+    }
+
+    [RelayCommand]
+    public async Task CommitRenameAsync()
+    {
+        if (!IsRenaming)
+            return;
+        var text = RenameText.Trim();
+        IsRenaming = false;
+        if (text.Length > 0 && text != Account.DisplayName)
+            await owner.RenameAsync(Account.AccountId, text);
+    }
+
+    [RelayCommand]
+    public void CancelRename() => IsRenaming = false;
+
+    [RelayCommand]
+    public void BeginCapEdit()
+    {
+        if (!CanEditCap)
+            return;
+        var target = Model.CapTargetId!;
+        var before = Model.Cap?.Amount;
+        CapEditor = new CapEditorViewModel(Model.Scale, before, LedgerFormat.PeriodWords(Model.Period),
+            amount => owner.SetCapAsync(target, amount, before, Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty)),
+            () => CapEditor = null);
+    }
+
+    [RelayCommand]
+    public async Task ActionAsync()
+    {
+        if (Model.Action == CardAction.SignIn)
+            await owner.SignInAsync(Account.Provider);
+        else if (Model.Action == CardAction.SetCap)
+            BeginCapEdit();
+    }
+
+    [RelayCommand]
+    public Task SignOutAsync() => owner.SignOutAsync(Account.AccountId);
+
+    [RelayCommand]
+    public Task ToggleHistoryAsync() => owner.ToggleHistoryAsync(this);
+
+    [RelayCommand]
+    public Task MoveUpAsync() => owner.MoveAsync(CardId, -1);
+
+    [RelayCommand]
+    public Task MoveDownAsync() => owner.MoveAsync(CardId, 1);
+}
