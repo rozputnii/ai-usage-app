@@ -31,7 +31,7 @@ Font-loading verification is tracked in T-02.
   are packaged; internal names/weights, tabular figures and actual rendering verified.
 
 ### T-03 - Card view models and controls
-- status: in-progress
+- status: done
 - depends_on: [T-01, T-02]
 - acceptance: AC-02, AC-03
 - evidence: docs/specs/AIU-038-ledger-presentation/verification.md
@@ -41,10 +41,10 @@ Font-loading verification is tracked in T-02.
 - [x] With real fonts, preserve complete footer figures using the reference wrapping flow.
 - [x] Actual S1/S2 display-scale matrix at 100%, 150% and 200%; fix high-DPI clipping.
 - [x] Squircle provider menu, tooltips and appearance switches, checked at actual 150%.
-- [ ] Close remaining native window/tray corner fidelity under PD-038-02.
+- [x] Owner amendment 2026-10-03 retains native window/tray contours; no custom-chrome work.
 
 ### T-04 - Main window, tray and interactions
-- status: in-progress
+- status: done
 - depends_on: [T-03]
 - acceptance: AC-04, AC-05, AC-06, AC-10
 - evidence: docs/specs/AIU-038-ledger-presentation/verification.md
@@ -55,10 +55,10 @@ Font-loading verification is tracked in T-02.
 - [x] Actual local smoke of main surfaces and selected keyboard interactions.
 - [x] Reference surface reachability, actual Narrator speech recap and animations-off checks.
 - [x] Restore focus after Alt+Up/Down reorder; preserve the Used button's accessible name.
-- [ ] Resolve native contrast-theme chrome under PD-038-05 and remaining corner fidelity.
+- [x] Owner amendment removes contrast-theme scope and resolves PD-038-05/PD-038-02.
 
 ### T-05 - Verification and record
-- status: in-progress
+- status: done
 - depends_on: [T-04]
 - acceptance: AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07, AC-08, AC-09, AC-10, AC-11, AC-12
 - evidence: docs/specs/AIU-038-ledger-presentation/verification.md
@@ -67,42 +67,25 @@ Font-loading verification is tracked in T-02.
 - [x] Integrated primary review and explicit per-AC evidence/limitations.
 - [x] Font completion and byte-for-byte font/licence checks in unpackaged/MSIX output.
 - [x] Owner-authorized Windows matrix and restoration of original settings.
-- [ ] Feature closure after PD-038-02 fidelity and PD-038-05 resolution.
+- [x] Feature closure under amended ordinary-desktop scope version 2.
 
-## Handoff
+## Completion
 
-Continued Claude's `dbe1db1` on 2026-10-02, preserving both uncommitted layout fixes.
-Previous implementation commits are `ae2dc66` and `dbe1db1`; branch base is `019836a`.
-The continuation commit is a WIP save point, not acceptance closure or a release.
-No subagents were used. Primary review applies under CONTRIBUTING: this change touches
-synthetic demo/presentation code, not material credential, durable destructive-data or
-privilege boundaries.
+Completed under owner-amended scope version 2 on 2026-10-03 in the same Claude
+worktree, branch `users/aiu-038-presentation-redesign-1c2839`, base `019836a`.
+Preserved Claude's work; implementation continues through `ba6cd01` and `dbec191`.
+Fonts were completed in `aa416aa`. No pending workers or unintegrated worker artifacts.
 
-PASS: Presentation 261/261, Infrastructure 421/421, validator regressions 80/80,
-Debug build with zero warnings/errors, unsigned Release MSIX 2026.10.202.0,
-actual product and plain-demo startup. Commands, UI evidence and limitations are in
-verification.md. No pending worker artifacts. Generated output stays ignored.
+Evidence: Presentation 262/262, Infrastructure 421/421, validator regressions 80/80,
+Debug zero warnings/errors, unsigned Release MSIX 2026.10.206.0, packaged font/licence
+byte checks and actual ordinary Windows interactions. See verification.md for observed
+results and historical checks. Host settings were restored before the owner amendment.
 
-Font continuation after `e27dafd`: PD-038-03 approved and implemented; Presentation
-261/261 passed again, Debug has zero warnings/errors, unsigned MSIX 2026.10.203.0
-contains all seven font/licence files byte-for-byte. Verified actual Compact Used/Left,
-Comfortable, settings/editor, inline confirmation/cancel and tray typography.
+The owner explicitly removed Narrator, contrast-theme and unusual zoom/display work
+and rejected extra native-chrome complexity. Retain the implemented native window/tray
+contours; PD-038-02 and PD-038-05 no longer block the amended scope. Do not repeat those
+excluded checks or change host settings unless the owner specifically requests it again.
+No new application tests or UI matrix are needed for this documentation-only amendment.
 
-Windows continuation after `1e89073`: owner approved the temporary settings changes.
-Actual 100/150/200% S1/S2, light mode, Narrator speech recap and animations-off checks
-passed after fixes. High contrast exposed native-control colour leakage (fixed) and
-OS-owned frame/caption colours (PD-038-05, pending owner decision). Original 125%, dark,
-contrast None, animations on and Narrator off are restored and recorded.
-
-Presentation now passes 262/262, including a regression that failed before the reorder
-focus fix. Actual consecutive Alt+Down/Alt+Up retains card focus. Debug builds with zero
-warnings/errors. Final unsigned package and evidence are recorded in verification.md.
-After `dbec191`, provider-menu, tooltip and appearance-switch surfaces now use the
-squircle control; title/card action hints also use the same token-based tooltip factory.
-Actual 150% checks passed, then 125% was restored again. Debug has zero warnings/errors;
-the final package record is in verification.md. PD-038-02 remains open for native
-window/tray contours; no blanket fallback is claimed.
-
-Exact next action: resolve the pending PD-038-05 native-chrome choice, then finish
-PD-038-02 native window/tray corner fidelity and verify affected surfaces before closure.
-No font or Windows-settings permission is outstanding. Do not mark this save point done.
+AIU-038 has no remaining action. AIU-039 live wiring/product switch is separate work
+and is not started by this closure. No main merge, push, package install or release.

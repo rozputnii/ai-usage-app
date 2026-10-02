@@ -3,7 +3,9 @@
 Dates: 2026-10-02 through 2026-10-03 (Europe/Lisbon). Primary continuation of Claude's `dbe1db1`, branch
 `users/aiu-038-presentation-redesign-1c2839`, base `019836a`.
 Evidence applies to the continuation commit containing this record.
-Feature acceptance remains open; this is a verified WIP save point.
+Feature acceptance is complete under owner-amended scope version 2 (2026-10-03).
+Earlier WIP statements and excluded-setting observations below are historical evidence,
+not future requirements. No failed historical check has been relabelled as passing.
 
 ## Environment and automated checks
 
@@ -65,13 +67,13 @@ Accessibility-tree inspection does not establish an actual Narrator reading.
 | AC-01 | PASS | V-01 contract/boundary tests and primary source review; no Core/Infrastructure dependency in Ledger features. |
 | AC-02 | PASS | V-01 drawing/state tests plus gallery coverage in Used/Left and Compact/Comfortable; no-cap is reached by removing a cap. |
 | AC-03 | PASS | V-01 explicit reference positions/figures and UI-01. |
-| AC-04 | PASS | UI-01 through UI-10, font gallery and W-06 establish surface/state reachability, including signed-out H9 and S10c/S10d. This does not close the separate PD-038-02 corner fidelity gap. |
+| AC-04 | PASS | UI-01 through UI-10, font gallery and W-06 establish surface/state reachability, including signed-out H9 and S10c/S10d. Native window/tray contours are retained under the owner amendment resolving PD-038-02. |
 | AC-05 | PASS | V-01 command/editor/undo regressions plus UI-02 through UI-06. |
 | AC-06 | PASS | V-01 tray rules and UI-07 actual miniature/open-account interaction. |
 | AC-07 | PASS | V-01 reads Tokens.xaml, computes composited pill contrast and truncates ratios to two decimals; source review confirms token-derived paints. |
-| AC-08 | PASS | W-01 actual Windows 100/150/200% settings; 200% clipping fixed and the last card/footer reached by scrolling. |
-| AC-09 | FAIL | W-02: owned content stays dark in light/contrast mode after fixes, but Windows changes the native frame and caption buttons. PD-038-05 is pending; no acceptance exception is assumed. |
-| AC-10 | PASS | Prior keyboard/editor/undo/tray checks plus W-03 through W-05: actual Narrator speech recap, reduced motion, focused cell tooltips and consecutive reorder shortcuts. Exact animation durations are not instrumented. |
+| AC-08 | PASS (amended scope) | UI-01/UI-10 and font smoke show S1/S2 fit the owner's ordinary desktop configuration. W-01 is historical evidence, not a required future matrix. |
+| AC-09 | PASS (amended scope) | UI-01/UI-10 and ordinary desktop captures show dark Ledger content. Owner amendment excludes contrast themes and retains native chrome. W-02's former contrast-theme FAIL remains historical evidence below. |
+| AC-10 | PASS (amended scope) | UI-02 through UI-07 and W-05 verify ordinary keyboard/editor/undo/tray interactions, focus/tooltips and reorder. Narrator and host accessibility-settings checks are no longer required. |
 | AC-11 | PASS | Owner-approved static fonts and OFL licences packaged; internal names, weights, tabular advances and actual rendering checked in F-01 through F-04 below. |
 | AC-12 | PASS | V-01 through V-07, UI-09 and F-01 through F-04. Scoped Ledger code, guarded hook, approved font Content declaration, task documents and presentation regressions. |
 
@@ -242,6 +244,25 @@ No main merge or push occurred; the owner requested continuation/commit in this 
 This branch has not been rebased onto AIU-042's later main commits.
 
 Live provider operation, packaged installation/update, product switch and release
-approval are NOT_RUN and outside this change. Native contrast chrome (PD-038-05) and
-remaining corner fidelity (PD-038-02) prevent AIU-038 closure. Font, display-scale,
-Narrator and reduced-motion blockers are resolved.
+approval are NOT_RUN and outside this change. Before the owner amendment below,
+native contrast chrome (PD-038-05) and remaining corner fidelity (PD-038-02) prevented
+closure; these former gates are now removed from the scope.
+
+## Owner amendment and closure, 2026-10-03
+
+The owner explicitly rejected further Narrator/screen-reader, contrast-theme,
+extreme zoom/DPI and unusual-display scope for this personal app, and asked to avoid
+additional complexity. Scope version 2 therefore retains native window/tray chrome
+and contours, removes those verification gates and resolves PD-038-02/PD-038-05.
+Earlier FAIL/NOT_RUN observations are preserved as history, not changed into claims
+that the excluded behaviour was implemented or newly tested.
+
+Existing ordinary-use evidence satisfies the amended acceptance. Code is unchanged
+since ba6cd01; no repeat application build, runtime matrix or host-setting change was
+performed for this documentation-only amendment. AGENTS.md and the verification
+workflow carry the owner's future-work instruction. Primary reviewed the amendment
+against the owner's request; document validation and whitespace checks are recorded
+with the closure commit. Live wiring/product switch remains AIU-039 and is not started.
+
+Closure checks: document validator PASS (`valid: true`, no diagnostics);
+`git diff --check` PASS. No runtime checks were repeated.

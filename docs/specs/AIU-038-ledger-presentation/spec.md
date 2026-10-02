@@ -1,15 +1,24 @@
 ---
 id: AIU-038
 type: feature
-status: implementing
+status: implemented
 goal: G-003
-scope_version: 1
+scope_version: 2
 approval_basis: Owner selection, 2026-10-02, of AIU-038 on a dedicated worktree branch. The owner approved this specification on 2026-10-02 ("approve"), including the section 9 recommendations, and subsequently explicitly approved downloading the four named static font files and continuing implementation under PD-038-03. Behavior derives from the owner-accepted AIU-034 design reference (D-186, D-187) and the Gate B design brief as those decisions amend it.
 ---
 
 # Redesigned presentation from the imported design
 
 ## 1. Scope
+
+Owner amendment, 2026-10-03: this personal app targets the owner's ordinary desktop
+use. Narrator/screen-reader, contrast-theme, extreme scaling and unusual-screen
+verification or implementation work are excluded unless explicitly requested again.
+Keep the existing native window/tray chrome and contours; do not replace them to
+satisfy the former theme/corner requirements. This amendment takes precedence over
+the corresponding AIU-034 reference requirements and resolves PD-038-02/PD-038-05.
+Normal layout, keyboard interactions and functional checks remain in scope.
+The owner also requested a lasting rule in AGENTS.md and the verification workflow.
 
 Rebuild the owner-accepted AIU-034 design reference in native WinUI 3 XAML on demo data:
 design tokens and styles, controls, views, view models with their bindings, commands and
@@ -386,7 +395,8 @@ period bar; footer with the primary figure (left, dotted underline, tooltip) and
 ## 7. Tokens and styles
 
 Dark only (D-182): the window, panel, flyouts, tray and title bar use these tokens whatever
-the Windows app mode or contrast theme; no theme dictionaries and no system brushes.
+the ordinary Windows app mode; no theme dictionaries and no system brushes in owned content.
+Native chrome is retained. Contrast-theme behaviour is outside the amended scope.
 
 | Token | Value | Role |
 | --- | --- | --- |
@@ -455,10 +465,10 @@ progress becomes static "waiting" text.
 | ID | Question | Options | Recommendation | Impact |
 | --- | --- | --- | --- | --- |
 | PD-038-01 | How does the demo reach the new presentation without switching the product (D-183)? | (a) `--demo --ledger` with a small guarded branch in `App.xaml.cs`; (b) a separate demo executable project | (a): one isolated hook, rebased once after AIU-042 | `App.xaml.cs` is the only existing file touched besides the backlog entry |
-| PD-038-02 | How are squircle corners built? | (a) a squircle surface control drawing a superellipse path for cards, panel, tray, flyouts, undo bar, first-run rows and buttons, with `CornerRadius` for elements whose radius is at most 7 px (strip cells, bar track, ring, pills keep round); (b) `CornerRadius` everywhere, as the S11 note "corner-shape squircle → CornerRadius" allows | (a), verified for cost on the S1 grid; fall back to (b) for any element where (a) fails the 150 % or performance check, recorded in verification | Visual fidelity versus effort |
+| PD-038-02 | Corner implementation (resolved by owner amendment 2026-10-03) | Keep implemented squircle surfaces and small-radius controls; retain native window/tray contours | No custom native chrome or exceptional-scale/performance work for corner parity | The former remaining corner requirement is removed, not claimed implemented |
 | PD-038-03 | Fonts (resolved 2026-10-02) | Source Serif 4, Hanken Grotesk and IBM Plex Mono static .ttf from their official repositories, SIL OFL 1.1, licence and tabular figures checked before merge | Owner explicitly approved the four named files after sources and sizes were presented | Package the files and licences, use explicit regular/semibold resources; provenance and validation are in verification.md |
 | PD-038-04 | Monitoring, Updates and System status sections | (a) collapsed rows with the contract summaries, expanding inline to the existing section views; (b) summary rows only, full content in AIU-039 | (a) when the existing views host cleanly in the panel; otherwise (b), recorded | Settings completeness in the demo |
-| PD-038-05 | Does AC-09 include OS-owned window borders and caption buttons? | (a) retain native chrome and require dark appearance for Ledger-owned content; (b) replace native chrome to control its appearance too | (a), pending owner answer; Windows overrides caption colours in contrast themes, as observed in verification.md | AC-09 cannot pass as currently written; (b) adds custom window interaction and accessibility work. Needed before acceptance closure; no exception is approved |
+| PD-038-05 | Contrast-theme native chrome (resolved by owner amendment 2026-10-03) | Contrast-theme support/testing is excluded; retain native chrome | Follow ordinary personal desktop use; no replacement frame | Former contrast-theme failure is historical evidence, not a current acceptance gate |
 
 ## 10. Acceptance
 
@@ -492,19 +502,17 @@ progress becomes static "waiting" text.
   `Themes/Ledger/Tokens.xaml` and checks WCAG 2.2 contrast, truncated to two decimals:
   text levels and state text at least 4.5:1 on every surface they use, state marks and the
   focus indicator at least 3:1 against what they touch (PA-8).
-- AC-08: In the running demo at 100 % and 150 % display scaling S1 and S2 fit 760 × 600 in
-  Compact without scrolling, thin marks stay distinguishable at 150 %, and at 200 % the
-  content scrolls vertically with nothing clipped (PA-10, backlog acceptance 1).
-- AC-09: The new presentation renders the same dark appearance with Windows in light app
-  mode and with a contrast theme on (backlog acceptance 3).
+- AC-08: S1 and S2 fit the default Compact window without clipping in the owner's
+  ordinary desktop configuration. No display-scale or unusual-screen matrix is required.
+- AC-09: Ledger has its dark appearance in ordinary use. Retain native window/tray
+  chrome and contours; contrast-theme support and testing are excluded.
 - AC-10: Keyboard access per section 8, a visible focus indicator, tooltips on focus,
-  Narrator names with state words and reduced motion are checked interactively (PA-2, PA-9,
-  backlog acceptance 4).
+  and ordinary interactions work. No Narrator or accessibility-settings matrix is required.
 - AC-11: Each packaged font's licence is verified against its official page and recorded
   before merge, the files are .ttf, and figures use tabular numerals (PA-12, backlog
   acceptance 6).
-- AC-12: No edit outside section 3's paths except the PD-038-01 hook, approved font Content declaration and the AIU-038
-  backlog entry; product launch and `--demo` behave as before; all suites, the document
+- AC-12: No edit outside section 3's paths except the PD-038-01 hook, approved font Content declaration, AIU-038
+  records and the owner-amended AGENTS.md/verification policy; product launch and `--demo` behave as before; all suites, the document
   validator, the build and `git diff --check` pass.
 
 Design-brief rows and their reading after D-186 and D-187:
@@ -520,7 +528,7 @@ Design-brief rows and their reading after D-186 and D-187:
 | PA-7 | AC-07 | Reference tokens and type pairing; D-186 lifted the DA-2 restrictions |
 | PA-8 | AC-07, AC-10 | Contrast test plus words or shapes for every coloured state |
 | PA-9 | AC-10 | Implemented and checked, not only specified |
-| PA-10 | AC-08 | As written |
+| PA-10 | AC-08 | Ordinary desktop layout only, per owner amendment 2026-10-03 |
 | PA-11 | AC-04, AC-05 | As written |
 | PA-12 | AC-11, AC-12 | Built in WinUI 3, fonts .ttf with named licences |
 | PA-13 | AC-07 | Token and component values transferred to XAML resources |
@@ -533,13 +541,7 @@ Design-brief rows and their reading after D-186 and D-187:
 - **Interactive, local unpackaged demo** (`--demo --ledger`), each recorded as PASS, FAIL,
   NOT_RUN or BLOCKED with environment and time:
   - S1 to S13 and the `states` scenario against the reference pages, side by side;
-  - 100 %, 150 % and 200 % display scaling, and Windows light app mode and a contrast
-    theme. The owner explicitly authorized temporary agent-controlled changes to these
-    settings, Narrator and animation effects on 2026-10-02, followed by restoration.
-    Record the original values and restoration. The demo's content-scale simulation is
-    recorded separately and never as display scaling;
+  - ordinary layout using the owner's current desktop settings; no host-setting changes;
   - keyboard-only walk-through of section 8, focus visibility and tooltips on focus;
-  - Narrator reading of cards, cells, controls and the tray;
-  - Windows animation effects off;
   - product launch and plain `--demo` still show the current views.
 - **Not claimed.** Live provider data, packaged install and the product switch (AIU-039).
