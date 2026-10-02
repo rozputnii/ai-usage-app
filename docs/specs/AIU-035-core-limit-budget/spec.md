@@ -1,7 +1,7 @@
 ---
 id: AIU-035
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Derived from the owner-selected AIU-035 and the current owner instruction on 2026-10-02 to execute it after design completion; behavior is the accepted AIU-034 research and D-187. This is not a claim of separate owner review of this specification.
@@ -46,7 +46,10 @@ Provider parsing, storage, UI, source credentials and live integration are exclu
   Rush uses the day-start remainder (fixed daily share), is suppressed by used-up, any cap,
   monetary or credit pools, and requires a provider replenishment reset.
   Extra spend needs a known comparable spend observation when the currently full window
-  first filled. Missing evidence is unknown, not zero; clearing/resetting the window ends it.
+  first became observed full after a below-full observation in that instance. Missing
+  transition evidence, a spend-period change or a counter decrease gives unknown, not zero;
+  clearing/resetting the window ends it. The amount starts at the observed full transition,
+  not at an invented instant between provider refreshes.
 - Return numerical display projections, state precedence and bar positions, with no UI text
   or controls. Staleness remains an independent result marker and does not erase figures.
 
@@ -59,6 +62,12 @@ The same numeric rounding unit is supplied in the aligned native scale used for 
 DayStart derives the first observed baseline for a local date; the caller keeps it and the
 period bounds for that day, recomputing bounds only at midnight, a new instance or cap change.
 The effective timezone changes at the next local midnight, not while replaying an open day.
+When replaying before a run's final confirmation, only its first observation is usable:
+intermediate confirmation timestamps are not retained, so coverage is not extrapolated.
+ProviderUsedUp requires Facts.Used or Facts.UsedPercent; the computational Used input alone
+does not establish provider exhaustion. AllowsCalendarFallback is set only for the research
+8.3 rule 4 families CL-X/CL-D and CX-B. It defaults to false and never applies to percent
+windows. An expiry remains a fact and does not itself authorize a fallback period.
 Track produces cumulative observation runs for assumed periods; its balance mode never
 treats a first balance as consumption. Its estimate/incomplete provenance must remain visible.
 SessionPair names explicit pool identity on both sides and source-established durations;

@@ -332,7 +332,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-035 - [astra] Core limit model and budget engine
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: []
 - trigger: owner-selection
 - outcome: Credential-free Core types and pure computations for the AIU-034 limit model and budget rules, with no UI, persistence or provider transport. The model covers limit kinds and units; money as minor units, exponent and currency; limit values that are unknown, explicit null, unlimited or zero; the personal cap, effective limit and binding source; and resets from the provider, derived or assumed, including period unknown. The engine computes the work-day calendar; `N`, `T`, `B`, the deviation, used today and left today; limit, budget and account states; display rounding; the day-start amount and tracked consumption over supplied readings; and the five-hour session estimator. Sources: research 5.2 to 5.4, 6.3 to 6.5, 7 and 8.

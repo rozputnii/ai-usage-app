@@ -1,10 +1,54 @@
 # AIU-035 verification
 
-Implementation started 2026-10-02 from 73553fb. No product or live claims yet.
+Completed 2026-10-02. Base 73553fb; final code b9e603b. Platform-neutral Core computations
+only; no UI, storage, transport or live-provider behavior was switched.
 
 | Criteria | Verdict | Evidence |
 | --- | --- | --- |
-| AC-01 through AC-07 | NOT_RUN | Implementation in progress. |
+| AC-01 | PASS | LimitModelTests: quantity scaling, overflow, incompatible units/currencies, limit states and cap selection; E11c reported-zero/unlimited precedence. |
+| AC-02 | PASS | BudgetEngineTests E01-E13 and all subcases, plus BudgetScenarioTests E01/E05 money-cap integration. Decimal arithmetic, DST and partial-day weights, states and rounding. |
+| AC-03 | PASS | ReadingBudgetTests P01-P11, assumed-period consumption, balance top-ups, gaps, corrections, replay and future-confirmation boundaries. |
+| AC-04 | PASS | SessionEstimateTests S01-S09, sample exclusions, matching pool/source, plan changes, exhausted endpoint, age and latest-ten limits. |
+| AC-05 | PASS | BudgetScenarioTests: all 11 limits, section 4.2 numerical figures and session counts, all 4.3 bar marks and all 4.4 account states. |
+| AC-06 | PASS | BudgetEngineTests day-off share, coloring-only Work today and expiry, explicit provider-used evidence and rush exclusions; SessionEstimateTests extra-spend transition/reset/currency evidence. |
+| AC-07 | PASS | Final Infrastructure 381/381 and Presentation 176/176; document validation; diff review/check; no Core dependency changes. |
+
+## Final checks
+
+Local Windows, SDK selected by global.json (10.0.401/latestPatch), 2026-10-02, code b9e603b:
+
+- PASS: `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`
+  - 381 tests, zero failures, errors, skips or not-run cases. Includes 51 new AIU-035 cases.
+- PASS: `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`
+  - 176 tests, zero failures, errors, skips or not-run cases.
+- PASS: `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`
+  - Valid documents, no diagnostics; final metadata changes revalidated before publication.
+- PASS: `git diff --check` and primary integrated diff/acceptance review.
+- NOT_RUN, outside this Core-only change: interactive Windows, package and live-provider
+  acceptance. No credential or source CLI store was read, and no sign-in was attempted.
+
+## Independent review and disposition
+
+Read-only GPT-5.6 Luna, reasoning max, reviewed frozen 73553fb..e2970ea against the research,
+design scenario and D-187. The review verdict was FAIL for that reference, with four material
+findings. The primary checked each against the contract, reproduced the boundary with a
+failing assertion, and resolved it in b9e603b:
+
+1. Future confirmation coverage: replay now retains only a run's first known observation
+   when LastConfirmed is later than now, and future/inconsistent RestartAfter is rejected.
+   This preserves an actual first observation without inventing intermediate confirmations.
+2. Provider-used-up provenance: only explicit provider facts establish this flag, regardless
+   of period origin. The separate budget counter no longer acts as provider evidence.
+3. Calendar fallback eligibility: an explicit adapter-supplied capability, default false,
+   restricts the fallback to the accepted families; percent windows cannot opt in.
+4. Extra-spend attribution: a below-full observation is required before the observed full
+   transition; changed spend instances or observed counter decreases invalidate subtraction.
+   The exact transition between refreshes is unknown; the output starts at observed fullness.
+
+Targeted reruns passed (ReadingBudgetTests 9, BudgetEngineTests 25, BudgetScenarioTests 6,
+SessionEstimateTests 7), followed by the two final full regression runs above. The independent
+frozen-reference FAIL is not relabelled PASS. Primary disposition: all findings resolved;
+no material findings remain. No automatic repeat of the full independent review was requested.
 
 The current owner request authorizes execution. The specification derives its behavior
 from accepted AIU-034 research and D-187; it has not received a separate owner review.
@@ -45,4 +89,5 @@ from accepted AIU-034 research and D-187; it has not received a separate owner r
   process-clock or local-timezone dependency; no project dependencies changed. All arithmetic
   uses decimal or checked integer/tick operations. SDK selection: 10.0.401/latestPatch.
 - Independent read-only review requested from GPT-5.6 Luna, reasoning max, for the frozen
-  73553fb..e2970ea range. Result pending; subsequent Work today fix communicated separately.
+  73553fb..e2970ea range. Result and final disposition are recorded above; subsequent Work
+  today fix was communicated separately and the reviewer acknowledged it as resolved.

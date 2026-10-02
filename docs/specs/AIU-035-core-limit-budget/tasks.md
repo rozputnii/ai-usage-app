@@ -20,32 +20,32 @@ already references Core. No new test dependencies or restore are needed.
 - [x] Run targeted tests, inspect the diff, commit and push a save point.
 
 ### T-02 - Calendar, budget and display
-- status: in-progress
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-02, AC-05, AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-035-core-limit-budget/verification.md
 
 - [x] Add E cases and the full design scenario with independently stated expected numbers.
 - [x] Implement period resolution, local-day weights, budget results, state ranking,
   display rounding, bar positions, day-off and rush outputs; run targeted tests.
 
 ### T-03 - Reading calculations and sessions
-- status: in-progress
+- status: done
 - depends_on: [T-01, T-02]
 - acceptance: AC-03, AC-04, AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-035-core-limit-budget/verification.md
 
 - [x] Add P/S cases and failure-boundary tests; implement period transition, day-start,
   tracked consumption, session estimator and extra-spend evidence calculations.
-- [ ] Run targeted tests, inspect the diff, commit and push a save point.
+- [x] Run targeted tests, inspect the diff, commit and push a save point.
 
 ### T-04 - Integrated verification
-- status: pending
+- status: done
 - depends_on: [T-01, T-02, T-03]
 - acceptance: AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07
-- evidence: not-run
+- evidence: docs/specs/AIU-035-core-limit-budget/verification.md
 
-- [ ] Review actual diff and acceptance coverage, run required regression/document checks,
+- [x] Review actual diff and acceptance coverage, run required regression/document checks,
   record actual evidence, update canonical status, commit and push.
 
 ## Review focus
@@ -55,5 +55,7 @@ unknown values versus zero; readings from another period/pool; reset jitter and 
 
 ## Handoff
 
-Base: 73553fb. Existing uncommitted AIU-034 closure edits in backlog.md and its tasks and
-verification are preserved. Next action: finish integrated review and record required check results.
+Base: 73553fb. Final code: b9e603b. AIU-035 is complete. The existing AIU-035 selection
+and D-187 backlog notes were preserved with its status update; unrelated AIU-034 tasks and
+verification edits remain untouched. No implementation worker artifacts are pending.
+Next action: await owner selection of the next backlog item; none is started automatically.
