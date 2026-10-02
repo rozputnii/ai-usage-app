@@ -44,16 +44,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
 
     /// <summary>Restores the stored grant, if any, and reads quota once. Never starts a browser sign-in.</summary>
     public Task<ProviderSessionState> ResumeAsync(CancellationToken cancellationToken = default) =>
-        RunAsync(async (lease, token) =>
-        {
-            if (stored is not { } record)
-                return ProviderSessionState.NotConnected;
-            var restored = await auth.ResumeAsync(new CodexStoredGrant(record.AccountId!, record.RefreshToken!), token).ConfigureAwait(false);
-            Adopt(restored);
-            // The provider rotates the refresh token, so the stored record must follow it.
-            await PersistAsync(lease).ConfigureAwait(false);
-            return await ReadQuotaAsync(token).ConfigureAwait(false);
-        }, cancellationToken);
+        RunAsync(ResumeCoreAsync, cancellationToken);
 
     /// <summary>
     /// Runs the browser authorization-code flow. The caller opens <paramref name="openAuthorizationUrl"/>
@@ -72,7 +63,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
             Adopt(signedIn);
             await PersistAsync(lease).ConfigureAwait(false);
             return await ReadQuotaAsync(token).ConfigureAwait(false);
-        }, cancellationToken);
+        }, cancellationToken, forFreshAuthorization: true);
     }
 
     /// <summary>Reads quota again, refreshing the grant first when the access token has expired.</summary>
@@ -82,10 +73,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
             if (credentials is null)
                 return await ResumeCoreAsync(lease, token).ConfigureAwait(false);
             if (credentials.ExpiresAt <= DateTimeOffset.UtcNow)
-            {
-                await auth.RefreshAsync(credentials, token).ConfigureAwait(false);
-                await PersistAsync(lease).ConfigureAwait(false);
-            }
+                await RenewAsync(lease, token).ConfigureAwait(false);
             return await ReadQuotaAsync(token).ConfigureAwait(false);
         }, cancellationToken);
 
@@ -109,11 +97,44 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
 
     private async Task<ProviderSessionState> ResumeCoreAsync(ProviderStateLease<CodexGrantStore.StoredRecord> lease, CancellationToken token)
     {
-        if (stored is not { } record)
+        if (stored is null)
             return ProviderSessionState.NotConnected;
-        Adopt(await auth.ResumeAsync(new CodexStoredGrant(record.AccountId!, record.RefreshToken!), token).ConfigureAwait(false));
-        await PersistAsync(lease).ConfigureAwait(false);
+        credentials?.Dispose();
+        credentials = null;
+        await RenewAsync(lease, token).ConfigureAwait(false);
         return await ReadQuotaAsync(token).ConfigureAwait(false);
+    }
+
+    private async Task RenewAsync(ProviderStateLease<CodexGrantStore.StoredRecord> lease, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var record = stored!;
+        var revision = CodexGrantStore.Revision(record);
+        await lease.BeginExternalUpdateAsync(revision, token).ConfigureAwait(false);
+        try
+        {
+            if (credentials is null)
+                Adopt(await auth.ResumeAsync(new(record.AccountId!, record.RefreshToken!), token).ConfigureAwait(false));
+            else
+                await auth.RefreshAsync(credentials, token).ConfigureAwait(false);
+        }
+        catch (CodexException error) when (error.Kind == ProviderFailureKind.RateLimited)
+        {
+            // A known rejection preserves the existing retry semantics. Unknown outcomes
+            // leave the intent in place, including across process termination/relaunch.
+            stored = await lease.SaveAsync(record, revision, CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
+        catch (CodexException error) when (error.Kind != ProviderFailureKind.AuthenticationRequired)
+        {
+            throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+        }
+        catch (OperationCanceledException)
+        {
+            State = StorageFailure(ProviderFailureKind.RecoveryRequired);
+            throw;
+        }
+        await PersistAsync(lease).ConfigureAwait(false);
     }
 
     private async Task<ProviderSessionState> ReadQuotaAsync(CancellationToken token)
@@ -165,7 +186,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
     }
 
     private Task<ProviderSessionState> RunAsync(Func<ProviderStateLease<CodexGrantStore.StoredRecord>, CancellationToken, Task<ProviderSessionState>> operation,
-        CancellationToken cancellationToken, bool load = true) => Task.Run(async () =>
+        CancellationToken cancellationToken, bool load = true, bool forFreshAuthorization = false) => Task.Run(async () =>
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
@@ -175,7 +196,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
             await using var lease = await store.AcquireAsync(cancellationToken).ConfigureAwait(false);
             if (load)
             {
-                var loaded = await lease.LoadAsync(cancellationToken).ConfigureAwait(false);
+                var loaded = await lease.LoadAsync(cancellationToken, forFreshAuthorization).ConfigureAwait(false);
                 if ((loaded is null ? (Guid?)null : CodexGrantStore.Revision(loaded)) !=
                     (stored is null ? (Guid?)null : CodexGrantStore.Revision(stored)))
                 {
@@ -189,7 +210,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
         }
         catch (CodexException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired)
         {
-            // The stored grant is gone or refused; keep the record so the user can retry a sign-in knowingly.
+            // Keep a refused grant non-replayable; explicit fresh authorization can replace its intact intent.
             credentials?.Dispose();
             credentials = null;
             return State = Stale(ProviderSessionStatus.ReauthenticationRequired, error.Kind);
@@ -207,7 +228,8 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
         catch (UnauthorizedAccessException) { return State = StorageFailure(ProviderFailureKind.StorageUnavailable); }
         catch (OperationCanceledException)
         {
-            State = credentials is null ? ProviderSessionState.NotConnected : new ProviderSessionState(ProviderSessionStatus.QuotaUnavailable);
+            if (State.Status != ProviderSessionStatus.RecoveryRequired)
+                State = credentials is null ? ProviderSessionState.NotConnected : new ProviderSessionState(ProviderSessionStatus.QuotaUnavailable);
             throw;
         }
         finally { gate.Release(); }

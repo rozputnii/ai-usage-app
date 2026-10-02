@@ -55,7 +55,7 @@ internal sealed class CopilotHistoryClient(HttpClient client, TimeProvider? time
 
     private HistoryReport Failure(string id, ProviderException error)
     {
-        if (error.Kind == ProviderFailureKind.RateLimited) retryAt = clock.GetUtcNow() + (error.RetryAfter ?? TimeSpan.FromMinutes(1));
+        if (error.Kind == ProviderFailureKind.RateLimited) retryAt = ProviderTransport.RetryAt(clock, error.RetryAfter ?? TimeSpan.FromMinutes(1));
         return new(id, HistoryJson.Status(error.Kind), [], error.Kind == ProviderFailureKind.RateLimited ? retryAt : null);
     }
     private async Task<ProviderHttpResponse> GetAsync(string url, CopilotCredentials credentials, CancellationToken token)

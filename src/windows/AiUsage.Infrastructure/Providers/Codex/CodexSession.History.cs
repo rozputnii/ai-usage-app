@@ -34,14 +34,12 @@ public sealed partial class CodexSession : IProviderHistorySession
                 cancellationToken.ThrowIfCancellationRequested();
                 // Once a rotating exchange starts, finish its bounded transport and durable save.
                 // Navigation cancellation applies again before any history GET is sent.
-                Adopt(await auth.ResumeAsync(new(stored.AccountId!, stored.RefreshToken!), CancellationToken.None).ConfigureAwait(false));
-                await PersistAsync(lease).ConfigureAwait(false);
+                await RenewAsync(lease, CancellationToken.None).ConfigureAwait(false);
             }
             else if (credentials.ExpiresAt <= DateTimeOffset.UtcNow)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await auth.RefreshAsync(credentials, CancellationToken.None).ConfigureAwait(false);
-                await PersistAsync(lease).ConfigureAwait(false);
+                await RenewAsync(lease, CancellationToken.None).ConfigureAwait(false);
             }
             cancellationToken.ThrowIfCancellationRequested();
             return await history.FetchAsync(credentials!, range, cancellationToken).ConfigureAwait(false);

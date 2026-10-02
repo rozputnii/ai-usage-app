@@ -12,15 +12,41 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
     private readonly string committedPath = Path.Combine(directory, policy.FileName);
     private readonly string pendingPath = Path.Combine(directory, policy.FileName + ".pending");
     private readonly string replacementPath = Path.Combine(directory, policy.FileName + ".new");
+    private byte[]? externalUpdateIntent;
 
-    internal async Task<TState?> LoadAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Before a rotating external update, durably make the predecessor non-replayable.
+    /// This exclusive lease may replace its exact intent with a returned successor;
+    /// a later explicit fresh authorization may adopt a valid, revision-bound intent.
+    /// Older readers reject the empty-ciphertext journal too; its schema is unchanged.
+    /// </summary>
+    internal async Task BeginExternalUpdateAsync(Guid expectedRevision, CancellationToken cancellationToken)
+    {
+        if (!policy.SeparateJournal || externalUpdateIntent is not null)
+            throw new InvalidOperationException("An external update requires an unused separate journal.");
+        try
+        {
+            var current = await LoadAsync(cancellationToken).ConfigureAwait(false);
+            if (Revision(current) != expectedRevision)
+                throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+            var intent = await Task.Run(() => ProtectJournal(new(1, expectedRevision, [])), cancellationToken).ConfigureAwait(false);
+            CheckPaths();
+            await WriteFlushedAsync(pendingPath, intent, FileMode.CreateNew, cancellationToken).ConfigureAwait(false);
+            externalUpdateIntent = intent;
+        }
+        catch (IOException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+    }
+
+    internal async Task<TState?> LoadAsync(CancellationToken cancellationToken, bool forFreshAuthorization = false)
     {
         try
         {
             CheckPaths();
             var committed = await ReadAsync(committedPath, cancellationToken).ConfigureAwait(false);
             if (policy.SeparateJournal)
-                return await RecoverJournalAsync(committed, cancellationToken).ConfigureAwait(false);
+                return await RecoverJournalAsync(committed, forFreshAuthorization, cancellationToken).ConfigureAwait(false);
             var pending = await ReadAsync(pendingPath, cancellationToken).ConfigureAwait(false);
             if (pending is null)
                 return committed;
@@ -43,7 +69,17 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
     {
         try
         {
-            var current = await LoadAsync(cancellationToken).ConfigureAwait(false);
+            TState? current;
+            bool replacingIntent = externalUpdateIntent is not null;
+            if (replacingIntent)
+            {
+                CheckPaths();
+                var intent = await ReadBytesAsync(pendingPath, policy.MaximumBytes * 2, cancellationToken).ConfigureAwait(false);
+                if (intent is null || !intent.AsSpan().SequenceEqual(externalUpdateIntent))
+                    throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+                current = await ReadAsync(committedPath, cancellationToken).ConfigureAwait(false);
+            }
+            else current = await LoadAsync(cancellationToken).ConfigureAwait(false);
             if (Revision(current) != expectedRevision)
                 throw new ProviderException(ProviderFailureKind.RecoveryRequired);
             next = policy.Stamp(next, expectedRevision);
@@ -63,7 +99,8 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 ? await Task.Run(() => ProtectJournal(new ProviderPendingGeneration(1, expectedRevision, ciphertext)), cancellationToken).ConfigureAwait(false)
                 : ciphertext;
             CheckPaths();
-            await WriteFlushedAsync(pendingPath, staged, FileMode.CreateNew, cancellationToken).ConfigureAwait(false);
+            await WriteFlushedAsync(pendingPath, staged, replacingIntent ? FileMode.Create : FileMode.CreateNew, cancellationToken).ConfigureAwait(false);
+            externalUpdateIntent = null;
             await Task.Run(() => afterStage?.Invoke(), cancellationToken).ConfigureAwait(false);
             if (policy.SeparateJournal)
             {
@@ -122,7 +159,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
         finally { if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext); }
     }
 
-    private async Task<TState?> RecoverJournalAsync(TState? committed, CancellationToken cancellationToken)
+    private async Task<TState?> RecoverJournalAsync(TState? committed, bool forFreshAuthorization, CancellationToken cancellationToken)
     {
         var bytes = await ReadBytesAsync(pendingPath, policy.MaximumBytes * 2, cancellationToken).ConfigureAwait(false);
         if (bytes is null)
@@ -138,14 +175,27 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             {
                 plaintext = ProtectedData.Unprotect(bytes, policy.Entropy, DataProtectionScope.CurrentUser);
                 var journal = JsonSerializer.Deserialize(plaintext, ProviderPendingJson.Default.ProviderPendingGeneration);
-                if (journal is null || journal.Version != 1 || journal.Ciphertext is not { Length: > 0 } || journal.Ciphertext.Length > policy.MaximumBytes)
+                if (journal is null || journal.Version != 1 || journal.Ciphertext is null || journal.Ciphertext.Length > policy.MaximumBytes)
                     throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+                if (journal.Ciphertext.Length == 0)
+                {
+                    // Only explicit fresh authorization may supersede an intact intent.
+                    // The predecessor must never be used for another rotating exchange.
+                    if (!forFreshAuthorization || committed is null || journal.ParentRevision != Revision(committed))
+                        throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+                    return (journal, committed);
+                }
                 return (journal, Decode(journal.Ciphertext));
             }
             catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
             catch (JsonException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
             finally { if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext); }
         }, cancellationToken).ConfigureAwait(false);
+        if (journal.Ciphertext.Length == 0)
+        {
+            externalUpdateIntent = bytes;
+            return committed;
+        }
         var currentRevision = Revision(committed);
         if (currentRevision != journal.ParentRevision && currentRevision != policy.Revision(next))
             throw new ProviderException(ProviderFailureKind.RecoveryRequired);

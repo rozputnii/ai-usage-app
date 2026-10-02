@@ -48,6 +48,11 @@ internal sealed class CodexQuotaCache
             var record = await JsonSerializer.DeserializeAsync(stream, CodexCacheJson.Default.CachedQuotaRecord, cancellationToken).ConfigureAwait(false);
             if (record?.Version != 1 || record.Quota is null || record.RetrievedAt is not { } retrievedAt)
                 return null;
+            if (record.Quota.Groups is null || record.Quota.Groups.Any(group =>
+                group is null || group.Id is null || group.Windows is null || group.Windows.Any(window =>
+                    window is null || window.Id is null || !Percent(window.UsedPercent) || !Percent(window.RemainingPercent) ||
+                    window.Amount is { Unit: null })))
+                return null;
             return new CachedQuota(record.Quota, retrievedAt);
         }
         // A corrupted or foreign record is treated as no cache rather than as a failure to report.
@@ -55,6 +60,8 @@ internal sealed class CodexQuotaCache
         catch (NotSupportedException) { return null; }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return null; }
     }, cancellationToken);
+
+    private static bool Percent(double? value) => value is null || (double.IsFinite(value.Value) && value is >= 0 and <= 100);
 
     /// <summary>Replaces the cached reading. A failed write leaves the previous record intact.</summary>
     public void Write(CachedQuota cached) => WriteAsync(cached).GetAwaiter().GetResult();

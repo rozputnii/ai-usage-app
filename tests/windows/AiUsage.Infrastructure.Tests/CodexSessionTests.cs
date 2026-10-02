@@ -11,6 +11,141 @@ public sealed class CodexSessionTests : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "aiusage-session-" + Guid.NewGuid().ToString("N"));
 
+    [Theory]
+    [InlineData(0)] // Refused consent.
+    [InlineData(1)] // Successful fresh authorization.
+    [InlineData(2)] // Cancelled fresh authorization.
+    public async Task FreshSignInAfterUncertainRenewalReplacesOnlyAfterSuccess(int outcome)
+    {
+        var lost = true;
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (lost) throw new HttpRequestException("Synthetic lost response.");
+            return Task.FromResult(request.Method == HttpMethod.Get
+                ? CodexTestServer.Json("{\"plan_type\":\"synthetic\"}")
+                : CodexTestServer.Json(CodexTestServer.Tokens()));
+        });
+        using (var first = Session(server, out var store))
+        {
+            store.Write(new("synthetic-workspace", "synthetic-original"));
+            await first.ResumeAsync(TestContext.Current.CancellationToken);
+        }
+        lost = false;
+        using var session = Session(server, out var reopened);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        var opened = new TaskCompletionSource<Uri>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var connect = session.ConnectAsync(uri => opened.SetResult(uri), cancellation.Token);
+        Assert.Same(opened.Task, await Task.WhenAny(opened.Task, connect).WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
+        var query = System.Web.HttpUtility.ParseQueryString((await opened.Task).Query);
+        Assert.Equal(ProviderFailureKind.StorageUnavailable, Assert.Throws<ProviderException>(() => reopened.Read()).Kind);
+        if (outcome == 2)
+        {
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => connect);
+            Assert.Equal(ProviderFailureKind.RecoveryRequired, Assert.Throws<ProviderException>(() => reopened.Read()).Kind);
+            Assert.Equal(1, server.Calls);
+            return;
+        }
+        using var callback = new HttpClient();
+        using var response = await callback.GetAsync(query["redirect_uri"] + "?" +
+            (outcome == 1 ? "code=synthetic-code" : "error=access_denied") + "&state=" + Uri.EscapeDataString(query["state"]!), TestContext.Current.CancellationToken);
+        var result = await connect;
+        if (outcome == 1)
+        {
+            Assert.Equal(ProviderSessionStatus.QuotaAvailable, result.Status);
+            Assert.Equal("synthetic-rotated", reopened.Read()!.RefreshToken);
+            Assert.False(File.Exists(Path.Combine(root, "codex.grant.pending")));
+            Assert.Equal(3, server.Calls);
+        }
+        else
+        {
+            Assert.NotEqual(ProviderSessionStatus.QuotaAvailable, result.Status);
+            Assert.Equal(ProviderFailureKind.RecoveryRequired, Assert.Throws<ProviderException>(() => reopened.Read()).Kind);
+            Assert.Equal(ProviderSessionStatus.RecoveryRequired, (await session.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+            Assert.Equal(1, server.Calls);
+        }
+    }
+
+    [Fact]
+    public async Task LostRenewalResponseCannotReplayTheGrantAfterRelaunch()
+    {
+        using var server = new CodexTestServer((_, _) =>
+        {
+            Assert.True(File.Exists(Path.Combine(root, "codex.grant.pending")));
+            throw new HttpRequestException("Synthetic lost response.");
+        });
+        using (var first = Session(server, out var store))
+        {
+            store.Write(new("synthetic-workspace", "synthetic-uncertain"));
+            var failed = await first.ResumeAsync(TestContext.Current.CancellationToken);
+            Assert.NotEqual(ProviderSessionStatus.QuotaAvailable, failed.Status);
+            Assert.Equal(1, server.Calls);
+        }
+        using var relaunched = Session(server, out _);
+        var retry = await relaunched.ResumeAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(1, server.Calls);
+        Assert.True(relaunched.HasStoredGrant);
+        Assert.True(retry.Status is ProviderSessionStatus.ReauthenticationRequired or ProviderSessionStatus.RecoveryRequired);
+    }
+
+    [Fact]
+    public async Task CancellationDuringRenewalLeavesAnIntentThatBlocksRelaunch()
+    {
+        using var cancellation = new CancellationTokenSource();
+        using var server = new CodexTestServer((_, token) =>
+        {
+            cancellation.Cancel();
+            token.ThrowIfCancellationRequested();
+            throw new InvalidOperationException("Expected cancellation.");
+        });
+        using (var session = Session(server, out var store))
+        {
+            store.Write(new("synthetic-workspace", "synthetic-original"));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.ResumeAsync(cancellation.Token));
+        }
+        using var relaunched = Session(server, out _);
+        Assert.Equal(ProviderSessionStatus.RecoveryRequired, (await relaunched.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(1, server.Calls);
+    }
+
+    [Fact]
+    public async Task KnownRateLimitRejectionPreservesTheGrantForLaterRetry()
+    {
+        using var server = new CodexTestServer((_, _) => Task.FromResult(CodexTestServer.Json("{}", HttpStatusCode.TooManyRequests)));
+        using var session = Session(server, out var store);
+        store.Write(new("synthetic-workspace", "synthetic-original"));
+        Assert.Equal(ProviderFailureKind.RateLimited, (await session.ResumeAsync(TestContext.Current.CancellationToken)).Failure);
+        Assert.Equal("synthetic-original", store.Read()!.RefreshToken);
+        Assert.False(File.Exists(Path.Combine(root, "codex.grant.pending")));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task LostResponseDuringExpiredAccessRenewalAlsoBlocksLaterHistory(bool history)
+    {
+        var clock = new CodexTestServer.Clock { Current = DateTimeOffset.UtcNow.AddHours(-2) };
+        int renewals = 0;
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (request.Method == HttpMethod.Get) return Task.FromResult(CodexTestServer.Json("{\"plan_type\":\"synthetic\"}"));
+            if (++renewals == 1) return Task.FromResult(CodexTestServer.Json(CodexTestServer.Tokens()));
+            throw new HttpRequestException("Synthetic lost response.");
+        });
+        using var http = new HttpClient(server);
+        var store = new CodexGrantStore(root);
+        store.Write(new("synthetic-workspace", "synthetic-original"));
+        using var session = new CodexSession(new(http, clock), new(http, clock), store, new(root), new(http, clock));
+        Assert.Equal(ProviderSessionStatus.QuotaAvailable, (await session.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
+        if (history) await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        else await session.RefreshAsync(TestContext.Current.CancellationToken);
+        var calls = server.Calls;
+        await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        Assert.Equal(2, renewals);
+        Assert.Equal(calls, server.Calls);
+    }
+
     [Fact]
     public async Task HistoryWithoutGrantDoesNotSignInOrRequestProviderData()
     {
@@ -178,7 +313,8 @@ public sealed class CodexSessionTests : IDisposable
 
         Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
         Assert.Null(state.Quota);
-        Assert.NotNull(store.Read());
+        Assert.True(File.Exists(Path.Combine(root, "codex.grant")));
+        Assert.Equal(ProviderFailureKind.RecoveryRequired, Assert.Throws<ProviderException>(() => store.Read()).Kind);
     }
 
     [Fact]

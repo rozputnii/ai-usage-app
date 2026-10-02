@@ -38,7 +38,7 @@ internal sealed class CodexHistoryClient(HttpClient client, TimeProvider? timePr
             {
                 token.ThrowIfCancellationRequested();
                 var grouping = report.Id.StartsWith("enterprise-", StringComparison.Ordinal) ? "" : "&group_by=day";
-                var dates = report.Id == "credits" ? "" : $"?start_date={range.From:yyyy-MM-dd}&end_date={range.To:yyyy-MM-dd}{grouping}{report.Query}";
+                var dates = report.Id == "credits" ? "" : FormattableString.Invariant($"?start_date={range.From:yyyy-MM-dd}&end_date={range.To:yyyy-MM-dd}{grouping}{report.Query}");
                 using var request = new HttpRequestMessage(HttpMethod.Get, "https://chatgpt.com/backend-api/wham/" + report.Path + dates);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials.AccessToken);
                 request.Headers.Add("ChatGPT-Account-Id", credentials.AccountId);
@@ -54,7 +54,7 @@ internal sealed class CodexHistoryClient(HttpClient client, TimeProvider? timePr
                 catch (ProviderException error)
                 {
                     if (error.Kind == ProviderFailureKind.AccountMismatch) return ProviderHistoryResult.Unavailable(range, HistoryStatus.AccountChanged);
-                    if (error.Kind == ProviderFailureKind.RateLimited) retryAt = clock.GetUtcNow() + (error.RetryAfter ?? TimeSpan.FromMinutes(1));
+                    if (error.Kind == ProviderFailureKind.RateLimited) retryAt = ProviderTransport.RetryAt(clock, error.RetryAfter ?? TimeSpan.FromMinutes(1));
                     reports.Add(new(report.Id, HistoryJson.Status(error.Kind), [], error.Kind == ProviderFailureKind.RateLimited ? retryAt : null));
                     if (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.RateLimited or ProviderFailureKind.AccountMismatch) break;
                 }

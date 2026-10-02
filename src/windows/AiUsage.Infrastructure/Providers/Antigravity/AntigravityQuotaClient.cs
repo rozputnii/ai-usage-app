@@ -196,7 +196,7 @@ internal sealed class AntigravityQuotaClient
                 {
                     throttledIdentity = credentials.AccountId;
                     var delay = error.RetryAfter ?? transport.RetryAfterFallback;
-                    retryAt = delay >= DateTimeOffset.MaxValue - clock.GetUtcNow() ? DateTimeOffset.MaxValue : clock.GetUtcNow() + delay;
+                    retryAt = ProviderTransport.RetryAt(clock, delay);
                 }
             }
             throw error;

@@ -5,6 +5,12 @@ namespace AiUsage.Infrastructure.Providers;
 
 internal static class ProviderTransport
 {
+    internal static DateTimeOffset RetryAt(TimeProvider clock, TimeSpan delay)
+    {
+        var now = clock.GetUtcNow();
+        return delay >= DateTimeOffset.MaxValue - now ? DateTimeOffset.MaxValue : now + delay;
+    }
+
     internal static void ConfigureClient(HttpClient client) => client.Timeout = Timeout.InfiniteTimeSpan;
 
     internal static HttpMessageHandler CreateHandler(ProviderTransportOptions options) => new SocketsHttpHandler

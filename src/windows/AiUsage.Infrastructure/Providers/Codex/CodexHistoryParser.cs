@@ -33,6 +33,7 @@ internal static class CodexHistoryParser
                 foreach (var metric in premium.EnumerateObject())
                     Map(premium, metric.Name, metric.Name, metric.Name.Contains("tokens", StringComparison.Ordinal) ? "tokens" : "credits", "surface", date, rows);
             var totals = HistoryJson.Property(bucket, "totals");
+            if (totals.ValueKind is not (JsonValueKind.Undefined or JsonValueKind.Null or JsonValueKind.Object)) throw HistoryJson.Invalid();
             if (totals.ValueKind == JsonValueKind.Object) ReadValues(totals, date, new() { ["breakdown"] = "total" }, rows);
             foreach (var group in new[] { "models", "clients", "groups", "plugin_usage_overviews", "skill_usage_overviews" })
             {
