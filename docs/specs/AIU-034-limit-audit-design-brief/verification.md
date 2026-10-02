@@ -1,5 +1,39 @@
 # AIU-034 verification
 
+## T-18 owner acceptance and import - 2026-10-02
+
+Primary [opus] session. Base `d7b5706`.
+
+**Owner acceptance (Steps 2 and 3).** The owner reviewed `Provider States Handoff.dc.html` and
+`Surfaces Handoff.dc.html` and answered "так, підтверджую" ("yes, I confirm"). This accepts
+both pages as the prototype and makes Compact the default density. The previous day's colour
+decision is also part of the acceptance: today reached is the same red as over. D-186 records
+both. No listed PA-row exception was requested.
+
+The brief's rubric rows that D-186 replaces are not judged against the Gate B text. These stay
+NOT_RUN and are carried by AIU-038:
+- the 150 % and 200 % checks;
+- the hatch spike;
+- the font licence and `tnum` checks;
+- the four text-only states: capped at 0, incomplete tracking, "used today since HH:MM" and
+  the secondary amount of unknown unit.
+
+**Import (Step 4).**
+- `design-reference/` holds the two pages, `support.js`, the AIU-010 `.gitattributes` rule and
+  a README with the source, project, import date, etags and SHA-256 of each file.
+- The files were fetched from the project's serve endpoint. The host-injected
+  `data-omelette-injected` block after `<head>` was removed, so each saved file has exactly the
+  size `list_files` reports: 33,885, 68,384 and 69,150 bytes.
+- `support.js` is byte-identical to the AIU-010 copy.
+- No serve link, token or authentication material is stored.
+
+**Checks (Step 5).**
+- Privacy scan over the imported files and every file this Phase B changed: e-mail addresses,
+  UUIDs other than the Claude Design project identifier, bearer and JWT prefixes, `sk-` keys,
+  serve hosts and the owner's names. Result: 0 hits.
+- The validator printed `valid: true`, and `git diff --check` is clean.
+- AC-10 is PASS. AIU-034 is set to `done` in the backlog; AIU-035 to AIU-041 stay unselected.
+
 ## T-17 owner selection and handoff verification - 2026-10-01
 
 Primary [opus] session. Base `2609404`; the tree was clean. The owner asked for a verification of
@@ -1492,7 +1526,7 @@ Phase A source research has started. The owner approved the specification on 202
 | AC-07 | PASS | Gate A owner review recorded on 2026-09-29, before any Phase B work (D-185). |
 | AC-08 | PASS | T-15: the brief covers B-1 to B-6 (coverage table in the T-15 section). T-16: the Gate B owner review is recorded. |
 | AC-09 | PASS | T-16: AIU-035 to AIU-040 are in the backlog with outcomes, acceptance criteria, dependencies and agents; all are `idea` and none is selected. |
-| AC-10 | NOT_RUN | |
+| AC-10 | PASS | T-18, 2026-10-02: the privacy scan of every Phase B file and of the imported design reference found nothing; the validator printed `valid: true`, and `git diff --check` is clean. |
 
 ## T-01 - 2026-09-26
 

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;display=swap">
+<style>html{background:#0F0C09!important}body{margin:0;background:#0F0C09}a{color:#D97757}a:hover{color:#F0EEE6}</style>
+</helmet>
+<section style="padding:40px;display:flex;flex-direction:column;gap:20px;font-family:'Hanken Grotesk',sans-serif;color:#F0EEE6">
+  <div style="display:flex;flex-direction:column;gap:4px;max-width:900px">
+    <div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:600">Provider states — handoff</div>
+    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Reference time Wed 14 Oct 14:20. Grey mono captions above cards name the state and are not part of the app. Used mode: solid = used, hatched = left. Left mode: solid = left, hatched = used. Grey = not available today (rest of the last 5h window, or the daily share cut by the 7d limit or custom cap). Orange = today almost used up but not yet: today low, today short, cap close, current 5h window full. Red = today's allowance reached or over, a cap reached or over, or a limit used up. Neutral grey pill = no budget state (day off, not ready, unknown, period unknown, not included, signed out). ≈ marks an estimate; (assumed) marks a period the app assumes. Dimmed bars = stale reading. Hover bars, pills, marks and footers for tooltips.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+    <sc-for list="{{ wins }}" as="w" hint-placeholder-count="2">
+      <div id="{{ w.id }}" style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:8px;align-items:center"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:1px 6px;background:#D97757;color:#1A1410;font-weight:600">{{ w.id }}</span><span style="font-size:15px;font-weight:600;white-space:nowrap">{{ w.title }}</span></div>
+        <div ref="{{ w.ref }}" data-screen-label="{{ w.title }}" style="position:relative;width:760px;box-sizing:border-box;background:#1F1E1D;border:1px solid #3A3936;border-radius:8px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.45);color:#F0EEE6;font-family:'Hanken Grotesk',sans-serif;font-variant-numeric:tabular-nums">
+          <div style="height:38px;display:flex;align-items:center;gap:10px;padding-left:16px;border-bottom:1px solid #2E2D2A">
+            <span style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;font-weight:600;white-space:nowrap">AI Usage</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9D998E;white-space:nowrap">Wed 14 Oct · 14:20</span>
+            <span style="flex:1"></span>
+            <div style="display:flex;padding:2px;gap:2px;background:#2A2927;border-radius:7px;corner-shape:squircle;margin-right:12px">
+              <span style="{{ w.usedBtnSt }}" onClick="{{ w.setUsed }}">Used</span>
+              <span style="{{ w.leftBtnSt }}" onClick="{{ w.setLeft }}">Left</span>
+            </div>
+          </div>
+          <div style="padding:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+            <sc-for list="{{ w.items }}" as="a" hint-placeholder-count="6">
+              <sc-if value="{{ a.isHead }}">
+                <div style="grid-column:1 / -1;font-size:12px;font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase;padding:8px 2px 0">{{ a.head }}</div>
+              </sc-if>
+              <sc-if value="{{ a.isCard }}">
+                <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:14px;color:#8C887E;padding:0 4px;text-wrap:pretty">{{ a.cap }}</div>
+                  <div style="{{ a.cardSt }}">
+                    <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                      <span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">{{ a.name }}</span>
+                      <span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ a.tag }}</span>
+                      <sc-if value="{{ a.hasMark }}"><span style="font-size:12px;font-weight:600;color:#E58C6C;white-space:nowrap;cursor:default" onMouseEnter="{{ a.markEnter }}" onMouseLeave="{{ leave }}">{{ a.mark }}</span></sc-if>
+                      <span style="{{ a.pillSt }}" onMouseEnter="{{ a.pillEnter }}" onMouseLeave="{{ leave }}"><span style="{{ a.dotSt }}"></span>{{ a.pill }}</span>
+                    </div>
+                    <sc-if value="{{ a.hasBars }}">
+                      <div style="display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:10px;align-items:center">
+                        <sc-if value="{{ a.hasStrip }}">
+                          <span style="grid-column:1;grid-row:1;font-size:12px;color:#9D998E">today</span>
+                          <div style="{{ a.stripSt }}">
+                            <sc-for list="{{ a.cells }}" as="c" hint-placeholder-count="1">
+                              <div style="{{ c.st }}" style-hover="filter:brightness(1.18)" onMouseEnter="{{ c.enter }}" onMouseLeave="{{ leave }}">
+                                <sc-for list="{{ c.parts }}" as="p"><div style="{{ p.st }}"></div></sc-for>
+                              </div>
+                            </sc-for>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ a.hasTodayNote }}">
+                          <span style="grid-column:1;grid-row:1;font-size:12px;color:#9D998E">today</span>
+                          <span style="grid-column:2;grid-row:1;min-width:0;height:14px;font-size:12px;line-height:14px;color:#B7B3A8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.todayNote }}</span>
+                        </sc-if>
+                        <sc-if value="{{ a.hasLab }}">
+                          <div style="grid-column:2;grid-row:2;min-width:0;display:flex;gap:8px;margin-top:5px;font-size:12px;line-height:15px;font-weight:600;color:#F07A65"><span style="white-space:nowrap">{{ a.lab0 }}</span><span style="margin-left:auto;white-space:nowrap">{{ a.lab1 }}</span></div>
+                        </sc-if>
+                        <div style="grid-column:2;grid-row:3;height:8px"></div>
+                        <span style="grid-column:1;grid-row:4;font-size:12px;color:#9D998E">{{ a.unit }}</span>
+                        <div style="{{ a.barSt }}" style-hover="filter:brightness(1.12)" onMouseEnter="{{ a.barEnter }}" onMouseLeave="{{ leave }}">
+                          <div style="position:absolute;left:0;right:0;top:6px;height:8px;background:#34332F;border-radius:4px;corner-shape:squircle;overflow:hidden">
+                            <sc-for list="{{ a.segs }}" as="s"><div style="{{ s.st }}"></div></sc-for>
+                          </div>
+                          <div style="{{ a.ringSt }}"></div>
+                          <sc-if value="{{ a.hasCapMark }}"><div style="{{ a.capMarkSt }}"></div></sc-if>
+                          <sc-if value="{{ a.hasCap }}"><div style="{{ a.capSt }}"></div></sc-if>
+                        </div>
+                        <div style="grid-column:2;grid-row:5;min-width:0;display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:2px;margin-top:4px;font-size:12px;line-height:16px">
+                          <span style="color:#B7B3A8;white-space:nowrap;cursor:default;text-decoration:underline dotted #5A5853;text-underline-offset:3px" onMouseEnter="{{ a.f1Enter }}" onMouseLeave="{{ leave }}">{{ a.f1 }}</span>
+                          <span style="margin-left:auto;color:#9D998E;white-space:nowrap;cursor:default" onMouseEnter="{{ a.f2Enter }}" onMouseLeave="{{ leave }}">{{ a.f2 }}</span>
+                          <sc-if value="{{ a.hasAction }}"><span style="{{ a.actSt }}">{{ a.action }}</span></sc-if>
+                        </div>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ a.isNote }}">
+                      <div style="display:grid;grid-template-columns:40px minmax(0,1fr) auto;column-gap:10px;row-gap:6px;align-items:baseline;font-size:12px;line-height:16px">
+                        <sc-for list="{{ a.lines }}" as="l">
+                          <span style="color:#9D998E">{{ l.k }}</span>
+                          <span style="color:#B7B3A8;min-width:0">{{ l.v }}</span>
+                          <span style="color:#9D998E;white-space:nowrap">{{ l.r }}</span>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ a.hasAction }}"><div style="display:flex;justify-content:flex-end"><span style="{{ a.actSt }}">{{ a.action }}</span></div></sc-if>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+          <sc-if value="{{ w.hasTip }}">
+            <div style="{{ w.tipSt }}"><sc-for list="{{ w.tipLines }}" as="l"><div style="{{ l.st }}">{{ l.text }}</div></sc-for></div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  refs = [React.createRef(), React.createRef()];
+  state = { modes: ['used', 'left'], tip: null };
+  groups() {
+    const ASSUMED = ['resets 1 Nov (assumed)', 'Assumed reset Sun 1 Nov 00:00', 'Calendar month · provider sends no period'];
+    const w5 = o => ({ kind: 'w5', name: 'Claude Max', tag: '5h + 7d', P: 100, ws: 12, started: true, winEnd: '17:35', reset: ['resets Mon 09:00', 'Resets Mon 19 Oct 09:00', 'in 4 d 18 h 40 min'], ...o });
+    const d7 = o => ({ kind: 'd7', name: 'Antigravity AI Plus', tag: '7d', P: 100, D: 14, reset: ['resets Sat 11:00', 'Resets Sat 17 Oct 11:00', 'in 2 d 20 h 40 min'], ...o });
+    const pw = o => ({ kind: 'pw', P: 100, st: 'neutral', reset: ['resets Mon 09:00', 'Resets Mon 19 Oct 09:00', 'in 4 d 18 h 40 min'], ...o });
+    const cr = o => {
+      const d = { kind: 'cr', name: 'Codex', tag: 'credits', cap: 15000, D: 500, est: true, reset: ASSUMED, ...o };
+      d.P = Math.max(d.cap, d.u);
+      d.f1t = ['Custom cap 15,000 · tracked since 3 Oct (estimate)', 'Provider balance ' + (20000 - d.u).toLocaleString('en-US') + ' credits'];
+      return d;
+    };
+    const us = o => ({ kind: 'us', name: 'Claude Work', tag: '$500 · month', P: 500, cap: 300, D: 10, reset: ASSUMED, ...o });
+    const rq = o => ({ kind: 'rq', name: 'Copilot Free', reset: ['resets 1 Nov', 'Resets 1 Nov (date from provider)', 'Start assumed 1 Oct'], ...o });
+    const note = o => ({ kind: 'note', st: 'neutral', ...o });
+    return [
+      ['Subscription · 5h + 7d', [
+        w5({ cas: 'A1 · 70 % of current window + 2 windows left today · 7d ≈ 50 % used', st: 'ok', pill: 'OK', u0: 44, u: 50, t: 82.4, cwU: 30, reset: ['resets Thu 09:00', 'Resets Thu 15 Oct 09:00', 'in 18 h 40 min'] }),
+        w5({ cas: 'A2 · today almost used up, not yet (orange)', name: 'Claude Pro', st: 'att', pill: 'today low', u0: 40, u: 47, t: 48, cwU: 40 }),
+        w5({ cas: 'A3 · today over', name: 'Claude Team', st: 'crit', pill: 'over today', u0: 32, u: 43, t: 42, cwU: 60 }),
+        w5({ cas: 'A4 · current 5h window full, more windows later today', st: 'att', pill: '5h full', pt: ['5h window full', 'Next window opens 16:20'], u0: 30, u: 36, t: 54, cwU: 100, winEnd: '16:20' }),
+        w5({ cas: 'A5 · not used yet today', st: 'ok', pill: 'OK', u0: 20, u: 20, t: 50, cwU: 0, started: false }),
+        w5({ cas: 'A6 · 7d limit used up (limit reached = red)', name: 'Claude Pro', st: 'crit', pill: '7d used up', pt: ['7d limit used up', 'Nothing left until Mon 09:00'], u0: 96, u: 100, t: 100, cwU: 35 }),
+        w5({ cas: 'A7 · stale data, sync failed', stale: true, st: 'neutral', pill: '2 h old', pt: ['Last sync 12:18', 'Sync failed · retry in 5 min'], u0: 44, u: 50, t: 82.4, cwU: 30 })
+      ]],
+      ['Subscription · 7d only', [
+        d7({ cas: 'B1 · full today allowance, 7d not used yet', st: 'ok', pill: 'OK', u0: 0, u: 0, t: 14, reset: ['resets Wed 14:00', 'Resets Wed 21 Oct 14:00', 'in 6 d 23 h 40 min'] }),
+        d7({ cas: 'B2 · normal day, partly used', st: 'ok', pill: 'OK', u0: 30, u: 34, t: 44 }),
+        d7({ cas: 'B3 · today reached, not over (red, same as over)', st: 'crit', pill: 'today used', pt: ['Today used', 'Today’s allowance is used up · not over'], u0: 30, u: 44, t: 44 }),
+        d7({ cas: 'B4 · today over', st: 'crit', pill: 'over today', u0: 30, u: 47, t: 44 }),
+        d7({ cas: 'B5 · today short, 7d almost used up', st: 'att', pill: 'today short', pt: ['Today short', '7d limit leaves 8 of usual 14 %'], u0: 92, u: 93, t: 100 })
+      ]],
+      ['Codex · credits balance · custom cap 15,000 · used is tracked', [
+        cr({ cas: 'C1 · within today allowance', st: 'ok', pill: 'OK', u0: 6000, u: 6150, t: 6500 }),
+        cr({ cas: 'C2 · today reached, not over (red, same as over)', st: 'crit', pill: 'today used', pt: ['Today used', 'Today’s allowance is used up · not over'], u0: 6000, u: 6500, t: 6500 }),
+        cr({ cas: 'C3 · today over', st: 'crit', pill: 'over today', u0: 6000, u: 6740, t: 6500 }),
+        cr({ cas: 'C4 · cap close, today short', st: 'att', pill: 'cap close', pt: ['Cap close', 'Cap leaves 400 of usual 500 today'], u0: 14600, u: 14700, t: 15000 }),
+        cr({ cas: 'C5 · cap 15,000 reached (cap reached = red)', st: 'crit', pill: 'cap reached', pt: ['Custom cap reached', 'Provider balance 5,000 · raise cap in settings'], u0: 14800, u: 15000, t: 15000 }),
+        cr({ cas: 'C6 · over cap (soft cap), balance not used up', st: 'crit', pill: 'over cap', pt: ['Over custom cap', '400 over 15,000 · provider balance 4,600'], u0: 15000, u: 15400, t: 15000 })
+      ]],
+      ['Claude Work · $500 / month · custom cap $300', [
+        us({ cas: 'D1 · within today allowance', st: 'ok', pill: 'OK', u0: 120, u: 124.5, t: 130 }),
+        us({ cas: 'D2 · today reached, not over (red, same as over)', st: 'crit', pill: 'today used', pt: ['Today used', 'Today’s allowance is used up · not over'], u0: 120, u: 130, t: 130 }),
+        us({ cas: 'D3 · today over', st: 'crit', pill: 'over today', u0: 120, u: 138.4, t: 130 }),
+        us({ cas: 'D4 · cap close, today short', st: 'att', pill: 'cap close', pt: ['Cap close', 'Cap leaves $8.00 of usual $10.00 today'], u0: 292, u: 294, t: 300 }),
+        us({ cas: 'D5 · cap $300 reached (cap reached = red)', st: 'crit', pill: 'cap reached', pt: ['Custom cap reached', 'Provider limit has $200.00 more · raise cap in settings'], u0: 296, u: 300, t: 300 }),
+        us({ cas: 'D6 · over cap (soft cap), provider limit not used up', st: 'crit', pill: 'over cap', pt: ['Over custom cap', '$12.60 over $300.00 · provider limit has $187.40 more'], u0: 300, u: 312.6, t: 300 })
+      ]],
+      ['Copilot · requests · month', [
+        rq({ cas: 'G1 · countable pool, within today allowance', tag: 'completions', st: 'ok', pill: 'OK', P: 2000, u0: 1190, u: 1210, t: 1252, D: 62, f1t: ['Provider limit 2,000 requests', 'Provider remaining 790'] }),
+        rq({ cas: 'G2 · countable pool, today reached (red)', tag: 'chat', st: 'crit', pill: 'today used', pt: ['Today used', 'Today’s allowance is used up · not over'], P: 50, u0: 11, u: 14, t: 14, D: 3, f1t: ['Provider limit 50 requests', 'Provider remaining 36'] }),
+        rq({ cas: 'G3 · provider unlimited + custom cap (cap binds)', name: 'Copilot Pro', tag: 'chat · unlimited', st: 'ok', pill: 'OK', P: 300, cap: 300, u0: 120, u: 126, t: 134, D: 14, f1t: ['Custom cap 300 · binds', 'Provider: unlimited'] }),
+        note({ cas: 'G4 · zero entitlement: not included (no bar, no budget)', name: 'Copilot Free', tag: 'premium', pill: 'not included', pt: ['Not included', 'This plan has no premium requests'], lines: [['month', 'not included in plan', 'resets 1 Nov']] }),
+        note({ cas: 'G5 · limit unknown, no cap set (no bar, no budget)', name: 'Copilot Business', tag: 'premium', pill: 'limit unknown', pt: ['Limit unknown', 'Provider sends no limit · set a cap for a daily budget'], lines: [['month', '340 requests used', 'resets 1 Nov']], action: 'Set cap' })
+      ]],
+      ['Other states · any provider', [
+        pw({ cas: 'H1 · period unknown: used + reset are facts, no budget, never called 7d', name: 'Antigravity AI Plus', tag: 'group 2', unitL: 'window', pill: 'period unknown', pt: ['Period unknown', 'Window length not sent · no daily budget'], u: 19, todayNote: 'no daily budget', f1t: ['Window length unknown', 'Used and reset come from the provider'], reset: ['resets Mon 04:00', 'Resets Mon 19 Oct 04:00', 'in 4 d 13 h 40 min'] }),
+        d7({ cas: 'H2 · 5h + 7d, 5h size not estimated yet: one today strip, no × 5h', name: 'Codex Pro', tag: '5h + 7d', st: 'ok', pill: 'OK', u0: 30, u: 33, t: 48, D: 18, f1t: ['5h window size not estimated yet', 'Today is one strip until it is'], reset: ['resets Fri 09:30', 'Resets Fri 16 Oct 09:30', 'in 1 d 19 h 10 min'] }),
+        pw({ cas: 'H3 · day off: facts only, no norm, neutral', name: 'Claude Max', tag: '5h + 7d', pill: 'day off', pt: ['Day off', 'No daily budget today'], u: 47, todayNote: 'day off · 3 % used today', f1t: ['Day off', 'Budget resumes on the next work day'] }),
+        pw({ cas: 'H4 · no work day left before reset: remainder only', name: 'Antigravity AI Plus', tag: '7d', pill: 'no work days', pt: ['No work days left', 'Reset comes before the next work day'], u: 62, todayNote: 'no work day before reset', f1t: ['Only the remainder is shown', 'No daily share'], reset: ['resets Sat 11:00', 'Resets Sat 17 Oct 11:00', 'in 2 d 20 h 40 min'] }),
+        pw({ cas: 'H5 · past its reset, new period not read yet', name: 'Claude Pro', tag: '5h + 7d', stale: true, mark: 'past reset', markT: ['Reading is from before the reset', 'Waiting for the first reading of the new period'], pill: 'not ready', pt: ['Budget not ready', 'Waiting for the first reading after reset'], u: 88, todayNote: 'budget not ready', f1t: ['Old period reading', 'Not used for today’s budget'], reset: ['reset 14:00', 'Reset Wed 14 Oct 14:00', '20 min ago'] }),
+        note({ cas: 'H6 · value unknown (no bar, never 0)', name: 'Antigravity AI Plus', tag: '7d', pill: 'unknown', pt: ['Value unknown', 'Provider did not send used'], lines: [['7d', 'used unknown', 'resets Sat 11:00']] }),
+        w5({ cas: 'H7 · last sync failed, reading still fresh (< 15 min)', mark: 'sync failed', markT: ['Last sync failed 14:18', 'Reading from 14:10 · retry in 5 min'], st: 'ok', pill: 'OK', u0: 44, u: 50, t: 82.4, cwU: 30 }),
+        w5({ cas: 'H8 · sign-in expired: readings stale, inline sign-in', name: 'Claude Pro', stale: true, mark: 'sign-in expired', markT: ['Sign-in expired', 'Sign in again to refresh'], st: 'neutral', pill: '1 h old', pt: ['Last reading 13:20', 'Sign in again to refresh'], action: 'Sign in', u0: 40, u: 47, t: 60, cwU: 40 }),
+        note({ cas: 'H9 · signed out, shown via “show signed-out”', name: 'Codex Pro', tag: '5h + 7d', pill: 'signed out', pt: ['Signed out', 'History, name and caps kept'], lines: [['', 'no current figures', 'history kept']], action: 'Sign in' }),
+        d7({ cas: 'H10 · model-scoped 7d: own row per scope, never summed', name: 'Claude Max', tag: '7d · Opus', st: 'ok', pill: 'OK', u0: 20, u: 23, t: 34, reset: ['resets Mon 09:00', 'Resets Mon 19 Oct 09:00', 'in 4 d 18 h 40 min'] })
+      ]]
+    ];
+  }
+  tipOn(wi, lines) {
+    return e => {
+      const win = this.refs[wi].current; if (!win) return;
+      const wr = win.getBoundingClientRect(), s = (wr.width / 760) || 1, b = e.currentTarget.getBoundingClientRect();
+      const H = wr.height / s, h = lines.length * 17 + 14;
+      let x = Math.max(8, Math.min((b.left - wr.left) / s, 760 - 280));
+      let y = (b.bottom - wr.top) / s + 6;
+      if (y + h > H - 6) y = (b.top - wr.top) / s - 6 - h;
+      this.setState({ tip: { wi, x, y, lines } });
+    };
+  }
+  cells(d, left) {
+    const fm = this.fmt(d.kind), r = v => Math.round(v);
+    const out = [];
+    if (d.kind === 'w5') {
+      const over = d.u - d.t;
+      if (over > 0 || d.t - d.u <= 0.001) {
+        const oW = Math.max(0, over) / d.ws * 100;
+        const pct = r((d.u - d.u0) / (d.t - d.u0) * 100);
+        const msg = d.u >= d.P ? 'Nothing left until 7d reset' : 'Nothing left today';
+        out.push({ parts: over > 0 ? [['usedCrit', d.cwU - oW], ['over', oW], ['critRest', 100 - d.cwU]] : [['used', d.cwU], ['gray', 100 - d.cwU]],
+          tip: ['Current 5h window · until ' + d.winEnd, left ? (over > 0 ? msg + ' · ' + (pct - 100) + ' % over' : msg) : r(d.cwU) + ' % used · ' + pct + ' % of today’s allowance'] });
+        return out;
+      }
+      let A = (d.t - d.u) / d.ws * 100;
+      const rest = 100 - d.cwU, a0 = Math.min(rest, A); A -= a0;
+      out.push({ parts: [['used', d.cwU], ['allow', a0], ['gray', A > 0.01 ? 0 : rest - a0]], first: true });
+      while (A > 0.01) { const a = Math.min(100, A); A -= a; out.push({ parts: [['allow', a], ['gray', A > 0.01 ? 0 : 100 - a]] }); }
+      out.forEach((c, i) => {
+        const u = c.parts.find(p => p[0] === 'used'), al = c.parts.find(p => p[0] === 'allow')[1], g = c.parts.find(p => p[0] === 'gray');
+        const title = i === 0 ? (d.started ? 'Current 5h window · until ' + d.winEnd : 'Next 5h window · starts on first use') : (g && g[1] > 0 ? 'Last 5h window today' : 'Next 5h window');
+        const lines = [title];
+        if (left) lines.push(al > 0 ? r(al) + ' % of window left today' : 'Window full · opens again ' + d.winEnd);
+        else lines.push((u && u[1] > 0 ? r(u[1]) + ' % used · ' : '') + (al > 0 ? r(al) + ' % allowed today' : 'window full'));
+        if (g && g[1] > 0) lines.push('Grey: counts against tomorrow');
+        c.tip = lines;
+      });
+      return out;
+    }
+    const base = d.t - d.u0, ut = d.u - d.u0, gray = Math.max(0, d.D - base);
+    const gTip = d.kind === 'd7' ? '7d limit cuts today’s share' : 'Cap cuts today’s share';
+    const lines = ['Today'];
+    let parts;
+    if (d.u > d.t) {
+      parts = [['usedCrit', base], ['over', d.u - d.t], ['gray', gray]];
+      lines.push(left ? 'Nothing left today' : fm(ut) + ' used of ' + fm(base) + ' allowed', fm(d.u - d.t) + ' over today’s allowance');
+    } else {
+      parts = [['used', ut], ['allow', d.t - d.u], ['gray', gray]];
+      lines.push(left ? fm(d.t - d.u) + ' of ' + fm(base) + ' left' : fm(ut) + ' of ' + fm(base) + ' used');
+    }
+    if (gray > 0) lines.push('Grey: ' + gTip);
+    return [{ parts, tip: lines }];
+  }
+  fmt(kind) {
+    if (kind === 'cr' || kind === 'rq') return v => Math.round(Number(v) || 0).toLocaleString('en-US');
+    if (kind === 'us') return v => '$' + (Number(v) || 0).toFixed(2);
+    return v => Math.round(Number(v) || 0) + ' %';
+  }
+  renderVals() {
+    const C = { card: '#262624', rail: '#34332F', prev: '#8C887E', gray: '#75716A', ink: '#F0EEE6',
+      ok: { m: '#7FB98F', p: '#5E8A6B', tx: '#7FB98F', bg: 'rgba(127,185,143,.14)' }, att: { m: '#D97757', p: '#A35C44', tx: '#E58C6C', bg: 'rgba(217,119,87,.14)' }, crit: { m: '#E5604A', p: '#B04A3A', d: '#6E2E25', tx: '#F07A65', bg: 'rgba(229,96,74,.16)' }, neutral: { m: '#B7B3A8', p: '#6B6862', tx: '#B7B3A8', bg: 'rgba(183,179,168,.12)' } };
+    const stripe = (a, b) => 'repeating-linear-gradient(135deg,' + a + ' 0 3px,' + b + ' 3px 6px)';
+    const f = v => (Math.round(v * 100) / 100) + '%';
+    const bg = (k, tn, left) => (left
+      ? { used: stripe(tn.p, C.rail), allow: tn.m, gray: C.gray, usedCrit: stripe(C.crit.p, C.crit.d), over: stripe(C.crit.m, C.crit.p), critRest: C.crit.d }
+      : { used: tn.m, allow: stripe(tn.p, C.rail), gray: C.gray, usedCrit: C.crit.p, over: C.crit.m, critRest: C.crit.d })[k];
+    const leave = () => { if (this.state.tip) this.setState({ tip: null }); };
+    const tip = this.state.tip;
+    const stTips = { att: ['Today low', 'Little left today · not used up yet'], ok: ['On track', 'Today’s allowance is not used up'], crit: ['Today used', 'Today’s allowance is used up'], neutral: ['Info'] };
+    const actSt = { padding: '1px 9px', border: '1px solid #55534E', borderRadius: '6px', cornerShape: 'squircle', color: '#F0EEE6', fontSize: '12px', fontWeight: 600, lineHeight: '16px', cursor: 'pointer', whiteSpace: 'nowrap' };
+    const wins = [0, 1].map(wi => {
+      const left = this.state.modes[wi] === 'left';
+      const setMode = m => () => this.setState(s => { const modes = s.modes.slice(); modes[wi] = m; return { modes, tip: null }; });
+      const btn = on => ({ padding: '3px 10px', borderRadius: '5px', cornerShape: 'squircle', fontSize: '12px', fontWeight: 600, cursor: 'pointer', background: on ? '#3A3936' : 'transparent', color: on ? '#F0EEE6' : '#9D998E' });
+      const rank = k => (k === 'gray' || k === 'critRest') ? (left ? 0 : 4) : (left ? k === 'allow' : k !== 'allow') ? 1 : 2;
+      const items = [];
+      this.groups().forEach(([head, list]) => {
+        items.push({ isHead: true, isCard: false, head });
+        list.forEach(d => {
+          const tn = C[d.st];
+          const base = { isHead: false, isCard: true, cap: d.cas, name: d.name, tag: d.tag, pill: d.pill,
+            hasMark: !!d.mark, mark: d.mark || '', markEnter: this.tipOn(wi, d.markT || [d.mark || '']),
+            hasAction: !!d.action, action: d.action || '', actSt,
+            cardSt: { background: 'linear-gradient(180deg,#2A2927 0%,#262624 60%)', border: '1px solid #33322F', borderRadius: '20px', cornerShape: 'squircle', boxShadow: '0 1px 0 rgba(255,255,255,.03) inset,0 6px 18px rgba(0,0,0,.22)', padding: '13px 15px 12px', display: 'flex', flexDirection: 'column', gap: '10px', minWidth: 0, color: d.stale ? '#B7B3A8' : '#F0EEE6' },
+            pillSt: { marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '5px', height: '20px', padding: '0 9px', borderRadius: '99px', background: tn.bg, color: tn.tx, fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', cursor: 'default' },
+            dotSt: { width: '6px', height: '6px', borderRadius: '50%', background: tn.m },
+            pillEnter: this.tipOn(wi, d.pt || (d.pill === 'over today' ? ['Over today', 'Today’s allowance is exceeded'] : stTips[d.st])) };
+          if (d.kind === 'note') { items.push({ ...base, hasBars: false, isNote: true, lines: d.lines.map(l => ({ k: l[0], v: l[1], r: l[2] })) }); return; }
+          const fm = this.fmt(d.kind), P = d.P, pc = v => v / P * 100;
+          const dim = d.stale ? 0.7 : 1;
+          const barSt = { gridColumn: 2, gridRow: 4, position: 'relative', height: '20px', minWidth: 0, opacity: dim };
+          const X = (l, w) => left ? [100 - l - w, w] : [l, w];
+          const seg = (l, w, b) => { const p = X(l, w); return { st: { position: 'absolute', left: f(p[0]), width: f(Math.max(0, p[1])), top: 0, bottom: 0, background: b } }; };
+          const common = { ...base, hasBars: true, isNote: false, barSt, barEnter: this.tipOn(wi, [d.unitL ? 'Window' : '7d', left ? fm(P - d.u) + ' of ' + fm(P) + ' left' : fm(d.u) + ' of ' + fm(P) + ' used']),
+            f2: d.reset[0], f2Enter: this.tipOn(wi, d.reset.slice(1)) };
+          if (d.kind === 'pw') {
+            const segs = [seg(0, d.u, bg('used', tn, left))];
+            if (left) segs.push(seg(d.u, 100 - d.u, bg('allow', tn, left)));
+            items.push({ ...common, unit: d.unitL || '7d', hasStrip: false, hasTodayNote: true, todayNote: d.todayNote, cells: [], stripSt: {},
+              hasLab: false, lab0: '', lab1: '', segs, ringSt: { display: 'none' }, hasCap: false, capSt: {}, hasCapMark: false, capMarkSt: {},
+              f1: left ? fm(100 - d.u) + ' left' : fm(d.u) + ' used', f1Enter: this.tipOn(wi, d.f1t) });
+            return;
+          }
+          const u0 = pc(d.u0), u = pc(d.u), t = pc(d.t), hi = Math.max(u, t), lo = Math.min(u, t);
+          const capP = d.cap ? pc(d.cap) : 100;
+          const segs = [];
+          if (left) segs.push(seg(hi, Math.max(0, capP - hi), C.prev)); else segs.push(seg(0, u0, C.prev));
+          if (capP < 100) segs.push(seg(Math.max(capP, hi), 100 - Math.max(capP, hi), stripe('#2A2927', '#34332F')));
+          const crit = d.u > d.t;
+          segs.push(seg(u0, lo - u0, bg(crit ? 'usedCrit' : 'used', tn, left)));
+          if (t > u) segs.push(seg(u, t - u, bg('allow', tn, left)));
+          if (u > t) segs.push(seg(t, u - t, bg('over', tn, left)));
+          if (d.kind === 'w5') {
+            const st = d.started ? d.u - d.cwU * d.ws / 100 : d.u;
+            for (let k = st + d.ws; k < 99.5; k += d.ws) if (k > d.u + 0.5) segs.push({ st: { position: 'absolute', left: f(left ? 100 - k : k), width: '2px', marginLeft: left ? '-2px' : 0, top: 0, bottom: 0, background: C.card } });
+          }
+          const rg = X(u0, hi - u0);
+          let lab = null;
+          if (d.u > d.t) {
+            if (d.kind === 'w5' || d.kind === 'd7') { const p = Math.round((d.u - d.u0) / (d.t - d.u0) * 100); lab = left ? ['', '−' + (p - 100) + ' %'] : ['', p + ' %']; }
+            else lab = left ? ['', '−' + fm(d.u - d.t)] : ['', '+' + fm(d.u - d.t)];
+          }
+          const wN = d.kind === 'w5' ? ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left' : '';
+          let f1, f1t;
+          if (d.cap) {
+            const pre = d.est ? '≈ ' : '';
+            f1 = pre + (left ? (d.u <= d.cap ? fm(d.cap - d.u) + ' left to cap' : fm(d.u - d.cap) + ' over cap') : fm(d.u) + ' of ' + fm(d.cap) + ' cap');
+            f1t = d.f1t || ['Custom cap ' + fm(d.cap), 'Provider limit ' + fm(P) + ' · ' + fm(P - d.u) + ' left'];
+          } else if (d.kind === 'rq') {
+            f1 = left ? fm(P - d.u) + ' of ' + fm(P) + ' left' : fm(d.u) + ' of ' + fm(P) + ' used';
+            f1t = d.f1t;
+          } else {
+            f1 = (left ? fm(P - d.u) + ' left' : fm(d.u) + ' used') + wN;
+            f1t = d.f1t || (d.kind === 'w5' ? ['One 5h window ≈ ' + d.ws + ' % of 7d (estimate)', '≈ ' + Math.floor(100 / d.ws) + ' windows per week'] : ['Usual daily share ≈ ' + d.D + ' % of 7d']);
+          }
+          const unitName = d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'Month · ' + (d.kind === 'cr' ? 'credits (tracked estimate)' : d.kind === 'rq' ? 'requests' : 'USD');
+          const todayLine = d.u > d.t ? 'today ' + fm(d.u - d.t) + ' over' : left ? 'today ' + fm(d.t - d.u) + ' left' : 'today ' + fm(d.u - d.u0) + ' of ' + fm(d.t - d.u0);
+          const scaleTop = d.cap ? d.cap : P;
+          const barTip = [unitName, (left ? fm(scaleTop - d.u) + ' of ' + fm(scaleTop) + ' left' : fm(d.u) + ' of ' + fm(scaleTop) + ' used') + ' · ' + todayLine];
+          if (capP < 100) barTip.push(d.u > d.cap ? 'Past the tick: over custom cap ' + fm(d.cap) : 'Hatched: above custom cap ' + fm(d.cap));
+          items.push({ ...common, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: true, hasTodayNote: false, todayNote: '',
+            stripSt: { gridColumn: 2, gridRow: 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '4px', height: '14px', opacity: dim },
+            cells: this.cells(d, left).map(c => ({
+              st: { flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'row', borderRadius: '6px', cornerShape: 'squircle', overflow: 'hidden', cursor: 'default' },
+              parts: c.parts.filter(p => p[1] > 0.01).sort((a, b) => rank(a[0]) - rank(b[0])).map(p => ({ st: { flex: p[1] + ' 1 0', background: bg(p[0], tn, left), boxShadow: p[0] === 'over' ? 'inset 2px 0 0 ' + C.ink : 'none' } })),
+              enter: this.tipOn(wi, c.tip)
+            })),
+            hasLab: !!lab, lab0: lab ? lab[0] : '', lab1: lab ? lab[1] : '',
+            segs,
+            ringSt: { position: 'absolute', left: 'calc(' + f(rg[0]) + ' - 4px)', width: 'calc(' + f(rg[1]) + ' + 8px)', top: '2px', height: '16px', boxSizing: 'border-box', border: '1.5px solid ' + tn.m, borderRadius: '7px', cornerShape: 'squircle', boxShadow: '0 0 12px ' + tn.bg },
+            hasCap: d.u > d.t,
+            capSt: { position: 'absolute', left: f(left ? 100 - t : t), top: '4px', width: '2px', height: '12px', marginLeft: '-1px', background: C.ink, borderRadius: '1px' },
+            hasCapMark: capP < 100,
+            capMarkSt: { position: 'absolute', left: f(left ? 100 - capP : capP), top: '3px', width: '2px', height: '14px', marginLeft: '-1px', background: '#9D998E', borderRadius: '1px' },
+            barEnter: this.tipOn(wi, barTip),
+            f1, f1Enter: this.tipOn(wi, f1t)
+          });
+        });
+      });
+      const tt = tip && tip.wi === wi ? tip : null;
+      return {
+        id: wi ? '1b' : '1a', title: left ? 'Show left' : 'Show used', ref: this.refs[wi], items,
+        usedBtnSt: btn(!left), leftBtnSt: btn(left), setUsed: setMode('used'), setLeft: setMode('left'),
+        hasTip: !!tt,
+        tipSt: tt ? { position: 'absolute', zIndex: 10, left: tt.x + 'px', top: tt.y + 'px', maxWidth: '272px', padding: '6px 10px', background: '#151413', border: '1px solid #3A3936', borderRadius: '9px', cornerShape: 'squircle', boxShadow: '0 8px 24px rgba(0,0,0,.4)', fontSize: '12px', lineHeight: '17px', pointerEvents: 'none' } : {},
+        tipLines: tt ? tt.lines.map((x, i) => ({ text: x, st: { color: i ? '#B7B3A8' : '#F0EEE6', fontWeight: i ? 400 : 600, whiteSpace: 'nowrap' } })) : []
+      };
+    });
+    return { wins, leave };
+  }
+}
+</script>
+</body>
+</html>

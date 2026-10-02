@@ -828,28 +828,28 @@ Starts only after the owner's Gate B review.
 - [x] **Step 5:** Commit "AIU-034 Phase B: Claude Design directions" and push.
 
 ### T-18 - [opus] Full prototype, owner acceptance and import
-- status: in-progress
+- status: done
 - depends_on: [T-17]
 - acceptance: AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-034-limit-audit-design-brief/verification.md
 
 **Files:**
 - Create: `docs/specs/AIU-034-limit-audit-design-brief/design-reference/` with a README
 - Modify: `verification.md`, `tasks.md`, `docs/backlog.md` (AIU-034 status)
 
-- [ ] **Step 1:** Ask Claude Design for the full prototype of the selected direction, as brief
+- [x] **Step 1:** Ask Claude Design for the full prototype of the selected direction, as brief
   section 7 requires.
-- [ ] **Step 2:** Check it against the section 8 prototype checklist. Ask for fixes until it
+- [x] **Step 2:** Check it against the section 8 prototype checklist. Ask for fixes until it
   passes, or until the owner accepts listed exceptions.
-- [ ] **Step 3:** Record the owner's acceptance of the prototype in verification.md.
-- [ ] **Step 4:** Import the prototype, specification and support files into
+- [x] **Step 3:** Record the owner's acceptance of the prototype in verification.md.
+- [x] **Step 4:** Import the prototype, specification and support files into
   `design-reference/`, with the AIU-010 `.gitattributes` rule and a README recording source,
   project, import date, revision and the SHA-256 of each file, as in the AIU-010 design
   reference. Store no authentication material.
-- [ ] **Step 5 (check):** the privacy scan over every Phase B file, the validator and
+- [x] **Step 5 (check):** the privacy scan over every Phase B file, the validator and
   `git diff --check` pass; record AC-10. When T-16 is done, set AIU-034 to `done` in the
   backlog with its evidence.
-- [ ] **Step 6:** Commit "AIU-034 Phase B complete: design imported" and push. Write the
+- [x] **Step 6:** Commit "AIU-034 Phase B complete: design imported" and push. Write the
   handoff: next action "owner selects follow-up items".
 
 ## Handoff
@@ -991,11 +991,15 @@ yourself"). This session wrote `Surfaces Handoff.dc.html` in the project with fr
 
 The record is in verification.md.
 
-Next action: the owner reviews both pages and confirms or rejects Compact as the default
-density (T-18 Steps 2 and 3). Then T-18 Step 4 imports both pages and `support.js` into
-`design-reference/`.
+The owner decided on 2026-10-02 that today reached is the same red as over (D-186).
 
-Blockers: the owner's review of the two pages.
+T-18 was done on 2026-10-02. The owner accepted both pages and made Compact the default
+density (D-186). `design-reference/` holds the two pages, `support.js` and a README with their
+hashes. AC-10 is PASS, and AIU-034 is `done`. Phase B is complete.
+
+Next action: the owner selects follow-up items from AIU-035 to AIU-041.
+
+Blockers: none for AIU-034.
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
 review of the series and the budget configuration remains an implementation precondition,
 NOT_RUN. Live checks keep their T-06 verdicts. The local clone path in

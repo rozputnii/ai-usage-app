@@ -1,0 +1,3 @@
+# Imported design files are kept byte-for-byte; do not flag their whitespace.
+* -whitespace
+README.md whitespace

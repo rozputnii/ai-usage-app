@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&amp;display=swap">
+<style>html{background:#0F0C09!important}body{margin:0;background:#0F0C09}@keyframes caret{50%{opacity:0}}@keyframes slide{0%{left:-30%}100%{left:100%}}.sv-caret{display:inline-block;width:1px;height:14px;background:#F0EEE6;margin-left:1px;vertical-align:-2px;animation:caret 1s steps(1) infinite}.sv-prog{position:absolute;top:0;bottom:0;width:30%;background:#B7B3A8;animation:slide 1.4s ease-in-out infinite}.sv-tbl{border-collapse:collapse;font-size:12px;line-height:16px}.sv-tbl td,.sv-tbl th{padding:4px 10px 4px 0;text-align:left;vertical-align:top;border-bottom:1px solid #2E2D2A}.sv-tbl th{color:#9D998E;font-weight:600}.sv-sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-3px;margin-right:6px;border:1px solid #3A3936}</style>
+</helmet>
+<section style="padding:40px;display:flex;flex-direction:column;gap:20px;font-family:'Hanken Grotesk',sans-serif;color:#F0EEE6">
+  <div style="display:flex;flex-direction:column;gap:4px;max-width:960px">
+    <div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:600">Surfaces — handoff</div>
+    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Companion to Provider States Handoff (D-186). Same tokens, same cards. Reference time Wed 14 Oct 14:20. Orange frame labels and grey mono captions are not part of the app. S1 and S2 carry the design-brief section 4 scenario and must fit 760 × 600 without scrolling; they use Compact density. Everything is in the one window: no dialog, pop-up window or detail view; the provider menu and tooltips are light-dismiss flyouts.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
+    <sc-for list="{{ frames }}" as="w" hint-placeholder-count="3">
+      <div id="{{ w.id }}" style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:8px;align-items:baseline"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:1px 6px;background:#D97757;color:#1A1410;font-weight:600">{{ w.id }}</span><span style="font-size:15px;font-weight:600">{{ w.title }}</span></div>
+        <sc-if value="{{ w.hasNote }}"><div style="{{ w.noteSt }}">{{ w.note }}</div></sc-if>
+        <div ref="{{ w.ref }}" data-screen-label="{{ w.title }}" style="{{ w.winSt }}">
+          <sc-if value="{{ w.hasBar }}">
+            <div style="height:38px;flex:none;display:flex;align-items:center;gap:10px;padding-left:16px;padding-right:8px;border-bottom:1px solid #2E2D2A">
+              <span style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;font-weight:600;white-space:nowrap">AI Usage</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9D998E;white-space:nowrap">Wed 14 Oct · 14:20</span>
+              <span style="flex:1"></span>
+              <sc-if value="{{ w.hasToggle }}">
+                <div style="display:flex;padding:2px;gap:2px;background:#2A2927;border-radius:7px;margin-right:4px">
+                  <span style="{{ w.usedBtnSt }}">Used</span>
+                  <span style="{{ w.leftBtnSt }}">Left</span>
+                </div>
+              </sc-if>
+              <span style="{{ w.addSt }}" title="Add account"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="#F0EEE6" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+              <span style="{{ w.gearSt }}" title="Settings"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#F0EEE6" stroke-width="1.4"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.8M8 12.4v1.8M1.8 8h1.8M12.4 8h1.8M3.6 3.6l1.3 1.3M11.1 11.1l1.3 1.3M3.6 12.4l1.3-1.3M11.1 4.9l1.3-1.3" stroke-linecap="round"/></svg></span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ w.hasStrip }}">
+            <div style="position:relative;flex:none;height:34px;display:flex;align-items:center;gap:8px;padding:0 16px;background:#262624;border-bottom:1px solid #2E2D2A;font-size:12px">
+              <span style="{{ w.stripDotSt }}"></span>
+              <span style="color:#F0EEE6;white-space:nowrap">{{ w.stripText }}</span>
+              <span style="color:#9D998E;white-space:nowrap">{{ w.stripSub }}</span>
+              <span style="flex:1"></span>
+              <sc-if value="{{ w.hasStripAct }}"><span style="{{ w.stripActSt }}">{{ w.stripAct }}</span></sc-if>
+              <sc-if value="{{ w.stripBusy }}"><div style="position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#34332F;overflow:hidden"><div class="sv-prog"></div></div></sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ w.hasBody }}">
+            <div style="display:flex;flex:1;min-height:0">
+              <div data-grid="1" style="{{ w.gridSt }}">
+                <sc-for list="{{ w.items }}" as="a" hint-placeholder-count="4">
+                  <sc-if value="{{ a.isCard }}">
+                    <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+                      <sc-if value="{{ a.hasCas }}"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:14px;color:#8C887E;padding:0 4px;text-wrap:pretty">{{ a.cas }}</div></sc-if>
+                      <div style="{{ a.cardSt }}">
+                        <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                          <sc-if value="{{ a.nameNotEdit }}"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">{{ a.name }}</span></sc-if>
+                          <sc-if value="{{ a.editName }}"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;height:26px;line-height:24px;box-sizing:border-box;padding:0 8px;background:#1A1918;border:1px solid #F0EEE6;border-radius:6px;min-width:150px">{{ a.name }}<span class="sv-caret"></span></span></sc-if>
+                          <span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ a.tag }}</span>
+                          <sc-if value="{{ a.hasMark }}"><span style="font-size:12px;font-weight:600;color:#E58C6C;white-space:nowrap;cursor:default" onMouseEnter="{{ a.markEnter }}" onMouseLeave="{{ leave }}">{{ a.mark }}</span></sc-if>
+                          <span style="flex:1"></span>
+                          <sc-if value="{{ a.icons }}">
+                            <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:#3A3936" title="History (Enter)"><svg width="14" height="14" viewBox="0 0 14 14" fill="#F0EEE6"><rect x="1" y="7" width="2.4" height="6" rx=".6"/><rect x="5.8" y="3" width="2.4" height="10" rx=".6"/><rect x="10.6" y="5" width="2.4" height="8" rx=".6"/></svg></span>
+                            <span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px" title="Sign out"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#B7B3A8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 2H2.5v10h3M9 4.5L11.5 7 9 9.5M11.5 7H5.5"/></svg></span>
+                          </sc-if>
+                          <span style="{{ a.pillSt }}" onMouseEnter="{{ a.pillEnter }}" onMouseLeave="{{ leave }}"><span style="{{ a.dotSt }}"></span>{{ a.pill }}</span>
+                        </div>
+                        <sc-if value="{{ a.editName }}"><div style="font-size:12px;line-height:14px;color:#9D998E;margin-top:-4px">Enter saves · Esc cancels · the name is yours, the provider is unchanged</div></sc-if>
+                        <sc-if value="{{ a.hasBars }}">
+                          <div style="display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:10px;align-items:center">
+                            <sc-if value="{{ a.hasStrip }}">
+                              <span style="grid-column:1;grid-row:1;font-size:12px;line-height:14px;color:#9D998E">today</span>
+                              <div style="{{ a.stripSt }}">
+                                <sc-for list="{{ a.cells }}" as="c" hint-placeholder-count="1">
+                                  <div style="{{ c.st }}" onMouseEnter="{{ c.enter }}" onMouseLeave="{{ leave }}">
+                                    <sc-for list="{{ c.parts }}" as="p"><div style="{{ p.st }}"></div></sc-for>
+                                  </div>
+                                </sc-for>
+                              </div>
+                            </sc-if>
+                            <sc-if value="{{ a.hasTodayNote }}">
+                              <span style="grid-column:1;grid-row:1;font-size:12px;line-height:14px;color:#9D998E">today</span>
+                              <span style="grid-column:2;grid-row:1;min-width:0;height:14px;font-size:12px;line-height:14px;color:#B7B3A8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ a.todayNote }}</span>
+                            </sc-if>
+                            <sc-if value="{{ a.hasLab }}"><span style="{{ a.labSt }}">{{ a.lab1 }}</span></sc-if>
+                            <div style="{{ a.spSt }}"></div>
+                            <span style="grid-column:1;grid-row:4;font-size:12px;color:#9D998E">{{ a.unit }}</span>
+                            <div style="{{ a.barSt }}" onMouseEnter="{{ a.barEnter }}" onMouseLeave="{{ leave }}">
+                              <div style="position:absolute;left:0;right:0;top:6px;height:8px;background:#34332F;border-radius:4px;overflow:hidden">
+                                <sc-for list="{{ a.segs }}" as="s"><div style="{{ s.st }}"></div></sc-for>
+                              </div>
+                              <div style="{{ a.ringSt }}"></div>
+                              <sc-if value="{{ a.hasCapMark }}"><div style="{{ a.capMarkSt }}"></div></sc-if>
+                              <sc-if value="{{ a.hasOverTick }}"><div style="{{ a.overTickSt }}"></div></sc-if>
+                            </div>
+                            <sc-if value="{{ a.noCapEdit }}">
+                              <div style="grid-column:2;grid-row:5;min-width:0;display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:2px;margin-top:4px;font-size:12px;line-height:16px">
+                                <span style="color:#B7B3A8;white-space:nowrap;cursor:default;text-decoration:underline dotted #5A5853;text-underline-offset:3px" onMouseEnter="{{ a.f1Enter }}" onMouseLeave="{{ leave }}">{{ a.f1 }}</span>
+                                <span style="margin-left:auto;color:#9D998E;white-space:nowrap;cursor:default" onMouseEnter="{{ a.f2Enter }}" onMouseLeave="{{ leave }}">{{ a.f2 }}</span>
+                                <sc-if value="{{ a.hasAction }}"><span style="{{ a.actSt }}">{{ a.action }}</span></sc-if>
+                              </div>
+                            </sc-if>
+                            <sc-if value="{{ a.capEdit }}">
+                              <div style="grid-column:2;grid-row:5;min-width:0;display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px">
+                                <span style="color:#9D998E">cap</span>
+                                <span style="height:24px;line-height:22px;box-sizing:border-box;padding:0 8px;min-width:70px;background:#1A1918;border:1px solid #F0EEE6;border-radius:6px;color:#F0EEE6">{{ a.capVal }}<span class="sv-caret"></span></span>
+                                <span style="color:#9D998E;white-space:nowrap">{{ a.capUnit }}</span>
+                                <span style="flex:1"></span>
+                                <span style="padding:2px 10px;border-radius:6px;background:#E8E4DA;color:#1A1410;font-weight:600;white-space:nowrap">Save</span>
+                                <sc-if value="{{ a.capCanRemove }}"><span style="color:#B7B3A8;font-weight:600;white-space:nowrap;text-decoration:underline;text-underline-offset:3px">Remove</span></sc-if>
+                              </div>
+                              <div style="grid-column:2;grid-row:6;font-size:12px;line-height:14px;color:#9D998E;margin-top:5px">{{ a.capHint }}</div>
+                            </sc-if>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ a.isNote }}">
+                          <div style="display:grid;grid-template-columns:40px minmax(0,1fr) auto;column-gap:10px;row-gap:6px;align-items:baseline;font-size:12px;line-height:16px">
+                            <sc-for list="{{ a.lines }}" as="l">
+                              <span style="color:#9D998E">{{ l.k }}</span>
+                              <span style="color:#B7B3A8;min-width:0">{{ l.v }}</span>
+                              <span style="color:#9D998E;white-space:nowrap">{{ l.r }}</span>
+                            </sc-for>
+                          </div>
+                          <sc-if value="{{ a.noteAction }}"><div style="display:flex;justify-content:flex-end"><span style="{{ a.actSt }}">{{ a.action }}</span></div></sc-if>
+                          <sc-if value="{{ a.capEdit }}">
+                            <div style="display:flex;align-items:center;gap:8px;font-size:12px;padding-left:50px">
+                              <span style="color:#9D998E">cap</span>
+                              <span style="height:24px;line-height:22px;box-sizing:border-box;padding:0 8px;min-width:70px;background:#1A1918;border:1px solid #F0EEE6;border-radius:6px;color:#F0EEE6">{{ a.capVal }}<span class="sv-caret"></span></span>
+                              <span style="color:#9D998E;white-space:nowrap">{{ a.capUnit }}</span>
+                              <span style="flex:1"></span>
+                              <span style="padding:2px 10px;border-radius:6px;background:#E8E4DA;color:#1A1410;font-weight:600;white-space:nowrap">Save</span>
+                            </div>
+                            <div style="font-size:12px;line-height:14px;color:#9D998E;padding-left:50px">{{ a.capHint }}</div>
+                          </sc-if>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ a.isHist }}">
+                    <div style="grid-column:1 / -1;background:#211F1D;border:1px solid #33322F;border-radius:20px;padding:13px 15px 12px;display:flex;flex-direction:column;gap:10px;margin-top:-4px">
+                      <div style="display:flex;align-items:baseline;gap:8px">
+                        <span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">Claude Pro</span>
+                        <span style="font-size:12px;color:#9D998E">7d · use per local day · last 36 days · from this app's readings</span>
+                        <span style="flex:1"></span>
+                        <span style="font-size:12px;color:#9D998E">← → day · Esc closes</span>
+                      </div>
+                      <div style="position:relative;height:118px;margin-top:4px">
+                        <div style="position:absolute;left:0;right:0;top:20px;height:80px;border-bottom:1px solid #3A3936"></div>
+                        <div style="position:absolute;left:0;right:0;top:36px;border-top:1px dashed #6B6862"></div>
+                        <div style="position:absolute;left:0;top:22px;font-size:12px;line-height:12px;color:#9D998E;background:#211F1D;padding-right:6px">baseline 20 % / work day</div>
+                        <sc-for list="{{ a.ticks }}" as="k"><div style="{{ k.st }}"></div></sc-for>
+                        <sc-for list="{{ a.bars }}" as="b"><div style="{{ b.st }}"></div></sc-for>
+                        <div style="{{ a.gapSt }}"><span style="font-size:12px;line-height:14px;color:#9D998E;text-align:center">no<br>readings</span></div>
+                        <div style="{{ a.focusTipSt }}">Tue 6 Oct · 19 % of 7d</div>
+                        <sc-for list="{{ a.xl }}" as="x"><div style="{{ x.st }}">{{ x.t }}</div></sc-for>
+                      </div>
+                      <div style="font-size:12px;line-height:16px;color:#9D998E">Bars: use in each local day. Dashed outline: no readings (25–28 Sep), a gap that is never drawn as zero. Short ticks: 7d resets (Mon 09:00). Today is the green bar. History is local only and is kept on sign-out.</div>
+                    </div>
+                  </sc-if>
+                </sc-for>
+              </div>
+              <sc-if value="{{ w.hasPanel }}">
+                <div style="width:400px;flex:none;box-sizing:border-box;border-left:1px solid #33322F;background:#232220;padding:14px 16px 18px;display:flex;flex-direction:column;gap:16px;font-size:12px;line-height:16px">
+                  <div style="display:flex;align-items:center;gap:8px"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">Settings</span><span style="flex:1"></span><span style="color:#9D998E">Esc closes</span><span style="width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:#2E2D2A"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7" stroke="#F0EEE6" stroke-width="1.4" stroke-linecap="round"/></svg></span></div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">Budget</div>
+                    <div style="color:#F0EEE6;font-weight:600">Work days</div>
+                    <div style="display:flex;gap:4px">
+                      <span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Mon</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Tue</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Wed</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Thu</span><span style="padding:3px 0;width:44px;text-align:center;border-radius:6px;background:#3A3936;color:#F0EEE6;font-weight:600">Fri</span><span style="padding:2px 0;width:42px;text-align:center;border-radius:6px;border:1px solid #4A4844;color:#9D998E">Sat</span><span style="padding:2px 0;width:42px;text-align:center;border-radius:6px;border:1px solid #4A4844;color:#9D998E">Sun</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;background:#2A2927"><span style="color:#F0EEE6">Saturday removed from work days</span><span style="flex:1"></span><span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">Undo</span><span style="color:#9D998E">Ctrl+Z</span></div>
+                    <div style="color:#9D998E">Daily budgets split each period over work days (Mon–Fri by default). A day off shows facts only. Changes apply from the next local midnight.</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <div style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">Personal caps</div>
+                    <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;column-gap:10px;row-gap:2px;align-items:baseline">
+                      <span style="color:#F0EEE6">Claude Pro · extra usage</span><span style="color:#F0EEE6;font-weight:600">$300.00</span><span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">Edit</span>
+                      <span style="grid-column:1 / -1;color:#9D998E;padding-bottom:6px">provider limit $500.00 · your cap binds</span>
+                      <span style="color:#F0EEE6">Codex Pro · credits</span><span style="color:#F0EEE6;font-weight:600">17,000</span><span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">Edit</span>
+                      <span style="grid-column:1 / -1;color:#9D998E;padding-bottom:6px">provider sends a balance only · used is tracked since 3 Oct (estimate)</span>
+                      <span style="color:#F0EEE6">Copilot Pro · chat</span><span style="color:#F0EEE6;font-weight:600">300</span><span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">Edit</span>
+                      <span style="grid-column:1 / -1;color:#9D998E;padding-bottom:6px">provider: unlimited · your cap binds</span>
+                      <span style="color:#F0EEE6">Copilot Business · premium</span><span style="color:#B7B3A8;font-weight:600">500</span><span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">Remove</span>
+                      <span style="grid-column:1 / -1;color:#E58C6C;padding-bottom:6px">unmatched · this limit is no longer reported · kept, not applied</span>
+                      <span style="color:#F0EEE6">Claude Team · extra usage</span><span style="color:#B7B3A8;font-weight:600">€250.00</span><span style="font-weight:600;text-decoration:underline;text-underline-offset:3px">Edit</span>
+                      <span style="grid-column:1 / -1;color:#E58C6C">currency mismatch · provider limit is in USD · not applied, provider limit applies</span>
+                    </div>
+                    <div style="color:#9D998E">A cap is yours, never the provider's limit. The lower of cap and provider limit applies. Caps are set in the pool's own unit or currency.</div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">Appearance</div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="color:#F0EEE6">Show values</span><span style="flex:1"></span><div style="display:flex;padding:2px;gap:2px;background:#2A2927;border-radius:7px"><span style="padding:2px 10px;border-radius:5px;background:#3A3936;font-weight:600">Used</span><span style="padding:2px 10px;border-radius:5px;color:#9D998E;font-weight:600">Left</span></div></div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="color:#F0EEE6">Density</span><span style="flex:1"></span><div style="display:flex;padding:2px;gap:2px;background:#2A2927;border-radius:7px"><span style="padding:2px 10px;border-radius:5px;background:#3A3936;font-weight:600">Compact</span><span style="padding:2px 10px;border-radius:5px;color:#9D998E;font-weight:600">Comfortable</span></div></div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="color:#F0EEE6">Show signed-out accounts</span><span style="flex:1"></span><span style="color:#9D998E">Off</span><span style="width:32px;height:18px;box-sizing:border-box;border:1px solid #6B6862;border-radius:9px;position:relative"><span style="position:absolute;left:3px;top:3px;width:10px;height:10px;border-radius:5px;background:#B7B3A8"></span></span></div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="color:#F0EEE6">Always on top</span><span style="flex:1"></span><span style="color:#9D998E">Off</span><span style="width:32px;height:18px;box-sizing:border-box;border:1px solid #6B6862;border-radius:9px;position:relative"><span style="position:absolute;left:3px;top:3px;width:10px;height:10px;border-radius:5px;background:#B7B3A8"></span></span></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;padding-top:2px"><span style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">Monitoring &amp; notifications</span><span style="flex:1"></span><span style="color:#9D998E">every 5 min</span><span style="color:#9D998E">›</span></div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">Data &amp; privacy</div>
+                    <div style="display:flex;align-items:center;gap:8px"><span style="color:#F0EEE6">Delete stored data</span><span style="flex:1"></span><span style="padding:2px 10px;border-radius:6px;background:#B04A3A;color:#F0EEE6;font-weight:600">Confirm</span><span style="color:#9D998E">·</span><span style="padding:2px 10px;border-radius:6px;border:1px solid #55534E;color:#F0EEE6;font-weight:600">Cancel</span></div>
+                    <div style="color:#F07A65">Deletes history, caps, names and sign-ins on this PC. Enter confirms, Esc cancels.</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">Updates</span><span style="flex:1"></span><span style="color:#9D998E">Stable · up to date</span><span style="color:#9D998E">›</span></div>
+                  <div style="display:flex;align-items:center;gap:8px"><span style="font-weight:600;color:#B7B3A8;letter-spacing:.04em;text-transform:uppercase">System status</span><span style="flex:1"></span><span style="color:#9D998E">1 sync failed · Antigravity</span><span style="color:#9D998E">›</span></div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <sc-if value="{{ w.isFirst }}">
+            <div style="flex:1;display:flex;justify-content:center;padding:44px 16px 0">
+              <div style="width:460px;display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:600">Add an account</div>
+                <div style="font-size:13px;line-height:19px;color:#B7B3A8">AI Usage shows how much of each subscription limit is left today. Sign-in opens your browser; nothing is read before you sign in.</div>
+                <sc-for list="{{ w.providers }}" as="p">
+                  <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,#2A2927 0%,#262624 60%);border:1px solid #33322F;border-radius:16px;padding:12px 14px">
+                    <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">{{ p.n }}</span><span style="font-size:12px;line-height:16px;color:#9D998E">{{ p.d }}</span></div>
+                    <span style="flex:1"></span>
+                    <span style="{{ p.btnSt }}">{{ p.b }}</span>
+                  </div>
+                </sc-for>
+                <div style="font-size:12px;line-height:16px;color:#9D998E">One account per provider in this version. Add more later with + in the title bar.</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ w.isTray }}">
+            <div style="display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #2E2D2A"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:14px;font-weight:600">AI Usage</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#9D998E">14:20</span></div>
+              <sc-for list="{{ w.trows }}" as="r">
+                <div style="display:flex;flex-direction:column;gap:4px;padding:9px 14px;border-bottom:1px solid #2E2D2A">
+                  <div style="display:flex;align-items:center;gap:8px"><span style="{{ r.nameSt }}">{{ r.n }}</span><sc-if value="{{ r.hasMark }}"><span style="font-size:12px;font-weight:600;color:#E58C6C">{{ r.mark }}</span></sc-if><span style="flex:1"></span><span style="{{ r.pillSt }}"><span style="{{ r.dotSt }}"></span>{{ r.pill }}</span></div>
+                  <div style="font-size:12px;line-height:16px;color:#B7B3A8">{{ r.line }}</div>
+                </div>
+              </sc-for>
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:12px"><span style="padding:3px 10px;border-radius:6px;background:#E8E4DA;color:#1A1410;font-weight:600">Open AI Usage</span><span style="padding:2px 10px;border-radius:6px;border:1px solid #55534E;font-weight:600">Refresh</span><span style="flex:1"></span><span style="color:#9D998E">Esc closes</span></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ w.isSpec }}">
+            <div style="padding:20px 22px 24px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px 28px;font-size:12px;line-height:16px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">Colour tokens</div>
+                <table class="sv-tbl"><tr><th>Token</th><th>Hex</th><th>Role</th></tr>
+                  <tr><td>bg.page</td><td><span class="sv-sw" style="background:#1F1E1D"></span>#1F1E1D</td><td>window background, title bar</td></tr>
+                  <tr><td>bg.card / card.top</td><td><span class="sv-sw" style="background:#262624"></span>#262624 / #2A2927</td><td>card, vertical gradient top to 60 %</td></tr>
+                  <tr><td>bg.panel / bg.hist</td><td><span class="sv-sw" style="background:#232220"></span>#232220 / #211F1D</td><td>settings panel, history block</td></tr>
+                  <tr><td>bg.input / bg.tip</td><td><span class="sv-sw" style="background:#1A1918"></span>#1A1918 / #151413</td><td>text box; tooltip, menu, undo bar</td></tr>
+                  <tr><td>line / line.card / line.ctl</td><td>#2E2D2A / #33322F / #55534E</td><td>dividers, card border, outline buttons</td></tr>
+                  <tr><td>ink / ink2 / ink3</td><td><span class="sv-sw" style="background:#F0EEE6"></span>#F0EEE6 / #B7B3A8 / #9D998E</td><td>text levels; ink3 ≥ 5.10 on every surface</td></tr>
+                  <tr><td>rail / prev / grey</td><td>#34332F / #8C887E / #75716A</td><td>bar track, used before today, not available today</td></tr>
+                  <tr><td>ok m / p</td><td><span class="sv-sw" style="background:#7FB98F"></span>#7FB98F / #5E8A6B</td><td>fill / hatch; text #7FB98F</td></tr>
+                  <tr><td>att m / p / text</td><td><span class="sv-sw" style="background:#D97757"></span>#D97757 / #A35C44 / #E58C6C</td><td>orange states</td></tr>
+                  <tr><td>crit m / p / d / text</td><td><span class="sv-sw" style="background:#E5604A"></span>#E5604A / #B04A3A / #6E2E25 / #F07A65</td><td>red states; destructive Confirm #B04A3A</td></tr>
+                  <tr><td>neutral m / p</td><td><span class="sv-sw" style="background:#B7B3A8"></span>#B7B3A8 / #6B6862</td><td>no-budget states, stale</td></tr>
+                  <tr><td>button.primary</td><td><span class="sv-sw" style="background:#E8E4DA"></span>#E8E4DA on #1A1410</td><td>Save, Sign in, Open, Undo</td></tr>
+                  <tr><td>focus</td><td>#F0EEE6, 2 px, offset 2 px</td><td>every focusable element</td></tr>
+                  <tr><td>pill bg</td><td>state m at 14 % (crit 16 %, neutral 12 %)</td><td>composited on the card; pill text uses the text token</td></tr>
+                </table>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">Type ramp (effective px)</div>
+                <table class="sv-tbl"><tr><th>Role</th><th>Font</th><th>Size / line</th><th>Weight</th></tr>
+                  <tr><td>Heading (first run)</td><td>Source Serif 4</td><td>20 / 26</td><td>600</td></tr>
+                  <tr><td>Card name, panel title</td><td>Source Serif 4</td><td>16 / 20</td><td>600</td></tr>
+                  <tr><td>Window title, tray name</td><td>Source Serif 4</td><td>14 / 18</td><td>600</td></tr>
+                  <tr><td>Body, figures, labels</td><td>Hanken Grotesk, tabular</td><td>12 / 16</td><td>400 · 600</td></tr>
+                  <tr><td>Section heads</td><td>Hanken Grotesk caps +4 %</td><td>12 / 16</td><td>600</td></tr>
+                  <tr><td>Intro text</td><td>Hanken Grotesk</td><td>13 / 19</td><td>400</td></tr>
+                  <tr><td>Clock</td><td>IBM Plex Mono, tabular</td><td>12 / 16</td><td>400</td></tr>
+                </table>
+                <div style="color:#9D998E">All fonts SIL OFL 1.1 (Google Fonts repositories); ship .ttf in the MSIX after the licence-page and tnum check. Figures use Typography.NumeralAlignment=Tabular. Names outside the fonts' scripts fall back to Segoe UI Variable.</div>
+                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;margin-top:8px">Sizes, radii, strokes</div>
+                <table class="sv-tbl">
+                  <tr><td>Window</td><td>760 × 600 default · radius 8 · title bar 38 · grid 2 × 1fr</td></tr>
+                  <tr><td>Density</td><td>Compact (default): body padding 12, gap 8, card padding 8 12, inner gap 6, strip–bar gap 3, over label on the strip row, card 97 high · Comfortable: body padding 14, gap 12, card padding 13 15 12, inner gap 10, strip–bar gap 8, over label below the strip, card 123 high</td></tr>
+                  <tr><td>Card</td><td>radius 20 (circular in XAML) · border 1 · label column 40 + gap 10</td></tr>
+                  <tr><td>Today strip</td><td>cells gap 4 · height 14 · radius 6 · hatch 135°, 3 + 3 px</td></tr>
+                  <tr><td>Bar</td><td>track 8, radius 4 · today ring 16 high, stroke 1.5, radius 7, 4 px past each end · cap tick 2 × 14 · over tick 2 × 12 ink · 5h dividers 2 px card colour</td></tr>
+                  <tr><td>Pill</td><td>height 20 · padding 0 9 · dot 6 · gap 5</td></tr>
+                  <tr><td>Controls</td><td>buttons 22–24 high, radius 6 · icon buttons 24 (28 in the title bar) · text box 24–26, border 1 ink when focused · switch 32 × 18</td></tr>
+                  <tr><td>Strip, undo bar</td><td>sign-in strip 34 under the title bar · undo bar 36 high, 16 from the bottom, radius 9</td></tr>
+                  <tr><td>Tray</td><td>360 wide · row padding 9 14 · radius 8</td></tr>
+                </table>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">Keyboard</div>
+                <table class="sv-tbl">
+                  <tr><td>Tab order</td><td>Used/Left → + → Settings → sign-in strip action → cards in reading order → undo bar</td></tr>
+                  <tr><td>On a card</td><td>Enter history · F2 rename · C edit cap · Tab reaches History and Sign out · Alt+↑/↓ reorder</td></tr>
+                  <tr><td>Card tooltips</td><td>shown on keyboard focus as on hover; ← → move between today cells, bar and footer; nothing is hover-only</td></tr>
+                  <tr><td>Editors</td><td>Enter saves · Esc cancels · an empty cap + Enter removes it (undo offered)</td></tr>
+                  <tr><td>Window</td><td>Ctrl+, settings · Ctrl+N add account · Ctrl+Z undo · F5 refresh · Esc closes panel, menu or history</td></tr>
+                  <tr><td>Confirm · Cancel</td><td>focus moves to Cancel; Enter on Confirm deletes, Esc cancels</td></tr>
+                </table>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600">Accessible names (Narrator)</div>
+                <table class="sv-tbl">
+                  <tr><td>Card</td><td>“Claude Pro, 5 hour and 7 day, OK. Today 2 five-hour windows, 28 percent of the current window allowed. 7 day 47 percent used, about 4 windows left, estimate. Resets Monday 09:00.”</td></tr>
+                  <tr><td>Card, red</td><td>“Codex Pro, 7 day limit used up, back Friday 09:30.” · “Claude Pro extra usage, over today by 2 dollars, 218 dollars of your 300 dollar cap, period assumed.”</td></tr>
+                  <tr><td>Stale</td><td>“Antigravity AI Plus group 1, sync failed, reading from 13:38, 42 minutes old. 36 percent used.”</td></tr>
+                  <tr><td>Today cell</td><td>“Current 5 hour window until 16:05, 72 percent used, 28 percent allowed today.”</td></tr>
+                  <tr><td>Controls</td><td>“Add account”, “Settings”, “Show values: used”, “Sign out Claude Pro”, “History, Claude Pro 7 day”, “Cap for Codex Pro credits, 17,000”</td></tr>
+                </table>
+                <div style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;margin-top:8px">Motion</div>
+                <table class="sv-tbl">
+                  <tr><td>Bar and strip widths</td><td>200 ms, decelerate</td></tr>
+                  <tr><td>Settings panel, history</td><td>250 ms slide or expand, decelerate</td></tr>
+                  <tr><td>Strip, undo bar, menu</td><td>150 ms fade; the undo bar stays 10 s, longer while focused</td></tr>
+                  <tr><td>Tooltip</td><td>400 ms delay, 100 ms fade</td></tr>
+                  <tr><td>Sign-in progress</td><td>indeterminate slide 1.4 s</td></tr>
+                  <tr><td>Animation effects off</td><td>all changes instant; progress becomes static “waiting” text; no state is carried by motion</td></tr>
+                </table>
+                <div style="color:#9D998E">WinUI 3: corner-shape squircle → CornerRadius; no ring glow; hatch → tiled brush or composition surface, to confirm in a spike. Solid backgrounds only.</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ w.hasMenu }}">
+            <div style="position:absolute;z-index:5;top:34px;right:44px;width:250px;padding:4px;background:#151413;border:1px solid #3A3936;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:12px">
+              <sc-for list="{{ w.menu }}" as="m"><div style="{{ m.st }}"><span style="{{ m.nSt }}">{{ m.n }}</span><span style="flex:1"></span><span style="color:#9D998E">{{ m.r }}</span></div></sc-for>
+              <div style="height:1px;background:#2E2D2A;margin:4px 0"></div>
+              <div style="display:flex;align-items:center;gap:8px;height:30px;padding:0 10px"><span style="width:12px;height:12px;border:1px solid #9D998E;border-radius:3px"></span><span>Show signed-out accounts</span></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ w.hasUndo }}">
+            <div style="position:absolute;z-index:5;left:50%;bottom:16px;transform:translateX(-50%);height:36px;display:flex;align-items:center;gap:12px;padding:0 8px 0 14px;background:#151413;border:1px solid #3A3936;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:12px;white-space:nowrap"><span>{{ w.undoText }}</span><span style="padding:2px 10px;border-radius:6px;background:#E8E4DA;color:#1A1410;font-weight:600">Undo</span><span style="color:#9D998E">Ctrl+Z</span></div>
+          </sc-if>
+          <sc-if value="{{ w.hasTip }}">
+            <div style="{{ w.tipSt }}"><sc-for list="{{ w.tipLines }}" as="l"><div style="{{ l.st }}">{{ l.text }}</div></sc-for></div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ w.hasMeasure }}"><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8C887E">{{ w.measure }}</div></sc-if>
+      </div>
+    </sc-for>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  refs = Array.from({ length: 12 }, () => React.createRef());
+  state = { tip: null, fit: {} };
+  C = { card: '#262624', rail: '#34332F', prev: '#8C887E', gray: '#75716A', ink: '#F0EEE6',
+    ok: { m: '#7FB98F', p: '#5E8A6B', tx: '#7FB98F', bg: 'rgba(127,185,143,.14)' }, att: { m: '#D97757', p: '#A35C44', tx: '#E58C6C', bg: 'rgba(217,119,87,.14)' }, crit: { m: '#E5604A', p: '#B04A3A', d: '#6E2E25', tx: '#F07A65', bg: 'rgba(229,96,74,.16)' }, neutral: { m: '#B7B3A8', p: '#6B6862', tx: '#B7B3A8', bg: 'rgba(183,179,168,.12)' } };
+  measureSoon() {
+    if (this._mt) return;
+    this._mt = setTimeout(() => {
+      this._mt = null;
+      const fit = {};
+      [0, 1].forEach(i => {
+        const el = this.refs[i].current; if (!el) return; const g = el.querySelector('[data-grid]'); if (!g) return;
+        const s = (el.getBoundingClientRect().width / el.offsetWidth) || 1, gt = g.getBoundingClientRect().top;
+        const bottom = Array.from(g.children).reduce((m, c) => Math.max(m, c.getBoundingClientRect().bottom), gt);
+        fit[i] = Math.round(38 + 2 + (bottom - gt) / s + 12);
+      });
+      if (JSON.stringify(fit) !== JSON.stringify(this.state.fit)) this.setState({ fit });
+    }, 800);
+  }
+  sc() {
+    const asm = ['resets 1 Nov (assumed)', 'Assumed reset Sun 1 Nov 00:00', 'Calendar month · provider sends no period'];
+    const rqR = ['resets 1 Nov', 'Resets 1 Nov (date from provider)', 'Start assumed 1 Oct'];
+    return {
+      claude5: { kind: 'w5', name: 'Claude Pro', tag: '5h + 7d', P: 100, ws: 12, started: true, winEnd: '16:05', st: 'ok', pill: 'OK', u0: 38, u: 47, t: 56.4, cwU: 72, reset: ['resets Mon 09:00', 'Resets Mon 19 Oct 09:00', 'in 4 d 18 h 40 min'] },
+      claudeX: { kind: 'us', name: 'Claude Pro', tag: 'extra usage', P: 500, cap: 300, D: 7, st: 'crit', pill: 'over today', u0: 209, u: 218, t: 216, reset: asm },
+      codex7: { kind: 'd7', name: 'Codex Pro', tag: '5h + 7d', P: 100, D: 20, st: 'crit', pill: '7d used up', pt: ['7d limit used up', 'Back Fri 16 Oct 09:30 · in 1 d 19 h 10 min'], u0: 96, u: 100, t: 97.7, f1t: ['5h window size not estimated yet', 'Current 5h window 91 % used · until 15:48'], todayTip: 'Current 5h window 91 % used · until 15:48', reset: ['back Fri 09:30', 'Resets Fri 16 Oct 09:30', 'in 1 d 19 h 10 min'] },
+      codexC: { kind: 'cr', name: 'Codex Pro', tag: 'credits', cap: 17000, P: 17000, D: 842, est: true, st: 'ok', pill: 'OK', u0: 6050, u: 6480, t: 6892, f1t: ['Custom cap 17,000 · tracked since 3 Oct (estimate)', 'Provider balance 10,160 credits'], reset: asm },
+      cpC: { kind: 'rq', name: 'Copilot Free', tag: 'completions', P: 2000, D: 62, st: 'ok', pill: 'OK', u0: 1190, u: 1210, t: 1252, f1t: ['Provider limit 2,000 requests', 'Provider remaining 790'], reset: rqR },
+      cpH: { kind: 'rq', name: 'Copilot Free', tag: 'chat', P: 50, D: 3, st: 'ok', pill: 'OK', u0: 11, u: 12, t: 14, f1t: ['Provider limit 50 requests', 'Provider remaining 38'], reset: rqR },
+      cpP: { kind: 'note', name: 'Copilot Free', tag: 'premium', st: 'neutral', pill: 'not included', pt: ['Not included', 'This plan has no premium requests'], lines: [['month', 'not included in plan', 'resets 1 Nov']] },
+      ag1: { kind: 'd7', name: 'Antigravity AI Plus', tag: 'group 1', P: 100, D: 20, stale: true, st: 'neutral', pill: 'sync failed · 13:38', pt: ['Sync failed 14:15 · showing the reading from 13:38', 'Reading 42 min old · retry in 5 min'], u0: 30, u: 36, t: 53.3, reset: ['resets Sat 11:00', 'Resets Sat 17 Oct 11:00', 'in 2 d 20 h 40 min'] },
+      ag2: { kind: 'pw', name: 'Antigravity AI Plus', tag: 'group 2', P: 100, stale: true, unitL: 'window', st: 'neutral', pill: 'period unknown', pt: ['Period unknown · as of 13:38', 'Window length not sent · no daily budget'], u: 19, todayNote: 'no daily budget', f1t: ['Window length unknown', 'Used and reset come from the provider'], reset: ['resets Mon 04:00', 'Resets Mon 19 Oct 04:00', 'in 4 d 13 h 40 min'] }
+    };
+  }
+  tipOn(wi, lines) {
+    return e => {
+      const win = this.refs[wi].current; if (!win) return;
+      const W = win.offsetWidth || 760;
+      const wr = win.getBoundingClientRect(), s = (wr.width / W) || 1, b = e.currentTarget.getBoundingClientRect();
+      const H = wr.height / s, h = lines.length * 17 + 14;
+      let x = Math.max(8, Math.min((b.left - wr.left) / s, W - 280));
+      let y = (b.bottom - wr.top) / s + 6;
+      if (y + h > H - 6) y = (b.top - wr.top) / s - 6 - h;
+      this.setState({ tip: { wi, x, y, lines } });
+    };
+  }
+  fmt(kind) {
+    if (kind === 'cr' || kind === 'rq') return v => Math.round(Number(v) || 0).toLocaleString('en-US');
+    if (kind === 'us') return v => '$' + (Number(v) || 0).toFixed(2);
+    return v => Math.round(Number(v) || 0) + ' %';
+  }
+  cells(d, left) {
+    const fm = this.fmt(d.kind), r = v => Math.round(v);
+    const out = [];
+    if (d.kind === 'w5') {
+      const over = d.u - d.t;
+      if (over > 0 || d.t - d.u <= 0.001) {
+        const oW = Math.max(0, over) / d.ws * 100;
+        out.push({ parts: over > 0 ? [['usedCrit', d.cwU - oW], ['over', oW], ['critRest', 100 - d.cwU]] : [['used', d.cwU], ['gray', 100 - d.cwU]], tip: ['Current 5h window · until ' + d.winEnd, 'Nothing left today'] });
+        return out;
+      }
+      let A = (d.t - d.u) / d.ws * 100;
+      const rest = 100 - d.cwU, a0 = Math.min(rest, A); A -= a0;
+      out.push({ parts: [['used', d.cwU], ['allow', a0], ['gray', A > 0.01 ? 0 : rest - a0]] });
+      while (A > 0.01) { const a = Math.min(100, A); A -= a; out.push({ parts: [['allow', a], ['gray', A > 0.01 ? 0 : 100 - a]] }); }
+      out.forEach((c, i) => {
+        const u = c.parts.find(p => p[0] === 'used'), al = c.parts.find(p => p[0] === 'allow')[1], g = c.parts.find(p => p[0] === 'gray');
+        const lines = [i === 0 ? 'Current 5h window · until ' + d.winEnd : (g && g[1] > 0 ? 'Last 5h window today' : 'Next 5h window')];
+        if (left) lines.push(al > 0 ? r(al) + ' % of window left today' : 'Window full');
+        else lines.push((u && u[1] > 0 ? r(u[1]) + ' % used · ' : '') + (al > 0 ? r(al) + ' % allowed today' : 'window full'));
+        if (g && g[1] > 0) lines.push('Grey: counts against tomorrow');
+        c.tip = lines;
+      });
+      return out;
+    }
+    const base = d.t - d.u0, ut = d.u - d.u0, gray = Math.max(0, (d.D || 0) - base);
+    const lines = ['Today'];
+    let parts;
+    if (d.u > d.t) { parts = [['usedCrit', base], ['over', d.u - d.t], ['gray', gray]]; lines.push(fm(ut) + ' used of ' + fm(base) + ' allowed', fm(d.u - d.t) + ' over today’s allowance'); }
+    else { parts = [['used', ut], ['allow', d.t - d.u], ['gray', gray]]; lines.push(left ? fm(d.t - d.u) + ' of ' + fm(base) + ' left' : fm(ut) + ' of ' + fm(base) + ' used'); }
+    if (gray > 0) lines.push('Grey: ' + (d.kind === 'd7' ? '7d limit cuts today’s share' : 'cap cuts today’s share'));
+    if (d.todayTip) lines.push(d.todayTip);
+    return [{ parts, tip: lines }];
+  }
+  card(d, wi, left, dense) {
+    const C = this.C, tn = C[d.st];
+    const stripe = (a, b) => 'repeating-linear-gradient(135deg,' + a + ' 0 3px,' + b + ' 3px 6px)';
+    const f = v => (Math.round(v * 100) / 100) + '%';
+    const bg = k => (left
+      ? { used: stripe(tn.p, C.rail), allow: tn.m, gray: C.gray, usedCrit: stripe(C.crit.p, C.crit.d), over: stripe(C.crit.m, C.crit.p), critRest: C.crit.d }
+      : { used: tn.m, allow: stripe(tn.p, C.rail), gray: C.gray, usedCrit: C.crit.p, over: C.crit.m, critRest: C.crit.d })[k];
+    const rank = k => (k === 'gray' || k === 'critRest') ? (left ? 0 : 4) : (left ? k === 'allow' : k !== 'allow') ? 1 : 2;
+    const actSt = { padding: '1px 9px', border: '1px solid #55534E', borderRadius: '6px', color: '#F0EEE6', fontSize: '12px', fontWeight: 600, lineHeight: '16px', whiteSpace: 'nowrap', marginLeft: 'auto' };
+    const ce = d.capEdit || null;
+    const base = { isHist: false, isCard: true, hasCas: !!d.cas, cas: d.cas || '', name: d.name, tag: d.tag, pill: d.pill,
+      editName: !!d.editName, nameNotEdit: !d.editName, icons: !!d.icons,
+      hasMark: !!d.mark, mark: d.mark || '', markEnter: this.tipOn(wi, d.markT || [d.mark || '']),
+      hasAction: !!d.action && !ce, noteAction: !!d.action && !ce, action: d.action || '', actSt,
+      capEdit: !!ce, noCapEdit: !ce, capVal: ce ? ce.v : '', capUnit: ce ? ce.u : '', capCanRemove: ce ? !!ce.rm : false, capHint: ce ? ce.h : '',
+      cardSt: { background: d.fresh ? 'linear-gradient(180deg,#2F2D2A 0%,#262624 60%)' : 'linear-gradient(180deg,#2A2927 0%,#262624 60%)', border: '1px solid ' + (d.fresh ? '#5E8A6B' : '#33322F'), borderRadius: '20px', boxShadow: '0 1px 0 rgba(255,255,255,.03) inset,0 6px 18px rgba(0,0,0,.22)', outline: d.focus ? '2px solid #F0EEE6' : 'none', outlineOffset: '2px', padding: dense ? '8px 12px 8px' : '13px 15px 12px', display: 'flex', flexDirection: 'column', gap: dense ? '6px' : '10px', minWidth: 0, color: d.stale ? '#B7B3A8' : '#F0EEE6' },
+      pillSt: { display: 'inline-flex', alignItems: 'center', gap: '5px', height: '20px', padding: '0 9px', borderRadius: '99px', background: tn.bg, color: tn.tx, fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap', cursor: 'default' },
+      dotSt: { width: '6px', height: '6px', borderRadius: '50%', background: tn.m },
+      pillEnter: this.tipOn(wi, d.pt || (d.pill === 'over today' ? ['Over today', 'Today’s allowance is exceeded'] : ['On track', 'Today’s allowance is not used up'])) };
+    if (d.kind === 'note') return { ...base, hasBars: false, isNote: true, lines: d.lines.map(l => ({ k: l[0], v: l[1], r: l[2] })) };
+    const fm = this.fmt(d.kind), P = d.P, pc = v => v / P * 100;
+    const dim = d.stale ? 0.7 : 1;
+    const X = (l, w) => left ? [100 - l - w, w] : [l, w];
+    const seg = (l, w, b) => { const p = X(l, w); return { st: { position: 'absolute', left: f(p[0]), width: f(Math.max(0, p[1])), top: 0, bottom: 0, background: b } }; };
+    const common = { ...base, hasBars: true, isNote: false,
+      barSt: { gridColumn: 2, gridRow: 4, position: 'relative', height: '20px', margin: dense ? '-2px 0' : 0, minWidth: 0, opacity: dim },
+      spSt: { gridColumn: 2, gridRow: 3, height: dense ? '3px' : '8px' },
+      f2: d.reset[0], f2Enter: this.tipOn(wi, d.reset.slice(1)) };
+    if (d.kind === 'pw') {
+      const segs = [seg(0, d.u, bg('used'))];
+      if (left) segs.push(seg(d.u, 100 - d.u, bg('allow')));
+      return { ...common, unit: d.unitL || '7d', hasStrip: false, hasTodayNote: true, todayNote: d.todayNote, cells: [], stripSt: {}, hasLab: false, lab1: '', labSt: {}, segs, ringSt: { display: 'none' }, hasOverTick: false, overTickSt: {}, hasCapMark: false, capMarkSt: {},
+        barEnter: this.tipOn(wi, ['Window', left ? fm(100 - d.u) + ' left' : fm(d.u) + ' used']), f1: left ? fm(100 - d.u) + ' left' : fm(d.u) + ' used', f1Enter: this.tipOn(wi, d.f1t) };
+    }
+    const u0 = pc(d.u0), u = pc(d.u), t = pc(d.t), hi = Math.max(u, t), lo = Math.min(u, t);
+    const capP = d.cap ? pc(d.cap) : 100;
+    const segs = [];
+    if (left) segs.push(seg(hi, Math.max(0, capP - hi), C.prev)); else segs.push(seg(0, u0, C.prev));
+    if (capP < 100) segs.push(seg(Math.max(capP, hi), 100 - Math.max(capP, hi), stripe('#2A2927', '#34332F')));
+    segs.push(seg(u0, lo - u0, bg(d.u > d.t ? 'usedCrit' : 'used')));
+    if (t > u) segs.push(seg(u, t - u, bg('allow')));
+    if (u > t) segs.push(seg(t, u - t, bg('over')));
+    if (d.kind === 'w5') { const st = d.started ? d.u - d.cwU * d.ws / 100 : d.u; for (let k = st + d.ws; k < 99.5; k += d.ws) if (k > d.u + 0.5) segs.push({ st: { position: 'absolute', left: f(left ? 100 - k : k), width: '2px', marginLeft: left ? '-2px' : 0, top: 0, bottom: 0, background: C.card } }); }
+    const rg = X(u0, hi - u0);
+    let lab = '';
+    if (d.u > d.t) { if (d.kind === 'w5' || d.kind === 'd7') { const p = Math.round((d.u - d.u0) / (d.t - d.u0) * 100); lab = left ? '−' + (p - 100) + ' %' : p + ' %'; } else lab = left ? '−' + fm(d.u - d.t) : '+' + fm(d.u - d.t); }
+    const wN = d.kind === 'w5' ? ' · ≈ ' + Math.floor((P - d.u) / d.ws) + ' × 5h left' : '';
+    let f1, f1t;
+    if (d.cap) { const pre = d.est ? '≈ ' : ''; f1 = pre + (left ? (d.u <= d.cap ? fm(d.cap - d.u) + ' left to cap' : fm(d.u - d.cap) + ' over cap') : fm(d.u) + ' of ' + fm(d.cap) + ' cap'); f1t = d.f1t || ['Custom cap ' + fm(d.cap), 'Provider limit ' + fm(P) + ' · ' + fm(P - d.u) + ' left']; }
+    else if (d.kind === 'rq') { f1 = left ? fm(P - d.u) + ' of ' + fm(P) + ' left' : fm(d.u) + ' of ' + fm(P) + ' used'; f1t = d.f1t; }
+    else { f1 = (left ? fm(P - d.u) + ' left' : fm(d.u) + ' used') + wN; f1t = d.f1t || (d.kind === 'w5' ? ['One 5h window ≈ ' + d.ws + ' % of 7d (estimate)', '≈ ' + Math.floor(100 / d.ws) + ' windows per week'] : ['Usual daily share ≈ ' + d.D + ' % of 7d']); }
+    const top = d.cap ? d.cap : P;
+    const barTip = [d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'Month', (left ? fm(top - d.u) + ' of ' + fm(top) + ' left' : fm(d.u) + ' of ' + fm(top) + ' used')];
+    const labTxt = { fontSize: '12px', fontWeight: 600, color: '#F07A65', whiteSpace: 'nowrap', justifySelf: 'end' };
+    return { ...common, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: true, hasTodayNote: false, todayNote: '',
+      stripSt: { gridColumn: 2, gridRow: 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '4px', height: '14px', boxSizing: 'border-box', paddingRight: dense && lab ? '56px' : 0, opacity: dim },
+      cells: this.cells(d, left).map(c => ({ st: { flex: '1 1 0', minWidth: 0, display: 'flex', borderRadius: '6px', overflow: 'hidden', cursor: 'default' },
+        parts: c.parts.filter(p => p[1] > 0.01).sort((a, b) => rank(a[0]) - rank(b[0])).map(p => ({ st: { flex: p[1] + ' 1 0', background: bg(p[0]), boxShadow: p[0] === 'over' ? 'inset 2px 0 0 ' + C.ink : 'none' } })), enter: this.tipOn(wi, c.tip) })),
+      hasLab: !!lab, lab1: lab, labSt: dense ? { ...labTxt, gridColumn: 2, gridRow: 1, lineHeight: '14px' } : { ...labTxt, gridColumn: 2, gridRow: 2, lineHeight: '15px', marginTop: '5px' }, segs,
+      ringSt: { position: 'absolute', left: 'calc(' + f(rg[0]) + ' - 4px)', width: 'calc(' + f(rg[1]) + ' + 8px)', top: '2px', height: '16px', boxSizing: 'border-box', border: '1.5px solid ' + tn.m, borderRadius: '7px' },
+      hasOverTick: d.u > d.t, overTickSt: { position: 'absolute', left: f(left ? 100 - t : t), top: '4px', width: '2px', height: '12px', marginLeft: '-1px', background: C.ink, borderRadius: '1px' },
+      hasCapMark: capP < 100, capMarkSt: { position: 'absolute', left: f(left ? 100 - capP : capP), top: '3px', width: '2px', height: '14px', marginLeft: '-1px', background: '#9D998E', borderRadius: '1px' },
+      barEnter: this.tipOn(wi, barTip), f1, f1Enter: this.tipOn(wi, f1t) };
+  }
+  hist() {
+    const pat = [14, 18, 16, 21, 12, 3, 0];
+    const jit = [2, -3, 1, 0, -2, 4, -1, 3, -4, 2, 0, 1, -2, 3, -1, 0, 2, -3, 1, 4, -2, 0, 3, -1, 2, -4, 1, 0, -2, 3, 1, -1, 2, 0, -3, 0];
+    const N = 36, bars = [], ticks = [], xl = [];
+    const mon = ['Sep', 'Oct'];
+    for (let i = 0; i < N; i++) {
+      const dt = new Date(2026, 8, 9 + i), wd = (dt.getDay() + 6) % 7, day = dt.getDate(), m = mon[dt.getMonth() - 8];
+      const left = (i / N * 100) + '%';
+      if (wd === 0) {
+        ticks.push({ st: { position: 'absolute', left, top: '94px', width: '1px', height: '12px', background: '#9D998E' } });
+        if (i < 31) xl.push({ t: day + ' ' + m, st: { position: 'absolute', left, top: '104px', fontSize: '12px', lineHeight: '14px', color: '#9D998E', whiteSpace: 'nowrap', paddingLeft: '3px' } });
+      }
+      if (i >= 16 && i <= 19) continue;
+      let v = Math.max(0, pat[wd] + (wd < 5 ? jit[i] : Math.min(0, jit[i])));
+      if (i === 35) v = 9;
+      if (i === 27) v = 19;
+      const h = Math.max(v > 0 ? 2 : 0, v / 25 * 80);
+      const col = i === 35 ? '#7FB98F' : i === 27 ? '#F0EEE6' : '#8C887E';
+      bars.push({ st: { position: 'absolute', left: 'calc(' + left + ' + 1.5px)', width: 'calc(' + (100 / N) + '% - 3px)', top: (100 - h) + 'px', height: h + 'px', background: col, borderRadius: '2px 2px 0 0', outline: i === 27 ? '2px solid #F0EEE6' : 'none', outlineOffset: '2px' } });
+    }
+    xl.push({ t: 'today', st: { position: 'absolute', right: '0', top: '104px', fontSize: '12px', lineHeight: '14px', color: '#7FB98F', fontWeight: 600, whiteSpace: 'nowrap' } });
+    const gapSt = { position: 'absolute', left: 'calc(' + (16 / N * 100) + '% + 1.5px)', width: 'calc(' + (4 / N * 100) + '% - 3px)', top: '40px', height: '60px', boxSizing: 'border-box', border: '1px dashed #6B6862', borderBottom: 'none', borderRadius: '4px 4px 0 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '8px' };
+    const focusTipSt = { position: 'absolute', left: 'calc(' + (27 / N * 100) + '% - 50px)', top: '0px', fontSize: '12px', lineHeight: '16px', padding: '1px 8px', background: '#151413', border: '1px solid #3A3936', borderRadius: '7px', whiteSpace: 'nowrap', color: '#F0EEE6' };
+    return { isCard: false, isHist: true, bars, ticks, xl, gapSt, focusTipSt };
+  }
+  renderVals() {
+    const S = this.sc();
+    const tip = this.state.tip, fit = this.state.fit;
+    const leave = () => { if (this.state.tip) this.setState({ tip: null }); };
+    const btn = on => ({ padding: '3px 10px', borderRadius: '5px', fontSize: '12px', fontWeight: 600, background: on ? '#3A3936' : 'transparent', color: on ? '#F0EEE6' : '#9D998E' });
+    const icon = on => ({ width: '28px', height: '28px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', background: on ? '#3A3936' : 'transparent' });
+    const scen = [S.claude5, S.claudeX, S.codex7, S.codexC, S.cpC, S.cpH, S.cpP, S.ag1, S.ag2];
+    const P = { claude: { n: 'Claude', d: '5h and 7d limits, extra usage' }, codex: { n: 'Codex', d: 'ChatGPT sign-in · 5h and 7d limits, credits' }, copilot: { n: 'GitHub Copilot', d: 'monthly request pools' }, ag: { n: 'Antigravity', d: 'model group windows' } };
+    const prim = { padding: '3px 12px', borderRadius: '6px', background: '#E8E4DA', color: '#1A1410', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' };
+    const busy = { padding: '3px 12px', borderRadius: '6px', border: '1px solid #55534E', color: '#B7B3A8', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' };
+    const mrow = (n, r, on, dis) => ({ n, r, st: { display: 'flex', alignItems: 'center', gap: '8px', height: '30px', padding: '0 10px', borderRadius: '6px', background: on ? '#2E2D2A' : 'transparent', outline: on ? '2px solid #F0EEE6' : 'none', outlineOffset: '-2px' }, nSt: { color: dis ? '#9D998E' : '#F0EEE6', fontWeight: dis ? 400 : 600 } });
+    const pillOf = st => ({ pillSt: { display: 'inline-flex', alignItems: 'center', gap: '5px', height: '20px', padding: '0 9px', borderRadius: '99px', background: this.C[st].bg, color: this.C[st].tx, fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }, dotSt: { width: '6px', height: '6px', borderRadius: '50%', background: this.C[st].m } });
+    const expired = { stale: true, st: 'neutral', pill: '1 h old', mark: 'sign-in expired', markT: ['Sign-in expired', 'Sign in again to refresh'], pt: ['Last reading 13:20', 'Sign in again to refresh'] };
+    const tName = { fontFamily: "'Source Serif 4',Georgia,serif", fontSize: '14px', fontWeight: 600 };
+    const F = [
+      { id: 'S1', title: 'Main window · brief scenario · Used · Compact · 760 × 600', note: 'Four accounts, nine cards, no scrolling. Each card carries its account name; hover or focus shows History and Sign out (S3). The order is the user’s and never changes with state. Compact is the default density; Comfortable (the Provider States cards) needs about 730 px for this scenario and scrolls.', h: 600, dense: true, items: scen.map(d => ({ ...d })), measure: true },
+      { id: 'S2', title: 'Main window · brief scenario · Left · Compact', h: 600, dense: true, left: true, items: scen.map(d => ({ ...d })), measure: true },
+      { id: 'S3', title: 'Inline rename · cap editing · undo · focus', note: 'F2 renames in place. C, or a click on the cap footer, opens the cap editor in place of the footer. Removing a cap or changing work days offers Undo for 10 s. Focus ring 2 px ink, offset 2.', undo: 'Cap removed · Codex Pro credits', items: [
+        { ...S.claude5, cas: 'rename in place (F2)', editName: true, name: 'Claude Pro work' },
+        { ...S.claudeX, cas: 'focused card: History and Sign out appear', focus: true, icons: true },
+        { ...S.codexC, cas: 'cap editor open on the row', capEdit: { v: '17,000', u: 'credits', rm: true, h: 'per month · Enter saves · Esc cancels · empty + Enter removes' } },
+        { kind: 'note', cas: 'no cap: limit unknown → Set cap opens the editor', name: 'Copilot Business', tag: 'premium', st: 'neutral', pill: 'limit unknown', pt: ['Limit unknown', 'Set a cap for a daily budget'], lines: [['month', '340 requests used', 'resets 1 Nov']], capEdit: { v: '500', u: 'requests', h: 'per month · the cap is yours, not the provider’s limit' } },
+        { kind: 'note', cas: 'after Remove: balance only, no budget', name: 'Codex Pro', tag: 'credits', st: 'neutral', pill: 'no cap', pt: ['No cap', 'Set a cap for a daily budget'], lines: [['', 'balance 10,160 credits (provider)', 'no budget']], action: 'Set cap' },
+        { ...S.cpH, cas: 'keyboard focus on a card', focus: true }
+      ] },
+      { id: 'S4', title: 'Inline history (Enter on a card)', note: 'History opens under its card across both columns and pushes the rows below; it is built only from the app’s own readings and keeps at least 35 days. A gap stays a gap.', items: [{ ...S.claude5, focus: true, icons: true }, { ...S.claudeX }, 'HIST', { ...S.codex7 }, { ...S.codexC }] },
+      { id: 'S5', title: 'Settings · inline panel (Ctrl+,)', note: 'Opens beside the cards in the same window and does not replace them. Shown unrolled; in the 600 px window the panel scrolls. Existing sections keep their order, with System status last.', panel: true, cols: 1, items: [S.claude5, S.claudeX, S.codex7, S.codexC] },
+      { id: 'S6', title: 'First run', note: 'No accounts yet: providers listed directly; one click each starts browser sign-in. No empty bars or zero values.', h: 600, first: true, noToggle: true, providers: [
+        { ...P.claude, b: 'Sign in', btnSt: prim }, { ...P.codex, b: 'Waiting…', btnSt: busy }, { ...P.copilot, b: 'Sign in', btnSt: prim }, { ...P.ag, b: 'Sign in', btnSt: prim }],
+        strip: { dot: 'neutral', text: 'Waiting for Codex sign-in in your browser', sub: 'nothing is read until you finish', act: 'Cancel', busy: true } },
+      { id: 'S7', title: 'Sign-in strip · provider menu (+ or Ctrl+N)', note: 'One click on a provider starts browser sign-in. Progress stays in the strip under the title bar; the cards stay usable.', menu: true, items: [S.claude5, S.claudeX],
+        strip: { dot: 'neutral', text: 'Waiting for Antigravity sign-in in your browser', sub: '', act: 'Cancel', busy: true } },
+      { id: 'S8', title: 'Sign-in success', note: 'Success adds the account at the end with a 2 s outline and no confirmation step. The strip hides after 4 s.', items: [S.claude5, S.claudeX, { ...S.ag1, stale: false, st: 'ok', pill: 'OK', fresh: true, pt: null }, { ...S.ag2, stale: false, fresh: true, pt: ['Period unknown', 'Window length not sent · no daily budget'] }],
+        strip: { dot: 'ok', text: 'Antigravity AI Plus added', sub: '2 limits found', act: '', busy: false } },
+      { id: 'S9', title: 'Sign-in failed · sign-in expired', note: 'A failed or cancelled sign-in keeps the strip with Try again. An expired sign-in marks every card of the account, dims its readings and offers Sign in on the card; no dialog.', items: [
+        { ...S.claude5, ...expired, action: 'Sign in' }, { ...S.claudeX, ...expired }],
+        strip: { dot: 'att', text: 'Codex sign-in was cancelled in the browser', sub: '', act: 'Try again', busy: false } },
+      { id: 'S10', title: 'Tray flyout · 360 wide', note: 'Secondary surface: one row per account with its most constraining state. Everything here is also in the window.', tray: true, w: 360 },
+      { id: 'S11', title: 'Tokens and components', spec: true, w: 940 }
+    ];
+    const frames = F.map((fr, wi) => {
+      const W = fr.w || 760, left = !!fr.left, dense = !!fr.dense;
+      const items = [];
+      (fr.items || []).forEach(d => { if (d === 'HIST') items.push(this.hist()); else items.push(this.card(d, wi, left, dense)); });
+      const tt = tip && tip.wi === wi ? tip : null;
+      const s = fr.strip;
+      const sdot = s ? this.C[s.dot] : null;
+      const meas = fr.measure ? ('content ' + (fit[wi] ? fit[wi] + ' px of 600 · ' + (fit[wi] <= 600 ? 'fits without scrolling' : 'does not fit') : 'measuring…')) : '';
+      return {
+        id: fr.id, title: fr.title, ref: this.refs[wi], hasNote: !!fr.note, note: fr.note || '', noteSt: { maxWidth: W + 'px', fontSize: '12px', lineHeight: '16px', color: '#9D998E', textWrap: 'pretty' },
+        winSt: { position: 'relative', width: W + 'px', height: fr.h ? fr.h + 'px' : 'auto', boxSizing: 'border-box', background: '#1F1E1D', border: '1px solid #3A3936', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,.45)', color: '#F0EEE6', fontFamily: "'Hanken Grotesk',sans-serif", fontVariantNumeric: 'tabular-nums', display: 'flex', flexDirection: 'column' },
+        hasBar: !fr.tray && !fr.spec, hasToggle: !fr.noToggle, usedBtnSt: btn(!left), leftBtnSt: btn(left), addSt: icon(!!fr.menu), gearSt: icon(!!fr.panel),
+        hasStrip: !!s, stripText: s ? s.text : '', stripSub: s ? s.sub : '', hasStripAct: !!(s && s.act), stripAct: s ? s.act : '', stripBusy: !!(s && s.busy),
+        stripDotSt: { width: '8px', height: '8px', borderRadius: '50%', background: sdot ? sdot.m : 'transparent', flex: 'none' },
+        stripActSt: s && s.act === 'Try again' ? { padding: '2px 10px', borderRadius: '6px', background: '#E8E4DA', color: '#1A1410', fontWeight: 600 } : { fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: '3px' },
+        hasBody: !fr.tray && !fr.spec && !fr.first,
+        gridSt: { flex: 1, minWidth: 0, padding: dense ? '12px' : (fr.undo ? '14px 14px 66px' : '14px'), display: 'grid', gridTemplateColumns: fr.cols === 1 ? 'minmax(0,1fr)' : 'minmax(0,1fr) minmax(0,1fr)', gap: dense ? '8px' : '12px', alignContent: 'start' },
+        items, hasPanel: !!fr.panel, isFirst: !!fr.first, providers: fr.providers || [],
+        isTray: !!fr.tray, isSpec: !!fr.spec, hasMenu: !!fr.menu,
+        menu: [mrow('Claude', 'added', false, true), mrow('Codex', 'added', false, true), mrow('GitHub Copilot', 'added', false, true), mrow('Antigravity', 'waiting…', true, false)],
+        hasUndo: !!fr.undo, undoText: fr.undo || '',
+        trows: [
+          { n: 'Claude Pro', hasMark: false, mark: '', pill: 'over today', ...pillOf('crit'), line: 'extra usage +$2.00 today · $218.00 of $300.00 cap · 7d 47 % used', nameSt: tName },
+          { n: 'Codex Pro', hasMark: false, mark: '', pill: '7d used up', ...pillOf('crit'), line: 'back Fri 09:30 · credits ≈ 6,480 of 17,000 cap', nameSt: tName },
+          { n: 'Copilot Free', hasMark: false, mark: '', pill: 'OK', ...pillOf('ok'), line: 'completions 1,210 of 2,000 · chat 12 of 50 · premium not included', nameSt: tName },
+          { n: 'Antigravity AI Plus', hasMark: false, mark: '', pill: 'sync failed · 13:38', ...pillOf('neutral'), line: 'reading 42 min old · group 1 36 % used · group 2 19 % used', nameSt: { ...tName, color: '#B7B3A8' } }
+        ],
+        hasMeasure: !!fr.measure, measure: meas,
+        hasTip: !!tt,
+        tipSt: tt ? { position: 'absolute', zIndex: 10, left: tt.x + 'px', top: tt.y + 'px', maxWidth: '272px', padding: '6px 10px', background: '#151413', border: '1px solid #3A3936', borderRadius: '9px', boxShadow: '0 8px 24px rgba(0,0,0,.4)', fontSize: '12px', lineHeight: '17px', pointerEvents: 'none' } : {},
+        tipLines: tt ? tt.lines.map((x, i) => ({ text: x, st: { color: i ? '#B7B3A8' : '#F0EEE6', fontWeight: i ? 400 : 600, whiteSpace: 'nowrap' } })) : []
+      };
+    });
+    this.measureSoon();
+    return { frames, leave };
+  }
+}
+</script>
+</body>
+</html>
