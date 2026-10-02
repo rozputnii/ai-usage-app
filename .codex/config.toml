@@ -1,6 +1,3 @@
-# New experimental Astra context management
-features.context_management.experimental_mode = true
-
 [agents]
 enabled = false
 default_subagent_model = "gpt-6.1-sol"
