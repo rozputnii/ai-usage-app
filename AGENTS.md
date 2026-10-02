@@ -9,6 +9,9 @@ lifetime. Preserve these boundaries and opaque provider/user data.
 
 Inspect the current request and Git state; preserve existing work.
 Follow CONTRIBUTING.md for development, Git publication, and review policy.
+Apply its simplicity and architecture rule: minimum sufficient, readable code;
+clear responsibilities; no speculative abstractions. Ask the owner before materially
+increasing complexity beyond the approved design.
 For substantial work, briefly state the intended result and acceptance checks.
 Complete authorized implementation, relevant verification, and integrated
 review without repeated approval for routine internal steps.
