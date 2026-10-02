@@ -36,7 +36,8 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
             foreach (var observation in group.OrderBy(o => o.FetchedAt)) Add(runs, observation);
             if (runs.Count > 0)
             {
-                var cutoff = runs[^1].LastConfirmed.AddDays(-35);
+                var cutoff = runs[^1].LastConfirmed - DateTimeOffset.MinValue >= TimeSpan.FromDays(35)
+                    ? runs[^1].LastConfirmed.AddDays(-35) : DateTimeOffset.MinValue;
                 int first = runs.FindIndex(r => r.LastConfirmed >= cutoff);
                 if (first > 1) runs.RemoveRange(0, first - 1);
             }
@@ -79,7 +80,7 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
         {
             ResetAt = observation.ResetAt, ResetPrecision = observation.ResetPrecision, UsedPercent = observation.UsedPercent,
             SourceVersion = observation.SourceVersion, IsBalance = observation.IsBalance,
-            PeriodStartedAt = previous?.PeriodStartedAt ?? observation.PeriodStartedAt, RestartAfter = previous?.RestartAfter
+            PeriodStartedAt = previous is null ? observation.PeriodStartedAt : previous.PeriodStartedAt, RestartAfter = previous?.RestartAfter
         };
         if (previous is not null)
         {

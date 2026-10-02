@@ -11,7 +11,8 @@ public sealed class LocalBudgetStoreTests : IDisposable
     private static readonly ReadingSeriesKey Key = new("test-account", new("test", "weekly", "opaque/../key"));
     private static readonly DateTimeOffset Start = new(2026, 10, 6, 0, 0, 0, TimeSpan.Zero);
     private static CancellationToken Token => TestContext.Current.CancellationToken;
-    private LocalBudgetStore Store() => new(root);
+    private readonly List<LocalBudgetStore> stores = [];
+    private LocalBudgetStore Store() { var store = new LocalBudgetStore(root); stores.Add(store); return store; }
     private static ReadingObservation At(decimal value, int minutes) => new(Key, new CountQuantity(value, "percent"), Start.AddMinutes(minutes))
     { ResetAt = Start.AddDays(6), PeriodStartedAt = Start.AddDays(-1), ResetPrecision = ResetPrecision.Instant, PlanType = "opaque plan" };
 
@@ -139,8 +140,28 @@ public sealed class LocalBudgetStoreTests : IDisposable
         Assert.Empty((await Store().LoadConfigurationAsync(Token)).Value.Caps);
     }
 
+    [Fact]
+    public async Task LaterMovingResetCannotInventAnObservedPeriodStart()
+    {
+        await Store().AppendAsync([At(40, -5) with { PeriodStartedAt = null },
+            At(41, 5) with { PeriodStartedAt = Start }], Token);
+        var runs = (await Store().ReadAsync(Key, Token)).Value;
+        Assert.Null(runs[^1].PeriodStartedAt);
+        Assert.Equal(new CountQuantity(40, "percent"), ReadingCalculations.DayStart(runs, Key, runs[^1].PeriodInstance, Start.AddHours(1), TimeZoneInfo.Utc).Value);
+    }
+
+    [Fact]
+    public async Task ExcessSeriesCannotGrowTheOwnedStoreIndefinitely()
+    {
+        var observations = Enumerable.Range(0, 256).Select(i => At(1, 0) with { Series = Key with { Limit = Key.Limit with { NativeDiscriminator = "series-" + i } } }).ToArray();
+        await Store().AppendAsync(observations, Token);
+        await Assert.ThrowsAsync<IOException>(() => Store().AppendAsync([At(2, 0)], Token));
+        Assert.Equal(256, Directory.GetFiles(Path.Combine(root, "budget"), "series-*.json").Length);
+    }
+
     public void Dispose()
     {
+        foreach (var store in stores) store.Dispose();
         if (Directory.Exists(root)) Directory.Delete(root, true);
     }
 }

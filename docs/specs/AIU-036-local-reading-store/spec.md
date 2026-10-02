@@ -26,6 +26,8 @@ parser revision or presentation redesign belongs to this item.
   within the last 35 days, plus the preceding run for boundary calculations. Capacity exhaustion
   rejects the new write instead of silently discarding retained observations. Configuration is
   separately bounded to 256 KiB and 1,024 caps. No new package dependency is needed.
+  The owned namespace additionally allows at most 256 distinct series, including quarantined
+  ones, and 512 MiB including the staged replacement and recovery copies.
 - Coalesce only the latest run, with equal values, plan, source/version and period instance,
   at most 15 minutes between confirmations. Reset jitter updates the open run's latest reset;
   transition detection uses AIU-035. Older/equal fetch times cannot rewrite history. A unit or

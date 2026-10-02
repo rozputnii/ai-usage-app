@@ -54,6 +54,7 @@ internal sealed class BudgetJsonFile(string directory)
         if (bytes.Length > maximumBytes) throw new IOException("Store capacity reached.");
         var path = PathFor(name);
         var staged = path + ".stage-" + Guid.NewGuid().ToString("N");
+        EnsureCapacity(name, bytes.Length);
         Check(path);
         Check(staged);
         try
@@ -75,5 +76,25 @@ internal sealed class BudgetJsonFile(string directory)
             Check(staged);
             if (File.Exists(staged)) File.Delete(staged);
         }
+    }
+
+    private void EnsureCapacity(string name, int incomingBytes)
+    {
+        ProviderStatePaths.CheckDirectory(directory);
+        long total = incomingBytes; // Includes staging alongside the previous committed file.
+        var series = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var path in Directory.EnumerateFileSystemEntries(directory))
+        {
+            Check(path);
+            total = checked(total + new FileInfo(path).Length);
+            var file = Path.GetFileName(path);
+            if (file.StartsWith("series-", StringComparison.Ordinal))
+            {
+                int end = file.IndexOf(".json", StringComparison.Ordinal);
+                if (end >= 0) series.Add(file[..(end + 5)]);
+            }
+        }
+        if (name.StartsWith("series-", StringComparison.Ordinal)) series.Add(name);
+        if (series.Count > 256 || total > 512L * 1024 * 1024) throw new IOException("Budget storage capacity reached.");
     }
 }

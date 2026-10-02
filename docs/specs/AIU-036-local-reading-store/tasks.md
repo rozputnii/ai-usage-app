@@ -54,4 +54,6 @@ replace; cleanup with unknown files/reparse points; stop or sign-out while recor
 ## Handoff
 
 Base: aeaf11e. Existing AIU-034 tasks and verification edits are unrelated and preserved.
-Next action: implement and run T-01 persisted-store tests. No live sign-in is needed yet.
+Stores, recorder, cleanup and P01-P11 persisted replay are implemented; targeted checks pass.
+Next action: run full regressions and the required independent lifecycle review, then resolve
+material findings and update completion evidence. No live sign-in is needed.
