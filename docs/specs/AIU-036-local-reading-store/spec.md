@@ -1,7 +1,7 @@
 ---
 id: AIU-036
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Derived from the owner's current instruction to execute AIU-036 and the accepted AIU-034 research; no separate specification approval is claimed.

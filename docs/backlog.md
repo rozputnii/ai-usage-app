@@ -347,10 +347,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-036 - [astra] Local reading series and budget configuration store
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-033, AIU-035]
 - specification: docs/specs/AIU-036-local-reading-store/spec.md
 - evidence: docs/specs/AIU-036-local-reading-store/verification.md
+- outcome-note: Completed 2026-10-02. Versioned bounded observation/configuration stores, successful-refresh recording, 35-day retention, recovery reporting and owned-data cleanup are implemented. Persisted P01-P11 and session estimates pass; Infrastructure 416/416, Presentation 179/179, Windows build/smoke and focused lifecycle review with resolved findings are recorded. Owner clarification limits cleanup to these stores; wiring currently unsupported product delete/reset buttons is deferred. Live-provider recording is NOT_RUN; the new presentation remains AIU-038/039.
 - trigger: owner-selection
 - outcome: Every automatic or manual refresh writes the local reading series of research 6.2 to 6.6. It is the only history source (D-184), is kept for at least 35 days, and supplies the day-start amount, tracked consumption, estimator samples and inline history. A new budget configuration file holds the work days (Monday to Friday by default) and the personal caps, including unmatched caps and currency mismatches (research 5.4, 5.7).
 - acceptance: (1) A security-lifecycle review of both stores is recorded before merge. It covers app-owned storage, owned-root cleanup, sign-out retention under D-093, factory reset, forward migration and corrupt-file recovery (research 6.6 precondition). (2) Both stores are versioned and size-bounded, with staged replace and reparse-point checks, and are separate from provider state and appearance preferences. (3) Sign-out keeps the series and the caps; Delete stored data and factory reset remove them. A corrupt store is set aside and a new series starts, with the losses research 6.6 lists. (4) No credential, raw payload or identity beyond the existing account target ID is stored. (5) Research cases P01 to P11 pass on a persisted round trip of the series.
@@ -362,6 +363,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - goal: G-003
 - status: idea
 - depends_on: [AIU-035]
+- integration-note: AIU-036 already captures existing normalized snapshots under explicit legacy-window-v1, legacy-balance-v1 and legacy-extra-v1 series keys. Establish an explicit compatible mapping to native limit keys when adopting this model; never silently merge unlike series or discard the recorded history. See the AIU-036 specification.
 - trigger: owner-selection
 - outcome: The Claude, Codex, Copilot and Antigravity parsers fill the AIU-035 model for every provider limit in the research 5.5 mapping. This includes the Codex negative credit balance (M-02), the reset precision the provider actually sent (M-04) and the Codex individual control (M-07): its percentages become a window, and its raw amounts become a secondary amount of unknown unit. The Codex quota cache moves to envelope version 2 and the Claude, Copilot and Antigravity states to version 2, each with a forward migration (research 5.7).
 - acceptance: (1) Every research 5.5 mapping row has a parser test with synthetic payloads, and each test keeps absent, explicit null, unlimited and zero distinct. (2) Opaque provider values are stored verbatim, and no raw payload is persisted. (3) Each v1 to v2 migration is tested. It preserves identity, grant and generation, drops only a cached quota that cannot be migrated, and follows the AIU-006 discipline: versioned, backed up, interruptible and recoverable. (4) A security-lifecycle review is recorded before merge. (5) No new transport, grant, scope, provider request or UI-only pool figure (PD-034-03).

@@ -1,6 +1,24 @@
 # AIU-036 verification
 
-2026-10-02, local Windows. Base: aeaf11e.
+2026-10-02, local Windows. Base: aeaf11e. Final implementation: ba1bf87.
+
+## Acceptance
+
+| Check | Verdict | Evidence |
+| --- | --- | --- |
+| AC-01 refresh recording/drain | PASS | LiveReadingRecorderTests and production-recorder filesystem test |
+| AC-02 persisted P01-P11 | PASS | PersistedBudgetCalculationTests, real writer/reader instances |
+| AC-03 sessions/values | PASS | 12% paired-session sample cost, signed balance and money round trips |
+| AC-04 configuration/retention on sign-out | PASS | Defaults/unmatched currency caps tests; disconnect exclusion; appearance reset owns a separate file |
+| AC-05 safety/recovery/cleanup | PASS | Windows junction/held-file/capacity/recovery/cleanup tests; owner-approved store-only cleanup scope |
+| AC-06 regressions and review | PASS | 416 Infrastructure + 179 Presentation tests; required review findings resolved below |
+
+No live-provider success, installed-package update or complete product factory reset is
+claimed. Compatibility keys stay explicitly `legacy-*-v1`; AIU-037 must map them to its
+native limit keys, and AIU-039 supplies the new presentation. Source precision not exposed
+by the current snapshot contract is not fabricated.
+
+## Initial checkpoint
 
 - NOT_RUN: implementation checks, full regressions and independent lifecycle review.
 - NOT_RUN: live-provider and interactive Windows checks; no credentials read or sign-in started.
@@ -54,6 +72,34 @@
   and did not reject orphan configuration stages. Both could retain old caps while returning
   success. Two regression cases failed first; cleanup now rescans and refuses before deleting
   account data when unparsed shared configuration exists. All 9 storage-safety tests pass.
-- A fresh read-only Luna/max review is in progress against aeaf11e..014fc31. The primary
-  cleanup finding and targeted fix were communicated for deduplication; no review result is
-  inferred from the test pass.
+- A fresh read-only Luna/max review covered aeaf11e..014fc31 under the model policy in force
+  when dispatched. The unrelated 868da29 instruction/configuration change arrived afterward
+  and was preserved; no additional reviewer was dispatched.
+
+## Independent lifecycle review and disposition
+
+Frozen-reference verdict: FAIL for one additional material finding. The reviewer also
+independently confirmed the primary cleanup finding and accepted 2a46264 as its targeted
+resolution. No credentials were read, no files changed by the reviewer, no live calls or
+full suite reruns were performed by the reviewer. No deferred minor findings were reported.
+
+- Finding: AppendAsync and SaveConfigurationAsync discarded the recovery signal, so the
+  production recorder could restart history without an explicit result or safe notification.
+- Fix in ba1bf87: Core StoreWrite reports Recovered; both write paths propagate the flag;
+  recovery also emits BudgetStoreRecovered/InvalidData through the actual local diagnostic
+  sink registered in production. No identifiers, paths, exception text or payload are logged.
+- Verification: tests first failed for the missing write-result/diagnostic contract, then
+  all 12 targeted storage-safety/recorder tests passed. The production-recorder test corrupts
+  an actual file, records another successful synthetic quota, and checks the real sanitized
+  diagnostic log; the write-result test covers both series and configuration recovery.
+- Final: fixed recovery reporting; Infrastructure 416/416 and Presentation 179/179 PASS after
+  the fix. Primary disposition: all material findings resolved, none outstanding. The frozen
+  review FAIL is not relabelled PASS; no automatic full re-review was performed.
+- PASS: final unsigned MSIX 2026.10.282.0 at ba1bf87, SHA-256
+  C5592F32F86E2F7308355F8353393C3C1652379D9A67B4EFB2BF03206D9E2BFF. Same SDK symbols warning
+  as the earlier build; no signing, installation, release dispatch or host trust change.
+- PASS: final unpackaged Debug build at ba1bf87, zero warnings/errors. Repeated the one
+  affected startup/tray/exit smoke after wiring the recovery diagnostic sink: 1/1 PASS,
+  process 31452 exited with code 0. Evidence in `.ai-usage-local/AIU-036/smoke-final-evidence`,
+  isolated empty `smoke-final-state`; restored screenshot inspected. No sign-in occurred.
+- PASS: final document validator (`valid: true`, zero diagnostics) and whitespace check.
