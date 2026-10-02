@@ -1,5 +1,18 @@
 # AIU-034 verification
 
+## "7d" tag removed too - 2026-10-02
+
+The owner agreed ("так") to also drop the plain "7d" tag next to the name on 7d-only cards,
+because the bar row is already labelled 7d. Scoped tags such as "7d · Opus" stay. Both pages
+were changed, the S11 Today strip row and the Provider States intro note it, and the pages were
+re-uploaded with `if_match`. New etags: `1790947600848101` and `1790947871957425`.
+
+Checks:
+- Local render: 0 console errors, and no plain "7d" tag remains.
+- "7d · Opus" is shown 4 times, and S1 and S2 fit as before.
+- The fetched pages equal the local files once the host blocks are removed.
+- The owner's visual review is NOT_RUN.
+
 ## "5h + 7d" tag replaced by a "5h" cell label - 2026-10-02
 
 Primary [opus] session. Base `3f25054`.
