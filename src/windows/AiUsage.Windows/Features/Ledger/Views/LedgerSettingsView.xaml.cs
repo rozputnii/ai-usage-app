@@ -43,7 +43,7 @@ internal sealed partial class LedgerSettingsView : UserControl
 
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
     private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
-    public static Visibility Present(object? value) => value is null ? Visibility.Collapsed : Visibility.Visible;
+    public static Visibility Present(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
     private Brush Segment(bool state, bool match) => LedgerTheme.Solid(state == match ? "ControlOn" : "Transparent");
     private Brush SegmentText(bool state, bool match) => LedgerTheme.Solid(state == match ? "Ink" : "Ink3");

@@ -43,7 +43,7 @@ internal sealed partial class LedgerWindow : Window
         SetTitleBar(TitleRow);
         AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
         AppWindow.Resize(new SizeInt32(DefaultWidth, DefaultHeight));
-        WindowTheme.Apply(Root, AppWindow);
+        LedgerTheme.Apply(Root, AppWindow);
         Root.Loaded += OnLoaded;
         Root.SizeChanged += (_, _) => UpdateTitleBarRegions();
         TitleControls.SizeChanged += (_, _) => UpdateTitleBarRegions();
@@ -53,7 +53,7 @@ internal sealed partial class LedgerWindow : Window
         AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape());
         AddAccelerator((VirtualKey)188, VirtualKeyModifiers.Control, () => { ViewModel.ToggleSettings(); return true; });
         AddAccelerator(VirtualKey.N, VirtualKeyModifiers.Control, () => { AddButton.Flyout?.ShowAt(AddButton); return true; });
-        AddAccelerator(VirtualKey.Z, VirtualKeyModifiers.Control, () => { _ = ViewModel.UndoAsync(); return ViewModel.HasUndo; });
+        AddAccelerator(VirtualKey.Z, VirtualKeyModifiers.Control, () => { var handled = ViewModel.HasUndo; _ = ViewModel.UndoAsync(); return handled; });
         AddAccelerator(VirtualKey.F5, VirtualKeyModifiers.None, () => { _ = ViewModel.RefreshAsync(); return true; });
 
         ViewModel.Cards.CollectionChanged += OnCardsChanged;
@@ -120,10 +120,17 @@ internal sealed partial class LedgerWindow : Window
                     {
                         historyPanel.StartBringIntoView();
                         historyPanel.Focus(FocusState.Programmatic);
+                        LedgerMotion.FadeIn(historyPanel, 250);
                     });
                 break;
             case nameof(LedgerViewModel.IsSettingsOpen):
-                DispatcherQueue.TryEnqueue(RebuildGrid);
+                DispatcherQueue.TryEnqueue(() => { RebuildGrid(); if (ViewModel.IsSettingsOpen) LedgerMotion.FadeIn(SettingsPanel, 250); });
+                break;
+            case nameof(LedgerViewModel.HasStrip):
+                if (ViewModel.HasStrip) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(SignInStrip, 150));
+                break;
+            case nameof(LedgerViewModel.HasUndo):
+                if (ViewModel.HasUndo) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(UndoBar, 150));
                 break;
             case nameof(LedgerViewModel.IsDayOff):
                 DispatcherQueue.TryEnqueue(UpdateTitleBarRegions);
@@ -131,6 +138,7 @@ internal sealed partial class LedgerWindow : Window
             case nameof(LedgerViewModel.IsLeft):
             case nameof(LedgerViewModel.IsCompact):
             case nameof(LedgerViewModel.ShowSignedOut):
+            case nameof(LedgerViewModel.Preferences):
                 ApplyPreferences();
                 break;
         }
@@ -222,6 +230,16 @@ internal sealed partial class LedgerWindow : Window
             item.Click += (_, _) => ViewModel.LoadScenario(id);
             menu.Items.Add(item);
         }
+        if (demo.FailSignIn is { } fail)
+        {
+            menu.Items.Add(new MenuFlyoutSeparator());
+            var failure = new MenuFlyoutItem { Text = "Failed sign-in" };
+            failure.Click += (_, _) => fail();
+            menu.Items.Add(failure);
+        }
+        var miniature = new MenuFlyoutItem { Text = "Tray miniature" };
+        miniature.Click += (_, _) => DispatcherQueue.TryEnqueue(() => showTray());
+        menu.Items.Add(miniature);
         menu.ShowAt(DemoButton);
     }
 

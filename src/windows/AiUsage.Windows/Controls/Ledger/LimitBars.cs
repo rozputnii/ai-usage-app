@@ -13,6 +13,7 @@ namespace AiUsage.Controls.Ledger;
 /// </summary>
 internal sealed partial class TodayStrip : Grid
 {
+    private IReadOnlyList<StripCell> displayedCells = [];
     public static readonly DependencyProperty CellsProperty = DependencyProperty.Register(nameof(Cells), typeof(IReadOnlyList<StripCell>), typeof(TodayStrip), new PropertyMetadata(null, (d, _) => ((TodayStrip)d).Rebuild()));
     public static readonly DependencyProperty CellHeightProperty = DependencyProperty.Register(nameof(CellHeight), typeof(double), typeof(TodayStrip), new PropertyMetadata(14.0, (d, _) => ((TodayStrip)d).Rebuild()));
     public static readonly DependencyProperty FocusableCellsProperty = DependencyProperty.Register(nameof(FocusableCells), typeof(bool), typeof(TodayStrip), new PropertyMetadata(true, (d, _) => ((TodayStrip)d).Rebuild()));
@@ -23,9 +24,16 @@ internal sealed partial class TodayStrip : Grid
 
     private void Rebuild()
     {
+        var oldWidths = displayedCells.Select((cell, i) =>
+        {
+            var width = i < Children.Count && Children[i] is FrameworkElement element ? element.ActualWidth : 0;
+            var total = cell.Parts.Sum(p => p.Weight);
+            return cell.Parts.Select(p => total > 0 ? (double?)(width * p.Weight / total) : null).ToArray();
+        }).ToArray();
         Children.Clear();
         ColumnDefinitions.Clear();
         var cells = Cells ?? [];
+        displayedCells = cells;
         var small = CellHeight <= 10;
         ColumnSpacing = small ? 3 : 4;
         Height = CellHeight;
@@ -33,13 +41,13 @@ internal sealed partial class TodayStrip : Grid
         {
             var cell = cells[i];
             ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(0.001, cell.Weight), GridUnitType.Star) });
-            var element = BuildCell(cell, small);
+            var element = BuildCell(cell, small, i < oldWidths.Length ? oldWidths[i] : []);
             SetColumn(element, i);
             Children.Add(element);
         }
     }
 
-    private FrameworkElement BuildCell(StripCell cell, bool small)
+    private FrameworkElement BuildCell(StripCell cell, bool small, double?[] oldWidths)
     {
         var radius = small ? 4 : 6;
         var parts = new Grid();
@@ -50,6 +58,7 @@ internal sealed partial class TodayStrip : Grid
             var fill = LedgerTheme.Surface(part.Paint);
             SetColumn(fill, i);
             parts.Children.Add(fill);
+            LedgerMotion.WidthOnLoad(fill, i < oldWidths.Length ? oldWidths[i] : null);
             if (part.OverEdge)
             {
                 var edge = new Rectangle { Width = 2, HorizontalAlignment = HorizontalAlignment.Left, Fill = LedgerTheme.Solid("Ink") };
@@ -111,6 +120,7 @@ internal sealed partial class TodayStrip : Grid
 /// </summary>
 internal sealed partial class PeriodBar : Canvas
 {
+    private double[] previousWidths = [];
     public static readonly DependencyProperty VisualProperty = DependencyProperty.Register(nameof(Visual), typeof(CardVisual), typeof(PeriodBar), new PropertyMetadata(null, (d, _) => ((PeriodBar)d).Rebuild()));
 
     public PeriodBar()
@@ -134,14 +144,18 @@ internal sealed partial class PeriodBar : Canvas
         var trackBorder = new Border { Width = width, Height = 8, CornerRadius = new CornerRadius(4), Child = track };
         SetTop(trackBorder, 6);
         Children.Add(trackBorder);
-        foreach (var segment in visual.Segments.Where(s => s.Width > 0.001))
+        var segments = visual.Segments.Where(s => s.Width > 0.001).ToArray();
+        for (var i = 0; i < segments.Length; i++)
         {
+            var segment = segments[i];
             var rect = LedgerTheme.Surface(segment.Paint);
             rect.Width = Math.Max(0, X(segment.Width));
             rect.Height = 8;
             SetLeft(rect, X(segment.Left));
             track.Children.Add(rect);
+            LedgerMotion.WidthOnLoad(rect, i < previousWidths.Length ? previousWidths[i] : null);
         }
+        previousWidths = [.. segments.Select(s => Math.Max(0, X(s.Width)))];
         foreach (var divider in visual.Dividers)
         {
             var rect = new Rectangle { Width = 2, Height = 8, Fill = LedgerTheme.Solid("Card") };

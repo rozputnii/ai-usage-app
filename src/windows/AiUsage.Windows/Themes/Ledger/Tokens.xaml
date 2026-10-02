@@ -33,13 +33,13 @@
   <Color x:Key="LedgerOkTextColor">#7FB98F</Color>
   <Color x:Key="LedgerAttMColor">#D97757</Color>
   <Color x:Key="LedgerAttPColor">#A35C44</Color>
-  <Color x:Key="LedgerAttTextColor">#E58C6C</Color>
+  <Color x:Key="LedgerAttTextColor">#E78E6E</Color>
   <Color x:Key="LedgerCritMColor">#E5604A</Color>
   <Color x:Key="LedgerCritPColor">#B04A3A</Color>
   <Color x:Key="LedgerCritDColor">#6E2E25</Color>
-  <Color x:Key="LedgerCritTextColor">#F07A65</Color>
+  <Color x:Key="LedgerCritTextColor">#F78570</Color>
   <Color x:Key="LedgerNeutralMColor">#B7B3A8</Color>
-  <Color x:Key="LedgerNeutralPColor">#6B6862</Color>
+  <Color x:Key="LedgerNeutralPColor">#6C6963</Color>
   <Color x:Key="LedgerPrimaryColor">#E8E4DA</Color>
   <Color x:Key="LedgerOnPrimaryColor">#1A1410</Color>
   <Color x:Key="LedgerFocusColor">#F0EEE6</Color>

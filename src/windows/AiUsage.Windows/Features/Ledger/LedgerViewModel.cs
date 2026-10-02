@@ -16,7 +16,7 @@ internal sealed record ProviderItem(ProviderKind Provider, string Name, string D
 internal sealed record DemoScenario(string Id, string Title);
 
 /// <summary>Demo-only scenario switching; product composition passes none.</summary>
-internal sealed record LedgerDemoControls(IReadOnlyList<DemoScenario> Scenarios, Action<string> Load, Action DismissStrip);
+internal sealed record LedgerDemoControls(IReadOnlyList<DemoScenario> Scenarios, Action<string> Load, Action DismissStrip, Action? FailSignIn = null);
 
 /// <summary>
 /// The new main window (spec S1 to S9, S12, S13): one card grid, the title row, the sign-in strip, the inline settings
@@ -90,6 +90,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         IsLeft = prefs.Mode == ValueMode.Left;
         IsCompact = prefs.Density == Density.Compact;
         ShowSignedOut = prefs.ShowSignedOut;
+        OnPropertyChanged(nameof(Preferences));
         IsDayOff = snapshot.Day.Kind == DayKind.DayOff;
         WorkTodayOn = IsDayOff && snapshot.Day.WorkTodayOn;
         DayText = !IsDayOff ? string.Empty : WorkTodayOn ? "Extra work day · until midnight" : "Day off";
@@ -97,6 +98,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
 
         var visible = snapshot.Accounts.Where(a => prefs.ShowSignedOut || a.Health != AccountHealth.SignedOut).ToArray();
         IsFirstRun = snapshot.Accounts.Count == 0;
+        if (IsFirstRun)
+            ClearUndo();
         var fresh = knownAccounts is null ? [] : visible.Where(a => !knownAccounts.Contains(a.AccountId)).Select(a => a.AccountId).ToHashSet();
         knownAccounts = [.. snapshot.Accounts.Select(a => a.AccountId)];
 
@@ -217,6 +220,12 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     /// <summary>Esc closes, in order: an open cap editor or rename, history, the settings panel. Returns whether it closed something.</summary>
     public bool Escape()
     {
+        foreach (var cap in Settings.Caps)
+            if (cap.Editor is { } editor)
+            {
+                editor.Cancel();
+                return true;
+            }
         foreach (var card in Cards)
         {
             if (card.CapEditor is not null)
@@ -325,12 +334,23 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public void CloseHistory()
     {
+        var cardId = History?.CardId;
         foreach (var card in Cards)
             card.IsHistoryOpen = false;
         History = null;
+        if (cardId is not null && Cards.Any(c => c.CardId == cardId))
+            FocusCardRequested?.Invoke(this, cardId);
     }
 
     // ---- Undo ----
+
+    private void ClearUndo()
+    {
+        undoExpiry?.Dispose();
+        undoExpiry = null;
+        undoAction = null;
+        HasUndo = false;
+    }
 
     public void OfferUndo(string text, Func<Task> undo)
     {
@@ -380,8 +400,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         hiddenStrip = null;
         knownAccounts = null;
         CloseHistory();
-        HasUndo = false;
-        undoAction = null;
+        ClearUndo();
         Demo?.Load(id);
     }
 

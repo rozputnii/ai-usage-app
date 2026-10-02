@@ -76,7 +76,28 @@ internal sealed partial class LedgerCardView : UserControl
                 e.Handled = true;
                 _ = ViewModel.MoveDownAsync();
                 break;
+            case VirtualKey.Left or VirtualKey.Right when !alt:
+                var stops = DetailStops(Bars).ToList();
+                var index = stops.FindIndex(stop => ReferenceEquals(stop, FocusManager.GetFocusedElement(XamlRoot)));
+                var next = index < 0 ? (e.Key == VirtualKey.Right ? 0 : stops.Count - 1)
+                    : Math.Clamp(index + (e.Key == VirtualKey.Right ? 1 : -1), 0, stops.Count - 1);
+                if (stops.Count > 0)
+                {
+                    e.Handled = true;
+                    stops[next].Focus(FocusState.Keyboard);
+                }
+                break;
         }
+    }
+
+    private static IEnumerable<Control> DetailStops(DependencyObject root)
+    {
+        if (root is UIElement { Visibility: Visibility.Collapsed }) yield break;
+        if (root is Control { IsTabStop: true, IsEnabled: true } control && ToolTipService.GetToolTip(control) is not null)
+            yield return control;
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            foreach (var child in DetailStops(VisualTreeHelper.GetChild(root, i)))
+                yield return child;
     }
 
     private void OnRenameKeyDown(object sender, KeyRoutedEventArgs e)
@@ -136,12 +157,12 @@ internal sealed partial class LedgerCardView : UserControl
     private Visibility ShowText(string? value) => Show(!string.IsNullOrEmpty(value));
     private Visibility BarsVisibility(int noteLines) => Show(noteLines == 0);
     private Visibility NoteVisibility(int noteLines) => Show(noteLines > 0);
-    private Visibility TodayLabelVisibility(bool hasStrip, string? note) => Show(hasStrip || !string.IsNullOrEmpty(note));
+    private Visibility TodayLabelVisibility(bool hasStrip, bool hasNote) => Show(hasStrip || hasNote);
     private Visibility FooterVisibility(CapEditorViewModel? editor) => Show(editor is null);
     private Visibility EditorVisibility(CapEditorViewModel? editor) => Show(editor is not null);
-    private Visibility ShowNoteAction(string? action, CapEditorViewModel? editor) => Show(!string.IsNullOrEmpty(action) && editor is null);
-    private Visibility ShowCompactOver(string? over, bool compact) => Show(compact && !string.IsNullOrEmpty(over));
-    private Visibility ShowComfortableOver(string? over, bool compact) => Show(!compact && !string.IsNullOrEmpty(over));
+    private Visibility ShowNoteAction(bool hasAction, bool editing) => Show(hasAction && !editing);
+    private Visibility ShowCompactOver(bool hasOver, bool compact) => Show(compact && hasOver);
+    private Visibility ShowComfortableOver(bool hasOver, bool compact) => Show(!compact && hasOver);
 
     private Brush SurfaceFill(bool fresh) => (Brush)LedgerTheme.Find(fresh ? "LedgerCardFreshSurfaceBrush" : "LedgerCardSurfaceBrush")!;
     private Brush SurfaceStroke(bool fresh) => LedgerTheme.Solid(fresh ? "OkP" : "LineCard");

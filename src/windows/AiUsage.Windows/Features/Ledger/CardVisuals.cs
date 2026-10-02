@@ -50,7 +50,14 @@ internal sealed record CardVisual(
     IReadOnlyList<string> ResetTip,
     IReadOnlyList<NoteLine> NoteLines,
     string? ActionText,
-    string AccessibleName);
+    string AccessibleName)
+{
+    // x:Bind skips function calls with null arguments; bind visibility to non-null values.
+    public bool HasPill => !string.IsNullOrEmpty(Pill);
+    public bool HasAction => !string.IsNullOrEmpty(ActionText);
+    public bool HasOverLabel => !string.IsNullOrEmpty(OverLabel);
+    public bool HasTodayNote => !string.IsNullOrEmpty(TodayNote);
+}
 
 /// <summary>
 /// Ports the accepted reference's drawing rules (Provider States and Surfaces handoff pages, D-186, D-187) to plain numbers.

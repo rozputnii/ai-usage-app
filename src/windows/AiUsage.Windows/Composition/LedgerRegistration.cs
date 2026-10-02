@@ -34,6 +34,8 @@ internal static class LedgerRegistration
     /// <summary>Builds the window and tray. Exit from the tray closes both and ends the app.</summary>
     public static LedgerShell Start(Action exitApp)
     {
+        // Register before parsing any Ledger view; ordinary product/demo startup stays unchanged.
+        Microsoft.UI.Xaml.Application.Current.Resources.MergedDictionaries.Add(LedgerTheme.Tokens);
         var services = new ServiceCollection().AddLedgerDemo().BuildServiceProvider();
         var demo = services.GetRequiredService<DemoLedgerSource>();
         var scenario = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--scenario=", StringComparison.Ordinal))?["--scenario=".Length..];
@@ -55,7 +57,7 @@ internal sealed class LedgerShell : IDisposable
     {
         this.services = services;
         LedgerWindow? created = null;
-        var controls = new LedgerDemoControls([.. DemoLedgerScenarios.All.Select(s => new DemoScenario(s.Id, s.Title))], demo.LoadScenario, demo.DismissStrip);
+        var controls = new LedgerDemoControls([.. DemoLedgerScenarios.All.Select(s => new DemoScenario(s.Id, s.Title))], demo.LoadScenario, demo.DismissStrip, demo.FailSignIn);
         viewModel = new LedgerViewModel(services.GetRequiredService<ILedgerSource>(), services.GetRequiredService<ILedgerScheduler>(), message => created?.Announce(message), controls);
         var tray = services.GetRequiredService<LedgerTrayViewModel>();
         created = window = new LedgerWindow(viewModel, () =>

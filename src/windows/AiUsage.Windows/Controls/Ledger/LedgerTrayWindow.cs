@@ -25,6 +25,7 @@ internal sealed partial class LedgerTrayWindow : Window
     private readonly LedgerTrayViewModel tray;
     private readonly Action<string> openAccount;
     private readonly StackPanel rows = new();
+    private readonly List<(Control Row, List<Control> Strips)> rowStops = [];
     private readonly Grid root;
     private bool closing;
 
@@ -58,6 +59,7 @@ internal sealed partial class LedgerTrayWindow : Window
         root.Children.Add(stack);
         root.KeyDown += OnKeyDown;
         Content = root;
+        root.Loaded += (_, _) => { PositionPopup(); FocusFirstRow(); };
         if (AppWindow.Presenter is OverlappedPresenter presenter)
         {
             presenter.IsAlwaysOnTop = true;
@@ -67,7 +69,7 @@ internal sealed partial class LedgerTrayWindow : Window
             presenter.SetBorderAndTitleBar(true, false);
         }
         AppWindow.IsShownInSwitchers = false;
-        WindowTheme.Apply(root, null);
+        LedgerTheme.Apply(root);
         Activated += (_, args) =>
         {
             if (args.WindowActivationState == WindowActivationState.Deactivated)
@@ -88,6 +90,7 @@ internal sealed partial class LedgerTrayWindow : Window
     private void Rebuild()
     {
         rows.Children.Clear();
+        rowStops.Clear();
         if (tray.IsEmpty)
         {
             rows.Children.Add(new TextBlock { Text = tray.EmptyText, Margin = new Thickness(14, 12, 14, 12), FontSize = 12, Foreground = LedgerTheme.Solid("Ink3") });
@@ -99,6 +102,7 @@ internal sealed partial class LedgerTrayWindow : Window
 
     private FrameworkElement Row(TrayRow row)
     {
+        var stripStops = new List<Control>();
         var grid = new Grid { ColumnSpacing = 10, RowSpacing = 5, Padding = new Thickness(14, 9, 14, 9) };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -106,7 +110,9 @@ internal sealed partial class LedgerTrayWindow : Window
         for (var i = 0; i < Math.Max(1, row.Strips.Count); i++)
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-        var name = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Center };
+        var name = new Grid { ColumnSpacing = 5, VerticalAlignment = VerticalAlignment.Center };
+        name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        name.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         if (row.IsError)
             name.Children.Add(new Path
             {
@@ -119,7 +125,7 @@ internal sealed partial class LedgerTrayWindow : Window
                 Width = 12,
                 Height = 12,
             });
-        name.Children.Add(new TextBlock
+        var nameText = new TextBlock
         {
             Text = row.Name,
             FontFamily = (FontFamily)LedgerTheme.Find("LedgerSerifFont")!,
@@ -128,7 +134,9 @@ internal sealed partial class LedgerTrayWindow : Window
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             TextTrimming = TextTrimming.CharacterEllipsis,
             Foreground = LedgerTheme.Solid(row.IsError ? "CritText" : "Ink"),
-        });
+        };
+        Grid.SetColumn(nameText, 1);
+        name.Children.Add(nameText);
         ToolTipService.SetToolTip(name, LedgerTheme.Tip(row.NameTip));
         Grid.SetRowSpan(name, Math.Max(1, row.Strips.Count));
         grid.Children.Add(name);
@@ -149,6 +157,7 @@ internal sealed partial class LedgerTrayWindow : Window
                 Opacity = strip.Opacity,
             };
             ToolTipService.SetToolTip(stop, LedgerTheme.Tip(strip.Tip));
+            stripStops.Add(stop);
             AutomationProperties.SetName(stop, strip.AccessibleName);
             var accountId = row.AccountId;
             stop.KeyDown += (_, e) =>
@@ -176,10 +185,24 @@ internal sealed partial class LedgerTrayWindow : Window
             }
         }
 
-        var container = new Grid { Background = LedgerTheme.Solid("Transparent"), BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1) };
-        container.Children.Add(grid);
+        var container = new ContentControl
+        {
+            Content = grid, Background = LedgerTheme.Solid("Transparent"),
+            BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1),
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            IsTabStop = true, UseSystemFocusVisuals = true, FocusVisualPrimaryBrush = LedgerTheme.Solid("Focus"),
+            FocusVisualSecondaryThickness = new Thickness(0), FocusVisualPrimaryThickness = new Thickness(2),
+        };
         container.Tapped += (_, _) => Open(row.AccountId);
+        container.KeyDown += (_, args) =>
+        {
+            if (args.Key != VirtualKey.Enter) return;
+            args.Handled = true;
+            Open(row.AccountId);
+        };
+        ToolTipService.SetToolTip(container, LedgerTheme.Tip(row.NameTip));
         AutomationProperties.SetName(container, row.AccessibleName);
+        rowStops.Add((container, stripStops));
         return container;
     }
 
@@ -205,25 +228,53 @@ internal sealed partial class LedgerTrayWindow : Window
             e.Handled = true;
             HidePopup();
         }
+        else if (e.Key is VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right)
+        {
+            var focused = FocusManager.GetFocusedElement(root.XamlRoot);
+            var index = rowStops.FindIndex(r => ReferenceEquals(r.Row, focused) || r.Strips.Any(s => ReferenceEquals(s, focused)));
+            if (index < 0) return;
+            e.Handled = true;
+            if (e.Key is VirtualKey.Up or VirtualKey.Down)
+                rowStops[Math.Clamp(index + (e.Key == VirtualKey.Up ? -1 : 1), 0, rowStops.Count - 1)].Row.Focus(FocusState.Keyboard);
+            else
+            {
+                var stops = rowStops[index].Strips;
+                var current = stops.FindIndex(s => ReferenceEquals(s, focused));
+                if (stops.Count > 0)
+                    stops[Math.Clamp(current + (e.Key == VirtualKey.Left ? -1 : 1), 0, stops.Count - 1)].Focus(FocusState.Keyboard);
+            }
+        }
     }
 
     public void ShowNearTray()
     {
         if (closing)
             return;
-        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
-        var scale = root.XamlRoot?.RasterizationScale ?? 1;
-        root.Measure(new Windows.Foundation.Size(PopupWidth, double.PositiveInfinity));
-        var height = Math.Min(area.Height - 24, (int)Math.Ceiling(Math.Max(120, root.DesiredSize.Height + 2) * scale));
-        var width = (int)(PopupWidth * scale);
-        AppWindow.MoveAndResize(new RectInt32(area.X + area.Width - width - (int)(12 * scale), area.Y + area.Height - height - (int)(12 * scale), width, height));
         AppWindow.Show();
         Activate();
         DispatcherQueue.TryEnqueue(() =>
         {
-            if (FocusManager.FindFirstFocusableElement(rows) is Control first)
-                first.Focus(FocusState.Keyboard);
+            // XamlRoot's actual monitor scale is available only after the first show.
+            PositionPopup();
+            FocusFirstRow();
         });
+    }
+
+    private void FocusFirstRow()
+    {
+        if (rowStops.Count > 0)
+            rowStops[0].Row.Focus(FocusState.Keyboard);
+    }
+
+    private void PositionPopup()
+    {
+        if (root.XamlRoot is null || closing) return;
+        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        var scale = root.XamlRoot.RasterizationScale;
+        root.Measure(new Windows.Foundation.Size(PopupWidth, double.PositiveInfinity));
+        var height = Math.Min(area.Height - 24, (int)Math.Ceiling(Math.Max(120, root.DesiredSize.Height + 2) * scale));
+        var width = (int)(PopupWidth * scale);
+        AppWindow.MoveAndResize(new RectInt32(area.X + area.Width - width - (int)(12 * scale), area.Y + area.Height - height - (int)(12 * scale), width, height));
     }
 
     public void HidePopup() => AppWindow.Hide();

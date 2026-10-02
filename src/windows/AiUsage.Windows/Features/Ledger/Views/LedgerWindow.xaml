@@ -11,19 +11,19 @@
     <Grid.Resources>
       <ResourceDictionary>
         <!-- Lightweight styling: text boxes keep the Ledger input surface in every state. -->
-        <SolidColorBrush x:Key="TextControlBackground" Color="#1A1918" />
-        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1A1918" />
-        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#1A1918" />
-        <SolidColorBrush x:Key="TextControlBorderBrush" Color="#55534E" />
-        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#9D998E" />
-        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#F0EEE6" />
-        <SolidColorBrush x:Key="TextControlForeground" Color="#F0EEE6" />
-        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#F0EEE6" />
-        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#F0EEE6" />
-        <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="#151413" />
-        <SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="#3A3936" />
-        <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#151413" />
-        <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#3A3936" />
+        <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource LedgerInputColor}" />
+        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource LedgerInputColor}" />
+        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource LedgerInputColor}" />
+        <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource LedgerLineCtlColor}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource LedgerInk3Color}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="{StaticResource LedgerInkColor}" />
+        <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource LedgerInkColor}" />
+        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="{StaticResource LedgerInkColor}" />
+        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="{StaticResource LedgerInkColor}" />
+        <SolidColorBrush x:Key="FlyoutPresenterBackground" Color="{StaticResource LedgerTipColor}" />
+        <SolidColorBrush x:Key="FlyoutBorderThemeBrush" Color="{StaticResource LedgerLineWindowColor}" />
+        <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{StaticResource LedgerTipColor}" />
+        <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource LedgerLineWindowColor}" />
       </ResourceDictionary>
     </Grid.Resources>
     <Grid.RowDefinitions>
@@ -53,7 +53,7 @@
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
       <TextBlock Text="AI Usage" Style="{StaticResource LedgerTitleText}" VerticalAlignment="Center" />
-      <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.ClockText, Mode=OneWay}" Style="{StaticResource LedgerClockText}" VerticalAlignment="Center" />
+      <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.ClockText, Mode=OneWay}" Visibility="{x:Bind Hide(ViewModel.WorkTodayOn), Mode=OneWay}" Style="{StaticResource LedgerClockText}" VerticalAlignment="Center" />
       <StackPanel x:Name="DayGroup" Grid.Column="2" Orientation="Horizontal" Spacing="10" Visibility="{x:Bind Show(ViewModel.IsDayOff), Mode=OneWay}">
         <TextBlock Text="{x:Bind ViewModel.DayText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
         <Button x:Name="WorkTodayButton" Content="Work today" Command="{x:Bind ViewModel.ToggleWorkTodayCommand}"

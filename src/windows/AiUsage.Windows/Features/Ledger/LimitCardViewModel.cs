@@ -91,7 +91,10 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [ObservableProperty] public partial CardVisual Visual { get; private set; }
     [ObservableProperty] public partial bool IsRenaming { get; private set; }
     [ObservableProperty] public partial string RenameText { get; set; } = string.Empty;
-    [ObservableProperty] public partial CapEditorViewModel? CapEditor { get; private set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditingCap))]
+    public partial CapEditorViewModel? CapEditor { get; private set; }
+    public bool IsEditingCap => CapEditor is not null;
     [ObservableProperty] public partial bool IsNew { get; set; }
     [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
     [ObservableProperty] public partial bool IsCompact { get; set; } = true;

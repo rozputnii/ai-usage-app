@@ -4,7 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using Windows.Foundation;
+using Microsoft.UI.Windowing;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 
@@ -37,6 +37,39 @@ internal static class LedgerTheme
     }
 
     public static bool AnimationsEnabled => Ui.AnimationsEnabled;
+
+    public static void Apply(FrameworkElement root, AppWindow? window = null)
+    {
+        root.RequestedTheme = ElementTheme.Dark;
+        root.HighContrastAdjustment = ElementHighContrastAdjustment.None;
+        ToolTip? focusedTip = null;
+        root.GotFocus += (_, args) =>
+        {
+            if (focusedTip is not null) focusedTip.IsOpen = false;
+            focusedTip = null;
+            for (var current = args.OriginalSource as DependencyObject; current is not null; current = VisualTreeHelper.GetParent(current))
+            {
+                if (current is not FrameworkElement element || ToolTipService.GetToolTip(element) is not { } content)
+                    continue;
+                focusedTip = content as ToolTip ?? Tip([content.ToString() ?? string.Empty]);
+                if (focusedTip is null) break;
+                focusedTip.PlacementTarget = element;
+                focusedTip.IsOpen = true;
+                break;
+            }
+        };
+        root.LostFocus += (_, _) => { if (focusedTip is not null) focusedTip.IsOpen = false; };
+        if (window is null || !AppWindowTitleBar.IsCustomizationSupported()) return;
+        var bar = window.TitleBar;
+        bar.ButtonBackgroundColor = Color("Transparent");
+        bar.ButtonInactiveBackgroundColor = Color("Transparent");
+        bar.ButtonForegroundColor = Color("Ink");
+        bar.ButtonInactiveForegroundColor = Color("Ink2");
+        bar.ButtonHoverBackgroundColor = Color("Control");
+        bar.ButtonPressedBackgroundColor = Color("ControlOn");
+        bar.ButtonHoverForegroundColor = Color("Ink");
+        bar.ButtonPressedForegroundColor = Color("Ink");
+    }
 
     public static Color Color(string key) =>
         key == Paint.Transparent ? Colors.Transparent : Find("Ledger" + key + "Color") is Color color ? color : Colors.Magenta;
@@ -89,6 +122,8 @@ internal static class LedgerTheme
             });
         return new ToolTip
         {
+            RequestedTheme = ElementTheme.Dark,
+            HighContrastAdjustment = ElementHighContrastAdjustment.None,
             Content = panel,
             Background = Solid("Tip"),
             BorderBrush = Solid("LineWindow"),

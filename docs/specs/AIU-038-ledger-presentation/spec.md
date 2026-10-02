@@ -77,8 +77,9 @@ status naming its limit; those brief states are not rebuilt.
   delegates to the new composition file (PD-038-01).
 - **Window.** 760 × 600 effective pixels by default, solid `bg.page`, dark title bar,
   custom title row of 38 px (AppWindow title bar extension, as the current window does).
-- **No new NuGet package.** Hatching uses `LinearGradientBrush` with absolute mapping and
-  `SpreadMethod="Repeat"`; squircles follow PD-038-02. Fonts are content files.
+- **No new NuGet package.** Hatching uses clipped stripe geometry over a solid fill:
+  the WinUI repeat-gradient spike dimmed surrounding text. Squircles follow PD-038-02.
+  Fonts are content files.
 
 ## 4. Presentation contract
 
@@ -396,12 +397,16 @@ the Windows app mode or contrast theme; no theme dictionaries and no system brus
 | ink / ink2 / ink3 | #F0EEE6 / #B7B3A8 / #9D998E | text levels |
 | rail / prev / grey | #34332F / #8C887E / #75716A | bar track, used before today, not available today |
 | ok m / p / text | #7FB98F / #5E8A6B / #7FB98F | fill, hatch, text |
-| att m / p / text | #D97757 / #A35C44 / #E58C6C | orange states |
-| crit m / p / d / text | #E5604A / #B04A3A / #6E2E25 / #F07A65 | red states; destructive Confirm #B04A3A |
-| neutral m / p | #B7B3A8 / #6B6862 | no-budget states, stale |
+| att m / p / text | #D97757 / #A35C44 / #E78E6E | orange states |
+| crit m / p / d / text | #E5604A / #B04A3A / #6E2E25 / #F78570 | red states; destructive Confirm #B04A3A |
+| neutral m / p | #B7B3A8 / #6C6963 | no-budget states, stale |
 | button.primary | #E8E4DA on #1A1410 | Save, Sign in, Undo, Try again |
 | focus | #F0EEE6, 2 px, offset 2 px | every focusable element |
 | pill bg | state m at 14 % (crit 16 %, neutral 12 %) over the card | pills |
+
+Implementation derivation, 2026-10-02: the three adjusted tokens above satisfy AC-07
+on fresh-card pills and page surfaces. Original attention/critical text failed 4.5:1;
+the original neutral dashed track fell below 3:1. Acceptance thresholds are unchanged.
 
 Type ramp (effective px): first-run heading Source Serif 4 20/26 600; card name and panel
 title Source Serif 4 16/20 600; window title and tray name Source Serif 4 14/18 600; body,

@@ -49,6 +49,8 @@ internal sealed partial class SquircleSurface : Grid
 
     private void Redraw()
     {
+        // The layer sits inside the padding; shift it back so the shape covers the whole surface.
+        layer.Margin = new Thickness(-Padding.Left, -Padding.Top, 0, 0);
         shape.StrokeThickness = Stroke is null ? 0 : StrokeThickness;
         shape.Data = Geometry(ActualWidth, ActualHeight, Radius, Stroke is null ? 0 : StrokeThickness / 2);
     }

@@ -34,7 +34,10 @@ internal sealed partial class CapRow : ObservableObject
     public string ActionText => Model.Status == CapStatus.Unmatched ? "Remove" : "Edit";
     public bool CanAct => Model.Status == CapStatus.Unmatched || Model.CapTargetId is not null && owner.HasCard(Model.CapTargetId);
     public string AccessibleName => "Cap for " + Label + ", " + AmountText + ", " + Note;
-    [ObservableProperty] public partial CapEditorViewModel? Editor { get; private set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEditing))]
+    public partial CapEditorViewModel? Editor { get; private set; }
+    public bool IsEditing => Editor is not null;
 
     public string Note => Model.Status switch
     {

@@ -49,13 +49,25 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         if (Current.Day.Kind != DayKind.DayOff || workToday == on)
             return Task.CompletedTask;
         workToday = on;
-        var rebuilt = DemoLedgerScenarios.Build(ScenarioId, on);
-        // Keep user edits that the scenario rebuild would otherwise undo.
-        var names = Current.Accounts.ToDictionary(a => a.AccountId, a => a.DisplayName);
-        Publish(rebuilt with
+        var baseline = DemoLedgerScenarios.Build(ScenarioId, !on).Accounts.SelectMany(a => a.Cards).ToDictionary(c => c.CardId);
+        var changed = DemoLedgerScenarios.Build(ScenarioId, on).Accounts.SelectMany(a => a.Cards).ToDictionary(c => c.CardId);
+        // Only switch the day's presentation. Never resurrect a signed-out account or reset edits/order.
+        LimitCardModel SwitchDay(LimitCardModel card)
         {
-            Accounts = [.. rebuilt.Accounts.Select(a => names.TryGetValue(a.AccountId, out var name) ? a with { DisplayName = name } : a)],
-            Budget = Current.Budget,
+            if (!baseline.TryGetValue(card.CardId, out var before) || !changed.TryGetValue(card.CardId, out var after))
+                return card;
+            return card with
+            {
+                State = card.State == before.State ? after.State : card.State,
+                Marks = [.. card.Marks.Where(m => m.Kind != MarkKind.ExtraDay), .. after.Marks.Where(m => m.Kind == MarkKind.ExtraDay)],
+            };
+        }
+        foreach (var id in signedOutCards.Keys.ToArray())
+            signedOutCards[id] = [.. signedOutCards[id].Select(SwitchDay)];
+        Publish(Current with
+        {
+            Day = DemoLedgerScenarios.Build(ScenarioId, on).Day,
+            Accounts = [.. Current.Accounts.Select(a => a.Health == AccountHealth.SignedOut ? a : a with { Cards = [.. a.Cards.Select(SwitchDay)] })],
         });
         return Task.CompletedTask;
     }
@@ -208,6 +220,18 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         return Task.CompletedTask;
     }
 
+    public void FailSignIn()
+    {
+        pendingSignIn?.Dispose();
+        pendingSignIn = null;
+        var provider = Current.SignInStrip?.Provider ?? ProviderKind.Codex;
+        Publish(Current with
+        {
+            SignInStrip = new SignInStripModel(SignInPhase.Failed, provider, null, null),
+            Providers = [.. Current.Providers.Select(p => p with { SigningIn = false })],
+        });
+    }
+
     /// <summary>Clears a finished strip (the view model hides a success after 4 s).</summary>
     public void DismissStrip()
     {
@@ -238,6 +262,8 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         pendingSignIn = null;
         originals.Clear();
         signedOutCards.Clear();
+        workToday = false;
+        ScenarioId = DemoLedgerScenarios.FirstRun;
         Publish(DemoLedgerScenarios.Empty(Current.LocalNow));
         return Task.FromResult(CommandOutcome.Done);
     }

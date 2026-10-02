@@ -68,7 +68,7 @@
                   <TextBlock Text="{x:Bind Note}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
                              Foreground="{x:Bind views:LedgerSettingsView.NoteBrush(IsWarning)}" />
                   <lc:CapEditorView Editor="{x:Bind Editor, Mode=OneWay}" Margin="0,4,0,0"
-                                    Visibility="{x:Bind views:LedgerSettingsView.Present(Editor), Mode=OneWay}" />
+                                    Visibility="{x:Bind views:LedgerSettingsView.Present(IsEditing), Mode=OneWay}" />
                 </StackPanel>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

@@ -61,9 +61,11 @@ internal sealed partial class CapEditorView : StackPanel
         row.Children.Add(remove);
         Children.Add(row);
         error = Text(string.Empty, "CritText");
+        error.TextWrapping = TextWrapping.Wrap;
         error.Visibility = Visibility.Collapsed;
         Children.Add(error);
         hint = Text(string.Empty, "Ink3");
+        hint.TextWrapping = TextWrapping.Wrap;
         Children.Add(hint);
     }
 
@@ -92,6 +94,12 @@ internal sealed partial class CapEditorView : StackPanel
         AutomationProperties.SetName(input, "Cap amount in " + attached.UnitText);
         AutomationProperties.SetHelpText(input, attached.Hint);
         ShowError();
+        var target = attached;
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            if (ReferenceEquals(Editor, target) && Visibility == Visibility.Visible)
+                FocusInput();
+        });
     }
 
     private void OnEditorChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

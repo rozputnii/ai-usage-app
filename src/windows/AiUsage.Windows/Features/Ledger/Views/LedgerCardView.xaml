@@ -64,14 +64,14 @@
           </Button>
         </StackPanel>
         <Border Grid.Column="2" Style="{StaticResource LedgerPill}" Background="{x:Bind PillBackground(ViewModel.Visual.Tone), Mode=OneWay}"
-                Visibility="{x:Bind ShowText(ViewModel.Visual.Pill), Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.PillTip), Mode=OneWay}">
+                Visibility="{x:Bind Show(ViewModel.Visual.HasPill), Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.PillTip), Mode=OneWay}">
           <StackPanel Orientation="Horizontal" Spacing="5">
             <Ellipse Width="6" Height="6" Fill="{x:Bind PillDot(ViewModel.Visual.Tone), Mode=OneWay}" VerticalAlignment="Center" />
             <TextBlock Text="{x:Bind ViewModel.Visual.Pill, Mode=OneWay}" Style="{StaticResource LedgerStrongText}" Foreground="{x:Bind PillText(ViewModel.Visual.Tone), Mode=OneWay}" VerticalAlignment="Center" />
           </StackPanel>
         </Border>
       </Grid>
-      <TextBlock Text="Enter saves · Esc cancels · the name is yours, the provider is unchanged" Style="{StaticResource LedgerCaptionText}" Margin="0,-4,0,0"
+      <TextBlock Text="Enter saves · Esc cancels · the name is yours, the provider is unchanged" Style="{StaticResource LedgerCaptionText}" Margin="0,-4,0,0" TextWrapping="Wrap"
                  Visibility="{x:Bind Show(ViewModel.IsRenaming), Mode=OneWay}" />
 
       <!-- Bars: today row, period row, footer or cap editor. -->
@@ -89,7 +89,7 @@
           <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBlock Text="today" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" LineHeight="14" LineStackingStrategy="BlockLineHeight"
-                   Visibility="{x:Bind TodayLabelVisibility(ViewModel.Visual.HasStrip, ViewModel.Visual.TodayNote), Mode=OneWay}" />
+                   Visibility="{x:Bind TodayLabelVisibility(ViewModel.Visual.HasStrip, ViewModel.Visual.HasTodayNote), Mode=OneWay}" />
         <Grid Grid.Column="1" ColumnSpacing="8" Visibility="{x:Bind Show(ViewModel.Visual.HasStrip), Mode=OneWay}">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -97,12 +97,12 @@
           </Grid.ColumnDefinitions>
           <lc:TodayStrip Cells="{x:Bind ViewModel.Visual.Cells, Mode=OneWay}" Opacity="{x:Bind ViewModel.Visual.Opacity, Mode=OneWay}" />
           <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Visual.OverLabel, Mode=OneWay}" Style="{StaticResource LedgerStrongText}" Foreground="{StaticResource LedgerCritTextBrush}"
-                     LineHeight="14" VerticalAlignment="Center" Visibility="{x:Bind ShowCompactOver(ViewModel.Visual.OverLabel, ViewModel.IsCompact), Mode=OneWay}" />
+                     LineHeight="14" VerticalAlignment="Center" Visibility="{x:Bind ShowCompactOver(ViewModel.Visual.HasOverLabel, ViewModel.IsCompact), Mode=OneWay}" />
         </Grid>
         <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Visual.TodayNote, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" LineHeight="14" LineStackingStrategy="BlockLineHeight" Foreground="{StaticResource LedgerInk2Brush}"
-                   TextTrimming="CharacterEllipsis" Visibility="{x:Bind ShowText(ViewModel.Visual.TodayNote), Mode=OneWay}" />
+                   TextTrimming="CharacterEllipsis" Visibility="{x:Bind Show(ViewModel.Visual.HasTodayNote), Mode=OneWay}" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.Visual.OverLabel, Mode=OneWay}" Style="{StaticResource LedgerStrongText}" Foreground="{StaticResource LedgerCritTextBrush}"
-                   HorizontalAlignment="Right" Margin="0,5,0,0" Visibility="{x:Bind ShowComfortableOver(ViewModel.Visual.OverLabel, ViewModel.IsCompact), Mode=OneWay}" />
+                   HorizontalAlignment="Right" Margin="0,5,0,0" Visibility="{x:Bind ShowComfortableOver(ViewModel.Visual.HasOverLabel, ViewModel.IsCompact), Mode=OneWay}" />
         <Border Grid.Row="2" Grid.ColumnSpan="2" Height="{x:Bind StripGap(ViewModel.IsCompact, ViewModel.Visual.HasStrip), Mode=OneWay}" />
         <TextBlock Grid.Row="3" Text="{x:Bind ViewModel.Visual.PeriodLabel, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center"
                    Visibility="{x:Bind Show(ViewModel.Visual.HasPeriodBar), Mode=OneWay}" />
@@ -113,30 +113,30 @@
                         AutomationProperties.Name="{x:Bind lc:LedgerViews.Spoken(ViewModel.Visual.BarTip), Mode=OneWay}">
           <lc:PeriodBar Visual="{x:Bind ViewModel.Visual, Mode=OneWay}" Opacity="{x:Bind ViewModel.Visual.Opacity, Mode=OneWay}" />
         </ContentControl>
-        <Grid Grid.Row="4" Grid.Column="1" ColumnSpacing="8" Margin="0,4,0,0" Visibility="{x:Bind FooterVisibility(ViewModel.CapEditor), Mode=OneWay}">
+        <Grid Grid.Row="4" Grid.Column="1" ColumnSpacing="8" Margin="0,4,0,0" Visibility="{x:Bind Hide(ViewModel.IsEditingCap), Mode=OneWay}">
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
-          <Button Style="{StaticResource LedgerFooterButton}" Click="OnFooterClick" IsTabStop="True"
+          <Button Style="{StaticResource LedgerFooterButton}" Click="OnFooterClick" IsTabStop="True" HorizontalAlignment="Left"
                   ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.FooterTip), Mode=OneWay}"
                   AutomationProperties.Name="{x:Bind FooterName(ViewModel.Visual.Footer, ViewModel.Visual.FooterTip, ViewModel.CanEditCap), Mode=OneWay}">
             <Grid>
-              <TextBlock Text="{x:Bind ViewModel.Visual.Footer, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerInk2Brush}" TextWrapping="NoWrap" />
+              <TextBlock Text="{x:Bind ViewModel.Visual.Footer, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerInk2Brush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
               <Line X1="0" X2="1" Stretch="Fill" VerticalAlignment="Bottom" Stroke="{StaticResource LedgerUnderlineBrush}" StrokeThickness="1" StrokeDashArray="1,2" Margin="0,0,0,-2" />
             </Grid>
           </Button>
-          <ContentControl Grid.Column="2" IsTabStop="True" UseSystemFocusVisuals="True" FocusVisualPrimaryBrush="{StaticResource LedgerFocusBrush}" VerticalAlignment="Center"
+          <ContentControl Grid.Column="1" IsTabStop="True" UseSystemFocusVisuals="True" FocusVisualPrimaryBrush="{StaticResource LedgerFocusBrush}" VerticalAlignment="Center"
                           ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.ResetTip), Mode=OneWay}"
                           AutomationProperties.Name="{x:Bind lc:LedgerViews.Spoken(ViewModel.Visual.ResetTip), Mode=OneWay}">
             <TextBlock Text="{x:Bind ViewModel.Visual.ResetText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerInk3Brush}" TextWrapping="NoWrap" />
           </ContentControl>
-          <Button Grid.Column="3" Style="{StaticResource LedgerOutlineButton}" Content="{x:Bind ViewModel.Visual.ActionText, Mode=OneWay}" Command="{x:Bind ViewModel.ActionCommand}"
-                  Visibility="{x:Bind ShowText(ViewModel.Visual.ActionText), Mode=OneWay}" />
+          <Button Grid.Column="2" Style="{StaticResource LedgerOutlineButton}" Content="{x:Bind ViewModel.Visual.ActionText, Mode=OneWay}" Command="{x:Bind ViewModel.ActionCommand}"
+                  Visibility="{x:Bind Show(ViewModel.Visual.HasAction), Mode=OneWay}" />
         </Grid>
-        <Grid Grid.Row="4" Grid.Column="1" Margin="0,6,0,0" Visibility="{x:Bind EditorVisibility(ViewModel.CapEditor), Mode=OneWay}">
+        <Grid Grid.Row="4" Grid.Column="1" Margin="0,6,0,0" Visibility="{x:Bind Show(ViewModel.IsEditingCap), Mode=OneWay}">
           <lc:CapEditorView x:Name="BarCapEditor" Editor="{x:Bind ViewModel.CapEditor, Mode=OneWay}" />
         </Grid>
       </Grid>
@@ -160,9 +160,9 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
         <Button Style="{StaticResource LedgerOutlineButton}" HorizontalAlignment="Right" Content="{x:Bind ViewModel.Visual.ActionText, Mode=OneWay}" Command="{x:Bind ViewModel.ActionCommand}"
-                Visibility="{x:Bind ShowNoteAction(ViewModel.Visual.ActionText, ViewModel.CapEditor), Mode=OneWay}" />
+                Visibility="{x:Bind ShowNoteAction(ViewModel.Visual.HasAction, ViewModel.IsEditingCap), Mode=OneWay}" />
         <lc:CapEditorView x:Name="NoteCapEditor" Margin="50,0,0,0" Editor="{x:Bind ViewModel.CapEditor, Mode=OneWay}"
-                          Visibility="{x:Bind EditorVisibility(ViewModel.CapEditor), Mode=OneWay}" />
+                          Visibility="{x:Bind Show(ViewModel.IsEditingCap), Mode=OneWay}" />
       </StackPanel>
     </StackPanel>
   </lc:SquircleSurface>

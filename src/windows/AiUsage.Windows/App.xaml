@@ -10,8 +10,6 @@
         <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
         <ResourceDictionary Source="ms-appx:///Themes/Tokens.xaml" />
         <ResourceDictionary Source="ms-appx:///Themes/Styles.xaml" />
-        <!-- AIU-038: Ledger-prefixed tokens and styles for the redesigned presentation. -->
-        <ResourceDictionary Source="ms-appx:///Themes/Ledger/Styles.xaml" />
       </ResourceDictionary.MergedDictionaries>
       <controls:PassThroughConverter x:Key="PassThrough" />
     </ResourceDictionary>
