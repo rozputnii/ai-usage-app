@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AiUsage.Core.Budget;
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers;
 
@@ -16,22 +17,26 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
     private const string ConfigurationName = "configuration.v1.json";
     private readonly string directory;
     private readonly BudgetJsonFile files;
+    private readonly IDiagnosticSink? diagnostics;
     private readonly SemaphoreSlim gate = new(1);
 
-    public LocalBudgetStore(string ownedRoot)
+    public LocalBudgetStore(string ownedRoot, IDiagnosticSink? diagnostics = null)
     {
         directory = Path.Combine(Path.GetFullPath(ownedRoot), "budget");
         files = new(directory);
+        this.diagnostics = diagnostics;
     }
 
-    public Task AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token) => ExclusiveAsync(async () =>
+    public Task<StoreWrite> AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token) => ExclusiveAsync(async () =>
     {
         ArgumentNullException.ThrowIfNull(observations);
         if (observations.Count > 1024) throw new ArgumentException("Too many observations.", nameof(observations));
         foreach (var observation in observations) ValidateObservation(observation);
+        bool recovered = false;
         foreach (var group in observations.GroupBy(o => o.Series))
         {
             var read = await ReadSeriesAsync(group.Key, token).ConfigureAwait(false);
+            recovered |= read.Recovered;
             var runs = read.Value.ToList();
             foreach (var observation in group.OrderBy(o => o.FetchedAt)) Add(runs, observation);
             if (runs.Count > 0)
@@ -44,6 +49,7 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
             if (runs.Count > MaximumRuns) throw new IOException("Series capacity reached.");
             await files.WriteAsync(SeriesName(group.Key), new SeriesDocument(1, group.Key, runs.Select(StoredRun.From).ToArray()), SeriesBytes, token).ConfigureAwait(false);
         }
+        return new StoreWrite(recovered);
     }, token);
 
     public Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token) =>
@@ -68,6 +74,7 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
                 last = stored.LastConfirmed;
             }
         }, token).ConfigureAwait(false);
+        if (read.Recovered) diagnostics?.Record(DiagnosticEvent.BudgetStoreRecovered, DiagnosticCategory.InvalidData);
         return new(read.Value.Runs.Select(r => r.ToRun(series)).ToArray(), read.Recovered);
     }
 
@@ -112,15 +119,17 @@ public sealed partial class LocalBudgetStore : IReadingSeriesStore, IBudgetConfi
     private async Task<StoreRead<BudgetConfiguration>> LoadConfigurationCoreAsync(CancellationToken token)
     {
         var read = await files.ReadAsync(ConfigurationName, ConfigurationBytes, () => ToDocument(BudgetConfiguration.Default), ValidateConfiguration, token).ConfigureAwait(false);
+        if (read.Recovered) diagnostics?.Record(DiagnosticEvent.BudgetStoreRecovered, DiagnosticCategory.InvalidData);
         return new(new(read.Value.WorkDays.ToArray(), read.Value.Caps.Select(c => new StoredPersonalCap(c.Series, new(c.Amount.ToQuantity(), c.SetAt))).ToArray()), read.Recovered);
     }
-    public Task SaveConfigurationAsync(BudgetConfiguration configuration, CancellationToken token) => ExclusiveAsync(async () =>
+    public Task<StoreWrite> SaveConfigurationAsync(BudgetConfiguration configuration, CancellationToken token) => ExclusiveAsync(async () =>
     {
         var document = ToDocument(configuration);
         ValidateConfiguration(document);
         // Read first so a newer/corrupt file is preserved before replacement.
-        _ = await LoadConfigurationCoreAsync(token).ConfigureAwait(false);
+        var previous = await LoadConfigurationCoreAsync(token).ConfigureAwait(false);
         await files.WriteAsync(ConfigurationName, document, ConfigurationBytes, token).ConfigureAwait(false);
+        return new StoreWrite(previous.Recovered);
     }, token);
 
     private static ConfigurationDocument ToDocument(BudgetConfiguration configuration) => new(1, configuration.WorkDays.ToArray(),

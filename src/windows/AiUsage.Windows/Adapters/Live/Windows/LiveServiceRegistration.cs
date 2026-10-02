@@ -26,7 +26,7 @@ internal static class LiveServiceRegistration
     public static IServiceCollection AddLiveServices(this IServiceCollection services)
     {
         var root = ApplicationStateDirectory.Get();
-        services.AddSingleton(new LocalBudgetStore(root));
+        services.AddSingleton(p => new LocalBudgetStore(root, p.GetRequiredService<IDiagnosticSink>()));
         services.AddSingleton<IReadingSeriesStore>(p => p.GetRequiredService<LocalBudgetStore>());
         services.AddSingleton<IBudgetConfigurationStore>(p => p.GetRequiredService<LocalBudgetStore>());
         services.AddSingleton<IBudgetDataCleanup>(p => p.GetRequiredService<LocalBudgetStore>());

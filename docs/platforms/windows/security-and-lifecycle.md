@@ -77,7 +77,9 @@ One live singleton and an exclusive file lease serialize operations. Staging, fl
 replace are per file, not a transaction across a refresh's limits or configuration plus
 cleanup. An interrupted batch may contain only some limits; missing paired observations
 do not become estimator samples. On retry, duplicate or older timestamps cannot overwrite
-committed runs. Diagnostics receive only existing fixed event/category codes.
+committed runs. Read and write results report recovery explicitly; the live singleton also
+emits BudgetStoreRecovered/InvalidData through the existing diagnostic sink, without an
+account ID, path, payload or exception text.
 
 Sign-out and appearance reset leave this namespace alone. `IBudgetDataCleanup` is only the
 new stores' cleanup boundary, not complete product reset. Call after refresh/writers drain.

@@ -48,7 +48,9 @@ parser revision or presentation redesign belongs to this item.
   lease serializes store operations. Cancellation or write failure leaves the prior file.
 - A corrupt or unsupported-version file is moved aside with its original bytes, then starts
   empty/default; at most three quarantines per active file, after which recovery fails without
-  overwriting evidence. Recovery outcome is explicit. Version 1 is additive on older installs:
+  overwriting evidence. Reads and writes return an explicit recovery result. Production
+  recovery records the fixed BudgetStoreRecovered/InvalidData diagnostic with no identifiers,
+  paths or payload. Version 1 is additive on older installs:
   missing files mean empty/default; existing appearance and credentials are not migrated.
 - Sign-out and appearance reset retain both stores. Cleanup deletes only recognized owned
   files, including quarantines, after writers drain; unknown files or redirected paths fail

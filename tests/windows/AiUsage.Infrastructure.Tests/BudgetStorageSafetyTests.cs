@@ -132,6 +132,40 @@ public sealed class BudgetStorageSafetyTests : IDisposable
         Assert.Empty(Directory.GetFiles(Path.Combine(root, "budget"), "*.json*"));
     }
 
+    [Fact]
+    public async Task ProductionRecorderReportsRecoveryWithoutLoggingPrivateData()
+    {
+        var diagnostics = new LocalDiagnosticSink(root);
+        using var store = new LocalBudgetStore(root, diagnostics);
+        var recorder = new QuotaObservationRecorder(store);
+        var quota = new QuotaSnapshot(Start, "private-plan", [new("private-group", null, null, null, null, null,
+            [new("weekly", 40, 60, TimeSpan.FromDays(7), Start.AddDays(3))])], null, null, null, null);
+        var state = new ProviderSessionState(ProviderSessionStatus.QuotaAvailable, quota);
+        await recorder.RecordAsync("private-target", "codex", state, Token);
+        var path = Assert.Single(Directory.GetFiles(Path.Combine(root, "budget"), "series-*.json"));
+        await File.WriteAllTextAsync(path, "private-corrupt-data", Token);
+        await recorder.RecordAsync("private-target", "codex", state with { Quota = quota with { FetchedAt = Start.AddMinutes(5) } }, Token);
+        var log = await File.ReadAllTextAsync(Path.Combine(root, "diagnostics.v1.log"), Token);
+        Assert.Contains("BudgetStoreRecovered\tInvalidData", log);
+        Assert.DoesNotContain("private", log);
+        Assert.Single(Directory.GetFiles(Path.Combine(root, "budget"), "*.quarantine-*"));
+    }
+
+    [Fact]
+    public async Task ConfigurationAndSeriesWritesReturnExplicitRecoveryResults()
+    {
+        using var store = new LocalBudgetStore(root);
+        await store.AppendAsync([Observation], Token);
+        var series = Assert.Single(Directory.GetFiles(Path.Combine(root, "budget"), "series-*.json"));
+        await File.WriteAllTextAsync(series, "corrupt", Token);
+        Assert.True((await store.AppendAsync([Observation with { FetchedAt = Start.AddMinutes(5) }], Token)).Recovered);
+        Assert.False((await store.AppendAsync([Observation with { FetchedAt = Start.AddMinutes(10) }], Token)).Recovered);
+        await store.SaveConfigurationAsync(BudgetConfiguration.Default, Token);
+        await File.WriteAllTextAsync(Path.Combine(root, "budget", "configuration.v1.json"), "{\"Version\":99,\"WorkDays\":[],\"Caps\":[]}", Token);
+        Assert.True((await store.SaveConfigurationAsync(BudgetConfiguration.Default, Token)).Recovered);
+        Assert.False((await store.SaveConfigurationAsync(BudgetConfiguration.Default, Token)).Recovered);
+    }
+
     private static async Task Junction(string link, string destination)
     {
         var start = new ProcessStartInfo("cmd.exe") { CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true };

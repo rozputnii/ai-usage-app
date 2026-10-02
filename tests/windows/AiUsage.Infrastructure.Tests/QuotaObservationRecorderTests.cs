@@ -36,7 +36,7 @@ public sealed class QuotaObservationRecorderTests
     private sealed class CaptureStore : IReadingSeriesStore
     {
         public List<ReadingObservation> Readings { get; } = [];
-        public Task AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token) { Readings.AddRange(observations); return Task.CompletedTask; }
+        public Task<StoreWrite> AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token) { Readings.AddRange(observations); return Task.FromResult(new StoreWrite()); }
         public Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token) => throw new NotSupportedException();
     }
 }

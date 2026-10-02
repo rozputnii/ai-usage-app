@@ -16,9 +16,10 @@ public sealed record ReadingObservation(ReadingSeriesKey Series, Quantity Value,
 }
 
 public sealed record StoreRead<T>(T Value, bool Recovered = false);
+public sealed record StoreWrite(bool Recovered = false);
 public interface IReadingSeriesStore
 {
-    Task AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token);
+    Task<StoreWrite> AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token);
     Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token);
 }
 
@@ -31,7 +32,7 @@ public sealed record BudgetConfiguration(IReadOnlyList<DayOfWeek> WorkDays, IRea
 public interface IBudgetConfigurationStore
 {
     Task<StoreRead<BudgetConfiguration>> LoadConfigurationAsync(CancellationToken token);
-    Task SaveConfigurationAsync(BudgetConfiguration configuration, CancellationToken token);
+    Task<StoreWrite> SaveConfigurationAsync(BudgetConfiguration configuration, CancellationToken token);
 }
 
 /// <summary>Only these stores, not a claim of complete product factory reset. Call after writers drain.</summary>
