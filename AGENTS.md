@@ -18,20 +18,18 @@ language used in user conversations or agent sessions. This includes task,
 handoff, and inter-agent prompts. Conversational replies may use the user's
 language.
 
-## Codex subagent model policy
+## Codex subagent policy
 
 This policy applies only to OpenAI Codex agents working in this repository. It
 does not apply to other coding tools, IDE assistants, external agents, or
 application/runtime model selection.
 
-- Use GPT-6.1 Sol with reasoning effort `high` (`model = "gpt-6.1-sol"`)
-  for every Codex subagent.
-- Allow at most two concurrent Codex subagents per session, excluding the
-  primary agent.
+- Codex subagents are disabled. Do not spawn or delegate to Codex subagents
+  unless the owner explicitly re-enables them.
 - The primary Codex agent keeps its configured model and owns architecture,
   difficult reasoning, integration, and final decisions.
-- If GPT-6.1 Sol or `high` is unavailable for a Codex subagent, report the constraint
-  instead of substituting another model.
+- If required independent review cannot be completed without Codex subagents,
+  report it as blocked instead of silently re-enabling them.
 
 Ask when a missing decision changes scope, product intent, significant
 architecture, dependencies, security boundaries, or external/destructive
