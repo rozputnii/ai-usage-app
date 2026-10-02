@@ -385,7 +385,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-038 - [opus] Redesigned presentation from the imported design
 - goal: G-003
-- status: idea
+- status: selected
 - depends_on: [AIU-034]
 - trigger: owner-selection
 - outcome: The owner-accepted AIU-034 design reference is rebuilt in native WinUI 3 XAML: design tokens and styles, controls, views and view models with their bindings, commands and inline states, and a written presentation contract (the view-model data shape). The surfaces are the single main window with inline limit rows and history, the inline settings panel, inline rename and cap editing, "Confirm · Cancel" in place, undo, first run, the sign-in strip and the tray flyout. All of it runs on demo data: the design-brief section 4 scenario and every section 3 state.
@@ -393,6 +393,8 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - supersedes: From D-180: account detail and history pages opened from the account panel with Back; settings replacing the usage view; confirmation outside the control for Delete stored data. From D-181: readings only in bar hover text and accessible names; one status mark per account; the 20 % floor and even-day pace colours with the end-of-today mark. It keeps D-180's missing tabs, Settings icon, provider menu with one-click sign-in, first run that lists providers and immediate icon-only sign-out, and D-182's single dark appearance. The replaced views leave the product only when AIU-039 switches it (D-183).
 - contract-note: This item owns the presentation contract's shape. A change to it is agreed with the [astra] AIU-039 item, never made silently from either side.
 - source: docs/specs/AIU-034-limit-audit-design-brief/design-brief.md
+- selection-note: Owner selection, 2026-10-02: AIU-038 runs on the branch users/aiu-038-presentation-redesign-1c2839, in parallel with AIU-042 on main, without edits to Core, Infrastructure, tools or provider adapters. The specification is a draft awaiting owner approval; implementation starts only after it.
+- specification: docs/specs/AIU-038-ledger-presentation/spec.md
 
 ## AIU-039 - [astra] Live adapters for the new presentation and Windows acceptance
 - goal: G-003
