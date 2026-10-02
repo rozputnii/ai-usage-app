@@ -23,16 +23,16 @@ and progress ledger. No Codex subagents. Required independent review gates are n
 - [x] Inspect Git state and policy. Base 66e3eb8, clean main tracking origin/main.
 - [x] Run baseline Infrastructure and Presentation Release suites.
 - [ ] Read every in-scope production subsystem and related tests; record coverage and findings.
-- [ ] Assess stable runtime/language opportunities against official Microsoft documentation.
+- [x] Assess stable runtime/language opportunities against official Microsoft documentation.
 
 ### T-02 - Regression-backed remediation and measurements
-- status: pending
+- status: in-progress
 - depends_on: [T-01]
 - acceptance: AC-02, AC-03, AC-04, AC-05, AC-06
-- evidence: not-run
+- evidence: verification.md
 
-- [ ] Add a reproducible synthetic Release measurement harness using existing dependencies.
-- [ ] Measure 35-day reading-store, budget/history and parser baseline workloads.
+- [x] Add a reproducible synthetic Release measurement harness using existing dependencies.
+- [x] Measure 35-day reading-store, budget/history and parser baseline workloads.
 - [ ] For each confirmed finding, add and run a failing regression before a small fix.
 - [ ] Run targeted checks and comparable measurements; assess review gates before integration.
 - [ ] Commit/push each safe coherent step; preserve gated changes without publishing them.
@@ -50,7 +50,11 @@ and progress ledger. No Codex subagents. Required independent review gates are n
 
 ## Handoff
 
-Next action: finish the production subsystem inventory and add reproducible regression probes
-for confirmed calculation defects before modifying production code.
+Next action: collect the focused journal follow-up review, resolve any material findings,
+and finish the subsystem inventory before final integrated verification.
 Baseline: Infrastructure 416/416 and Presentation 179/179 PASS on SDK 10.0.401, Windows Release.
-No product changes yet; live access, CLI credential reads and sign-in are unauthorized.
+Core boundary fixes, binary-search coverage and measurement harness are ready for a save point.
+Journal correction is owner-authorized and awaiting targeted independent review; do not publish it
+until that gate is satisfied. History/cache fixes have passing focused evidence in verification.md.
+Live access, CLI credential reads and sign-in are unauthorized.
+3c0c30d is the published planning/baseline save point. Audit remains incomplete; do not close.

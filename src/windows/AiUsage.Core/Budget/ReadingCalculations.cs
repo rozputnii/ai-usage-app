@@ -29,10 +29,16 @@ public static class ReadingCalculations
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(roundingUnit);
         if (previous.Series != current.Series || current.FirstSeen <= previous.LastConfirmed)
             return new(PeriodChangeKind.Continuing);
-        bool decreased = QuantityMath.TryAlign(previous.Value, current.Value, out var a, out var b, out _) && a - b > roundingUnit;
+        bool decreased = false;
+        if (QuantityMath.TryAlign(previous.Value, current.Value, out var a, out var b, out _) && a > b)
+        {
+            try { decreased = a - b > roundingUnit; }
+            // A positive difference beyond decimal.MaxValue exceeds any valid rounding unit.
+            catch (OverflowException) { decreased = true; }
+        }
         if (previous.ResetAt is { } oldReset && current.ResetAt is { } reset)
         {
-            if (current.FirstSeen >= oldReset && reset > oldReset.AddSeconds(60))
+            if (current.FirstSeen >= oldReset && reset - oldReset > TimeSpan.FromSeconds(60))
                 return new(PeriodChangeKind.Rollover, oldReset);
             if (decreased && (reset - oldReset).Duration() > TimeSpan.FromSeconds(60))
                 return new(PeriodChangeKind.EarlyReplenishment, After: previous.LastConfirmed);
@@ -86,7 +92,10 @@ public static class ReadingCalculations
             string instance = "tracked:" + period.Start.UtcTicks.ToString(System.Globalization.CultureInfo.InvariantCulture);
             ReadingRun Cumulative(ReadingRun run, DateTimeOffset first, DateTimeOffset last) => run with
             {
-                Value = WithAmount(scale!, used)!, FirstSeen = first, LastConfirmed = last,
+                Value = WithAmount(scale!, used)!, FirstSeen = first,
+                // Retain coverage already known at now, but never carry this period's
+                // cumulative total into the next period.
+                LastConfirmed = last < period.End ? last : period.End,
                 PeriodInstance = instance, PeriodStartedAt = null, RestartAfter = null, ResetAt = null
             };
             if (previous is not null)

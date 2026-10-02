@@ -64,8 +64,19 @@ public static class SessionEstimator
     }
 
     internal static decimal? Percent(ReadingRun run) => run.Value is CountQuantity { Unit: "percent", Value: >= 0 and <= 100 } q ? q.Value : null;
-    internal static ReadingRun? Cover(IEnumerable<ReadingRun> runs, DateTimeOffset at) =>
-        runs.LastOrDefault(x => x.FirstSeen <= at && x.LastConfirmed >= at);
+    // Ordered supplies chronological, nonoverlapping runs. Locate the last possible
+    // start, then check actual coverage: a gap must never become a confirmation.
+    internal static ReadingRun? Cover(ReadOnlySpan<ReadingRun> runs, DateTimeOffset at)
+    {
+        int low = 0, high = runs.Length;
+        while (low < high)
+        {
+            int middle = low + (high - low) / 2;
+            if (runs[middle].FirstSeen <= at) low = middle + 1;
+            else high = middle;
+        }
+        return low > 0 && runs[low - 1].LastConfirmed >= at ? runs[low - 1] : null;
+    }
 
     private static DateTimeOffset LastPlanChange(ReadingRun[] runs)
     {

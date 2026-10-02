@@ -88,6 +88,22 @@ public sealed class SessionEstimateTests
     }
 
     [Fact]
+    public void WeeklyCoverageKeepsInclusiveEndpointsAndDoesNotBridgeGaps()
+    {
+        var runs = Samples((50, 6));
+        var at = runs[0].FirstSeen;
+        var end = runs[1].LastConfirmed;
+        runs[2] = runs[2] with { FirstSeen = at.AddMinutes(-5), LastConfirmed = at };
+        runs[3] = runs[3] with { FirstSeen = end, LastConfirmed = end.AddMinutes(5) };
+        Assert.Equal(12, Assert.Single(SessionEstimator.Estimate(runs.Reverse(), Pair, Now).Samples).Cost);
+        runs[2] = runs[2] with { LastConfirmed = at.AddTicks(-1) };
+        Assert.Empty(SessionEstimator.Estimate(runs, Pair, Now).Samples);
+        runs[2] = runs[2] with { LastConfirmed = at };
+        runs[3] = runs[3] with { FirstSeen = end.AddTicks(1) };
+        Assert.Empty(SessionEstimator.Estimate(runs, Pair, Now).Samples);
+    }
+
+    [Fact]
     public void UsesLastBelowExhaustionAndLatestTenWithin28Days()
     {
         var runs = Samples((50, 6)).ToList();
