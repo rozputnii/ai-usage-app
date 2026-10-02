@@ -87,5 +87,34 @@ contours; PD-038-02 and PD-038-05 no longer block the amended scope. Do not repe
 excluded checks or change host settings unless the owner specifically requests it again.
 No new application tests or UI matrix are needed for this documentation-only amendment.
 
-AIU-038 has no remaining action. AIU-039 live wiring/product switch is separate work
-and is not started by this closure. No main merge, push, package install or release.
+AIU-038 implementation has no remaining action. AIU-039 live wiring/product switch is
+separate work and is not started by this closure. No main merge, package install or release.
+
+## Next-session handoff, 2026-10-03
+
+The owner requested publishing this session's current code and durable context before
+continuing in a new session. Push this existing task branch; do not infer a main merge
+or permission to start another feature from the publication request.
+
+- Current implementation/rules: `58d94b9`, following AIU-038 closure `ea4aa1c`.
+  This handoff commit adds no application code. Ordinary-use verification is in
+  verification.md; generated packages and screenshots stay local and ignored.
+- `main` and `origin/main` were both `954ae68` at handoff preparation. AIU-042 is done
+  there; this older task branch's AIU-042 backlog status is stale. AIU-035 and AIU-036
+  are also done. Preserve those newer main changes when eventually integrating AIU-038.
+- Recommended next feature: AIU-037, provider parser extensions and stored-format v2.
+  It has not been selected or started in this session. AIU-039 then connects real data
+  to Ledger and switches the product; AIU-040 removes obsolete provider history.
+- AIU-038 remains on this task branch and runs through `--demo --ledger`; product
+  startup is unchanged. Integration into main remains separate from this push.
+- Durable owner rules are in AGENTS.md, CONTRIBUTING.md and docs/workflow/verification.md:
+  minimum sufficient readable code, clear existing architecture boundaries, no speculative
+  abstractions, and ask before material added complexity. No Narrator, contrast-theme,
+  extreme zoom/DPI or unusual-screen work unless specifically requested again.
+- Codex subagents remain disabled. No current authorization to read/import CLI credentials
+  or sign in. AIU-037 can start with synthetic parser/migration fixtures; ask only for a
+  concrete missing provider example or a material product/architecture decision.
+
+Exact next action once the owner selects AIU-037: read the current main backlog and
+AIU-034 research section 5.5, then define the smallest parser/migration scope using the
+completed AIU-035/036/042 work and preserving existing recorded history.
