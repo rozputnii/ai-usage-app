@@ -1,7 +1,7 @@
 ---
 id: AIU-042
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: The owner's 2026-10-02 Goal instruction explicitly authorizes execution of this specification and AC-01 through AC-08. No separate design or independent review approval is claimed.

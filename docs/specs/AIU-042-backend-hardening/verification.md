@@ -2,11 +2,19 @@
 
 Execution selected by the owner's 2026-10-02 Goal instruction. Baseline code: 66e3eb8.
 Initial Git state: clean main tracking origin/main; no unrelated changes found.
+Final primary integrated review: 2026-10-02, implementation commits 019836a and a0e4b75.
+All final checks below use their combined code. Later closure changes are documentation only.
 
 | Criteria | Result | Evidence |
 | --- | --- | --- |
-| AC-01 | NOT_RUN | Baseline below passes; complete subsystem inventory is in progress. |
-| AC-02 to AC-08 | NOT_RUN | Remediation, measurements and integrated verification are pending. |
+| AC-01 | PASS | Complete subsystem inventory below; baseline 416 Infrastructure/179 Presentation tests pass. No unrelated initial work and no baseline failure. |
+| AC-02 | PASS | F-01 through F-08 fixed; failing probes, corrected reviewer findings and final regressions recorded. Only minor D-01 through D-03 are deferred with explicit rationale. No unresolved material finding/owner decision. |
+| AC-03 | PASS | Primary integrated diff review: credential-free Core retained; one renewal path owns Codex intent/exchange/save; shared retry-date helper removes duplicated arithmetic. No new layer, dependency or Windows behavior implementation. |
+| AC-04 | PASS | Stable SDK 10.0.401/runtime 10.0.12, .NET 10/C# 14 assessment below; span lookup has measured benefit. Builds have zero warnings/errors; no SDK/package/analyzer relaxation. |
+| AC-05 | PASS | Reproducible Release harness and comparable 35-day store, budget/history, session and parser measurements below. 61.4% session median improvement; other warm ranges overlap. |
+| AC-06 | PASS | Final 448 Infrastructure/179 Presentation tests include provider fixtures, opaque values, budget/session semantics, persisted schemas, recovery and cancellation. Existing journal envelope and entropy retained; no AIU-037 through AIU-040 implementation. |
+| AC-07 | PASS | Both suites, consumer Release builds, docs/diff checks pass. Required focused independent credential/cache review satisfied after targeted corrections; no missing required gate. Live/UI/package scenarios are honestly NOT_RUN and not triggered by this diff. |
+| AC-08 | PASS | Primary reviewed the integrated diff against AC-01 through AC-07 and reconciled independent findings/limitations below. Bounded audit complete; this does not certify defect-free software or start AIU-037. |
 
 ## Baseline checks
 
@@ -57,14 +65,15 @@ regression evidence; a passing suite alone is not claimed as source review.
 
 - Infrastructure Release after core/history/journal prototype: PASS 436 tests, no failures/skips, 28.854 s.
 - After fresh-sign-in correction: PASS 32 Codex session/journal tests, 4.141 s.
-- Cache correction: PASS 6 tests, 1.519 s. New changes require a final integrated suite.
+- Cache correction: PASS 6 tests, 1.519 s; included in the final integrated suite.
 - Final integrated Infrastructure Release: PASS 448 tests, 0 failed/skipped/not run, 45.113 s.
 - Final Presentation Release: PASS 179 tests, 0 failed/skipped/not run, 1.740 s.
 - ProviderConsole Release build: PASS, 0 warnings/errors. Native Windows Release x64 unpackaged
   build: PASS, 0 warnings/errors, 66.09 s; command:
   `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore`.
   Infrastructure/Core also compile in the suites and both consumer builds with warnings as errors.
-- Document validator: initial FAIL for missing design frontmatter, corrected; final PASS
+- Document validator: initial FAIL for missing design frontmatter and closure FAIL for task-local
+  evidence paths (validator requires repository-relative paths), both corrected; final PASS
   `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`,
   `valid:true`, no diagnostics. `git diff --check`: PASS.
 - An intermediate build correctly failed CA1068 for cancellation-token parameter order;
@@ -150,4 +159,5 @@ and [C# 14 reference](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/
 were checked on 2026-10-02. Stable span support is suitable for the bounded coverage lookup;
 no extension-member framework, field-property churn, preview features, SDK/dependency change
 or floating language version is warranted. `decimal.Scale` was assessed as an allocation-free
-alternative to GetBits in the recorder, but has not been adopted pending its own evidence.
+alternative to GetBits in the recorder but not adopted: no isolated benefit was measured,
+and the observed workload cost is dominated by serialization. This is not an outstanding gate.
