@@ -87,7 +87,11 @@ NOT_RUN: actual 100/150/200% display settings, light/contrast
 themes, Narrator, animations off and full side-by-side fidelity comparison.
 Current display smoke does not substitute for these checks. No system settings changed.
 
-Exact next action: run the owner-controlled Windows display matrix, starting with
-S1/S2 at actual 100% display scaling, then 150% and 200%, and complete the remaining
-reference/accessibility checks in verification.md. No font approval is outstanding.
+Font/code commit: `aa416aa`. Additional current-display gallery observations are in
+verification.md. A request to allow temporary agent-controlled display/theme/Narrator/
+animation changes, followed by restoration, is pending; no such changes were made.
+
+Exact next action: obtain the pending Windows-settings answer, then run S1/S2 at actual
+100% display scaling with either owner or newly authorized agent setting it, followed
+by 150%/200% and the remaining reference/accessibility checks. No font approval is outstanding.
 Do not mark AIU-038 done from this save point.

@@ -155,6 +155,13 @@ The footer now measures natural text widths and wraps the reset/action when nece
 matching the reference flex-wrap rule instead of truncating decision figures.
 Long tooltip text wraps within its maximum width.
 
+After font commit `aa416aa`, scrolled the complete visible Compact/Used state gallery
+from A1 through R8 at the current desktop setting. No new visible layout defect was
+found in these cards; checked Left mode again on the day-off/rush/used-up/pool tail.
+Captures: `fonts-gallery-01.jpg` through `fonts-gallery-07.jpg` and
+`fonts-gallery-left-rush.jpg`. This is additional native UI evidence, not the full
+side-by-side reference or display-scale acceptance matrix.
+
 ## Review and remaining boundaries
 
 Primary reviewed the integrated branch against the spec and fixed the defects above.
