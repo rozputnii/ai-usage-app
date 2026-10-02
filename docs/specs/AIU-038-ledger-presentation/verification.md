@@ -1,6 +1,6 @@
 # AIU-038 verification
 
-Date: 2026-10-02. Primary continuation of Claude's `dbe1db1`, branch
+Dates: 2026-10-02 through 2026-10-03 (Europe/Lisbon). Primary continuation of Claude's `dbe1db1`, branch
 `users/aiu-038-presentation-redesign-1c2839`, base `019836a`.
 Evidence applies to the continuation commit containing this record.
 Feature acceptance remains open; this is a verified WIP save point.
@@ -95,9 +95,10 @@ Accessibility-tree inspection does not establish an actual Narrator reading.
 - Work today hides the clock to retain the full day label and all title actions.
 - PD-038-04 uses summary rows: existing detailed sections depend on the old/live
   presentation, so expansion belongs to AIU-039.
-- PD-038-02 fidelity remains in the pending visual audit: cards use squircles; several
-  native popup/panel/control surfaces retain native corners. Required 150%/performance
-  evidence for a blanket fallback has not been obtained.
+- PD-038-02: cards, history, undo, first-run rows, provider menu, tooltips and appearance
+  switches use squircles. Small-radius controls use the explicitly allowed CornerRadius
+  treatment; the inline rectangular panel follows the reference sidebar shape. Native
+  window/tray contours remain unresolved. No blanket fallback is claimed.
 
 ## Approved fonts and continuation after e27dafd
 
@@ -195,7 +196,7 @@ warnings/errors. Infrastructure 421/421 and validator regressions 80/80 remain a
 because those areas did not change. Final document validation, diff review and unsigned
 package evidence are recorded below.
 
-Final package: `Build-Package.ps1 -MsixVersion 2026.10.205.0 -NoRestore
+Package for `dbec191`: `Build-Package.ps1 -MsixVersion 2026.10.205.0 -NoRestore
 -OutputDirectory .ai-usage-local/AIU-038/packages`, PASS at 22:55:03 UTC.
 Unsigned MSIX SHA-256:
 `5B77E75F8A8930FA5385C56742178223C66B9499238C082F95AF204787399F4F`.
@@ -205,6 +206,32 @@ Final document validator: PASS, `valid: true`, no diagnostics. Final `git diff -
 PASS. Primary integrated review checked the source update/focus ordering, work-area
 clamp, token-only paints and retained CheckBox automation semantics; acceptance gaps
 remain explicitly recorded above.
+
+### Corner continuation after dbec191
+
+W-07, PASS at actual Windows 150%: provider menu, two-state appearance switches and
+data tooltips now draw the shared squircle surface, preserving padding, focus and
+CheckBox/Button semantics. Captures: `corners-menu-150.jpg`, `corners-switches-150.jpg`,
+`corners-tooltip-150.jpg`. Native Windows menu dismissal and the switch's off/on state
+were exercised. Title/card-action hints now use the same tooltip factory, avoiding
+default system tooltip styling; the final Debug title tooltip was observed at 125%.
+Debug build: PASS, zero warnings/errors. View-model tests remain 262/262; these later
+changes affect WinUI rendering only. No performance failure or corner fallback is claimed.
+
+Scale restored to 125% again; the restoration snapshot is dated 2026-10-02 23:01:01 UTC
+(2026-10-03 locally). Dark theme, contrast None, animations on and Narrator off remain
+restored. Settings was minimized after verification. Remaining PD-038-02 work concerns
+native window/tray contours and must be considered with the pending PD-038-05 chrome
+decision; it does not justify declaring the feature accepted.
+
+Final unsigned Release package `2026.10.206.0`: PASS at 2026-10-02 23:01:41 UTC,
+same packaging command with the new version. SHA-256:
+`AEEB75DE24E4ED7FD8C630FC612370C49AA9232C0C4851B03B1E1DFF150A0B40`.
+Font/licence byte comparison repeated against this package and Debug output: PASS.
+The same missing-symbol-tool warning applies. No installation, signing or publication.
+Primary review checked geometry ownership, transparent outer presenters, unchanged
+layout/automation semantics and the remaining native-chrome boundary.
+Document validator and `git diff --check` after this continuation: PASS.
 
 ## Review and remaining boundaries
 

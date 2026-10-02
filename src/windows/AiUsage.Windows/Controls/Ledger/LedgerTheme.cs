@@ -120,16 +120,23 @@ internal static class LedgerTheme
                 Foreground = Solid(i == 0 ? "Ink" : "Ink2"),
                 TextWrapping = TextWrapping.Wrap,
             });
+        var surface = new SquircleSurface
+        {
+            Radius = 9,
+            Fill = Solid("Tip"),
+            Stroke = Solid("LineWindow"),
+            Padding = new Thickness(10, 6, 10, 6),
+        };
+        surface.Children.Add(panel);
         return new ToolTip
         {
             RequestedTheme = ElementTheme.Dark,
             HighContrastAdjustment = ElementHighContrastAdjustment.None,
-            Content = panel,
-            Background = Solid("Tip"),
-            BorderBrush = Solid("LineWindow"),
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(9),
-            Padding = new Thickness(10, 6, 10, 6),
+            Content = surface,
+            Background = Solid(Paint.Transparent),
+            BorderThickness = new Thickness(0),
+            CornerRadius = new CornerRadius(0),
+            Padding = new Thickness(0),
             MaxWidth = 320,
         };
     }

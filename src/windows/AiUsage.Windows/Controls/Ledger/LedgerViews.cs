@@ -13,6 +13,8 @@ internal static class LedgerViews
 {
     public static ToolTip? Tip(IReadOnlyList<string>? lines) => lines is null ? null : LedgerTheme.Tip(lines);
 
+    public static ToolTip? TextTip(string text) => LedgerTheme.Tip([text]);
+
     public static string Spoken(IReadOnlyList<string>? lines) => lines is null ? string.Empty : LedgerFormat.Spoken(string.Join(". ", lines));
 
     public static Brush MarkBrush(bool neutral) => LedgerTheme.Solid(neutral ? "Ink2" : "AttText");

@@ -40,7 +40,8 @@ Font-loading verification is tracked in T-02.
 - [x] Correct nullable binding visibility, squircle padding and footer truncation.
 - [x] With real fonts, preserve complete footer figures using the reference wrapping flow.
 - [x] Actual S1/S2 display-scale matrix at 100%, 150% and 200%; fix high-DPI clipping.
-- [ ] Close remaining corner fidelity differences under PD-038-02.
+- [x] Squircle provider menu, tooltips and appearance switches, checked at actual 150%.
+- [ ] Close remaining native window/tray corner fidelity under PD-038-02.
 
 ### T-04 - Main window, tray and interactions
 - status: in-progress
@@ -96,9 +97,12 @@ contrast None, animations on and Narrator off are restored and recorded.
 Presentation now passes 262/262, including a regression that failed before the reorder
 focus fix. Actual consecutive Alt+Down/Alt+Up retains card focus. Debug builds with zero
 warnings/errors. Final unsigned package and evidence are recorded in verification.md.
-PD-038-02 still requires completing the corner fidelity work or demonstrating its
-approved fallback condition; no blanket fallback is claimed.
+After `dbec191`, provider-menu, tooltip and appearance-switch surfaces now use the
+squircle control; title/card action hints also use the same token-based tooltip factory.
+Actual 150% checks passed, then 125% was restored again. Debug has zero warnings/errors;
+the final package record is in verification.md. PD-038-02 remains open for native
+window/tray contours; no blanket fallback is claimed.
 
 Exact next action: resolve the pending PD-038-05 native-chrome choice, then finish
-PD-038-02 corner fidelity and verify the affected surfaces before closing AIU-038.
+PD-038-02 native window/tray corner fidelity and verify affected surfaces before closure.
 No font or Windows-settings permission is outstanding. Do not mark this save point done.

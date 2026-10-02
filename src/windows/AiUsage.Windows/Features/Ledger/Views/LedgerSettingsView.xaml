@@ -113,7 +113,7 @@
               <TextBlock Text="Show signed-out accounts" Style="{StaticResource LedgerBodyText}" />
               <TextBlock Grid.Column="1" Text="{x:Bind OnOff(ViewModel.ShowSignedOut), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" />
               <Grid Grid.Column="2" Width="32" Height="18">
-                <Border CornerRadius="9" BorderThickness="1" BorderBrush="{x:Bind SwitchTrack(ViewModel.ShowSignedOut), Mode=OneWay}" Background="{x:Bind SwitchFill(ViewModel.ShowSignedOut), Mode=OneWay}" />
+                <lc:SquircleSurface Radius="9" Stroke="{x:Bind SwitchTrack(ViewModel.ShowSignedOut), Mode=OneWay}" Fill="{x:Bind SwitchFill(ViewModel.ShowSignedOut), Mode=OneWay}" />
                 <Ellipse Width="10" Height="10" Margin="4,0,4,0" Fill="{x:Bind SwitchKnob(ViewModel.ShowSignedOut), Mode=OneWay}"
                          HorizontalAlignment="{x:Bind KnobSide(ViewModel.ShowSignedOut), Mode=OneWay}" />
               </Grid>
@@ -130,7 +130,7 @@
               <TextBlock Text="Always on top" Style="{StaticResource LedgerBodyText}" />
               <TextBlock Grid.Column="1" Text="{x:Bind OnOff(ViewModel.AlwaysOnTop), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" />
               <Grid Grid.Column="2" Width="32" Height="18">
-                <Border CornerRadius="9" BorderThickness="1" BorderBrush="{x:Bind SwitchTrack(ViewModel.AlwaysOnTop), Mode=OneWay}" Background="{x:Bind SwitchFill(ViewModel.AlwaysOnTop), Mode=OneWay}" />
+                <lc:SquircleSurface Radius="9" Stroke="{x:Bind SwitchTrack(ViewModel.AlwaysOnTop), Mode=OneWay}" Fill="{x:Bind SwitchFill(ViewModel.AlwaysOnTop), Mode=OneWay}" />
                 <Ellipse Width="10" Height="10" Margin="4,0,4,0" Fill="{x:Bind SwitchKnob(ViewModel.AlwaysOnTop), Mode=OneWay}"
                          HorizontalAlignment="{x:Bind KnobSide(ViewModel.AlwaysOnTop), Mode=OneWay}" />
               </Grid>
