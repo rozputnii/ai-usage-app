@@ -12,6 +12,7 @@ public sealed record EffectiveLimit(Quantity? Value, LimitBinding Binding, bool 
             return new(new CountQuantity(100, "percent"), LimitBinding.Provider, cap is not null);
         var provider = facts.Limit.State == LimitValueState.Finite && QuantityMath.IsValidFor(facts.Limit.Value, facts)
             ? facts.Limit.Value : null;
+        if (provider is not null && (!QuantityMath.TryAlign(provider, provider, out var entitlement, out _, out _) || entitlement < 0)) provider = null;
         if (cap is null) return new(provider, provider is null ? LimitBinding.None : LimitBinding.Provider, false);
         bool valid = QuantityMath.IsValidFor(cap.Amount, facts) &&
             QuantityMath.TryAlign(cap.Amount, cap.Amount, out var amount, out _, out _) && amount >= 0;

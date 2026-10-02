@@ -47,6 +47,7 @@ public static class PeriodResolver
     public static PeriodBounds? Resolve(LimitFacts facts, DateTimeOffset now, TimeZoneInfo zone)
     {
         ArgumentNullException.ThrowIfNull(facts);
+        if (facts.Reset is { Meaning: ResetMeaning.Unknown }) return null;
         if (facts.Reset is { Meaning: ResetMeaning.Replenish } reset)
         {
             if (facts.PeriodStart is { } start && facts.PeriodStartOrigin is { } origin)

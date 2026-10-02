@@ -136,5 +136,34 @@ public sealed class BudgetEngineTests
         Assert.Equal(0, BudgetDisplay.TowardZero(-.001m, .1m));
     }
 
+    [Fact]
+    public void TrackedUseCannotInventProviderExhaustionAndNoFutureReadingIsUsed()
+    {
+        var input = Input(100, 30, 110, "2026-10-01", "2026-11-01", "2026-10-06");
+        input = input with { Period = input.Period! with { EndOrigin = ValueOrigin.Assumed } };
+        Assert.False(BudgetEngine.Calculate(input).ProviderUsedUp);
+        Assert.True(BudgetEngine.Calculate(input with { Facts = input.Facts with { Used = new CountQuantity(100, "requests") } }).ProviderUsedUp);
+        var unknownMeaning = Window with { Reset = Window.Reset! with { Meaning = ResetMeaning.Unknown } };
+        Assert.Null(PeriodResolver.Resolve(unknownMeaning, input.Now, Zone));
+        var inconsistent = input with { Used = new MoneyQuantity(100, 2, "USD") };
+        Assert.Equal(NoBudgetReason.NotReady, BudgetEngine.Calculate(inconsistent).Reason);
+    }
+
+    [Fact]
+    public void RushNeverAppliesToMoneyCreditsOrACustomCap()
+    {
+        var now = Local("2026-10-30 12:00");
+        var money = new LimitFacts(new("claude", "extra", "extra"), LimitKind.MonetaryPool, "USD", LimitValue.Finite(new MoneyQuantity(100, 0, "USD")))
+        { Reset = new(Local("2026-11-01"), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var input = new BudgetInput(money, null, Period("2026-10-01", "2026-11-01"), new MoneyQuantity(30, 0, "USD"), new MoneyQuantity(20, 0, "USD"), now, Zone);
+        Assert.False(BudgetEngine.Calculate(input).Rush);
+        var credits = money with { Kind = LimitKind.CountablePool, Unit = "credits", Limit = LimitValue.Finite(new CountQuantity(100, "credits")) };
+        Assert.False(BudgetEngine.Calculate(input with { Facts = credits, Used = new CountQuantity(30, "credits"), DayStart = new CountQuantity(20, "credits") }).Rush);
+        var requests = credits with { Unit = "requests", Limit = LimitValue.Finite(new CountQuantity(100, "requests")) };
+        var requestInput = input with { Facts = requests, Used = new CountQuantity(30, "requests"), DayStart = new CountQuantity(20, "requests") };
+        Assert.True(BudgetEngine.Calculate(requestInput).Rush);
+        Assert.False(BudgetEngine.Calculate(requestInput with { Cap = new(new CountQuantity(200, "requests"), now) }).Rush);
+    }
+
     private static decimal? Table(decimal? value) => value is { } v ? decimal.Round(v, 2, MidpointRounding.AwayFromZero) : null;
 }

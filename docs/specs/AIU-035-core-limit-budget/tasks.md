@@ -1,5 +1,6 @@
 ---
 id: AIU-035
+schema_version: 1
 ---
 
 # Core limit model and budget engine plan
@@ -34,7 +35,7 @@ already references Core. No new test dependencies or restore are needed.
 - acceptance: AC-03, AC-04, AC-06
 - evidence: not-run
 
-- [ ] Add P/S cases and failure-boundary tests; implement period transition, day-start,
+- [x] Add P/S cases and failure-boundary tests; implement period transition, day-start,
   tracked consumption, session estimator and extra-spend evidence calculations.
 - [ ] Run targeted tests, inspect the diff, commit and push a save point.
 
@@ -55,4 +56,4 @@ unknown values versus zero; readings from another period/pool; reset jitter and 
 ## Handoff
 
 Base: 73553fb. Existing uncommitted AIU-034 closure edits in backlog.md and its tasks and
-verification are preserved. Next action: implement session-estimator and extra-spend tests.
+verification are preserved. Next action: finish integrated review and record required check results.

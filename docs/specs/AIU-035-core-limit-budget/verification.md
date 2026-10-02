@@ -21,3 +21,14 @@ from accepted AIU-034 research and D-187; it has not received a separate owner r
 - One test invocation used an unsupported wildcard filter and failed before execution;
   the corrected explicit class filters ran the 28 tests above.
 - These are targeted development checks; full required suites are still NOT_RUN.
+
+- PASS: ReadingBudgetTests (8) and SessionEstimateTests (7), covering P01-P11, S01-S09,
+  tracked consumption, pool/source isolation, age/sample limits and extra-spend evidence.
+- PASS: Infrastructure Release regression suite, 376 tests, zero failures/skips, on local
+  Windows with the pinned .NET SDK, 2026-10-02. Command from README.md, no restore.
+- The first document validation failed because tasks.md omitted schema_version; added
+  schema_version: 1. Revalidation is pending. A CA1720 identifier diagnostic was corrected
+  before the estimator tests ran; owned-code warning policy was not suppressed.
+- Additional failing boundary tests led to rejecting negative entitlements and to requiring
+  provider-used evidence for the provider-used-up flag on tracked pools. Their targeted rerun
+  passed (29 tests). Unknown reset meaning preserves period-unknown rather than assuming a reset.

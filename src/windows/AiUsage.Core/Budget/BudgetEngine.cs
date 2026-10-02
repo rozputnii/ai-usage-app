@@ -63,7 +63,7 @@ public static class BudgetEngine
         result = result with { Limit = limit, Used = used, Scale = scale };
         var factUsed = input.Facts.Kind == LimitKind.PercentWindow
             ? input.Facts.UsedPercent is { } percent ? new CountQuantity(percent, "percent") : input.Used
-            : input.Facts.Used ?? input.Used;
+            : input.Facts.Used ?? (input.Period?.EndOrigin == ValueOrigin.Assumed ? null : input.Used);
         var provider = EffectiveLimit.Resolve(input.Facts, null).Value;
         bool providerKnown = QuantityMath.TryAlign(provider, factUsed, out var pl, out var pu, out _);
         var state = LimitState(used, limit);

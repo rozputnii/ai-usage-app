@@ -47,5 +47,11 @@ public sealed class LimitModelTests
         Assert.Null(EffectiveLimit.Resolve(Pool(LimitValue.Unknown) with { Unit = "unknown" }, new(new CountQuantity(1, "unknown"), DateTimeOffset.MinValue)).Value);
     }
 
+    [Fact]
+    public void NegativeProviderEntitlementCannotBecomeABudget()
+    {
+        Assert.Null(EffectiveLimit.Resolve(Pool(LimitValue.Finite(new CountQuantity(-5, "requests"))), null).Value);
+    }
+
     internal static LimitFacts Pool(LimitValue value) => new(new("test", "pool", "opaque"), LimitKind.CountablePool, "requests", value);
 }
