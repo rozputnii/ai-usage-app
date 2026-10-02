@@ -9,6 +9,10 @@ public sealed record ReadingRun(ReadingSeriesKey Series, Quantity Value, DateTim
     public DateTimeOffset? ResetAt { get; init; }
     public DateTimeOffset? PeriodStartedAt { get; init; }
     public DateTimeOffset? RestartAfter { get; init; }
+    public ResetPrecision? ResetPrecision { get; init; }
+    public decimal? UsedPercent { get; init; }
+    public string? SourceVersion { get; init; }
+    public bool IsBalance { get; init; }
 }
 public enum PeriodChangeKind { Continuing, Rollover, EarlyReplenishment, Correction }
 public sealed record PeriodChange(PeriodChangeKind Kind, DateTimeOffset? StartedAt = null, DateTimeOffset? After = null);

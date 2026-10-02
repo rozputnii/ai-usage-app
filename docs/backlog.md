@@ -347,8 +347,10 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-036 - [astra] Local reading series and budget configuration store
 - goal: G-003
-- status: idea
+- status: in-progress
 - depends_on: [AIU-033, AIU-035]
+- specification: docs/specs/AIU-036-local-reading-store/spec.md
+- evidence: docs/specs/AIU-036-local-reading-store/verification.md
 - trigger: owner-selection
 - outcome: Every automatic or manual refresh writes the local reading series of research 6.2 to 6.6. It is the only history source (D-184), is kept for at least 35 days, and supplies the day-start amount, tracked consumption, estimator samples and inline history. A new budget configuration file holds the work days (Monday to Friday by default) and the personal caps, including unmatched caps and currency mismatches (research 5.4, 5.7).
 - acceptance: (1) A security-lifecycle review of both stores is recorded before merge. It covers app-owned storage, owned-root cleanup, sign-out retention under D-093, factory reset, forward migration and corrupt-file recovery (research 6.6 precondition). (2) Both stores are versioned and size-bounded, with staged replace and reparse-point checks, and are separate from provider state and appearance preferences. (3) Sign-out keeps the series and the caps; Delete stored data and factory reset remove them. A corrupt store is set aside and a new series starts, with the losses research 6.6 lists. (4) No credential, raw payload or identity beyond the existing account target ID is stored. (5) Research cases P01 to P11 pass on a persisted round trip of the series.

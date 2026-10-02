@@ -1,4 +1,5 @@
 using AiUsage.Core.Dashboard;
+using AiUsage.Core.Budget;
 using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Accounts;
@@ -18,19 +19,23 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
     private Task? stopping;
     private UiSnapshot current;
     private readonly IDiagnosticSink? diagnostics;
+    private readonly IQuotaObservationRecorder? recorder;
     internal LivePreferenceStore? PreferenceStore { get; set; }
     private IReadOnlyDictionary<string, string> labels = new Dictionary<string, string>();
     private IReadOnlyDictionary<string, ExpansionPreference> expansions = new Dictionary<string, ExpansionPreference>();
 
     public ProviderCatalog Providers { get; }
 
-    public LiveUsageSource(ProviderCatalog providers, Func<string, IProviderSession> resolveSession, IDiagnosticSink? diagnostics = null)
-        : this(providers.All.ToDictionary(d => d.ProviderId, d => resolveSession(d.ProviderId), StringComparer.Ordinal), diagnostics, providers) { }
+    public LiveUsageSource(ProviderCatalog providers, Func<string, IProviderSession> resolveSession, IDiagnosticSink? diagnostics = null,
+        IQuotaObservationRecorder? recorder = null)
+        : this(providers.All.ToDictionary(d => d.ProviderId, d => resolveSession(d.ProviderId), StringComparer.Ordinal), diagnostics, providers, recorder) { }
 
-    public LiveUsageSource(IReadOnlyDictionary<string, IProviderSession> sessions, IDiagnosticSink? diagnostics = null, ProviderCatalog? providers = null)
+    public LiveUsageSource(IReadOnlyDictionary<string, IProviderSession> sessions, IDiagnosticSink? diagnostics = null, ProviderCatalog? providers = null,
+        IQuotaObservationRecorder? recorder = null)
     {
         Providers = providers ?? ProviderCatalog.Default;
         this.diagnostics = diagnostics;
+        this.recorder = recorder;
         entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value));
         current = new(0, UiMode.Live, DateTimeOffset.UtcNow, [], Capabilities(),
             new([], [], [], false, false, false, [Preferences.DefaultGlobalRule]),
@@ -188,6 +193,17 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         try
         {
             var state = await run(entry.Workflow, cancellation.Token).ConfigureAwait(false);
+            if (recorder is not null && operation != AccountOperation.Disconnecting && state.Status == ProviderSessionStatus.QuotaAvailable &&
+                !state.FromCache && state.Failure is null && state.Quota is not null)
+            {
+                try { await recorder.RecordAsync(id, Providers.Get(id).ProviderId, state, cancellation.Token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { throw; }
+                catch (Exception error)
+                {
+                    diagnostics?.Record(DiagnosticEvent.OperationFailure, DiagnosticProjection.Category(error));
+                    state = state with { Failure = ProviderFailureKind.StorageUnavailable };
+                }
+            }
             Update(id, state);
             return state.Failure is not null || state.Status is ProviderSessionStatus.ReauthenticationRequired or ProviderSessionStatus.RecoveryRequired ||
                 operation == AccountOperation.Refreshing && (state.Status != ProviderSessionStatus.QuotaAvailable || state.FromCache)

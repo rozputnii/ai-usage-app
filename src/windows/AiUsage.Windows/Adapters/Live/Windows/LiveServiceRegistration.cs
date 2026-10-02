@@ -3,6 +3,7 @@ using AiUsage.Adapters.Live;
 using AiUsage.Core.Usage;
 using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Persistence;
+using AiUsage.Core.Budget;
 using AiUsage.Features.Accounts;
 using AiUsage.Features.CliImport;
 using AiUsage.Features.Connection;
@@ -25,6 +26,11 @@ internal static class LiveServiceRegistration
     public static IServiceCollection AddLiveServices(this IServiceCollection services)
     {
         var root = ApplicationStateDirectory.Get();
+        services.AddSingleton(new LocalBudgetStore(root));
+        services.AddSingleton<IReadingSeriesStore>(p => p.GetRequiredService<LocalBudgetStore>());
+        services.AddSingleton<IBudgetConfigurationStore>(p => p.GetRequiredService<LocalBudgetStore>());
+        services.AddSingleton<IBudgetDataCleanup>(p => p.GetRequiredService<LocalBudgetStore>());
+        services.AddSingleton<IQuotaObservationRecorder, QuotaObservationRecorder>();
         services.AddCodexProductSession(Path.Combine(root, "providers"));
         services.AddClaudeProductSession(Path.Combine(root, "providers"));
         services.AddCopilotProductSession(Path.Combine(root, "providers"));
@@ -35,7 +41,8 @@ internal static class LiveServiceRegistration
         services.AddKeyedSingleton<Func<IProviderSession>>("copilot", (p, _) => () => p.GetRequiredService<CopilotSession>());
         services.AddKeyedSingleton<Func<IProviderSession>>("antigravity", (p, _) => () => p.GetRequiredService<AntigravitySession>());
         services.AddSingleton(p => new LiveUsageSource(p.GetRequiredService<ProviderCatalog>(),
-            id => p.GetRequiredKeyedService<Func<IProviderSession>>(id)(), p.GetRequiredService<IDiagnosticSink>()));
+            id => p.GetRequiredKeyedService<Func<IProviderSession>>(id)(), p.GetRequiredService<IDiagnosticSink>(),
+            p.GetRequiredService<IQuotaObservationRecorder>()));
         services.AddSingleton<IUsageSource>(p => p.GetRequiredService<LiveUsageSource>());
         services.AddSingleton<IProviderHistorySource, LiveProviderHistorySource>();
         services.AddSingleton<IConnectionFlow>(p => new LiveConnectionFlow(p.GetRequiredService<LiveUsageSource>(),
