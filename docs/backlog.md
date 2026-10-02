@@ -359,10 +359,22 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - contract-note: Series and configuration data reach the presentation contract only through AIU-039. A change to that contract is agreed between the [opus] AIU-038 item and the [astra] items, never made silently from either side.
 - source: docs/specs/AIU-034-limit-audit-design-brief/research.md
 
+## AIU-042 - Pre-AIU-037 backend architecture and quality hardening
+- goal: G-003
+- status: ready
+- depends_on: [AIU-035, AIU-036]
+- trigger: owner-selection before AIU-037
+- outcome: Audit the entire existing backend and implement evidence-backed corrections to architecture, correctness, maintainability, patterns and performance. Use stable .NET 10/C# 14 capabilities where they improve the implementation. This is a code-focused remediation task, with regression tests and reproducible performance evidence, not a report-only review.
+- acceptance: AC-01 through AC-08 in the specification cover backend inventory, actionable findings and fixes, architectural boundaries, modern language/runtime choices, measured performance, behavior preservation, verification and honest closure.
+- specification: docs/specs/AIU-042-backend-hardening/spec.md
+- evidence: docs/specs/AIU-042-backend-hardening/verification.md
+- registration-note: Owner request, 2026-10-02: register a pre-037 task and provide a Codex Goal launch prompt. Registration does not start implementation. Existing IDs are retained; AIU-042 is the prerequisite of AIU-037.
+- scope-note: Existing backend only, including nonvisual Windows composition/adapters where necessary. No UI redesign, new provider behavior, v2 stored-format migration or implementation of AIU-037 to AIU-040. Codex subagents remain disabled.
+
 ## AIU-037 - [astra] Provider parser extensions and stored-format version 2
 - goal: G-003
 - status: idea
-- depends_on: [AIU-035]
+- depends_on: [AIU-035, AIU-042]
 - integration-note: AIU-036 already captures existing normalized snapshots under explicit legacy-window-v1, legacy-balance-v1 and legacy-extra-v1 series keys. Establish an explicit compatible mapping to native limit keys when adopting this model; never silently merge unlike series or discard the recorded history. See the AIU-036 specification.
 - trigger: owner-selection
 - outcome: The Claude, Codex, Copilot and Antigravity parsers fill the AIU-035 model for every provider limit in the research 5.5 mapping. This includes the Codex negative credit balance (M-02), the reset precision the provider actually sent (M-04) and the Codex individual control (M-07): its percentages become a window, and its raw amounts become a secondary amount of unknown unit. The Codex quota cache moves to envelope version 2 and the Claude, Copilot and Antigravity states to version 2, each with a forward migration (research 5.7).
