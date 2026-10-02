@@ -6,6 +6,11 @@
     <ResourceDictionary Source="ms-appx:///Themes/Ledger/Tokens.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
+  <Style TargetType="MenuFlyoutItem">
+    <Setter Property="FontFamily" Value="{StaticResource LedgerSansFont}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
   <!-- Text: tabular numerals everywhere a figure can appear. -->
   <Style x:Key="LedgerBodyText" TargetType="TextBlock">
     <Setter Property="FontFamily" Value="{StaticResource LedgerSansFont}" />
@@ -19,6 +24,7 @@
     <Setter Property="Foreground" Value="{StaticResource LedgerInk3Brush}" />
   </Style>
   <Style x:Key="LedgerStrongText" TargetType="TextBlock" BasedOn="{StaticResource LedgerBodyText}">
+    <Setter Property="FontFamily" Value="{StaticResource LedgerSansSemiboldFont}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
   <Style x:Key="LedgerSectionText" TargetType="TextBlock" BasedOn="{StaticResource LedgerStrongText}">
@@ -65,7 +71,7 @@
 
   <!-- One button template: a rounded surface with hover and pressed tints, and the 2 px ink focus ring. -->
   <Style x:Key="LedgerButtonBase" TargetType="Button">
-    <Setter Property="FontFamily" Value="{StaticResource LedgerSansFont}" />
+    <Setter Property="FontFamily" Value="{StaticResource LedgerSansSemiboldFont}" />
     <Setter Property="FontSize" Value="12" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{StaticResource LedgerInkBrush}" />
@@ -91,7 +97,7 @@
             <Border x:Name="Tint" Background="{StaticResource LedgerInkBrush}" Opacity="0" CornerRadius="{TemplateBinding CornerRadius}" />
             <ContentPresenter x:Name="Presenter" Padding="{TemplateBinding Padding}" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
                               HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                              Foreground="{TemplateBinding Foreground}" FontWeight="{TemplateBinding FontWeight}" />
+                              Foreground="{TemplateBinding Foreground}" FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}" FontWeight="{TemplateBinding FontWeight}" />
             <VisualStateManager.VisualStateGroups>
               <VisualStateGroup x:Name="CommonStates">
                 <VisualState x:Name="Normal" />
@@ -134,7 +140,7 @@
     <Setter Property="ContentTemplate">
       <Setter.Value>
         <DataTemplate>
-          <TextBlock Text="{Binding}" TextDecorations="Underline" FontWeight="SemiBold" FontSize="12" />
+          <TextBlock Text="{Binding}" TextDecorations="Underline" FontFamily="{StaticResource LedgerSansSemiboldFont}" FontWeight="SemiBold" FontSize="12" />
         </DataTemplate>
       </Setter.Value>
     </Setter>
@@ -150,6 +156,7 @@
     <Setter Property="Height" Value="28" />
   </Style>
   <Style x:Key="LedgerFooterButton" TargetType="Button" BasedOn="{StaticResource LedgerButtonBase}">
+    <Setter Property="FontFamily" Value="{StaticResource LedgerSansFont}" />
     <Setter Property="Padding" Value="0" />
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="FontWeight" Value="Normal" />

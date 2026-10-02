@@ -90,7 +90,7 @@ internal sealed partial class TodayStrip : Grid
                 VerticalAlignment = VerticalAlignment.Top,
                 HorizontalAlignment = left ? HorizontalAlignment.Left : HorizontalAlignment.Right,
                 IsHitTestVisible = false,
-                Child = new TextBlock { Text = "5h", FontSize = 10, LineHeight = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Foreground = LedgerTheme.Solid("Ink"), FontFamily = (FontFamily)LedgerTheme.Find("LedgerSansFont")! },
+                Child = new TextBlock { Text = "5h", FontSize = 10, LineHeight = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Foreground = LedgerTheme.Solid("Ink"), FontFamily = (FontFamily)LedgerTheme.Find("LedgerSansSemiboldFont")! },
             });
         }
         if (!FocusableCells)
@@ -302,6 +302,7 @@ internal sealed partial class HistoryChart : Canvas
             if (label.IsToday)
             {
                 text.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
+                text.FontFamily = (FontFamily)LedgerTheme.Find("LedgerSansSemiboldFont")!;
                 text.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
                 SetLeft(text, width - text.DesiredSize.Width);
             }

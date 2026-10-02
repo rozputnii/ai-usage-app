@@ -21,14 +21,14 @@ No Core, Infrastructure, tools or live-adapter edits. The owner approved the spe
 Font-loading verification is tracked in T-02.
 
 ### T-02 - Tokens, styles and fonts
-- status: blocked
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-07, AC-11
 - evidence: docs/specs/AIU-038-ledger-presentation/verification.md
 
 - [x] Tokens, both densities and composited-token contrast regression.
-- [ ] Download approval, package static TTF files and licences, verify tabular figures
-  and actual font loading. Exact upstream files and sizes were presented to the owner.
+- [x] Owner approved the four named static TTF files on 2026-10-02. Fonts and licences
+  are packaged; internal names/weights, tabular figures and actual rendering verified.
 
 ### T-03 - Card view models and controls
 - status: in-progress
@@ -38,6 +38,7 @@ Font-loading verification is tracked in T-02.
 
 - [x] State/geometry/figure tests, cards, bars, today strips and spoken names.
 - [x] Correct nullable binding visibility, squircle padding and footer truncation.
+- [x] With real fonts, preserve complete footer figures using the reference wrapping flow.
 - [ ] Final font-dependent visual comparison and display-scale matrix.
 
 ### T-04 - Main window, tray and interactions
@@ -60,7 +61,8 @@ Font-loading verification is tracked in T-02.
 
 - [x] Regression suites, Debug build, unsigned Release MSIX, product/plain-demo smoke.
 - [x] Integrated primary review and explicit per-AC evidence/limitations.
-- [ ] Owner-controlled Windows matrix and font completion; feature closure.
+- [x] Font completion and byte-for-byte font/licence checks in unpackaged/MSIX output.
+- [ ] Owner-controlled Windows matrix; feature closure.
 
 ## Handoff
 
@@ -76,11 +78,16 @@ Debug build with zero warnings/errors, unsigned Release MSIX 2026.10.202.0,
 actual product and plain-demo startup. Commands, UI evidence and limitations are in
 verification.md. No pending worker artifacts. Generated output stays ignored.
 
-BLOCKED: PD-038-03 requires per-file font download confirmation; the owner has not
-answered the request. NOT_RUN: actual 100/150/200% display settings, light/contrast
+Font continuation after `e27dafd`: PD-038-03 approved and implemented; Presentation
+261/261 passed again, Debug has zero warnings/errors, unsigned MSIX 2026.10.203.0
+contains all seven font/licence files byte-for-byte. Verified actual Compact Used/Left,
+Comfortable, settings/editor, inline confirmation/cancel and tray typography.
+
+NOT_RUN: actual 100/150/200% display settings, light/contrast
 themes, Narrator, animations off and full side-by-side fidelity comparison.
 Current display smoke does not substitute for these checks. No system settings changed.
 
-Exact next action: obtain the pending PD-038-03 answer, then add the four named static
-TTF files and their OFL licences and verify font loading/tabular figures before the
-owner-controlled Windows acceptance matrix. Do not mark AIU-038 done from this save point.
+Exact next action: run the owner-controlled Windows display matrix, starting with
+S1/S2 at actual 100% display scaling, then 150% and 200%, and complete the remaining
+reference/accessibility checks in verification.md. No font approval is outstanding.
+Do not mark AIU-038 done from this save point.

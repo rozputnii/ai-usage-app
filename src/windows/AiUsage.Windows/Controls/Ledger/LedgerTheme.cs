@@ -115,10 +115,10 @@ internal static class LedgerTheme
                 Text = lines[i],
                 FontSize = 12,
                 LineHeight = 17,
-                FontFamily = (FontFamily)Find("LedgerSansFont")!,
+                FontFamily = (FontFamily)Find(i == 0 ? "LedgerSansSemiboldFont" : "LedgerSansFont")!,
                 FontWeight = i == 0 ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal,
                 Foreground = Solid(i == 0 ? "Ink" : "Ink2"),
-                TextWrapping = TextWrapping.NoWrap,
+                TextWrapping = TextWrapping.Wrap,
             });
         return new ToolTip
         {

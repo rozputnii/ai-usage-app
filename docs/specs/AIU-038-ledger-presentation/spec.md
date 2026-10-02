@@ -4,7 +4,7 @@ type: feature
 status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: Owner selection, 2026-10-02, of AIU-038 on a dedicated worktree branch. The owner approved this specification on 2026-10-02 ("approve"), including the section 9 recommendations; downloading font files still needs the per-file confirmation PD-038-03 names. Behavior derives from the owner-accepted AIU-034 design reference (D-186, D-187) and the Gate B design brief as those decisions amend it.
+approval_basis: Owner selection, 2026-10-02, of AIU-038 on a dedicated worktree branch. The owner approved this specification on 2026-10-02 ("approve"), including the section 9 recommendations, and subsequently explicitly approved downloading the four named static font files and continuing implementation under PD-038-03. Behavior derives from the owner-accepted AIU-034 design reference (D-186, D-187) and the Gate B design brief as those decisions amend it.
 ---
 
 # Redesigned presentation from the imported design
@@ -73,8 +73,9 @@ status naming its limit; those brief states are not rebuilt.
   `AiUsage.Infrastructure` namespace. A test enforces it.
 - **Launch.** `--demo --ledger` starts the new main window and the tray miniature with the
   demo source. Product launch and plain `--demo` are unchanged (D-183). The only edit to
-  existing code is a small guarded branch in `App.xaml.cs` (startup and tray popup) that
-  delegates to the new composition file (PD-038-01).
+  existing application logic is a small guarded branch in `App.xaml.cs` (startup and tray popup)
+  that delegates to the new composition file (PD-038-01). The Windows project file also
+  declares the approved font and licence assets as Content for unpackaged and MSIX output.
 - **Window.** 760 × 600 effective pixels by default, solid `bg.page`, dark title bar,
   custom title row of 38 px (AppWindow title bar extension, as the current window does).
 - **No new NuGet package.** Hatching uses clipped stripe geometry over a solid fill:
@@ -455,7 +456,7 @@ progress becomes static "waiting" text.
 | --- | --- | --- | --- | --- |
 | PD-038-01 | How does the demo reach the new presentation without switching the product (D-183)? | (a) `--demo --ledger` with a small guarded branch in `App.xaml.cs`; (b) a separate demo executable project | (a): one isolated hook, rebased once after AIU-042 | `App.xaml.cs` is the only existing file touched besides the backlog entry |
 | PD-038-02 | How are squircle corners built? | (a) a squircle surface control drawing a superellipse path for cards, panel, tray, flyouts, undo bar, first-run rows and buttons, with `CornerRadius` for elements whose radius is at most 7 px (strip cells, bar track, ring, pills keep round); (b) `CornerRadius` everywhere, as the S11 note "corner-shape squircle → CornerRadius" allows | (a), verified for cost on the S1 grid; fall back to (b) for any element where (a) fails the 150 % or performance check, recorded in verification | Visual fidelity versus effort |
-| PD-038-03 | Fonts | Source Serif 4, Hanken Grotesk and IBM Plex Mono static .ttf from their official repositories, SIL OFL 1.1, licence and tabular figures checked before merge | Approve downloading the files (name, source and size listed for approval first) or supply them | Until then, views fall back to Segoe UI Variable and acceptance item (6) stays open |
+| PD-038-03 | Fonts (resolved 2026-10-02) | Source Serif 4, Hanken Grotesk and IBM Plex Mono static .ttf from their official repositories, SIL OFL 1.1, licence and tabular figures checked before merge | Owner explicitly approved the four named files after sources and sizes were presented | Package the files and licences, use explicit regular/semibold resources; provenance and validation are in verification.md |
 | PD-038-04 | Monitoring, Updates and System status sections | (a) collapsed rows with the contract summaries, expanding inline to the existing section views; (b) summary rows only, full content in AIU-039 | (a) when the existing views host cleanly in the panel; otherwise (b), recorded | Settings completeness in the demo |
 
 ## 10. Acceptance
@@ -501,7 +502,7 @@ progress becomes static "waiting" text.
 - AC-11: Each packaged font's licence is verified against its official page and recorded
   before merge, the files are .ttf, and figures use tabular numerals (PA-12, backlog
   acceptance 6).
-- AC-12: No edit outside section 3's paths except the PD-038-01 hook and the AIU-038
+- AC-12: No edit outside section 3's paths except the PD-038-01 hook, approved font Content declaration and the AIU-038
   backlog entry; product launch and `--demo` behave as before; all suites, the document
   validator, the build and `git diff --check` pass.
 

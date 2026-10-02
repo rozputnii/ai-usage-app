@@ -25,6 +25,7 @@
     <ProjectReference Include="../AiUsage.Core/AiUsage.Core.csproj" />
     <ProjectReference Include="../AiUsage.Infrastructure/AiUsage.Infrastructure.csproj" />
     <Content Include="Assets/*.png" />
+    <Content Include="Assets/Fonts/*.ttf;Assets/Fonts/*LICENSE*;Assets/Fonts/*OFL*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup Condition="'$(AiUsagePackageManifest)' != ''">
     <AppxManifest Include="$(AiUsagePackageManifest)" />

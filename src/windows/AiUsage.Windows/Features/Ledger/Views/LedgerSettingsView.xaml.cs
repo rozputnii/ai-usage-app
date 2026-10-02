@@ -58,6 +58,7 @@ internal sealed partial class LedgerSettingsView : UserControl
     public static Brush DayBorder(bool on) => LedgerTheme.Solid(on ? "ControlOn" : "LineMuted");
     public static Brush DayForeground(bool on) => LedgerTheme.Solid(on ? "Ink" : "Ink3");
     public static FontWeight DayWeight(bool on) => on ? FontWeights.SemiBold : FontWeights.Normal;
+    public static FontFamily DayFont(bool on) => (FontFamily)LedgerTheme.Find(on ? "LedgerSansSemiboldFont" : "LedgerSansFont")!;
     public static Brush AmountBrush(bool applied) => LedgerTheme.Solid(applied ? "Ink" : "Ink2");
     public static Brush NoteBrush(bool warning) => LedgerTheme.Solid(warning ? "AttText" : "Ink3");
 }

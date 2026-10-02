@@ -113,13 +113,7 @@
                         AutomationProperties.Name="{x:Bind lc:LedgerViews.Spoken(ViewModel.Visual.BarTip), Mode=OneWay}">
           <lc:PeriodBar Visual="{x:Bind ViewModel.Visual, Mode=OneWay}" Opacity="{x:Bind ViewModel.Visual.Opacity, Mode=OneWay}" />
         </ContentControl>
-        <Grid Grid.Row="4" Grid.Column="1" ColumnSpacing="8" Margin="0,4,0,0" Visibility="{x:Bind Hide(ViewModel.IsEditingCap), Mode=OneWay}">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
+        <lc:LedgerFooterPanel Grid.Row="4" Grid.Column="1" Margin="0,4,0,0" Visibility="{x:Bind Hide(ViewModel.IsEditingCap), Mode=OneWay}">
           <Button Style="{StaticResource LedgerFooterButton}" Click="OnFooterClick" IsTabStop="True" HorizontalAlignment="Left"
                   ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.FooterTip), Mode=OneWay}"
                   AutomationProperties.Name="{x:Bind FooterName(ViewModel.Visual.Footer, ViewModel.Visual.FooterTip, ViewModel.CanEditCap), Mode=OneWay}">
@@ -135,7 +129,7 @@
           </ContentControl>
           <Button Grid.Column="2" Style="{StaticResource LedgerOutlineButton}" Content="{x:Bind ViewModel.Visual.ActionText, Mode=OneWay}" Command="{x:Bind ViewModel.ActionCommand}"
                   Visibility="{x:Bind Show(ViewModel.Visual.HasAction), Mode=OneWay}" />
-        </Grid>
+        </lc:LedgerFooterPanel>
         <Grid Grid.Row="4" Grid.Column="1" Margin="0,6,0,0" Visibility="{x:Bind Show(ViewModel.IsEditingCap), Mode=OneWay}">
           <lc:CapEditorView x:Name="BarCapEditor" Editor="{x:Bind ViewModel.CapEditor, Mode=OneWay}" />
         </Grid>

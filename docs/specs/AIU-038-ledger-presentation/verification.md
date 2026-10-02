@@ -70,8 +70,8 @@ Accessibility-tree inspection does not establish an actual Narrator reading.
 | AC-08 | NOT_RUN | Owner-controlled 100/150/200% display matrix required by spec section 11. |
 | AC-09 | NOT_RUN | Owner-controlled Windows light app mode and contrast theme checks. |
 | AC-10 | NOT_RUN | Keyboard/focus/tooltip subset passed; full keyboard map, Narrator and Windows animations-off matrix remain unverified. |
-| AC-11 | BLOCKED | PD-038-03 per-file download confirmation pending. No reference fonts packaged; fallback rendering is not font acceptance. |
-| AC-12 | PASS | V-01 through V-07 and UI-09. Permitted Ledger code, guarded App.xaml.cs hook, task documents and presentation regressions only. |
+| AC-11 | PASS | Owner-approved static fonts and OFL licences packaged; internal names, weights, tabular advances and actual rendering checked in F-01 through F-04 below. |
+| AC-12 | PASS | V-01 through V-07, UI-09 and F-01 through F-04. Scoped Ledger code, guarded hook, approved font Content declaration, task documents and presentation regressions. |
 
 ## Fixes and implementation rulings
 
@@ -97,10 +97,11 @@ Accessibility-tree inspection does not establish an actual Narrator reading.
   native popup/panel/control surfaces retain native corners. Required 150%/performance
   evidence for a blanket fallback has not been obtained.
 
-## Fonts awaiting PD-038-03
+## Approved fonts and continuation after e27dafd
 
-Official metadata and licence text were checked on 2026-10-02; all state SIL OFL 1.1.
-No font binary has been downloaded or packaged.
+The owner explicitly approved downloading the four named files and continuing on
+2026-10-02, resolving PD-038-03. Official licence text was checked before packaging;
+all three licences state SIL OFL 1.1. Unmodified files live in `Assets/Fonts`.
 
 | File | Official upstream | Size |
 | --- | --- | --- |
@@ -109,10 +110,50 @@ No font binary has been downloaded or packaged.
 | HankenGrotesk-SemiBold.ttf | Same Hanken upstream | 73,644 bytes |
 | IBMPlexMono-Regular.ttf | [IBM Plex Mono complete/ttf](https://github.com/IBM/plex/tree/master/packages/plex-mono/fonts/complete/ttf) | 173,052 bytes |
 
-Licence sources: Adobe `LICENSE.md` (4,491 bytes), Hanken `OFL.txt` (4,402 bytes),
-IBM `LICENSE.txt` (4,456 bytes). Add licences and static TTF content after confirmation,
-correct resource paths, verify actual families/weights/tabular figures, rebuild and
-repeat font-sensitive checks.
+Downloads were pinned to these upstream commits, including their accompanying licence:
+
+- Adobe: `80d3f8894c09c937bebfa9011247d2e1c79fd6f4`,
+  [TTF source](https://github.com/adobe-fonts/source-serif/blob/80d3f8894c09c937bebfa9011247d2e1c79fd6f4/TTF/SourceSerif4-Semibold.ttf)
+  and [LICENSE.md](https://github.com/adobe-fonts/source-serif/blob/80d3f8894c09c937bebfa9011247d2e1c79fd6f4/LICENSE.md).
+- Hanken: `eff37d18946b018ad239cf5fd3992db5d19b82a0`,
+  [TTF sources](https://github.com/marcologous/hanken-grotesk/tree/eff37d18946b018ad239cf5fd3992db5d19b82a0/fonts/ttf)
+  and [OFL.txt](https://github.com/marcologous/hanken-grotesk/blob/eff37d18946b018ad239cf5fd3992db5d19b82a0/OFL.txt).
+- IBM: `763c36ef9117782905ae010056dfbe8fd2653a25`,
+  [TTF source](https://github.com/IBM/plex/blob/763c36ef9117782905ae010056dfbe8fd2653a25/packages/plex-mono/fonts/complete/ttf/IBMPlexMono-Regular.ttf)
+  and [LICENSE.txt](https://github.com/IBM/plex/blob/763c36ef9117782905ae010056dfbe8fd2653a25/LICENSE.txt).
+
+Local licences retain the original bytes under `SourceSerif4-LICENSE.md` (4,491),
+`HankenGrotesk-OFL.txt` (4,402), and `IBMPlexMono-LICENSE.txt` (4,456).
+No font was installed system-wide.
+Folder-local Git attributes preserve upstream licence line endings/trailing spaces;
+the whitespace exception applies only to these unmodified third-party licences.
+
+| Font | SHA-256 | Weight / default digit advance |
+| --- | --- | --- |
+| SourceSerif4-Semibold.ttf | `36db62940cb5728b12b1802476dc7fcf4c6c519a7bdd476ba23a4e555fc4655f` | 600 / 520 |
+| HankenGrotesk-Regular.ttf | `0a5c86e907f6d6cba528c3bfb0516b3f46c9524fa22f32f292109f25dc149b32` | 400 / 560 |
+| HankenGrotesk-SemiBold.ttf | `19ef1bdde3563a72e3a8387461f9e3eff33e6ae1ab3576e904db82fd99cf4f4a` | 600 / 560 |
+| IBMPlexMono-Regular.ttf | `7c6fbddca4b700be918f5f6183d9bd4464fa427fe435f0b480d77fe2bb8c5a43` | 400 / 600 |
+
+| Check | Result |
+| --- | --- |
+| F-01, OpenType inspection | PASS: TrueType outlines, no variable-font table, internal family names match resources, expected weights, embedding field zero. Each font's ten digits have identical advance widths; Hanken/IBM figures are tabular by default. Local evidence: `font-inspection.json`. |
+| F-02, build/regressions | PASS: V-01 repeated, 261/261. Final Debug V-05 repeated, zero warnings/errors. An earlier premature app launch briefly locked build output; app stopped and clean build repeated successfully. |
+| F-03, package contents | PASS: Release MSIX 2026.10.203.0 and unpackaged output contain all four TTFs and all three licences byte-for-byte. Local evidence: `font-package-verification.json`. |
+| F-04, actual Windows UI | PASS at current desktop setting: Compact S1/S2 fit, complete figures remain visible, Comfortable scrolls, settings cap editor focuses its input and Escape cancels, inline delete confirmation focuses Cancel and Escape cancels, tray fonts/focus/tooltips render. No system-scale/theme/Narrator verdict inferred. |
+
+F-03 used V-06's command with version `2026.10.203.0`, completed at
+2026-10-02 21:55:00 UTC. Package SHA-256:
+`A713DF491F4C03DF04A31277E02FF9F47C2130F7225229328FDF62AAA43C7E43`.
+The same missing-symbol-tool packaging warning applies; no installation/signing performed.
+
+F-04 captures under the same ignored UI directory: `fonts-s1.jpg`, `fonts-s2.jpg`,
+`fonts-settings-cap.jpg`, `fonts-comfortable-settings.jpg`,
+`fonts-inline-confirm.jpg`, `fonts-tray.jpg`, `fonts-tray-tooltip.jpg`.
+Static regular/semibold resources are explicit, including buttons, tooltips and menus.
+The footer now measures natural text widths and wraps the reset/action when necessary,
+matching the reference flex-wrap rule instead of truncating decision figures.
+Long tooltip text wraps within its maximum width.
 
 ## Review and remaining boundaries
 
@@ -123,5 +164,5 @@ No main merge or push occurred; the owner requested continuation/commit in this 
 This branch has not been rebased onto AIU-042's later main commits.
 
 Live provider operation, packaged installation/update, product switch and release
-approval are NOT_RUN and outside this change. Unfinished fonts and interactive
-acceptance prevent AIU-038 closure.
+approval are NOT_RUN and outside this change. Remaining interactive/reference
+acceptance prevents AIU-038 closure; the font blocker is resolved.

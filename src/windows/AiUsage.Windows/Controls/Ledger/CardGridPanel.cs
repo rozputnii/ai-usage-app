@@ -8,6 +8,59 @@ using Windows.System;
 
 namespace AiUsage.Controls.Ledger;
 
+/// <summary>Reference footer flow: preserve the figure; move reset/actions to another line when needed.</summary>
+internal sealed partial class LedgerFooterPanel : Panel
+{
+    private const double Gap = 8;
+    private const double RowGap = 2;
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        foreach (var child in Children.Where(c => c.Visibility == Visibility.Visible))
+        {
+            child.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            if (child.DesiredSize.Width > availableSize.Width)
+                child.Measure(new Size(availableSize.Width, double.PositiveInfinity));
+        }
+        return new Size(availableSize.Width, Layout(availableSize.Width, false));
+    }
+
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        Layout(finalSize.Width, true);
+        return finalSize;
+    }
+
+    private double Layout(double width, bool arrange)
+    {
+        var visible = Children.Where(c => c.Visibility == Visibility.Visible).ToArray();
+        double y = 0;
+        for (var start = 0; start < visible.Length;)
+        {
+            var end = start + 1;
+            var used = visible[start].DesiredSize.Width;
+            var height = visible[start].DesiredSize.Height;
+            while (end < visible.Length && used + Gap + visible[end].DesiredSize.Width <= width)
+            {
+                used += Gap + visible[end].DesiredSize.Width;
+                height = Math.Max(height, visible[end++].DesiredSize.Height);
+            }
+            var x = start == 0 ? 0 : Math.Max(0, width - used);
+            for (var i = start; i < end; i++)
+            {
+                // The reset is pushed to the right in the first line, as in the reference flex footer.
+                if (start == 0 && i == 1) x += Math.Max(0, width - used);
+                var size = visible[i].DesiredSize;
+                if (arrange) visible[i].Arrange(new Rect(x, y + (height - size.Height) / 2, size.Width, size.Height));
+                x += size.Width + Gap;
+            }
+            y += height + (end < visible.Length ? RowGap : 0);
+            start = end;
+        }
+        return y;
+    }
+}
+
 /// <summary>
 /// The card grid (S1): cards fill rows of one or two equal columns in order; an element marked FullRow (inline history)
 /// starts its own row across all columns. Row height is the tallest card of the row.

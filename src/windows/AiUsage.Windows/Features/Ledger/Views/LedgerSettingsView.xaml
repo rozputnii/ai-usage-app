@@ -37,6 +37,7 @@
                         Background="{x:Bind views:LedgerSettingsView.DayBackground(IsOn), Mode=OneWay}" BorderBrush="{x:Bind views:LedgerSettingsView.DayBorder(IsOn), Mode=OneWay}"
                         BorderThickness="1" Foreground="{x:Bind views:LedgerSettingsView.DayForeground(IsOn), Mode=OneWay}"
                         FontWeight="{x:Bind views:LedgerSettingsView.DayWeight(IsOn), Mode=OneWay}"
+                        FontFamily="{x:Bind views:LedgerSettingsView.DayFont(IsOn), Mode=OneWay}"
                         AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}" />
               </DataTemplate>
             </ItemsControl.ItemTemplate>

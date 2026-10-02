@@ -1,0 +1,4 @@
+# Preserve upstream font/licence bytes, including licence line endings and trailing spaces.
+*.ttf binary
+*LICENSE* -text whitespace=-blank-at-eol
+*OFL* -text whitespace=-blank-at-eol

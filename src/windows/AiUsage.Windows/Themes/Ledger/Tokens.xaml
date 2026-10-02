@@ -91,10 +91,11 @@
 
   <!--
     Type pairing (Surfaces S11): Source Serif 4 for names and titles, Hanken Grotesk for body and figures, IBM Plex Mono
-    for the clock. The packaged .ttf files come from PD-038-03; until present, each family falls back to a Windows font.
+    for the clock. Static .ttf files approved under PD-038-03; keep each weight's file explicit.
   -->
-  <FontFamily x:Key="LedgerSerifFont">ms-appx:///Assets/Fonts/SourceSerif4-Variable.ttf#Source Serif 4, Georgia, Segoe UI Variable Text</FontFamily>
-  <FontFamily x:Key="LedgerSansFont">ms-appx:///Assets/Fonts/HankenGrotesk-Variable.ttf#Hanken Grotesk, Segoe UI Variable Text</FontFamily>
+  <FontFamily x:Key="LedgerSerifFont">ms-appx:///Assets/Fonts/SourceSerif4-Semibold.ttf#Source Serif 4, Segoe UI Variable Text</FontFamily>
+  <FontFamily x:Key="LedgerSansFont">ms-appx:///Assets/Fonts/HankenGrotesk-Regular.ttf#Hanken Grotesk, Segoe UI Variable Text</FontFamily>
+  <FontFamily x:Key="LedgerSansSemiboldFont">ms-appx:///Assets/Fonts/HankenGrotesk-SemiBold.ttf#Hanken Grotesk, Segoe UI Variable Text</FontFamily>
   <FontFamily x:Key="LedgerMonoFont">ms-appx:///Assets/Fonts/IBMPlexMono-Regular.ttf#IBM Plex Mono, Cascadia Mono, Consolas</FontFamily>
 
   <!-- Radii (effective px). Squircle surfaces draw their own superellipse; these serve CornerRadius elements (PD-038-02). -->
