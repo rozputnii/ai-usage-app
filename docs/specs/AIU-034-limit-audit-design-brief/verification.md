@@ -130,6 +130,13 @@ This is a proposal for the owner to confirm or reject.
 - states shown only as text in these pages: capped at 0, incomplete tracking,
   "used today since HH:MM" and the secondary amount of unknown unit.
 
+**Colour rule, owner decision 2026-10-02.** When today's allowance is reached but not
+exceeded, the card is red, the same red as over. Orange stays for "almost but not yet":
+today low, today short, cap close and a full current five-hour window. "Cap reached" stays
+red. In Provider States Handoff, B3, C2, D2 and G2 ("today used") are now red, and the
+legend says so. A check on the served page found these four pills at `#F07A65` and the
+orange pills at `#E58C6C`, with no console errors. D-186 is updated to match.
+
 **Verdict.** The page is accepted as the design reference under D-186. The rubric rows that
 D-186 replaces are not judged against the old brief. AC-10 stays NOT_RUN until T-18 imports
 the reference.
