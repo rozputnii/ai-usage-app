@@ -94,6 +94,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [ObservableProperty] public partial CapEditorViewModel? CapEditor { get; private set; }
     [ObservableProperty] public partial bool IsNew { get; set; }
     [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
+    [ObservableProperty] public partial bool IsCompact { get; set; } = true;
 
     public string Name => Account.DisplayName;
     public string? Tag => Model.ScopeLabel;

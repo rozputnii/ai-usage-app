@@ -45,6 +45,12 @@ public partial class App : Application
     {
         try
         {
+            // AIU-038 (PD-038-01): the redesigned presentation on demo data, isolated from product and plain --demo.
+            if (LedgerRegistration.Requested(Environment.GetCommandLineArgs()))
+            {
+                LedgerRegistration.Start(Exit);
+                return;
+            }
             var demo = Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal);
             diagnostics.Initialize(demo);
             var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });

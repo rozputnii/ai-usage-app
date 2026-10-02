@@ -114,6 +114,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
                     var target = existing;
                     scheduler.Schedule(TimeSpan.FromSeconds(2), () => target.IsNew = false);
                 }
+                existing.IsCompact = IsCompact;
                 ordered.Add(existing);
             }
         foreach (var gone in cardsById.Keys.Except(ordered.Select(c => c.CardId)).ToArray())
