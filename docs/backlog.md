@@ -332,13 +332,17 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-035 - [astra] Core limit model and budget engine
 - goal: G-003
-- status: idea
+- status: in-progress
 - depends_on: []
 - trigger: owner-selection
 - outcome: Credential-free Core types and pure computations for the AIU-034 limit model and budget rules, with no UI, persistence or provider transport. The model covers limit kinds and units; money as minor units, exponent and currency; limit values that are unknown, explicit null, unlimited or zero; the personal cap, effective limit and binding source; and resets from the provider, derived or assumed, including period unknown. The engine computes the work-day calendar; `N`, `T`, `B`, the deviation, used today and left today; limit, budget and account states; display rounding; the day-start amount and tracked consumption over supplied readings; and the five-hour session estimator. Sources: research 5.2 to 5.4, 6.3 to 6.5, 7 and 8.
 - acceptance: (1) Research section 9 cases E01 to E13, P01 to P11 and S01 to S09 are deterministic Core tests with exact decimal arithmetic, and all pass. (2) The design-brief section 4 scenario reproduces every section 4.2 figure, every 4.3 bar position and every 4.4 account status. (3) Unknown is never zero or unlimited; no value is summed or converted across units or currencies; a percentage window never takes a cap. (4) Core keeps its boundary: no credential, transport, file or UI dependency.
 - supersedes: As computation rules, D-181's even local-calendar-day shares with carry-over, its 20 % floor for windows shorter than a day, and its single account status mark. They are replaced by the work-day adaptive norm with baseline and deviation, the R-09 thresholds and the research 8.8 account status. The current rules stay in the product until AIU-039 switches it (D-183). No part of D-180.
 - contract-note: The engine's outputs feed the presentation contract through AIU-039. A change to that contract is agreed between the [opus] AIU-038 item and the [astra] items, never made silently from either side.
+- selection-note: Owner selection, 2026-10-02: AIU-035 is the next step, to be done by a Codex agent after the AIU-034 D-187 design round. It starts with a specification under docs/specs/ per CONTRIBUTING.md; this note selects the item and does not approve that specification.
+- specification: docs/specs/AIU-035-core-limit-budget/spec.md
+- evidence: docs/specs/AIU-035-core-limit-budget/verification.md
+- d187-note: D-187 (2026-10-02) adds engine outputs that the presentation needs: (a) on a day off, today's would-be share T' = max(0, L - U0) / (Wr + 1), where L is the effective limit and Wr is the remaining work-day weight after today (research 8.2), as if today were one full work day, with the work-day calendar unchanged, so the same figure serves the neutral strip and the window-wide Work today switch, which only changes colouring until local midnight; (b) a used-up flag when U >= L for a provider limit (not a custom cap), which wins over every today and rush state; (c) a rush flag on the last work day before a reset with reset meaning replenish from the provider and no custom cap set, never for monetary pools or credit balances, with today's share equal to the whole remainder and, for 5h + 7d, the count of 5h windows that fit before the reset; (d) an on-extra-usage flag while a Claude 5h or 7d window is full and the extra-usage spend rose since the window filled, with the spend since then. R-05, R-11 as amended and research section 8 stay the base rules.
 - source: docs/specs/AIU-034-limit-audit-design-brief/research.md
 
 ## AIU-036 - [astra] Local reading series and budget configuration store

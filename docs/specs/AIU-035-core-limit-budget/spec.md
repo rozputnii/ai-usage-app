@@ -50,6 +50,25 @@ Provider parsing, storage, UI, source credentials and live integration are exclu
 - Return numerical display projections, state precedence and bar positions, with no UI text
   or controls. Staleness remains an independent result marker and does not erase figures.
 
+## Caller responsibilities
+
+The AIU-036 store supplies valid, nonoverlapping runs for an account target and limit key.
+Each run contains confirmed observations, not cached startup data. Period instance IDs are
+assigned using Transition; StartedAt or After from a new instance is retained in its runs.
+The same numeric rounding unit is supplied in the aligned native scale used for comparison.
+DayStart derives the first observed baseline for a local date; the caller keeps it and the
+period bounds for that day, recomputing bounds only at midnight, a new instance or cap change.
+The effective timezone changes at the next local midnight, not while replaying an open day.
+Track produces cumulative observation runs for assumed periods; its balance mode never
+treats a first balance as consumption. Its estimate/incomplete provenance must remain visible.
+SessionPair names explicit pool identity on both sides and source-established durations;
+pairing is never guessed from a display label. A shared five-hour window and a model-only
+weekly window have different pool identities. AIU-037/039 own these adapters.
+
+BudgetResult numeric values use its Scale's native count unit or money exponent. Consumers
+apply BudgetDisplay only at the display boundary. DayOffShare and DayOffLeftToday are the
+stable preview figures; WorkToday affects the states only, not these figures or the calendar.
+
 ## Acceptance
 
 - AC-01: Normalized quantities, cap selection and reset provenance preserve the distinctions
