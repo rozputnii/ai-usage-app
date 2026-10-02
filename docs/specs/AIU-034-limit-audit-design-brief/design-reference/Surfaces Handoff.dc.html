@@ -60,7 +60,7 @@
                         <div style="display:flex;align-items:center;gap:8px;min-width:0">
                           <sc-if value="{{ a.nameNotEdit }}"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">{{ a.name }}</span></sc-if>
                           <sc-if value="{{ a.editName }}"><span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;height:26px;line-height:24px;box-sizing:border-box;padding:0 8px;background:#1A1918;border:1px solid #F0EEE6;border-radius:6px;min-width:150px">{{ a.name }}<span class="sv-caret"></span></span></sc-if>
-                          <span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ a.tag }}</span>
+                          <sc-if value="{{ a.hasTag }}"><span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ a.tag }}</span></sc-if>
                           <sc-if value="{{ a.hasMark }}"><span style="{{ a.markSt }}" onMouseEnter="{{ a.markEnter }}" onMouseLeave="{{ leave }}">{{ a.mark }}</span></sc-if>
                           <span style="flex:1"></span>
                           <sc-if value="{{ a.icons }}">
@@ -78,6 +78,7 @@
                                 <sc-for list="{{ a.cells }}" as="c" hint-placeholder-count="1">
                                   <div style="{{ c.st }}" onMouseEnter="{{ c.enter }}" onMouseLeave="{{ leave }}">
                                     <sc-for list="{{ c.parts }}" as="p"><div style="{{ p.st }}"></div></sc-for>
+                                    <sc-if value="{{ c.hasLbl }}"><span style="{{ c.lblSt }}">5h</span></sc-if>
                                   </div>
                                 </sc-for>
                               </div>
@@ -289,7 +290,7 @@
                   <tr><td>Density</td><td>Compact (default): body padding 12, gap 8, card padding 8 12, inner gap 6, strip–bar gap 3, over label on the strip row, card 97 high · Comfortable: body padding 14, gap 12, card padding 13 15 12, inner gap 10, strip–bar gap 8, over label below the strip, card 123 high</td></tr>
                   <tr><td>Card</td><td>radius 20, squircle as in Provider States · border 1 · label column 40 + gap 10</td></tr>
                   <tr><td>Corners</td><td>corner-shape squircle on every rounded element (cards, buttons, strips, bars, ring, tooltips, menus, panels, tray); pills and dots stay round</td></tr>
-                  <tr><td>Today strip</td><td>cells gap 4 · height 14 · radius 6 · hatch 135°, 3 + 3 px</td></tr>
+                  <tr><td>Today strip</td><td>cells gap 4 · height 14 · radius 6 · hatch 135°, 3 + 3 px · the current 5h cell carries a “5h” label: 10 / 12 semibold ink on rgba(26,20,16,.62), radius 4, 2 px from the window-start edge · no “5h + 7d” tag next to the name</td></tr>
                   <tr><td>Bar</td><td>track 8, radius 4 · today ring 16 high, stroke 1.5, radius 7, 4 px past each end · cap tick 2 × 14 · over tick 2 × 12 ink · 5h dividers 2 px card colour</td></tr>
                   <tr><td>Pill</td><td>height 20 · padding 0 9 · dot 6 · gap 5</td></tr>
                   <tr><td>Controls</td><td>buttons 22–24 high, radius 6 · icon buttons 24 (28 in the title bar) · text box 24–26, border 1 ink when focused · switch 32 × 18</td></tr>
@@ -463,7 +464,7 @@ class Component extends DCLogic {
   stripCells(d, wi, left, h) {
     const C = this.C, bg = this.bgOf(d, left);
     const rank = k => (k === 'gray' || k === 'critRest') ? (left ? 0 : 4) : (left ? k === 'allow' : k !== 'allow') ? 1 : 2;
-    return this.cells(d, left).map(c => ({ st: { flex: (c.w || 1) + ' 1 0', minWidth: 0, display: 'flex', borderRadius: h > 10 ? '6px' : '4px', overflow: 'hidden', cursor: 'default', boxSizing: 'border-box', outline: d.off ? '1px dashed #8C887E' : 'none', outlineOffset: '-1px' },
+    return this.cells(d, left).map((c, ci) => ({ hasLbl: d.kind === 'w5' && ci === 0 && h > 10, lblSt: { position: 'absolute', top: '1px', height: '12px', [left ? 'right' : 'left']: '2px', padding: '0 4px', borderRadius: '4px', background: 'rgba(26,20,16,.62)', color: '#F0EEE6', fontSize: '10px', lineHeight: '12px', fontWeight: 600, letterSpacing: '.02em', pointerEvents: 'none' }, st: { position: 'relative', flex: (c.w || 1) + ' 1 0', minWidth: 0, display: 'flex', borderRadius: h > 10 ? '6px' : '4px', overflow: 'hidden', cursor: 'default', boxSizing: 'border-box', outline: d.off ? '1px dashed #8C887E' : 'none', outlineOffset: '-1px' },
       parts: c.parts.filter(p => p[1] > 0.01).sort((a, b) => rank(a[0]) - rank(b[0])).map(p => ({ st: { flex: p[1] + ' 1 0', background: bg(this.offKey(d, p[0])), boxShadow: this.offKey(d, p[0]) === 'over' ? 'inset 2px 0 0 ' + C.ink : 'none' } })), enter: this.tipOn(wi, c.tip), tip: c.tip }));
   }
   exh(d) { return (d.kind === 'w5' || d.kind === 'd7' || d.kind === 'rq' || d.kind === 'us') && d.u >= d.P; }
@@ -475,7 +476,7 @@ class Component extends DCLogic {
     const bg = this.bgOf(d, left);
     const actSt = { padding: '1px 9px', border: '1px solid #55534E', borderRadius: '6px', color: '#F0EEE6', fontSize: '12px', fontWeight: 600, lineHeight: '16px', whiteSpace: 'nowrap', marginLeft: 'auto' };
     const ce = d.capEdit || null;
-    const base = { isHist: false, isCard: true, hasCas: !!d.cas, cas: d.cas || '', name: d.name, tag: d.tag, pill: d.pill, hasPill: !!d.pill && d.pill !== 'OK',
+    const base = { isHist: false, isCard: true, hasCas: !!d.cas, cas: d.cas || '', name: d.name, tag: d.tag, hasTag: !!d.tag && d.tag !== '5h + 7d', pill: d.pill, hasPill: !!d.pill && d.pill !== 'OK',
       editName: !!d.editName, nameNotEdit: !d.editName, icons: !!d.icons,
       hasMark: !!d.mark, mark: d.mark || '', markEnter: this.tipOn(wi, d.markT || [d.mark || '']),
       markSt: { fontSize: '12px', fontWeight: 600, color: d.markTone === 'neutral' ? '#B7B3A8' : '#E58C6C', whiteSpace: 'nowrap', cursor: 'default' },

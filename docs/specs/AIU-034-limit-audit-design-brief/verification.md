@@ -1,5 +1,30 @@
 # AIU-034 verification
 
+## "5h + 7d" tag replaced by a "5h" cell label - 2026-10-02
+
+Primary [opus] session. Base `3f25054`.
+
+**Owner request.** Remove the "5h + 7d" tag next to the provider name. Mark the current 5-hour
+window inside the strip with "5h" instead. The weekly bar is already labelled 7d on its left.
+
+**Edits (both pages).**
+- Cards with the tag "5h + 7d" show no tag. Other tags stay, because they tell an account's
+  limits apart: extra usage, credits, completions, chat, group 1, 7d · Opus and similar.
+- The first cell of every 5h + 7d today strip carries a "5h" label: 10 / 12 semibold ink on
+  rgba(26,20,16,.62), radius 4. It sits 2 px from the window-start edge, which is the left in
+  Used mode and the right in Left mode.
+- The label is not shown in the 8 px tray strips.
+- S11's Today strip row and the Provider States intro note it.
+
+**Checks.**
+- Local render: 0 console errors, and no visible "5h + 7d" tag remains.
+- "5h" labels: 10 on the Surfaces page and 26 on the Provider States page.
+- S1 and S2 fit as before.
+- Both pages were uploaded with `if_match`. New etags: `1790947066576424` and
+  `1790947339009169`.
+- The fetched pages equal the local files once the host blocks are removed.
+- The owner's visual review is NOT_RUN.
+
 ## Surfaces corners aligned with Provider States - 2026-10-02
 
 Primary [opus] session. Base `01360d7`.

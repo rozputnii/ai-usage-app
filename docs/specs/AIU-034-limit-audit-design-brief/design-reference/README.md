@@ -15,7 +15,7 @@ the two differ, D-186 and these files win.
 | Source | claude_design MCP: `list_files` and `render_preview`; the files were fetched from the project's serve endpoint |
 | Project | `9a6b2cdd-1c9c-4abe-9477-2869aa10f9bd`, name "AIU-034 budget-aware single window", type `PROJECT_TYPE_PROJECT`, private |
 | Imported | 2026-10-02, after the owner accepted both pages and Compact as the default density. The two pages were updated and re-imported the same day for D-187 |
-| Design revision | Project etags: `Provider States Handoff.dc.html` `1790944602007782`, `Surfaces Handoff.dc.html` `1790946476159183`, `support.js` `1790887818093478`. The MCP returns no version field, so the hashes below identify the imported bytes |
+| Design revision | Project etags: `Provider States Handoff.dc.html` `1790947066576424`, `Surfaces Handoff.dc.html` `1790947339009169`, `support.js` `1790887818093478`. The MCP returns no version field, so the hashes below identify the imported bytes |
 | Byte fidelity | The serve endpoint injects host blocks marked `data-omelette-injected` after `<head>` (a style line, and since 2026-10-02 also a script). They are removed, and each saved file then has exactly the size that `list_files` reports for the project file |
 | Authentication material | None stored; the serve links carry a short-lived token and are not recorded |
 
@@ -23,8 +23,8 @@ the two differ, D-186 and these files win.
 
 | File | Role | SHA-256 of saved bytes | Size |
 |---|---|---|---|
-| `Provider States Handoff.dc.html` | Every card state in Used and Left mode, Comfortable density: 5h + 7d, 7d only, Codex credits with a cap, Claude extra usage with a cap, Copilot request pools, the no-budget, stale and account states, the on-extra-usage mark (A8), day off and Work today (O1 to O6) and the last-work-day rush (R1 to R8) | `9b533c789d033ba7197f2bf1668b896f9e1cf88a388250ff709e7016a41c7800` | 40,852 |
-| `Surfaces Handoff.dc.html` | S1 to S13:<br>- the brief scenario at 760 × 600 in Compact density, Used and Left;<br>- inline rename, cap editing, undo and focus;<br>- inline history;<br>- the settings panel;<br>- first run;<br>- the sign-in strip states;<br>- the tray flyout as a miniature of the window: the scenario, the last work day before resets, a day off and Work today (S10 to S10d);<br>- the token and component specification;<br>- the scenario on a day off, without and with Work today (S12, S13). | `ce10e7946bbb76da9368a230a30bdf3ff73d5f35f1dea316849fff0efb404484` | 81,714 |
+| `Provider States Handoff.dc.html` | Every card state in Used and Left mode, Comfortable density: 5h + 7d, 7d only, Codex credits with a cap, Claude extra usage with a cap, Copilot request pools, the no-budget, stale and account states, the on-extra-usage mark (A8), day off and Work today (O1 to O6) and the last-work-day rush (R1 to R8) | `8acc350a9290bba11fa24f2d499968d8993f4d934659d410efeb2d7d2885d64b` | 41,539 |
+| `Surfaces Handoff.dc.html` | S1 to S13:<br>- the brief scenario at 760 × 600 in Compact density, Used and Left;<br>- inline rename, cap editing, undo and focus;<br>- inline history;<br>- the settings panel;<br>- first run;<br>- the sign-in strip states;<br>- the tray flyout as a miniature of the window: the scenario, the last work day before resets, a day off and Work today (S10 to S10d);<br>- the token and component specification;<br>- the scenario on a day off, without and with Work today (S12, S13). | `d6cffc0dceba1e7fb545a670ef2b6e572edb1af2b48946599fadac5708d609ca` | 82,443 |
 | `support.js` | dc-runtime loaded by both pages; generated, identical to the AIU-010 copy | `8fe7df74405f3c55f49b7249c74ea1397e65d07dea2b1bd3b4a489bec2e28cbe` | 69,150 |
 
 Not imported:
@@ -57,6 +57,8 @@ All of them stay in the project as history.
   - the "on extra usage" mark;
   - a used-up provider limit shows no today strip, only the red period bar; in the tray it is
     one solid red strip.
+- A 5h + 7d card shows no "5h + 7d" tag next to its name; the current 5h cell carries a small
+  "5h" label, and the bar row is labelled 7d.
 - Both pages use squircle corners (`corner-shape: squircle`) on every rounded element except
   pills and dots, which stay round.
 - Captions in grey mono and the orange frame labels explain states to the implementer. They are

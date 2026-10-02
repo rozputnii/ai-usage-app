@@ -15,7 +15,7 @@
 <section style="padding:40px;display:flex;flex-direction:column;gap:20px;font-family:'Hanken Grotesk',sans-serif;color:#F0EEE6">
   <div style="display:flex;flex-direction:column;gap:4px;max-width:900px">
     <div style="font-family:'Source Serif 4',Georgia,serif;font-size:20px;font-weight:600">Provider states — handoff</div>
-    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Reference time Wed 14 Oct 14:20. Grey mono captions above cards name the state and are not part of the app. Used mode: solid = used, hatched = left. Left mode: solid = left, hatched = used. Grey = not available today (rest of the last 5h window, or the daily share cut by the 7d limit or custom cap). Orange = today almost used up but not yet: today low, today short, cap close, current 5h window full. Red = today's allowance reached or over, a cap reached or over, or a limit used up. Neutral grey pill = no budget state (day off, not ready, unknown, period unknown, not included, signed out). OK has no pill: a card without a pill is on track (accessible name still says OK). Day off (O): the today strip keeps the share today would get as a work day, drawn neutral with a dashed outline and never orange or red; an exhausted limit stays red. Work today (window-wide, until midnight, settings unchanged) colours the same strip as on a work day. Rush (R): on the last work day before a provider-replenished reset with no custom cap, today is the whole remainder: green “rush” pill, no 7d or month bar, no grey. Money, credits and capped pools never rush. Used up (a provider limit, not a custom cap, fully used): no today strip, only the red 7d or month bar and when it comes back; this wins over rush. ≈ marks an estimate; (assumed) marks a period the app assumes. Dimmed bars = stale reading. Hover bars, pills, marks and footers for tooltips.</div>
+    <div style="font-size:13px;line-height:19px;color:#B7B3A8;text-wrap:pretty">Reference time Wed 14 Oct 14:20. Grey mono captions above cards name the state and are not part of the app. Used mode: solid = used, hatched = left. Left mode: solid = left, hatched = used. Grey = not available today (rest of the last 5h window, or the daily share cut by the 7d limit or custom cap). Orange = today almost used up but not yet: today low, today short, cap close, current 5h window full. Red = today's allowance reached or over, a cap reached or over, or a limit used up. Neutral grey pill = no budget state (day off, not ready, unknown, period unknown, not included, signed out). OK has no pill: a card without a pill is on track (accessible name still says OK). Day off (O): the today strip keeps the share today would get as a work day, drawn neutral with a dashed outline and never orange or red; an exhausted limit stays red. Work today (window-wide, until midnight, settings unchanged) colours the same strip as on a work day. Rush (R): on the last work day before a provider-replenished reset with no custom cap, today is the whole remainder: green “rush” pill, no 7d or month bar, no grey. Money, credits and capped pools never rush. Used up (a provider limit, not a custom cap, fully used): no today strip, only the red 7d or month bar and when it comes back; this wins over rush. ≈ marks an estimate; (assumed) marks a period the app assumes. Dimmed bars = stale reading. No “5h + 7d” tag next to the name: the current 5h cell carries a small “5h” label, and the bar row is labelled 7d. Hover bars, pills, marks and footers for tooltips.</div>
   </div>
   <div style="display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start">
     <sc-for list="{{ wins }}" as="w" hint-placeholder-count="2">
@@ -42,7 +42,7 @@
                   <div style="{{ a.cardSt }}">
                     <div style="display:flex;align-items:center;gap:8px;min-width:0">
                       <span style="font-family:'Source Serif 4',Georgia,serif;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">{{ a.name }}</span>
-                      <span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ a.tag }}</span>
+                      <sc-if value="{{ a.hasTag }}"><span style="font-size:12px;color:#9D998E;white-space:nowrap">{{ a.tag }}</span></sc-if>
                       <sc-if value="{{ a.hasMark }}"><span style="{{ a.markSt }}" onMouseEnter="{{ a.markEnter }}" onMouseLeave="{{ leave }}">{{ a.mark }}</span></sc-if>
                       <sc-if value="{{ a.hasPill }}"><span style="{{ a.pillSt }}" onMouseEnter="{{ a.pillEnter }}" onMouseLeave="{{ leave }}"><span style="{{ a.dotSt }}"></span>{{ a.pill }}</span></sc-if>
                     </div>
@@ -54,6 +54,7 @@
                             <sc-for list="{{ a.cells }}" as="c" hint-placeholder-count="1">
                               <div style="{{ c.st }}" style-hover="filter:brightness(1.18)" onMouseEnter="{{ c.enter }}" onMouseLeave="{{ leave }}">
                                 <sc-for list="{{ c.parts }}" as="p"><div style="{{ p.st }}"></div></sc-for>
+                                <sc-if value="{{ c.hasLbl }}"><span style="{{ c.lblSt }}">5h</span></sc-if>
                               </div>
                             </sc-for>
                           </div>
@@ -287,7 +288,7 @@ class Component extends DCLogic {
         items.push({ isHead: true, isCard: false, head });
         list.forEach(d => {
           const tn = C[d.st];
-          const base = { isHead: false, isCard: true, cap: d.cas, name: d.name, tag: d.tag, pill: d.pill, hasPill: !!d.pill && d.pill !== 'OK',
+          const base = { isHead: false, isCard: true, cap: d.cas, name: d.name, tag: d.tag, hasTag: !!d.tag && d.tag !== '5h + 7d', pill: d.pill, hasPill: !!d.pill && d.pill !== 'OK',
             hasMark: !!d.mark, mark: d.mark || '', markEnter: this.tipOn(wi, d.markT || [d.mark || '']),
             markSt: { fontSize: '12px', fontWeight: 600, color: d.markTone === 'neutral' ? '#B7B3A8' : '#E58C6C', whiteSpace: 'nowrap', cursor: 'default' },
             hasAction: !!d.action, action: d.action || '', actSt,
@@ -352,8 +353,8 @@ class Component extends DCLogic {
           if (capP < 100) barTip.push(d.u > d.cap ? 'Past the tick: over custom cap ' + fm(d.cap) : 'Hatched: above custom cap ' + fm(d.cap));
           items.push({ ...common, hasPeriodBar: !d.rush || exh, spSt: { gridColumn: 2, gridRow: 3, height: exh ? 0 : '8px' }, unit: d.kind === 'w5' || d.kind === 'd7' ? '7d' : 'month', hasStrip: !exh, hasTodayNote: false, todayNote: '',
             stripSt: { gridColumn: 2, gridRow: 1, minWidth: 0, display: 'flex', flexDirection: left ? 'row-reverse' : 'row', gap: '4px', height: '14px', opacity: dim },
-            cells: this.cells(d, left).map(c => ({
-              st: { flex: (c.w || 1) + ' 1 0', minWidth: 0, boxSizing: 'border-box', outline: d.off ? '1px dashed #8C887E' : 'none', outlineOffset: '-1px', display: 'flex', flexDirection: 'row', borderRadius: '6px', cornerShape: 'squircle', overflow: 'hidden', cursor: 'default' },
+            cells: this.cells(d, left).map((c, ci) => ({ hasLbl: d.kind === 'w5' && ci === 0, lblSt: { position: 'absolute', top: '1px', height: '12px', [left ? 'right' : 'left']: '2px', padding: '0 4px', borderRadius: '4px', cornerShape: 'squircle', background: 'rgba(26,20,16,.62)', color: '#F0EEE6', fontSize: '10px', lineHeight: '12px', fontWeight: 600, letterSpacing: '.02em', pointerEvents: 'none' },
+              st: { position: 'relative', flex: (c.w || 1) + ' 1 0', minWidth: 0, boxSizing: 'border-box', outline: d.off ? '1px dashed #8C887E' : 'none', outlineOffset: '-1px', display: 'flex', flexDirection: 'row', borderRadius: '6px', cornerShape: 'squircle', overflow: 'hidden', cursor: 'default' },
               parts: c.parts.filter(p => p[1] > 0.01).sort((a, b) => rank(a[0]) - rank(b[0])).map(p => ({ st: { flex: p[1] + ' 1 0', background: bg(offKey(d, p[0]), tn, left), boxShadow: offKey(d, p[0]) === 'over' ? 'inset 2px 0 0 ' + C.ink : 'none' } })),
               enter: this.tipOn(wi, c.tip)
             })),
