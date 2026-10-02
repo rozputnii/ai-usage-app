@@ -361,7 +361,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-042 - Pre-AIU-037 backend architecture and quality hardening
 - goal: G-003
-- status: ready
+- status: in-progress
 - depends_on: [AIU-035, AIU-036]
 - trigger: owner-selection before AIU-037
 - outcome: Audit the entire existing backend and implement evidence-backed corrections to architecture, correctness, maintainability, patterns and performance. Use stable .NET 10/C# 14 capabilities where they improve the implementation. This is a code-focused remediation task, with regression tests and reproducible performance evidence, not a report-only review.

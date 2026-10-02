@@ -1,10 +1,10 @@
 ---
 id: AIU-042
 type: feature
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: Derived from the owner's 2026-10-02 request to register a code-focused backend hardening task before AIU-037 and supply a Goal launch prompt. Implementation has not been selected by this registration; no separate specification approval is claimed.
+approval_basis: The owner's 2026-10-02 Goal instruction explicitly authorizes execution of this specification and AC-01 through AC-08. No separate design or independent review approval is claimed.
 ---
 
 # Pre-AIU-037 backend architecture and quality hardening
