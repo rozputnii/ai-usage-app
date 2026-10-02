@@ -1,5 +1,23 @@
 # AIU-034 verification
 
+## D-187 round closed - 2026-10-02
+
+The owner closed the design round ("все збережи що потрібно") and named AIU-035 as the next step,
+for a Codex agent. This is recorded as the owner's acceptance of the amended reference. The
+NOT_RUN visual-review lines in the entries below are therefore closed by this decision rather
+than by a separate "так". The owner did not give a separate rubric review.
+
+Recorded with this entry:
+- AIU-035 is set to `selected` in the backlog, with a selection-note and a d187-note. The note
+  lists the engine outputs that D-187 needs:
+  - today's would-be share on a day off;
+  - the used-up flag;
+  - the rush flag and the 5h windows that fit before the reset;
+  - the on-extra-usage flag.
+- tasks.md names the exact next action.
+
+The validator printed `valid: true`.
+
 ## "7d" tag removed too - 2026-10-02
 
 The owner agreed ("так") to also drop the plain "7d" tag next to the name on 7d-only cards,

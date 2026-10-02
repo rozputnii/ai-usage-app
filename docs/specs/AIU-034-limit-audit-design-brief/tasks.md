@@ -997,7 +997,13 @@ T-18 was done on 2026-10-02. The owner accepted both pages and made Compact the 
 density (D-186). `design-reference/` holds the two pages, `support.js` and a README with their
 hashes. AC-10 is PASS, and AIU-034 is `done`. Phase B is complete.
 
-Next action: the owner selects follow-up items from AIU-035 to AIU-041.
+On 2026-10-02 the owner amended the reference in a follow-up design round (D-187). Both pages
+were re-imported; verification.md records each step. The owner closed the round and selected
+AIU-035 as the next step, for a Codex agent.
+
+Next action: a Codex agent starts AIU-035 by writing its specification under docs/specs/. Use
+the AIU-035 backlog entry, including its d187-note, research.md sections 5 to 9 and D-185 to
+D-187.
 
 Blockers: none for AIU-034.
 PD-034-02 is needed only when an AIU-005 implementation is selected. The security-lifecycle
