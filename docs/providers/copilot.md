@@ -56,6 +56,10 @@ Paid plans, organization contexts, enterprise hosts, live rate limits, revoked/e
 
 ## Provider history (AIU-011)
 
+Historical source evidence only: [AIU-040](../specs/AIU-040-remove-provider-history/spec.md)
+removes this retrieval under D-184. These routes are no longer application capabilities;
+authentication and current quota methods remain unchanged. Dates below describe earlier evidence.
+
 - source_verified_at: 2026-09-22
 - live_verified_at: null
 - classification: official-personal-billing-api; current-OAuth-eligibility-unverified

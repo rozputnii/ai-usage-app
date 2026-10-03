@@ -119,10 +119,8 @@ public sealed class CodexSessionTests : IDisposable
         Assert.False(File.Exists(Path.Combine(root, "codex.grant.pending")));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task LostResponseDuringExpiredAccessRenewalAlsoBlocksLaterHistory(bool history)
+    [Fact]
+    public async Task LostResponseDuringExpiredAccessRenewalBlocksLaterRefresh()
     {
         var clock = new CodexTestServer.Clock { Current = DateTimeOffset.UtcNow.AddHours(-2) };
         int renewals = 0;
@@ -135,85 +133,13 @@ public sealed class CodexSessionTests : IDisposable
         using var http = new HttpClient(server);
         var store = new CodexGrantStore(root);
         store.Write(new("synthetic-workspace", "synthetic-original"));
-        using var session = new CodexSession(new(http, clock), new(http, clock), store, new(root), new(http, clock));
+        using var session = new CodexSession(new(http, clock), new(http, clock), store, new(root));
         Assert.Equal(ProviderSessionStatus.QuotaAvailable, (await session.ResumeAsync(TestContext.Current.CancellationToken)).Status);
-        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
-        if (history) await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
-        else await session.RefreshAsync(TestContext.Current.CancellationToken);
+        await session.RefreshAsync(TestContext.Current.CancellationToken);
         var calls = server.Calls;
-        await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
+        await session.RefreshAsync(TestContext.Current.CancellationToken);
         Assert.Equal(2, renewals);
         Assert.Equal(calls, server.Calls);
-    }
-
-    [Fact]
-    public async Task HistoryWithoutGrantDoesNotSignInOrRequestProviderData()
-    {
-        using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No request expected."));
-        using var session = Session(server, out _);
-        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
-        var result = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
-        Assert.Equal(AiUsage.Core.History.HistoryStatus.AuthenticationRequired, Assert.Single(result.Reports).Status);
-        Assert.Equal(0, server.Calls);
-    }
-
-    [Fact]
-    public async Task HistoryNavigationCancellationFinishesAndPersistsAnAlreadyStartedRotation()
-    {
-        using var cancel = new CancellationTokenSource();
-        using var server = new CodexTestServer((request, token) =>
-        {
-            Assert.Equal(HttpMethod.Post, request.Method);
-            cancel.Cancel();
-            token.ThrowIfCancellationRequested();
-            return Task.FromResult(CodexTestServer.Json(CodexTestServer.Tokens()));
-        });
-        using var session = Session(server, out var store);
-        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-original"));
-        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.GetHistoryAsync(range, cancel.Token));
-        Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
-        Assert.Equal(1, server.Calls);
-    }
-
-    [Fact]
-    public async Task HistoryInvalidatesOldIdentityBeforeAdoptingAnExternallyReplacedAccount()
-    {
-        var identity = "synthetic-workspace";
-        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Post ?
-            CodexTestServer.Json(CodexTestServer.Tokens(identity)) : CodexTestServer.Json("{\"data\":[]}")));
-        using var session = Session(server, out var store);
-        store.Write(new CodexStoredGrant(identity, "synthetic-original"));
-        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
-        await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
-        identity = "synthetic-other";
-        store.Write(new CodexStoredGrant(identity, "synthetic-replacement"));
-        var calls = server.Calls;
-        var changed = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
-        Assert.Equal("AccountChanged", Assert.Single(changed.Reports).Status.ToString());
-        Assert.Equal(calls, server.Calls);
-        var retry = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
-        Assert.All(retry.Reports, r => Assert.Equal(AiUsage.Core.History.HistoryStatus.Empty, r.Status));
-    }
-
-    [Fact]
-    public async Task HistoryResumesOwnGrantAndPersistsRotationBeforeReadingWithoutChangingQuota()
-    {
-        var store = new CodexGrantStore(root);
-        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-original"));
-        using var server = new CodexTestServer((request, _) =>
-        {
-            if (request.Method == HttpMethod.Post) return Task.FromResult(CodexTestServer.Json(CodexTestServer.Tokens()));
-            Assert.DoesNotContain("/usage?", request.RequestUri!.AbsolutePath);
-            Assert.True(File.Exists(Path.Combine(root, "codex.grant")));
-            return Task.FromResult(CodexTestServer.Json("{\"data\":[]}"));
-        });
-        using var session = Session(server, out _);
-        var range = new AiUsage.Core.History.HistoryRange(new(2026, 9, 1), new(2026, 9, 20));
-        var result = await session.GetHistoryAsync(range, TestContext.Current.CancellationToken);
-        Assert.All(result.Reports, report => Assert.Equal(AiUsage.Core.History.HistoryStatus.Empty, report.Status));
-        Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
-        Assert.Null(session.State.Quota);
     }
 
     [Fact]
@@ -473,7 +399,7 @@ public sealed class CodexSessionTests : IDisposable
         using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Get
             ? CodexTestServer.Json("""{"plan_type":"synthetic"}""") : CodexTestServer.Json(CodexTestServer.Tokens())));
         using var http = new HttpClient(server);
-        using var session = new CodexSession(new(http), new(http), faulty, new(root), new(http));
+        using var session = new CodexSession(new(http), new(http), faulty, new(root));
         interrupt = true;
         var failed = await session.ResumeAsync(TestContext.Current.CancellationToken);
         Assert.Equal(ProviderSessionStatus.RecoveryRequired, failed.Status);
@@ -530,7 +456,7 @@ public sealed class CodexSessionTests : IDisposable
         var store = new CodexGrantStore(root);
         store.Write(new("synthetic-workspace", "synthetic-stored"));
         var cache = new CodexQuotaCache(root, () => cancellation.Cancel());
-        using var session = new CodexSession(new(http), new(http), store, cache, new(http));
+        using var session = new CodexSession(new(http), new(http), store, cache);
         await session.ResumeAsync(TestContext.Current.CancellationToken);
         var calls = server.Calls;
         var disconnected = await session.DisconnectAsync(cancellation.Token);
@@ -547,7 +473,7 @@ public sealed class CodexSessionTests : IDisposable
     {
         var http = new HttpClient(server);
         store = new CodexGrantStore(root);
-        return new CodexSession(new CodexAuthClient(http), new CodexQuotaClient(http), store, new CodexQuotaCache(root), new CodexHistoryClient(http));
+        return new CodexSession(new CodexAuthClient(http), new CodexQuotaClient(http), store, new CodexQuotaCache(root));
     }
 
     public void Dispose()

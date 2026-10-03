@@ -67,18 +67,10 @@ The existing presentation continues to use its compatibility fields until AIU-03
 AIU-037's local checks pass, but its required independent security review is currently
 blocked; see [verification and handoff](docs/specs/AIU-037-provider-limits-v2/verification.md).
 
-History opens with automatic loading for connected accounts, or one selected account from
-its card. Codex analytics and Copilot personal billing reports use existing AI Usage
-sessions; availability depends on the provider, plan and current permissions. Claude and
-Antigravity currently show unsupported history. Results remain in memory and preserve
-provider units and aggregate periods. See [AIU-011 verification](docs/specs/AIU-011-provider-history/verification.md)
-for the distinction between fixture/UI success and unverified real-account access.
-
-For an authorized live check, `dotnet run --project tools/AiUsage.ProviderConsole --no-restore -- history codex <owned-provider-directory>`
-(or `copilot`) reads the last seven UTC days through the product session and prints only
-report statuses/counts. Select the existing AI Usage **provider directory**, never a CLI
-credential directory. The command cannot sign in or request extra permissions; Codex may
-renew and persist its existing grant. No credentials belong in command arguments.
+Ledger's inline history uses only local quota readings recorded by AIU-036. AIU-040
+removes the former provider-history clients and console command under D-184. Opening
+history makes no provider-history request; existing observations remain available.
+See [AIU-040 verification](docs/specs/AIU-040-remove-provider-history/verification.md).
 
 For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. Set `AIU_SMOKE_MODE=demo` to verify the demo path; the default smoke mode is product with an empty `AIU_DEVELOPMENT_STATE_DIRECTORY`. An unlocked interactive desktop is required. Reserve Windows Sandbox or a disposable VM for checks that need isolation or a clean machine; package builds alone do not need either.
 

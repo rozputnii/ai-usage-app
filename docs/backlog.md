@@ -106,14 +106,14 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-011 - Provider-supplied usage history
 - goal: G-003
-- status: review
+- status: dropped
 - priority: low
 - review-note: Owner direction, 2026-09-22: this feature still needs verification; lower its priority and defer further checks until selected again. Existing implementation and observed live results are retained, but the feature is no longer marked complete.
 - depends_on: [AIU-004, AIU-007, AIU-008, AIU-009, AIU-010]
 - trigger: owner-selected
 - outcome: Retrieve and display available historical usage supplied by Codex, Claude, Copilot and Antigravity, preserving native metrics, units, periods and access limitations. Open History with automatic loading and useful defaults; account/range selection is optional refinement, not a required sequence before seeing data.
 - scope-note: Owner selected and narrowed this feature on 2026-09-22 to provider-supplied history, confirmed all four providers and all available historical usage metrics, and requested fewer clicks. The subsequent owner amendment permits only existing authorization and directs matching OMP's provider-history method if one exists. No new sign-in, browser session, API key or reporting permission is in scope. Local sample collection, retention, rollups and persistent history remain deferred to AIU-029 with low priority after product stability.
-- direction-note: Owner direction, 2026-09-29 (D-184): usage history comes only from local tracking. Provider-supplied history is no longer a data source. Do not select further work on this item; removing its retrieval is proposed as an AIU-034 follow-up and is not selected.
+- direction-note: Closed as superseded by D-184 (2026-09-29). Local tracking is the sole history source. The owner selected AIU-040 on 2026-10-03 to remove this retrieval after AIU-039; earlier incomplete verification remains historical evidence, not a completion claim.
 - research-note: OMP v18.2.8 has only local snapshot history. Codex development-source analytics and GitHub personal historical reports are now implemented with existing sessions and automatic Windows presentation. Claude and Antigravity remain unsupported because no compatible transport is established. Deterministic and interactive evidence is recorded separately from live access.
 - live-note: On 2026-09-22 the owner explicitly authorized automatic use of the existing browser login for verification. Normal Codex and Copilot product connections succeeded without added scopes. Codex real daily usage/activity/plugin/skill history was fetched and displayed, satisfying AC-02. Optional Codex workspace routes returned 400/403; Copilot personal history routes returned 404 with the current connection. These outcomes do not establish universal plan coverage or the reason for GitHub's 404. No cookies or source CLI credentials were extracted; local history remains deferred.
 - specification: docs/specs/AIU-011-provider-history/spec.md
@@ -420,7 +420,10 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-040 - [astra] Remove the AIU-011 provider-history retrieval
 - goal: G-003
-- status: idea
+- status: in-progress
+- specification: docs/specs/AIU-040-remove-provider-history/spec.md
+- evidence: docs/specs/AIU-040-remove-provider-history/verification.md
+- selection-note: Owner selected implementation on 2026-10-03; remove retired retrieval after the completed AIU-039 product switch.
 - depends_on: [AIU-039]
 - trigger: owner-selection
 - outcome: Following D-184, the AIU-011 provider-history retrieval is removed: the Core provider-history contract, the Codex and Copilot history clients, parsers and session routes, and the live and demo history sources and their registration. No provider-history request remains. Local history from AIU-036 is the only history shown.

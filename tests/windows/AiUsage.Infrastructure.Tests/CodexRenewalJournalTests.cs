@@ -41,7 +41,7 @@ public sealed class CodexRenewalJournalTests : IDisposable
         }
         using var server = new CodexTestServer((_, _) => throw new InvalidOperationException("No provider traffic expected."));
         using var http = new HttpClient(server);
-        using var session = new CodexSession(new(http), new(http), store, new(root), new(http));
+        using var session = new CodexSession(new(http), new(http), store, new(root));
         bool opened = false;
         var result = await session.ConnectAsync(_ => opened = true, TestContext.Current.CancellationToken);
         Assert.Equal(ProviderSessionStatus.RecoveryRequired, result.Status);

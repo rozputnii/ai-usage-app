@@ -15,8 +15,6 @@ public static class CodexServiceCollectionExtensions
             .ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
         services.AddHttpClient<CodexQuotaClient>(ProviderTransport.ConfigureClient)
             .ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
-        services.AddHttpClient<CodexHistoryClient>(ProviderTransport.ConfigureClient)
-            .ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
         return services;
     }
 
@@ -30,7 +28,7 @@ public static class CodexServiceCollectionExtensions
         services.AddCodexIntegration();
         services.TryAddSingleton(p => new CodexGrantStore(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(p => new CodexQuotaCache(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
-        services.TryAddSingleton(p => new CodexSession(p.GetRequiredService<CodexAuthClient>(), p.GetRequiredService<CodexQuotaClient>(), p.GetRequiredService<CodexGrantStore>(), p.GetRequiredService<CodexQuotaCache>(), p.GetRequiredService<CodexHistoryClient>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
+        services.TryAddSingleton(p => new CodexSession(p.GetRequiredService<CodexAuthClient>(), p.GetRequiredService<CodexQuotaClient>(), p.GetRequiredService<CodexGrantStore>(), p.GetRequiredService<CodexQuotaCache>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(services => new DashboardWorkflow(services.GetRequiredService<CodexSession>()));
         return services;
     }

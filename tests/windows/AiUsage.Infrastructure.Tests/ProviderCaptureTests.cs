@@ -72,13 +72,6 @@ public sealed class ProviderCaptureTests : IDisposable
     [InlineData("https://auth.openai.com/api/accounts/deviceauth/usercode", "codex", "auth")]
     [InlineData("https://auth.openai.com/api/accounts/deviceauth/token", "codex", "auth")]
     [InlineData("https://chatgpt.com/backend-api/wham/usage", "codex", "quota")]
-    [InlineData("https://chatgpt.com/backend-api/wham/usage/daily-token-usage-breakdown", "codex", "history")]
-    [InlineData("https://chatgpt.com/backend-api/wham/usage/credit-usage-events", "codex", "history")]
-    [InlineData("https://chatgpt.com/backend-api/wham/analytics/daily-workspace-usage-counts", "codex", "history")]
-    [InlineData("https://chatgpt.com/backend-api/wham/analytics/daily-plugin-usage-metrics", "codex", "history")]
-    [InlineData("https://chatgpt.com/backend-api/wham/analytics/daily-skill-usage-metrics", "codex", "history")]
-    [InlineData("https://chatgpt.com/backend-api/wham/usage/daily-workspace-user-token-usage-breakdown", "codex", "history")]
-    [InlineData("https://chatgpt.com/backend-api/wham/usage/daily-workspace-user-credit-usage", "codex", "history")]
     [InlineData("https://api.anthropic.com/v1/oauth/token", "claude", "auth")]
     [InlineData("https://api.anthropic.com/api/oauth/usage", "claude", "quota")]
     [InlineData("https://api.anthropic.com/api/claude_cli/bootstrap?entrypoint=private", "claude", "identity")]
@@ -86,8 +79,6 @@ public sealed class ProviderCaptureTests : IDisposable
     [InlineData("https://github.com/login/oauth/access_token", "copilot", "auth")]
     [InlineData("https://api.github.com/user", "copilot", "identity")]
     [InlineData("https://api.github.com/copilot_internal/user", "copilot", "quota")]
-    [InlineData("https://api.github.com/users/private/settings/billing/ai_credit/usage", "copilot", "history")]
-    [InlineData("https://api.github.com/users/private/settings/billing/premium_request/usage", "copilot", "history")]
     [InlineData("https://oauth2.googleapis.com/token", "antigravity", "auth")]
     [InlineData("https://www.googleapis.com/oauth2/v1/userinfo", "antigravity", "identity")]
     [InlineData("https://daily-cloudcode-pa.googleapis.com/v1internal:loadCodeAssist", "antigravity", "provisioning")]
@@ -101,6 +92,23 @@ public sealed class ProviderCaptureTests : IDisposable
         Assert.Equal(provider, policy.Provider);
         Assert.Equal(kind, policy.Kind);
         Assert.DoesNotContain("private", policy.Route);
+    }
+
+    [Theory]
+    [InlineData("https://chatgpt.com/backend-api/wham/usage/daily-token-usage-breakdown")]
+    [InlineData("https://api.github.com/users/private/settings/billing/ai_credit/usage")]
+    [InlineData("https://api.github.com/users/private/settings/billing/premium_request/usage")]
+    public void RetiredReportRoutesWithholdNativeValues(string url)
+    {
+        using var document = JsonDocument.Parse("""{"data":[{"input_tokens":123456789,"quantity":987654321,"unit":"USD","date":"2026-10-03"}]}""");
+        var policy = EndpointPolicy.Classify(new Uri(url));
+        var sanitized = ResponseSanitizer.Sanitize(document.RootElement, policy);
+        Assert.DoesNotContain("123456789", sanitized.Body.GetRawText());
+        Assert.DoesNotContain("987654321", sanitized.Body.GetRawText());
+        Assert.DoesNotContain("USD", sanitized.Body.GetRawText());
+        Assert.DoesNotContain("2026-10-03", sanitized.Body.GetRawText());
+        Assert.Equal("unclassified", policy.Route);
+        Assert.NotEmpty(sanitized.Redactions);
     }
 
     [Fact]

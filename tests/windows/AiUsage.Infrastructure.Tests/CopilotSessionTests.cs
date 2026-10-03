@@ -20,7 +20,7 @@ public sealed class CopilotSessionTests : IDisposable
         "/copilot_internal/user" => CodexTestServer.Json(CopilotProtocolTests.Usage, usageStatus),
         _ => throw new InvalidOperationException("Unexpected endpoint.")
     };
-    private CopilotSession Session(HttpClient http) => new(new(http, clock, (_, token) => { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }), new(http, clock), new(directory), clock, new(http, clock));
+    private CopilotSession Session(HttpClient http) => new(new(http, clock, (_, token) => { token.ThrowIfCancellationRequested(); return Task.CompletedTask; }), new(http, clock), new(directory), clock);
 
     [Fact]
     public async Task ConnectResumeDisconnectAndReconnectKeepProviderOwnedState()
@@ -44,7 +44,7 @@ public sealed class CopilotSessionTests : IDisposable
     }
 
     [Fact]
-    public async Task HistoryObservesExternalDisconnectWithoutKeepingOldAccountState()
+    public async Task RefreshObservesExternalDisconnectWithoutKeepingOldAccountState()
     {
         using var server = new CodexTestServer((request, _) => Task.FromResult(Respond(request)));
         using var http = new HttpClient(server);
@@ -53,8 +53,8 @@ public sealed class CopilotSessionTests : IDisposable
         var calls = server.Calls;
         await using (var lease = await new CopilotStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken))
             await lease.DeleteAsync(TestContext.Current.CancellationToken);
-        var result = await session.GetHistoryAsync(new(new(2029, 12, 1), new(2029, 12, 31)), TestContext.Current.CancellationToken);
-        Assert.Equal(AiUsage.Core.History.HistoryStatus.AuthenticationRequired, Assert.Single(result.Reports).Status);
+        var result = await session.RefreshAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(ProviderSessionStatus.NotConnected, result.Status);
         Assert.False(session.HasStoredGrant);
         Assert.Equal(ProviderSessionStatus.NotConnected, session.State.Status);
         Assert.Null(session.State.Quota);

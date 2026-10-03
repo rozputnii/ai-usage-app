@@ -11,7 +11,6 @@ public static class CopilotServiceCollectionExtensions
         services.TryAddSingleton(ProviderTransportOptions.Default);
         services.AddHttpClient<CopilotAuthClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
         services.AddHttpClient<CopilotQuotaClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
-        services.AddHttpClient<CopilotHistoryClient>(ProviderTransport.ConfigureClient).ConfigurePrimaryHttpMessageHandler(p => ProviderTransport.CreateHandler(p.GetRequiredService<ProviderTransportOptions>())).RemoveAllLoggers();
         return services;
     }
 
@@ -20,7 +19,7 @@ public static class CopilotServiceCollectionExtensions
     {
         services.AddCopilotIntegration();
         services.TryAddSingleton(p => new CopilotStateStore(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
-        services.TryAddSingleton(p => new CopilotSession(p.GetRequiredService<CopilotAuthClient>(), p.GetRequiredService<CopilotQuotaClient>(), p.GetRequiredService<CopilotStateStore>(), p.GetRequiredService<TimeProvider>(), p.GetRequiredService<CopilotHistoryClient>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
+        services.TryAddSingleton(p => new CopilotSession(p.GetRequiredService<CopilotAuthClient>(), p.GetRequiredService<CopilotQuotaClient>(), p.GetRequiredService<CopilotStateStore>(), p.GetRequiredService<TimeProvider>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         return services;
     }
 

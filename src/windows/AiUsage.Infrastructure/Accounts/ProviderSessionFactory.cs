@@ -39,9 +39,9 @@ internal sealed class ProviderSessionFactory(IServiceProvider services, string o
                 new ClaudeStateStore(directory, null, diagnostics), clock, diagnostics),
             "codex" => new CodexSession(services.GetRequiredService<CodexAuthClient>(), services.GetRequiredService<CodexQuotaClient>(),
                 new CodexGrantStore(directory, null, diagnostics), new CodexQuotaCache(directory, null, diagnostics, storageId),
-                services.GetRequiredService<CodexHistoryClient>(), diagnostics),
+                diagnostics),
             "copilot" => new CopilotSession(services.GetRequiredService<CopilotAuthClient>(), services.GetRequiredService<CopilotQuotaClient>(),
-                new CopilotStateStore(directory, null, diagnostics), clock, services.GetRequiredService<CopilotHistoryClient>(), diagnostics),
+                new CopilotStateStore(directory, null, diagnostics), clock, diagnostics),
             "antigravity" => new AntigravitySession(services.GetRequiredService<AntigravityAuthClient>(), services.GetRequiredService<AntigravityQuotaClient>(),
                 new AntigravityStateStore(directory, null, diagnostics), clock, diagnostics),
             _ => throw new ArgumentOutOfRangeException(nameof(provider))

@@ -12,19 +12,12 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
         if (host == "auth.openai.com" && path is "/oauth/token" or "/api/accounts/deviceauth/usercode" or "/api/accounts/deviceauth/token")
             return new("codex", path, "auth");
         if (host == "chatgpt.com" && path == "/backend-api/wham/usage") return new("codex", path, "quota");
-        if (host == "chatgpt.com" && path is "/backend-api/wham/usage/daily-token-usage-breakdown" or "/backend-api/wham/usage/credit-usage-events" or
-            "/backend-api/wham/analytics/daily-workspace-usage-counts" or "/backend-api/wham/analytics/daily-plugin-usage-metrics" or
-            "/backend-api/wham/analytics/daily-skill-usage-metrics" or "/backend-api/wham/usage/daily-workspace-user-token-usage-breakdown" or
-            "/backend-api/wham/usage/daily-workspace-user-credit-usage") return new("codex", path, "history");
         if (host == "api.anthropic.com" && path == "/v1/oauth/token") return new("claude", path, "auth");
         if (host == "api.anthropic.com" && path == "/api/oauth/usage") return new("claude", path, "quota");
         if (host == "api.anthropic.com" && path == "/api/claude_cli/bootstrap") return new("claude", path, "identity");
         if (host == "github.com" && path is "/login/device/code" or "/login/oauth/access_token") return new("copilot", path, "auth");
         if (host == "api.github.com" && path == "/user") return new("copilot", path, "identity");
         if (host == "api.github.com" && path == "/copilot_internal/user") return new("copilot", path, "quota");
-        var segments = path.Split('/');
-        if (host == "api.github.com" && segments is ["", "users", _, "settings", "billing", "premium_request" or "ai_credit", "usage"])
-            return new("copilot", "/users/{user}/settings/billing/{report}/usage", "history");
         if (host == "oauth2.googleapis.com" && path == "/token") return new("antigravity", path, "auth");
         if (host == "www.googleapis.com" && path == "/oauth2/v1/userinfo") return new("antigravity", path, "identity");
         if (host == "daily-cloudcode-pa.googleapis.com")
@@ -43,7 +36,6 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
         "quota" when Provider == "claude" => key is "utilization" or "percent" or "amount_minor" or "exponent" or "used" or "limit" or "remaining" or "used_credits" or "monthly_limit" or "used_usd" or "limit_usd" or "used_usd_cents" or "limit_usd_cents",
         "quota" when Provider == "copilot" => key is "entitlement" or "remaining" or "percent_remaining" or "overage_count" or "overage_permitted" or "quota_remaining",
         "quota" when Provider == "antigravity" => key is "remainingAmount" or "remainingFraction" or "limit" or "quota" or "used",
-        "history" => key is "quantity" or "grossAmount" or "discountAmount" or "netAmount" or "count" or "total" or "input_tokens" or "output_tokens" or "cached_input_tokens" or "credits" or "tokens" or "amount",
         _ => false
     };
 
@@ -70,7 +62,7 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
             System.Globalization.CultureInfo.InvariantCulture, out _)) return true;
         if (key == "token_type" && Kind == "auth") return value is "Bearer" or "bearer";
         if (key == "error") return value is "authorization_pending" or "slow_down" or "expired_token" or "access_denied" or "invalid_grant" or "invalid_request" or "invalid_client";
-        if (Kind is not ("quota" or "history")) return false;
+        if (Kind != "quota") return false;
         if (key is "resetTime" or "resets_at" or "quota_reset_date" or "quota_reset_date_utc" or "date" or "day" or "timestamp")
             return value.Length <= 35 && DateTimeOffset.TryParse(value, System.Globalization.CultureInfo.InvariantCulture,
                 System.Globalization.DateTimeStyles.AssumeUniversal, out _);
