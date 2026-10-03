@@ -28,10 +28,13 @@
 
 The implementation and synthetic/unpackaged checks below cover AC-01 through AC-08.
 AC-09 has installed update/recovery and synthetic automatic retry evidence; real-account
-installed automatic refresh awaits owner sign-in. AC-11 has live PASS evidence
+installed automatic refresh is NOT_RUN following the owner's refusal of duplicate sign-in.
+AC-11 has live PASS evidence
 for two-account admission, refresh, restart and selected sign-out/reconnect; induced
 provider-failure injection is BLOCKED by automatic approval review. AC-10 findings have targeted correction evidence.
-The feature stays in progress; fixture, source and build evidence never establish live success.
+The feature is complete under spec scope version 2 with these coverage limitations;
+fixture, source and build evidence never establish live success. Completion does not
+change the failed harness invocations recorded below into PASS.
 
 | Acceptance | Current evidence and limits |
 | --- | --- |
@@ -328,3 +331,16 @@ These results cover T-01 only, not the account registry, migration or multi-acco
 - Final document validation and diff check PASS. Canonical AIU-039 remains in progress.
 - Local ignored evidence: .ai-usage-local/AIU-039/final-acceptance/evidence-03/run.
   Earlier environment/harness failures are retained in evidence and evidence-02.
+
+## Owner declined duplicate authentication, 2026-10-03
+
+- The owner declined another sign-in and pointed to the completed ordinary-mode checks.
+  Removed the duplicate-authentication completion step under spec scope version 2.
+  The separate installed real-account automatic refresh/history check remains NOT_RUN;
+  no previous result has been relabeled as installed live evidence.
+- Confirmed the empty live-check Sandbox was already closed: its ID was no longer
+  available and the running-environment list was empty. No real grants were copied or imported; the
+  existing ordinary-mode accounts and previously recorded live results are preserved.
+- AIU-039 implementation is complete, with the documented live failure-injection BLOCKED
+  result and harness cleanup limitation retained. Standalone extra usage stays hidden;
+  its future account-integrated design remains unselected AIU-044.

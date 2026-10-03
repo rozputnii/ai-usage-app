@@ -106,7 +106,7 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [x] Inspect and save actual evidence, including NOT_RUN/BLOCKED limitations.
 
 ### T-06 - Independent review and authorized Windows/live acceptance
-- status: in-progress
+- status: done
 - depends_on: [T-05]
 - acceptance: AC-09, AC-10, AC-11
 - evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
@@ -117,20 +117,19 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [x] Execute owner-led Claude admission, refresh, restart and selected sign-out/reconnect.
 - [x] Record synthetic installed update/recovery and automatic offline retry/cache evidence,
   including harness failures and corrections without claiming an all-green invocation.
-- [ ] Complete owner-led sign-in to the installed package, observe automatic refresh and
-  reading-series persistence, then reconcile the remaining live failure-injection limitation.
+- [x] Reconcile final acceptance under scope version 2: the owner declined duplicate
+  installed sign-in; retain its automatic refresh/history check as NOT_RUN and live
+  failure injection as BLOCKED. Stop the unused guest without transferring real grants.
 - [x] Record actual per-AC verdicts; unavailable live/package evidence remains NOT_RUN or
   BLOCKED. Update canonical completion only when the required outcome is established.
 - [x] Commit/push the verified implementation save point and report remaining acceptance limitations.
 
 ## Handoff
 
-Exact next action: after the owner confirms Claude sign-in in the installed Sandbox app,
-run the prepared Observe-LiveAcceptance.ps1 guest helper to capture an allowlisted baseline,
-leave the app untouched through its five-minute refresh interval, then compare successful
-Refresh timestamps with the reading-series LastConfirmed values. The prepared scripts,
-config and evidence are under .ai-usage-local/AIU-039/final-acceptance; live guest ID and
-version are in live-guest-session.json. Do not read grants or raw captures.
+Exact next action: wait for the owner to select subsequent work. Do not restart the
+declined installed sign-in check or select AIU-044 automatically. AIU-039 is complete
+under scope version 2 with the recorded coverage limitations; the empty live-check
+Sandbox is stopped, and existing ordinary-mode account state is preserved.
 Installed update, recovery and automatic retry/cache assertions passed with synthetic
 data; the repeat harness invocation failed only in subsequent keyboard cleanup, now removed.
 Live two-account admission, refresh,

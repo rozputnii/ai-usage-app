@@ -404,9 +404,9 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-039 - [astra] Multi-account live adapters, new presentation and Windows acceptance
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-035, AIU-036, AIU-037, AIU-038]
-- readiness-note: Implementation, focused review and synthetic/unpackaged acceptance are integrated. Owner-led two-account Claude admission, refresh, restart and selected sign-out/reconnect passed. Installed update and recovery passed with synthetic data; installed real-account automatic refresh remains pending, and live failure injection is BLOCKED by automatic approval review. The ordinary-desktop verification amendment in AGENTS.md supersedes the older display/accessibility matrix below.
+- outcome-note: Implementation and focused review are complete. Two-account Claude live checks passed in ordinary mode; installed update/recovery and automatic retry/cache assertions passed with synthetic data. On 2026-10-03 the owner declined duplicate sign-in in Sandbox; under spec scope version 2 this is not required for completion, and installed real-account automatic refresh remains NOT_RUN. Live failure injection remains BLOCKED by automatic approval review. These limitations and the smoke-harness cleanup failure are preserved in verification.md; completion is not an all-green test or release claim. The ordinary-desktop verification amendment supersedes the older display/accessibility matrix below.
 - specification: docs/specs/AIU-039-multi-account-ledger/spec.md
 - evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 - trigger: owner-selection

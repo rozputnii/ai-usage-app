@@ -1,15 +1,23 @@
 ---
 id: AIU-039
 type: feature
-status: implementing
+status: implemented
 goal: G-003
-scope_version: 1
+scope_version: 2
 approval_basis: Owner selected AIU-039 on 2026-10-03 and accepted legacy-data separation and Ledger contract additions. The subsequent explicit answer "Implement now in AIU-039" includes full local stored-data deletion. These decisions authorize sequential implementation within the existing architecture and design.
 ---
 
 # Multiple accounts and live Ledger
 
 ## Outcome
+
+Acceptance amendment, 2026-10-03: the owner declined another Claude sign-in in
+Windows Sandbox, citing the already completed ordinary-mode sign-ins. Do not require
+or request that duplicate authentication for this task's completion. Retain installed
+real-account automatic refresh as NOT_RUN, separately from the passing ordinary-mode
+live checks and synthetic installed checks. This does not claim installed live success
+or authorize moving existing grants into a package or guest. Other recorded BLOCKED
+checks remain explicit coverage limitations, not successful execution or release approval.
 
 Owner amendment, 2026-10-03: hide standalone Claude extra-usage cards in the live
 Ledger because they look like separate accounts. Keep the owning account manageable
