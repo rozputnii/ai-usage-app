@@ -1,8 +1,8 @@
 # AIU-037 verification
 
 Execution: 2026-10-03, Windows, .NET SDK 10.0.401, Release. Base 954ae68, clean main;
-planning save point c9dff85. Evidence applies to the AIU-037 implementation save point
-and its final source files, not to later changes. All payloads/grants are synthetic;
+planning save point c9dff85; implementation WIP save point a3ef130, pushed to origin/main.
+Evidence applies to that implementation's source files, not to later code changes. All payloads/grants are synthetic;
 filesystem tests use unique temporary owned directories.
 
 ## Acceptance evidence
@@ -30,8 +30,8 @@ providers have explicit tests showing absent UI-only pools are not invented.
 | Presentation: dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo | PASS: 179 tests, 0 errors/failures/skips/not-run; 0.635 seconds. |
 | Windows consumer: dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore | PASS: 0 warnings, 0 errors; 35.19 seconds. Compilation only. |
 | Offline console: dotnet run --project tools/AiUsage.ProviderConsole -c Release --no-restore -- inspect tests/windows/AiUsage.Infrastructure.Tests/Fixtures/codex-usage.synthetic.json | PASS: parsed output contains normalized Used.Value = 25, not an empty quantity object. |
-| Document validator: dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json | PASS after correcting design frontmatter; final documentation rerun recorded with publication. |
-| git diff --check | PASS after normalizing authored line endings and trailing blank lines; staged check included with publication. |
+| Document validator: dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json | PASS: final result valid=true, diagnostics empty. Initial missing design frontmatter corrected. |
+| git diff --check and git diff --cached --check | PASS at publication after normalizing authored line endings and trailing blank lines, including new files. |
 | Live-provider authentication/quota | NOT_RUN; no live credentials/import/consent authorized or needed for these parser/migration fixtures. |
 | Interactive Windows/package upgrade | NOT_RUN; no visual/activation/package changes. The consumer build does not establish UI or installed-package migration success. |
 

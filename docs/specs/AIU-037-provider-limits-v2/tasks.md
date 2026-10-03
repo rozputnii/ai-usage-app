@@ -53,8 +53,8 @@ unlike history series. Tests belong to T-02/T-03 respectively.
 
 ## Handoff
 
-Next action: obtain a focused independent security-lifecycle review of the current
-AIU-037 diff against base 954ae68 and this specification using an available authorized reviewer.
+Next action: obtain a focused independent security-lifecycle review of implementation
+a3ef130 against base 954ae68 and this specification using an available authorized reviewer.
 
 Implementation, primary diff review and local verification are complete. Infrastructure
 521/521 and Presentation 179/179 PASS; Windows Release consumer build and offline console
