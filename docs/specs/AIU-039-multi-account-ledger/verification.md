@@ -199,3 +199,14 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   output excluded. Document validator PASS (valid true, no diagnostics); full feature diff
   whitespace check PASS. Completion remains blocked on the explicitly unperformed owner-led
   live and installed-package acceptance, not on an inferred implementation approval.
+
+## Owner-led Claude acceptance started, 2026-10-03
+
+- Owner explicitly authorized two-account Claude verification and retained browser
+  sign-in. Code reference: 35ca7d9. Started the current unpackaged Debug build with a
+  fresh, ignored, isolated development state directory; existing app state was preserved.
+- PASS: normal empty Ledger activation and starting Claude browser sign-in; the app
+  displayed its waiting state and manual-code fallback. Browser completion is pending.
+- Two-account admission, independent refresh, reconnect and durable restart remain
+  NOT_RUN until observed. No source CLI credentials were read or imported. Existing-state
+  migration, package installation/update and trust changes are outside this authorization.
