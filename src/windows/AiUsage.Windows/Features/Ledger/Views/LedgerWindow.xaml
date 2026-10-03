@@ -154,13 +154,18 @@
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
-      <ScrollViewer x:Name="CardScroller" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+      <StackPanel Grid.ColumnSpan="2" Orientation="Vertical" Spacing="6" Margin="16,10" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
+        <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
+        <Button Content="Recovery and diagnostics" Command="{x:Bind ViewModel.ToggleSettingsCommand}" HorizontalAlignment="Left" />
+      </StackPanel>
+      <ScrollViewer x:Name="CardScroller" Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                     Visibility="{x:Bind Hide(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
         <lc:CardGridPanel x:Name="CardGrid" Gap="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
                           Columns="{x:Bind GridColumns(ViewModel.IsSettingsOpen), Mode=OneWay}" XYFocusKeyboardNavigation="Enabled" />
       </ScrollViewer>
 
-      <ScrollViewer Visibility="{x:Bind Show(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
+      <ScrollViewer Grid.Row="1" Visibility="{x:Bind Show(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
         <StackPanel Width="460" Spacing="12" Margin="16,44,16,16" HorizontalAlignment="Center">
           <TextBlock Text="Add an account" Style="{StaticResource LedgerHeadingText}" />
           <TextBlock Text="AI Usage shows how much of each subscription limit is left today. Sign-in opens your browser; nothing is read before you sign in." Style="{StaticResource LedgerIntroText}" />
@@ -185,14 +190,14 @@
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <TextBlock Text="One account per provider in this version. Add more later with + in the title bar." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
+          <TextBlock Text="Add more accounts with + in the title bar. Each account keeps its own limits and history." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
         </StackPanel>
       </ScrollViewer>
 
-      <views:LedgerSettingsView x:Name="SettingsPanel" Grid.Column="1" Width="400" ViewModel="{x:Bind ViewModel.Settings}"
+      <views:LedgerSettingsView x:Name="SettingsPanel" Grid.Row="1" Grid.Column="1" Width="400" ViewModel="{x:Bind ViewModel.Settings}"
                                 Visibility="{x:Bind Show(ViewModel.IsSettingsOpen), Mode=OneWay}" />
 
-      <lc:SquircleSurface x:Name="UndoBar" Radius="9" Fill="{StaticResource LedgerTipBrush}" Stroke="{StaticResource LedgerLineWindowBrush}" Height="36"
+      <lc:SquircleSurface x:Name="UndoBar" Grid.Row="1" Radius="9" Fill="{StaticResource LedgerTipBrush}" Stroke="{StaticResource LedgerLineWindowBrush}" Height="36"
                           Padding="14,0,8,0" ColumnSpacing="12" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16"
                           Visibility="{x:Bind Show(ViewModel.HasUndo), Mode=OneWay}" GotFocus="OnUndoFocus" LostFocus="OnUndoBlur">
         <lc:SquircleSurface.ColumnDefinitions>

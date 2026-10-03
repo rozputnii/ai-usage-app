@@ -94,3 +94,27 @@ These results cover T-01 only, not the account registry, migration or multi-acco
 - NOT_RUN: interactive Ledger smoke, package build/install and live providers. The live
   source is not activated in product composition yet. Full deletion, retained recovery/
   diagnostics surfaces and old-UI retirement remain implementation work.
+
+## T-05 product/deletion save point, 2026-10-03
+
+- Default live and demo startup now use Ledger with inline recovery/diagnostics and
+  drained exit. New account composition does not register provider-keyed singletons.
+- Full local deletion uses a durable intent, exclusive root/provider leases, known-file
+  ownership, writer/log drain and retained layout-2 fence. Unknown data is preserved.
+- Independent destructive-data review (convergence-review, GPT-6 Astra low), frozen
+  `90480f15604ad028bbcbe0aed922d8ec03ac8a2a` versus `d92ebef`: FAIL, two findings.
+  P1: provider artifacts enumerated before leases could leave a late grant behind.
+  P2: rewriting a committed intent on retry could leave a truncated stage blocking resume.
+  Both reproduced as failing regression tests, then corrected: enumerate after acquiring
+  leases; preserve committed intent as authoritative. Targeted suite PASS 11/11 (1.429s).
+  No real credentials were read. Later desktop integration requires its own focused review.
+- Windows Debug x64 build PASS, zero warnings/errors (31.83s), before the subsequent
+  visibility-diagnostic one-line fix; that fix remains pending rebuild.
+- Actual isolated Windows smoke PASS 2/2 (10.417s): demo and live-empty launch, used/left,
+  demo history and second Claude account, settings, deletion confirmation cancellation,
+  diagnostic preview and drained Ctrl+Q exit. Initial harness failures were unsupported
+  UIA names and hidden hover-only controls; corrected selectors and focus, then reran.
+  Screenshots/results are local generated evidence under artifacts/AIU-039/ledger-smoke,
+  excluded from publication. Actual destructive restart and close/restore tray NOT_RUN yet.
+- Old presentation retirement, additional projection edges and packaged build remain open.
+  Owner-led live account/migration and installed-package acceptance remain NOT_RUN.

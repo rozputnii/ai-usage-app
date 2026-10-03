@@ -83,6 +83,12 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     [ObservableProperty] public partial string SystemStatusText { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool IsDeleteArmed { get; private set; }
     [ObservableProperty] public partial bool HasCaps { get; private set; }
+    [ObservableProperty] public partial string RecoveryText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial bool NeedsRecovery { get; private set; }
+    [ObservableProperty] public partial bool CanRetryRecovery { get; private set; }
+    [ObservableProperty] public partial bool CanRestorePreferences { get; private set; }
+    [ObservableProperty] public partial string DiagnosticText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial string SupportStatus { get; private set; } = string.Empty;
 
     public string WorkDaysNote =>
         "Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight. Changes apply from the next local midnight.";
@@ -94,6 +100,10 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     public void Rebuild(LedgerSnapshot current, LedgerPreferences prefs)
     {
         snapshot = current;
+        NeedsRecovery = current.Summaries.Recovery is not null;
+        RecoveryText = current.Summaries.Recovery?.Message ?? string.Empty;
+        CanRetryRecovery = current.Summaries.Recovery?.CanRetry ?? false;
+        CanRestorePreferences = current.Summaries.Recovery?.CanRestorePreferences ?? false;
         IsLeft = prefs.Mode == ValueMode.Left;
         IsCompact = prefs.Density == Density.Compact;
         ShowSignedOut = prefs.ShowSignedOut;
@@ -117,6 +127,16 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
             Caps.Add(new CapRow(this, cap));
         HasCaps = Caps.Count > 0;
     }
+
+    [RelayCommand]
+    public async Task SupportAsync(LedgerSupportAction action)
+    {
+        var outcome = await source.SupportAsync(action, CancellationToken.None);
+        SupportStatus = outcome == CommandOutcome.Done ? "Done" : "Action unavailable; local data is preserved";
+    }
+
+    [RelayCommand]
+    public async Task PreviewDiagnosticsAsync() => DiagnosticText = await source.PreviewDiagnosticsAsync(CancellationToken.None);
 
     public async Task ToggleWorkDayAsync(DayOfWeek day)
     {

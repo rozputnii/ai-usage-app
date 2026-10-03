@@ -77,6 +77,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string UndoText { get; private set; } = string.Empty;
     [ObservableProperty] public partial LedgerHistoryViewModel? History { get; private set; }
     [ObservableProperty] public partial bool ShowSignedOut { get; private set; }
+    [ObservableProperty] public partial bool NeedsRecovery { get; private set; }
+    [ObservableProperty] public partial string RecoveryText { get; private set; } = string.Empty;
 
     public string ValueModeName => "Show values: " + (IsLeft ? "left" : "used");
 
@@ -90,6 +92,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         var snapshot = source.Current;
         var prefs = source.Preferences;
         var now = snapshot.LocalNow;
+        NeedsRecovery = snapshot.Summaries.Recovery is not null;
+        RecoveryText = snapshot.Summaries.Recovery?.Message ?? string.Empty;
         ClockText = LedgerFormat.TitleClock(now);
         IsLeft = prefs.Mode == ValueMode.Left;
         IsCompact = prefs.Density == Density.Compact;

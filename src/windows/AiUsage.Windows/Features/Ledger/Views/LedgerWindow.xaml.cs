@@ -55,6 +55,7 @@ internal sealed partial class LedgerWindow : Window
         AddAccelerator(VirtualKey.N, VirtualKeyModifiers.Control, () => { AddButton.Flyout?.ShowAt(AddButton); return true; });
         AddAccelerator(VirtualKey.Z, VirtualKeyModifiers.Control, () => { var handled = ViewModel.HasUndo; _ = ViewModel.UndoAsync(); return handled; });
         AddAccelerator(VirtualKey.F5, VirtualKeyModifiers.None, () => { _ = ViewModel.RefreshAsync(); return true; });
+        AddAccelerator(VirtualKey.Q, VirtualKeyModifiers.Control, () => { _ = exit(); return true; });
 
         ViewModel.Cards.CollectionChanged += OnCardsChanged;
         ViewModel.PropertyChanged += OnViewModelChanged;
@@ -197,6 +198,7 @@ internal sealed partial class LedgerWindow : Window
     public void ShowAndActivate()
     {
         AppWindow.Show();
+        AiUsage.Composition.ApplicationDiagnostics.Current?.WindowVisibility(false);
         if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter)
             presenter.Restore();
         Activate();
@@ -271,7 +273,7 @@ internal sealed partial class LedgerWindow : Window
         }
         catch (Exception error) when (error is System.Runtime.InteropServices.ExternalException or InvalidOperationException or ArgumentException or OutOfMemoryException)
         {
-            // The notification area can refuse an update; the next change retries.
+            Composition.ApplicationDiagnostics.Current?.TrayFailure(error);
         }
     }
 
@@ -281,6 +283,7 @@ internal sealed partial class LedgerWindow : Window
             return;
         args.Cancel = true;
         AppWindow.Hide();
+        Composition.ApplicationDiagnostics.Current?.WindowVisibility(true);
     }
 
     public void CloseForExit()

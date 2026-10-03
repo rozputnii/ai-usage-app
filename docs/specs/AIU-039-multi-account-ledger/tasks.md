@@ -41,7 +41,7 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [x] Inspect diff and commit/push a coherent WIP save point.
 
 ### T-02 - Protected registry and account workflow
-- status: done
+- status: in-progress
 - depends_on: [T-01]
 - acceptance: AC-01, AC-02, AC-04, AC-05, AC-10
 - evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
@@ -90,7 +90,7 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [ ] Run relevant suites, inspect and save.
 
 ### T-05 - Product switch, lifecycle and retained surfaces
-- status: pending
+- status: in-progress
 - depends_on: [T-04]
 - acceptance: AC-08, AC-09
 - evidence: not-run
@@ -121,8 +121,8 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 
 ## Handoff
 
-Exact next action: implement the owned-data deletion coordinator with crash-resumption
-tests, then activate the live Ledger source through product startup and recovery.
+Exact next action: retire the old presentation and port remaining behavioral checks,
+then verify deletion/restart and tray behavior in isolated Windows runs.
 T-03/T-04 foundations and the Windows build are verified; remaining projection/source
 edge cases and interactive checks are not promoted to completed acceptance.
 All three decisions are resolved; PD-039-03 explicitly includes full local deletion.

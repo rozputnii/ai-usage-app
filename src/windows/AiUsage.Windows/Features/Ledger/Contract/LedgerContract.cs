@@ -204,7 +204,11 @@ internal sealed record CapSettingModel(
 internal sealed record SettingsSummaries(TimeSpan RefreshInterval, string UpdatesSummary, int FailedSyncs, IReadOnlyList<ProviderKind> FailedProviders)
 {
     public string? LocalStatus { get; init; }
+    public LedgerRecoveryModel? Recovery { get; init; }
+    public bool DiagnosticsAvailable { get; init; }
 }
+internal sealed record LedgerRecoveryModel(string Message, bool CanRetry, bool CanRestorePreferences);
+internal enum LedgerSupportAction { RetryRecovery, RestorePreferences, OpenDataFolder, OpenLogs, ExportRecovery }
 
 internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop)
 {
@@ -242,4 +246,6 @@ internal interface ILedgerSource
     Task<CommandOutcome> DeleteStoredDataAsync(CancellationToken ct);
     Task SetPreferencesAsync(LedgerPreferences preferences, CancellationToken ct);
     Task<HistoryModel?> GetHistoryAsync(string cardId, CancellationToken ct);
+    Task<CommandOutcome> SupportAsync(LedgerSupportAction action, CancellationToken ct) => Task.FromResult(CommandOutcome.Unavailable);
+    Task<string> PreviewDiagnosticsAsync(CancellationToken ct) => Task.FromResult("Diagnostics unavailable in demo mode");
 }

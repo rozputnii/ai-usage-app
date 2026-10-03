@@ -79,6 +79,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
         try
         {
             lease ??= ProviderStatePaths.Acquire(root, "state.lock");
+            if (new OwnedDataDeletion(root).Pending) return new(MaintenanceCondition.DeletionPending, null, null);
             layout = ReadLayout();
             if (layout > TargetLayout) return new(MaintenanceCondition.NewerSchema, layout, null);
             var journal = restoreId is null ? ReadJournal() : null;

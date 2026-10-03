@@ -18,7 +18,12 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
     public void Initialize(bool demo)
     {
         Current = this;
-        try { sink = new FileDiagnostics(ApplicationStateDirectory.Get(demo), mode: demo ? "demo" : Packaged() ? "packaged" : "development"); }
+        try
+        {
+            var root = ApplicationStateDirectory.Get(demo);
+            if (!new OwnedDataDeletion(root).Pending)
+                sink = new FileDiagnostics(root, mode: demo ? "demo" : Packaged() ? "packaged" : "development");
+        }
         catch (Exception) { /* An unavailable state root must not prevent desktop startup or exit. */ }
         AppDomain.CurrentDomain.UnhandledException += ManagedFailure;
         TaskScheduler.UnobservedTaskException += UnobservedFailure;
@@ -68,6 +73,11 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
         watchdog?.Dispose();
         sink?.Dispose();
         // Global hooks stay available through the final host/window disposal; FileDiagnostics.Fatal remains usable.
+    }
+    public void StopForDeletion()
+    {
+        watchdog?.Dispose(); watchdog = null;
+        sink?.Dispose(); sink = null;
     }
     private static bool Packaged()
     {

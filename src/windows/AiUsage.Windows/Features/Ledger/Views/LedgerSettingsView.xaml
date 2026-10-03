@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ledger="using:AiUsage.Features.Ledger"
+    xmlns:contract="using:AiUsage.Features.Ledger.Contract"
     xmlns:lc="using:AiUsage.Controls.Ledger"
     xmlns:views="using:AiUsage.Features.Ledger.Views"
     IsTabStop="False">
@@ -171,8 +172,22 @@
         </Grid>
         <Grid ColumnSpacing="8">
           <TextBlock Text="SYSTEM STATUS" Style="{StaticResource LedgerSectionText}" />
-          <TextBlock Text="{x:Bind ViewModel.SystemStatusText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" HorizontalAlignment="Right" />
         </Grid>
+        <TextBlock Text="{x:Bind ViewModel.SystemStatusText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
+        <StackPanel Spacing="8" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
+          <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
+          <Button Content="Retry recovery" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RetryRecovery}" IsEnabled="{x:Bind ViewModel.CanRetryRecovery, Mode=OneWay}" />
+          <Button Content="Restore legacy preferences" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RestorePreferences}" IsEnabled="{x:Bind ViewModel.CanRestorePreferences, Mode=OneWay}" />
+          <TextBlock Text="The checkpoint contains old appearance preferences only. It cannot restore sign-ins or quota history." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Spacing="6">
+          <Button Content="Preview diagnostics" Command="{x:Bind ViewModel.PreviewDiagnosticsCommand}" />
+          <Button Content="Open logs" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.OpenLogs}" />
+          <Button Content="Open data folder" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.OpenDataFolder}" />
+          <Button Content="Export recovery summary" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.ExportRecovery}" />
+          <TextBlock Text="{x:Bind ViewModel.SupportStatus, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
+          <TextBlock Text="{x:Bind ViewModel.DiagnosticText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+        </StackPanel>
       </StackPanel>
     </ScrollViewer>
   </Border>

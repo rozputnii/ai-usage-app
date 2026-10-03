@@ -39,6 +39,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     private bool configurationWritable;
     private string? localStatus;
     private SignInStripModel? strip;
+    private LedgerRecoveryModel? recovery;
 
     public LiveLedgerSource(IAccountService accounts, IReadingSeriesStore readings, IBudgetConfigurationStore budgets,
         IQuotaObservationRecorder recorder, LedgerPreferenceStore preferences, Func<Action, Task> dispatch,
@@ -57,6 +58,19 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     public event EventHandler? Changed;
     // Set by the desktop lifetime. Deletion owns stopping/draining and restarting the product.
     public Func<CancellationToken, Task<CommandOutcome>>? DeleteData { get; set; }
+    public Func<LedgerSupportAction, CancellationToken, Task<CommandOutcome>>? SupportAction { get; set; }
+    public Func<CancellationToken, Task<string>>? DiagnosticsPreview { get; set; }
+    public Task<CommandOutcome> SupportAsync(LedgerSupportAction action, CancellationToken ct) => SupportAction?.Invoke(action, ct) ?? Task.FromResult(CommandOutcome.Unavailable);
+    public Task<string> PreviewDiagnosticsAsync(CancellationToken ct) => DiagnosticsPreview?.Invoke(ct) ?? Task.FromResult("Diagnostics unavailable");
+    public Task SetRecoveryAsync(LedgerRecoveryModel? value)
+    {
+        recovery = value;
+        return dispatch(() =>
+        {
+            Current = Current with { Summaries = Current.Summaries with { Recovery = value, DiagnosticsAvailable = DiagnosticsPreview is not null } };
+            Changed?.Invoke(this, EventArgs.Empty);
+        });
+    }
 
     public async Task InitializeAsync(string? legacyPreferences, CancellationToken token)
     {
@@ -200,7 +214,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             workToday ? WorkCalendar.Midnight(date.AddDays(1), zone) : null), models, Options(snapshots), currentStrip,
             new((preferences.Current.PendingWorkDays ?? configuration.WorkDays).ToHashSet(), caps),
             new(RefreshInterval, "Update checks unavailable", failed.Length, failed.Select(a => a.Provider).Distinct().ToArray())
-            { LocalStatus = lostCaptures.Count > 0 ? "History has missing readings because local capture failed" : localStatus }));
+            { LocalStatus = lostCaptures.Count > 0 ? "History has missing readings because local capture failed" : localStatus,
+                Recovery = recovery, DiagnosticsAvailable = DiagnosticsPreview is not null }));
     }
 
     private int Order(string id) { var index = Array.IndexOf(preferences.Current.Order, id); return index < 0 ? int.MaxValue : index; }
