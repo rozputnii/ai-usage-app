@@ -10,5 +10,3 @@ internal static class Repository
         return directory?.FullName ?? throw new InvalidOperationException("Run from a repository build output.");
     }
 }
-
-

@@ -146,6 +146,7 @@
 
         <StackPanel Spacing="8">
           <TextBlock Text="DATA &amp; PRIVACY" Style="{StaticResource LedgerSectionText}" />
+          <TextBlock Text="History saved by older versions is kept separately because its account cannot be verified. New readings belong to each signed-in account; older caps remain unassigned." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
           <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*" />

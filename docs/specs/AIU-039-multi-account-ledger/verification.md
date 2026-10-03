@@ -26,8 +26,20 @@
 
 ## Acceptance
 
-AC-01 through AC-11 remain incomplete. PD-039-01 and PD-039-02 are accepted by the owner;
-PD-039-03 explicitly includes full local deletion. No historical evidence is promoted to live Ledger evidence.
+The implementation and synthetic/unpackaged checks below cover AC-01 through AC-08.
+AC-09 remains incomplete for installed-package execution, and AC-11 remains NOT_RUN
+for owner-led live accounts. AC-10 review findings are corrected with targeted evidence.
+The feature stays in progress; fixture, source and build evidence never establish live success.
+
+| Acceptance | Current evidence and limits |
+| --- | --- |
+| AC-01/02/04 | PASS fixtures: isolated sessions for every provider, protected stable references, duplicate/wrong-account rejection, selected refresh/sign-out and cancellation drain. Second Claude demo account and tray selection pass on Windows. Live provider behavior NOT_RUN. |
+| AC-03/05 | PASS synthetic migration/storage: shared v1/v2 provider regression suite, registry stage recovery, legacy adoption boundaries, interrupted maintenance upgrade, unassigned old data, labels/caps/reading persistence and preferences-only recovery. Real owned-state migration NOT_RUN. |
+| AC-06/07 | PASS deterministic parser, budget, history, preference and command tests. Real-provider rendering is NOT_RUN. |
+| AC-08 | PASS unpackaged Windows: launch, second demo account, history/settings, tray restore at account, exit, recovery, confirmed deletion and resumed deletion/restart. Interactive external sign-in challenges remain part of AC-11. |
+| AC-09 | PASS automated regressions, validation, Windows and unsigned package builds. Installed activation/update/automatic refresh NOT_RUN. |
+| AC-10 | Independent reviews performed. Original findings and targeted fixes recorded below; no unresolved material findings. Live privacy evidence NOT_RUN. |
+| AC-11 | NOT_RUN: requires current owner authorization and owner-led sign-in to two actual Claude accounts. |
 
 ## T-01 account session construction, 2026-10-03
 
@@ -148,3 +160,42 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   installed activation/update and live provider checks remain NOT_RUN.
 - Recovery UI smoke initially failed on a disappearing UIA node after restore. The harness
   now retries transient COM failures while waiting; rerun pending. New tray check pending.
+
+## Final local implementation evidence, 2026-10-03
+
+- Full Infrastructure PASS 640/640 (39.555s), zero errors/failures/skips. Five additional
+  interrupted-legacy-maintenance-to-layout-2 cases were then added; the targeted migration
+  suite PASS 13/13 (3.766s), including unchanged protected grant bytes and idempotent adoption.
+- Presentation PASS 114/114 (0.377s): added independent retry scheduling and stopped-tick
+  behavior, learned five-hour figures with unknown remainder retained, observed extra-spend
+  coverage and conservative missing-evidence behavior. Old-presentation-specific tests were
+  retired, so this count is not a claim of unchanged test inventory.
+- Windows Debug unpackaged build PASS with zero warnings/errors (54.70s). Unsigned package
+  build PASS for reserved local validation version 2026.10.355.0, SHA-256
+  7D56F3E71F03F6F548626E61E9B8E94BA2947DC02B3EAD1005063C6DE886EE2A.
+  Only the SDK missing-symbol-tool warning remains; installation/signing NOT_RUN.
+- Actual Windows Ledger suite PASS 4/4 (17.039s) on the rebuilt executable: live-empty and
+  demo launch/settings/history, second same-provider account, close-to-tray and exact-account
+  focus on restore, drained exit, confirmed full deletion and pending-intent restart.
+  Harness corrections include awaiting replaced UIA cards and selecting only the launched
+  process's visible tray popup. The owner's separately running earlier build was preserved.
+- Actual recovery suite PASS 1/1 (9.073s): sharing-failure interruption, process restart,
+  retry, corrupt preferences restored from the same checkpoint, newer-layout refusal and
+  secret-free recovery-summary export. This is unpackaged fixture evidence, not installed update.
+- A combined class/method filter selected zero UI tests; that invocation establishes no
+  evidence and was replaced by the separate runs above.
+- Generated evidence is ignored at artifacts/AIU-039. No real credential or CLI store was
+  opened, and no install, trust modification, release or automatic external sign-in occurred.
+- Final copy clarification describes retained/unassigned older history and lists preferences
+  and logs in the deletion confirmation. It requires the final build/normal-settings recheck.
+- Final copy build PASS: unpackaged Debug, zero warnings/errors (34.12s); unsigned MSIX
+  2026.10.356.0, SHA-256 79AC563974F0FDDD70F27C1EAC4DA1730670C4AB1E3A624B01CE444F8DBEC2CA.
+  The package was not installed or published.
+- Final normal-settings/tray recheck PASS 2/2 (11.021s). Transient button/menu replacement
+  failures were corrected by waiting for the named UI actions and scoping sign-in selection
+  to the launched process. The test process now uses DPI-aware input/capture coordinates;
+  no host display or accessibility settings were changed. Evidence: artifacts/AIU-039/final-copy-smoke.
+- Final primary acceptance/diff review: no unresolved material review findings; all generated
+  output excluded. Document validator PASS (valid true, no diagnostics); full feature diff
+  whitespace check PASS. Completion remains blocked on the explicitly unperformed owner-led
+  live and installed-package acceptance, not on an inferred implementation approval.

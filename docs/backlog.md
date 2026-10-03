@@ -406,7 +406,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - goal: G-003
 - status: in-progress
 - depends_on: [AIU-035, AIU-036, AIU-037, AIU-038]
-- readiness-note: All implementation dependencies are complete and integrated into main as of 2026-10-03. Owner selected AIU-039, accepted legacy-data separation and Ledger contract additions, and explicitly included full local stored-data deletion. Sequential implementation is in progress. The ordinary-desktop verification amendment in AGENTS.md supersedes the older display/accessibility matrix below.
+- readiness-note: All implementation dependencies are complete and integrated into main as of 2026-10-03. Owner selected AIU-039, accepted legacy-data separation and Ledger contract additions, and explicitly included full local stored-data deletion. Implementation and synthetic/unpackaged acceptance are integrated; owner-led live and installed-package acceptance remain NOT_RUN. The ordinary-desktop verification amendment in AGENTS.md supersedes the older display/accessibility matrix below.
 - specification: docs/specs/AIU-039-multi-account-ledger/spec.md
 - evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 - trigger: owner-selection

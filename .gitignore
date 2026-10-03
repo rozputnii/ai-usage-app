@@ -13,6 +13,7 @@
 *.sln.docstates
 # Local agent state and credentials.
 /.ai-usage-local/
+/artifacts/AIU-039/
 /.omp/sessions/
 /.omp/cache/
 /.omp/agent.db*

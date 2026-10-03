@@ -59,14 +59,16 @@ public sealed class AccountMigrationTests : IDisposable
         await accounts.StopAsync();
     }
 
-    [Fact]
-    public async Task InterruptedReferencePublicationResumesWithoutCreatingAnotherAccount()
+    [Theory]
+    [InlineData("account-registered")]
+    [InlineData("migration-complete")]
+    public async Task InterruptedReferencePublicationResumesWithoutCreatingAnotherAccount(string phase)
     {
         using var services = Services();
         await MultiAccountSessionTests.SeedAsync("claude", Path.Combine(root, "providers"), "123");
         var registry = new AccountRegistry(root);
         var factory = new ProviderSessionFactory(services, root);
-        var interrupted = new AccountMigration(registry, factory, _ => throw new IOException("synthetic interruption"));
+        var interrupted = new AccountMigration(registry, factory, p => { if (p == phase) throw new IOException("synthetic interruption"); });
         await Assert.ThrowsAsync<IOException>(() => interrupted.RunAsync(Token));
         var first = Assert.Single((await registry.ReadAsync(Token)).Accounts);
         await new AccountMigration(registry, factory).RunAsync(Token);
@@ -88,6 +90,32 @@ public sealed class AccountMigrationTests : IDisposable
             Assert.Equal(AiUsage.Core.Persistence.MaintenanceCondition.Ready, (await maintenance.InitializeAsync(Token)).Condition);
         using var oldWriter = new StateMaintenance(root);
         Assert.Equal(AiUsage.Core.Persistence.MaintenanceCondition.NewerSchema, (await oldWriter.InitializeAsync(Token)).Condition);
+    }
+
+    [Theory]
+    [InlineData("checkpoint")]
+    [InlineData("journal")]
+    [InlineData("target")]
+    [InlineData("commit")]
+    [InlineData("cleanup")]
+    public async Task InterruptedLegacyMaintenanceUpgradesToLayoutTwoWithTheSameGrant(string phase)
+    {
+        using var services = Services();
+        Directory.CreateDirectory(root);
+        await File.WriteAllTextAsync(Path.Combine(root, "appearance.v1.json"), "{\"Version\":1,\"AlwaysOnTop\":true}", Token);
+        await MultiAccountSessionTests.SeedAsync("claude", Path.Combine(root, "providers"), "synthetic");
+        var grant = Path.Combine(root, "providers", "claude.state");
+        var before = await File.ReadAllBytesAsync(grant, Token);
+        var registry = new AccountRegistry(root);
+        var migration = new AccountMigration(registry, new ProviderSessionFactory(services, root));
+        using (var first = new StateMaintenance(root, p => { if (p == phase) throw new IOException(); }))
+            Assert.Equal(AiUsage.Core.Persistence.MaintenanceCondition.Interrupted, (await first.InitializeAsync(Token)).Condition);
+        using var second = new StateMaintenance(root, accountMigration: migration.RunAsync);
+        await second.InitializeAsync(Token);
+        Assert.Equal(AiUsage.Core.Persistence.MaintenanceCondition.Ready, (await second.RetryAsync(Token)).Condition);
+        Assert.Single((await registry.ReadAsync(Token)).Accounts);
+        Assert.Equal(before, await File.ReadAllBytesAsync(grant, Token));
+        Assert.Equal(2, second.Current.LayoutVersion);
     }
 
     [Fact]

@@ -129,4 +129,3 @@ try {
 }
 $report | ConvertTo-Json -Depth 8
 if ($report.status -ne 'PASS_REQUIRES_EVIDENCE_REVIEW') { exit 1 }
-

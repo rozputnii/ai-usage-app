@@ -129,5 +129,56 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(40, model.Cards[0].Figures.Used);
         Assert.Contains(model.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed && m.Since == Now);
     }
-}
 
+    [Fact]
+    public void ObservedExtraUsageIsProjectedOnlyWithSpendCoverageAtFill()
+    {
+        var facts = Weekly(100);
+        var key = new ReadingSeriesKey(Account.ToString("N"), facts.Key);
+        var fill = Now.AddHours(-2);
+        var below = new ReadingRun(key, new CountQuantity(90, "percent"), fill.AddHours(-1), fill.AddHours(-1), "week", null, SnapshotSource.ProviderApi) { ResetAt = facts.Reset!.At };
+        var full = below with { Value = new CountQuantity(100, "percent"), FirstSeen = fill, LastConfirmed = Now };
+        var spend = new LimitFacts(new("claude", "CL-X", "extra"), LimitKind.MonetaryPool, "USD", FactValue.Unknown)
+            { Used = new MoneyQuantity(1275, 2, "USD"), AllowsCalendarFallback = true };
+        var spendKey = new ReadingSeriesKey(Account.ToString("N"), spend.Key);
+        var start = new ReadingRun(spendKey, new MoneyQuantity(1000, 2, "USD"), fill, fill, "month", null, SnapshotSource.ProviderApi);
+        var end = start with { Value = new MoneyQuantity(1275, 2, "USD"), FirstSeen = Now, LastConfirmed = Now };
+        var quota = new QuotaSnapshot(Now, null, [], null, null, null, null) { Limits = new(Now, null, SnapshotSource.ProviderApi, "test", [facts, spend]) };
+        var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
+        AccountModel Project(ReadingRun[] spends) => LiveLedgerProjection.Account(account, "Work", [new(facts, key, [below, full]), new(spend, spendKey, spends)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        var mark = Assert.Single(Project([start, end]).Cards[0].Marks, m => m.Kind == MarkKind.OnExtraUsage);
+        Assert.Equal(2.75m, mark.Amount);
+        Assert.Equal("USD", mark.Currency);
+        Assert.DoesNotContain(Project([end]).Cards[0].Marks, m => m.Kind == MarkKind.OnExtraUsage);
+    }
+
+    [Fact]
+    public void PairedWindowProjectsLearnedSessionCostWithoutInventingUnknownWeeklyRemainder()
+    {
+        var week = Weekly(40);
+        var shortFacts = week with { Key = new("claude", "CL-S", "short"), Duration = TimeSpan.FromHours(5), UsedPercent = 30,
+            Reset = new(Now.AddHours(3), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var weekData = Data(week);
+        var shortKey = new ReadingSeriesKey(Account.ToString("N"), shortFacts.Key);
+        List<ReadingRun> weeklyRuns = [.. weekData.Runs];
+        List<ReadingRun> shortRuns = [];
+        var samples = new[] { (50m, 6m), (40m, 4m), (70m, 9.8m) };
+        for (int i = 0; i < samples.Length; i++)
+        {
+            var at = Now.AddDays(-3 + i);
+            var shortStart = new ReadingRun(shortKey, new CountQuantity(10, "percent"), at, at, "short" + i, null, SnapshotSource.ProviderApi);
+            shortRuns.Add(shortStart);
+            shortRuns.Add(shortStart with { Value = new CountQuantity(10 + samples[i].Item1, "percent"), FirstSeen = at.AddHours(4), LastConfirmed = at.AddHours(4) });
+            var weeklyStart = shortStart with { Series = weekData.Series, Value = new CountQuantity(20, "percent"), PeriodInstance = "one" };
+            weeklyRuns.Add(weeklyStart);
+            weeklyRuns.Add(weeklyStart with { Value = new CountQuantity(20 + samples[i].Item2, "percent"), FirstSeen = at.AddHours(4), LastConfirmed = at.AddHours(4) });
+        }
+        var quota = new QuotaSnapshot(Now, null, [], null, null, null, null) { Limits = new(Now, null, SnapshotSource.ProviderApi, "test", [week, shortFacts]) };
+        var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
+        AccountModel Project(LimitFacts weekly) => LiveLedgerProjection.Account(account, "Work", [weekData with { Facts = weekly, Runs = weeklyRuns.OrderBy(r => r.FirstSeen).ToArray() }, new(shortFacts, shortKey, shortRuns)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        var card = Assert.Single(Project(week).Cards);
+        Assert.Equal(12, card.FiveHour!.WindowShare);
+        Assert.Equal(5, card.FiveHour.WindowsLeftInPeriod);
+        Assert.Null(Assert.Single(Project(week with { UsedPercent = null }).Cards).FiveHour!.WindowsLeftInPeriod);
+    }
+}

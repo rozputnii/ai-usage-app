@@ -62,7 +62,7 @@ Sources: [backlog](../../backlog.md), [AIU-038 contract](../AIU-038-ledger-prese
   host trust change, release or workflow dispatch is authorized by this specification.
   Live checks need current owner authorization and owner-led sign-in.
 
-## Decisions needed
+## Resolved scope decisions
 
 ### PD-039-01 - Legacy data attribution
 

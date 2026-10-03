@@ -41,7 +41,7 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [x] Inspect diff and commit/push a coherent WIP save point.
 
 ### T-02 - Protected registry and account workflow
-- status: in-progress
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-01, AC-02, AC-04, AC-05, AC-10
 - evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
@@ -53,79 +53,80 @@ Base: `ddc81ea`; original source baseline `9131e47`.
   and retired grant cleanup so restart never guesses which grant belongs to an account.
 - [x] Add AccountService; tests assert duplicate rejection, reconnect identity matching,
   two-account independence, signed-out identity reuse, cancellation and shutdown drain.
-- [ ] Test registry corruption/newer version, redirected paths and staged-write interruption;
+- [x] Test registry corruption/newer version, redirected paths and staged-write interruption;
   failure must preserve recoverable data and keep private values out of generic diagnostics.
 - [x] Run relevant regression suites, inspect and save.
 
 ### T-03 - Forward migration and persisted preferences
-- status: in-progress
+- status: done
 - depends_on: [T-02]
 - acceptance: AC-03, AC-05, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 
 - [x] Extend startup maintenance to layout 2 before account adoption, with old-writer
   refusal and resumable registration of existing grants in place (no credential copies).
-- [ ] Test legacy v1/v2 providers, interrupted grant lineage, every migration boundary,
+- [x] Test legacy v1/v2 providers, interrupted grant lineage, every migration boundary,
   restart idempotence, unknown files and a historical account replacement.
-- [ ] Migrate grants and identity-bound cache; retain provider-keyed history/caps/preferences
+- [x] Migrate grants and identity-bound cache; retain provider-keyed history/caps/preferences
   unassigned. Add account-keyed labels/order and Ledger preferences with compatible globals.
-- [ ] Preserve the prior preferences-only checkpoint meaning and provider-specific recovery.
-- [ ] Run migration and persistence regressions, inspect and save.
+- [x] Preserve the prior preferences-only checkpoint meaning and provider-specific recovery.
+- [x] Run migration and persistence regressions, inspect and save.
 
 ### T-04 - Live budget, history and Ledger contract
-- status: in-progress
+- status: done
 - depends_on: [T-03]
 - acceptance: AC-06, AC-07, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 
-- [ ] Add Adapters/Live/LiveLedgerSource and a focused projection helper consuming actual
+- [x] Add Adapters/Live/LiveLedgerSource and a focused projection helper consuming actual
   LimitFacts, BudgetEngine, ReadingCalculations, SessionEstimator and ExtraUsageEvidence.
-- [ ] Add parser-to-Ledger fixture tests for design figures, scoped limits, unknown/zero/
+- [x] Add parser-to-Ledger fixture tests for design figures, scoped limits, unknown/zero/
   unlimited, stale data, capped balances, currency mismatch, day off, Work today and rush.
-- [ ] Test account-keyed capture and 35-day history gaps; cached startup and time changes
+- [x] Test account-keyed capture and 35-day history gaps; cached startup and time changes
   never append readings, and failed capture does not claim completeness.
-- [ ] Implement settings/caps/order/history commands with persistence and midnight semantics.
-- [ ] Extend LedgerContract and demo source with selected-account reconnect, refresh and
+- [x] Implement settings/caps/order/history commands with persistence and midnight semantics.
+- [x] Extend LedgerContract and demo source with selected-account reconnect, refresh and
   typed transient challenges/failures; update view-model tests and strip controls together.
-- [ ] Run relevant suites, inspect and save.
+- [x] Run relevant suites, inspect and save.
 
 ### T-05 - Product switch, lifecycle and retained surfaces
-- status: in-progress
+- status: done
 - depends_on: [T-04]
 - acceptance: AC-08, AC-09
-- evidence: not-run
+- evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 
-- [ ] Switch live/default demo composition, startup, tray and refresh lifetime to Ledger;
+- [x] Switch live/default demo composition, startup, tray and refresh lifetime to Ledger;
   test shutdown, close-to-tray and opening the exact account from its tray row.
-- [ ] Preserve recovery and diagnostics inline; implement the resolved deletion scope and
+- [x] Preserve recovery and diagnostics inline; implement the resolved deletion scope and
   keep other deferred controls explicitly unavailable.
-- [ ] Remove retired UI/view-model/pace consumers and port relevant behavioral tests;
+- [x] Remove retired UI/view-model/pace consumers and port relevant behavioral tests;
   retain AIU-040 provider-history transport for its separate task.
-- [ ] Run Infrastructure/Presentation regressions, document validation, Windows/package
+- [x] Run Infrastructure/Presentation regressions, document validation, Windows/package
   builds and ordinary local unpackaged interactive smoke using isolated synthetic state.
-- [ ] Inspect and save actual evidence, including NOT_RUN/BLOCKED limitations.
+- [x] Inspect and save actual evidence, including NOT_RUN/BLOCKED limitations.
 
 ### T-06 - Independent review and authorized Windows/live acceptance
-- status: pending
+- status: in-progress
 - depends_on: [T-05]
 - acceptance: AC-09, AC-10, AC-11
-- evidence: not-run
+- evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 
-- [ ] Freeze the integrated diff and request focused read-only independent review using
+- [x] Freeze the integrated diff and request focused read-only independent review using
   convergence-review; correct material findings and run targeted regressions.
 - [ ] Obtain current authorization for owner-led two-account Claude checks and any
   credential-bearing migration/package install/update/recovery tests; never infer it.
-- [ ] Record actual per-AC verdicts; unavailable live/package evidence remains NOT_RUN or
+- [x] Record actual per-AC verdicts; unavailable live/package evidence remains NOT_RUN or
   BLOCKED. Update canonical completion only when the required outcome is established.
-- [ ] Commit/push final verified state and report remaining limitations.
+- [x] Commit/push the verified implementation save point and report remaining acceptance limitations.
 
 ## Handoff
 
-Exact next action: retire the old presentation and port remaining behavioral checks,
-then verify deletion/restart and tray behavior in isolated Windows runs.
-T-03/T-04 foundations and the Windows build are verified; remaining projection/source
-edge cases and interactive checks are not promoted to completed acceptance.
-All three decisions are resolved; PD-039-03 explicitly includes full local deletion.
+Exact next action: obtain current owner authorization and participation for the two-account
+Claude live acceptance, then run the agreed live and installed-package checks individually.
+Implementation, synthetic regressions, ordinary unpackaged Windows interactions and
+independent review corrections are recorded in verification.md. Installed package activation,
+update and real-account refresh/migration remain NOT_RUN; do not mark the feature complete.
+All three scope decisions are resolved; PD-039-03 explicitly includes full local deletion.
 
 Ruling: retain existing grant files in place during adoption, tracked by a protected
 legacy-location flag, rather than copying them to new directories. This removes extra

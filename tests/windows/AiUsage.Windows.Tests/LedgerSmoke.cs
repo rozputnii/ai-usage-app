@@ -63,7 +63,8 @@ public sealed class LedgerSmoke
             Assert.False(File.Exists(Path.Combine(root, "providers", "claude.state")));
             Assert.False(File.Exists(Path.Combine(root, "delete-local-data.v1.json")));
             Assert.Equal("owner export", File.ReadAllText(Path.Combine(root, "preserved-export.txt")));
-            Assert.Contains("2", File.ReadAllText(Path.Combine(root, "layout.v1.json")));
+            using (var layout = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "layout.v1.json"))))
+                Assert.Equal(2, layout.RootElement.GetProperty("Layout").GetInt32());
             Directory.CreateDirectory(evidence!);
             using (var capture = window!.Capture()) capture.Save(Path.Combine(evidence!, $"delete-{pending}.png"), System.Drawing.Imaging.ImageFormat.Png);
             Focus(window!);
@@ -115,20 +116,39 @@ public sealed class LedgerSmoke
             }), "Ledger window did not appear");
             Assert.NotNull(window);
             Focus(window);
-            Button Button(string name) => window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))!.AsButton();
+            Button Button(string name)
+            {
+                Button? button = null;
+                Assert.True(Wait(() => (button = window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is not null), "Missing button: " + name);
+                return button!;
+            }
             Assert.NotNull(Button("Settings"));
             Button("Show values: left").Invoke(); Button("Show values: used").Invoke();
             if (demo)
             {
-                window.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!.Focus();
-                Assert.True(Wait(() => window.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).Any(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History, Claude", StringComparison.Ordinal))));
-                var history = window.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).First(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History, Claude", StringComparison.Ordinal));
-                history.AsButton().Invoke();
+                AutomationElement? history = null;
+                Assert.True(Wait(() =>
+                {
+                    var card = window.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"));
+                    if (card is null) return false;
+                    card.Focus();
+                    history = window.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History, Claude", StringComparison.Ordinal));
+                    return history is not null;
+                }));
+                history!.AsButton().Invoke();
                 Assert.True(Wait(() => window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("History", StringComparison.Ordinal))), "History did not open");
                 Keyboard.Press(VirtualKeyShort.ESCAPE);
                 Button("Add account").Invoke();
-                var signIn = automation.GetDesktop().FindAllDescendants(cf => cf.ByName("Sign in to Claude").And(cf.ByControlType(ControlType.Button))).First(b => b.IsEnabled);
-                signIn.AsButton().Invoke();
+                AutomationElement? signIn = null;
+                Assert.True(Wait(() =>
+                {
+                    signIn = automation.GetDesktop().FindAllChildren().Where(w =>
+                        GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
+                        .SelectMany(w => w.FindAllDescendants(cf => cf.ByName("Sign in to Claude").And(cf.ByControlType(ControlType.Button))))
+                        .FirstOrDefault(b => b.IsEnabled && !b.IsOffscreen);
+                    return signIn is not null;
+                }));
+                signIn!.AsButton().Invoke();
                 Assert.True(Wait(() => window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude Pro 2", StringComparison.Ordinal))), "A second demo account did not appear");
             }
             else
@@ -164,11 +184,15 @@ public sealed class LedgerSmoke
                 AutomationElement? row = null;
                 Assert.True(Wait(() =>
                 {
-                    row = desktop.FindAllChildren().Where(w => GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
+                    row = desktop.FindAllChildren().Where(w => w.Properties.NativeWindowHandle.ValueOrDefault != handle &&
+                        IsWindowVisible(w.Properties.NativeWindowHandle.ValueOrDefault) &&
+                        GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
                         .SelectMany(w => w.FindAllDescendants()).FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal));
                     return row is not null;
                 }), "The tray should expose the second account independently");
-                row!.Click();
+                row!.Focus();
+                Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
+                Keyboard.Press(VirtualKeyShort.RETURN);
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Selecting the tray account should restore the main window");
                 Assert.True(Wait(() => (automation.FocusedElement()?.Properties.AutomationId.ValueOrDefault ?? "").StartsWith("claude-week-", StringComparison.Ordinal)), "Tray account selection should focus that account's card");
             }
@@ -197,7 +221,8 @@ public sealed class LedgerSmoke
         while (elapsed.Elapsed < TimeSpan.FromSeconds(30))
         {
             TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
-            if (check()) return true;
+            try { if (check()) return true; }
+            catch (System.Runtime.InteropServices.COMException) { /* A published snapshot may replace a UIA element. */ }
             Thread.Sleep(100);
         }
         return false;
@@ -214,7 +239,11 @@ public sealed class LedgerSmoke
     {
         var handle = window.Properties.NativeWindowHandle.Value;
         window.SetForeground();
-        if (GetForegroundWindow() != handle) window.TitleBar!.Click();
+        if (GetForegroundWindow() != handle)
+        {
+            var bounds = window.BoundingRectangle;
+            Mouse.Click(new System.Drawing.Point(bounds.Left + 120, bounds.Top + 18));
+        }
         Assert.True(Wait(() => GetForegroundWindow() == handle), "Test window must own keyboard input");
     }
 
@@ -227,4 +256,3 @@ public sealed class LedgerSmoke
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
 }
-

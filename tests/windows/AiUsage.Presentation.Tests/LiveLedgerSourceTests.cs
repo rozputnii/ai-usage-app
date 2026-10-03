@@ -21,11 +21,14 @@ public sealed class LiveLedgerSourceTests
         public IReadOnlyList<AccountSnapshot> Current { get; set; } = [];
         public event EventHandler? Changed;
         public void Emit() => Changed?.Invoke(this, EventArgs.Empty);
+        public Func<Guid, AccountResult>? Refresh;
+        public List<Guid> Refreshed { get; } = [];
         public Task InitializeAsync(CancellationToken token) => Task.CompletedTask;
         public Task<AccountResult> ConnectAsync(string provider, Guid? reconnectAccountId, Guid attemptId, Action<AuthorizationChallenge> authorize, CancellationToken token) => Task.FromResult(new AccountResult(AccountOutcome.Failed));
         public Task CancelConnectAsync(Guid attemptId) => Task.CompletedTask;
         public bool TrySubmitCode(Guid attemptId, string code) => true;
-        public Task<AccountResult> RefreshAsync(Guid accountId, CancellationToken token) => Task.FromResult(new AccountResult(AccountOutcome.Done, accountId));
+        public Task<AccountResult> RefreshAsync(Guid accountId, CancellationToken token)
+        { Refreshed.Add(accountId); return Task.FromResult(Refresh?.Invoke(accountId) ?? new AccountResult(AccountOutcome.Done, accountId)); }
         public Task<AccountResult> DisconnectAsync(Guid accountId, CancellationToken token) => Task.FromResult(new AccountResult(AccountOutcome.Done, accountId));
         public Task StopAsync() => Task.CompletedTask;
     }
@@ -106,5 +109,37 @@ public sealed class LiveLedgerSourceTests
         Assert.Contains("History", source.Current.Summaries.LocalStatus);
         Assert.Empty(store.Captured);
         await source.StopAsync();
+    }
+
+    [Fact]
+    public async Task RetryBackoffIsAccountScopedAndStopPreventsFurtherTicks()
+    {
+        var clock = new Clock(); var store = new Store(); var failing = Guid.NewGuid(); var healthy = Guid.NewGuid();
+        var accounts = new Accounts { Current = [Account(failing, clock.Now), Account(healthy, clock.Now)] };
+        accounts.Refresh = id =>
+        {
+            accounts.Current = accounts.Current.Select(a => a.AccountId != id ? a : id == failing
+                ? a with { Session = a.Session with { Failure = ProviderFailureKind.RateLimited }, LastFailureAt = clock.Now }
+                : Account(id, clock.Now)).ToArray();
+            return new(id == failing ? AccountOutcome.Failed : AccountOutcome.Done, id);
+        };
+        using var source = Source(accounts, store, clock);
+        await source.InitializeAsync(null, Token);
+        clock.Now = clock.Now.AddMinutes(5); await source.TickAsync(Token);
+        Assert.Equal([failing, healthy], accounts.Refreshed);
+        clock.Now = clock.Now.AddMinutes(5); await source.TickAsync(Token);
+        Assert.Equal([failing, healthy, healthy], accounts.Refreshed);
+        clock.Now = clock.Now.AddMinutes(5); await source.TickAsync(Token);
+        Assert.Equal(2, accounts.Refreshed.Count(id => id == failing));
+        clock.Now = clock.Now.AddMinutes(19); await source.TickAsync(Token);
+        Assert.Equal(2, accounts.Refreshed.Count(id => id == failing));
+        clock.Now = clock.Now.AddMinutes(1); await source.TickAsync(Token);
+        Assert.Equal(3, accounts.Refreshed.Count(id => id == failing));
+        await source.RefreshAccountAsync(healthy.ToString("N"), Token);
+        Assert.Equal(healthy, accounts.Refreshed[^1]);
+        await source.StopAsync();
+        var before = accounts.Refreshed.Count;
+        clock.Now = clock.Now.AddHours(1); await source.TickAsync(Token);
+        Assert.Equal(before, accounts.Refreshed.Count);
     }
 }

@@ -93,7 +93,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     public string WorkDaysNote =>
         "Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight. Changes apply from the next local midnight.";
     public string CapsNote => "A cap is yours, never the provider’s limit. The lower of cap and provider limit applies. Caps are set in the pool’s own unit or currency.";
-    public string DeleteNote => "Deletes history, caps, names and sign-ins on this PC. Enter confirms, Esc cancels.";
+    public string DeleteNote => "Deletes sign-ins, names, preferences, caps, history and logs on this PC, including retained history from older versions. Enter confirms, Esc cancels.";
 
     internal bool HasCard(string capTargetId) => snapshot?.Accounts.Any(a => a.Cards.Any(c => c.CapTargetId == capTargetId)) == true;
 
