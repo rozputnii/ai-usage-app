@@ -4,6 +4,15 @@ Follow [CONTRIBUTING](../../CONTRIBUTING.md) for the procedure and review requir
 
 ## Checks by change
 
+Owner amendment (2026-10-03): verification targets the owner's ordinary desktop
+use of this personal app. Do not perform Narrator/screen-reader, Windows contrast-theme,
+extreme zoom/DPI or unusual-screen test matrices, or change host settings for them,
+unless explicitly requested again. Do not add custom window/tray chrome or other
+implementation work to satisfy those excluded scenarios. Normal launch, ordinary UI
+interactions, relevant functional regressions and data/security checks remain applicable.
+This amendment supersedes older accessibility/display-matrix requirements in task
+references; preserve historical observations without treating them as future gates.
+
 Select all applicable rows for the requested change. Feature acceptance criteria and release requirements still apply; this matrix does not waive them. Use the commands in README.md. After required checks pass, repeat or broaden them only for new changes, failures or unresolved concerns.
 
 | Change | Required local verification |

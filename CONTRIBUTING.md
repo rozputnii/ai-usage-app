@@ -1,5 +1,23 @@
 # Contributing
 
+## Simplicity and architecture
+
+Owner direction (2026-10-03): implement the requested functionality with the least
+code and complexity that remains correct, readable and easy to change.
+
+- Prefer direct solutions, clear names and small, cohesive responsibilities. Minimize
+  code to maintain, not line count at the expense of clarity.
+- Preserve the existing Core, Infrastructure and Windows boundaries. Make extension
+  straightforward through clear responsibilities and explicit dependencies, without
+  building speculative extension points or a framework for future requirements.
+- Reuse existing code and platform capabilities. Add layers, interfaces, wrappers,
+  dependencies or configuration only when a concrete current requirement needs them.
+- Do not expand scope with unrequested features, exceptional scenarios or unrelated
+  refactoring. Keep verification proportional to the actual change and owner-approved use.
+- Before materially increasing complexity, explain the concrete need, the simplest
+  viable alternative and the maintenance cost, then ask the owner. Routine choices
+  within an already approved simple design do not require repeated approval.
+
 ## Development procedure
 
 1. Inspect the current request and Git state. Preserve unrelated tracked and untracked changes; read only relevant requirements and evidence.

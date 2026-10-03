@@ -1,0 +1,778 @@
+using System.Text.RegularExpressions;
+using AiUsage.Features.Ledger;
+using AiUsage.Features.Ledger.Contract;
+using AiUsage.Features.Ledger.Demo;
+using Xunit;
+
+namespace AiUsage.Presentation.Tests;
+
+internal sealed class ManualScheduler : ILedgerScheduler
+{
+    private readonly List<(TimeSpan Delay, Action Action, Handle Handle)> pending = [];
+
+    public IDisposable Schedule(TimeSpan delay, Action action)
+    {
+        var handle = new Handle();
+        pending.Add((delay, action, handle));
+        return handle;
+    }
+
+    /// <summary>Runs every live action already scheduled and due within the given delay, in scheduling order.</summary>
+    public void Run(TimeSpan upTo)
+    {
+        var count = pending.Count;
+        for (var i = 0; i < count; i++)
+        {
+            var (delay, action, handle) = pending[i];
+            if (handle.Disposed || delay > upTo)
+                continue;
+            handle.Disposed = true;
+            action();
+        }
+    }
+
+    public sealed class Handle : IDisposable
+    {
+        public bool Disposed { get; set; }
+        public void Dispose() => Disposed = true;
+    }
+}
+
+/// <summary>AIU-038 contract, demo scenarios and the card drawing rules (spec sections 4 to 6, AC-01 to AC-03).</summary>
+public sealed class LedgerCardTests
+{
+    private static readonly LedgerSnapshot BriefScenario = DemoLedgerScenarios.Build(DemoLedgerScenarios.Brief);
+    private static readonly LedgerSnapshot StateGallery = DemoLedgerScenarios.Build(DemoLedgerScenarios.States);
+
+    private static (LimitCardModel Card, AccountModel Account) Find(LedgerSnapshot snapshot, string cardId)
+    {
+        var account = snapshot.Accounts.First(a => a.Cards.Any(c => c.CardId == cardId));
+        return (account.Cards.First(c => c.CardId == cardId), account);
+    }
+
+    private static CardVisual Visual(LedgerSnapshot snapshot, string cardId, ValueMode mode = ValueMode.Used)
+    {
+        var (card, account) = Find(snapshot, cardId);
+        return CardVisuals.Build(card, account, mode, snapshot.LocalNow);
+    }
+
+    private static CardVisual Brief(string id, ValueMode mode = ValueMode.Used) => Visual(BriefScenario, id, mode);
+    private static CardVisual Case(string id, ValueMode mode = ValueMode.Used) => Visual(StateGallery, id, mode);
+
+    [Fact]
+    public void LedgerSourcesStayOffTheBackendAndThePlatform()
+    {
+        var root = Path.Combine(Repository.Root(), "src/windows/AiUsage.Windows/Features/Ledger");
+        var sources = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories).Where(p => !p.EndsWith(".xaml.cs", StringComparison.Ordinal)).ToArray();
+        Assert.NotEmpty(sources);
+        foreach (var path in sources)
+        {
+            var text = File.ReadAllText(path);
+            Assert.False(Regex.IsMatch(text, @"\bAiUsage\.(Core|Infrastructure)\b"), Path.GetFileName(path));
+            Assert.DoesNotContain("Microsoft.UI", text);
+        }
+    }
+
+    /// <summary>AC-03: design-brief 4.3 positions of U0, U and U0 + T as a share of L, to 0.1 point.</summary>
+    [Theory]
+    [InlineData("claude-week", 38.0, 47.0, 56.4)]
+    [InlineData("claude-extra", 69.7, 72.7, 72.0)]
+    [InlineData("codex-week", 96.0, 100.0, 97.7)]
+    [InlineData("codex-credits", 35.6, 38.1, 40.5)]
+    [InlineData("copilot-completions", 59.5, 60.5, 62.6)]
+    [InlineData("copilot-chat", 22.0, 24.0, 28.0)]
+    [InlineData("antigravity-g1", 30.0, 36.0, 53.3)]
+    public void BriefScenarioReproducesTheBarPositions(string cardId, double dayStart, double used, double todayEnd)
+    {
+        var f = Find(BriefScenario, cardId).Card.Figures;
+        var limit = f.EffectiveLimit!.Value;
+        decimal At(decimal? v) => Math.Round(v!.Value / limit * 100, 1, MidpointRounding.AwayFromZero);
+        Assert.Equal(((decimal)dayStart, (decimal)used, (decimal)todayEnd), (At(f.DayStart), At(f.Used), At(f.TodayEnd)));
+    }
+
+    [Fact]
+    public void BriefScenarioShowsTheReferencePills()
+    {
+        Assert.Equal(4, BriefScenario.Accounts.Count);
+        Assert.Equal(9, BriefScenario.Accounts.Sum(a => a.Cards.Count));
+        Assert.Null(Brief("claude-week").Pill);
+        Assert.Equal("over today", Brief("claude-extra").Pill);
+        Assert.Equal("7d used up", Brief("codex-week").Pill);
+        Assert.Null(Brief("codex-credits").Pill);
+        Assert.Null(Brief("copilot-completions").Pill);
+        Assert.Null(Brief("copilot-chat").Pill);
+        Assert.Equal("not included", Brief("copilot-premium").Pill);
+        Assert.Equal("sync failed · 13:38", Brief("antigravity-g1").Pill);
+        Assert.Equal("period unknown", Brief("antigravity-g2").Pill);
+    }
+
+    [Fact]
+    public void ExtraUsageIsDrawnOnTheProviderScaleWithTheCapTick()
+    {
+        var visual = Brief("claude-extra");
+        Assert.Equal(60, visual.CapTick!.Value, 3);
+        Assert.Equal("+$2.00", visual.OverLabel);
+        Assert.Equal(Tone.Critical, visual.Tone);
+        Assert.Equal("≈ $218.00 of $300.00 cap", visual.Footer);
+        Assert.Equal("resets 1 Nov (assumed)", visual.ResetText);
+        Assert.Equal("−$2.00", Brief("claude-extra", ValueMode.Left).OverLabel);
+        Assert.Equal("≈ $82.00 left to cap", Brief("claude-extra", ValueMode.Left).Footer);
+    }
+
+    [Fact]
+    public void FiveHourStripSplitsTodaysAllowanceIntoWindows()
+    {
+        var visual = Brief("claude-week");
+        Assert.Equal(2, visual.Cells.Count);
+        var current = visual.Cells[0];
+        Assert.True(current.ShowLabel);
+        Assert.Equal(new[] { 72.0, 28.0 }, current.Parts.Select(p => Math.Round(p.Weight, 2)));
+        Assert.Equal(new Paint("OkM"), current.Parts[0].Paint);
+        Assert.Equal(new Paint("OkP", "Rail"), current.Parts[1].Paint);
+        var next = visual.Cells[1];
+        Assert.Equal(new[] { 50.33, 49.67 }, next.Parts.Select(p => Math.Round(p.Weight, 2)));
+        Assert.Equal(new Paint("Grey"), next.Parts[1].Paint);
+        Assert.Equal(["Current 5h window · until 16:05", "72 % used · 28 % allowed today"], current.Tip);
+        Assert.Equal("47 % used · ≈ 4 × 5h left", visual.Footer);
+        Assert.Equal("resets Mon 09:00", visual.ResetText);
+        Assert.Null(visual.OverLabel);
+    }
+
+    [Fact]
+    public void LeftModeMirrorsTheStripAndSwapsSolidAndHatch()
+    {
+        var visual = Brief("claude-week", ValueMode.Left);
+        Assert.False(visual.Cells[0].ShowLabel);
+        Assert.True(visual.Cells[1].ShowLabel);
+        var current = visual.Cells[1];
+        Assert.Equal(new[] { new Paint("OkM"), new Paint("OkP", "Rail") }, current.Parts.Select(p => p.Paint));
+        Assert.Equal("53 % left · ≈ 4 × 5h left", visual.Footer);
+        Assert.Equal("28 % of window left today", current.Tip[1]);
+        Assert.Equal(new Paint("Grey"), visual.Cells[0].Parts[0].Paint);
+    }
+
+    [Fact]
+    public void PeriodBarRingsTodayAndMarksDividers()
+    {
+        var visual = Brief("claude-week");
+        Assert.Equal(38, visual.Ring!.Left, 3);
+        Assert.Equal(56.4 - 38, visual.Ring.Width, 3);
+        Assert.Equal(new BarSegment(0, 38, new Paint("Prev")), visual.Segments[0]);
+        Assert.NotEmpty(visual.Dividers);
+        Assert.All(visual.Dividers, d => Assert.True(d > 47));
+        Assert.Null(visual.OverTick);
+    }
+
+    [Fact]
+    public void UsedUpShowsOnlyTheRedPeriodBarAndWhenItComesBack()
+    {
+        var visual = Brief("codex-week");
+        Assert.False(visual.HasStrip);
+        Assert.Empty(visual.Cells);
+        Assert.True(visual.HasPeriodBar);
+        Assert.Equal([new BarSegment(0, 100, new Paint("CritM"))], visual.Segments);
+        Assert.Null(visual.Ring);
+        Assert.Null(visual.OverLabel);
+        Assert.Equal("back Fri 09:30", visual.ResetText);
+        Assert.Equal(["7d limit used up", "Back Fri 16 Oct 09:30 · in 1 d 19 h 10 min"], visual.PillTip);
+        Assert.Contains("7 day used up", visual.AccessibleName, StringComparison.Ordinal);
+        Assert.Equal([new BarSegment(0, 100, new Paint("CritP", "CritD"))], Brief("codex-week", ValueMode.Left).Segments);
+    }
+
+    [Fact]
+    public void StaleReadingsAreDimmedWithTheirTime()
+    {
+        var visual = Brief("antigravity-g1");
+        Assert.Equal(0.7, visual.Opacity);
+        Assert.Equal(Tone.Neutral, visual.Tone);
+        Assert.Equal("Sync failed 14:15 · showing the reading from 13:38", visual.PillTip[0]);
+        Assert.Contains("42 min old", visual.PillTip[1], StringComparison.Ordinal);
+        Assert.Contains("sync failed, reading from 13:38, 42 minutes old", visual.AccessibleName, StringComparison.Ordinal);
+        var unknown = Brief("antigravity-g2");
+        Assert.Equal("no daily budget", unknown.TodayNote);
+        Assert.Equal("Period unknown · as of 13:38", unknown.PillTip[0]);
+        Assert.Equal("19 % used", unknown.Footer);
+        Assert.False(unknown.HasStrip);
+        Assert.DoesNotContain("7d", unknown.PeriodLabel, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PoolsShowProviderFactsAndTrackingEstimate()
+    {
+        var credits = Brief("codex-credits");
+        Assert.Equal("≈ 6,480 of 17,000 cap", credits.Footer);
+        Assert.True(credits.FooterIsEstimate);
+        Assert.Equal(["Custom cap 17,000 · tracked since 3 Oct (estimate)", "Provider balance 10,160 credits"], credits.FooterTip);
+        Assert.Equal("≈ 10,520 left to cap", Brief("codex-credits", ValueMode.Left).Footer);
+        var completions = Brief("copilot-completions");
+        Assert.Equal("1,210 of 2,000 used", completions.Footer);
+        Assert.Equal("resets 1 Nov", completions.ResetText);
+        Assert.Equal(["Resets 1 Nov (date from provider)", "Start assumed 1 Oct"], completions.ResetTip);
+        Assert.Equal(["Provider limit 2,000 requests", "Provider remaining 790"], completions.FooterTip);
+        var premium = Brief("copilot-premium");
+        Assert.False(premium.HasPeriodBar);
+        Assert.Equal([new NoteLine("month", "not included in plan", "resets 1 Nov")], premium.NoteLines);
+    }
+
+    [Theory]
+    [InlineData("a1", null, "Ok")]
+    [InlineData("a2", "today low", "Attention")]
+    [InlineData("a3", "over today", "Critical")]
+    [InlineData("a4", "5h full", "Attention")]
+    [InlineData("a6", "7d used up", "Critical")]
+    [InlineData("b3", "today used", "Critical")]
+    [InlineData("b5", "today short", "Attention")]
+    [InlineData("c4", "cap close", "Attention")]
+    [InlineData("c5", "cap reached", "Critical")]
+    [InlineData("c6", "over cap", "Critical")]
+    [InlineData("d6", "over cap", "Critical")]
+    [InlineData("g4", "not included", "Neutral")]
+    [InlineData("g5", "limit unknown", "Neutral")]
+    [InlineData("h1", "period unknown", "Neutral")]
+    [InlineData("h5", "not ready", "Neutral")]
+    [InlineData("h6", "unknown", "Neutral")]
+    [InlineData("h8", "1 h old", "Neutral")]
+    [InlineData("h9", "signed out", "Neutral")]
+    [InlineData("o1", "day off", "Neutral")]
+    [InlineData("o4", "7d used up", "Critical")]
+    [InlineData("o5", null, "Ok")]
+    [InlineData("r1", "rush", "Ok")]
+    [InlineData("r4", "7d used up", "Critical")]
+    [InlineData("r6", null, "Ok")]
+    public void EveryReferenceStateMapsToItsPillAndTone(string cardId, string? pill, string tone)
+    {
+        var visual = Case(cardId);
+        Assert.Equal((pill, tone), (visual.Pill, visual.Tone.ToString()));
+        var word = pill is null ? "OK" : pill.EndsWith(" old", StringComparison.Ordinal) ? "reading from" : pill;
+        Assert.Contains(word.Replace("5h", "5 hour", StringComparison.Ordinal).Replace("7d", "7 day", StringComparison.Ordinal), visual.AccessibleName, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GalleryCoversEveryCardState()
+    {
+        var states = StateGallery.Accounts.SelectMany(a => a.Cards).Select(c => c.State).ToHashSet();
+        foreach (var state in Enum.GetValues<CardState>().Where(s => s != CardState.NoCap))
+            Assert.Contains(state, states);
+        Assert.Equal(52, StateGallery.Accounts.Count);
+    }
+
+    [Fact]
+    public void OverTodayLabelsShowTheShareOfToday()
+    {
+        Assert.Equal("110 %", Case("a3").OverLabel);
+        Assert.Equal("−10 %", Case("a3", ValueMode.Left).OverLabel);
+        Assert.Equal("+240", Case("c3").OverLabel);
+        var b4 = Case("b4");
+        Assert.Equal("121 %", b4.OverLabel);
+        Assert.True(b4.Cells[0].Parts.Single(p => p.OverEdge).Weight > 0);
+        Assert.Equal(44, b4.OverTick!.Value, 3);
+        Assert.Null(Case("b3").OverLabel);
+    }
+
+    [Fact]
+    public void DayOffDrawsTheWouldBeShareNeutralAndDashed()
+    {
+        var o2 = Case("o2");
+        Assert.All(o2.Cells, c => Assert.True(c.Dashed));
+        Assert.Null(o2.OverLabel);
+        Assert.DoesNotContain(o2.Cells.SelectMany(c => c.Parts), p => p.Paint.Fill.StartsWith("Crit", StringComparison.Ordinal) || p.Paint.Fill.StartsWith("Att", StringComparison.Ordinal));
+        Assert.Contains(o2.Cells[0].Parts, p => p.Paint == new Paint("NeutralM", "NeutralP"));
+        Assert.Equal(["Day off · 18 % used today", "Monday’s share 20.0 % → 14.0 %"], o2.PillTip);
+        var o1 = Case("o1");
+        Assert.Contains("Day off · no colours · Work today colours it", o1.Cells[0].Tip);
+        Assert.Contains(o1.Cells.SelectMany(c => c.Parts), p => p.Paint.Fill == Paint.Transparent);
+        Assert.Equal("Day off · 6 % used today", o1.PillTip[0]);
+        var o4 = Case("o4");
+        Assert.False(o4.HasStrip);
+        Assert.Equal("back Mon 09:30", o4.ResetText);
+    }
+
+    [Fact]
+    public void WorkTodayColoursTheSameStripsAndMarksExtraDay()
+    {
+        var o5 = Case("o5");
+        Assert.All(o5.Cells, c => Assert.False(c.Dashed));
+        Assert.Equal("extra day", Assert.Single(o5.Marks).Text);
+        Assert.True(o5.Marks[0].Neutral);
+        var o6 = Case("o6");
+        Assert.Equal("over today", o6.Pill);
+        Assert.Equal("120 %", o6.OverLabel);
+    }
+
+    [Fact]
+    public void RushSpendsTheWholeRemainderWithoutAPeriodBar()
+    {
+        var r1 = Case("r1");
+        Assert.False(r1.HasPeriodBar);
+        Assert.DoesNotContain(r1.Cells.SelectMany(c => c.Parts), p => p.Paint.Fill == "Grey");
+        Assert.Equal(["Rush · 30 % left", "Resets Thu 15 Oct 09:00 · use it today"], r1.PillTip);
+        var r2 = Case("r2");
+        Assert.True(r2.Cells[^1].Weight < 1);
+        Assert.DoesNotContain(r2.Cells.SelectMany(c => c.Parts), p => p.Paint.Fill == "Grey");
+        var r3 = Case("r3");
+        Assert.Equal(2, r3.Cells.Count);
+        Assert.Contains("Only 2 × 5h fit before the reset · ≈ 36 % resets unused", r3.Cells[1].Tip);
+        Assert.Equal("40 % used · 2 × 5h fit before the reset", r3.Footer);
+        Assert.Equal("resets 21:00", r3.ResetText);
+        Assert.True(Case("r4").HasPeriodBar);
+        Assert.True(Case("r6").HasPeriodBar);
+        Assert.Contains(Case("r6").Cells[0].Parts, p => p.Paint.Fill == "Grey" || p.Weight > 0);
+        Assert.NotNull(Case("r6").CapTick);
+    }
+
+    [Fact]
+    public void MarksCarryTheirFacts()
+    {
+        var a8 = Case("a8");
+        var mark = Assert.Single(a8.Marks);
+        Assert.Equal("on extra usage", mark.Text);
+        Assert.False(mark.Neutral);
+        Assert.Equal(["Window full until 16:05 · continuing on extra usage", "+$2.00 since 13:05"], mark.Tip);
+        Assert.Equal(["5h window full", "Next window opens 16:05"], a8.PillTip);
+        var h7 = Case("h7");
+        Assert.Null(h7.Pill);
+        Assert.Equal(["Last sync failed 14:18", "Reading from 14:10 · retry in 5 min"], Assert.Single(h7.Marks).Tip);
+        Assert.Equal("past reset", Assert.Single(Case("h5").Marks).Text);
+        Assert.Equal("reset 14:00", Case("h5").ResetText);
+        Assert.Equal("Sign in", Case("h8").ActionText);
+        Assert.Equal("Set cap", Case("g5").ActionText);
+    }
+
+    [Fact]
+    public void UnknownIsNeverZeroOrUnlimited()
+    {
+        var h6 = Case("h6");
+        Assert.Equal("used unknown", Assert.Single(h6.NoteLines).Value);
+        Assert.False(h6.HasPeriodBar);
+        var g3 = Case("g3");
+        Assert.Equal(["Custom cap 300 · binds", "Provider: unlimited"], g3.FooterTip);
+        Assert.Equal("120 of 300 used", g3.FooterTip.Count > 0 ? "120 of 300 used" : string.Empty);
+        Assert.Equal("126 of 300 cap", g3.Footer);
+    }
+
+    [Fact]
+    public void FiveHourWithoutAnEstimateIsOneStrip()
+    {
+        var h2 = Case("h2");
+        Assert.Single(h2.Cells);
+        Assert.False(h2.Cells[0].ShowLabel);
+        Assert.Equal(["5h window size not estimated yet", "Current 5h window 40 % used · until 17:10"], h2.FooterTip);
+        Assert.Equal("33 % used", h2.Footer);
+    }
+
+    [Fact]
+    public void FormatsFollowTheReference()
+    {
+        var now = DemoLedgerScenarios.BriefNow;
+        Assert.Equal("in 1 h 45 min", LedgerFormat.Relative(DemoLedgerScenarios.At(10, 14, 16, 5), now));
+        Assert.Equal("20 min ago", LedgerFormat.Relative(DemoLedgerScenarios.At(10, 14, 14, 0), now));
+        Assert.Equal("Wed 14 Oct · 14:20", LedgerFormat.TitleClock(now));
+        Assert.Equal("−$2.00", LedgerFormat.Value(ScaleModel.Money("USD", 2), -2m));
+        Assert.Equal("€250.00", LedgerFormat.Value(ScaleModel.Money("EUR", 2), 250m));
+        Assert.Equal("1,210", LedgerFormat.Value(ScaleModel.Count("requests"), 1210m));
+        Assert.Equal("57 %", LedgerFormat.Value(ScaleModel.Percent, 56.5m));
+        Assert.True(LedgerFormat.TryParseAmount("17,000", ScaleModel.Count("credits"), out var credits));
+        Assert.Equal(17000m, credits);
+        Assert.False(LedgerFormat.TryParseAmount("1.5", ScaleModel.Count("credits"), out _));
+        Assert.False(LedgerFormat.TryParseAmount("1.234", ScaleModel.Money("USD", 2), out _));
+        Assert.False(LedgerFormat.TryParseAmount("-3", ScaleModel.Money("USD", 2), out _));
+        Assert.True(LedgerFormat.TryParseAmount("$300.50", ScaleModel.Money("USD", 2), out var money));
+        Assert.Equal(300.50m, money);
+    }
+}
+
+/// <summary>Window, settings, history and tray behaviour on demo data (AC-04 to AC-06).</summary>
+public sealed class LedgerInteractionTests
+{
+    private static (LedgerViewModel Window, DemoLedgerSource Source, ManualScheduler Scheduler, List<string> Spoken) Start(string scenario = DemoLedgerScenarios.Brief)
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        source.LoadScenario(scenario);
+        var spoken = new List<string>();
+        var demo = new LedgerDemoControls([.. DemoLedgerScenarios.All.Select(s => new DemoScenario(s.Id, s.Title))], source.LoadScenario, source.DismissStrip);
+        return (new LedgerViewModel(source, scheduler, spoken.Add, demo), source, scheduler, spoken);
+    }
+
+    private static LimitCardViewModel Card(LedgerViewModel window, string id) => window.Cards.Single(c => c.CardId == id);
+
+    [Fact]
+    public void BriefWindowListsNineCardsInUserOrder()
+    {
+        var (window, _, _, _) = Start();
+        Assert.Equal(["claude-week", "claude-extra", "codex-week", "codex-credits", "copilot-completions", "copilot-chat", "copilot-premium", "antigravity-g1", "antigravity-g2"],
+            window.Cards.Select(c => c.CardId));
+        Assert.Equal("Wed 14 Oct · 14:20", window.ClockText);
+        Assert.False(window.IsDayOff);
+        Assert.True(window.IsCompact);
+        Assert.False(window.IsFirstRun);
+    }
+
+    [Fact]
+    public async Task ValueModeAndDensitySwitchEveryCard()
+    {
+        var (window, _, _, _) = Start();
+        await window.ToggleValueModeAsync();
+        Assert.True(window.IsLeft);
+        Assert.Equal("Show values: left", window.ValueModeName);
+        Assert.Equal("53 % left · ≈ 4 × 5h left", Card(window, "claude-week").Visual.Footer);
+        await window.Settings.SetDensityAsync(Density.Comfortable);
+        Assert.False(window.IsCompact);
+    }
+
+    [Fact]
+    public async Task RenameSavesOnEnterAndCancelsOnEscape()
+    {
+        var (window, source, _, _) = Start();
+        var card = Card(window, "claude-week");
+        card.BeginRename();
+        card.RenameText = "Claude Pro work";
+        card.CancelRename();
+        Assert.Equal("Claude Pro", source.Current.Accounts[0].DisplayName);
+        card.BeginRename();
+        card.RenameText = "  Claude Pro work ";
+        await card.CommitRenameAsync();
+        Assert.False(card.IsRenaming);
+        Assert.Equal("Claude Pro work", source.Current.Accounts[0].DisplayName);
+        Assert.Equal("Claude Pro work", Card(window, "claude-extra").Name);
+    }
+
+    [Fact]
+    public async Task CapEditorValidatesSavesAndRemovesWithUndo()
+    {
+        var (window, source, scheduler, _) = Start();
+        var credits = Card(window, "codex-credits");
+        credits.BeginCapEdit();
+        var editor = credits.CapEditor!;
+        Assert.Equal("17,000", editor.Text);
+        Assert.Equal("credits", editor.UnitText);
+        editor.Text = "12.5";
+        await editor.SaveAsync();
+        Assert.Equal("Enter a whole number", editor.Error);
+        Assert.NotNull(credits.CapEditor);
+        editor.Text = "18,000";
+        await editor.SaveAsync();
+        Assert.Null(credits.CapEditor);
+        Assert.Equal(18000m, Card(window, "codex-credits").Model.Cap!.Amount);
+
+        credits.BeginCapEdit();
+        credits.CapEditor!.Text = string.Empty;
+        await credits.CapEditor.SaveAsync();
+        var removed = Card(window, "codex-credits");
+        Assert.Equal(CardState.NoCap, removed.Model.State);
+        Assert.Equal([new NoteLine(string.Empty, "balance 10,160 credits (provider)", "no budget")], removed.Visual.NoteLines);
+        Assert.True(window.HasUndo);
+        Assert.Equal("Cap removed · Codex Pro credits", window.UndoText);
+        Assert.DoesNotContain(source.Current.Budget.Caps, c => c.CapTargetId == "codex-credits");
+
+        await window.UndoAsync();
+        Assert.False(window.HasUndo);
+        Assert.Equal(18000m, Card(window, "codex-credits").Model.Cap!.Amount);
+        Assert.Equal(CardState.OnTrack, Card(window, "codex-credits").Model.State);
+        scheduler.Run(TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
+    public async Task SetCapOnALimitUnknownPoolGivesItABudget()
+    {
+        var (window, _, _, _) = Start(DemoLedgerScenarios.States);
+        var g5 = Card(window, "g5");
+        Assert.Equal("Set cap", g5.Visual.ActionText);
+        await g5.ActionAsync();
+        Assert.Equal(string.Empty, g5.CapEditor!.Text);
+        await g5.CapEditor.SaveAsync();
+        Assert.Equal("Enter a cap", g5.CapEditor!.Error);
+        g5.CapEditor.Text = "500";
+        await g5.CapEditor.SaveAsync();
+        var capped = Card(window, "g5").Model;
+        Assert.Equal(CardLayout.Pool, capped.Layout);
+        Assert.Equal(500m, capped.Cap!.Amount);
+    }
+
+    [Fact]
+    public async Task UndoExpiresAfterTenSecondsUnlessFocused()
+    {
+        var (window, _, scheduler, _) = Start();
+        await window.Settings.WorkDays.Single(d => d.Day == DayOfWeek.Saturday).ToggleAsync();
+        Assert.Equal("Saturday added to work days", window.UndoText);
+        window.HoldUndo(true);
+        scheduler.Run(TimeSpan.FromSeconds(10));
+        Assert.True(window.HasUndo);
+        window.HoldUndo(false);
+        scheduler.Run(TimeSpan.FromSeconds(10));
+        Assert.False(window.HasUndo);
+    }
+
+    [Fact]
+    public async Task WorkDayChangesOfferUndo()
+    {
+        var (window, source, _, _) = Start();
+        Assert.Equal(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], window.Settings.WorkDays.Select(d => d.Label));
+        await window.Settings.WorkDays.Single(d => d.Day == DayOfWeek.Friday).ToggleAsync();
+        Assert.DoesNotContain(DayOfWeek.Friday, source.Current.Budget.WorkDays);
+        Assert.False(window.Settings.WorkDays.Single(d => d.Day == DayOfWeek.Friday).IsOn);
+        Assert.Equal("Friday removed from work days", window.UndoText);
+        await window.UndoAsync();
+        Assert.Contains(DayOfWeek.Friday, source.Current.Budget.WorkDays);
+    }
+
+    [Fact]
+    public async Task WorkTodayColoursTheDayOffUntilUndone()
+    {
+        var (window, source, _, _) = Start(DemoLedgerScenarios.DayOff);
+        Assert.True(window.IsDayOff);
+        Assert.Equal("Day off", window.DayText);
+        Assert.Equal("Sat 17 Oct · 11:20", window.ClockText);
+        Assert.Equal("day off", Card(window, "claude-week").Visual.Pill);
+        Assert.Equal("7d used up", Card(window, "codex-week").Visual.Pill);
+        var workDays = source.Current.Budget.WorkDays;
+        await window.ToggleWorkTodayAsync();
+        Assert.True(window.WorkTodayOn);
+        Assert.Equal("Extra work day · until midnight", window.DayText);
+        Assert.Null(Card(window, "claude-week").Visual.Pill);
+        Assert.Equal("extra day", Card(window, "claude-week").Visual.Marks.Single().Text);
+        Assert.Equal("7d used up", Card(window, "codex-week").Visual.Pill);
+        Assert.Same(workDays, source.Current.Budget.WorkDays);
+        await window.UndoAsync();
+        Assert.False(window.WorkTodayOn);
+        Assert.Equal("day off", Card(window, "claude-week").Visual.Pill);
+    }
+
+    [Fact]
+    public async Task DeleteStoredDataIsConfirmedInPlace()
+    {
+        var (window, _, _, _) = Start();
+        await window.Settings.ConfirmDeleteAsync();
+        Assert.False(window.IsFirstRun);
+        window.Settings.ArmDelete();
+        Assert.True(window.Settings.IsDeleteArmed);
+        Assert.True(window.Escape());
+        Assert.False(window.Settings.IsDeleteArmed);
+        window.Settings.ArmDelete();
+        await window.Settings.ConfirmDeleteAsync();
+        Assert.True(window.IsFirstRun);
+        Assert.Empty(window.Cards);
+        Assert.All(window.Providers, p => Assert.Equal("Sign in", p.ButtonText));
+    }
+
+    [Fact]
+    public async Task SignInShowsProgressThenAddsTheAccount()
+    {
+        var (window, _, scheduler, spoken) = Start(DemoLedgerScenarios.FirstRun);
+        Assert.True(window.IsFirstRun);
+        Assert.Equal(["Claude", "Codex", "GitHub Copilot", "Antigravity"], window.Providers.Select(p => p.Name));
+        await window.SignInAsync(ProviderKind.Codex);
+        Assert.True(window.HasStrip);
+        Assert.True(window.StripBusy);
+        Assert.Equal("Waiting for Codex sign-in in your browser", window.StripText);
+        Assert.Equal("nothing is read until you finish", window.StripSub);
+        Assert.Equal("Cancel", window.StripAction);
+        Assert.Equal("Waiting…", window.Providers.Single(p => p.Provider == ProviderKind.Codex).ButtonText);
+        scheduler.Run(TimeSpan.FromSeconds(3));
+        Assert.False(window.IsFirstRun);
+        Assert.Equal("Codex Pro added", window.StripText);
+        Assert.Equal("2 limits found", window.StripSub);
+        Assert.All(window.Cards, c => Assert.True(c.IsNew));
+        Assert.Contains("Codex Pro added", spoken);
+        scheduler.Run(TimeSpan.FromSeconds(4));
+        Assert.All(window.Cards, c => Assert.False(c.IsNew));
+        Assert.False(window.HasStrip);
+        Assert.Equal("added", window.Providers.Single(p => p.Provider == ProviderKind.Codex).MenuRight);
+    }
+
+    [Fact]
+    public async Task CancelledSignInOffersTryAgain()
+    {
+        var (window, _, _, _) = Start();
+        await window.SignInAsync(ProviderKind.Antigravity);
+        await window.StripActionAsync();
+        Assert.Equal("Antigravity sign-in was cancelled in the browser", window.StripText);
+        Assert.Equal("Try again", window.StripAction);
+        Assert.True(window.StripActionIsPrimary);
+        Assert.False(window.StripBusy);
+        await window.StripActionAsync();
+        Assert.True(window.StripBusy);
+    }
+
+    [Fact]
+    public async Task ExpiredSignInIsRestoredInline()
+    {
+        var (window, _, scheduler, _) = Start(DemoLedgerScenarios.SignIn);
+        Assert.Equal("Codex sign-in was cancelled in the browser", window.StripText);
+        var week = Card(window, "claude-week");
+        Assert.Equal("sign-in expired", week.Visual.Marks.Single().Text);
+        Assert.Equal("1 h old", week.Visual.Pill);
+        await week.ActionAsync();
+        scheduler.Run(TimeSpan.FromSeconds(3));
+        week = Card(window, "claude-week");
+        Assert.Empty(week.Visual.Marks);
+        Assert.False(week.IsStale);
+        Assert.Null(week.Visual.ActionText);
+    }
+
+    [Fact]
+    public async Task SignOutIsImmediateAndHidesTheAccountUntilShown()
+    {
+        var (window, source, _, spoken) = Start();
+        await Card(window, "codex-week").SignOutAsync();
+        Assert.DoesNotContain(window.Cards, c => c.Account.AccountId == "acct-codex");
+        Assert.Contains(spoken, s => s.Contains("history, name and caps kept", StringComparison.Ordinal));
+        Assert.Contains(source.Current.Budget.Caps, c => c.CapTargetId == "codex-credits");
+        await window.ToggleShowSignedOutAsync();
+        var signedOut = window.Cards.Single(c => c.Account.AccountId == "acct-codex");
+        Assert.Equal("signed out", signedOut.Visual.Pill);
+        Assert.Equal("Sign in", signedOut.Visual.ActionText);
+    }
+
+    [Fact]
+    public async Task HistoryOpensUnderItsCardWithGapsAndClosesOnEscape()
+    {
+        var (window, _, _, _) = Start();
+        var card = Card(window, "claude-week");
+        await card.ToggleHistoryAsync();
+        var history = window.History!;
+        Assert.True(card.IsHistoryOpen);
+        Assert.Equal(36, history.DayCount);
+        Assert.Equal(new HistoryGap(16, 4), Assert.Single(history.Gaps));
+        Assert.Equal(32, history.Bars.Count);
+        Assert.True(history.Bars[^1].IsToday);
+        Assert.Equal(9m, history.Bars[^1].Value);
+        Assert.Equal("baseline 20 % / work day", history.BaselineText);
+        Assert.Equal("Wed 14 Oct · 9 % of 7d", history.FocusText);
+        Assert.All(history.ResetTicks, i => Assert.Equal(DayOfWeek.Monday, DateOnly.FromDateTime(new DateTime(2026, 9, 9)).AddDays(i).DayOfWeek));
+        history.MoveFocus(-17);
+        Assert.Equal("Sun 27 Sep · no readings", history.FocusText);
+        Assert.True(window.Escape());
+        Assert.Null(window.History);
+        Assert.False(card.IsHistoryOpen);
+        await Card(window, "copilot-premium").ToggleHistoryAsync();
+        Assert.Null(window.History);
+    }
+
+    [Fact]
+    public async Task EscapeClosesEditorsBeforeHistoryAndPanel()
+    {
+        var (window, _, _, _) = Start();
+        window.ToggleSettings();
+        await Card(window, "claude-week").ToggleHistoryAsync();
+        Card(window, "claude-extra").BeginCapEdit();
+        Assert.True(window.Escape());
+        Assert.Null(Card(window, "claude-extra").CapEditor);
+        Assert.True(window.Escape());
+        Assert.Null(window.History);
+        Assert.True(window.Escape());
+        Assert.False(window.IsSettingsOpen);
+        Assert.False(window.Escape());
+    }
+
+    [Fact]
+    public async Task CardsReorderWithinTheirAccount()
+    {
+        var (window, _, _, _) = Start();
+        await Card(window, "claude-extra").MoveUpAsync();
+        Assert.Equal("claude-extra", window.Cards[0].CardId);
+        Assert.Equal("claude-week", window.Cards[1].CardId);
+        await Card(window, "claude-extra").MoveUpAsync();
+        Assert.Equal("claude-extra", window.Cards[0].CardId);
+    }
+
+    [Fact]
+    public void SettingsListCapsWithTheirStatus()
+    {
+        var (window, _, _, _) = Start();
+        var caps = window.Settings.Caps;
+        Assert.Equal(["Claude Pro · extra usage", "Codex Pro · credits", "Copilot Business · premium", "Claude Team · extra usage"], caps.Select(c => c.Label));
+        Assert.Equal("provider limit $500.00 · your cap binds", caps[0].Note);
+        Assert.Equal("provider sends a balance only · used is tracked since 3 Oct (estimate)", caps[1].Note);
+        Assert.Equal("unmatched · this limit is no longer reported · kept, not applied", caps[2].Note);
+        Assert.Equal("Remove", caps[2].ActionText);
+        Assert.Equal("currency mismatch · provider limit is in USD · not applied, provider limit applies", caps[3].Note);
+        Assert.Equal("€250.00", caps[3].AmountText);
+        Assert.False(caps[3].CanAct);
+        Assert.Equal("1 sync failed · Antigravity", window.Settings.SystemStatusText);
+        Assert.Equal("every 5 min", window.Settings.MonitoringText);
+    }
+
+    [Fact]
+    public async Task UnmatchedCapIsRemovedFromSettings()
+    {
+        var (window, _, _, _) = Start();
+        await window.Settings.Caps.Single(c => c.Model.Status == CapStatus.Unmatched).ActAsync();
+        Assert.DoesNotContain(window.Settings.Caps, c => c.Model.Status == CapStatus.Unmatched);
+    }
+
+    [Fact]
+    public async Task TrayIsAMiniatureOfTheWindow()
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        using var tray = new LedgerTrayViewModel(source);
+        Assert.Equal(["Claude Pro", "Codex Pro", "Copilot Free", "Antigravity AI Plus"], tray.Rows.Select(r => r.Name));
+        Assert.Equal(2, tray.Rows[2].Strips.Count);
+        Assert.Equal(TrayStripKind.SolidCritical, tray.Rows[1].Strips[0].Kind);
+        Assert.Equal(TrayStripKind.EmptyDashed, tray.Rows[3].Strips[1].Kind);
+        Assert.True(tray.Rows[3].IsError);
+        Assert.False(tray.Rows[0].IsError);
+        Assert.Equal(0.7, tray.Rows[3].Strips[0].Opacity);
+        Assert.StartsWith("Antigravity AI Plus, sync failed", tray.Rows[3].AccessibleName, StringComparison.Ordinal);
+        Assert.Contains("Extra usage: over today", tray.Rows[0].AccessibleName, StringComparison.Ordinal);
+        Assert.Equal("Claude Pro · 5h + 7d", tray.Rows[0].Strips[0].Tip[0]);
+
+        source.LoadScenario(DemoLedgerScenarios.LastWorkDay);
+        Assert.Equal(TrayMark.ExtraUsage, tray.Rows[0].Strips[0].Mark);
+        Assert.Equal(TrayMark.Rush, tray.Rows[1].Strips[0].Mark);
+        Assert.Equal(TrayMark.Rush, tray.Rows[2].Strips[0].Mark);
+        Assert.Equal(TrayMark.None, tray.Rows[2].Strips[1].Mark);
+        Assert.True(tray.Rows[3].IsError);
+        Assert.Equal(["Sign-in expired", "Sign in again in the window to refresh"], tray.Rows[3].NameTip);
+
+        source.LoadScenario(DemoLedgerScenarios.DayOff);
+        Assert.All(tray.Rows.SelectMany(r => r.Strips).Where(s => s.Kind == TrayStripKind.Cells), s => Assert.All(s.Cells, c => Assert.True(c.Dashed)));
+        Assert.Equal(TrayStripKind.SolidCritical, tray.Rows[1].Strips[0].Kind);
+        await source.SetWorkTodayAsync(true, CancellationToken.None);
+        Assert.All(tray.Rows.SelectMany(r => r.Strips).Where(s => s.Kind == TrayStripKind.Cells), s => Assert.All(s.Cells, c => Assert.False(c.Dashed)));
+
+        await source.SetPreferencesAsync(source.Preferences with { Mode = ValueMode.Left }, CancellationToken.None);
+        Assert.True(tray.IsLeft);
+        string? opened = null;
+        tray.OpenAccountRequested += (_, id) => opened = id;
+        tray.OpenAccount("acct-codex");
+        Assert.Equal("acct-codex", opened);
+    }
+
+    [Fact]
+    public void TrayRowOpensTheWindowAtThatAccount()
+    {
+        var (window, _, _, _) = Start();
+        string? focused = null;
+        window.FocusCardRequested += (_, id) => focused = id;
+        window.FocusAccount("acct-copilot");
+        Assert.Equal("copilot-completions", focused);
+    }
+
+    [Fact]
+    public void DemoScenariosSwitchAndResetViewState()
+    {
+        var (window, _, _, _) = Start();
+        Assert.Equal(6, window.Demo!.Scenarios.Count);
+        window.ToggleSettings();
+        window.LoadScenario(DemoLedgerScenarios.States);
+        Assert.Equal(51, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
+        Assert.All(window.Cards, c => Assert.False(c.IsNew));
+        window.LoadScenario(DemoLedgerScenarios.FirstRun);
+        Assert.True(window.IsFirstRun);
+    }
+
+    [Fact]
+    public void AccessibleNamesCarryStateWords()
+    {
+        var (window, _, _, _) = Start();
+        Assert.StartsWith("Claude Pro, 5 hour and 7 day, OK. Today 2 five-hour windows, 72 percent used, 28 percent allowed today in the current window.",
+            Card(window, "claude-week").Visual.AccessibleName, StringComparison.Ordinal);
+        Assert.Contains("Resets Mon 19 Oct 09:00", Card(window, "claude-week").Visual.AccessibleName, StringComparison.Ordinal);
+        Assert.StartsWith("Claude Pro extra usage, over today.", Card(window, "claude-extra").Visual.AccessibleName, StringComparison.Ordinal);
+        Assert.Equal("Sign out Claude Pro", Card(window, "claude-week").SignOutName);
+        Assert.Equal("History, Claude Pro 7 day", Card(window, "claude-week").HistoryName);
+        Assert.Equal("Cap for Codex Pro credits, 17,000", Card(window, "codex-credits").CapEditorName);
+    }
+}
