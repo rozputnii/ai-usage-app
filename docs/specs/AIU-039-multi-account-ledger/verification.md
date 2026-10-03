@@ -27,19 +27,20 @@
 ## Acceptance
 
 The implementation and synthetic/unpackaged checks below cover AC-01 through AC-08.
-AC-09 remains incomplete for installed-package execution, and AC-11 remains NOT_RUN
-for owner-led live accounts. AC-10 review findings are corrected with targeted evidence.
+AC-09 remains incomplete for installed-package execution. AC-11 has live PASS evidence
+for two-account admission, refresh, restart and selected sign-out/reconnect; induced
+provider-failure checks remain NOT_RUN. AC-10 findings have targeted correction evidence.
 The feature stays in progress; fixture, source and build evidence never establish live success.
 
 | Acceptance | Current evidence and limits |
 | --- | --- |
-| AC-01/02/04 | PASS fixtures: isolated sessions for every provider, protected stable references, duplicate/wrong-account rejection, selected refresh/sign-out and cancellation drain. Second Claude demo account and tray selection pass on Windows. Live provider behavior NOT_RUN. |
+| AC-01/02/04 | PASS fixtures: isolated sessions for every provider, protected stable references, duplicate/wrong-account rejection, selected refresh/sign-out and cancellation drain. PASS live Claude: two distinct accounts, refresh, restart and selected sign-out/reconnect with stable references. Live wrong-account/cancellation failures NOT_RUN. |
 | AC-03/05 | PASS synthetic migration/storage: shared v1/v2 provider regression suite, registry stage recovery, legacy adoption boundaries, interrupted maintenance upgrade, unassigned old data, labels/caps/reading persistence and preferences-only recovery. Real owned-state migration NOT_RUN. |
-| AC-06/07 | PASS deterministic parser, budget, history, preference and command tests. Real-provider rendering is NOT_RUN. |
+| AC-06/07 | PASS deterministic parser, budget, history, preference and command tests. PASS live rendering of an exhausted subscription weekly limit and a separate second account's extra usage; other plan shapes NOT_RUN. |
 | AC-08 | PASS unpackaged Windows: launch, second demo account, history/settings, tray restore at account, exit, recovery, confirmed deletion and resumed deletion/restart. Interactive external sign-in challenges remain part of AC-11. |
 | AC-09 | PASS automated regressions, validation, Windows and unsigned package builds. Installed activation/update/automatic refresh NOT_RUN. |
 | AC-10 | Independent reviews performed. Original findings and targeted fixes recorded below; no unresolved material findings. Live privacy evidence NOT_RUN. |
-| AC-11 | NOT_RUN: requires current owner authorization and owner-led sign-in to two actual Claude accounts. |
+| AC-11 | PASS live two-account admission, independent refresh, full restart, selected sign-out and reconnect without a duplicate; induced provider-failure behavior NOT_RUN. See the dated live observations below. |
 
 ## T-01 account session construction, 2026-10-03
 
@@ -210,3 +211,31 @@ These results cover T-01 only, not the account registry, migration or multi-acco
 - Two-account admission, independent refresh, reconnect and durable restart remain
   NOT_RUN until observed. No source CLI credentials were read or imported. Existing-state
   migration, package installation/update and trust changes are outside this authorization.
+
+## Two-account Claude live observations, 2026-10-03
+
+- Environment: the same isolated unpackaged Debug build at 35ca7d9, ordinary desktop;
+  owner performed browser authentication. First and second Connect completed at 20:44
+  and 20:46 Europe/Lisbon. No provider identifiers, grant contents or monetary values
+  are retained in this report.
+- PASS: both accounts appeared simultaneously with distinct stable opaque account/card
+  references. The subscription account displayed an exhausted shared weekly limit,
+  matching the owner's description; the second displayed a separate extra-usage card.
+  This establishes these two accounts' observed shapes, not every Claude plan.
+- PASS: F5 refresh at 20:47 produced two successful Refresh completions and preserved
+  the separate cards. Clean Ctrl+Q process exit and launch with the same isolated state
+  restored both accounts and their original references without another browser sign-in.
+- PASS: selected Claude 2 sign-out at 20:49 completed, removed its current figures and
+  retained its signed-out entry. The first account remained connected and its subsequent
+  refresh completed successfully. The signed-out entry retained its original reference.
+- PASS: selected Claude 2 reconnect completed at 20:50 following owner browser sign-in.
+  Its original account/card reference returned without a duplicate, and the first account
+  remained connected. Final F5 at 20:51 produced two successful Refresh completions.
+- Induced provider-failure behavior and installed-package checks remain NOT_RUN.
+  Successful quota refresh does not establish token renewal/rotation. The isolated
+  instance is left open with both accounts connected for owner inspection.
+- Evidence: observed Ledger UI and allowlisted timestamp/event/operation/outcome fields
+  from only this isolated instance's diagnostic log. No raw response captures or grants
+  were opened. UI helper menu-cache/geometry errors were recovered by fresh observation;
+  an initial log date-filter type mismatch produced no evidence and was corrected by
+  selecting completed operations directly.

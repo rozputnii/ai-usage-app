@@ -114,20 +114,23 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [x] Freeze the integrated diff and request focused read-only independent review using
   convergence-review; correct material findings and run targeted regressions.
 - [x] Obtain current authorization for owner-led two-account Claude checks.
-- [ ] Execute the authorized Claude checks; obtain separate authorization before any
-  credential-bearing migration/package install/update/recovery tests.
+- [x] Execute owner-led Claude admission, refresh, restart and selected sign-out/reconnect.
+- [ ] Record remaining provider-failure and installed-package acceptance; obtain separate
+  authorization before credential-bearing migration/package install/update/recovery tests.
 - [x] Record actual per-AC verdicts; unavailable live/package evidence remains NOT_RUN or
   BLOCKED. Update canonical completion only when the required outcome is established.
 - [x] Commit/push the verified implementation save point and report remaining acceptance limitations.
 
 ## Handoff
 
-Exact next action: after the owner completes the first Claude browser sign-in in the
-isolated live-check instance, verify its quota cards and add the second Claude account.
+Exact next action: prepare the remaining installed-package acceptance against the built
+2026.10.356.0 artifact and identify the specific isolated install/update check for owner
+authorization. Live two-account admission, refresh, restart and selected sign-out/reconnect
+passed; induced live provider failures remain NOT_RUN.
 The owner authorized this live check on 2026-10-03 and performs browser sign-in personally.
 Implementation, synthetic regressions, ordinary unpackaged Windows interactions and
 independent review corrections are recorded in verification.md. Installed package activation,
-update and real-account refresh/migration remain NOT_RUN; do not mark the feature complete.
+update and real-account migration remain NOT_RUN; do not mark the feature complete.
 All three scope decisions are resolved; PD-039-03 explicitly includes full local deletion.
 
 Ruling: retain existing grant files in place during adoption, tracked by a protected
