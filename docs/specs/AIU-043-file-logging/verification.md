@@ -149,3 +149,116 @@ operation/failure/recovery evidence, use of existing logs during debugging, one
 owning boundary, correlation and appropriate severity. It explicitly rejects
 method/tick/frame spam and speculative logging wrappers/frameworks. D-137 and the
 Windows security/lifecycle contract were reconciled with the selected scope.
+
+## Completion verification - 2026-10-03
+
+This section supersedes the incomplete checkpoint dispositions above. The owner
+requested completion, authorized one Astra low subagent, and explicitly authorized
+live checks through existing AI Usage sessions without CLI credential access or
+new sign-in. Completion code: `c25a01d` and `4362346`, based on `99efa21`.
+Environment remains the local interactive Windows desktop and pinned .NET 10.0.401;
+no host trust/display/ACL changes, disk exhaustion, package install or release.
+
+### Fixes and independent review
+
+The fresh read-only Astra low review of `44cee2e..5c60dae` reported one P2 finding:
+ProviderHttp discarded original transport/parser exceptions before domain conversion.
+Five affected capture cases failed before the fix, then passed with safe type,
+HResult, stack, inner chains and numeric JSON position in the capture envelope.
+No arbitrary messages, JSON paths or exception Data are retained. Correlation uses
+the existing capture/operation IDs; no second original-exception event is emitted.
+The same reviewer performed a narrow supplemental review of the new projection,
+ordinary-output fault seam/recovery and existing-session quota console in `c25a01d`:
+PASS, no material findings. Reviewer inspected code and assertions; independent
+execution of tests/live checks was NOT_RUN. The primary executed those checks.
+
+A clock-controlled hourly/mixed-age test failed before switching the sweep to the
+injected TimeProvider's monotonic clock; runtime defaults remain the system clock.
+Injected partial event output exposed a recovery defect: the next event joined the
+incomplete line. Closing the failed writer fixes it; the reproducing test now passes.
+The I/O seam is one internal stream decorator on ordinary output, with all fault
+behavior in tests. Emergency FileStream and forced-disk flush bypass that seam.
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Infrastructure | PASS | Release suite: 590 passed, zero failed/skipped; `completion-infrastructure.txt` |
+| Presentation | PASS | Release suite: 262 passed, zero failed/skipped; `completion-presentation.txt` |
+| Targeted fixes | PASS | 54 capture/storage cases; six initial expected failures (five capture cases and hourly sweep) then all passed; `completion-red.txt`, `completion-targeted.txt` |
+| Storage faults/restart | PASS | 4 final cases: injected ERROR_DISK_FULL after partial output, UnauthorizedAccessException, uncommitted stage/restart, reentrant failure and blocked ordinary writer with bounded flush plus independent critical capture; `storage-faults-final.txt` |
+| Startup | PASS | Actual invalid XAML and hosted-service StartAsync failure: nonzero child exit, one terminating StartupFailure each, canaries absent; `completion-lifecycle.json` |
+| Late Host disposal | PASS | Actual DI-owned hosted-service Dispose failure: exit 1, one terminating DisposalFailure, canary absent; `completion-disposal.json` |
+| Binding with debugger | PASS | Same Release broken-binding probe launched with native DEBUG_ONLY_THIS_PROCESS: exit 0, one BindingFailure, canary absent; `binding-debugger.json`, local `Invoke-BindingDebugger.ps1` |
+| Ordinary Windows smoke | PASS | Eight selected ShellSmoke scenarios, two unrelated tests filtered/not run, 39.186 s; preview and actual Explorer navigation to the unique product logs directory; `completion-smoke.txt`, `completion-smoke` |
+| Demo Open logs | PASS | Dedicated DemoLogsOpenIsolatedFolder: 1 passed, 10.632 s; actual Explorer navigation to Demo/logs; only that test folder window closed; `completion-smoke-demo.txt` |
+| Release build | PASS | Final unpackaged build: zero warnings/errors; `completion-build.txt` |
+| MSIX | PASS | Unsigned validation-only `2026.10.354.0`, UTC 2026-10-03T14:48:53.0572213Z; SHA256 `DD6B225B0053377CCB2C0D36FAE0E4941166EFAAA9E21B5D4F68BACC1A0A6845`; `completion-package.txt` |
+| Independent review | PASS | Focused initial review plus resolved P2 and supplemental projection/storage/console review; no unresolved material findings |
+
+Evidence files above are under ignored `.ai-usage-local/AIU-043`. Fault probe roots
+are disposable temporary directories; none contain the owner's grants. The first
+Host-disposal probe used an externally supplied singleton, which DI correctly did
+not dispose. That harness attempt had no critical file and is not acceptance evidence.
+Registering the probe with a DI-owned factory produced the actual disposal result above.
+The MSIX tooling again omitted the optional symbols package because mspdbcmf.exe is
+unavailable; the package succeeded. No package installation success is inferred.
+
+The native debugger check follows the documented [BindingFailed debugger requirement](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.debugsettings.bindingfailed?view=windows-app-sdk-1.8)
+and [Win32 debug-event handling](https://learn.microsoft.com/en-us/windows/win32/api/debugapi/nf-debugapi-waitfordebugevent).
+Earlier ordinary no-debugger Release evidence remains the corresponding observed
+platform blind spot. No host debugger settings or automatic dump policy changed.
+
+### Authorized live evidence
+
+Source contracts remain the existing provider records; no endpoint/auth contract
+was changed. Auth classification remains source-observed public-client reuse;
+quota classification remains undocumented/source-observed internal endpoints.
+Source verification and this new live verification are distinct:
+
+| Provider/route | source_verified_at | live_verified_at (UTC) | Result |
+| --- | --- | --- | --- |
+| Codex `/oauth/token` | 2026-09-13 | 2026-10-03T14:42:28Z | PASS: existing grant renewal, HTTP 200, sanitized committed artifact |
+| Codex `/backend-api/wham/usage` | 2026-09-26 | 2026-10-03T14:42:29Z | PASS: HTTP 200, fresh QuotaAvailable, capture `3c030e10-8682-4491-b18f-4fcaf5a67ac6` |
+| Copilot `/user` | 2026-09-18 | 2026-10-03T14:42:30Z | PASS: HTTP 200, identity values withheld |
+| Copilot `/copilot_internal/user` | 2026-09-26 | 2026-10-03T14:42:31Z | PASS: HTTP 200, fresh QuotaAvailable, capture `34f6b0ee-2823-4137-ad2c-2609ee287be5` |
+| Claude | 2026-09-26 | null | NOT_RUN: NotConnected in both existing development and installed-app stores; no HTTP request or sign-in |
+| Antigravity | 2026-09-26 | null | NOT_RUN: NotConnected in both existing development and installed-app stores; no HTTP request, provisioning or sign-in |
+
+Each of the four executed requests has exactly one HttpCompleted and one
+CapturePersisted event. Both successful quota artifacts share their operation ID
+with a Completed parser/session outcome and returned cached=False. All four
+artifacts explicitly report withheld-values, never a raw/full body claim. Codex
+renewal updated its existing app-owned grant through the normal session. Output
+printed only fixed status/failure/cache flags. No provider body, token, account ID
+or private path was copied into this report or Git. Local metadata-only evidence:
+`live-summary.json`; private sanitized artifacts stay in `live-capture/Console/logs`.
+Other auth flows/history/provisioning endpoints retain deterministic coverage only.
+
+### Final acceptance disposition
+
+| Criterion | Result | Basis and practical limits |
+| --- | --- | --- |
+| AC-01 | PASS | Updated endpoint/boundary inventory and evidenced platform blind spots |
+| AC-02 | PASS | Existing JSON/correlation/exception tests plus original transport/parser failure regression |
+| AC-03 | PASS | Deterministic attempt coverage and four correlated committed real captures; unchanged transport behavior |
+| AC-04 | PASS | Original precision/native units/shape and explicit redactions; no policy expansion to guess live values |
+| AC-05 | PASS | Existing canaries plus failure/partial-output/reentrant/startup/disposal/debugger probes; no raw generic logging |
+| AC-06 | PASS | Owned UI/dispatcher/converter/animation/background probes plus binding with and without a debugger |
+| AC-07 | PASS | Existing actual child/UI crashes and forced flush, plus blocked ordinary writer independence |
+| AC-08 | PASS | Ordinary drain/forced kill evidence plus actual XAML/Host startup and late Host disposal failures |
+| AC-09 | PASS | Existing age/month/size/restart/read tests plus clock-controlled hourly sweep and mixed-age earliest-record expiry |
+| AC-10 | PASS | Existing queue/path/locked-file cases plus injected disk-full/access-denied, partial/stage/restart, reentrant and slow-output cases; real host disk exhaustion/ACL changes NOT_RUN and unnecessary for these fault-path checks |
+| AC-11 | PASS | Existing exact-name/reparse/isolation/unknown-file tests plus orphan-stage cleanup/restart; no CLI store access |
+| AC-12 | PASS | Earlier same-workload measurements and ordinary responsiveness remain applicable; no transport/body/deadline behavior changed |
+| AC-13 | PASS | Updated English guide and actual Explorer navigation for ordinary product and Demo; packaged folder opening itself NOT_RUN (no package installation requested) |
+| AC-14 | PASS | Local regressions, build/package/smoke and completed focused independent review; final document/diff check recorded below |
+| AC-15 | PASS | Every available provider traced from successful real quota capture to parser outcome; unavailable Claude/Antigravity explicitly NOT_RUN as the criterion permits |
+
+Extended sleep/debugger watchdog timing remains NOT_RUN; existing isolated stall and
+recovery evidence stands. Native corruption/power loss/stalled kernel flush and
+framework-internal faults outside available hooks remain documented limits, not
+promises added by these tests. No remaining implementation/review gate is open.
+
+Final documentation/diff check: PASS. The document validator returned valid=true,
+no diagnostics after completed task evidence fields were made single repository-relative
+artifact paths. `git diff --check` passed. This corrected record syntax only; no
+acceptance criterion or validator requirement was weakened.

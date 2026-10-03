@@ -44,6 +44,10 @@ explicit endpoint policy classifies them. Null replacements cannot be interprete
 provider-sent nulls without checking redactions. Numeric tokens retain their original
 precision; duplicate properties remain present and are flagged. No malformed text
 fallback is saved. Bodies can contain untrusted provider data even after projection.
+Transport/parser failures retain safe original exception type, HResult, stack and
+inner chains in their capture; JSON errors also retain numeric line/byte position.
+Messages, JSON paths and arbitrary exception data remain omitted. A failed partial
+event write closes its roll so later successful records start in a readable file.
 
 Local switches, set before launching the process:
 
@@ -70,3 +74,9 @@ separately authorized live evidence to classify missing fields; never guess with
 values. Create a synthetic fixture and review privacy again before committing or
 exporting anything. Never commit runtime logs or copy them into a chat automatically.
 Coverage and unverified cases are in [AIU-043 verification](../specs/AIU-043-file-logging/verification.md).
+
+For an explicitly authorized live check, run `AiUsage.ProviderConsole quota
+codex|claude|copilot|antigravity <owned-provider-directory>`. It uses the product
+session to refresh quota and prints status/cache flags only. It may renew and save
+that existing grant; it never signs in or imports CLI credentials. Missing sessions
+remain disconnected. Set `AIU_DEVELOPMENT_STATE_DIRECTORY` to isolate console logs.

@@ -146,13 +146,13 @@ prove crash survival. Use ordinary unpackaged Windows smoke; a VM is needed only
 for a specific isolation requirement, not all logging tests.
 
 Focused independent implementation review covers sensitive payload projection,
-exception disclosure and owned cleanup. Codex subagents are disabled. Use an
+exception disclosure and owned cleanup. The completion request authorizes one Astra low reviewer under AGENTS.md. Use an
 authorized available independent reviewer or record the required review as blocked;
 the primary's self-review is not independent review.
 
 The subsequent owner request selected implementation on 2026-10-03. The sequential
 plan is in tasks.md; D-137/security lifecycle now describe the selected pipeline.
-No live-provider authority or independent-review waiver follows from that selection.
+That original selection did not authorize live-provider access or waive independent review. The subsequent completion request and explicit existing-session live-check permission are recorded in verification.md.
 The current endpoint and boundary inventory is in coverage.md.
 
 Implementation ruling: an isolated ordinary Release probe on the pinned SDK showed

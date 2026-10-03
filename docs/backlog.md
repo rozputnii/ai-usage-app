@@ -436,14 +436,14 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-043 - Structured file logging, provider-response evidence and crash diagnostics
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-028, AIU-037]
 - trigger: owner-selection
 - outcome: Make application failures diagnosable from correlated local files and retain current provider-response evidence for AI-assisted parser development. Cover normal operations, provider requests, UI/dispatcher and background faults, startup/shutdown and fatal crashes, with a dedicated forced-flush path. Separate traces (3 days), application and provider evidence (7 days), and critical incidents (one calendar month), with bounded disk use and secret-free persistence.
 - specification: docs/specs/AIU-043-file-logging/spec.md
 - evidence: docs/specs/AIU-043-file-logging/verification.md
-- registration-note: Owner request on 2026-10-03 selects implementation of AIU-043 and a concise agent rule for useful logging without noise. Live-provider checks remain separately authorized; required independent implementation review remains a completion gate.
-- scope-note: Full response capture means pre-model response structure and policy-approved original values, with explicit redaction/completeness metadata. It never means plaintext tokens, cookies or arbitrary unclassified payload values. AIU-039 is not a prerequisite; instrument whichever presentation is active and retain coverage across its later switch. Required focused implementation review must respect the disabled Codex-subagent policy.
+- registration-note: Owner request on 2026-10-03 selects implementation of AIU-043 and a concise agent rule for useful logging without noise. Completion request authorized an Astra low independent review; subsequent explicit permission covered existing-session live checks. Final verification records the completed gates and unavailable accounts.
+- scope-note: Full response capture means pre-model response structure and policy-approved original values, with explicit redaction/completeness metadata. It never means plaintext tokens, cookies or arbitrary unclassified payload values. AIU-039 is not a prerequisite; instrument whichever presentation is active and retain coverage across its later switch. Focused independent review followed the current one-subagent policy.
 
 ## Deferred clarifications, not forgotten
 

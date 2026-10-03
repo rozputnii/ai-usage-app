@@ -1,10 +1,10 @@
 ---
 id: AIU-043
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: Owner request on 2026-10-03 explicitly selected AIU-043 implementation and a concise useful-logging rule for AI agents. This supersedes the earlier preparation-only scope; no live-provider access or independent-review waiver was granted.
+approval_basis: Owner request on 2026-10-03 explicitly selected AIU-043 implementation and a concise useful-logging rule for AI agents. This supersedes the earlier preparation-only scope. The completion request authorized one Astra low reviewer; the owner subsequently authorized live checks through existing AI Usage sessions only, without CLI credential access or new sign-in.
 ---
 
 # Structured file logging, provider-response evidence and crash diagnostics
@@ -301,7 +301,7 @@ and quota/history stores. Limit legacy-file handling to the recognized owned fil
 - AC-14: Infrastructure/presentation regressions, required Windows build and
   ordinary interactive smoke, document validation and diff checks pass. Obtain
   focused independent review of payload sanitization and diagnostic cleanup before
-  implementation integration. Codex subagents remain disabled; an unavailable
+  implementation integration. Follow the current AGENTS.md subagent policy; an unavailable
   authorized independent reviewer is BLOCKED, not silently waived.
 - AC-15: Future authorized live checks record capture results separately per
   provider/endpoint, with source/live timestamps. An AI can trace at least one real
