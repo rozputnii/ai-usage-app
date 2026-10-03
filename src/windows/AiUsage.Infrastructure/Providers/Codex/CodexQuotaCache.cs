@@ -11,7 +11,8 @@ internal sealed record CachedQuota(QuotaSnapshot Quota, DateTimeOffset Retrieved
 /// <summary>
 /// Stores the last quota reading in the app-owned directory so a relaunch or an unavailable
 /// provider can show last-known values instead of nothing. The record holds normalized quota
-/// only: no token, no refresh token and no account identifier, so it needs no encryption and
+/// only: no token, refresh token or provider identity. Account-scoped v3 records carry an opaque
+/// app storage reference to reject another account's cache; this reference needs no encryption and
 /// must never be treated as proof of current entitlement.
 /// </summary>
 internal sealed class CodexQuotaCache
@@ -20,16 +21,19 @@ internal sealed class CodexQuotaCache
     private readonly string path;
     private readonly Action? beforeDelete;
     private readonly IDiagnosticSink? diagnostics;
+    private readonly Guid? binding;
 
     public CodexQuotaCache(string ownedDirectory) : this(ownedDirectory, null) { }
 
-    internal CodexQuotaCache(string ownedDirectory, Action? beforeDelete, IDiagnosticSink? diagnostics = null)
+    internal CodexQuotaCache(string ownedDirectory, Action? beforeDelete, IDiagnosticSink? diagnostics = null, Guid? binding = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownedDirectory);
+        if (binding == Guid.Empty) throw new ArgumentException("A cache binding cannot be empty.", nameof(binding));
         Directory = Path.GetFullPath(ownedDirectory);
         path = Path.Combine(Directory, "codex.quota.json");
         this.beforeDelete = beforeDelete;
         this.diagnostics = diagnostics;
+        this.binding = binding;
     }
 
     /// <summary>The app-owned directory this cache may write to; nothing outside it is touched.</summary>
@@ -48,7 +52,10 @@ internal sealed class CodexQuotaCache
                 return null;
             var bytes = await ReadBoundedAsync(path, cancellationToken).ConfigureAwait(false);
             var record = JsonSerializer.Deserialize(bytes, CodexCacheJson.Default.CachedQuotaRecord);
-            if (record?.Version is not (1 or 2) || record.Quota is null || record.RetrievedAt is not { } retrievedAt)
+            if (record?.Version is not (1 or 2 or 3) || record.Quota is null || record.RetrievedAt is not { } retrievedAt)
+                return Discarded();
+            // Legacy readings have no identity evidence; never attribute them to a new account.
+            if (binding is not null ? record.Version != 3 || record.Binding != binding : record.Version == 3 || record.Binding is not null)
                 return Discarded();
             if (!ProviderStateMigration.Valid(record.Quota))
                 return Discarded();
@@ -102,7 +109,7 @@ internal sealed class CodexQuotaCache
         CheckPaths();
         var staged = path + ".new";
         var bytes = JsonSerializer.SerializeToUtf8Bytes(
-            new CachedQuotaRecord { Version = 2, Quota = cached.Quota, RetrievedAt = cached.RetrievedAt },
+            new CachedQuotaRecord { Version = binding is null ? 2 : 3, Binding = binding, Quota = cached.Quota, RetrievedAt = cached.RetrievedAt },
             CodexCacheJson.Default.CachedQuotaRecord);
         if (bytes.Length > MaximumRecordBytes) throw new IOException("Quota cache exceeds its size limit.");
         await WriteFlushedAsync(staged, bytes, cancellationToken).ConfigureAwait(false);
@@ -168,6 +175,7 @@ internal sealed class CodexQuotaCache
         [JsonPropertyName("v")] public int Version { get; set; }
         [JsonPropertyName("retrievedAt")] public DateTimeOffset? RetrievedAt { get; set; }
         [JsonPropertyName("quota")] public QuotaSnapshot? Quota { get; set; }
+        [JsonPropertyName("binding")] public Guid? Binding { get; set; }
     }
 }
 

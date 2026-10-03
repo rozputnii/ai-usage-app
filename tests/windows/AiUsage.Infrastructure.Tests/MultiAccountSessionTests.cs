@@ -78,6 +78,34 @@ public sealed class MultiAccountSessionTests : IDisposable
         Assert.DoesNotContain("private", first.ToString(), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task CodexCacheFromAnotherAccountIsRejectedEvenWithAMatchingGrant()
+    {
+        using var services = Services();
+        var factory = new ProviderSessionFactory(services, root);
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var firstDirectory = factory.DirectoryFor(firstId);
+        var secondDirectory = factory.DirectoryFor(secondId);
+        await SeedAsync("codex", firstDirectory, "first");
+        await SeedAsync("codex", secondDirectory, "second");
+        var quota = CodexQuotaParser.Parse("{\"plan_type\":\"synthetic-second\"}"u8.ToArray(), DateTimeOffset.UtcNow);
+        new CodexQuotaCache(secondDirectory, null, binding: secondId).Write(new(quota, quota.FetchedAt));
+        File.Copy(Path.Combine(secondDirectory, "codex.quota.json"), Path.Combine(firstDirectory, "codex.quota.json"));
+        var session = factory.Create("codex", firstId);
+        try
+        {
+            var cached = await session.ReadCachedStateAsync(TestContext.Current.CancellationToken);
+            Assert.True(session.HasStoredGrant);
+            Assert.Equal("first", ProviderSessionFactory.IdentityOf(session)!.Subject);
+            Assert.Null(cached.Quota);
+        }
+        finally { ((IDisposable)session).Dispose(); }
+        var matching = factory.Create("codex", secondId);
+        try { Assert.Equal("synthetic-second", (await matching.ReadCachedStateAsync(TestContext.Current.CancellationToken)).Quota!.PlanType); }
+        finally { ((IDisposable)matching).Dispose(); }
+    }
+
     private static ServiceProvider Services()
     {
         var services = new ServiceCollection();

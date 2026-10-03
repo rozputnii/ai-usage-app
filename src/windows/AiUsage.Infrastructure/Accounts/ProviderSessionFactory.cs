@@ -18,9 +18,18 @@ internal sealed class ProviderSessionFactory(IServiceProvider services, string o
         return Path.Combine(Path.GetFullPath(ownedRoot), "accounts", storageId.ToString("N"));
     }
 
-    internal IProviderSession Create(string provider, Guid storageId) => CreateInDirectory(provider, DirectoryFor(storageId));
+    internal IProviderSession Create(string provider, Guid storageId) => CreateInDirectory(provider, DirectoryFor(storageId), storageId);
 
-    private IProviderSession CreateInDirectory(string provider, string directory)
+    internal IProviderSession Create(AccountRecord record) => record.LegacyStorage
+        ? CreateLegacy(record.Provider, record.StorageId) : Create(record.Provider, record.StorageId);
+
+    internal IProviderSession Create(PendingAccountStorage pending) => pending.LegacyStorage
+        ? CreateLegacy(pending.Provider, pending.StorageId) : Create(pending.Provider, pending.StorageId);
+
+    internal IProviderSession CreateLegacy(string provider, Guid storageId) =>
+        CreateInDirectory(provider, Path.Combine(Path.GetFullPath(ownedRoot), "providers"), storageId);
+
+    private IProviderSession CreateInDirectory(string provider, string directory, Guid storageId)
     {
         var diagnostics = services.GetService<IDiagnosticSink>();
         var clock = services.GetRequiredService<TimeProvider>();
@@ -29,7 +38,7 @@ internal sealed class ProviderSessionFactory(IServiceProvider services, string o
             "claude" => new ClaudeSession(services.GetRequiredService<ClaudeAuthClient>(), services.GetRequiredService<ClaudeQuotaClient>(),
                 new ClaudeStateStore(directory, null, diagnostics), clock, diagnostics),
             "codex" => new CodexSession(services.GetRequiredService<CodexAuthClient>(), services.GetRequiredService<CodexQuotaClient>(),
-                new CodexGrantStore(directory, null, diagnostics), new CodexQuotaCache(directory, null, diagnostics),
+                new CodexGrantStore(directory, null, diagnostics), new CodexQuotaCache(directory, null, diagnostics, storageId),
                 services.GetRequiredService<CodexHistoryClient>(), diagnostics),
             "copilot" => new CopilotSession(services.GetRequiredService<CopilotAuthClient>(), services.GetRequiredService<CopilotQuotaClient>(),
                 new CopilotStateStore(directory, null, diagnostics), clock, services.GetRequiredService<CopilotHistoryClient>(), diagnostics),

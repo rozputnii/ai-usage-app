@@ -27,7 +27,7 @@
 ## Acceptance
 
 AC-01 through AC-11 remain incomplete. PD-039-01 and PD-039-02 are accepted by the owner;
-PD-039-03 awaits clarification. No historical evidence is promoted to live Ledger evidence.
+PD-039-03 explicitly includes full local deletion. No historical evidence is promoted to live Ledger evidence.
 
 ## T-01 account session construction, 2026-10-03
 
@@ -46,3 +46,26 @@ restoration, selected sign-out, opaque context equality and invalid factory inpu
 Commands used the existing user-local .NET 10.0.401 executable with `--no-restore` and the
 README test projects. The focused command added `-class "*MultiAccountSessionTests"`.
 These results cover T-01 only, not the account registry, migration or multi-account product.
+
+## T-02 and partial T-03, 2026-10-03
+
+- Registry tests: RED on absent implementation; PASS 8/8 after adding protected registry.
+- Account workflow: RED on absent implementation; first five scenarios PASS; expanded
+  tests reproduced failed-reconnect replacement and final busy-notification defects.
+  Corrected targeted account suite PASS 9/9, including selected sign-out during refresh
+  and identity substitution rejected before provider requests.
+- Pre-review integrated regressions: Infrastructure 613/613, Presentation 264/264 PASS.
+- Independent review: GPT-6 Astra low, read-only, frozen tree
+  `fbc38c4c62b7d967e6366f145bd96b582f898915` versus `ddc81ea`, verdict FAIL with one P2:
+  Codex cache lacked account binding and could be substituted across directories. No other
+  material findings; reviewer did not run tests or inspect real data.
+- Correction: swapped-cache test reproduced publishing the second account's quota as the
+  first. Account-scoped version 3 cache now carries and checks its app storage reference;
+  targeted suite PASS 7/7. Legacy cache records are not silently attributed.
+- In-place legacy migration: RED on absent migration; PASS 7/7 across all provider stores,
+  unchanged grant bytes, retained unassigned history, interrupted registration retry,
+  corrupt-grant preservation and old-writer refusal after layout 2.
+- New migration code is outside the earlier frozen independent review; review remains
+  required for that later scope. Product composition, UI and live checks remain NOT_RUN.
+- PASS: integrated Infrastructure after cache binding and migration, 621/621, zero
+  errors/failures/skips (12.676 seconds); document validator and diff check PASS.

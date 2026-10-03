@@ -4,7 +4,7 @@ type: feature
 status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: Owner selected AIU-039 on 2026-10-03 and accepted the presented recommendations for legacy-data separation and Ledger contract additions in the reply "all 3 now yes". Implementation proceeds within that selected scope. The third answer is being clarified because the preceding question and recommendation used opposite yes/no meanings for full deletion.
+approval_basis: Owner selected AIU-039 on 2026-10-03 and accepted legacy-data separation and Ledger contract additions. The subsequent explicit answer "Implement now in AIU-039" includes full local stored-data deletion. These decisions authorize sequential implementation within the existing architecture and design.
 ---
 
 # Multiple accounts and live Ledger
@@ -118,6 +118,11 @@ Needed before contract/UI edits and final retirement; affects AC-01, AC-04, AC-0
 
 ### PD-039-03 - Previously deferred data deletion
 
+Resolved 2026-10-03: owner explicitly selected implementation now in AIU-039. Whole
+local stored-data deletion is included, with inline Confirm/Cancel, shutdown of writers,
+owned-root cleanup, interruption recovery and focused independent review. This changes
+the earlier deferral; the recommendation below is retained as decision context only.
+
 AIU-036 explicitly deferred product delete/reset wiring. Ledger's demo implements a
 Delete stored data command, while the live product does not currently implement it.
 
@@ -181,7 +186,7 @@ Needed before data-settings wiring; affects AC-08 and AC-10.
 
 Implementation proceeds sequentially on main, with coherent WIP save points under
 CONTRIBUTING. Do not treat a save point as feature completion. A detailed implementation
-plan follows the settled account/contract scope; PD-039-03 only gates deletion work.
+plan includes the settled account/contract and full-deletion scope.
 [design.md](design.md) records the
 proposed boundaries. [verification.md](verification.md) owns observed results and
 [tasks.md](tasks.md) contains the exact continuation action.

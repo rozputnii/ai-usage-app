@@ -23,7 +23,7 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - Check wrong-account reconnect, duplicate candidate cleanup and canceled late completion.
 - Preserve UI-thread publication and shutdown drain; do not widen logging with identities.
 - No external packages, custom chrome or excluded accessibility/display matrices.
-- PD-039-03 gates deletion only; other implementation continues.
+- PD-039-03 includes full local deletion, explicitly accepted by the owner.
 
 ### T-01 - Account-scoped provider sessions
 - status: done
@@ -63,8 +63,8 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - acceptance: AC-03, AC-05, AC-10
 - evidence: not-run
 
-- [ ] Extend startup maintenance to a new layout with explicit account-migration intent,
-  checkpoints and version refusal for old writers; use exact owned file names only.
+- [x] Extend startup maintenance to layout 2 before account adoption, with old-writer
+  refusal and resumable registration of existing grants in place (no credential copies).
 - [ ] Test legacy v1/v2 providers, interrupted grant lineage, every migration boundary,
   restart idempotence, unknown files and a historical account replacement.
 - [ ] Migrate grants and identity-bound cache; retain provider-keyed history/caps/preferences
@@ -121,6 +121,12 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 
 ## Handoff
 
-Exact next action: run AccountRegistryTests to establish the missing-registry failure,
-then implement the protected account registry and account workflow in T-02.
-PD-039-01 and PD-039-02 are accepted by the owner. PD-039-03 is awaiting clarification.
+Exact next action: verify and save the T-02 workflow and T-03 in-place migration,
+then implement account-keyed Ledger preferences and the live budget projection.
+All three decisions are resolved; PD-039-03 explicitly includes full local deletion.
+
+Ruling: retain existing grant files in place during adoption, tracked by a protected
+legacy-location flag, rather than copying them to new directories. This removes extra
+secret checkpoints and cross-file cutover complexity; new accounts/reconnects use isolated
+GUID directories. Layout 2 blocks older writers before registration. Migration tests
+assert unchanged grant bytes, stable references on retry and separate legacy history.

@@ -9,7 +9,7 @@ scope_version: 1
 # Proposed implementation boundaries
 
 Owner accepted the account/migration and presentation recommendations recorded in
-[spec.md](spec.md). PD-039-03 remains a deletion-only clarification. This design does
+[spec.md](spec.md), and explicitly included full local deletion under PD-039-03. This design does
 not claim that live identity or migration tests have run. No new dependency or generic
 persistence framework.
 
@@ -75,15 +75,22 @@ Extend the current startup maintenance sequence before provider refresh starts. 
 version must prevent older writers from reopening the legacy slots after cutover. Do not
 reinterpret or rewrite the already-delivered preferences-only checkpoint as a grant backup.
 
-Under the existing exclusive root lease, resolve legacy provider pending generations using
-their current policy, allocate durable destination references once, and checkpoint the exact
-protected source generations. Record bounded migration intent before publishing destinations.
-Stage and validate account state/registry/preferences, commit the new layout only after all
-referenced state is valid, then clean up only recognized superseded grant artifacts. Retry
-uses the same references and recorded lineage. Corrupt registry or an ambiguous source/destination
-relationship enters recovery rather than creating empty replacement state. Encrypted checkpoints
-are recovery evidence, not permission to replay a predecessor grant; account sign-out removes
-all corresponding usable grant copies. Unknown files and reparse boundaries are preserved/rejected.
+Implementation refinement: adopt each existing provider store in place instead of copying grants.
+This removes the proposed cross-file grant cutover and extra credential checkpoints entirely.
+Under the existing exclusive root lease, publish layout 2 first so older writers refuse to run.
+Resolve legacy pending generations using their existing policy; register each verified binding
+once with a random app reference and an explicit protected legacy-location flag. Only one legacy
+location is permitted per provider. Persist completion after all slots are registered. A retry
+uses committed references; no credential is moved, copied or replayed by the account migration.
+An account reconnect later publishes an isolated new storage reference before cleaning the old
+legacy grant through its normal disconnect path. Corruption or uncertain rotation enters recovery.
+The existing provider format checkpoints keep their current meaning and cleanup rules.
+
+Codex account-scoped cache envelopes now include an app storage binding in version 3.
+Reject unbound legacy or foreign-bound caches rather than attributing them to the grant;
+the grant remains intact and a fresh successful quota fetch populates a bound cache.
+No provider identity is added to the plaintext cache. The other three providers already
+keep cache and verified identity together inside the protected record.
 
 Budget series were keyed by provider slots and carry no proof of historical identity.
 The PD-039-01 recommendation retains those bytes separately and excludes them from new-account

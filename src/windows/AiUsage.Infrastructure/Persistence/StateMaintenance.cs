@@ -16,6 +16,8 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
     private readonly IDiagnosticSink? diagnostics;
     private readonly Action<string>? boundary;
     private readonly Func<string, bool>? validatePreferences;
+    private readonly Func<CancellationToken, Task>? accountMigration;
+    private int TargetLayout => accountMigration is null ? 1 : 2;
     private readonly SemaphoreSlim gate = new(1, 1);
     private FileStream? lease;
     private bool disposed;
@@ -25,8 +27,9 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
     private string JournalPath => Path.Combine(root, "maintenance", "journal.v1.json");
     private string CheckpointPath => Path.Combine(root, "maintenance", "checkpoint.v1.bin");
 
-    public StateMaintenance(string ownedDirectory, Func<string, bool>? validatePreferences = null, IDiagnosticSink? diagnostics = null) : this(ownedDirectory, (Action<string>?)null)
-    { this.validatePreferences = validatePreferences; this.diagnostics = diagnostics; }
+    public StateMaintenance(string ownedDirectory, Func<string, bool>? validatePreferences = null, IDiagnosticSink? diagnostics = null,
+        Func<CancellationToken, Task>? accountMigration = null) : this(ownedDirectory, (Action<string>?)null)
+    { this.validatePreferences = validatePreferences; this.diagnostics = diagnostics; this.accountMigration = accountMigration; }
     internal StateMaintenance(string ownedDirectory, Action<string>? boundary)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownedDirectory);
@@ -45,7 +48,25 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            return Current = await Task.Run(() => Execute(retry, restoreId, token), token).ConfigureAwait(false);
+            var report = await Task.Run(() => Execute(retry, restoreId, token), token).ConfigureAwait(false);
+            if (report.Condition == MaintenanceCondition.Ready && accountMigration is not null)
+            {
+                try
+                {
+                    // Block older writers before adopting references; the root lease remains held.
+                    await Task.Run(CommitLayout, token).ConfigureAwait(false);
+                    await accountMigration(token).ConfigureAwait(false);
+                    report = report with { LayoutVersion = TargetLayout };
+                }
+                catch (ProviderException)
+                { report = new(MaintenanceCondition.Interrupted, TargetLayout, report.Checkpoint); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException or CryptographicException or JsonException)
+                {
+                    diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error);
+                    report = new(MaintenanceCondition.Interrupted, TargetLayout, report.Checkpoint);
+                }
+            }
+            return Current = report;
         }
         finally { gate.Release(); }
     }
@@ -59,7 +80,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
         {
             lease ??= ProviderStatePaths.Acquire(root, "state.lock");
             layout = ReadLayout();
-            if (layout > 1) return new(MaintenanceCondition.NewerSchema, layout, null);
+            if (layout > TargetLayout) return new(MaintenanceCondition.NewerSchema, layout, null);
             var journal = restoreId is null ? ReadJournal() : null;
             restoring |= journal?.Operation == "restore";
             if (journal is not null || restoreId is not null)
@@ -86,10 +107,10 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
                 diagnostics?.Signal(DiagnosticEvent.RecoveryCompleted);
                 return new(MaintenanceCondition.Ready, 1, summary);
             }
-            if (layout == 1)
+            if (layout is 1 or 2)
             {
                 ValidatePreferences(Read(TargetPath, 256 * 1024) ?? throw new IOException("Committed preferences missing."));
-                return new(MaintenanceCondition.Ready, 1, null);
+                return new(MaintenanceCondition.Ready, layout, null);
             }
             Check(TargetPath);
             if (File.Exists(TargetPath)) throw new IOException("Uncommitted target without journal.");
@@ -113,7 +134,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or CryptographicException or JsonException or ProviderException)
         {
             diagnostics?.Failure(lease is null ? DiagnosticEvent.LeaseUnavailable : DiagnosticEvent.PersistenceFailure, error);
-            if (lease is not null && layout is 0 or 1 && summary is null)
+            if (lease is not null && layout is 0 or 1 or 2 && summary is null)
             {
                 try { summary = Summary(ReadCheckpoint()); }
                 catch (Exception backupError) when (backupError is IOException or UnauthorizedAccessException or CryptographicException or JsonException or ProviderException) { }
@@ -170,7 +191,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
 
     private void WriteJournal(StateCheckpoint checkpoint, string operation) =>
         Write(JournalPath, JsonSerializer.SerializeToUtf8Bytes(new StateJournal(1, 0, 1, operation, checkpoint.Id), MaintenanceJson.Default.StateJournal));
-    private void CommitLayout() => Write(LayoutPath, JsonSerializer.SerializeToUtf8Bytes(new StateLayout(1, 1), MaintenanceJson.Default.StateLayout));
+    private void CommitLayout() => Write(LayoutPath, JsonSerializer.SerializeToUtf8Bytes(new StateLayout(1, TargetLayout), MaintenanceJson.Default.StateLayout));
 
     private void WriteCheckpoint(StateCheckpoint checkpoint)
     {
