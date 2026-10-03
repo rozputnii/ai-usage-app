@@ -420,10 +420,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-040 - [astra] Remove the AIU-011 provider-history retrieval
 - goal: G-003
-- status: in-progress
+- status: done
 - specification: docs/specs/AIU-040-remove-provider-history/spec.md
 - evidence: docs/specs/AIU-040-remove-provider-history/verification.md
 - selection-note: Owner selected implementation on 2026-10-03; remove retired retrieval after the completed AIU-039 product switch.
+- outcome-note: Removed obsolete Core/Infrastructure/session/console retrieval and registrations; Ledger retains local history. Security-lifecycle inventory and focused independent review passed. Infrastructure 611/611, Presentation 115/115, validator 80/80, documents, builds and targeted ordinary Windows smoke 2/2 passed. Initial environment/test-harness failures and unrun live/package-install checks remain in verification.
 - depends_on: [AIU-039]
 - trigger: owner-selection
 - outcome: Following D-184, the AIU-011 provider-history retrieval is removed: the Core provider-history contract, the Codex and Copilot history clients, parsers and session routes, and the live and demo history sources and their registration. No provider-history request remains. Local history from AIU-036 is the only history shown.

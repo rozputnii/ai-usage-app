@@ -1,7 +1,7 @@
 ---
 id: AIU-040
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner selected implementation of AIU-040 on 2026-10-03. This specification derives the existing backlog acceptance criteria and D-184 within that authorized scope.

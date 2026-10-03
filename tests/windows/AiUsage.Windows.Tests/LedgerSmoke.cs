@@ -173,23 +173,48 @@ public sealed class LedgerSmoke
                 Assert.True(Wait(() => !IsWindowVisible(handle)), "Close should hide the main window");
                 var desktop = automation.GetDesktop();
                 var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
-                AutomationElement? icon = taskbar?.FindFirstDescendant(cf => cf.ByName("AI Usage").And(cf.ByControlType(ControlType.Button)));
-                if (icon is null || icon.IsOffscreen)
-                {
-                    taskbar!.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"))!.AsButton().Invoke();
-                    Assert.True(Wait(() => (icon = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"))?
-                        .FindFirstDescendant(cf => cf.ByName("AI Usage").And(cf.ByControlType(ControlType.Button)))) is not null));
-                }
-                icon!.AsButton().Invoke();
+                AutomationElement[] Icons(AutomationElement? surface) => surface?
+                    .FindAllDescendants(cf => cf.ByName("AI Usage").And(cf.ByControlType(ControlType.Button)))
+                    .Where(icon => !icon.IsOffscreen).ToArray() ?? [];
                 AutomationElement? row = null;
-                Assert.True(Wait(() =>
+                var trayAttempts = new List<string>();
+                bool OpenOwnedTray(AutomationElement icon)
                 {
-                    row = desktop.FindAllChildren().Where(w => w.Properties.NativeWindowHandle.ValueOrDefault != handle &&
-                        IsWindowVisible(w.Properties.NativeWindowHandle.ValueOrDefault) &&
-                        GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
-                        .SelectMany(w => w.FindAllDescendants()).FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal));
-                    return row is not null;
-                }), "The tray should expose the second account independently");
+                    icon.AsButton().Invoke();
+                    trayAttempts.Add("invoked " + icon.Properties.AutomationId.ValueOrDefault);
+                    // Explorer owns every tray button. Match the opened window to this test's
+                    // process before inspecting accounts; another AI Usage instance may be running.
+                    if (Wait(() =>
+                    {
+                        row = desktop.FindAllChildren().Where(w => w.Properties.NativeWindowHandle.ValueOrDefault != handle &&
+                            IsWindowVisible(w.Properties.NativeWindowHandle.ValueOrDefault) &&
+                            GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
+                            .SelectMany(w => w.FindAllDescendants()).FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal));
+                        return row is not null;
+                    }, TimeSpan.FromSeconds(5))) return true;
+                    Keyboard.Press(VirtualKeyShort.ESCAPE);
+                    return false;
+                }
+                foreach (var icon in Icons(taskbar))
+                    if (OpenOwnedTray(icon)) break;
+                if (row is null)
+                {
+                    for (var index = 0; ; index++)
+                    {
+                        taskbar!.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"))!.AsButton().Invoke();
+                        AutomationElement? overflow = null;
+                        Assert.True(Wait(() =>
+                        {
+                            overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
+                            return Icons(overflow).Length > 0;
+                        }));
+                        var icons = Icons(overflow);
+                        trayAttempts.Add("overflow icons=" + icons.Length);
+                        if (index >= icons.Length) { Keyboard.Press(VirtualKeyShort.ESCAPE); break; }
+                        if (OpenOwnedTray(icons[index])) break;
+                    }
+                }
+                Assert.True(row is not null, string.Join("; ", trayAttempts));
                 row!.Focus();
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 Keyboard.Press(VirtualKeyShort.RETURN);
@@ -215,10 +240,10 @@ public sealed class LedgerSmoke
         }
     }
 
-    private static bool Wait(Func<bool> check)
+    private static bool Wait(Func<bool> check, TimeSpan? timeout = null)
     {
         var elapsed = Stopwatch.StartNew();
-        while (elapsed.Elapsed < TimeSpan.FromSeconds(30))
+        while (elapsed.Elapsed < (timeout ?? TimeSpan.FromSeconds(30)))
         {
             TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
             try { if (check()) return true; }
