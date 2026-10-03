@@ -3,6 +3,7 @@ namespace AiUsage.Infrastructure.Providers;
 internal sealed class ProviderTransportOptions
 {
     internal static ProviderTransportOptions Default { get; } = new();
+    public AiUsage.Infrastructure.Diagnostics.FileDiagnostics? Diagnostics { get; init; }
 
     public TimeSpan RequestDeadline { get; init; } = TimeSpan.FromSeconds(15);
     public TimeSpan PooledConnectionLifetime { get; init; } = TimeSpan.FromMinutes(5);

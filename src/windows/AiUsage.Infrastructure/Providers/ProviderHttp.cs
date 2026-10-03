@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using AiUsage.Infrastructure.Diagnostics;
 
 namespace AiUsage.Infrastructure.Providers;
 
@@ -26,21 +27,31 @@ internal static class ProviderHttp
         if (!request.Headers.Contains("User-Agent"))
             request.Headers.UserAgent.ParseAdd("AiUsage/0.1");
         request.Headers.Accept.ParseAdd("application/json");
+        var capture = options?.Diagnostics is { } diagnostics ? new ProviderCapture(diagnostics, request) : null;
+        HttpResponseMessage? response = null;
+        long? observed = null;
+        TimeSpan? retryAfter = null;
+        var state = "transport-incomplete";
         try
         {
-            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
-            var retryAfter = response.Headers.RetryAfter?.Delta;
+            response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
+            retryAfter = response.Headers.RetryAfter?.Delta;
             if (retryAfter is null && response.Headers.RetryAfter?.Date is { } date)
                 retryAfter = date - clock.GetUtcNow();
             if (retryAfter < TimeSpan.Zero)
                 retryAfter = TimeSpan.Zero;
             if (response.Content.Headers.ContentLength > MaximumResponseBytes)
+            {
+                state = "oversized";
                 throw new ProviderHttpException(TransportFailure.InvalidResponse, response.StatusCode);
+            }
             await response.Content.LoadIntoBufferAsync(MaximumResponseBytes, timeout.Token).ConfigureAwait(false);
             JsonDocument? body = null;
             try
             {
                 using var stream = await response.Content.ReadAsStreamAsync(timeout.Token).ConfigureAwait(false);
+                observed = stream.Length;
+                state = observed == 0 ? "empty" : "malformed";
                 body = await JsonDocument.ParseAsync(stream, new JsonDocumentOptions { MaxDepth = 32 }, timeout.Token).ConfigureAwait(false);
             }
             catch (JsonException)
@@ -48,12 +59,15 @@ internal static class ProviderHttp
                 if (response.IsSuccessStatusCode)
                     throw new ProviderHttpException(TransportFailure.InvalidResponse, response.StatusCode);
             }
+            capture?.Complete("complete-sanitized", response, body, observed, retryAfter);
             return new ProviderHttpResponse(response.StatusCode, body, retryAfter);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
+            state = "timeout";
             throw new ProviderHttpException(TransportFailure.Timeout);
         }
+        catch (OperationCanceledException) { state = "cancelled"; throw; }
         catch (HttpRequestException)
         {
             throw new ProviderHttpException(TransportFailure.NetworkFailure);
@@ -61,6 +75,11 @@ internal static class ProviderHttp
         catch (IOException)
         {
             throw new ProviderHttpException(TransportFailure.NetworkFailure);
+        }
+        finally
+        {
+            capture?.Complete(state, response, null, observed, retryAfter);
+            response?.Dispose();
         }
     }
 

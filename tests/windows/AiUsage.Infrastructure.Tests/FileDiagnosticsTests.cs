@@ -1,0 +1,106 @@
+using System.Text.Json;
+using AiUsage.Core.Diagnostics;
+using AiUsage.Infrastructure.Diagnostics;
+using Xunit;
+
+namespace AiUsage.Infrastructure.Tests;
+
+public sealed class FileDiagnosticsTests : IDisposable
+{
+    private readonly string root = Path.Combine(Path.GetTempPath(), "aiu-log-test-" + Guid.NewGuid().ToString("N"));
+    private readonly Clock clock = new();
+
+    [Fact]
+    public async Task EventsAreJsonAndExceptionValuesNeverReachDisk()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        Exception failure;
+        try { throw new InvalidOperationException("canary-token\nforged-event", new IOException("private-path-canary")); }
+        catch (Exception error) { failure = error; }
+        failure.Data["token"] = "data-canary";
+        log.Failure(DiagnosticEvent.OperationFailure, failure);
+        Assert.True(await log.FlushAsync());
+        var text = string.Join('\n', Directory.GetFiles(log.DirectoryPath, "application-*.jsonl").Select(ReadShared));
+        Assert.DoesNotContain("canary", text);
+        Assert.DoesNotContain(root, text);
+        var records = text.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(line => JsonDocument.Parse(line).RootElement.Clone()).ToArray();
+        var item = Assert.Single(records, e => e.GetProperty("eventId").GetString() == "OperationFailure");
+        Assert.Equal(1, item.GetProperty("schemaVersion").GetInt32());
+        Assert.Contains("InvalidOperationException", item.ToString());
+        Assert.Contains(nameof(EventsAreJsonAndExceptionValuesNeverReachDisk), item.ToString());
+        Assert.Contains("IOException", item.ToString());
+    }
+
+    [Fact]
+    public async Task TraceIsOptInAndCriticalIsImmediatelyReadable()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        log.Record(DiagnosticEvent.DispatchCompleted, DiagnosticCategory.Unexpected, DiagnosticSeverity.Debug);
+        log.Fatal(DiagnosticEvent.UnhandledFailure, new InvalidOperationException("canary"), terminating: true);
+        var critical = Assert.Single(Directory.GetFiles(log.DirectoryPath, "critical-*.jsonl"));
+        using var record = JsonDocument.Parse(File.ReadAllText(critical));
+        Assert.True(record.RootElement.GetProperty("terminating").GetBoolean());
+        Assert.DoesNotContain("canary", record.RootElement.ToString());
+        await log.FlushAsync();
+        Assert.Empty(Directory.GetFiles(log.DirectoryPath, "trace-*.jsonl"));
+        log.Fatal(DiagnosticEvent.UnhandledFailure, null, terminating: true);
+        Assert.Single(Directory.GetFiles(log.DirectoryPath, "critical-*.jsonl"));
+    }
+
+    [Fact]
+    public async Task RetentionUsesOriginalTimeAndCalendarMonthAndPreservesUnknownFiles()
+    {
+        clock.Now = new(2026, 1, 31, 12, 0, 0, TimeSpan.Zero);
+        using (var log = new FileDiagnostics(root, new DiagnosticOptions { TraceEnabled = true }, clock))
+        {
+            log.Record(DiagnosticEvent.DispatchCompleted, DiagnosticCategory.Unexpected, DiagnosticSeverity.Debug);
+            log.Fatal(DiagnosticEvent.UnhandledFailure, null, true);
+            await log.FlushAsync();
+        }
+        var folder = Path.Combine(root, "logs");
+        var unknown = Path.Combine(folder, "user-notes.txt");
+        File.WriteAllText(unknown, "keep");
+        clock.Now += TimeSpan.FromHours(72);
+        using (var log = new FileDiagnostics(root, clock: clock))
+        {
+            await log.FlushAsync();
+            Assert.Empty(Directory.GetFiles(folder, "trace-*.jsonl"));
+            Assert.Single(Directory.GetFiles(folder, "critical-*.jsonl"));
+        }
+        clock.Now = new(2026, 2, 28, 12, 0, 0, TimeSpan.Zero);
+        using (var log = new FileDiagnostics(root, clock: clock))
+        {
+            await log.FlushAsync();
+            Assert.Empty(Directory.GetFiles(folder, "critical-*.jsonl"));
+            Assert.DoesNotContain("20260131", string.Join(',', Directory.GetFiles(folder, "application-*.jsonl")));
+        }
+        DiagnosticFiles.DeleteOwned(root);
+        Assert.Equal("keep", File.ReadAllText(unknown));
+        Assert.Single(Directory.GetFiles(folder));
+    }
+
+    [Fact]
+    public async Task UnavailableStorageDoesNotThrowOrHideLoss()
+    {
+        Directory.CreateDirectory(root);
+        File.WriteAllText(Path.Combine(root, "logs"), "blocked");
+        using var log = new FileDiagnostics(root, clock: clock);
+        log.Failure(DiagnosticEvent.OperationFailure, new IOException("canary"));
+        await log.FlushAsync();
+        log.Fatal(DiagnosticEvent.UnhandledFailure, null, true);
+        Assert.True(log.LostRecords > 0);
+    }
+
+    public void Dispose() { if (Directory.Exists(root)) Directory.Delete(root, true); }
+    internal static string ReadShared(string path)
+    {
+        using var file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var reader = new StreamReader(file);
+        return reader.ReadToEnd();
+    }
+    private sealed class Clock : TimeProvider
+    {
+        public DateTimeOffset Now { get; set; } = new(2026, 10, 3, 12, 0, 0, TimeSpan.Zero);
+        public override DateTimeOffset GetUtcNow() => Now;
+    }
+}
