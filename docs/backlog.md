@@ -133,6 +133,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - depends_on: [AIU-006]
 - trigger: incremental
 - outcome: Implement local sanitized diagnostics, diagnose-only repair UX, plain export, safe staged Replace, settings reset and factory reset.
+- scope-note: AIU-043 owns expanded file logging, provider-response evidence and crash diagnostics. Reuse that pipeline here; portable Replace, broad repair/export UX and reset delivery remain in AIU-013. This split does not select either implementation.
 
 ## AIU-014 - Trusted direct Preview/Stable distribution
 - goal: G-004
@@ -432,6 +433,17 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - acceptance: (1) Before any work, an owner decision amends the constitution line "Do not confuse consumer quotas with API billing" and D-183's exclusion, and names the authorized credentials (admin or usage API keys), their storage under DPAPI and a security-lifecycle review. (2) Provider evidence, from source and live, establishes each usage or billing endpoint, its unit, its currency and minor units, its period and its freshness. (3) API spend is never summed with, converted into or shown as part of a subscription quota. (4) No figure appears without an established source; an unknown value is never 0.
 - supersedes: Nothing. It needs an owner amendment of D-183.
 - source: docs/decisions/accepted.md (D-186)
+
+## AIU-043 - Structured file logging, provider-response evidence and crash diagnostics
+- goal: G-003
+- status: idea
+- depends_on: [AIU-028, AIU-037]
+- trigger: owner-selection
+- outcome: Make application failures diagnosable from correlated local files and retain current provider-response evidence for AI-assisted parser development. Cover normal operations, provider requests, UI/dispatcher and background faults, startup/shutdown and fatal crashes, with a dedicated forced-flush path. Separate traces (3 days), application and provider evidence (7 days), and critical incidents (one calendar month), with bounded disk use and secret-free persistence.
+- specification: docs/specs/AIU-043-file-logging/spec.md
+- evidence: docs/specs/AIU-043-file-logging/verification.md
+- registration-note: Owner request, 2026-10-03: prepare a complete task using brainstorming, especially full current provider responses and forced logger flush before fatal termination. Only task preparation is selected. The specification and design are drafts; implementation, live requests and a change to credential disclosure rules are not authorized by this registration.
+- scope-note: Full response capture means pre-model response structure and policy-approved original values, with explicit redaction/completeness metadata. It never means plaintext tokens, cookies or arbitrary unclassified payload values. AIU-039 is not a prerequisite; instrument whichever presentation is active and retain coverage across its later switch. Required focused implementation review must respect the disabled Codex-subagent policy.
 
 ## Deferred clarifications, not forgotten
 
