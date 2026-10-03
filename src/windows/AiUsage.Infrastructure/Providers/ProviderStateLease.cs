@@ -287,6 +287,17 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
         byte[] ciphertext;
         try
         {
+            if (plaintext.Length > policy.MaximumBytes - 4096 && policy.WithoutMigrationCache is { } withoutCache)
+            {
+                // Normalization can outgrow a valid v1 cache. Recover only that cache;
+                // the verified checkpoint still retains the original encrypted generation.
+                CryptographicOperations.ZeroMemory(plaintext);
+                next = withoutCache(next);
+                policy.Validate(next);
+                if (policy.Revision(next) != policy.Revision(state) || policy.ParentRevision(next) != policy.ParentRevision(state))
+                    throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+                plaintext = JsonSerializer.SerializeToUtf8Bytes(next, policy.JsonType);
+            }
             if (plaintext.Length > policy.MaximumBytes - 4096) throw new ProviderException(ProviderFailureKind.StorageUnavailable);
             ciphertext = ProtectedData.Protect(plaintext, policy.Entropy, DataProtectionScope.CurrentUser);
         }

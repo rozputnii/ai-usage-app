@@ -13,7 +13,8 @@ internal sealed class ClaudeStateStore
         (state, parent) => state with { Version = 2, Revision = Guid.NewGuid(), ParentRevision = parent }, Validate,
         ReadState: bytes => ProviderStateMigration.Decode(bytes, ClaudeStateJson.Default.ClaudeStoredState, Validate),
         NeedsMigration: state => state.Version == 1,
-        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeClaude(state.CachedQuota) });
+        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeClaude(state.CachedQuota) },
+        WithoutMigrationCache: state => state with { CachedQuota = null });
 
     public ClaudeStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
     internal ClaudeStateStore(string ownedDirectory, Action? afterStage)

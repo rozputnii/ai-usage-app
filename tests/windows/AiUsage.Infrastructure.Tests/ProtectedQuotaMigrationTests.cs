@@ -150,6 +150,39 @@ public sealed class ProtectedQuotaMigrationTests : IDisposable
         Assert.Equal("synthetic-successor", after.RootElement.GetProperty(provider == "Copilot" ? "AccessToken" : "RefreshToken").GetString());
     }
 
+    [Theory]
+    [InlineData("Claude")]
+    [InlineData("Copilot")]
+    [InlineData("Antigravity")]
+    public async Task OversizedNormalizedCacheDropsAloneDuringMigration(string provider)
+    {
+        var opaque = new string('a', 600_000);
+        var quota = "{\"Groups\":[{\"Id\":\"" + opaque + "\",\"Name\":\"" + opaque +
+            "\",\"Windows\":[{\"Id\":\"monthly\",\"UsedPercent\":25}]}]}";
+        var original = await Seed(provider, quota);
+        Assert.True(original.Length < 2 * 1024 * 1024);
+        var staged = false;
+        var interrupted = await Assert.ThrowsAsync<ProviderException>(() => Load(provider, () =>
+        {
+            staged = true;
+            throw new IOException("synthetic interruption after cache-only recovery");
+        }));
+        Assert.True(staged);
+        Assert.Equal(ProviderFailureKind.StorageUnavailable, interrupted.Kind);
+        Assert.Equal(original, await File.ReadAllBytesAsync(PathFor(provider), TestContext.Current.CancellationToken));
+        var result = await Load(provider);
+        Assert.Equal(2, result.Version);
+        Assert.Equal(Revision, result.Revision);
+        Assert.Equal(Parent, result.Parent);
+        Assert.Null(result.Quota);
+        Assert.Equal(original, await File.ReadAllBytesAsync(PathFor(provider) + ".v1.bak", TestContext.Current.CancellationToken));
+        using var before = Unprotect(provider, original);
+        using var after = Unprotect(provider, await File.ReadAllBytesAsync(PathFor(provider), TestContext.Current.CancellationToken));
+        foreach (var property in before.RootElement.EnumerateObject().Where(p => p.Name is not ("Version" or "CachedQuota")))
+            Assert.True(JsonElement.DeepEquals(property.Value, after.RootElement.GetProperty(property.Name)), property.Name);
+        Assert.Equal(Revision, (await Load(provider)).Revision);
+    }
+
     private async Task<byte[]> Seed(string provider, string quota, int version = 1)
     {
         Directory.CreateDirectory(root);

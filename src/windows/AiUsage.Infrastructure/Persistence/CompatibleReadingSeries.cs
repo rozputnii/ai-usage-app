@@ -14,6 +14,9 @@ public static class CompatibleReadingSeries
         if (facts.LegacyKey is not { } alias || alias.Provider != facts.Key.Provider) return native;
         if ((await store.ReadAsync(native, token).ConfigureAwait(false)).Value.Count > 0) return native;
         var legacy = new ReadingSeriesKey(accountTarget, alias);
-        return (await store.ReadAsync(legacy, token).ConfigureAwait(false)).Value.Count > 0 ? legacy : native;
+        var readings = (await store.ReadAsync(legacy, token).ConfigureAwait(false)).Value;
+        var balance = facts.Key.Provider == "codex" && facts.Key.Family == "CX-B";
+        return readings.Count > 0 && readings.All(r => r.IsBalance == balance && QuantityMath.IsValidFor(r.Value, facts))
+            ? legacy : native;
     }
 }

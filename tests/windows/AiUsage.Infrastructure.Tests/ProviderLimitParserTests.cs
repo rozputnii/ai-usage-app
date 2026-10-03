@@ -11,6 +11,32 @@ namespace AiUsage.Infrastructure.Tests;
 
 public sealed class ProviderLimitParserTests
 {
+    [Fact]
+    public void UnlimitedCopilotRetainsIndependentNativePercentages()
+    {
+        var quota = CopilotQuotaParser.Parse(Bytes("""{"quota_snapshots":{"chat":{"unlimited":true,"entitlement":0,"percent_remaining":73}}}"""), Now);
+        var facts = Assert.Single(quota.Limits!.Limits);
+        Assert.Equal(LimitValueState.Unlimited, facts.Limit.State);
+        Assert.Equal(73m, facts.RemainingPercent);
+        Assert.Equal(27m, facts.UsedPercent);
+        Assert.Null(quota.Groups.Single().Windows.Single().UsedPercent);
+    }
+
+    [Fact]
+    public void ClaudeUnknownKindsKeepDistinctStableKeysForTheSameScope()
+    {
+        const string a = """{"kind":"future-a","percent":10,"scope":{"model":{"display_name":"Same"}}}""";
+        const string b = """{"kind":"future-b","percent":20,"scope":{"model":{"display_name":"Same"}}}""";
+        Assert.True(ClaudeQuotaParser.TryParse(Bytes("{\"limits\":[" + a + "," + b + "]}"), Now, out var both));
+        Assert.True(ClaudeQuotaParser.TryParse(Bytes("{\"limits\":[" + b + "," + a + "]}"), Now, out var reversed));
+        Assert.True(ClaudeQuotaParser.TryParse(Bytes("{\"limits\":[" + b + "]}"), Now, out var single));
+        var first = both.Quota.Limits!.Limits.Single(f => f.UsedPercent == 10);
+        var second = both.Quota.Limits.Limits.Single(f => f.UsedPercent == 20);
+        Assert.NotEqual(first.Key, second.Key);
+        Assert.Equal(first.Key, reversed.Quota.Limits!.Limits.Single(f => f.UsedPercent == 10).Key);
+        Assert.Equal(second.Key, single.Quota.Limits!.Limits.Single().Key);
+    }
+
     private static readonly DateTimeOffset Now = new(2026, 10, 3, 12, 0, 0, TimeSpan.Zero);
     private static byte[] Bytes(string value) => Encoding.UTF8.GetBytes(value);
 

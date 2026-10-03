@@ -10,7 +10,8 @@ internal sealed record ProviderStatePolicy<TState>(
     Func<TState, Guid?, TState> Stamp, Action<TState> Validate,
     int MaximumBytes = 2 * 1024 * 1024, bool SeparateJournal = false,
     Func<ReadOnlyMemory<byte>, TState>? ReadState = null,
-    Func<TState, bool>? NeedsMigration = null, Func<TState, TState>? Migrate = null) where TState : class
+    Func<TState, bool>? NeedsMigration = null, Func<TState, TState>? Migrate = null,
+    Func<TState, TState>? WithoutMigrationCache = null) where TState : class
 {
     internal Task<ProviderStateLease<TState>> AcquireAsync(string directory, Action? afterStage, CancellationToken cancellationToken) => Task.Run(() =>
     {

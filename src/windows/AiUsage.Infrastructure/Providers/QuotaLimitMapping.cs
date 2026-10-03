@@ -86,8 +86,11 @@ internal static class QuotaLimitMapping
             {
                 var group = quota.Groups[i];
                 var entitlement = Property(Property(Property(root, "quota_snapshots"), group.Id), "entitlement");
+                var remaining = Number(Property(Property(Property(root, "quota_snapshots"), group.Id), "percent_remaining"));
+                remaining = remaining is >= 0 and <= 100 ? remaining : null;
                 facts[i] = WithStart(facts[i] with
                 {
+                    RemainingPercent = remaining, UsedPercent = remaining is { } percent ? 100 - percent : null,
                     Reset = reset, Limit = facts[i].Limit.State == LimitValueState.Unknown && entitlement.ValueKind == JsonValueKind.Null
                         ? LimitValue.ExplicitNull : facts[i].Limit
                 });
@@ -133,14 +136,16 @@ internal static class QuotaLimitMapping
                 var kind = Text(Property(item, "kind"));
                 if (kind is "session" or "weekly_all") continue;
                 var scope = Text(Property(Property(Property(item, "scope"), "model"), "display_name"));
-                var discriminator = scope ?? Pair(kind ?? "unknown", ordinal.ToString(CultureInfo.InvariantCulture));
+                var family = kind == "weekly_scoped" ? "CL-M" : "CL-unknown";
+                var discriminator = scope is null ? Pair(kind ?? "unknown", ordinal.ToString(CultureInfo.InvariantCulture))
+                    : kind == "weekly_scoped" ? scope : Pair(kind ?? "unknown", scope);
                 // Duplicate opaque scopes have ambiguous identities; keep each separate.
                 var native = discriminator;
-                while (!keys.Add(native)) native = Pair(discriminator, ordinal++.ToString(CultureInfo.InvariantCulture));
+                while (!keys.Add(Pair(family, native))) native = Pair(discriminator, ordinal++.ToString(CultureInfo.InvariantCulture));
                 if (kind == "weekly_scoped") facts.RemoveAll(f => f.Key.Family == "CL-M" && f.Key.NativeDiscriminator == native);
                 var used = Number(Property(item, "percent"));
                 used = used is >= 0 and <= 100 ? used : null;
-                facts.Add(WithStart(new(new("claude", kind == "weekly_scoped" ? "CL-M" : "CL-unknown", native),
+                facts.Add(WithStart(new(new("claude", family, native),
                     LimitKind.PercentWindow, "percent", LimitValue.NotApplicable)
                 {
                     UsedPercent = used, RemainingPercent = used is { } u ? 100 - u : null,

@@ -10,6 +10,32 @@ namespace AiUsage.Infrastructure.Tests;
 
 public sealed class QuotaV2StorageTests : IDisposable
 {
+    [Theory]
+    [InlineData("percent", false, false)]
+    [InlineData("requests", true, false)]
+    [InlineData("requests", false, true)]
+    [InlineData("mixed", false, false)]
+    public async Task HistoryAliasRequiresCompatibleCounterUnitsAndDirection(string unit, bool balance, bool compatible)
+    {
+        var quota = AiUsage.Infrastructure.Providers.Copilot.CopilotQuotaParser.Parse(Encoding.UTF8.GetBytes(
+            """{"quota_snapshots":{"chat":{"entitlement":100,"remaining":75,"percent_remaining":75}}}"""), Now.AddMinutes(5));
+        var facts = Assert.Single(quota.Limits!.Limits);
+        var legacy = new ReadingSeriesKey("account", facts.LegacyKey!);
+        var native = new ReadingSeriesKey("account", facts.Key);
+        using var store = new LocalBudgetStore(root);
+        var firstUnit = unit == "mixed" ? "percent" : unit;
+        await store.AppendAsync([new(legacy, new CountQuantity(20, firstUnit), Now) { IsBalance = balance }], TestContext.Current.CancellationToken);
+        if (unit == "mixed")
+            await store.AppendAsync([new(legacy, new CountQuantity(21, "requests"), Now.AddMinutes(1))], TestContext.Current.CancellationToken);
+        await new QuotaObservationRecorder(store).RecordAsync("account", "copilot", new(ProviderSessionStatus.QuotaAvailable, quota), TestContext.Current.CancellationToken);
+        Assert.Equal(compatible ? legacy : native, await CompatibleReadingSeries.ResolveAsync(store, "account", facts, TestContext.Current.CancellationToken));
+        var oldRuns = (await store.ReadAsync(legacy, TestContext.Current.CancellationToken)).Value;
+        Assert.Equal(compatible || unit == "mixed" ? 2 : 1, oldRuns.Count);
+        Assert.Equal(firstUnit, Assert.IsType<CountQuantity>(oldRuns[0].Value).Unit);
+        if (unit == "mixed") Assert.Equal("requests", Assert.IsType<CountQuantity>(oldRuns[1].Value).Unit);
+        Assert.Equal(compatible ? 0 : 1, (await store.ReadAsync(native, TestContext.Current.CancellationToken)).Value.Count);
+    }
+
     private readonly string root = Path.Combine(Path.GetTempPath(), "AiUsage.V2.Tests", Guid.NewGuid().ToString("N"));
     private static readonly DateTimeOffset Now = new(2026, 10, 3, 12, 0, 0, TimeSpan.Zero);
 

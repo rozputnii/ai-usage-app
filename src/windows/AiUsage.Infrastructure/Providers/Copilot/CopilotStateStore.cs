@@ -13,7 +13,8 @@ internal sealed class CopilotStateStore
         (state, parent) => state with { Version = 2, Revision = Guid.NewGuid(), ParentRevision = parent }, Validate,
         ReadState: bytes => ProviderStateMigration.Decode(bytes, CopilotStateJson.Default.CopilotStoredState, Validate),
         NeedsMigration: state => state.Version == 1,
-        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeQuota("copilot", state.CachedQuota) });
+        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeQuota("copilot", state.CachedQuota) },
+        WithoutMigrationCache: state => state with { CachedQuota = null });
 
     public CopilotStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
     internal CopilotStateStore(string ownedDirectory, Action? afterStage)

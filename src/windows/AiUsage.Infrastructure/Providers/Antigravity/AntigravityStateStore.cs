@@ -13,7 +13,8 @@ internal sealed class AntigravityStateStore
         (state, parent) => state with { Version = 2, Revision = Guid.NewGuid(), ParentRevision = parent }, Validate,
         ReadState: bytes => ProviderStateMigration.Decode(bytes, AntigravityStateJson.Default.AntigravityStoredState, Validate),
         NeedsMigration: state => state.Version == 1,
-        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeQuota("antigravity", state.CachedQuota) });
+        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeQuota("antigravity", state.CachedQuota) },
+        WithoutMigrationCache: state => state with { CachedQuota = null });
 
     public AntigravityStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
     internal AntigravityStateStore(string ownedDirectory, Action? afterStage)
