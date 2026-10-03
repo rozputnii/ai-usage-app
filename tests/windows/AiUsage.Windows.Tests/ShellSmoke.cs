@@ -46,7 +46,8 @@ public sealed partial class ShellSmoke
     // The old-package phase deliberately supports the historical presentation; the new phase uses Ledger.
     private static AutomationElement? SettingsEntry(AutomationElement window) =>
         window.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) ??
-        window.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton"));
+        window.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton")) ??
+        window.FindFirstDescendant(cf => cf.ByName("Settings"));
     private static bool AlwaysOnTopLoaded(AutomationElement window) =>
         window.FindFirstDescendant(cf => cf.ByName("Always on top, on")) is not null ||
         window.FindFirstDescendant(cf => cf.ByAutomationId("AlwaysOnTopSwitch"))?.Patterns.Toggle.PatternOrDefault?.ToggleState.Value == ToggleState.On;

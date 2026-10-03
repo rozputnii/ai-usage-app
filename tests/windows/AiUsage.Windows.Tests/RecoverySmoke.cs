@@ -164,7 +164,7 @@ public sealed partial class ShellSmoke
             var handle = element.Properties.NativeWindowHandle.ValueOrDefault;
             return handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == (uint)pid &&
                 (element.FindFirstDescendant(cf => cf.ByAutomationId("RecoveryTitle")) is not null ||
-                 SettingsEntry(element) is not null);
+                 SettingsEntry(element) is not null || element.Properties.Name.ValueOrDefault == "AI Usage");
         })?.AsWindow();
 
     private static void WaitForRecovery(Window window, string title)
@@ -174,6 +174,7 @@ public sealed partial class ShellSmoke
         Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByName("Retry recovery")) is not null, TimeSpan.FromSeconds(5)));
     }
     private static void WaitForDashboard(Window window) => Assert.True(WaitUntil(() =>
-        window.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")) is not null &&
+        (window.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")) is not null ||
+         window.FindFirstDescendant(cf => cf.ByAutomationId("CardScroller")) is not null) &&
         !window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Local data needs recovery", StringComparison.Ordinal)), TimeSpan.FromSeconds(15)));
 }

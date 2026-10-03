@@ -123,14 +123,16 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 
 ## Handoff
 
-Exact next action: prepare the remaining installed-package acceptance against the built
-2026.10.357.0 artifact and identify the specific isolated install/update check for owner
-authorization. Live two-account admission, refresh, restart and selected sign-out/reconnect
-passed; induced live provider failures remain NOT_RUN.
+Exact next action: collect the running installed automatic offline retry result from
+.ai-usage-local/AIU-039/final-acceptance/evidence-03/run/automatic-ui.log, then record
+its actual verdict and reconcile final acceptance. Installed update and recovery passed
+with synthetic data in a network-disabled Sandbox. Live two-account admission, refresh,
+restart and selected sign-out/reconnect passed; live failure injection is BLOCKED by
+automatic approval review ("blocked by policy"), with no bypass attempted.
 The owner authorized this live check on 2026-10-03 and performs browser sign-in personally.
 Implementation, synthetic regressions, ordinary unpackaged Windows interactions and
-independent review corrections are recorded in verification.md. Installed package activation,
-update and real-account migration remain NOT_RUN; do not mark the feature complete.
+independent review corrections are recorded in verification.md. Real-account migration
+remains NOT_RUN and is separate from the completed synthetic installed upgrade.
 All three scope decisions are resolved; PD-039-03 explicitly includes full local deletion.
 
 Ruling: retain existing grant files in place during adoption, tracked by a protected

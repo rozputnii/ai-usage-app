@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string] $InputDirectory,
-    [Parameter(Mandatory)][string] $EvidenceDirectory
+    [Parameter(Mandatory)][string] $EvidenceDirectory,
+    [switch] $VerifyAutomaticRefresh
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -85,6 +86,18 @@ try {
     & $smoke -noLogo -explicit on -method '*UpgradeRecovery' *> (Join-Path $EvidenceDirectory 'old-ui.log')
     if ($LASTEXITCODE -ne 0) { throw 'Old package UI failed.' }
     $report.oldUi = 'PASS'
+    if ($VerifyAutomaticRefresh) {
+        # An independent, synthetic non-rotating grant drives offline retry in the network-disabled guest.
+        $cachedQuota = @{ FetchedAt = [DateTimeOffset]::UtcNow.AddMinutes(-6).ToString('o'); PlanType = 'synthetic'; Groups = @(
+            @{ Id = 'premium_interactions'; Name = 'Premium requests'; Windows = @(
+                @{ Id = 'monthly'; UsedPercent = 25; RemainingPercent = 75; ResetsAt = [DateTimeOffset]::UtcNow.AddDays(7).ToString('o'); Amount = @{ Used = 25; Remaining = 75; Limit = 100; Unit = 'requests' } }
+            ) }
+        ) }
+        $copilot = @{ Version = 1; Revision = [Guid]::NewGuid().ToString(); AccountId = '123456789'; AccessToken = 'synthetic-offline-copilot-token'; NeedsReauthentication = $false; CachedQuota = $cachedQuota } | ConvertTo-Json -Depth 8 -Compress
+        $copilotBytes = [Text.Encoding]::UTF8.GetBytes($copilot)
+        $copilotEntropy = [Text.Encoding]::UTF8.GetBytes('AiUsage.Copilot.State.v1')
+        [IO.File]::WriteAllBytes((Join-Path $state 'providers/copilot.state'), [Security.Cryptography.ProtectedData]::Protect($copilotBytes, $copilotEntropy, [Security.Cryptography.DataProtectionScope]::CurrentUser))
+    }
     Add-AppxPackage -Path $next
     $updated = Get-AppxPackage -Name AiUsage.Dev
     if ([version]$updated.Version -ne $versions[1] -or $updated.PackageFamilyName -ne $family) { throw 'Same-family update failed.' }
@@ -101,6 +114,13 @@ try {
     $decoded = [Security.Cryptography.ProtectedData]::Unprotect([IO.File]::ReadAllBytes($grantPath), $entropy, [Security.Cryptography.DataProtectionScope]::CurrentUser)
     if ([Text.Encoding]::UTF8.GetString($decoded) -ne [Text.Encoding]::UTF8.GetString($plain)) { throw 'Synthetic credential decryption mismatch.' }
     $report.credentials = 'PASS'
+    if ($VerifyAutomaticRefresh) {
+        $report.stage = 'Automatic offline refresh retry'; Save-Report
+        $env:AIU_SMOKE_EVIDENCE_DIRECTORY = Join-Path $EvidenceDirectory 'automatic'
+        & $smoke -noLogo -explicit on -method '*PackagedAutomaticRefreshRetriesOfflineWithoutInput' *> (Join-Path $EvidenceDirectory 'automatic-ui.log')
+        if ($LASTEXITCODE -ne 0) { throw 'Installed automatic refresh check failed.' }
+        $report.automaticRefresh = 'PASS'
+    }
     $report.oldPackageSha256 = (Get-FileHash -LiteralPath $old).Hash
     $report.newPackageSha256 = (Get-FileHash -LiteralPath $next).Hash
     $report.status = 'PASS'

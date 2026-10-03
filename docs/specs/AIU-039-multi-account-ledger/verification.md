@@ -27,9 +27,9 @@
 ## Acceptance
 
 The implementation and synthetic/unpackaged checks below cover AC-01 through AC-08.
-AC-09 remains incomplete for installed-package execution. AC-11 has live PASS evidence
+AC-09 has installed update/recovery evidence; automatic refresh is still running. AC-11 has live PASS evidence
 for two-account admission, refresh, restart and selected sign-out/reconnect; induced
-provider-failure checks remain NOT_RUN. AC-10 findings have targeted correction evidence.
+provider-failure injection is BLOCKED by automatic approval review. AC-10 findings have targeted correction evidence.
 The feature stays in progress; fixture, source and build evidence never establish live success.
 
 | Acceptance | Current evidence and limits |
@@ -38,9 +38,9 @@ The feature stays in progress; fixture, source and build evidence never establis
 | AC-03/05 | PASS synthetic migration/storage: shared v1/v2 provider regression suite, registry stage recovery, legacy adoption boundaries, interrupted maintenance upgrade, unassigned old data, labels/caps/reading persistence and preferences-only recovery. Real owned-state migration NOT_RUN. |
 | AC-06/07 | PASS deterministic parser, budget, history, preference and command tests. PASS live rendering of an exhausted subscription weekly limit and a separate second account's extra usage; other plan shapes NOT_RUN. |
 | AC-08 | PASS unpackaged Windows: launch, second demo account, history/settings, tray restore at account, exit, recovery, confirmed deletion and resumed deletion/restart. Interactive external sign-in challenges remain part of AC-11. |
-| AC-09 | PASS automated regressions, validation, Windows and unsigned package builds. Installed activation/update/automatic refresh NOT_RUN. |
+| AC-09 | PASS automated regressions, validation, Windows and unsigned package builds. PASS installed activation, same-family update and recovery in an offline Sandbox with synthetic data. Automatic retry still running; see final acceptance below. |
 | AC-10 | Independent reviews performed. Original findings and targeted fixes recorded below; no unresolved material findings. Live privacy evidence NOT_RUN. |
-| AC-11 | PASS live two-account admission, independent refresh, full restart, selected sign-out and reconnect without a duplicate; induced provider-failure behavior NOT_RUN. See the dated live observations below. |
+| AC-11 | PASS live two-account admission, independent refresh, full restart, selected sign-out and reconnect without a duplicate. Live failure injection BLOCKED by automatic approval review; synthetic error coverage is separate. See the dated observations below. |
 
 ## T-01 account session construction, 2026-10-03
 
@@ -265,3 +265,41 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   Only the existing SDK missing-symbol-tool warning; no installation or publication.
 - Document validation PASS (valid true, no diagnostics); diff whitespace check PASS.
   Overall AIU-039 acceptance gaps remain unchanged.
+
+## Final installed acceptance, 2026-10-03
+
+- Owner asked to finish the remaining work. Product reference dcd9e52; the only new
+  implementation changes in this step are the Windows acceptance harness and evidence.
+  Full Infrastructure regression rerun PASS 645/645 (15.246s), resolving the earlier
+  outdated parser expectation. Earlier Presentation 115/115 remains applicable.
+- Environment: disposable Windows Sandbox, networking and clipboard disabled, only
+  curated package/runtime/test input and an empty output directory mapped. No owner
+  state or repository is mapped. All guest grants and readings are synthetic.
+- Package copies 2026.9.2202.0 and 2026.10.357.0 were signed with a temporary development
+  certificate. Its private key was removed after signing; trust was imported only in
+  the guest. No host trust store, installed product, release or feed was changed.
+- Prerequisite installer BLOCKED: the .NET MSI stalled in the first disposable guest.
+  A fresh guest instead used the existing Microsoft .NET 10.0.12 runtime files;
+  runtime inventory was verified. This does not establish installer success.
+- Initial harness attempts FAIL: legacy Settings was a tab rather than a button,
+  and the older window lacked current automation identifiers. Locators now support
+  that historical UI while retaining native process ownership. Reinstallation after
+  removal in the same guest failed with 0x80073CF9; final acceptance uses a fresh guest.
+- PASS: actual old-package install and activation, loaded legacy Always on top,
+  and clean exit (UpgradeRecovery old phase, 1/1, 5.734s).
+- PASS: same-family installed update to 2026.10.357.0; unchanged synthetic protected
+  grant and legacy preferences across package replacement.
+- PASS: installed recovery (UpgradeRecovery new phase, 1/1, 12.142s): filesystem-sharing
+  interruption, process restart and retry, corrupt-preference restoration from the
+  original checkpoint, newer-layout refusal and secret-free recovery-summary export.
+  Original grant bytes still decrypt to the synthetic fixture; preferences are preserved.
+- Automatic offline retry is still running against the production timer, with a
+  synthetic Copilot grant and cached 25-of-100 reading. No clock acceleration, manual
+  refresh or product test switch is used. This run is not yet PASS.
+- Live Claude failure injection BLOCKED: automatic approval review rejected launching
+  the verification app through a process-local proxy, stating only "blocked by policy".
+  The proxy was never used by the app and was stopped; the live app was restored through
+  ordinary launch. No alternative bypass was attempted. Offline synthetic behavior is
+  separate evidence and cannot establish live Claude outage handling or token renewal.
+- Local ignored evidence: .ai-usage-local/AIU-039/final-acceptance/evidence-03/run.
+  Earlier environment/harness failures are retained in evidence and evidence-02.
