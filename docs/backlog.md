@@ -456,15 +456,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-044 - Restore account-owned monetary usage and preserve work budgets
 - goal: G-003
-- status: idea
+- status: in-progress
 - depends_on: [AIU-039]
 - trigger: owner-selection
 - outcome: Replace blanket CL-X suppression with monetary information inside its owning account. Preserve supported monthly work-budget presentation and the design's separate on-extra-usage mark, which measures spending since a 5h/7d window filled. Render from evidenced facts without guessing personal versus work from a label, wire variant or finite limit; unresolved purpose/scope gets neutral factual presentation rather than disappearing.
-- acceptance: AC-01 through AC-06 in the draft specification cover account-owned presentation, finite monthly monetary budgets, unchanged spend-since-full semantics, unknown/disabled states, multi-account and stored-data preservation, and relevant ordinary Windows verification. No second account-like card or duplicate pool; no fabricated personal allowance, reset or prepaid balance.
+- acceptance: AC-01 through AC-06 in the specification cover account-owned presentation, finite monthly monetary budgets, unchanged spend-since-full semantics, unknown/disabled states, multi-account and stored-data preservation, and relevant ordinary Windows verification. No second account-like card or duplicate pool; no fabricated personal allowance, reset or prepaid balance.
 - specification: docs/specs/AIU-044-account-monetary-usage/spec.md
 - evidence: docs/specs/AIU-044-account-monetary-usage/verification.md
-- registration-note: Owner requested this follow-up on 2026-10-03 after live AIU-039 verification. Standalone extra-usage cards are disabled now in the live Ledger. This entry does not select future implementation.
-- scope-note: Owner requested this task-definition revision on 2026-10-04 and retained the design's on-extra-usage baseline, withdrawing the proposed daily baseline for that mark. The draft does not introduce a personal/work switch, new provider access, standalone API billing or data migration. Real work-plan mapping remains unverified; source research and synthetic examples must not be described as live proof. Implementation is not selected.
+- registration-note: Owner requested this follow-up on 2026-10-03 after live AIU-039 verification. The owner selected implementation on 2026-10-04.
+- scope-note: Owner requested this task-definition revision on 2026-10-04 and retained the design's on-extra-usage baseline, withdrawing the proposed daily baseline for that mark. The draft does not introduce a personal/work switch, new provider access, standalone API billing or data migration. Real work-plan mapping remains unverified; source research and synthetic examples must not be described as live proof. Implementation follows the selected specification and its bounded presentation design.
 
 ## Deferred clarifications, not forgotten
 

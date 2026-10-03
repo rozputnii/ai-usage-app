@@ -9,7 +9,12 @@ using DisplayLimit = AiUsage.Features.Ledger.Contract.LimitValue;
 
 namespace AiUsage.Adapters.Live;
 
-internal sealed record LedgerLimit(LimitFacts Facts, ReadingSeriesKey Series, IReadOnlyList<ReadingRun> Runs);
+// Scope must be established by source evidence. Current Claude wire mappings do not establish it.
+internal enum MonetaryScope { Unknown, Account, Shared }
+internal sealed record LedgerLimit(LimitFacts Facts, ReadingSeriesKey Series, IReadOnlyList<ReadingRun> Runs)
+{
+    public MonetaryScope MonetaryScope { get; init; }
+}
 
 /// <summary>Core facts and calculations projected once into display units. No transport or persistence.</summary>
 internal static class LiveLedgerProjection
@@ -39,8 +44,6 @@ internal static class LiveLedgerProjection
         foreach (var data in normalized)
         {
             var facts = data.Facts;
-            // AIU-044 will integrate extra usage into its account; standalone cards are paused.
-            if (facts.Key.Family == "CL-X") continue;
             // Only a known shared pool may consume its short window into the period card.
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;
@@ -67,13 +70,16 @@ internal static class LiveLedgerProjection
             if (health is AccountHealth.SyncFailedFresh or AccountHealth.SyncFailedStale) marks.Add(new(MarkKind.SyncFailed, account.LastFailureAt));
             if (health == AccountHealth.SignInExpired) marks.Add(new(MarkKind.SignInExpired));
             var spend = normalized.FirstOrDefault(l => l.Facts.Key.Family == "CL-X");
-            if (spend is not null)
+            if (!stale && spend is { MonetaryScope: MonetaryScope.Account } && spend.Facts.Enabled != false &&
+                QuantityMath.TryAlign(spend.Facts.Used, spend.Runs.LastOrDefault(r => r.Series == spend.Series && r.FirstSeen <= now)?.Value,
+                    out var reportedSpend, out var observedSpend, out _) && reportedSpend == observedSpend)
             {
-                foreach (var window in new[] { data, shortData }.OfType<LedgerLimit>().Where(x => x.Facts.Duration is not null))
+                foreach (var window in new[] { data, shortData }.OfType<LedgerLimit>().Where(x => x.Facts.Duration is not null &&
+                    x.Facts.UsedPercent == 100 && x.Facts.Reset?.At > now))
                 {
                     var evidence = ExtraUsageEvidence.Calculate(window.Runs, window.Series, window.Facts.Duration!.Value, spend.Runs, spend.Series, now);
                     if (evidence.OnExtraUsage != true) continue;
-                    marks.Add(new(MarkKind.OnExtraUsage, evidence.FullSince, Amount: Amount(evidence.SpendSinceFull),
+                    marks.Add(new(MarkKind.OnExtraUsage, evidence.FullSince, window.Facts.Reset?.At, Amount: Amount(evidence.SpendSinceFull),
                         Currency: evidence.SpendSinceFull?.Currency, Exponent: evidence.SpendSinceFull?.Exponent));
                     break;
                 }
@@ -82,8 +88,10 @@ internal static class LiveLedgerProjection
         }
         if (!account.Connected || cards.Count == 0)
             cards = [new(id + ":status", null, CardLayout.Note, ScaleModel.Percent, PeriodModel.Unknown,
-                !account.Connected ? CardState.SignedOut : normalized.Any(l => l.Facts.Key.Family == "CL-X") ? CardState.NoDisplayedLimits : CardState.NotReady, new(stale, readingAt), [], LimitFigures.UsedOnly(null),
+                !account.Connected ? CardState.SignedOut : CardState.NotReady, new(stale, readingAt), [], LimitFigures.UsedOnly(null),
                 null, null, null, null, !account.Connected || health == AccountHealth.SignInExpired ? CardAction.SignIn : CardAction.None, null)];
+        if (cards.Any(c => c.Monetary is null))
+            cards = cards.Select(c => c.Monetary is not null && c.Action == CardAction.SignIn ? c with { Action = CardAction.None } : c).ToList();
         return new(id, Provider(account.Provider), name, health, readingAt, account.LastFailureAt, null, cards);
     }
 
@@ -133,8 +141,41 @@ internal static class LiveLedgerProjection
         var target = facts.Kind != LimitKind.PercentWindow && (scale is { Kind: ScaleKind.Count, UnitName: not (null or "unknown") } ||
             scale is { Kind: ScaleKind.Money, Currency: not null, Exponent: >= 0 and <= 18 })
             ? CardId(data.Series) : null;
-        return new(CardId(data.Series), Label(facts, null), layout, scale, Period(facts, period), state, new(stale, null), marks,
+        var card = new LimitCardModel(CardId(data.Series), Label(facts, null), layout, scale, Period(facts, period), state, new(stale, null), marks,
             figures, null, reset, capModel, target, state is CardState.NoCap or CardState.LimitUnknown && target is not null ? CardAction.SetCap : CardAction.None, null);
+        return facts.Key.Family == "CL-X" ? MonetaryCard(card, data, cap, period) : card;
+    }
+
+    private static LimitCardModel MonetaryCard(LimitCardModel card, LedgerLimit data, PersonalCap? cap, PeriodBounds? period)
+    {
+        var facts = data.Facts;
+        var scope = data.MonetaryScope;
+        var qualification = scope switch
+        {
+            MonetaryScope.Account => "Account spending",
+            MonetaryScope.Shared => "Shared spending · not a personal allowance",
+            _ => "Spending scope unverified · may be shared"
+        };
+        qualification += facts.Reset is null ? " · provider period unknown" : " · provider period";
+        if (period?.EndOrigin == ValueOrigin.Assumed) qualification += " · calendar month assumed";
+        var compatible = facts.Used is MoneyQuantity used && Amount(used) is not null &&
+            (facts.Limit.Value is null || QuantityMath.TryAlign(used, facts.Limit.Value, out _, out _, out _));
+        var unavailable = facts.Enabled == false ? "Spending disabled · retained readings and caps kept"
+            : scope != MonetaryScope.Account ? "Budget and cap editing unavailable until spending scope is established"
+            : !compatible ? "Budget unavailable until compatible amounts and currency are known"
+            : period is null ? "Budget and cap editing unavailable until the period is known" : null;
+        static MonetaryAmount? Native(Quantity? value) => value is MoneyQuantity m ? new(m.MinorUnits, m.Exponent, m.Currency) : null;
+        var details = new MonetaryDetails(Native(facts.Used), Native(facts.Limit.Value), card.Figures.ProviderLimit.Kind,
+            Native(cap?.Amount), facts.Enabled, qualification, unavailable);
+        if (unavailable is null) return card with { Monetary = details };
+        return card with
+        {
+            Monetary = details, Layout = CardLayout.Note,
+            State = facts.Enabled == false ? CardState.NotIncluded : CardState.PeriodUnknown,
+            Figures = LimitFigures.UsedOnly(Amount(facts.Used)) with { ProviderLimit = ProviderLimit(facts) },
+            Cap = card.Cap is { } retained ? retained with { Binding = false, Status = card.Cap.Status == CapStatus.CurrencyMismatch ? CapStatus.CurrencyMismatch : CapStatus.Inactive } : null,
+            CapTargetId = null, Action = CardAction.None
+        };
     }
 
     private static CardState State(LimitFacts facts, Quantity? used, BudgetResult result, PeriodBounds? period,
@@ -192,7 +233,7 @@ internal static class LiveLedgerProjection
     private static string? Label(LimitFacts facts, QuotaSnapshot? quota) => facts.Key.Family switch
     {
         "CL-S" or "CL-W" or "CX-P" or "CX-S" => null, "CL-M" => facts.Key.NativeDiscriminator,
-        "CL-X" => "Extra usage", "CX-B" => "Credits", "CX-I" => "Individual limit", "GH-P" => "Premium requests",
+        "CL-X" => "Spending", "CX-B" => "Credits", "CX-I" => "Individual limit", "GH-P" => "Premium requests",
         "GH-C" => "Chat", "GH-I" => "Completions", _ => quota?.Groups.FirstOrDefault(g => g.Id == Group(facts, quota))?.Name ?? facts.Key.NativeDiscriminator
     };
 

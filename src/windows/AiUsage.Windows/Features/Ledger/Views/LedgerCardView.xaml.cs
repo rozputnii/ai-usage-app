@@ -15,6 +15,15 @@ internal sealed partial class LedgerCardView : UserControl
 
     public LedgerCardView() => InitializeComponent();
 
+    public LedgerCardView? MonetarySection
+    {
+        set
+        {
+            MonetaryHost.Content = value;
+            MonetaryDivider.Visibility = value is null ? Visibility.Collapsed : Visibility.Visible;
+        }
+    }
+
     public LimitCardViewModel ViewModel
     {
         get;
@@ -164,15 +173,15 @@ internal sealed partial class LedgerCardView : UserControl
     private Visibility ShowCompactOver(bool hasOver, bool compact) => Show(compact && hasOver);
     private Visibility ShowComfortableOver(bool hasOver, bool compact) => Show(!compact && hasOver);
 
-    private Brush SurfaceFill(bool fresh) => (Brush)LedgerTheme.Find(fresh ? "LedgerCardFreshSurfaceBrush" : "LedgerCardSurfaceBrush")!;
-    private Brush SurfaceStroke(bool fresh) => LedgerTheme.Solid(fresh ? "OkP" : "LineCard");
+    private Brush SurfaceFill(bool fresh, bool section) => section ? LedgerTheme.Solid("Transparent") : (Brush)LedgerTheme.Find(fresh ? "LedgerCardFreshSurfaceBrush" : "LedgerCardSurfaceBrush")!;
+    private Brush SurfaceStroke(bool fresh, bool section) => LedgerTheme.Solid(section ? "Transparent" : fresh ? "OkP" : "LineCard");
     private Brush NameBrush(bool stale) => LedgerTheme.Solid(stale ? "Ink2" : "Ink");
     private Brush HistoryBackground(bool open) => LedgerTheme.Solid(open ? "ControlOn" : "Transparent");
     private Brush PillBackground(Tone tone) => LedgerTheme.TonePill(tone);
     private Brush PillDot(Tone tone) => LedgerTheme.ToneMark(tone);
     private Brush PillText(Tone tone) => LedgerTheme.ToneText(tone);
 
-    private Thickness CardPadding(bool compact) => compact ? new Thickness(12, 8, 12, 8) : new Thickness(15, 13, 15, 12);
+    private Thickness CardPadding(bool compact, bool section) => section ? new Thickness(0) : compact ? new Thickness(12, 8, 12, 8) : new Thickness(15, 13, 15, 12);
     private double InnerGap(bool compact) => compact ? 6 : 10;
     private double StripGap(bool compact, bool hasStrip) => hasStrip ? (compact ? 3 : 8) : 0;
     private Thickness BarMargin(bool compact) => compact ? new Thickness(0, -2, 0, -2) : new Thickness(0);

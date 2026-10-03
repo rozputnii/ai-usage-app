@@ -197,10 +197,10 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         var caps = configuration.Caps.Select(cap =>
         {
             var id = LiveLedgerProjection.CardId(cap.Series);
-            var card = models.SelectMany(a => a.Cards).FirstOrDefault(c => c.CapTargetId == id);
+            var card = models.SelectMany(a => a.Cards).FirstOrDefault(c => c.CardId == id);
             var name = models.FirstOrDefault(a => a.AccountId == cap.Series.AccountTarget)?.DisplayName ?? "Unassigned legacy account";
             var facts = limits.GetValueOrDefault(id)?.Facts;
-            return new CapSettingModel(id, card?.CapTargetId, name, card?.ScopeLabel, card?.Scale ??
+            return new CapSettingModel(id, card?.CapTargetId, name, card?.ScopeLabel,
                 (cap.Cap.Amount is MoneyQuantity money ? new(ScaleKind.Money, null, money.Currency, money.Exponent) : ScaleModel.Count(((CountQuantity)cap.Cap.Amount).Unit)),
                 LiveLedgerProjection.Amount(cap.Cap.Amount) ?? 0, card?.Cap?.Status ?? CapStatus.Unmatched,
                 card?.Cap?.Binding ?? false, card?.Figures.ProviderLimit ?? AiUsage.Features.Ledger.Contract.LimitValue.Unknown,

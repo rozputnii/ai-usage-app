@@ -19,8 +19,8 @@
     GettingFocus="OnGettingFocus"
     LosingFocus="OnLosingFocus">
   <!-- Spec 6.2: name, scope, marks and pill; then the today row, the period row and the footer, or fact lines. -->
-  <lc:SquircleSurface x:Name="Surface" Radius="20" Fill="{x:Bind SurfaceFill(ViewModel.IsNew), Mode=OneWay}" Stroke="{x:Bind SurfaceStroke(ViewModel.IsNew), Mode=OneWay}"
-                      Padding="{x:Bind CardPadding(ViewModel.IsCompact), Mode=OneWay}">
+  <lc:SquircleSurface x:Name="Surface" Radius="20" Fill="{x:Bind SurfaceFill(ViewModel.IsNew, ViewModel.IsAccountSection), Mode=OneWay}" Stroke="{x:Bind SurfaceStroke(ViewModel.IsNew, ViewModel.IsAccountSection), Mode=OneWay}"
+                      Padding="{x:Bind CardPadding(ViewModel.IsCompact, ViewModel.IsAccountSection), Mode=OneWay}">
     <StackPanel Spacing="{x:Bind InnerGap(ViewModel.IsCompact), Mode=OneWay}">
       <Grid ColumnSpacing="8" MinHeight="20">
         <Grid.ColumnDefinitions>
@@ -30,7 +30,7 @@
         </Grid.ColumnDefinitions>
         <lc:ShrinkFirstPanel>
           <Grid>
-          <TextBlock Text="{x:Bind ViewModel.Name, Mode=OneWay}" Style="{StaticResource LedgerCardNameText}" VerticalAlignment="Center"
+          <TextBlock Text="{x:Bind ViewModel.HeaderName, Mode=OneWay}" Style="{StaticResource LedgerCardNameText}" VerticalAlignment="Center"
                    Foreground="{x:Bind NameBrush(ViewModel.IsStale), Mode=OneWay}"
                    Visibility="{x:Bind Hide(ViewModel.IsRenaming), Mode=OneWay}" />
           <TextBox x:Name="RenameBox" Text="{x:Bind ViewModel.RenameText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource LedgerNameBox}"
@@ -73,6 +73,12 @@
       </Grid>
       <TextBlock Text="Enter saves · Esc cancels · the name is yours, the provider is unchanged" Style="{StaticResource LedgerCaptionText}" Margin="0,-4,0,0" TextWrapping="Wrap"
                  Visibility="{x:Bind Show(ViewModel.IsRenaming), Mode=OneWay}" />
+      <TextBlock Text="{x:Bind ViewModel.MonetaryQualification, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
+                 Visibility="{x:Bind ShowText(ViewModel.MonetaryQualification), Mode=OneWay}" />
+      <TextBlock Text="{x:Bind ViewModel.MonetarySummary, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
+                 Visibility="{x:Bind ShowText(ViewModel.MonetarySummary), Mode=OneWay}" />
+      <TextBlock Text="{x:Bind ViewModel.BudgetUnavailable, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
+                 Visibility="{x:Bind ShowText(ViewModel.BudgetUnavailable), Mode=OneWay}" />
 
       <!-- Bars: today row, period row, footer or cap editor. -->
       <Grid x:Name="Bars" ColumnSpacing="10" Visibility="{x:Bind BarsVisibility(ViewModel.Visual.NoteLines.Count), Mode=OneWay}"
@@ -147,7 +153,7 @@
                   <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{x:Bind Key}" Style="{StaticResource LedgerCaptionText}" />
-                <TextBlock Grid.Column="1" Text="{x:Bind Value}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerInk2Brush}" />
+                <TextBlock Grid.Column="1" Text="{x:Bind Value}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerInk2Brush}" TextWrapping="Wrap" />
                 <TextBlock Grid.Column="2" Text="{x:Bind Right}" Style="{StaticResource LedgerCaptionText}" />
               </Grid>
             </DataTemplate>
@@ -158,6 +164,8 @@
         <lc:CapEditorView x:Name="NoteCapEditor" Margin="50,0,0,0" Editor="{x:Bind ViewModel.CapEditor, Mode=OneWay}"
                           Visibility="{x:Bind Show(ViewModel.IsEditingCap), Mode=OneWay}" />
       </StackPanel>
+      <Border x:Name="MonetaryDivider" Height="1" Background="{StaticResource LedgerUnderlineBrush}" Visibility="Collapsed" />
+      <ContentControl x:Name="MonetaryHost" HorizontalContentAlignment="Stretch" IsTabStop="False" />
     </StackPanel>
   </lc:SquircleSurface>
 </UserControl>

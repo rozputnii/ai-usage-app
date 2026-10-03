@@ -37,3 +37,25 @@ credential store, user-state file or imported design artifact was changed.
 
 Next action after owner selection: verify the monetary source's scope evidence and
 define the minimal account-owned rendering against the draft specification.
+
+
+## Implementation checkpoint, 2026-10-04
+
+Base: `e97c7a5`. Implementation selected by the owner in the current request.
+The presentation contract adjustment and source uncertainty are recorded in
+[design.md](design.md). No storage schema or provider transport changed.
+
+- PASS: Infrastructure suite, 611 tests, after stale extra-usage evidence regression.
+- PASS: Presentation suite, 122 tests at the first integrated checkpoint; subsequent
+  monetary-state, native-cap and parser tests passed in targeted runs.
+- PASS: document validation after adding design metadata; no diagnostics.
+- PASS: isolated unpackaged Debug build, zero warnings/errors.
+- BLOCKED (default output only): an existing user app locks the standard Debug path.
+  The separate `.ai-usage-local/AIU-044/app` output avoids that process.
+- FAIL (under investigation): first monetary Windows smoke; screenshot cleanup masked
+  its original failure. Harness now records its stage and performs best-effort capture.
+- NOT_RUN: final package build and independent review at this checkpoint.
+- NOT_RUN: live provider scope/work-plan verification. No source credentials accessed.
+
+Exact next action: diagnose the recorded monetary smoke stage, then complete Windows
+verification, required independent review and final evidence before completion.

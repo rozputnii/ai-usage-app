@@ -16,6 +16,7 @@ internal static class DemoLedgerScenarios
     public const string DayOff = "day-off";
     public const string FirstRun = "first-run";
     public const string SignIn = "sign-in";
+    public const string Monetary = "monetary";
 
     public static IReadOnlyList<(string Id, string Title)> All { get; } =
     [
@@ -25,6 +26,7 @@ internal static class DemoLedgerScenarios
         (DayOff, "Day off · Sat 17 Oct"),
         (FirstRun, "First run"),
         (SignIn, "Sign-in strip and expired sign-in"),
+        (Monetary, "Account spending"),
     ];
 
     private static readonly TimeSpan Bst = TimeSpan.FromHours(1);
@@ -42,8 +44,36 @@ internal static class DemoLedgerScenarios
         DayOff => DayOffSnapshot(workToday),
         FirstRun => Empty(BriefNow),
         SignIn => SignInSnapshot(),
+        Monetary => MonetarySnapshot(),
         _ => BriefSnapshot(),
     };
+
+    private static LedgerSnapshot MonetarySnapshot()
+    {
+        var snapshot = BriefSnapshot();
+        var money = new LimitCardModel("money-mixed", "Spending", CardLayout.Pool, ScaleModel.Money("USD", 2),
+            PeriodModel.Month(true), CardState.OnTrack, Freshness.Fresh(), [],
+            new(110, 100, 125, 20, LimitValue.Known(500), 300, null, null, null), null, AssumedMonth,
+            new(300, true, CapStatus.Applied), "money-mixed", CardAction.None, null)
+        {
+            Monetary = new(new(11000, 2, "USD"), new(50000, 2, "USD"), LimitValueKind.Known, new(30000, 2, "USD"), true,
+                "Account spending · provider period unknown · calendar month assumed", null)
+        };
+        var unknown = money with
+        {
+            CardId = "money-only", Layout = CardLayout.Note, State = CardState.PeriodUnknown,
+            Figures = LimitFigures.UsedOnly(12.50m) with { ProviderLimit = LimitValue.Known(200) },
+            Cap = null, CapTargetId = null,
+            Monetary = new(new(1250, 2, "EUR"), new(20000, 2, "EUR"), LimitValueKind.Known, null, true,
+                "Spending scope unverified · may be shared · provider period unknown",
+                "Budget and cap editing unavailable until spending scope is established")
+        };
+        return snapshot with { Accounts =
+        [
+            snapshot.Accounts[0] with { DisplayName = "Mixed account", Cards = [snapshot.Accounts[0].Cards[0], money] },
+            new("money-account", ProviderKind.Claude, "Money only", AccountHealth.Ok, BriefNow, null, null, [unknown])
+        ] };
+    }
 
     // ---- Shared card builders (reference defaults) ----
 

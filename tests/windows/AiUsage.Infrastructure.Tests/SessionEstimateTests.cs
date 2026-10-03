@@ -125,6 +125,10 @@ public sealed class SessionEstimateTests
         var start = Run(0, "2026-10-06 10:00") with { Series = spendKey, Value = new MoneyQuantity(1000, 2, "USD") };
         var end = start with { FirstSeen = Now, LastConfirmed = Now, Value = new MoneyQuantity(1275, 2, "USD") };
         var result = ExtraUsageEvidence.Calculate([below, full], Key, TimeSpan.FromDays(7), [start, end], spendKey, Now);
+        Assert.Null(ExtraUsageEvidence.Calculate([below, full with { LastConfirmed = Now.AddMinutes(-16) }], Key,
+            TimeSpan.FromDays(7), [start, end], spendKey, Now).OnExtraUsage);
+        Assert.Null(ExtraUsageEvidence.Calculate([below, full], Key, TimeSpan.FromDays(7),
+            [start, end with { FirstSeen = Now.AddMinutes(-16), LastConfirmed = Now.AddMinutes(-16) }], spendKey, Now).OnExtraUsage);
         Assert.True(result.OnExtraUsage);
         Assert.Equal(new MoneyQuantity(275, 2, "USD"), result.SpendSinceFull);
         Assert.Null(ExtraUsageEvidence.Calculate([full], Key, TimeSpan.FromDays(7), [start, end], spendKey, Now).OnExtraUsage);

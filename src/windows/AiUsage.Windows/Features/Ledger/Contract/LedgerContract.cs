@@ -64,7 +64,15 @@ internal sealed record LimitCardModel(
     CapModel? Cap,
     string? CapTargetId,
     CardAction Action,
-    DayOffPreview? DayOff);
+    DayOffPreview? DayOff)
+{
+    public MonetaryDetails? Monetary { get; init; }
+}
+
+// Presentation-only native facts; separate scales prevent a mismatched limit being relabeled.
+internal sealed record MonetaryAmount(long MinorUnits, int? Exponent, string? Currency);
+internal sealed record MonetaryDetails(MonetaryAmount? Used, MonetaryAmount? ProviderLimit, LimitValueKind LimitKind,
+    MonetaryAmount? PersonalCap, bool? Enabled, string Qualification, string? BudgetUnavailable);
 
 internal enum CardLayout { FiveHourAndPeriod, Period, Pool, UsedOnly, Note }
 
@@ -167,7 +175,7 @@ internal enum ResetProvenance { Provider, Assumed }
 
 internal sealed record CapModel(decimal Amount, bool Binding, CapStatus Status);
 
-internal enum CapStatus { Applied, Unmatched, CurrencyMismatch }
+internal enum CapStatus { Applied, Unmatched, CurrencyMismatch, Inactive }
 
 /// <summary>Day-off tooltip figures: the next work day's share before and after today's use.</summary>
 internal sealed record DayOffPreview(DayOfWeek NextWorkDay, decimal ShareBefore, decimal ShareAfter);

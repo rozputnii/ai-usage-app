@@ -84,25 +84,29 @@ public sealed class LiveLedgerProjectionTests
     }
 
     [Fact]
-    public void ExtraUsageCardsAreHiddenWithoutRemovingTheirAccount()
+    public void MonetaryReadingsRemainVisibleUnderTheirAccountWithoutClassification()
     {
-        var weekly = Weekly();
-        var spend = new LimitFacts(new("claude", "CL-X", "extra"), LimitKind.MonetaryPool, "USD", FactValue.Unknown)
+        var spend = new LimitFacts(new("claude", "CL-X", "extra"), LimitKind.MonetaryPool, "USD", FactValue.Finite(new MoneyQuantity(5000, 2, "USD")))
         { Used = new MoneyQuantity(100, 2, "USD"), AllowsCalendarFallback = true };
-        var quota = new QuotaSnapshot(Now, null, [], null, null, null, null);
-        var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
-        foreach (var enabled in new[] { true, false })
+        var account = new AccountSnapshot(Account, "claude", true,
+            new(ProviderSessionStatus.QuotaAvailable, new QuotaSnapshot(Now, null, [], null, null, null, null)), false, null);
+        foreach (var enabled in new bool?[] { true, false, null })
+        foreach (var name in new[] { "Work", "Personal", "Anything" })
         {
             var extra = Data(spend with { Enabled = enabled });
-            var model = LiveLedgerProjection.Account(account, "Work", [Data(weekly), extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
-            Assert.Equal(LiveLedgerProjection.CardId(Data(weekly).Series), Assert.Single(model.Cards).CardId);
-            var onlyExtra = LiveLedgerProjection.Account(account, "Work", [extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
-            Assert.Equal(AccountHealth.Ok, onlyExtra.Health);
-            var placeholder = Assert.Single(onlyExtra.Cards);
-            Assert.Equal(Account.ToString("N") + ":status", placeholder.CardId);
-            Assert.Null(placeholder.Figures.Used);
-            var visual = CardVisuals.Build(placeholder, onlyExtra, ValueMode.Used, Now);
-            Assert.Equal("No subscription limits to display", Assert.Single(visual.NoteLines).Value);
+            var model = LiveLedgerProjection.Account(account, name, [Data(Weekly()), extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+            Assert.Equal(2, model.Cards.Count);
+            var money = Assert.Single(model.Cards, c => c.ScopeLabel == "Spending");
+            Assert.Equal(LiveLedgerProjection.CardId(extra.Series), money.CardId);
+            Assert.Equal(1m, money.Figures.Used);
+            Assert.Null(money.Figures.TodayEnd);
+            Assert.Null(money.Figures.EffectiveLimit);
+            var only = LiveLedgerProjection.Account(account, name, [extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+            Assert.Equal(money.CardId, Assert.Single(only.Cards).CardId);
+            var visual = CardVisuals.Build(money, model, ValueMode.Left, Now);
+            Assert.Contains(visual.NoteLines, l => l.Value.Contains("1.00 USD", StringComparison.Ordinal));
+            Assert.Contains(visual.NoteLines, l => l.Value.Contains("50.00 USD", StringComparison.Ordinal));
+            Assert.DoesNotContain(visual.NoteLines, l => l.Value.Contains("left", StringComparison.Ordinal));
         }
     }
 
@@ -169,7 +173,7 @@ public sealed class LiveLedgerProjectionTests
         var end = start with { Value = new MoneyQuantity(1275, 2, "USD"), FirstSeen = Now, LastConfirmed = Now };
         var quota = new QuotaSnapshot(Now, null, [], null, null, null, null) { Limits = new(Now, null, SnapshotSource.ProviderApi, "test", [facts, spend]) };
         var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
-        AccountModel Project(ReadingRun[] spends) => LiveLedgerProjection.Account(account, "Work", [new(facts, key, [below, full]), new(spend, spendKey, spends)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        AccountModel Project(ReadingRun[] spends) => LiveLedgerProjection.Account(account, "Work", [new(facts, key, [below, full]), new(spend, spendKey, spends) { MonetaryScope = MonetaryScope.Account }], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
         var mark = Assert.Single(Project([start, end]).Cards[0].Marks, m => m.Kind == MarkKind.OnExtraUsage);
         Assert.Equal(2.75m, mark.Amount);
         Assert.Equal("USD", mark.Currency);

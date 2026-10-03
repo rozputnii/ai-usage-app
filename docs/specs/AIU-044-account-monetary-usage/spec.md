@@ -1,10 +1,10 @@
 ---
 id: AIU-044
 type: feature
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: The owner requested a task-definition update on 2026-10-04 after identifying blanket CL-X suppression. The owner explicitly retained the design's spend-since-window-exhaustion meaning of on extra usage. The presentation approach below is a proposal derived from that request; implementation has not been selected.
+approval_basis: The owner selected implementation on 2026-10-04, following this specification, preserving supported monthly budgets and spending since window exhaustion, with verification, review, commit and push.
 ---
 
 # Account-owned monetary usage

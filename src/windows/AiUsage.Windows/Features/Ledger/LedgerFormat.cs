@@ -43,6 +43,16 @@ internal static class LedgerFormat
         };
     }
 
+    public static string NativeMoney(MonetaryAmount? money)
+    {
+        if (money is null) return "unknown";
+        if (money.Exponent is not (>= 0 and <= 18))
+            return money.MinorUnits.ToString(En) + " minor units (" + (money.Currency ?? "currency unknown") + "; exponent unknown)";
+        decimal scale = 1;
+        for (int i = 0; i < money.Exponent; i++) scale *= 10;
+        return (money.MinorUnits / scale).ToString("F" + money.Exponent, En) + " " + (money.Currency ?? "(currency unknown)");
+    }
+
     /// <summary>A percentage with one decimal, as used for day-off share previews ("16.7 %").</summary>
     public static string Percent1(decimal value) => Round(value, 1).ToString("0.0", En) + " %";
 

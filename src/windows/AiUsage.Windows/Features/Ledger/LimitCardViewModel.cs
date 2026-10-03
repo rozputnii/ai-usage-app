@@ -99,12 +99,21 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
     [ObservableProperty] public partial bool IsCompact { get; set; } = true;
 
+    public bool IsAccountSection => Model.Monetary is not null && Account.Cards.Any(c => c.Monetary is null);
     public string Name => Account.DisplayName;
+    public string HeaderName => IsAccountSection ? string.Empty : Name;
+    public string MonetaryQualification => Model.Monetary?.Qualification ?? string.Empty;
+    public string BudgetUnavailable => Model.Monetary?.BudgetUnavailable ?? string.Empty;
+    public string MonetarySummary => Model.Monetary is { } money && Model.Layout != CardLayout.Note
+        ? "Reported used: " + LedgerFormat.NativeMoney(money.Used) + " · provider limit: " +
+          (money.LimitKind == LimitValueKind.Unlimited ? "unlimited" : LedgerFormat.NativeMoney(money.ProviderLimit)) +
+          (money.PersonalCap is null ? string.Empty : " · personal cap: " + LedgerFormat.NativeMoney(money.PersonalCap) +
+            (Model.Cap?.Status == CapStatus.CurrencyMismatch ? " (currency mismatch; not applied)" : string.Empty)) : string.Empty;
     public string? Tag => Model.ScopeLabel;
     public bool HasTag => !string.IsNullOrEmpty(Model.ScopeLabel);
     public bool CanEditCap => Model.CapTargetId is not null;
-    public bool CanSignOut => Account.Health != AccountHealth.SignedOut;
-    public bool CanOpenHistory => Model.Layout != CardLayout.Note;
+    public bool CanSignOut => !IsAccountSection && Account.Health != AccountHealth.SignedOut;
+    public bool CanOpenHistory => Model.Layout != CardLayout.Note || Model.Monetary is not null;
     public bool IsStale => Model.Freshness.IsStale;
     public string SignOutName => "Sign out " + Account.DisplayName;
     public string HistoryName => "History, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
@@ -121,6 +130,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [RelayCommand]
     public void BeginRename()
     {
+        if (IsAccountSection) return;
         RenameText = Account.DisplayName;
         IsRenaming = true;
     }
@@ -154,21 +164,21 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [RelayCommand]
     public async Task ActionAsync()
     {
-        if (Model.Action == CardAction.SignIn)
+        if (Model.Action == CardAction.SignIn && !IsAccountSection)
             await owner.ReconnectAsync(Account.AccountId);
         else if (Model.Action == CardAction.SetCap)
             BeginCapEdit();
     }
 
     [RelayCommand]
-    public Task SignOutAsync() => owner.SignOutAsync(Account.AccountId);
+    public Task SignOutAsync() => CanSignOut ? owner.SignOutAsync(Account.AccountId) : Task.CompletedTask;
 
     [RelayCommand]
     public Task ToggleHistoryAsync() => owner.ToggleHistoryAsync(this);
 
     [RelayCommand]
-    public Task MoveUpAsync() => owner.MoveAsync(CardId, -1);
+    public Task MoveUpAsync() => IsAccountSection ? Task.CompletedTask : owner.MoveAsync(CardId, -1);
 
     [RelayCommand]
-    public Task MoveDownAsync() => owner.MoveAsync(CardId, 1);
+    public Task MoveDownAsync() => IsAccountSection ? Task.CompletedTask : owner.MoveAsync(CardId, 1);
 }

@@ -165,14 +165,22 @@ internal sealed partial class LedgerWindow : Window
         var wanted = new List<UIElement>();
         var columns = Math.Max(1, CardGrid.Columns);
         var openIndex = -1;
-        for (var i = 0; i < ViewModel.Cards.Count; i++)
+        foreach (var card in ViewModel.Cards)
         {
-            var card = ViewModel.Cards[i];
             if (!views.TryGetValue(card, out var view))
                 views[card] = view = new LedgerCardView { ViewModel = card };
+            view.MonetarySection = null;
+        }
+        foreach (var card in ViewModel.Cards.Where(c => !c.IsAccountSection))
+        {
+            var view = views[card];
+            var first = ViewModel.Cards.First(c => c.Account.AccountId == card.Account.AccountId && !c.IsAccountSection);
+            var spending = ReferenceEquals(first, card)
+                ? ViewModel.Cards.FirstOrDefault(c => c.Account.AccountId == card.Account.AccountId && c.IsAccountSection) : null;
+            if (spending is not null) view.MonetarySection = views[spending];
             wanted.Add(view);
-            if (card.IsHistoryOpen)
-                openIndex = i;
+            if (card.IsHistoryOpen || spending?.IsHistoryOpen == true)
+                openIndex = wanted.Count - 1;
         }
         foreach (var gone in views.Keys.Except(ViewModel.Cards).ToArray())
             views.Remove(gone);

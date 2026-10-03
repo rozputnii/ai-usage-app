@@ -42,7 +42,8 @@ internal sealed partial class CapRow : ObservableObject
     public string Note => Model.Status switch
     {
         CapStatus.Unmatched => "unmatched · this limit is no longer reported · kept, not applied",
-        CapStatus.CurrencyMismatch => "currency mismatch · provider limit is in " + (Model.ProviderCurrency ?? "another currency") + " · not applied, provider limit applies",
+        CapStatus.Inactive => "kept, not applied · compatible spending scope, period and enabled amounts are required",
+        CapStatus.CurrencyMismatch => "currency mismatch · provider reports " + (Model.ProviderCurrency ?? "another currency") + " · cap kept, not applied",
         _ when Model.Tracking is not null && Model.ProviderLimit.Kind == LimitValueKind.Unknown =>
             "provider sends a balance only · used is tracked" + (Model.Tracking.TrackedSince is { } since ? " since " + LedgerFormat.DayMonth(since) : string.Empty) + " (estimate)",
         _ when Model.ProviderLimit.Kind == LimitValueKind.Unlimited => "provider: unlimited · your cap binds",

@@ -686,7 +686,7 @@ public sealed class LedgerInteractionTests
         Assert.Equal("provider sends a balance only · used is tracked since 3 Oct (estimate)", caps[1].Note);
         Assert.Equal("unmatched · this limit is no longer reported · kept, not applied", caps[2].Note);
         Assert.Equal("Remove", caps[2].ActionText);
-        Assert.Equal("currency mismatch · provider limit is in USD · not applied, provider limit applies", caps[3].Note);
+        Assert.Equal("currency mismatch · provider reports USD · cap kept, not applied", caps[3].Note);
         Assert.Equal("€250.00", caps[3].AmountText);
         Assert.False(caps[3].CanAct);
         Assert.Equal("1 sync failed · Antigravity", window.Settings.SystemStatusText);
@@ -754,7 +754,7 @@ public sealed class LedgerInteractionTests
     public void DemoScenariosSwitchAndResetViewState()
     {
         var (window, _, _, _) = Start();
-        Assert.Equal(6, window.Demo!.Scenarios.Count);
+        Assert.Equal(7, window.Demo!.Scenarios.Count);
         window.ToggleSettings();
         window.LoadScenario(DemoLedgerScenarios.States);
         Assert.Equal(52, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.

@@ -91,6 +91,13 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         var card = account.Cards.First(c => c.CapTargetId == capTargetId);
         var original = originals.GetValueOrDefault(capTargetId, card);
         var updated = amount is { } value ? WithCap(original, card, value) : WithoutCap(original, card);
+        if (updated.Monetary is { } money && updated.Scale.Exponent is >= 0 and <= 18)
+        {
+            decimal scale = 1;
+            for (int i = 0; i < updated.Scale.Exponent; i++) scale *= 10;
+            updated = updated with { Monetary = money with { PersonalCap = amount is { } capAmount
+                ? new(checked((long)(capAmount * scale)), updated.Scale.Exponent, updated.Scale.Currency) : null } };
+        }
         var accounts = Current.Accounts.Select(a => a.AccountId != account.AccountId ? a : a with { Cards = [.. a.Cards.Select(c => c.CardId == card.CardId ? updated : c)] }).ToArray();
         var caps = Current.Budget.Caps.ToList();
         var index = caps.FindIndex(c => c.CapTargetId == capTargetId);

@@ -13,6 +13,93 @@ namespace AiUsage.Windows.Tests;
 /// <summary>Ordinary desktop interaction on isolated synthetic state; no sign-in or real credentials.</summary>
 public sealed class LedgerSmoke
 {
+    [Fact]
+    public void AccountSpendingUsesNestedContentHistoryCapsAndAccountActions()
+    {
+        var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
+        var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
+        Assert.False(string.IsNullOrWhiteSpace(exe)); Assert.False(string.IsNullOrWhiteSpace(evidence));
+        Directory.CreateDirectory(evidence!);
+        var start = new ProcessStartInfo(exe!, "--demo") { UseShellExecute = false };
+        start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Path.Combine(Path.GetTempPath(), "aiu-money-smoke-" + Guid.NewGuid().ToString("N"));
+        using var app = Application.Launch(start);
+        using var process = Process.GetProcessById(app.ProcessId);
+        using var automation = new UIA3Automation();
+        Window? window = null;
+        var passed = false;
+        var stage = "launch";
+        try
+        {
+            Assert.True(Wait(() => (window = OwnedWindow(automation, app.ProcessId)) is not null));
+            Focus(window!);
+            stage = "select scenario";
+            window!.FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
+            AutomationElement? scenario = null;
+            Assert.True(Wait(() =>
+            {
+                scenario = automation.GetDesktop().FindAllChildren().Where(w =>
+                    GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
+                    .Select(w => w.FindFirstDescendant(cf => cf.ByName("Account spending"))).FirstOrDefault(e => e is not null);
+                return scenario is not null;
+            }));
+            scenario!.AsMenuItem().Invoke();
+            stage = "nested content";
+            AutomationElement? money = null;
+            Assert.True(Wait(() => (money = window.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))) is not null));
+            var parent = window.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;
+            Assert.NotNull(parent.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")));
+            Assert.DoesNotContain(money!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)), b =>
+                (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Sign out", StringComparison.Ordinal));
+            money.Focus();
+            stage = "history";
+            Keyboard.Press(VirtualKeyShort.RETURN);
+            Assert.True(Wait(() => window.FindAllDescendants().Any(e =>
+                (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Mixed account history,", StringComparison.Ordinal))));
+            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-history.png"), System.Drawing.Imaging.ImageFormat.Png);
+            Keyboard.Press(VirtualKeyShort.ESCAPE);
+            money = window.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))!;
+            stage = "cap";
+            money.Focus(); Keyboard.Press(VirtualKeyShort.KEY_C);
+            Assert.True(Wait(() => money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).Any(e => !e.IsOffscreen)));
+            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
+            Keyboard.Press(VirtualKeyShort.ESCAPE);
+            parent.Focus(); Keyboard.Press(VirtualKeyShort.F2);
+            stage = "rename";
+            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))) is not null));
+            var rename = window.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))!.AsTextBox();
+            rename.Text = "Renamed account";
+            Keyboard.Press(VirtualKeyShort.RETURN);
+            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Renamed account")) is not null));
+            var only = window.FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
+            stage = "money only";
+            only.Focus();
+            Assert.True(Wait(() => only.FindFirstDescendant(cf => cf.ByName("Sign out Money only")) is not null));
+            Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "12.50 EUR");
+            Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "200.00 EUR (provider)");
+            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-account.png"), System.Drawing.Imaging.ImageFormat.Png);
+            only.FindFirstDescendant(cf => cf.ByName("Sign out Money only"))!.AsButton().Invoke();
+            stage = "sign out";
+            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is null));
+            Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")));
+            Focus(window);
+            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
+            Assert.True(process.WaitForExit(10000));
+            Assert.Equal(0, process.ExitCode);
+            passed = true;
+        }
+        finally
+        {
+            File.WriteAllText(Path.Combine(evidence!, "money-smoke.json"), JsonSerializer.Serialize(new { passed, stage, exited = process.HasExited }));
+            if (!process.HasExited)
+            {
+                if (window is not null)
+                    try { using var capture = window.Capture(); capture.Save(Path.Combine(evidence!, "money-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
+                    catch (System.Runtime.InteropServices.COMException) { }
+                process.Kill(); process.WaitForExit(5000);
+            }
+        }
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

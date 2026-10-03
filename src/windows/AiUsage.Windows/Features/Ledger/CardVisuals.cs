@@ -252,6 +252,12 @@ internal static class CardVisuals
         }
         var pill = PillText(card.State, card.Period);
         var tip = PillTip(card, now);
+        if (card.Monetary is { } money)
+        {
+            if (money.Enabled == false) { pill = "disabled"; tip = ["Spending disabled", "Retained readings and caps kept"]; }
+            else if (money.BudgetUnavailable is { } reason) { pill = "no budget"; tip = [reason]; }
+            else if (card.State == CardState.NotIncluded) { pill = "zero limit"; tip = ["Provider reports a zero spending limit"]; }
+        }
         if (stale && card.Freshness.ReadingAt is { } at && tip.Count > 0)
             tip = [tip[0] + " · as of " + LedgerFormat.Clock(at), .. tip.Skip(1)];
         return (pill, tip);
@@ -386,6 +392,17 @@ internal static class CardVisuals
 
     private static IReadOnlyList<NoteLine> NoteLinesOf(LimitCardModel card, string period, string reset)
     {
+        if (card.Monetary is { } money)
+        {
+            var lines = new List<NoteLine>
+            {
+                new("used", LedgerFormat.NativeMoney(money.Used), string.Empty),
+                new("limit", money.LimitKind == LimitValueKind.Unlimited ? "unlimited (provider)" : LedgerFormat.NativeMoney(money.ProviderLimit) + " (provider)", string.Empty)
+            };
+            if (money.PersonalCap is not null)
+                lines.Add(new("cap", LedgerFormat.NativeMoney(money.PersonalCap) + (card.Cap?.Status == CapStatus.Applied ? " (personal)" : " (personal, kept; not applied)"), string.Empty));
+            return lines;
+        }
         var f = card.Figures;
         var unit = LedgerFormat.Unit(card.Scale);
         return card.State switch

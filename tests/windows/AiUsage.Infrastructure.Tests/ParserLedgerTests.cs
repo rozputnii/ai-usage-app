@@ -14,6 +14,26 @@ namespace AiUsage.Infrastructure.Tests;
 
 public sealed class ParserLedgerTests
 {
+    [Theory]
+    [InlineData("\"spend\":{\"enabled\":true,\"used\":{\"amount_minor\":1250,\"currency\":\"USD\",\"exponent\":2},\"limit\":{\"amount_minor\":50000,\"currency\":\"USD\",\"exponent\":2}},\"extra_usage\":{\"is_enabled\":true,\"used_credits\":9999,\"monthly_limit\":99999,\"currency\":\"EUR\",\"decimal_places\":2}")]
+    [InlineData("\"extra_usage\":{\"is_enabled\":true,\"used_credits\":1250,\"monthly_limit\":50000,\"currency\":\"USD\",\"decimal_places\":2}")]
+    public void CurrentAndLegacyFiniteMoneyProduceOneNeutralPoolWithoutPlanInference(string properties)
+    {
+        var now = new DateTimeOffset(2026, 10, 5, 12, 0, 0, TimeSpan.Zero);
+        Assert.True(ClaudeQuotaParser.TryParse(Encoding.UTF8.GetBytes("{" + properties + "}"), now, out var reading));
+        Assert.Null(reading!.Quota.PlanType);
+        var facts = Assert.Single(reading.Quota.Limits!.Limits);
+        Assert.Equal("CL-X", facts.Key.Family);
+        Assert.Equal(new MoneyQuantity(1250, 2, "USD"), facts.Used);
+        var card = Assert.Single(Project("claude", reading.Quota, now).Cards);
+        Assert.Equal("Spending", card.ScopeLabel);
+        Assert.Equal(12.50m, card.Figures.Used);
+        Assert.Equal(500, card.Figures.ProviderLimit.Amount);
+        Assert.Null(card.Figures.EffectiveLimit);
+        Assert.Null(card.CapTargetId);
+        Assert.Contains("scope unverified", card.Monetary!.Qualification);
+    }
+
     private static AccountModel Project(string provider, QuotaSnapshot quota, DateTimeOffset now)
     {
         var id = Guid.NewGuid();
@@ -28,14 +48,16 @@ public sealed class ParserLedgerTests
     }
 
     [Fact]
-    public void ClaudeParserPreservesMoneyButLedgerHidesItsStandaloneCard()
+    public void ClaudeParserPreservesMoneyAsNeutralAccountOwnedFacts()
     {
         var now = new DateTimeOffset(2026, 9, 14, 10, 0, 0, TimeSpan.Zero);
         Assert.True(ClaudeQuotaParser.TryParse(File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fixtures", "claude-usage.synthetic.json")), now, out var reading));
         var model = Project("claude", reading!.Quota, now);
         Assert.Contains(model.Cards, c => c.Layout == CardLayout.FiveHourAndPeriod && c.Figures.Used == 40);
         Assert.Contains(model.Cards, c => c.ScopeLabel == "Family / Fable" && c.Figures.Used == 55);
-        Assert.DoesNotContain(model.Cards, c => c.ScopeLabel == "Extra usage");
+        var monetary = Assert.Single(model.Cards, c => c.ScopeLabel == "Spending");
+        Assert.Equal(123.45m, monetary.Figures.Used);
+        Assert.Null(monetary.Figures.TodayEnd);
         var extra = Assert.Single(reading.Quota.Limits!.Limits, f => f.Key.Family == "CL-X");
         Assert.Equal(new MoneyQuantity(12345, 2, "EUR"), extra.Used);
         Assert.Equal(LimitValueState.ExplicitNull, extra.Limit.State);

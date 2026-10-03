@@ -57,6 +57,42 @@ public sealed class LiveLedgerSourceTests
         action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
 
     [Fact]
+    public async Task MonetaryCapsStayMatchedAndSeparateAcrossRenameAndSourceRestart()
+    {
+        var clock = new Clock(); var store = new Store(); var first = Guid.NewGuid(); var second = Guid.NewGuid();
+        var facts = new LimitFacts(new("claude", "CL-X", "extra-usage"), LimitKind.MonetaryPool, "USD", FactValue.Finite(new MoneyQuantity(50000, 2, "USD")))
+        { Used = new MoneyQuantity(1250, 2, "USD"), AllowsCalendarFallback = true, Enabled = true };
+        AccountSnapshot Money(Guid id) => new(id, "claude", true, new(ProviderSessionStatus.QuotaAvailable,
+            new QuotaSnapshot(clock.Now, null, [], null, null, null, null) { Limits = new(clock.Now, null, SnapshotSource.ProviderApi, "test", [facts]) }, FromCache: true), false, null);
+        var accounts = new Accounts { Current = [Money(first), Money(second)] };
+        var key = new ReadingSeriesKey(first.ToString("N"), facts.Key);
+        store.Configuration = store.Configuration with { Caps = [new(key, new(new MoneyQuantity(20000, 2, "EUR"), clock.Now))] };
+        var before = store.Configuration;
+        string? savedPreferences = null;
+        LedgerPreferenceStore Preferences() => new(_ => Task.FromResult(savedPreferences), (value, _) => { savedPreferences = value; return Task.CompletedTask; });
+        LiveLedgerSource Create() => new(accounts, store, store, store, Preferences(), action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
+        using (var source = Create())
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal(CommandOutcome.Done, await source.RenameAccountAsync(first.ToString("N"), "Personal", Token));
+            var cap = Assert.Single(source.Current.Budget.Caps);
+            Assert.Equal(CapStatus.CurrencyMismatch, cap.Status);
+            Assert.Equal("EUR", cap.Scale.Currency);
+            Assert.Null(cap.CapTargetId);
+            Assert.Equal(CommandOutcome.Rejected, await source.SetCapAsync(cap.CapId, 100, Token));
+            Assert.Equal(before, store.Configuration);
+            await source.StopAsync();
+        }
+        using var restarted = Create();
+        await restarted.InitializeAsync(null, Token);
+        Assert.Equal("Personal", restarted.Current.Accounts[0].DisplayName);
+        Assert.NotEqual(restarted.Current.Accounts[0].Cards[0].CardId, restarted.Current.Accounts[1].Cards[0].CardId);
+        Assert.Equal(before, store.Configuration);
+        Assert.Empty(store.Captured);
+        await restarted.StopAsync();
+    }
+
+    [Fact]
     public async Task CachedStartupAndClockChangesDoNotCaptureAndTwoAccountsRemainSeparate()
     {
         var clock = new Clock(); var store = new Store();
