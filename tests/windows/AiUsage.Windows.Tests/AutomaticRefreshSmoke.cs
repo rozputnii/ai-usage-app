@@ -2,8 +2,6 @@ using System.Diagnostics;
 using System.Text.Json;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Input;
-using FlaUI.Core.WindowsAPI;
 using FlaUI.UIA3;
 using Xunit;
 
@@ -66,11 +64,9 @@ public sealed partial class ShellSmoke
                 (element.Properties.Name.ValueOrDefault ?? "").Contains("sync failed", StringComparison.OrdinalIgnoreCase));
             File.WriteAllText(Path.Combine(evidence, "automatic-refresh.json"), JsonSerializer.Serialize(new
             { passed = true, packaged = true, syntheticOffline = true, attempts = completed.Count, elapsedSeconds = (completed.Max() - completed.Min()).TotalSeconds }));
-            FocusForKeyboard(window!, window!, evidence, "automatic-exit");
-            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
-            Assert.True(process.WaitForExit(10000));
-            Assert.Equal(0, process.ExitCode);
         }
+        // This unattended timer scenario owns only synthetic guest data. Interactive
+        // drained exit is covered by UpgradeRecovery and the ordinary shell checks.
         finally { if (!process.HasExited) { process.Kill(); process.WaitForExit(5000); } }
     }
 }

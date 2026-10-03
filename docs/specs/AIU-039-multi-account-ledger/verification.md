@@ -27,7 +27,8 @@
 ## Acceptance
 
 The implementation and synthetic/unpackaged checks below cover AC-01 through AC-08.
-AC-09 has installed update/recovery evidence; automatic refresh is still running. AC-11 has live PASS evidence
+AC-09 has installed update/recovery and synthetic automatic retry evidence; real-account
+installed automatic refresh awaits owner sign-in. AC-11 has live PASS evidence
 for two-account admission, refresh, restart and selected sign-out/reconnect; induced
 provider-failure injection is BLOCKED by automatic approval review. AC-10 findings have targeted correction evidence.
 The feature stays in progress; fixture, source and build evidence never establish live success.
@@ -38,7 +39,7 @@ The feature stays in progress; fixture, source and build evidence never establis
 | AC-03/05 | PASS synthetic migration/storage: shared v1/v2 provider regression suite, registry stage recovery, legacy adoption boundaries, interrupted maintenance upgrade, unassigned old data, labels/caps/reading persistence and preferences-only recovery. Real owned-state migration NOT_RUN. |
 | AC-06/07 | PASS deterministic parser, budget, history, preference and command tests. PASS live rendering of an exhausted subscription weekly limit and a separate second account's extra usage; other plan shapes NOT_RUN. |
 | AC-08 | PASS unpackaged Windows: launch, second demo account, history/settings, tray restore at account, exit, recovery, confirmed deletion and resumed deletion/restart. Interactive external sign-in challenges remain part of AC-11. |
-| AC-09 | PASS automated regressions, validation, Windows and unsigned package builds. PASS installed activation, same-family update and recovery in an offline Sandbox with synthetic data. Automatic retry still running; see final acceptance below. |
+| AC-09 | PASS automated regressions, validation, Windows and unsigned package builds. PASS installed activation, same-family update, recovery and automatic offline retry/cache assertions with synthetic data. Real-account installed automatic refresh NOT_RUN; see final acceptance and harness limitation below. |
 | AC-10 | Independent reviews performed. Original findings and targeted fixes recorded below; no unresolved material findings. Live privacy evidence NOT_RUN. |
 | AC-11 | PASS live two-account admission, independent refresh, full restart, selected sign-out and reconnect without a duplicate. Live failure injection BLOCKED by automatic approval review; synthetic error coverage is separate. See the dated observations below. |
 
@@ -299,7 +300,17 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   The combined test FAIL was its subsequent caption assertion: the historical cache lacks
   a period start, so the correct Not ready card displays "25 used", not "25 of 100".
   The installed recovery screenshot confirms the retained amount and sync-failed mark.
-  Corrected the assertion and moved capture before it; the full repeat is still running.
+  Corrected the assertion and moved capture before it.
+- Repeat functional assertions PASS: two automatic failures 599.910s apart; the cached
+  "25 used" amount and sync-failed mark remain visible after the retry. Screenshot and
+  functional result: evidence-03/automatic-recheck. The xUnit invocation still FAIL
+  (603.659s) because its final keyboard cleanup could not focus the window
+  (NoClickablePointException). This is not an all-green test invocation.
+  Removed that cleanup's foreground dependency: the unattended synthetic-only timer
+  scenario uses its existing finally-block process cleanup. Interactive drained exit
+  remains covered by the passing recovery and ordinary shell tests. Harness publication
+  PASS after this correction; a third full ten-minute timer run is NOT_RUN because the
+  timer/cache assertions already passed and only post-assertion cleanup changed.
 - Live Claude failure injection BLOCKED: automatic approval review rejected launching
   the verification app through a process-local proxy, stating only "blocked by policy".
   The proxy was never used by the app and was stopped; the live app was restored through
@@ -308,7 +319,12 @@ These results cover T-01 only, not the account registry, migration or multi-acco
 - The backlog additionally requires automatic refresh and reading-series persistence
   for a real account in the installed package. This remains NOT_RUN. Prepared a separate
   network-enabled guest configuration with the same package and no mapped personal data;
-  owner-led sign-in is required. The host permits only one Sandbox instance, so this
-  configuration must start after the offline retry check finishes.
+  owner-led sign-in is required. The host permits only one Sandbox instance. Stopped
+  the synthetic guest after collecting its results and started the prepared live guest.
+- Live guest preparation PASS: installed 2026.10.357.0, observed the empty Ledger and
+  Claude Sign in action, and asked the owner to perform browser sign-in. Existing host
+  accounts remain connected in the minimized development instance. The installed real
+  account check is waiting for owner input, not an inferred authentication success.
+- Final document validation and diff check PASS. Canonical AIU-039 remains in progress.
 - Local ignored evidence: .ai-usage-local/AIU-039/final-acceptance/evidence-03/run.
   Earlier environment/harness failures are retained in evidence and evidence-02.

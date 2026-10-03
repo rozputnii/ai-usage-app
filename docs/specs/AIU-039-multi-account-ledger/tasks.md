@@ -115,21 +115,25 @@ Base: `ddc81ea`; original source baseline `9131e47`.
   convergence-review; correct material findings and run targeted regressions.
 - [x] Obtain current authorization for owner-led two-account Claude checks.
 - [x] Execute owner-led Claude admission, refresh, restart and selected sign-out/reconnect.
-- [ ] Record remaining provider-failure and installed-package acceptance; obtain separate
-  authorization before credential-bearing migration/package install/update/recovery tests.
+- [x] Record synthetic installed update/recovery and automatic offline retry/cache evidence,
+  including harness failures and corrections without claiming an all-green invocation.
+- [ ] Complete owner-led sign-in to the installed package, observe automatic refresh and
+  reading-series persistence, then reconcile the remaining live failure-injection limitation.
 - [x] Record actual per-AC verdicts; unavailable live/package evidence remains NOT_RUN or
   BLOCKED. Update canonical completion only when the required outcome is established.
 - [x] Commit/push the verified implementation save point and report remaining acceptance limitations.
 
 ## Handoff
 
-Exact next action: collect the corrected installed automatic offline retry result from
-.ai-usage-local/AIU-039/final-acceptance/evidence-03/automatic-recheck.log, then stop
-that synthetic Sandbox and start the prepared live-acceptance.wsb configuration for
-owner-led sign-in and installed automatic refresh/reading-series evidence. The first
-retry timer ran correctly but its later caption assertion was wrong; the repeat is pending.
-Installed update and recovery passed
-with synthetic data in a network-disabled Sandbox. Live two-account admission, refresh,
+Exact next action: after the owner confirms Claude sign-in in the installed Sandbox app,
+run the prepared Observe-LiveAcceptance.ps1 guest helper to capture an allowlisted baseline,
+leave the app untouched through its five-minute refresh interval, then compare successful
+Refresh timestamps with the reading-series LastConfirmed values. The prepared scripts,
+config and evidence are under .ai-usage-local/AIU-039/final-acceptance; live guest ID and
+version are in live-guest-session.json. Do not read grants or raw captures.
+Installed update, recovery and automatic retry/cache assertions passed with synthetic
+data; the repeat harness invocation failed only in subsequent keyboard cleanup, now removed.
+Live two-account admission, refresh,
 restart and selected sign-out/reconnect passed; live failure injection is BLOCKED by
 automatic approval review ("blocked by policy"), with no bypass attempted.
 The owner authorized this live check on 2026-10-03 and performs browser sign-in personally.
