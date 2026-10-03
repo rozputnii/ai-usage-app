@@ -9,7 +9,7 @@ Goal: useful, bounded local diagnostic evidence without secrets or routine noise
 Spec: [spec.md](spec.md); architecture: [design.md](design.md).
 The owner selected implementation and a concise agent logging rule on 2026-10-03.
 Execution is sequential by the primary, using executing-plans and test-driven-development;
-Codex subagents remain disabled. Work directly on main under CONTRIBUTING.md.
+One Astra low read-only reviewer is authorized by the current owner request. Work directly on main under CONTRIBUTING.md.
 
 ## Constraints and review focus
 
@@ -58,7 +58,7 @@ and fatal handling independently of the ordinary writer.
   limitations; compare enabled/disabled synthetic workload.
 
 ### T-04 - Policy, verification and review
-- status: blocked
+- status: in-progress
 - depends_on: [T-01, T-02, T-03]
 - acceptance: AC-01, AC-13, AC-14, AC-15
 - evidence: verification.md; coverage.md
@@ -72,14 +72,16 @@ and fatal handling independently of the ordinary writer.
 
 ## Handoff
 
-Base: main, clean working tree at selection. No live-provider access authorized.
-Next action: obtain a focused independent read-only review of the implementation diff
-from 44cee2e to 5c60dae, using spec.md, coverage.md and the final
-verification record. Do not re-enable Codex subagents without owner direction.
-Required independent implementation review is unavailable with the current tools and
-disabled Codex subagents; implementation/checkpoints do not claim review approval.
+Completion work resumed on 2026-10-03 from `99efa21`. The owner authorized one
+Astra low independent reviewer and subsequently authorized live checks through
+existing AI Usage sessions only; no CLI credential access or new sign-in.
+Focused review found lost original transport/parser exception evidence. Targeted
+regressions reproduced it and now pass with sanitized capture failure metadata.
+Clock-controlled hourly/mixed-age retention now passes. Injected partial writes
+exposed lost first-recovery events; rotating the failed writer fixes that regression.
+Infrastructure: 590 passed; targeted storage faults: 4 passed. Release build passed.
+Live Codex and Copilot quota reads succeeded; Claude/Antigravity had no stored session.
 
-Implementation steps above are delivered; checked steps are not blanket acceptance.
-T-01/T-03 retain unrun failure-injection/debugger checks listed in verification.md;
-T-02 shares those storage acceptance dependencies. T-04 is blocked by required
-independent review. No live-provider evidence or complete-feature verdict is claimed.
+Next action: execute isolated Release XAML/Host startup and Host disposal probes,
+then debugger binding/Open logs smoke, final package validation and acceptance review.
+No feature completion claim yet; final evidence and task dispositions remain pending.

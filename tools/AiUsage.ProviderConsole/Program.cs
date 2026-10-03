@@ -23,6 +23,8 @@ internal static class Program
         try
         {
             if (args is ["measure-logging"]) return await LoggingMeasurements.RunAsync();
+            if (args is ["quota", var quotaProvider, var quotaDirectory])
+                return OperatingSystem.IsWindows() ? await QuotaConsole.RunAsync(quotaProvider, quotaDirectory, cancellation.Token) : 2;
             if (args is ["measure-backend"])
                 return await BackendMeasurements.RunAsync(cancellation.Token);
             if (args is ["history", var historyProvider, var ownedDirectory])

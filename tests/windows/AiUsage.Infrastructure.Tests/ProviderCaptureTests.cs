@@ -51,6 +51,9 @@ public sealed class ProviderCaptureTests : IDisposable
         Assert.DoesNotContain("canary", artifact);
         using var parsed = JsonDocument.Parse(artifact);
         Assert.Equal(completeness, parsed.RootElement.GetProperty("completeness").GetString());
+        var failure = parsed.RootElement.GetProperty("failure");
+        Assert.Contains("Json", failure.GetProperty("type").GetString());
+        Assert.True(parsed.RootElement.GetProperty("parserPosition").GetProperty("bytePositionInLine").GetInt64() >= 0);
     }
 
     [Fact]
@@ -177,6 +180,13 @@ public sealed class ProviderCaptureTests : IDisposable
         Assert.Equal(state, artifact.RootElement.GetProperty("completeness").GetString());
         Assert.Equal(JsonValueKind.Null, artifact.RootElement.GetProperty("body").ValueKind);
         Assert.DoesNotContain("canary", artifact.RootElement.GetRawText());
+        if (state is "network-failure" or "timeout" or "cancelled")
+        {
+            var failure = artifact.RootElement.GetProperty("failure");
+            Assert.NotEqual(JsonValueKind.Null, failure.ValueKind);
+            Assert.NotEmpty(failure.GetProperty("frames").EnumerateArray());
+            if (state == "network-failure") Assert.Contains("IOException", failure.GetRawText());
+        }
         var events = Directory.GetFiles(log.DirectoryPath, "application-*.jsonl").SelectMany(p => FileDiagnosticsTests.ReadShared(p).Split('\n', StringSplitOptions.RemoveEmptyEntries))
             .Select(s => JsonDocument.Parse(s).RootElement.Clone());
         Assert.Single(events, e => e.GetProperty("eventId").GetString() == "HttpCompleted");
@@ -188,7 +198,7 @@ public sealed class ProviderCaptureTests : IDisposable
         {
             if (state == "cancelled") cancellation.Cancel();
             if (state is "cancelled" or "timeout") throw new OperationCanceledException("canary", cancellationToken);
-            if (state == "network-failure") throw new HttpRequestException("canary");
+            if (state == "network-failure") throw new HttpRequestException("canary", new IOException("inner-canary"));
             var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("canary") };
             response.Content.Headers.ContentLength = 2 * 1024 * 1024;
             return Task.FromResult(response);

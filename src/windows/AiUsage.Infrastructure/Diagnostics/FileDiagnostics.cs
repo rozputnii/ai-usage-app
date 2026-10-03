@@ -33,6 +33,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     private long sequence;
     private long lost;
     private long reportedLoss;
+    private int writeFailed;
     private string? marker;
     private FileStream? markerLease;
     private TaskCompletionSource? flush;
@@ -207,7 +208,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     private async Task WorkAsync()
     {
         TryInitialize();
-        var sweep = Stopwatch.GetTimestamp();
+        var sweep = clock.GetTimestamp();
         do
         {
             await wake.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
@@ -224,11 +225,11 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
                 try { Write(item); }
                 catch (Exception) { Interlocked.Increment(ref lost); CloseWriters(); }
             }
-            if (Stopwatch.GetElapsedTime(sweep) >= TimeSpan.FromHours(1))
+            if (clock.GetElapsedTime(sweep) >= TimeSpan.FromHours(1))
             {
                 try { CloseWriters(); DiagnosticFiles.Prune(DirectoryPath, clock.GetUtcNow(), options); }
                 catch (Exception) { Interlocked.Increment(ref lost); }
-                sweep = Stopwatch.GetTimestamp();
+                sweep = clock.GetTimestamp();
             }
             var losses = LostRecords;
             if (losses != reportedLoss)
@@ -310,7 +311,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             var stage = Path.ChangeExtension(path, "stage");
             DiagnosticFiles.Check(path); DiagnosticFiles.Check(stage);
             using (var file = new FileStream(stage, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            { file.Write(item.Bytes); file.Flush(); }
+            { using var output = options.WrapOutput(file); output.Write(item.Bytes); output.Flush(); }
             File.Move(stage, path);
             var committed = CreateRecord(DiagnosticEvent.CapturePersisted, DiagnosticSeverity.Information,
                 context: new { captureId = item.CaptureId, persisted = true });
@@ -331,11 +332,13 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             DiagnosticFiles.Check(path);
             var logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Fallible(sink => sink.File(new ProjectedFormatter(), path,
                 fileSizeLimitBytes: 8 * 1024 * 1024, rollOnFileSizeLimit: true, retainedFileCountLimit: null,
-                buffered: false, flushToDiskInterval: TimeSpan.FromSeconds(1), hooks: new CheckedFileHooks()), new FailureListener(this)).CreateLogger();
+                buffered: false, flushToDiskInterval: TimeSpan.FromSeconds(1), hooks: new CheckedFileHooks(options.WrapOutput)), new FailureListener(this)).CreateLogger();
             writer = (item.At, logger, 0);
             writers.Add(item.Kind, writer);
         }
         writer.Logger.Information("{ProjectedRecord}", Encoding.UTF8.GetString(item.Bytes));
+        // A partial failed line must never absorb the next successful record on recovery.
+        if (Interlocked.Exchange(ref writeFailed, 0) != 0) { CloseWriters(); return; }
         writers[item.Kind] = (writer.At, writer.Logger, writer.Bytes + item.Bytes.Length + 1);
     }
 
@@ -402,14 +405,17 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             if (logEvent.Properties.TryGetValue("ProjectedRecord", out var value) && value is ScalarValue { Value: string json }) output.WriteLine(json);
         }
     }
-    private sealed class CheckedFileHooks : Serilog.Sinks.File.FileLifecycleHooks
+    private sealed class CheckedFileHooks(Func<Stream, Stream> wrap) : Serilog.Sinks.File.FileLifecycleHooks
     {
         public override Stream OnFileOpened(string path, Stream underlyingStream, Encoding encoding)
-        { DiagnosticFiles.Check(path); return underlyingStream; }
+        { DiagnosticFiles.Check(path); return wrap(underlyingStream); }
     }
     private sealed class FailureListener(FileDiagnostics owner) : ILoggingFailureListener
     {
-        public void OnLoggingFailed(object sender, LoggingFailureKind kind, string message, IReadOnlyCollection<LogEvent>? events, Exception? exception) =>
+        public void OnLoggingFailed(object sender, LoggingFailureKind kind, string message, IReadOnlyCollection<LogEvent>? events, Exception? exception)
+        {
             Interlocked.Add(ref owner.lost, events?.Count ?? 1);
+            Interlocked.Exchange(ref owner.writeFailed, 1);
+        }
     }
 }

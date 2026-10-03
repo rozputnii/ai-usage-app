@@ -211,6 +211,23 @@ public sealed class FileDiagnosticsTests : IDisposable
         Assert.DoesNotContain("late-canary", File.ReadAllText(critical));
     }
 
+    [Fact]
+    public async Task HourlySweepExpiresIdleClassesAndMixedAgeRollsByEarliestRecord()
+    {
+        using var log = new FileDiagnostics(root, new DiagnosticOptions { TraceEnabled = true }, clock);
+        log.Record(DiagnosticEvent.DispatchCompleted, DiagnosticCategory.Unexpected, DiagnosticSeverity.Debug);
+        Assert.True(await log.FlushAsync());
+        var trace = Assert.Single(Directory.GetFiles(log.DirectoryPath, "trace-*.jsonl"));
+        clock.Now += TimeSpan.FromMinutes(30);
+        log.Record(DiagnosticEvent.DispatchCompleted, DiagnosticCategory.Unexpected, DiagnosticSeverity.Debug);
+        Assert.True(await log.FlushAsync());
+        Assert.Single(Directory.GetFiles(log.DirectoryPath, "trace-*.jsonl"));
+        clock.Now += TimeSpan.FromHours(71.5);
+        Assert.True(await log.FlushAsync());
+        Assert.False(File.Exists(trace));
+        Assert.NotEmpty(Directory.GetFiles(log.DirectoryPath, "application-*.jsonl"));
+    }
+
     public void Dispose() { if (Directory.Exists(root)) Directory.Delete(root, true); }
     internal static string ReadShared(string path)
     {
@@ -222,5 +239,7 @@ public sealed class FileDiagnosticsTests : IDisposable
     {
         public DateTimeOffset Now { get; set; } = new(2026, 10, 3, 12, 0, 0, TimeSpan.Zero);
         public override DateTimeOffset GetUtcNow() => Now;
+        public override long GetTimestamp() => Now.UtcTicks;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
     }
 }

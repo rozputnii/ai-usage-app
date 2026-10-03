@@ -32,6 +32,7 @@ internal static class ProviderHttp
         long? observed = null;
         TimeSpan? retryAfter = null;
         var state = "transport-incomplete";
+        Exception? failure = null;
         try
         {
             response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
@@ -55,33 +56,37 @@ internal static class ProviderHttp
                 body = await JsonDocument.ParseAsync(stream, new JsonDocumentOptions { MaxDepth = 32 }, timeout.Token).ConfigureAwait(false);
                 state = "complete-sanitized";
             }
-            catch (JsonException)
+            catch (JsonException exception)
             {
+                failure = exception;
                 if (response.IsSuccessStatusCode)
                     throw new ProviderHttpException(TransportFailure.InvalidResponse, response.StatusCode);
             }
-            capture?.Complete(state, response, body, observed, retryAfter);
+            capture?.Complete(state, response, body, observed, retryAfter, failure);
             return new ProviderHttpResponse(response.StatusCode, body, retryAfter);
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
         {
+            failure = exception;
             state = "timeout";
             throw new ProviderHttpException(TransportFailure.Timeout);
         }
-        catch (OperationCanceledException) { state = "cancelled"; throw; }
+        catch (OperationCanceledException exception) { failure = exception; state = "cancelled"; throw; }
         catch (HttpRequestException exception)
         {
+            failure = exception;
             state = exception.HttpRequestError == HttpRequestError.ConfigurationLimitExceeded ? "oversized" : "network-failure";
             throw new ProviderHttpException(TransportFailure.NetworkFailure);
         }
-        catch (IOException)
+        catch (IOException exception)
         {
+            failure = exception;
             state = "network-failure";
             throw new ProviderHttpException(TransportFailure.NetworkFailure);
         }
         finally
         {
-            capture?.Complete(state, response, null, observed, retryAfter);
+            capture?.Complete(state, response, null, observed, retryAfter, failure);
             response?.Dispose();
         }
     }

@@ -9,7 +9,12 @@ internal sealed record SafeException(string Type, int HResult, string MessageOmi
     internal static SafeException Project(Exception error, int depth = 0)
     {
         var type = error.GetType();
-        var trusted = type.Assembly == typeof(Exception).Assembly || type.Assembly.GetName().Name?.StartsWith("AiUsage", StringComparison.Ordinal) == true;
+        var trusted = type.Assembly == typeof(Exception).Assembly ||
+            type.Assembly == typeof(HttpRequestException).Assembly ||
+            type.Assembly == typeof(System.Text.Json.JsonException).Assembly ||
+            type.Assembly == typeof(System.Net.Sockets.SocketException).Assembly ||
+            type.Assembly == typeof(System.Security.Authentication.AuthenticationException).Assembly ||
+            type.Assembly.GetName().Name?.StartsWith("AiUsage", StringComparison.Ordinal) == true;
         // Do not invoke overridden Message/StackTrace/Data/ToString properties.
         var frames = new StackTrace(error, true).GetFrames() ?? [];
         var inner = error is AggregateException aggregate ? aggregate.InnerExceptions.ToArray() : error.InnerException is { } cause ? [cause] : Array.Empty<Exception>();

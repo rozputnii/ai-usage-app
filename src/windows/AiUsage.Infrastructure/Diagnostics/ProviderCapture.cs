@@ -25,7 +25,7 @@ internal sealed class ProviderCapture
         requestCorrelation = Correlation(request.Headers);
     }
 
-    internal void Complete(string state, HttpResponseMessage? response, JsonDocument? body, long? observedBytes, TimeSpan? retryAfter)
+    internal void Complete(string state, HttpResponseMessage? response, JsonDocument? body, long? observedBytes, TimeSpan? retryAfter, Exception? failure = null)
     {
         if (Interlocked.Exchange(ref completed, 1) != 0) return;
         try
@@ -55,6 +55,8 @@ internal sealed class ProviderCapture
                 declaredBytes = response?.Content.Headers.ContentLength, observedBytes,
                 contentType = contentType is "application/json" or "text/json" ? contentType : "other-or-absent",
                 retryAfterSeconds = retryAfter?.TotalSeconds, policyId = policy.Id, completeness = state,
+                failure = failure is null ? null : SafeException.Project(failure),
+                parserPosition = failure is JsonException json ? new { json.LineNumber, json.BytePositionInLine } : null,
                 requestCorrelation, responseCorrelation = response is null ? null : Correlation(response.Headers),
                 body = sanitized?.Body, redactions = sanitized?.Redactions ?? [], duplicateProperties = sanitized?.DuplicateProperties ?? false
             };
