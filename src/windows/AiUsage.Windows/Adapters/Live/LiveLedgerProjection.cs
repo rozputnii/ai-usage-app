@@ -49,14 +49,15 @@ internal static class LiveLedgerProjection
             {
                 var estimate = SessionEstimator.Estimate(data.Runs.Concat(shortData.Runs),
                     new(shortData.Series, data.Series, "shared", "shared", TimeSpan.FromHours(5), TimeSpan.FromDays(7)), now);
-                var figures = SessionEstimator.Figures(estimate, facts.UsedPercent ?? 0, card.Figures.TodayEnd - card.Figures.DayStart);
+                var figures = facts.UsedPercent is { } weeklyUsed
+                    ? SessionEstimator.Figures(estimate, weeklyUsed, card.Figures.TodayEnd - card.Figures.DayStart) : new SessionFigures(null, null);
                 card = card with
                 {
                     Layout = card.Layout == CardLayout.Period ? CardLayout.FiveHourAndPeriod : card.Layout,
                     FiveHour = new(estimate.Cost is { } cost ? BudgetDisplay.Down(cost, .1m) : null, shortUsed, shortUsed > 0,
-                        shortData.Facts.Reset?.At, figures.Weekly is { } count ? checked((int)count.WholeSessions) : null,
+                        shortData.Facts.Reset?.At, figures.Weekly is { WholeSessions: <= int.MaxValue } count ? (int)count.WholeSessions : null,
                         card.State == CardState.Rush && facts.Reset is { } reset ? (int)Math.Max(0, (reset.At - now).TotalHours / 5) : null),
-                    State = shortUsed >= 100 && shortData.Facts.Reset?.At > now && card.State is not (CardState.UsedUp or CardState.NotReady or CardState.DayOff)
+                    State = shortUsed >= 100 && shortData.Facts.Reset?.At > now && card.State is not (CardState.UsedUp or CardState.NotReady or CardState.DayOff or CardState.ValueUnknown)
                         ? CardState.FiveHourFull : card.State
                 };
             }
@@ -150,7 +151,8 @@ internal static class LiveLedgerProjection
         if (result.Rush) return CardState.Rush;
         if (left < 0) return CardState.OverToday;
         if (left == 0) return CardState.TodayUsed;
-        if (result.BudgetState == BudgetState.Attention) return facts.Kind == LimitKind.PercentWindow ? CardState.TodayLow : CardState.TodayShort;
+        if (result.BudgetState == BudgetState.Attention) return result.Binding == LimitBinding.PersonalCap ? CardState.CapClose
+            : facts.Kind == LimitKind.PercentWindow ? CardState.TodayLow : CardState.TodayShort;
         return CardState.OnTrack;
     }
 
@@ -203,8 +205,9 @@ internal static class LiveLedgerProjection
             var end = WorkCalendar.Midnight(date.AddDays(1), zone);
             var at = end > now ? now : end.AddTicks(-1);
             var allRuns = data.Runs;
-            if (data.Facts.Used is null && data.Facts.Remaining is not null && PeriodResolver.Resolve(data.Facts, at, zone) is { } period)
-                allRuns = ReadingCalculations.Track(allRuns, data.Series, period, at, true, 1).Runs;
+            if (PeriodResolver.Resolve(data.Facts, at, zone) is { } period &&
+                (data.Facts.Used is null && data.Facts.Remaining is not null || data.Facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
+                allRuns = ReadingCalculations.Track(allRuns, data.Series, period, at, data.Facts.Used is null, 1).Runs;
             var runs = allRuns.Where(r => r.FirstSeen <= at && r.LastConfirmed >= start).ToArray();
             decimal? total = null;
             foreach (var group in runs.GroupBy(r => r.PeriodInstance))

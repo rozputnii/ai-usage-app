@@ -35,6 +35,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     private bool dirty;
     private bool rebuilding;
     private bool stopped;
+    private bool disposed;
     private bool initialized;
     private bool configurationWritable;
     private string? localStatus;
@@ -311,7 +312,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     public async Task<HistoryModel?> GetHistoryAsync(string cardId, CancellationToken ct)
     {
         await gate.WaitAsync(ct);
-        try { return limits.TryGetValue(cardId, out var limit) ? LiveLedgerProjection.History(limit, time.GetUtcNow(), zone) : null; }
+        try { return !stopped && limits.TryGetValue(cardId, out var limit) ? LiveLedgerProjection.History(limit, time.GetUtcNow(), zone) : null; }
         finally { gate.Release(); }
     }
 
@@ -375,7 +376,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     }
     public async Task SignOutAsync(string accountId, CancellationToken ct)
     {
-        if (Guid.TryParseExact(accountId, "N", out var id)) await accounts.DisconnectAsync(id, ct);
+        if (Guid.TryParseExact(accountId, "N", out var id) && (await accounts.DisconnectAsync(id, ct)).Outcome != AccountOutcome.Done)
+            localStatus = "Sign-out could not finish; the stored sign-in still needs attention";
         QueueRebuild(); await WaitForIdleAsync();
     }
     public async Task RefreshAccountAsync(string accountId, CancellationToken ct)
@@ -425,14 +427,18 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         accounts.Changed -= AccountsChanged;
         await shutdown.CancelAsync();
         await accounts.StopAsync();
-        await Task.WhenAll(rebuild, tick);
+        try { await Task.WhenAll(rebuild, tick); }
+        catch (OperationCanceledException) { }
+        catch (Exception error) { diagnostics?.Failure(DiagnosticEvent.BackgroundFailure, error); }
         await gate.WaitAsync();
         try { await preferences.StopAsync(); }
         finally { gate.Release(); }
     }
     public void Dispose()
     {
+        if (disposed) return;
         if (stopping?.IsCompleted != true) throw new InvalidOperationException("Drain the Ledger source before disposal.");
+        disposed = true;
         preferences.Dispose(); gate.Dispose(); shutdown.Dispose();
     }
 }

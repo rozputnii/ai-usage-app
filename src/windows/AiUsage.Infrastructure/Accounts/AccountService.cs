@@ -379,6 +379,12 @@ internal sealed class AccountService(AccountRegistry registry, ProviderSessionFa
             .Append(attempt?.Work).Append(initialization).OfType<Task>().ToArray();
         try { await Task.WhenAll(work).ConfigureAwait(false); }
         catch (OperationCanceledException) { }
+        catch (Exception error)
+        {
+            // WhenAll has completed every writer, including failed initialization. A completed
+            // operation failure must not prevent the owner from resetting its local state.
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
+        }
     }
 
     private static bool ValidBinding(Entry entry) => entry.Session.HasStoredGrant && ProviderSessionFactory.IdentityOf(entry.Session) == entry.Record.Identity;

@@ -35,12 +35,6 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
         services.AddSingleton(this).AddSingleton<IDiagnosticSink>(this);
     }
     public void Watch(DispatcherQueue queue) => watchdog = new(queue, this);
-    public void RegisterSurface(IServiceCollection services, bool demo)
-    {
-        if (sink is { } files)
-            services.AddSingleton<Features.SystemStatusPage.IDiagnosticsService>(p => new FileDiagnosticsService(
-                demo ? p.GetRequiredService<Features.Demo.DemoDiagnosticsService>() : p.GetRequiredService<UnavailableServices>(), files));
-    }
     public void BindingFailure() => Signal(DiagnosticEvent.BindingFailure, DiagnosticSeverity.Warning);
     public void DispatchRejected() => Signal(DiagnosticEvent.DispatchRejected, DiagnosticSeverity.Warning);
     public void CommandFailure(Exception exception) => sink?.Fatal(DiagnosticEvent.OperationFailure, exception, true);
@@ -74,10 +68,12 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
         sink?.Dispose();
         // Global hooks stay available through the final host/window disposal; FileDiagnostics.Fatal remains usable.
     }
-    public void StopForDeletion()
+    public async Task StopForDeletionAsync()
     {
         watchdog?.Dispose(); watchdog = null;
-        sink?.Dispose(); sink = null;
+        var draining = sink;
+        sink = null;
+        if (draining is not null) await draining.StopAsync();
     }
     private static bool Packaged()
     {

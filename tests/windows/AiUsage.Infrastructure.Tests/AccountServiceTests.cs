@@ -165,6 +165,22 @@ public sealed class AccountServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task FailedInitializationStillDrainsAndAllowsConfirmedReset()
+    {
+        var storage = Guid.NewGuid();
+        var folder = new ProviderSessionFactory(services, root).DirectoryFor(storage);
+        await MultiAccountSessionTests.SeedAsync("claude", folder, "orphan");
+        await new AccountRegistry(root).UpdateAsync(s => s with { LegacyMigrationComplete = true, Pending = [new("claude", storage)] }, Token);
+        using var service = Create();
+        using (var obstruction = File.Open(Path.Combine(folder, "claude.state"), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            await Assert.ThrowsAnyAsync<Exception>(() => service.InitializeAsync(Token));
+        await service.StopAsync();
+        await service.StopAsync();
+        await new AiUsage.Infrastructure.Persistence.OwnedDataDeletion(root).RunAsync(true, Token);
+        Assert.False(File.Exists(Path.Combine(folder, "claude.state")));
+    }
+
+    [Fact]
     public async Task FailedReconnectKeepsThePreviousGrantAndReading()
     {
         using var service = Create();

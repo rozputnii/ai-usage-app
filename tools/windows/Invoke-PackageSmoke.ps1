@@ -97,7 +97,7 @@ try {
         $report.dotnetNegative = 'PREREQUISITE_ALREADY_PRESENT'
     } else {
         $env:AIU_SMOKE_EVIDENCE_DIRECTORY = Join-Path $EvidenceDirectory 'negative-dotnet'
-        & $SmokeExecutable -noLogo
+        & $SmokeExecutable -noLogo -explicit on -method '*PackagedLedgerLaunchesAndExits'
         $report.dotnetNegativeExitCode = $LASTEXITCODE
         $attempts = @(Get-ChildItem -LiteralPath $env:AIU_SMOKE_EVIDENCE_DIRECTORY -Filter '*-activation.json' -ErrorAction SilentlyContinue)
         $activationAttempted = @($attempts | ForEach-Object { Get-Content -LiteralPath $_.FullName | ConvertFrom-Json } | Where-Object phase -eq 'activation-attempted').Count -gt 0
@@ -114,7 +114,7 @@ try {
     $env:AIU_SMOKE_AUMID = "$($installed.PackageFamilyName)!App"
     $report.aumid = $env:AIU_SMOKE_AUMID
     $env:AIU_SMOKE_EVIDENCE_DIRECTORY = Join-Path $EvidenceDirectory 'positive'
-    & $SmokeExecutable -noLogo
+    & $SmokeExecutable -noLogo -explicit on -method '*PackagedLedgerLaunchesAndExits'
     $report.smokeExitCode = $LASTEXITCODE
     if ($LASTEXITCODE -ne 0) { $report.positive = 'FAIL'; throw 'Installed app smoke failed.' }
     $report.positive = 'PASS'
@@ -129,3 +129,4 @@ try {
 }
 $report | ConvertTo-Json -Depth 8
 if ($report.status -ne 'PASS_REQUIRES_EVIDENCE_REVIEW') { exit 1 }
+

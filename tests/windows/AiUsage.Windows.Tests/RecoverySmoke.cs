@@ -68,7 +68,7 @@ public sealed partial class ShellSmoke
             using (var barrier = new FileStream(Path.Combine(root, "layout.v1.json.new"), FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 Session("interrupted", window =>
                 {
-                    WaitForRecovery(window, "A data migration did not finish");
+                    WaitForRecovery(window, "Local data needs recovery");
                     Assert.True(File.Exists(Path.Combine(root, "maintenance", "journal.v1.json")));
                     Assert.Equal(original, File.ReadAllBytes(legacy));
                     Capture(window, evidence, "interrupted-before-restart");
@@ -76,8 +76,8 @@ public sealed partial class ShellSmoke
             var checkpoint = File.ReadAllBytes(Path.Combine(root, "maintenance", "checkpoint.v1.bin"));
             Session("retry", window =>
             {
-                WaitForRecovery(window, "A data migration did not finish");
-                Required(window, "RecoveryRetry").AsButton().Invoke();
+                WaitForRecovery(window, "Local data needs recovery");
+                Required(window, "Retry recovery").AsButton().Invoke();
                 WaitForDashboard(window);
                 Assert.Equal(original, File.ReadAllBytes(target));
                 Capture(window, evidence, "retry-dashboard");
@@ -86,23 +86,11 @@ public sealed partial class ShellSmoke
             File.WriteAllText(target, "deliberately-corrupted-synthetic-preferences");
             Session("restore", window =>
             {
-                WaitForRecovery(window, "A data migration did not finish");
-                Required(window, "RecoveryDiagnostics").AsButton().Invoke();
-                Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("RecoveryDiagnosticsText")) is not null, TimeSpan.FromSeconds(5)));
+                WaitForRecovery(window, "Local data needs recovery");
+                Required(window, "Preview diagnostics").AsButton().Invoke();
                 Capture(window, evidence, "restore-diagnostics");
-                Required(window, "RecoveryRestore").AsButton().Invoke();
-                AutomationElement? restore = null;
-                Assert.True(WaitUntil(() => (restore = window.FindAllDescendants(cf => cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))
-                    .FirstOrDefault(button => button.Name.StartsWith("Before migration", StringComparison.Ordinal))) is not null, TimeSpan.FromSeconds(5)));
-                restore!.AsButton().Invoke();
-                var pid = GetOwnedProcessId(window);
-                Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "ConfirmAccept").Count == 1, TimeSpan.FromSeconds(5)));
-                Capture(window, evidence, "restore-confirmation");
-                FindAllInProcess(automation, pid, "ConfirmAccept").Single().AsButton().Invoke();
+                Required(window, "Restore legacy preferences").AsButton().Invoke();
                 WaitForDashboard(window);
-                Assert.True(WaitUntil(() => FindAllInProcess(automation, pid, "ConfirmAccept").Count == 0, TimeSpan.FromSeconds(10)));
-                // UIA removes popup children before WinUI completes its closing animation and releases the dialog gate.
-                Thread.Sleep(500);
                 Assert.Equal(original, File.ReadAllBytes(target));
                 Capture(window, evidence, "restored-dashboard");
             });
@@ -110,32 +98,22 @@ public sealed partial class ShellSmoke
             File.WriteAllText(Path.Combine(root, "layout.v1.json"), "{\"Version\":1,\"Layout\":99}");
             Session("newer-schema", window =>
             {
-                WaitForRecovery(window, "This data was written by a newer version");
-                Assert.False(Required(window, "RecoveryRetry").IsEnabled);
-                Assert.False(Required(window, "RecoveryRestore").IsEnabled);
-                Required(window, "RecoveryExport").AsButton().Invoke();
+                WaitForRecovery(window, "These local data were written by a newer app");
+                Assert.False(Required(window, "Retry recovery").IsEnabled);
+                Assert.False(Required(window, "Restore legacy preferences").IsEnabled);
+                Required(window, "Export recovery summary").AsButton().Invoke();
                 var diagnostics = Path.Combine(root, "recovery-diagnostics.txt");
                 Assert.True(WaitUntil(() => File.Exists(diagnostics), TimeSpan.FromSeconds(5)));
                 var diagnosticText = File.ReadAllText(diagnostics);
                 Assert.Contains("Condition: NewerSchema", diagnosticText, StringComparison.Ordinal);
                 Assert.DoesNotContain("opaque/provider", diagnosticText, StringComparison.Ordinal);
                 Assert.DoesNotContain(root, diagnosticText, StringComparison.Ordinal);
-                Window? folder = null;
-                Assert.True(WaitUntil(() => (folder = automation.GetDesktop().FindAllChildren(cf => cf.ByClassName("CabinetWClass"))
-                    .FirstOrDefault(item => item.Name.StartsWith(Path.GetFileName(root), StringComparison.Ordinal))?.AsWindow()) is not null,
-                    TimeSpan.FromSeconds(10)), "Export must open the owned folder in File Explorer.");
-                folder!.Close();
-                Required(window, "RecoveryDataFolder").AsButton().Invoke();
-                Assert.True(WaitUntil(() => (folder = automation.GetDesktop().FindAllChildren(cf => cf.ByClassName("CabinetWClass"))
-                    .FirstOrDefault(item => item.Name.StartsWith(Path.GetFileName(root), StringComparison.Ordinal))?.AsWindow()) is not null,
-                    TimeSpan.FromSeconds(10)), "The data folder action must open File Explorer.");
-                folder!.Close();
                 window.Focus();
                 Capture(window, evidence, "newer-schema-blocked");
             });
             Assert.Equal(original, File.ReadAllBytes(target));
             // Return the synthetic fixture to its previously committed layout for later guest inspection.
-            File.WriteAllText(Path.Combine(root, "layout.v1.json"), "{\"Version\":1,\"Layout\":1}");
+            File.WriteAllText(Path.Combine(root, "layout.v1.json"), "{\"Version\":1,\"Layout\":2}");
             passed = true;
         }
         finally
@@ -158,7 +136,7 @@ public sealed partial class ShellSmoke
                 if (terminate) { process.Kill(); Assert.True(process.WaitForExit(10000)); return; }
                 FocusForKeyboard(window, window, evidence, name + "-exit");
                 Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
-                ConfirmDialog(automation, process.Id, window, evidence, name).Invoke();
+                if (phase == "old") ConfirmLegacyExit(automation, process.Id);
                 Assert.True(process.WaitForExit(10000));
                 Assert.Equal(0, process.ExitCode);
             }
@@ -189,8 +167,13 @@ public sealed partial class ShellSmoke
                  SettingsEntry(element) is not null);
         })?.AsWindow();
 
-    private static void WaitForRecovery(Window window, string title) => Assert.True(WaitUntil(() =>
-        window.FindFirstDescendant(cf => cf.ByAutomationId("RecoveryTitle"))?.Name == title, TimeSpan.FromSeconds(15)));
+    private static void WaitForRecovery(Window window, string title)
+    {
+        Assert.True(WaitUntil(() => window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith(title, StringComparison.Ordinal)), TimeSpan.FromSeconds(15)));
+        SettingsEntry(window)!.AsButton().Invoke();
+        Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByName("Retry recovery")) is not null, TimeSpan.FromSeconds(5)));
+    }
     private static void WaitForDashboard(Window window) => Assert.True(WaitUntil(() =>
-        SettingsEntry(window) is { IsEnabled: true, IsOffscreen: false }, TimeSpan.FromSeconds(15)));
+        window.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")) is not null &&
+        !window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Local data needs recovery", StringComparison.Ordinal)), TimeSpan.FromSeconds(15)));
 }

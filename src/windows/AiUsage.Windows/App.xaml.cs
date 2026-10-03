@@ -1,5 +1,4 @@
 using AiUsage.Composition;
-using AiUsage.Features.Presentation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -19,7 +18,6 @@ public partial class App : Application
     private LedgerShell? shell;
     private Task? stopTask;
     private readonly ApplicationDiagnostics diagnostics = new();
-    internal ProviderCatalog Providers { get; private set; } = ProviderCatalog.Default;
 
     public App()
     {

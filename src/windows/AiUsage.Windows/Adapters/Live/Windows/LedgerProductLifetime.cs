@@ -134,7 +134,7 @@ internal sealed class LedgerProductLifetime : IDisposable
             timer.Stop();
             await source.StopAsync();
             maintenance.Dispose(); // Releases the product lease; the deletion coordinator reacquires it exclusively.
-            diagnostics.StopForDeletion();
+            await diagnostics.StopForDeletionAsync();
             await new OwnedDataDeletion(root).RunAsync(confirmed: true, token);
             // The native restart API handles both packaged and unpackaged activation. Success terminates this process.
             await Task.Run(() => AppInstance.Restart(string.Empty), CancellationToken.None);

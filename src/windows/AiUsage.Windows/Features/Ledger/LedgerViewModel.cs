@@ -227,6 +227,11 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             return;
         var on = !WorkTodayOn;
         await source.SetWorkTodayAsync(on, CancellationToken.None);
+        if (source.Current.Day.WorkTodayOn != on)
+        {
+            announce("Work today could not be changed");
+            return;
+        }
         if (on)
             OfferUndo("Work today is on until midnight", () => source.SetWorkTodayAsync(false, CancellationToken.None));
         announce(on ? "Work today on until midnight" : "Work today off");
@@ -324,7 +329,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     {
         var name = source.Current.Accounts.FirstOrDefault(a => a.AccountId == accountId)?.DisplayName ?? "Account";
         await source.SignOutAsync(accountId, CancellationToken.None);
-        announce(name + " signed out · history, name and caps kept");
+        announce(source.Current.Accounts.FirstOrDefault(a => a.AccountId == accountId)?.Health == AccountHealth.SignedOut
+            ? name + " signed out · history, name and caps kept" : name + " could not be signed out");
     }
 
     /// <summary>Opens the window at an account (tray row): its first card is focused.</summary>

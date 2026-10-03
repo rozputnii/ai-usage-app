@@ -40,7 +40,7 @@ public sealed partial class ShellSmoke
             Capture(window, evidence!, "installed-preferences");
             FocusForKeyboard(window, window, evidence!, "installed-exit");
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
-            ConfirmDialog(automation, process.Id, window, evidence!, "installed-exit").Invoke();
+
             Assert.True(process.WaitForExit(10000));
             Assert.Equal(0, process.ExitCode);
             File.WriteAllText(Path.Combine(evidence!, "activation.json"),
@@ -57,3 +57,4 @@ public sealed partial class ShellSmoke
         }
     }
 }
+

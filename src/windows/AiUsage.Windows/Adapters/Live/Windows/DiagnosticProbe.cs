@@ -56,8 +56,11 @@ internal static class DiagnosticProbe
             switch (kind)
             {
                 case "ui": RaiseAsync(); break;
-                case "dispatcher": new Platform.UiDispatcher(queue, diagnostics).Post(() => throw new InvalidOperationException("dispatcher-secret-canary")); break;
-                case "converter": _ = Controls.Bind.Token(panel, "missing-secret-canary"); break;
+                case "dispatcher": queue.TryEnqueue(() => FailCommand(new InvalidOperationException("dispatcher-secret-canary"))); break;
+                case "converter":
+                    try { _ = Application.Current.Resources["missing-secret-canary"]; }
+                    catch (Exception exception) { FailCommand(exception); }
+                    break;
                 case "animation": ApplicationDiagnostics.RunAnimation(() => throw new InvalidOperationException("animation-secret-canary")); break;
                 case "background": _ = ObserveAsync(); break;
                 case "stall": Thread.Sleep(TimeSpan.FromSeconds(14)); break;
@@ -80,6 +83,12 @@ internal static class DiagnosticProbe
         {
             await Task.Yield();
             throw new InvalidOperationException("ui-secret-canary");
+        }
+
+        void FailCommand(Exception exception)
+        {
+            diagnostics.CommandFailure(exception);
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
         }
 
         async Task ObserveAsync()

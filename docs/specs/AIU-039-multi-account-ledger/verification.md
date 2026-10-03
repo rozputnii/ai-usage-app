@@ -118,3 +118,33 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   excluded from publication. Actual destructive restart and close/restore tray NOT_RUN yet.
 - Old presentation retirement, additional projection edges and packaged build remain open.
   Owner-led live account/migration and installed-package acceptance remain NOT_RUN.
+
+## Integrated lifecycle review and retirement, 2026-10-03
+
+- Independent review (convergence-review, GPT-6 Astra low), frozen
+  `37eac6d083bf1cd3db1c92b7a8ed053de51b5168` versus `d92ebef`: FAIL with two P2 findings.
+  A bounded diagnostic Dispose did not prove writer termination; a faulted account startup
+  task permanently faulted shutdown and prevented reset retries. Source inspection otherwise
+  passed startup ordering, ownership, recovery routing and forward-fence retention.
+- Corrections: deletion awaits FileDiagnostics.StopAsync; account shutdown observes completed
+  task failures after all writers have drained, and Ledger still drains its preferences after
+  completed rebuild/tick failures. Failed-initialization/reset regression reproduced RED,
+  then targeted account/blocked-diagnostic-worker tests PASS 12/12 (8.558s).
+- Full Infrastructure before these corrections PASS 637/637 (12.811s); later full run pending.
+- Removed retired Features/Controls/Platform presentation, MainWindow, old live adapters,
+  composition and QuotaPace-specific tests. Core/Infrastructure provider-history transport
+  remains intact for AIU-040. Retained Ledger and workflow coverage; Presentation PASS
+  111/111 (0.367s), including new cap-near/reached/over/provider-used-up, rush and stale-failure
+  cases. Subsequent command-feedback changes require another relevant run.
+- Correct local unpackaged Windows Debug build PASS, zero warnings/errors (19.20s).
+  Earlier invocation omitted WindowsPackageType=None: compiled but could not activate
+  unpackaged; this was a verification configuration error, not a passed UI check.
+- Real isolated destructive Windows checks PASS 2/2 (6.419s): confirm reset and resume a
+  pending intent on startup, remove synthetic invalid grant, preserve an unrelated export,
+  native restart to the empty Ledger and clean exit. Local evidence: artifacts/AIU-039/ledger-smoke.
+- Unsigned MSIX validation build PASS at local output AIU-039/packages/2026.10.350.0;
+  SDK warning: mspdbcmf unavailable, so no symbols package. No owned-code warnings.
+  This is a disposable validation artifact, not a publishable reserved release version;
+  installed activation/update and live provider checks remain NOT_RUN.
+- Recovery UI smoke initially failed on a disappearing UIA node after restore. The harness
+  now retries transient COM failures while waiting; rerun pending. New tray check pending.

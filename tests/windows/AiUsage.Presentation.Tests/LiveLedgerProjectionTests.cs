@@ -90,4 +90,44 @@ public sealed class LiveLedgerProjectionTests
         Assert.All(history.Days.Take(34), d => Assert.Null(d.Used));
         Assert.Equal(20, history.Days[^1].Used);
     }
+
+    [Fact]
+    public void CapNearTodayAllowanceAndReachedRemainDistinctFromProviderUsedUp()
+    {
+        var facts = Weekly() with { Key = new("copilot", "GH-P", "premium"), Kind = LimitKind.CountablePool, Unit = "requests",
+            UsedPercent = null, Used = new CountQuantity(488, "requests"), Limit = FactValue.Finite(new CountQuantity(1000, "requests")) };
+        var cap = new PersonalCap(new CountQuantity(500, "requests"), Now);
+        Assert.Equal(CardState.CapClose, Card(Data(facts, 485), cap).State);
+        Assert.Equal(CardState.CapReached, Card(Data(facts with { Used = new CountQuantity(500, "requests") }, 485), cap).State);
+        Assert.Equal(CardState.OverCap, Card(Data(facts with { Used = new CountQuantity(501, "requests") }, 485), cap).State);
+        Assert.Equal(CardState.UsedUp, Card(Data(facts with { Used = new CountQuantity(1000, "requests") }, 485), cap).State);
+    }
+
+    [Fact]
+    public void LastWorkDayRushRequiresProviderReplenishmentAndNoCap()
+    {
+        var thursday = Now.AddDays(3);
+        var key = new ReadingSeriesKey(Account.ToString("N"), Weekly().Key);
+        var facts = Weekly(50);
+        var data = new LedgerLimit(facts, key, [new(key, new CountQuantity(40, "percent"), new DateTimeOffset(thursday.Date, TimeSpan.Zero), thursday, "one", null, SnapshotSource.ProviderApi)]);
+        Assert.Equal(CardState.Rush, Card(data, now: thursday).State);
+        var assumed = facts with { Reset = null, Duration = null, AllowsCalendarFallback = true };
+        Assert.NotEqual(CardState.Rush, Card(data with { Facts = assumed }, now: thursday).State);
+    }
+
+    [Fact]
+    public void FailedStaleAccountRetainsItsFiguresAndFailureMark()
+    {
+        var facts = Weekly();
+        var fetched = Now.AddHours(-1);
+        var quota = new QuotaSnapshot(fetched, null, [], null, null, null, null) { Limits = new(fetched, null, SnapshotSource.ProviderApi, "test", [facts]) };
+        var snapshot = new AccountSnapshot(Account, "claude", true,
+            new(ProviderSessionStatus.QuotaAvailable, quota, Failure: ProviderFailureKind.RateLimited), false, Now);
+        var model = LiveLedgerProjection.Account(snapshot, "Work", [Data(facts)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.Equal(AccountHealth.SyncFailedStale, model.Health);
+        Assert.True(model.Cards[0].Freshness.IsStale);
+        Assert.Equal(40, model.Cards[0].Figures.Used);
+        Assert.Contains(model.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed && m.Since == Now);
+    }
 }
+

@@ -269,7 +269,8 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         Publish(Current with
         {
             Accounts = [.. Current.Accounts.Select(a => a.AccountId == accountId ? signedOut : a)],
-            Providers = [.. Current.Providers.Select(p => p.Provider == account.Provider ? p with { Added = false } : p)],
+            Providers = [.. Current.Providers.Select(p => p.Provider == account.Provider ? p with
+                { Added = Current.Accounts.Any(a => a.AccountId != accountId && a.Provider == account.Provider && a.Health != AccountHealth.SignedOut) } : p)],
         });
         return Task.CompletedTask;
     }

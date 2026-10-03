@@ -388,13 +388,24 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
 
     public void Dispose()
     {
-        if (Volatile.Read(ref stopped) != 0) return;
-        FlushSuppressed(force: true);
-        Event(DiagnosticEvent.SessionExited, DiagnosticSeverity.Information);
-        Interlocked.Exchange(ref stopped, 1);
-        Signal();
-        try { worker.Wait(TimeSpan.FromSeconds(2)); } catch (AggregateException) { Interlocked.Increment(ref lost); }
+        try { StopAsync().Wait(TimeSpan.FromSeconds(2)); } catch (AggregateException) { Interlocked.Increment(ref lost); }
         GC.SuppressFinalize(this);
+    }
+
+    /// <summary>Confirms writer termination before owned-data deletion. Unlike bounded process disposal, this must be awaited.</summary>
+    public Task StopAsync()
+    {
+        lock (gate)
+        {
+            if (stopped == 0)
+            {
+                FlushSuppressed(force: true);
+                Event(DiagnosticEvent.SessionExited, DiagnosticSeverity.Information);
+                Volatile.Write(ref stopped, 1);
+                Signal();
+            }
+        }
+        return worker;
     }
 
     private sealed record Pending(string Kind, DateTimeOffset At, byte[] Bytes, DiagnosticSeverity Severity, Guid? CaptureId = null);

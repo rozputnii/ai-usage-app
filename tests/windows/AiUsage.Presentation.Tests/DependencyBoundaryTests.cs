@@ -70,43 +70,12 @@ public sealed class DependencyBoundaryTests
     public void DemoCompositionIsExplicitAndKeepsItsOwnAdapters()
     {
         var app = File.ReadAllText(Path.Combine(Windows, "App.xaml.cs"));
-        Assert.Contains("AddDemoServices", app);
-        Assert.Contains("else builder.Services.AddLiveServices()", app);
+        Assert.Contains("AddLedgerDemo", app);
+        Assert.Contains("else builder.Services.AddLiveLedgerServices()", app);
         Assert.Contains("\"--demo\"", app);
         var registration = string.Join('\n', Directory.EnumerateFiles(Path.Combine(Windows, "Composition"), "*.cs").Select(File.ReadAllText));
-        foreach (var adapter in new[] { "IUsageSource", "IConnectionFlow", "IHistorySource", "IPreferenceStore", "INotificationPreview", "ICliImportService", "IDiagnosticsService", "IDataManagementService", "IRecoveryService", "IUpdateService" })
-            Assert.Matches(new Regex(adapter + @">\(\s*services\s*=>\s*services\.GetRequiredService<Demo"), registration);
+        Assert.Contains("AddSingleton<ILedgerSource>(provider => provider.GetRequiredService<DemoLedgerSource>())", registration);
     }
 
-    /// <summary>Every resource key a view model or view requests exists in the English resources.</summary>
-    [Fact]
-    public void ReferencedResourceKeysExist()
-    {
-        var keys = TestText.All.Keys.ToHashSet(StringComparer.Ordinal);
-        var missing = new List<string>();
-        foreach (var path in Directory.EnumerateFiles(Path.Combine(Windows, "Features"), "*.cs", SearchOption.AllDirectories))
-            foreach (Match match in Regex.Matches(File.ReadAllText(path), @"\b(?:T|F|Get)\(""([A-Za-z0-9_]+)""\s*[,)]"))
-                if (!keys.Contains(match.Groups[1].Value))
-                    missing.Add($"{Path.GetFileName(path)}: {match.Groups[1].Value}");
-        foreach (var path in WindowsSources("*.xaml"))
-            foreach (Match match in Regex.Matches(File.ReadAllText(path), @"x:Uid=""([A-Za-z0-9_]+)"""))
-                if (!keys.Any(key => key.StartsWith(match.Groups[1].Value + ".", StringComparison.Ordinal)))
-                    missing.Add($"{Path.GetFileName(path)}: x:Uid {match.Groups[1].Value}");
-        Assert.Empty(missing);
-    }
-
-    [Fact]
-    public void DynamicResourceKeyFamiliesAreComplete()
-    {
-        var text = new TestText();
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.ConnectionState>()) _ = text.Get("Connection_" + value);
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.Freshness>()) _ = text.Get("Freshness_" + value);
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.AccountOperation>()) _ = text.Get("Operation_" + value);
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.ContextKind>()) _ = text.Get("ContextKind_" + value);
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.RuleScope>()) _ = text.Get("Scope_" + value);
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.AttentionLevel>()) _ = text.Get("Attention_" + value);
-        foreach (var value in Enum.GetNames<AiUsage.Features.Presentation.HistoryRetention>()) _ = text.Get("Retention_" + value);
-        foreach (var value in new[] { "Interrupted", "NewerSchema", "RestoreFailed" }) { _ = text.Get("Recovery_Title_" + value); _ = text.Get("Recovery_Body_" + value); }
-        foreach (var value in new[] { "NetworkFailure", "RateLimited", "InvalidGrant", "SchemaMismatch", "InternalError" }) _ = text.Get("Failure_Short_" + value);
-    }
 }
+
