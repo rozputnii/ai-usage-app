@@ -9,6 +9,25 @@ namespace AiUsage.Infrastructure.Tests;
 public sealed class QuotaObservationRecorderTests
 {
     [Fact]
+    public async Task NativeFactsRecordNewControlsAndPreserveAnExistingCompatibleSeries()
+    {
+        var store = new CaptureStore();
+        var recorder = new QuotaObservationRecorder(store);
+        var at = new DateTimeOffset(2026, 10, 3, 12, 0, 0, TimeSpan.Zero);
+        var legacy = new LimitKey("codex", "legacy-window-v1", "[\"codex\",\"primary\"]");
+        store.Existing = new("account", legacy);
+        var facts = new LimitSnapshot(at, "plan", SnapshotSource.ProviderApi, "quota-v2",
+        [new(new("codex", "CX-P", "native"), LimitKind.PercentWindow, "percent", LimitValue.NotApplicable)
+            { Used = new CountQuantity(25, "percent"), UsedPercent = 25, LegacyKey = legacy },
+         new(new("codex", "CX-I", "individual_limit"), LimitKind.PercentWindow, "percent", LimitValue.NotApplicable)
+            { Used = new CountQuantity(30, "percent"), SecondaryAmounts = new("123", "456", "333") }]);
+        var quota = new QuotaSnapshot(at, "plan", [], null, null, null, null) { Limits = facts };
+        await recorder.RecordAsync("account", "codex", new(ProviderSessionStatus.QuotaAvailable, quota), TestContext.Current.CancellationToken);
+        Assert.Equal(2, store.Readings.Count);
+        Assert.Contains(store.Readings, r => r.Series.Limit == legacy && r.Value == new CountQuantity(25, "percent"));
+        Assert.Contains(store.Readings, r => r.Series.Limit.Family == "CX-I" && r.Value == new CountQuantity(30, "percent"));
+    }
+    [Fact]
     public async Task ExistingSnapshotsRecordOnlyKnownNormalizedValuesWithoutSecondaryUnknownAmounts()
     {
         var store = new CaptureStore();
@@ -36,7 +55,10 @@ public sealed class QuotaObservationRecorderTests
     private sealed class CaptureStore : IReadingSeriesStore
     {
         public List<ReadingObservation> Readings { get; } = [];
+        public ReadingSeriesKey? Existing { get; set; }
         public Task<StoreWrite> AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token) { Readings.AddRange(observations); return Task.FromResult(new StoreWrite()); }
-        public Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token) => throw new NotSupportedException();
+        public Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token) =>
+            Task.FromResult(new StoreRead<IReadOnlyList<ReadingRun>>(series == Existing ?
+                [new(series, new CountQuantity(20, "percent"), DateTimeOffset.MinValue, DateTimeOffset.MinValue, "legacy", null, SnapshotSource.ProviderApi)] : []));
     }
 }

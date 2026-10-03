@@ -10,7 +10,10 @@ internal sealed class ClaudeStateStore
     private static readonly ProviderStatePolicy<ClaudeStoredState> Policy = new(
         "claude.state", "AiUsage.Claude.State.v1"u8.ToArray(),
         ClaudeStateJson.Default.ClaudeStoredState, state => state.Revision, state => state.ParentRevision,
-        (state, parent) => state with { Version = 1, Revision = Guid.NewGuid(), ParentRevision = parent }, Validate);
+        (state, parent) => state with { Version = 2, Revision = Guid.NewGuid(), ParentRevision = parent }, Validate,
+        ReadState: bytes => ProviderStateMigration.Decode(bytes, ClaudeStateJson.Default.ClaudeStoredState, Validate),
+        NeedsMigration: state => state.Version == 1,
+        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeClaude(state.CachedQuota) });
 
     public ClaudeStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
     internal ClaudeStateStore(string ownedDirectory, Action? afterStage)
@@ -24,13 +27,13 @@ internal sealed class ClaudeStateStore
 
     private static void Validate(ClaudeStoredState state)
     {
-        if (state.Version != 1 || state.Revision == Guid.Empty || state.ParentRevision == state.Revision ||
+        if (state.Version is not (1 or 2) || state.Revision == Guid.Empty || state.ParentRevision == state.Revision ||
             state.Identity is null || !ClaudeAuthClient.SafeIdentity(state.Identity.AccountId) ||
             !ClaudeAuthClient.SafeIdentity(state.Identity.OrganizationId) || !ClaudeAuthClient.SafeToken(state.RefreshToken))
             throw new ProviderException(ProviderFailureKind.RecoveryRequired);
         if (state.CachedQuota is { } reading)
         {
-            if (reading.Quota is null || reading.Quota.Groups is null || reading.Quota.Groups.Count > 1024 ||
+            if (reading.Quota is null || !ProviderStateMigration.Valid(reading.Quota) || reading.Quota.Groups is null || reading.Quota.Groups.Count > 1024 ||
                 reading.Quota.Groups.Any(group => group is null || group.Id is null || group.Windows is null ||
                     group.Windows.Any(window => window is null || window.Id is null || !Percent(window.UsedPercent) || !Percent(window.RemainingPercent))))
                 throw new ProviderException(ProviderFailureKind.RecoveryRequired);

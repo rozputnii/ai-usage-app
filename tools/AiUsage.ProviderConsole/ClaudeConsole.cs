@@ -129,6 +129,8 @@ internal static class ClaudeConsole
     }
 }
 
-[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSourceGenerationOptions(WriteIndented = true, Converters = [
+    typeof(AiUsage.Infrastructure.Providers.QuotaQuantityConverter),
+    typeof(AiUsage.Infrastructure.Providers.QuotaLimitValueConverter)])]
 [JsonSerializable(typeof(ClaudeQuotaReading))]
 internal sealed partial class ClaudeConsoleJson : JsonSerializerContext;

@@ -5,8 +5,8 @@ using AiUsage.Core.Usage;
 namespace AiUsage.Infrastructure.Persistence;
 
 /// <summary>
-/// Compatibility capture of already normalized product values. AIU-037 owns native limit-key
-/// mapping; legacy keys are explicit and must not be silently merged with its future keys.
+/// Captures native normalized facts with explicit history compatibility aliases.
+/// Snapshots from older consumers retain the original versioned legacy capture path.
 /// </summary>
 public sealed class QuotaObservationRecorder(IReadingSeriesStore store) : IQuotaObservationRecorder
 {
@@ -15,6 +15,7 @@ public sealed class QuotaObservationRecorder(IReadingSeriesStore store) : IQuota
         ArgumentNullException.ThrowIfNull(state);
         if (state.Status != ProviderSessionStatus.QuotaAvailable || state.FromCache || state.Failure is not null || state.Quota is not { } quota)
             return Task.CompletedTask;
+        if (quota.Limits is { } limits) return RecordNativeAsync(accountTarget, limits, token);
         List<ReadingObservation> observations = [];
         foreach (var group in quota.Groups)
         foreach (var window in group.Windows)
@@ -42,6 +43,28 @@ public sealed class QuotaObservationRecorder(IReadingSeriesStore store) : IQuota
             PlanType = quota.PlanType, Source = SnapshotSource.ProviderApi, SourceVersion = "quota-v1",
             RoundingUnit = value is CountQuantity count ? RoundingUnit(count.Value) : 1
         };
+    }
+
+    private async Task RecordNativeAsync(string accountTarget, LimitSnapshot snapshot, CancellationToken token)
+    {
+        List<ReadingObservation> observations = [];
+        foreach (var facts in snapshot.Limits)
+        {
+            var balance = facts.Key.Family == "CX-B";
+            var value = balance ? facts.Remaining : facts.Used;
+            if (value is null || value is CountQuantity { Unit: "unknown" or "" }) continue;
+            var key = await CompatibleReadingSeries.ResolveAsync(store, accountTarget, facts, token).ConfigureAwait(false);
+            observations.Add(new(key, value, snapshot.FetchedAt)
+            {
+                PlanType = snapshot.PlanType, Source = snapshot.Source, SourceVersion = snapshot.SourceVersion,
+                UsedPercent = facts.UsedPercent, IsBalance = balance,
+                ResetAt = facts.Reset is { Origin: ValueOrigin.Provider } reset ? reset.At : null,
+                ResetPrecision = facts.Reset is { Origin: ValueOrigin.Provider } precise ? precise.Precision : null,
+                PeriodStartedAt = facts.PeriodStartOrigin == ValueOrigin.Derived && facts.PeriodStart <= snapshot.FetchedAt ? facts.PeriodStart : null,
+                RoundingUnit = value is CountQuantity count ? RoundingUnit(count.Value) : 1
+            });
+        }
+        if (observations.Count > 0) await store.AppendAsync(observations, token).ConfigureAwait(false);
     }
 
     private static decimal RoundingUnit(decimal value)

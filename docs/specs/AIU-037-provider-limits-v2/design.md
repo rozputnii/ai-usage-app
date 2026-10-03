@@ -1,3 +1,11 @@
+---
+id: AIU-037
+type: design
+status: implementing
+goal: G-003
+scope_version: 1
+---
+
 # Design
 
 Keep QuotaSnapshot as the transport-independent compatibility envelope and add an

@@ -55,7 +55,8 @@ internal static class CopilotQuotaParser
                 "premium_interactions" => "Premium requests", "chat" => "Chat", "completions" => "Completions", _ => property.Name
             }, null, null, null, null, [window]));
         }
-        return new(fetchedAt, CopilotAuthClient.Text(root, "copilot_plan"), groups, null, null, null, null);
+        var quota = new QuotaSnapshot(fetchedAt, CopilotAuthClient.Text(root, "copilot_plan"), groups, null, null, null, null);
+        return quota with { Limits = QuotaLimitMapping.Live("copilot", quota, root) };
     }
     private static decimal? Number(JsonElement root, string key)
     {

@@ -157,6 +157,8 @@ internal static class Program
     }
 }
 
-[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSourceGenerationOptions(WriteIndented = true, Converters = [
+    typeof(AiUsage.Infrastructure.Providers.QuotaQuantityConverter),
+    typeof(AiUsage.Infrastructure.Providers.QuotaLimitValueConverter)])]
 [JsonSerializable(typeof(QuotaSnapshot))]
 internal sealed partial class ConsoleJson : JsonSerializerContext;

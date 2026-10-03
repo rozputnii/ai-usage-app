@@ -90,5 +90,30 @@ cleanup reports failure while retaining that recovery file. Whole-store cleanup 
 recognized active, staged and quarantined files, retaining the operation lock. The owner
 explicitly deferred product delete/reset button wiring on 2026-10-02.
 
+## AIU-037 provider quota format 2
+
+The three protected provider states and the separate Codex quota cache now have a
+forward v1-to-v2 conversion. Provider state filenames and DPAPI purpose bytes stay
+unchanged. The migration preserves identity, grant, revision and parent revision;
+only an unmappable cached quota is dropped. Old reset precision and period starts
+remain unknown until a fresh reading. The Codex grant format/journal is unchanged.
+
+The existing provider lease serializes migration. Pending grant generations resolve
+before the v1 checkpoint is captured. Protected stores retain exact encrypted bytes
+in provider.state.v1.bak, with .v1.bak.new for checkpoint staging and .v2.new for
+format staging. Both stages are flushed and validated before promotion. An
+interruption retries from the committed generation; a checkpoint mismatch fails
+closed. The checkpoint never restores/replays a predecessor grant after token rotation.
+Sign-out deletes these exact provider artifacts after normal path/reparse checks.
+The independent budget namespace remains retained under AIU-036.
+
+Codex uses codex.quota.json.v1.bak and .v1.bak.new for its credential-free checkpoint
+and the existing .new quota stage. A failed replace preserves the old reading and
+checkpoint for retry. Existing byte limits apply. These operations are per provider,
+not atomic across all providers. No install, trust or portable-backup policy changes.
+
+Local fixture evidence is in [AIU-037 verification](../../specs/AIU-037-provider-limits-v2/verification.md).
+Required independent review is BLOCKED; implementation publication is a WIP save point.
+
 ## Deferred security scope
 Manifest PKI/expiry/replay and actual signing legal-identity eligibility are AIU-015/014, not bootstrap code. No custom crypto framework or secret manager server before needed.

@@ -9,7 +9,7 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 /// </summary>
 internal sealed record AntigravityStoredState
 {
-    public int Version { get; init; } = 1;
+    public int Version { get; init; } = 2;
     public Guid Revision { get; init; }
     public Guid? ParentRevision { get; init; }
     public required string AccountId { get; init; }
@@ -21,6 +21,6 @@ internal sealed record AntigravityStoredState
     public override string ToString() => "AntigravityStoredState (redacted)";
 }
 
-[JsonSourceGenerationOptions(UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 32)]
+[JsonSourceGenerationOptions(Converters = [typeof(QuotaQuantityConverter), typeof(QuotaLimitValueConverter)], UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 32)]
 [JsonSerializable(typeof(AntigravityStoredState))]
 internal partial class AntigravityStateJson : JsonSerializerContext;

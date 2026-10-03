@@ -56,13 +56,14 @@ internal static class CodexQuotaParser
         var credits = Property(root, "credits");
         var balance = Decimal(Property(credits, "balance"));
         var creditBalance = credits.ValueKind == JsonValueKind.Object
-            ? new CreditBalance(Boolean(Property(credits, "has_credits")), Boolean(Property(credits, "unlimited")), balance >= 0 ? balance : null)
+            ? new CreditBalance(Boolean(Property(credits, "has_credits")), Boolean(Property(credits, "unlimited")), balance)
             : null;
         var resets = Number(Property(Property(root, "rate_limit_reset_credits"), "available_count"));
         int? resetCount = resets is >= 0 and <= int.MaxValue && resets == Math.Truncate(resets.Value) ? (int)resets.Value : null;
-        return new QuotaSnapshot(fetchedAt, Text(Property(root, "plan_type")), groups.AsReadOnly(), creditBalance,
+        var quota = new QuotaSnapshot(fetchedAt, Text(Property(root, "plan_type")), groups.AsReadOnly(), creditBalance,
             resetCount, Boolean(Property(Property(root, "spend_control"), "reached")),
             Text(Property(Property(root, "rate_limit_reached_type"), "type")));
+        return quota with { Limits = QuotaLimitMapping.Live("codex", quota, root) };
     }
 
     private static QuotaGroup ParseGroup(JsonElement limit, string id, string? name, string? feature, string? normalModel, DateTimeOffset fetchedAt)

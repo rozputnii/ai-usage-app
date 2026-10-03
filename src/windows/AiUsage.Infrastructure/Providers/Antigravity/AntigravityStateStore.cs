@@ -10,7 +10,10 @@ internal sealed class AntigravityStateStore
     private static readonly ProviderStatePolicy<AntigravityStoredState> Policy = new(
         "antigravity.state", "AiUsage.Antigravity.State.v1"u8.ToArray(),
         AntigravityStateJson.Default.AntigravityStoredState, state => state.Revision, state => state.ParentRevision,
-        (state, parent) => state with { Version = 1, Revision = Guid.NewGuid(), ParentRevision = parent }, Validate);
+        (state, parent) => state with { Version = 2, Revision = Guid.NewGuid(), ParentRevision = parent }, Validate,
+        ReadState: bytes => ProviderStateMigration.Decode(bytes, AntigravityStateJson.Default.AntigravityStoredState, Validate),
+        NeedsMigration: state => state.Version == 1,
+        Migrate: state => state with { Version = 2, CachedQuota = ProviderStateMigration.UpgradeQuota("antigravity", state.CachedQuota) });
 
     public AntigravityStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
     internal AntigravityStateStore(string ownedDirectory, Action? afterStage)
@@ -24,7 +27,7 @@ internal sealed class AntigravityStateStore
 
     private static void Validate(AntigravityStoredState state)
     {
-        if (state.Version != 1 || state.Revision == Guid.Empty || state.ParentRevision == state.Revision ||
+        if (state.Version is not (1 or 2) || state.Revision == Guid.Empty || state.ParentRevision == state.Revision ||
             !AntigravityAuthClient.SafeIdentity(state.AccountId) ||
             !AntigravityAuthClient.SafeIdentity(state.ProjectId) ||
             !AntigravityAuthClient.SafeToken(state.RefreshToken) ||
@@ -32,7 +35,7 @@ internal sealed class AntigravityStateStore
             throw new ProviderException(ProviderFailureKind.RecoveryRequired);
         if (state.CachedQuota is { } quota)
         {
-            if (quota.Groups is null || quota.Groups.Count > 1024 ||
+            if (!ProviderStateMigration.Valid(quota) || quota.Groups is null || quota.Groups.Count > 1024 ||
                 quota.Groups.Any(group => group is null || group.Id is null || group.Windows is null ||
                     group.Windows.Any(window => window is null || window.Id is null ||
                         !Percent(window.UsedPercent) || !Percent(window.RemainingPercent))))

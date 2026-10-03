@@ -8,8 +8,8 @@ public enum LimitKind { PercentWindow, CountablePool, MonetaryPool }
 public enum LimitValueState { Unknown, ExplicitNull, Unlimited, NotApplicable, Finite }
 public enum ValueOrigin { Provider, Derived, Assumed }
 public enum ResetMeaning { Unknown, Replenish, Expire }
-public enum ResetPrecision { Instant, Date }
-public enum ResetZone { Explicit, AssumedUtc }
+public enum ResetPrecision { Instant, Date, Unknown }
+public enum ResetZone { Explicit, AssumedUtc, Unknown }
 public enum SnapshotSource { ProviderApi, LocalCli }
 
 public sealed record LimitValue
@@ -28,6 +28,7 @@ public sealed record LimitKey(string Provider, string Family, string NativeDiscr
 public sealed record ResetFact(DateTimeOffset At, ValueOrigin Origin, ResetMeaning Meaning,
     ResetPrecision Precision = ResetPrecision.Instant, ResetZone Zone = ResetZone.Explicit);
 public sealed record PersonalCap(Quantity Amount, DateTimeOffset SetAt);
+public sealed record OpaqueQuotaAmount(string? Used, string? Limit, string? Remaining, string Unit = "unknown");
 public sealed record LimitFacts(LimitKey Key, LimitKind Kind, string Unit, LimitValue Limit)
 {
     public Quantity? Used { get; init; }
@@ -36,6 +37,9 @@ public sealed record LimitFacts(LimitKey Key, LimitKind Kind, string Unit, Limit
     public decimal? UsedPercent { get; init; }
     public decimal? RemainingPercent { get; init; }
     public Quantity? SecondaryAmount { get; init; }
+    public OpaqueQuotaAmount? SecondaryAmounts { get; init; }
+    // A proven equivalent pre-v2 history key; null means no safe alias exists.
+    public LimitKey? LegacyKey { get; init; }
     // An explicit unlimited flag wins; any accompanying entitlement remains a source fact.
     public Quantity? ReportedLimit { get; init; }
     public QuotaSourceDetails? SourceDetails { get; init; }

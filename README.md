@@ -59,6 +59,14 @@ copies and tracking restarts; estimates need fresh samples again. Storage capaci
 reported without discarding retained readings. This item supplies cleanup for these stores;
 the currently unavailable product delete-data/factory-reset buttons are not enabled by it.
 
+AIU-037 adds native normalized limit facts and forward quota-storage v2 migrations.
+Compatible existing reading keys continue through an explicit alias; ambiguous old
+scoped histories remain separate. Protected migrations preserve grants and generation
+identities and retain encrypted v1 checkpoints, without automatic grant rollback.
+The existing presentation continues to use its compatibility fields until AIU-039.
+AIU-037's local checks pass, but its required independent security review is currently
+blocked; see [verification and handoff](docs/specs/AIU-037-provider-limits-v2/verification.md).
+
 History opens with automatic loading for connected accounts, or one selected account from
 its card. Codex analytics and Copilot personal billing reports use existing AI Usage
 sessions; availability depends on the provider, plan and current permissions. Claude and

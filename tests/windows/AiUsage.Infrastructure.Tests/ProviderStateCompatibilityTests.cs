@@ -22,7 +22,7 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
     [InlineData("Claude", """{"Version":1,"Revision":"18908074-7397-48ea-a9c3-c47368899910","ParentRevision":null,"Identity":{"AccountId":"synthetic-account","OrganizationId":"synthetic-organization"},"RefreshToken":"synthetic-refresh","NeedsReauthentication":false,"CachedQuota":null}""")]
     [InlineData("Copilot", """{"Version":1,"Revision":"18908074-7397-48ea-a9c3-c47368899910","ParentRevision":null,"AccountId":"123","AccessToken":"synthetic-access","ExpiresAt":null,"NeedsReauthentication":false,"CachedQuota":null}""")]
     [InlineData("Antigravity", """{"Version":1,"Revision":"18908074-7397-48ea-a9c3-c47368899910","ParentRevision":null,"AccountId":"synthetic-account","RefreshToken":"synthetic-refresh","ProjectId":"synthetic-project","Tier":null,"NeedsReauthentication":false,"CachedQuota":null}""")]
-    public async Task ExistingProtectedRecordLoadsAndRetainsItsExactShape(string provider, string json)
+    public async Task ExistingProtectedRecordMigratesAndRetainsGrantFields(string provider, string json)
     {
         Directory.CreateDirectory(root);
         var entropy = Encoding.UTF8.GetBytes($"AiUsage.{provider}.State.v1");
@@ -35,6 +35,7 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
                 {
                     var state = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
                     Assert.Equal(Revision, state.Revision);
+                    Assert.Equal(2, state.Version);
                     Assert.Equal("synthetic-refresh", state.RefreshToken);
                     await lease.SaveAsync(state, state.Revision, TestContext.Current.CancellationToken);
                 }
@@ -44,6 +45,7 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
                 {
                     var state = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
                     Assert.Equal(Revision, state.Revision);
+                    Assert.Equal(2, state.Version);
                     Assert.Equal("synthetic-access", state.AccessToken);
                     await lease.SaveAsync(state, state.Revision, TestContext.Current.CancellationToken);
                 }
@@ -53,6 +55,7 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
                 {
                     var state = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
                     Assert.Equal(Revision, state.Revision);
+                    Assert.Equal(2, state.Version);
                     Assert.Equal("synthetic-project", state.ProjectId);
                     await lease.SaveAsync(state, state.Revision, TestContext.Current.CancellationToken);
                 }
@@ -64,7 +67,8 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
             using var expected = JsonDocument.Parse(json);
             using var actual = JsonDocument.Parse(bytes);
             Assert.Equal(expected.RootElement.EnumerateObject().Select(p => p.Name).Order(), actual.RootElement.EnumerateObject().Select(p => p.Name).Order());
-            foreach (var property in expected.RootElement.EnumerateObject().Where(p => p.Name is not ("Revision" or "ParentRevision")))
+            Assert.Equal(2, actual.RootElement.GetProperty("Version").GetInt32());
+            foreach (var property in expected.RootElement.EnumerateObject().Where(p => p.Name is not ("Version" or "Revision" or "ParentRevision")))
                 Assert.True(JsonElement.DeepEquals(property.Value, actual.RootElement.GetProperty(property.Name)), property.Name);
             Assert.Equal(Revision, actual.RootElement.GetProperty("ParentRevision").GetGuid());
         }

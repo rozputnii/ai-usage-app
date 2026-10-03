@@ -5,7 +5,7 @@ namespace AiUsage.Infrastructure.Providers.Copilot;
 
 internal sealed record CopilotStoredState
 {
-    public int Version { get; init; } = 1;
+    public int Version { get; init; } = 2;
     public Guid Revision { get; init; }
     public Guid? ParentRevision { get; init; }
     public required string AccountId { get; init; }
@@ -16,6 +16,6 @@ internal sealed record CopilotStoredState
     public override string ToString() => "CopilotStoredState (redacted)";
 }
 
-[JsonSourceGenerationOptions(UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 32)]
+[JsonSourceGenerationOptions(Converters = [typeof(QuotaQuantityConverter), typeof(QuotaLimitValueConverter)], UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 32)]
 [JsonSerializable(typeof(CopilotStoredState))]
 internal partial class CopilotStateJson : JsonSerializerContext;

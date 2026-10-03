@@ -130,7 +130,7 @@ internal static class ClaudeQuotaParser
                 SpendControlReached: null,
                 LimitReachedType: null);
 
-            reading = new ClaudeQuotaReading(quota, extraUsage);
+            reading = new ClaudeQuotaReading(quota with { Limits = QuotaLimitMapping.Live("claude", quota, root, extraUsage) }, extraUsage);
             return true;
         }
         catch (JsonException)

@@ -58,7 +58,8 @@ internal static class AntigravityQuotaParser
             if (single.Windows.Count > 0 || single.Allowed == false)
                 groups.Add(single);
         }
-        return new(fetchedAt, planType, groups, null, null, null, null);
+        var quota = new QuotaSnapshot(fetchedAt, planType, groups, null, null, null, null);
+        return quota with { Limits = QuotaLimitMapping.Live("antigravity", quota, root) };
     }
 
     private static QuotaGroup Group(string id, string? name, JsonElement buckets, ref int windowCount)

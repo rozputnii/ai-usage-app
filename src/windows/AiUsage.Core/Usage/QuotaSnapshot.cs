@@ -7,7 +7,10 @@ public sealed record QuotaSnapshot(
     CreditBalance? Credits,
     int? AvailableResetCredits,
     bool? SpendControlReached,
-    string? LimitReachedType);
+    string? LimitReachedType)
+{
+    public LimitSnapshot? Limits { get; init; }
+}
 
 public sealed record QuotaGroup(
     string Id,

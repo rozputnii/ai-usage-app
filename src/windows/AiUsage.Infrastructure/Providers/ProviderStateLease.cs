@@ -12,6 +12,8 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
     private readonly string committedPath = Path.Combine(directory, policy.FileName);
     private readonly string pendingPath = Path.Combine(directory, policy.FileName + ".pending");
     private readonly string replacementPath = Path.Combine(directory, policy.FileName + ".new");
+    private readonly string checkpointPath = Path.Combine(directory, policy.FileName + ".v1.bak");
+    private readonly string migrationPath = Path.Combine(directory, policy.FileName + ".v2.new");
     private byte[]? externalUpdateIntent;
 
     /// <summary>
@@ -49,7 +51,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 return await RecoverJournalAsync(committed, forFreshAuthorization, cancellationToken).ConfigureAwait(false);
             var pending = await ReadAsync(pendingPath, cancellationToken).ConfigureAwait(false);
             if (pending is null)
-                return committed;
+                return await MigrateAsync(committed, cancellationToken).ConfigureAwait(false);
             if (policy.ParentRevision(pending) != Revision(committed))
                 throw new ProviderException(ProviderFailureKind.RecoveryRequired);
             // A fully staged record is the only recoverable successor. Corrupt or unrelated
@@ -59,8 +61,9 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 CheckPaths();
                 File.Move(pendingPath, committedPath, overwrite: true);
             }, cancellationToken).ConfigureAwait(false);
-            return pending;
+            return await MigrateAsync(pending, cancellationToken).ConfigureAwait(false);
         }
+        catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
         catch (IOException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
         catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
     }
@@ -132,6 +135,12 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             File.Delete(committedPath);
             File.Delete(pendingPath);
             if (policy.SeparateJournal) File.Delete(replacementPath);
+            if (policy.Migrate is not null)
+            {
+                File.Delete(migrationPath);
+                File.Delete(checkpointPath);
+                File.Delete(checkpointPath + ".new");
+            }
         }
         catch (IOException) { throw new ProviderException(ProviderFailureKind.GrantNotRemoved); }
         catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.GrantNotRemoved); }
@@ -149,13 +158,15 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
         try
         {
             plaintext = ProtectedData.Unprotect(ciphertext, policy.Entropy, DataProtectionScope.CurrentUser);
-            var state = JsonSerializer.Deserialize(plaintext, policy.JsonType);
+            var state = policy.ReadState is { } read ? read(plaintext) : JsonSerializer.Deserialize(plaintext, policy.JsonType);
             if (state is null) throw new ProviderException(ProviderFailureKind.RecoveryRequired);
             policy.Validate(state);
             return state;
         }
         catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
         catch (JsonException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
+        catch (Exception e) when (e is NotSupportedException or InvalidOperationException or KeyNotFoundException or FormatException)
+        { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
         finally { if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext); }
     }
 
@@ -246,12 +257,64 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
 
     private Guid? Revision(TState? state) => state is null ? null : policy.Revision(state);
 
+    private async Task<TState?> MigrateAsync(TState? state, CancellationToken token)
+    {
+        if (state is null || policy.NeedsMigration?.Invoke(state) != true || policy.Migrate is null) return state;
+        CheckPaths();
+        var original = await ReadBytesAsync(committedPath, policy.MaximumBytes, token).ConfigureAwait(false)
+            ?? throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+        var backup = await ReadBytesAsync(checkpointPath, policy.MaximumBytes, token).ConfigureAwait(false);
+        if (backup is not null)
+        {
+            if (!backup.AsSpan().SequenceEqual(original)) throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+            _ = Decode(backup);
+        }
+        else
+        {
+            await WriteFlushedAsync(checkpointPath + ".new", original, FileMode.Create, token).ConfigureAwait(false);
+            var verify = await ReadBytesAsync(checkpointPath + ".new", policy.MaximumBytes, token).ConfigureAwait(false);
+            if (verify is null || !verify.AsSpan().SequenceEqual(original)) throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+            _ = Decode(verify);
+            CheckPaths();
+            File.Move(checkpointPath + ".new", checkpointPath);
+        }
+        var next = policy.Migrate(state);
+        policy.Validate(next);
+        // Format migration must never change grant lineage or use Stamp (a grant write).
+        if (policy.Revision(next) != policy.Revision(state) || policy.ParentRevision(next) != policy.ParentRevision(state))
+            throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+        var plaintext = JsonSerializer.SerializeToUtf8Bytes(next, policy.JsonType);
+        byte[] ciphertext;
+        try
+        {
+            if (plaintext.Length > policy.MaximumBytes - 4096) throw new ProviderException(ProviderFailureKind.StorageUnavailable);
+            ciphertext = ProtectedData.Protect(plaintext, policy.Entropy, DataProtectionScope.CurrentUser);
+        }
+        finally { CryptographicOperations.ZeroMemory(plaintext); }
+        CheckPaths();
+        await WriteFlushedAsync(migrationPath, ciphertext, FileMode.Create, token).ConfigureAwait(false);
+        var staged = await ReadBytesAsync(migrationPath, policy.MaximumBytes, token).ConfigureAwait(false);
+        if (staged is null || !staged.AsSpan().SequenceEqual(ciphertext)) throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+        _ = Decode(staged);
+        afterStage?.Invoke();
+        token.ThrowIfCancellationRequested();
+        CheckPaths();
+        File.Move(migrationPath, committedPath, overwrite: true);
+        return next;
+    }
+
     private void CheckPaths()
     {
         ProviderStatePaths.CheckDirectory(directory);
         ProviderStatePaths.CheckFile(committedPath);
         ProviderStatePaths.CheckFile(pendingPath);
         if (policy.SeparateJournal) ProviderStatePaths.CheckFile(replacementPath);
+        if (policy.Migrate is not null)
+        {
+            ProviderStatePaths.CheckFile(checkpointPath);
+            ProviderStatePaths.CheckFile(checkpointPath + ".new");
+            ProviderStatePaths.CheckFile(migrationPath);
+        }
     }
 
     public ValueTask DisposeAsync() => exclusiveLock.DisposeAsync();

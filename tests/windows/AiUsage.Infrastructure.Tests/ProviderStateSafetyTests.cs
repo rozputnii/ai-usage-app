@@ -74,6 +74,8 @@ public sealed class ProviderStateSafetyTests : IDisposable
     [InlineData("codex.quota.json")]
     [InlineData("codex.quota.json.new")]
     [InlineData("codex.quota.json.lock")]
+    [InlineData("codex.quota.json.v1.bak")]
+    [InlineData("codex.quota.json.v1.bak.new")]
     public async Task CachePathsCannotRedirectReadWriteOrDelete(string name)
     {
         var outside = Path.Combine(root, "outside");
@@ -89,6 +91,51 @@ public sealed class ProviderStateSafetyTests : IDisposable
             await Assert.ThrowsAsync<ProviderException>(() => cache.ReadAsync(Token));
             await Assert.ThrowsAsync<ProviderException>(() => cache.WriteAsync(new(new QuotaSnapshot(DateTimeOffset.UtcNow, null, [], null, null, null, null), DateTimeOffset.UtcNow), Token));
             await Assert.ThrowsAsync<ProviderException>(() => cache.DeleteAsync(Token));
+            Assert.Equal("synthetic-owner-data", await File.ReadAllTextAsync(sentinel, Token));
+            Assert.Single(Directory.GetFileSystemEntries(outside));
+        }
+        finally { Directory.Delete(redirected); }
+    }
+
+    [Theory]
+    [InlineData("Claude", ".v1.bak")]
+    [InlineData("Claude", ".v1.bak.new")]
+    [InlineData("Claude", ".v2.new")]
+    [InlineData("Copilot", ".v1.bak")]
+    [InlineData("Copilot", ".v1.bak.new")]
+    [InlineData("Copilot", ".v2.new")]
+    [InlineData("Antigravity", ".v1.bak")]
+    [InlineData("Antigravity", ".v1.bak.new")]
+    [InlineData("Antigravity", ".v2.new")]
+    public async Task MigrationPathsCannotRedirectLoadOrCleanup(string provider, string suffix)
+    {
+        Directory.CreateDirectory(StoreDirectory);
+        var outside = Path.Combine(root, "outside");
+        Directory.CreateDirectory(outside);
+        var sentinel = Path.Combine(outside, "preserve.txt");
+        await File.WriteAllTextAsync(sentinel, "synthetic-owner-data", Token);
+        var redirected = Path.Combine(StoreDirectory, provider.ToLowerInvariant() + ".state" + suffix);
+        await CreateJunctionAsync(redirected, outside);
+        try
+        {
+            if (provider == "Claude")
+            {
+                await using var lease = await new ClaudeStateStore(StoreDirectory).AcquireAsync(Token);
+                await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(Token));
+                await Assert.ThrowsAsync<ProviderException>(() => lease.DeleteAsync(Token));
+            }
+            else if (provider == "Copilot")
+            {
+                await using var lease = await new CopilotStateStore(StoreDirectory).AcquireAsync(Token);
+                await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(Token));
+                await Assert.ThrowsAsync<ProviderException>(() => lease.DeleteAsync(Token));
+            }
+            else
+            {
+                await using var lease = await new AntigravityStateStore(StoreDirectory).AcquireAsync(Token);
+                await Assert.ThrowsAsync<ProviderException>(() => lease.LoadAsync(Token));
+                await Assert.ThrowsAsync<ProviderException>(() => lease.DeleteAsync(Token));
+            }
             Assert.Equal("synthetic-owner-data", await File.ReadAllTextAsync(sentinel, Token));
             Assert.Single(Directory.GetFileSystemEntries(outside));
         }

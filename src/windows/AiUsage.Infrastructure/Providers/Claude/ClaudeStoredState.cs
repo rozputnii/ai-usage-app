@@ -6,7 +6,7 @@ namespace AiUsage.Infrastructure.Providers.Claude;
 // Grant and last quota share one protected generation, so a cache cannot cross an account switch.
 internal sealed record ClaudeStoredState
 {
-    public int Version { get; init; } = 1;
+    public int Version { get; init; } = 2;
     public Guid Revision { get; init; }
     public Guid? ParentRevision { get; init; }
     public required ClaudeIdentity Identity { get; init; }
@@ -16,6 +16,6 @@ internal sealed record ClaudeStoredState
     public override string ToString() => "ClaudeStoredState (redacted)";
 }
 
-[JsonSourceGenerationOptions(UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 32)]
+[JsonSourceGenerationOptions(Converters = [typeof(QuotaQuantityConverter), typeof(QuotaLimitValueConverter)], UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, MaxDepth = 32)]
 [JsonSerializable(typeof(ClaudeStoredState))]
 internal partial class ClaudeStateJson : JsonSerializerContext;
