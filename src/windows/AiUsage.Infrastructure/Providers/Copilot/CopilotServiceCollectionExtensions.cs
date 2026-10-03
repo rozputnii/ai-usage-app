@@ -19,7 +19,7 @@ public static class CopilotServiceCollectionExtensions
     public static IServiceCollection AddCopilotProductSession(this IServiceCollection services, string ownedStateDirectory)
     {
         services.AddCopilotIntegration();
-        services.TryAddSingleton(new CopilotStateStore(ownedStateDirectory));
+        services.TryAddSingleton(p => new CopilotStateStore(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(p => new CopilotSession(p.GetRequiredService<CopilotAuthClient>(), p.GetRequiredService<CopilotQuotaClient>(), p.GetRequiredService<CopilotStateStore>(), p.GetRequiredService<TimeProvider>(), p.GetRequiredService<CopilotHistoryClient>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         return services;
     }

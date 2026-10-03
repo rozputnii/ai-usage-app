@@ -22,6 +22,7 @@ internal static class Program
         Console.CancelKeyPress += (_, e) => { e.Cancel = true; cancellation.Cancel(); };
         try
         {
+            if (args is ["measure-logging"]) return await LoggingMeasurements.RunAsync();
             if (args is ["measure-backend"])
                 return await BackendMeasurements.RunAsync(cancellation.Token);
             if (args is ["history", var historyProvider, var ownedDirectory])

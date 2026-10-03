@@ -40,7 +40,11 @@ public partial class App : Application
     /// </summary>
     private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
+        e.Handled = false;
         diagnostics.UnhandledFailure(e.Exception);
+        // The pinned WinUI projection can report async-void faults and then continue even when
+        // Handled is false. The isolated probe verifies this exit occurs only after forced capture.
+        Environment.Exit(1);
     }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)

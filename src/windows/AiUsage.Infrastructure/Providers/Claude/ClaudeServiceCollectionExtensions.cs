@@ -18,7 +18,7 @@ public static class ClaudeServiceCollectionExtensions
     public static IServiceCollection AddClaudeProductSession(this IServiceCollection services, string ownedStateDirectory)
     {
         services.AddClaudeIntegration();
-        services.TryAddSingleton(new ClaudeStateStore(ownedStateDirectory));
+        services.TryAddSingleton(p => new ClaudeStateStore(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(p => new ClaudeSession(p.GetRequiredService<ClaudeAuthClient>(), p.GetRequiredService<ClaudeQuotaClient>(), p.GetRequiredService<ClaudeStateStore>(), p.GetRequiredService<TimeProvider>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         return services;
     }

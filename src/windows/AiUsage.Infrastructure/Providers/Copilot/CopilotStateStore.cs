@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 namespace AiUsage.Infrastructure.Providers.Copilot;
 
@@ -7,6 +8,7 @@ internal sealed class CopilotStateStore
 {
     private readonly string directory;
     private readonly Action? afterStage;
+    private readonly IDiagnosticSink? diagnostics;
     private static readonly ProviderStatePolicy<CopilotStoredState> Policy = new(
         "copilot.state", "AiUsage.Copilot.State.v1"u8.ToArray(),
         CopilotStateJson.Default.CopilotStoredState, state => state.Revision, state => state.ParentRevision,
@@ -17,14 +19,15 @@ internal sealed class CopilotStateStore
         WithoutMigrationCache: state => state with { CachedQuota = null });
 
     public CopilotStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
-    internal CopilotStateStore(string ownedDirectory, Action? afterStage)
+    internal CopilotStateStore(string ownedDirectory, Action? afterStage, IDiagnosticSink? diagnostics = null)
     {
         directory = Path.GetFullPath(ownedDirectory);
         this.afterStage = afterStage;
+        this.diagnostics = diagnostics;
     }
 
     internal Task<ProviderStateLease<CopilotStoredState>> AcquireAsync(CancellationToken cancellationToken) =>
-        Policy.AcquireAsync(directory, afterStage, cancellationToken);
+        Policy.AcquireAsync(directory, afterStage, diagnostics, cancellationToken);
 
     private static void Validate(CopilotStoredState state)
     {

@@ -26,7 +26,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     private readonly ConcurrentQueue<string> breadcrumbs = new();
     private readonly string session = Guid.NewGuid().ToString("N");
     private readonly object environment;
-    private readonly Dictionary<string, (DateTimeOffset At, Logger Logger)> writers = [];
+    private readonly Dictionary<string, (DateTimeOffset At, Logger Logger, long Bytes)> writers = [];
     private int queuedBytes;
     private int stopped;
     private int fatal;
@@ -48,6 +48,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             build = typeof(FileDiagnostics).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
                 .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().FirstOrDefault()?.InformationalVersion,
             runtime = Environment.Version.ToString(), os = Environment.OSVersion.Version.ToString(),
+            windowsAppSdkAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "Microsoft.WinUI")?.GetName().Version?.ToString(),
             mode = mode is "packaged" or "demo" or "console" ? mode : "development"
         };
         worker = Task.Run(WorkAsync);
@@ -58,8 +59,14 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     public long LostRecords => Interlocked.Read(ref lost);
     internal bool CaptureBodies => options.CaptureBodies;
     public IDiagnosticOperation Begin(DiagnosticOperation operation, Guid? accountReference = null) => new DiagnosticScope(this, operation, accountReference);
+    public void RecordDuration(DiagnosticEvent eventCode, double durationMilliseconds)
+    {
+        if (Enum.IsDefined(eventCode) && double.IsFinite(durationMilliseconds) && durationMilliseconds >= 0)
+            Event(eventCode, DiagnosticSeverity.Information, duration: durationMilliseconds);
+    }
     public void Signal(DiagnosticEvent eventCode, DiagnosticSeverity severity = DiagnosticSeverity.Information)
     {
+        if (!Enum.IsDefined(eventCode) || !Enum.IsDefined(severity)) return;
         if (eventCode is DiagnosticEvent.BindingFailure or DiagnosticEvent.DispatchRejected)
         {
             lock (gate)
@@ -147,7 +154,12 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         }
         catch (Exception) { Interlocked.Increment(ref lost); }
         // A single bounded drain; a stalled kernel write itself cannot be cancelled.
-        try { FlushAsync(TimeSpan.FromSeconds(2)).GetAwaiter().GetResult(); }
+        try
+        {
+            // Acquiring the ordinary queue lock must not hold this fatal thread indefinitely.
+            // The outer deadline also bounds a worker that cannot acquire it.
+            Task.Run(() => FlushAsync(TimeSpan.FromSeconds(2))).Wait(TimeSpan.FromSeconds(2));
+        }
         catch (Exception) { Interlocked.Increment(ref lost); }
     }
 
@@ -289,11 +301,11 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
 
     private void Write(Pending item)
     {
-        PrepareFolder();
         if (DiagnosticFiles.Expired(item.Kind, item.At, clock.GetUtcNow())) { Interlocked.Increment(ref lost); return; }
         if (item.Kind == "response")
         {
-            DiagnosticFiles.Prune(DirectoryPath, clock.GetUtcNow(), options, "response", item.Bytes.Length);
+            PrepareFolder();
+            DiagnosticFiles.Prune(DirectoryPath, clock.GetUtcNow(), options, "response", item.Bytes.Length, onlyReservedKind: true);
             var path = DiagnosticFiles.NewName(DirectoryPath, "response", item.At, "json", item.CaptureId!.Value.ToString("N"));
             var stage = Path.ChangeExtension(path, "stage");
             DiagnosticFiles.Check(path); DiagnosticFiles.Check(stage);
@@ -306,25 +318,25 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             return;
         }
         if (writers.TryGetValue(item.Kind, out var existing) &&
-            (existing.At.UtcDateTime.Date != item.At.UtcDateTime.Date || item.At < existing.At ||
+            (existing.At.UtcDateTime.Date != item.At.UtcDateTime.Date || item.At < existing.At || existing.Bytes + item.Bytes.Length + 1 > 8 * 1024 * 1024 ||
              DiagnosticFiles.Expired(item.Kind, existing.At, clock.GetUtcNow())))
         { existing.Logger.Dispose(); writers.Remove(item.Kind); }
-        // Close before eviction so our active file cannot defeat the class budget on Windows.
-        var budget = item.Kind == "trace" ? options.TraceBytes : options.ApplicationBytes - 64 * 1024;
-        if (DiagnosticFiles.Owned(DirectoryPath).Where(p => Path.GetFileName(p).StartsWith(item.Kind + "-", StringComparison.Ordinal)).Sum(p => new FileInfo(p).Length) + item.Bytes.Length + 1 > budget)
-            CloseWriters();
-        DiagnosticFiles.Prune(DirectoryPath, clock.GetUtcNow(), options, item.Kind, item.Bytes.Length + 1);
         if (!writers.TryGetValue(item.Kind, out var writer))
         {
+            PrepareFolder();
+            // Reserve one full roll before opening it. Writes within that roll need no rescans;
+            // other processes see the file, and each writer keeps its own unique, bounded roll.
+            DiagnosticFiles.Prune(DirectoryPath, clock.GetUtcNow(), options, item.Kind, 8 * 1024 * 1024 + 64 * 1024, onlyReservedKind: true);
             var path = DiagnosticFiles.NewName(DirectoryPath, item.Kind, item.At, "jsonl");
             DiagnosticFiles.Check(path);
             var logger = new LoggerConfiguration().MinimumLevel.Verbose().WriteTo.Fallible(sink => sink.File(new ProjectedFormatter(), path,
                 fileSizeLimitBytes: 8 * 1024 * 1024, rollOnFileSizeLimit: true, retainedFileCountLimit: null,
                 buffered: false, flushToDiskInterval: TimeSpan.FromSeconds(1), hooks: new CheckedFileHooks()), new FailureListener(this)).CreateLogger();
-            writer = (item.At, logger);
+            writer = (item.At, logger, 0);
             writers.Add(item.Kind, writer);
         }
         writer.Logger.Information("{ProjectedRecord}", Encoding.UTF8.GetString(item.Bytes));
+        writers[item.Kind] = (writer.At, writer.Logger, writer.Bytes + item.Bytes.Length + 1);
     }
 
     private void CloseWriters()

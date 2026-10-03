@@ -43,6 +43,7 @@ internal sealed partial class LiveUsageSource : IProviderHistorySource
         TaskCompletionSource<ProviderHistoryResult> completion, CancellationTokenSource cancellation)
     {
         await Task.Yield();
+        using var diagnostic = diagnostics?.Begin(AiUsage.Core.Diagnostics.DiagnosticOperation.History, entry.DiagnosticAccountReference);
         try
         {
             var previous = entry.Session.State;
@@ -51,9 +52,10 @@ internal sealed partial class LiveUsageSource : IProviderHistorySource
             if (entry.Session.State != previous) Update(accountId, entry.Session.State);
             completion.TrySetResult(result);
         }
-        catch (OperationCanceledException) { completion.TrySetCanceled(); }
+        catch (OperationCanceledException) { diagnostic?.SetOutcome(AiUsage.Core.Diagnostics.DiagnosticOutcome.Cancelled); completion.TrySetCanceled(); }
         catch (Exception exception)
         {
+            diagnostic?.SetOutcome(AiUsage.Core.Diagnostics.DiagnosticOutcome.Failed);
             diagnostics?.Failure(AiUsage.Core.Diagnostics.DiagnosticEvent.OperationFailure, exception);
             completion.TrySetResult(ProviderHistoryResult.Unavailable(range, HistoryStatus.Failed));
         }

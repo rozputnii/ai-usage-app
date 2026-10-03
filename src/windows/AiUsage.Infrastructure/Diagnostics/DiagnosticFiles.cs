@@ -11,6 +11,19 @@ public static partial class DiagnosticFiles
     [GeneratedRegex(@"^(application|trace|response|critical|session)-([0-9]{8}T[0-9]{13}Z)-[a-f0-9]{32}(?:_[0-9]+)?\.(jsonl|json|stage|open)$", RegexOptions.CultureInvariant)]
     private static partial Regex OwnedName();
 
+    private static bool IsOwned(string name)
+    {
+        var match = OwnedName().Match(name);
+        if (!match.Success) return false;
+        return (match.Groups[1].Value, match.Groups[3].Value) switch
+        {
+            ("application" or "trace" or "critical", "jsonl") => true,
+            ("response", "json" or "stage") => true,
+            ("session", "open") => true,
+            _ => false
+        };
+    }
+
     internal static string Folder(string root) => Path.Combine(Path.GetFullPath(root), "logs");
     public static void ValidateDirectory(string directory) => Check(directory);
 
@@ -36,7 +49,7 @@ public static partial class DiagnosticFiles
         var match = OwnedName().Match(Path.GetFileName(path));
         kind = match.Groups[1].Value;
         at = default;
-        return match.Success && DateTimeOffset.TryParseExact(match.Groups[2].Value, TimestampFormat, CultureInfo.InvariantCulture,
+        return IsOwned(Path.GetFileName(path)) && DateTimeOffset.TryParseExact(match.Groups[2].Value, TimestampFormat, CultureInfo.InvariantCulture,
             DateTimeStyles.AssumeUniversal, out at);
     }
 
@@ -47,25 +60,32 @@ public static partial class DiagnosticFiles
     {
         Check(folder);
         if (!Directory.Exists(folder)) return [];
-        return Directory.EnumerateFiles(folder).Where(p => OwnedName().IsMatch(Path.GetFileName(p))).ToArray();
+        return Directory.EnumerateFiles(folder).Where(p => IsOwned(Path.GetFileName(p))).ToArray();
     }
 
     internal static void Prune(string folder, DateTimeOffset now, DiagnosticOptions options, string? reserveKind = null, long reserveBytes = 0, bool onlyReservedKind = false)
     {
-        foreach (var group in Owned(folder).GroupBy(p => { Identify(p, out var kind, out _); return kind; }).Where(g => !onlyReservedKind || g.Key == reserveKind))
+        Check(folder);
+        if (!Directory.Exists(folder)) return;
+        var pattern = onlyReservedKind ? reserveKind + "-*" : "*";
+        // Windows directory enumeration already supplies attributes and length. Do not stat every
+        // ancestor again for every retained file; validate the exact path again before deletion.
+        foreach (var group in new DirectoryInfo(folder).EnumerateFiles(pattern).Where(f => IsOwned(f.Name))
+            .GroupBy(f => { Identify(f.Name, out var kind, out _); return kind; }))
         {
             var files = new List<(string Path, DateTimeOffset At, long Size)>();
-            foreach (var path in group)
+            foreach (var file in group)
             {
-                Check(path);
+                var path = file.FullName;
+                if ((file.Attributes & FileAttributes.ReparsePoint) != 0) throw new IOException("Diagnostic file is redirected.");
                 Identify(path, out var kind, out var at);
                 if (kind == "session")
                 {
                     try { using var lease = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None); }
                     catch (IOException) { continue; }
                 }
-                if (Expired(kind, at, now)) { File.Delete(path); continue; }
-                files.Add((path, at, new FileInfo(path).Length));
+                if (Expired(kind, at, now)) { Check(path); File.Delete(path); continue; }
+                files.Add((path, at, file.Length));
             }
             var budget = group.Key switch
             {
@@ -76,6 +96,7 @@ public static partial class DiagnosticFiles
             foreach (var file in files.OrderBy(f => f.At))
             {
                 if (total <= budget) break;
+                Check(file.Path);
                 File.Delete(file.Path);
                 total -= file.Size;
             }

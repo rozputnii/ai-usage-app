@@ -60,6 +60,8 @@ public sealed class FileDiagnosticsTests : IDisposable
         var folder = Path.Combine(root, "logs");
         var unknown = Path.Combine(folder, "user-notes.txt");
         File.WriteAllText(unknown, "keep");
+        var unknownExtension = DiagnosticFiles.NewName(folder, "application", clock.Now, "json");
+        File.WriteAllText(unknownExtension, "keep");
         clock.Now += TimeSpan.FromHours(72);
         using (var log = new FileDiagnostics(root, clock: clock))
         {
@@ -76,7 +78,8 @@ public sealed class FileDiagnosticsTests : IDisposable
         }
         DiagnosticFiles.DeleteOwned(root);
         Assert.Equal("keep", File.ReadAllText(unknown));
-        Assert.Single(Directory.GetFiles(folder));
+        Assert.Equal("keep", File.ReadAllText(unknownExtension));
+        Assert.Equal(2, Directory.GetFiles(folder).Length);
     }
 
     [Fact]
@@ -161,6 +164,51 @@ public sealed class FileDiagnosticsTests : IDisposable
         Assert.Equal(0, process.ExitCode);
         try { Assert.Throws<IOException>(() => DiagnosticFiles.DeleteOwned(root)); Assert.Empty(Directory.GetFiles(target)); }
         finally { Directory.Delete(link); }
+    }
+
+    [Fact]
+    public async Task PreviewFiltersExpiryAndSurvivesTruncatedLastRecord()
+    {
+        using (var log = new FileDiagnostics(root, clock: clock))
+        {
+            log.Signal(DiagnosticEvent.RecoveryCompleted);
+            await log.FlushAsync();
+        }
+        var path = Assert.Single(Directory.GetFiles(Path.Combine(root, "logs"), "application-*.jsonl"));
+        File.AppendAllText(path, "{\"private\":\"canary");
+        using var reader = new FileDiagnostics(root, clock: clock);
+        var preview = await reader.PreviewAsync();
+        Assert.Contains("RecoveryCompleted", preview);
+        Assert.DoesNotContain("canary", preview);
+        clock.Now += TimeSpan.FromHours(168);
+        Assert.DoesNotContain("RecoveryCompleted", await reader.PreviewAsync());
+    }
+
+    [Fact]
+    public async Task FutureInvalidAndSizeEvictedFilesDoNotSurvivePruning()
+    {
+        var folder = Path.Combine(root, "logs");
+        Directory.CreateDirectory(folder);
+        var future = DiagnosticFiles.NewName(folder, "response", clock.Now.AddHours(1), "json");
+        var invalid = Path.Combine(folder, "response-20261399T1200000000000Z-" + Guid.NewGuid().ToString("N") + ".json");
+        var old = DiagnosticFiles.NewName(folder, "response", clock.Now.AddHours(-2), "json");
+        var newer = DiagnosticFiles.NewName(folder, "response", clock.Now.AddHours(-1), "json");
+        foreach (var path in new[] { future, invalid, old, newer }) File.WriteAllText(path, new string(' ', 1024));
+        using var log = new FileDiagnostics(root, new DiagnosticOptions { ResponseBytes = 1024 }, clock);
+        await log.FlushAsync();
+        Assert.False(File.Exists(future)); Assert.False(File.Exists(invalid)); Assert.False(File.Exists(old));
+        Assert.True(File.Exists(newer));
+    }
+
+    [Fact]
+    public void EmergencyPathStillWorksAfterOrdinaryWriterDisposal()
+    {
+        var log = new FileDiagnostics(root, clock: clock);
+        log.Dispose();
+        log.Fatal(DiagnosticEvent.DisposalFailure, new InvalidOperationException("late-canary"), true);
+        var critical = Assert.Single(Directory.GetFiles(log.DirectoryPath, "critical-*.jsonl"));
+        Assert.Contains("DisposalFailure", File.ReadAllText(critical));
+        Assert.DoesNotContain("late-canary", File.ReadAllText(critical));
     }
 
     public void Dispose() { if (Directory.Exists(root)) Directory.Delete(root, true); }

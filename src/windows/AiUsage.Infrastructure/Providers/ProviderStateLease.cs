@@ -1,4 +1,5 @@
 using AiUsage.Core.Usage;
+using AiUsage.Core.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -7,7 +8,7 @@ namespace AiUsage.Infrastructure.Providers;
 
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 internal sealed class ProviderStateLease<TState>(string directory, FileStream exclusiveLock,
-    ProviderStatePolicy<TState> policy, Action? afterStage) : IAsyncDisposable where TState : class
+    ProviderStatePolicy<TState> policy, Action? afterStage, IDiagnosticSink? diagnostics = null) : IAsyncDisposable where TState : class
 {
     private readonly string committedPath = Path.Combine(directory, policy.FileName);
     private readonly string pendingPath = Path.Combine(directory, policy.FileName + ".pending");
@@ -36,9 +37,9 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             await WriteFlushedAsync(pendingPath, intent, FileMode.CreateNew, cancellationToken).ConfigureAwait(false);
             externalUpdateIntent = intent;
         }
-        catch (IOException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
-        catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
-        catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (IOException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (UnauthorizedAccessException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (CryptographicException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
     }
 
     internal async Task<TState?> LoadAsync(CancellationToken cancellationToken, bool forFreshAuthorization = false)
@@ -52,6 +53,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             var pending = await ReadAsync(pendingPath, cancellationToken).ConfigureAwait(false);
             if (pending is null)
                 return await MigrateAsync(committed, cancellationToken).ConfigureAwait(false);
+            diagnostics?.Signal(DiagnosticEvent.RecoveryStarted);
             if (policy.ParentRevision(pending) != Revision(committed))
                 throw new ProviderException(ProviderFailureKind.RecoveryRequired);
             // A fully staged record is the only recoverable successor. Corrupt or unrelated
@@ -61,11 +63,12 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 CheckPaths();
                 File.Move(pendingPath, committedPath, overwrite: true);
             }, cancellationToken).ConfigureAwait(false);
+            diagnostics?.Signal(DiagnosticEvent.RecoveryCompleted);
             return await MigrateAsync(pending, cancellationToken).ConfigureAwait(false);
         }
-        catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
-        catch (IOException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
-        catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (CryptographicException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (IOException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (UnauthorizedAccessException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
     }
 
     internal async Task<TState> SaveAsync(TState next, Guid? expectedRevision, CancellationToken cancellationToken)
@@ -117,9 +120,9 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             }, cancellationToken).ConfigureAwait(false);
             return next;
         }
-        catch (IOException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
-        catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
-        catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (IOException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (UnauthorizedAccessException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (CryptographicException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
     }
 
     internal Task DeleteAsync(CancellationToken cancellationToken) => Task.Run(() =>
@@ -142,8 +145,8 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 File.Delete(checkpointPath + ".new");
             }
         }
-        catch (IOException) { throw new ProviderException(ProviderFailureKind.GrantNotRemoved); }
-        catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.GrantNotRemoved); }
+        catch (IOException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.GrantNotRemoved); }
+        catch (UnauthorizedAccessException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.GrantNotRemoved); }
     }, cancellationToken);
 
     private async Task<TState?> ReadAsync(string path, CancellationToken cancellationToken)
@@ -163,10 +166,10 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             policy.Validate(state);
             return state;
         }
-        catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
-        catch (JsonException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
+        catch (CryptographicException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
+        catch (JsonException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
         catch (Exception e) when (e is NotSupportedException or InvalidOperationException or KeyNotFoundException or FormatException)
-        { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
+        { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, e); throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
         finally { if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext); }
     }
 
@@ -179,6 +182,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             if (File.Exists(replacementPath)) throw new ProviderException(ProviderFailureKind.RecoveryRequired);
             return committed;
         }
+        diagnostics?.Signal(DiagnosticEvent.RecoveryStarted);
         var (journal, next) = await Task.Run(() =>
         {
             byte[]? plaintext = null;
@@ -198,13 +202,14 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 }
                 return (journal, Decode(journal.Ciphertext));
             }
-            catch (CryptographicException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
-            catch (JsonException) { throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
+            catch (CryptographicException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
+            catch (JsonException error) { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); throw new ProviderException(ProviderFailureKind.RecoveryRequired); }
             finally { if (plaintext is not null) CryptographicOperations.ZeroMemory(plaintext); }
         }, cancellationToken).ConfigureAwait(false);
         if (journal.Ciphertext.Length == 0)
         {
             externalUpdateIntent = bytes;
+            diagnostics?.Signal(DiagnosticEvent.RecoveryCompleted);
             return committed;
         }
         var currentRevision = Revision(committed);
@@ -212,6 +217,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             throw new ProviderException(ProviderFailureKind.RecoveryRequired);
         // Replaying this local cutover is idempotent, including after promotion but before journal deletion.
         await PromoteJournalAsync(journal.Ciphertext, cancellationToken).ConfigureAwait(false);
+        diagnostics?.Signal(DiagnosticEvent.RecoveryCompleted);
         return next;
     }
 
@@ -260,6 +266,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
     private async Task<TState?> MigrateAsync(TState? state, CancellationToken token)
     {
         if (state is null || policy.NeedsMigration?.Invoke(state) != true || policy.Migrate is null) return state;
+        diagnostics?.Signal(DiagnosticEvent.MigrationStarted);
         CheckPaths();
         var original = await ReadBytesAsync(committedPath, policy.MaximumBytes, token).ConfigureAwait(false)
             ?? throw new ProviderException(ProviderFailureKind.RecoveryRequired);
@@ -278,6 +285,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
             CheckPaths();
             File.Move(checkpointPath + ".new", checkpointPath);
         }
+        diagnostics?.Signal(DiagnosticEvent.MigrationCheckpointVerified);
         var next = policy.Migrate(state);
         policy.Validate(next);
         // Format migration must never change grant lineage or use Stamp (a grant write).
@@ -293,6 +301,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 // the verified checkpoint still retains the original encrypted generation.
                 CryptographicOperations.ZeroMemory(plaintext);
                 next = withoutCache(next);
+                diagnostics?.Signal(DiagnosticEvent.CacheDiscarded, DiagnosticSeverity.Warning);
                 policy.Validate(next);
                 if (policy.Revision(next) != policy.Revision(state) || policy.ParentRevision(next) != policy.ParentRevision(state))
                     throw new ProviderException(ProviderFailureKind.RecoveryRequired);
@@ -307,10 +316,12 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
         var staged = await ReadBytesAsync(migrationPath, policy.MaximumBytes, token).ConfigureAwait(false);
         if (staged is null || !staged.AsSpan().SequenceEqual(ciphertext)) throw new ProviderException(ProviderFailureKind.RecoveryRequired);
         _ = Decode(staged);
+        diagnostics?.Signal(DiagnosticEvent.MigrationStaged);
         afterStage?.Invoke();
         token.ThrowIfCancellationRequested();
         CheckPaths();
         File.Move(migrationPath, committedPath, overwrite: true);
+        diagnostics?.Signal(DiagnosticEvent.MigrationCompleted);
         return next;
     }
 

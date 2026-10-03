@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 namespace AiUsage.Infrastructure.Providers.Claude;
 
@@ -7,6 +8,7 @@ internal sealed class ClaudeStateStore
 {
     private readonly string directory;
     private readonly Action? afterStage;
+    private readonly IDiagnosticSink? diagnostics;
     private static readonly ProviderStatePolicy<ClaudeStoredState> Policy = new(
         "claude.state", "AiUsage.Claude.State.v1"u8.ToArray(),
         ClaudeStateJson.Default.ClaudeStoredState, state => state.Revision, state => state.ParentRevision,
@@ -17,14 +19,15 @@ internal sealed class ClaudeStateStore
         WithoutMigrationCache: state => state with { CachedQuota = null });
 
     public ClaudeStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
-    internal ClaudeStateStore(string ownedDirectory, Action? afterStage)
+    internal ClaudeStateStore(string ownedDirectory, Action? afterStage, IDiagnosticSink? diagnostics = null)
     {
         directory = Path.GetFullPath(ownedDirectory);
         this.afterStage = afterStage;
+        this.diagnostics = diagnostics;
     }
 
     internal Task<ProviderStateLease<ClaudeStoredState>> AcquireAsync(CancellationToken cancellationToken) =>
-        Policy.AcquireAsync(directory, afterStage, cancellationToken);
+        Policy.AcquireAsync(directory, afterStage, diagnostics, cancellationToken);
 
     private static void Validate(ClaudeStoredState state)
     {

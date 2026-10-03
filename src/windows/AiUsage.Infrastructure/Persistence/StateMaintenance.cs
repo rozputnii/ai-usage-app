@@ -1,4 +1,5 @@
 using AiUsage.Core.Persistence;
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers;
 using System.Security.Cryptography;
@@ -12,6 +13,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
 {
     private static readonly byte[] Entropy = "AiUsage.Checkpoint.v1"u8.ToArray();
     private readonly string root;
+    private readonly IDiagnosticSink? diagnostics;
     private readonly Action<string>? boundary;
     private readonly Func<string, bool>? validatePreferences;
     private readonly SemaphoreSlim gate = new(1, 1);
@@ -23,8 +25,8 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
     private string JournalPath => Path.Combine(root, "maintenance", "journal.v1.json");
     private string CheckpointPath => Path.Combine(root, "maintenance", "checkpoint.v1.bin");
 
-    public StateMaintenance(string ownedDirectory, Func<string, bool>? validatePreferences = null) : this(ownedDirectory, (Action<string>?)null)
-    { this.validatePreferences = validatePreferences; }
+    public StateMaintenance(string ownedDirectory, Func<string, bool>? validatePreferences = null, IDiagnosticSink? diagnostics = null) : this(ownedDirectory, (Action<string>?)null)
+    { this.validatePreferences = validatePreferences; this.diagnostics = diagnostics; }
     internal StateMaintenance(string ownedDirectory, Action<string>? boundary)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownedDirectory);
@@ -62,6 +64,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
             restoring |= journal?.Operation == "restore";
             if (journal is not null || restoreId is not null)
             {
+                diagnostics?.Signal(DiagnosticEvent.RecoveryStarted);
                 var checkpoint = ReadCheckpoint();
                 summary = Summary(checkpoint);
                 if (journal is not null && journal.CheckpointId != checkpoint.Id) throw new IOException("Checkpoint mismatch.");
@@ -80,6 +83,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
                     DeleteOwned(JournalPath);
                 }
                 else Migrate(checkpoint, token);
+                diagnostics?.Signal(DiagnosticEvent.RecoveryCompleted);
                 return new(MaintenanceCondition.Ready, 1, summary);
             }
             if (layout == 1)
@@ -91,20 +95,24 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
             if (File.Exists(TargetPath)) throw new IOException("Uncommitted target without journal.");
             var preferences = Read(LegacyPath, 256 * 1024);
             ValidatePreferences(preferences);
+            diagnostics?.Signal(DiagnosticEvent.MigrationStarted);
             var backup = new StateCheckpoint(1, 0, Guid.NewGuid().ToString("N"), DateTimeOffset.UtcNow,
                 preferences is not null, preferences ?? [], Hash(preferences));
             WriteCheckpoint(backup);
             backup = ReadCheckpoint(); // Validate persisted protected bytes before publishing any migration intent.
             summary = Summary(backup);
+            diagnostics?.Signal(DiagnosticEvent.MigrationCheckpointVerified);
             boundary?.Invoke("checkpoint");
             token.ThrowIfCancellationRequested();
             WriteJournal(backup, "migrate");
             boundary?.Invoke("journal");
             Migrate(backup, token);
+            diagnostics?.Signal(DiagnosticEvent.MigrationCompleted);
             return new(MaintenanceCondition.Ready, 1, summary);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or CryptographicException or JsonException or ProviderException)
         {
+            diagnostics?.Failure(lease is null ? DiagnosticEvent.LeaseUnavailable : DiagnosticEvent.PersistenceFailure, error);
             if (lease is not null && layout is 0 or 1 && summary is null)
             {
                 try { summary = Summary(ReadCheckpoint()); }

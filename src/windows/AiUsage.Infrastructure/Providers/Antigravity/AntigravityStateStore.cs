@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 namespace AiUsage.Infrastructure.Providers.Antigravity;
 
@@ -7,6 +8,7 @@ internal sealed class AntigravityStateStore
 {
     private readonly string directory;
     private readonly Action? afterStage;
+    private readonly IDiagnosticSink? diagnostics;
     private static readonly ProviderStatePolicy<AntigravityStoredState> Policy = new(
         "antigravity.state", "AiUsage.Antigravity.State.v1"u8.ToArray(),
         AntigravityStateJson.Default.AntigravityStoredState, state => state.Revision, state => state.ParentRevision,
@@ -17,14 +19,15 @@ internal sealed class AntigravityStateStore
         WithoutMigrationCache: state => state with { CachedQuota = null });
 
     public AntigravityStateStore(string ownedDirectory) : this(ownedDirectory, null) { }
-    internal AntigravityStateStore(string ownedDirectory, Action? afterStage)
+    internal AntigravityStateStore(string ownedDirectory, Action? afterStage, IDiagnosticSink? diagnostics = null)
     {
         directory = Path.GetFullPath(ownedDirectory);
         this.afterStage = afterStage;
+        this.diagnostics = diagnostics;
     }
 
     internal Task<ProviderStateLease<AntigravityStoredState>> AcquireAsync(CancellationToken cancellationToken) =>
-        Policy.AcquireAsync(directory, afterStage, cancellationToken);
+        Policy.AcquireAsync(directory, afterStage, diagnostics, cancellationToken);
 
     private static void Validate(AntigravityStoredState state)
     {

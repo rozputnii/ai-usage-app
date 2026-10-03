@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Xunit;
+using AiUsage.Infrastructure.Diagnostics;
 
 namespace AiUsage.Infrastructure.Tests;
 
@@ -25,13 +26,14 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
     public async Task ExistingProtectedRecordMigratesAndRetainsGrantFields(string provider, string json)
     {
         Directory.CreateDirectory(root);
+        using var diagnostics = new FileDiagnostics(root);
         var entropy = Encoding.UTF8.GetBytes($"AiUsage.{provider}.State.v1");
         var file = Path.Combine(root, provider.ToLowerInvariant() + ".state");
         await File.WriteAllBytesAsync(file, ProtectedData.Protect(Encoding.UTF8.GetBytes(json), entropy, DataProtectionScope.CurrentUser), TestContext.Current.CancellationToken);
         switch (provider)
         {
             case "Claude":
-                await using (var lease = await new ClaudeStateStore(root).AcquireAsync(TestContext.Current.CancellationToken))
+                await using (var lease = await new ClaudeStateStore(root, null, diagnostics).AcquireAsync(TestContext.Current.CancellationToken))
                 {
                     var state = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
                     Assert.Equal(Revision, state.Revision);
@@ -41,7 +43,7 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
                 }
                 break;
             case "Copilot":
-                await using (var lease = await new CopilotStateStore(root).AcquireAsync(TestContext.Current.CancellationToken))
+                await using (var lease = await new CopilotStateStore(root, null, diagnostics).AcquireAsync(TestContext.Current.CancellationToken))
                 {
                     var state = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
                     Assert.Equal(Revision, state.Revision);
@@ -51,7 +53,7 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
                 }
                 break;
             case "Antigravity":
-                await using (var lease = await new AntigravityStateStore(root).AcquireAsync(TestContext.Current.CancellationToken))
+                await using (var lease = await new AntigravityStateStore(root, null, diagnostics).AcquireAsync(TestContext.Current.CancellationToken))
                 {
                     var state = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
                     Assert.Equal(Revision, state.Revision);
@@ -73,6 +75,12 @@ public sealed class ProviderStateCompatibilityTests : IDisposable
             Assert.Equal(Revision, actual.RootElement.GetProperty("ParentRevision").GetGuid());
         }
         finally { CryptographicOperations.ZeroMemory(bytes); }
+        Assert.True(await diagnostics.FlushAsync());
+        var events = string.Join('\n', System.IO.Directory.GetFiles(diagnostics.DirectoryPath, "application-*.jsonl").Select(FileDiagnosticsTests.ReadShared));
+        Assert.Contains("MigrationStarted", events);
+        Assert.Contains("MigrationCompleted", events);
+        Assert.DoesNotContain("synthetic-", events);
+        Assert.DoesNotContain(root, events);
     }
 
     public void Dispose()

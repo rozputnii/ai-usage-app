@@ -5,7 +5,9 @@ public enum DiagnosticEvent
     StartupFailure, ShutdownFailure, DisposalFailure, OperationFailure, UnhandledFailure, TrayFailure, BudgetStoreRecovered,
     SessionStarted, SessionExited, PreviousExitUnknown, OperationStarted, OperationCompleted, OperationCancelled,
     HttpCompleted, CapturePersisted, CaptureLost, LoggerHealth, DispatchCompleted, DispatchRejected, DispatcherStalled, DispatcherRecovered,
-    BindingFailure, AnimationFailure, BackgroundFailure, NavigationCompleted, WindowHidden, WindowShown, RecoveryCompleted
+    BindingFailure, AnimationFailure, BackgroundFailure, NavigationCompleted, WindowHidden, WindowShown, RecoveryCompleted,
+    PersistenceFailure, LeaseUnavailable, MigrationStarted, MigrationCheckpointVerified, MigrationStaged, MigrationCompleted,
+    RecoveryStarted, CacheDiscarded
 }
 public enum DiagnosticCategory { Unexpected, InvalidOperation, InvalidData, Io, AccessDenied, Platform }
 public enum DiagnosticSeverity { Debug, Information, Warning, Error, Critical }

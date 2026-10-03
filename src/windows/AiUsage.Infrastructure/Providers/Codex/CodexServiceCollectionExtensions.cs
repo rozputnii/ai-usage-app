@@ -28,8 +28,8 @@ public static class CodexServiceCollectionExtensions
     public static IServiceCollection AddCodexProductSession(this IServiceCollection services, string ownedStateDirectory)
     {
         services.AddCodexIntegration();
-        services.TryAddSingleton(new CodexGrantStore(ownedStateDirectory));
-        services.TryAddSingleton(new CodexQuotaCache(ownedStateDirectory));
+        services.TryAddSingleton(p => new CodexGrantStore(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
+        services.TryAddSingleton(p => new CodexQuotaCache(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(p => new CodexSession(p.GetRequiredService<CodexAuthClient>(), p.GetRequiredService<CodexQuotaClient>(), p.GetRequiredService<CodexGrantStore>(), p.GetRequiredService<CodexQuotaCache>(), p.GetRequiredService<CodexHistoryClient>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(services => new DashboardWorkflow(services.GetRequiredService<CodexSession>()));
         return services;

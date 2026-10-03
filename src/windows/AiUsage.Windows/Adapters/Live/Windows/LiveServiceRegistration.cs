@@ -48,7 +48,7 @@ internal static class LiveServiceRegistration
         services.AddSingleton<IConnectionFlow>(p => new LiveConnectionFlow(p.GetRequiredService<LiveUsageSource>(),
             uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true })));
         services.AddSingleton(new PresentationPreferenceFile(Path.Combine(root, "preferences")));
-        services.AddSingleton(new StateMaintenance(root, LivePreferenceStore.IsValidJson));
+        services.AddSingleton(p => new StateMaintenance(root, LivePreferenceStore.IsValidJson, p.GetService<IDiagnosticSink>()));
         services.AddSingleton<IStateMaintenance>(p => p.GetRequiredService<StateMaintenance>());
         services.AddSingleton(p =>
         {

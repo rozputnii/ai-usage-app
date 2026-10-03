@@ -7,9 +7,9 @@ namespace AiUsage.Core.Dashboard;
 /// Coordinates the single dashboard's work without owning credentials or desktop objects.
 /// StopAsync must finish before the session is disposed. It never retries a provider operation.
 /// </summary>
-public sealed class DashboardWorkflow(IProviderSession session, IDiagnosticSink? diagnostics = null) : IDisposable
+public sealed class DashboardWorkflow(IProviderSession session, IDiagnosticSink? diagnostics = null, Guid? diagnosticAccountReference = null) : IDisposable
 {
-    private readonly Guid accountReference = Guid.NewGuid();
+    private readonly Guid accountReference = diagnosticAccountReference ?? Guid.NewGuid();
     private readonly object sync = new();
     private readonly CancellationTokenSource lifetime = new();
     private Task<ProviderSessionState>? active;

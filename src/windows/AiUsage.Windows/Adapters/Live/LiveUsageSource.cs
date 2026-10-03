@@ -36,7 +36,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         Providers = providers ?? ProviderCatalog.Default;
         this.diagnostics = diagnostics;
         this.recorder = recorder;
-        entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value, diagnostics));
+        entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value, diagnostics, Guid.NewGuid()));
         current = new(0, UiMode.Live, DateTimeOffset.UtcNow, [], Capabilities(),
             new([], [], [], false, false, false, [Preferences.DefaultGlobalRule]),
             new(typeof(LiveUsageSource).Assembly.GetName().Version?.ToString() ?? "", "", HealthState.Idle,
@@ -322,10 +322,11 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
     {
         foreach (var entry in entries.Values) entry.Workflow.Dispose();
     }
-    private sealed class Entry(IProviderSession session, IDiagnosticSink? diagnostics)
+    private sealed class Entry(IProviderSession session, IDiagnosticSink? diagnostics, Guid accountReference)
     {
+        public Guid DiagnosticAccountReference { get; } = accountReference;
         public IProviderSession Session { get; } = session;
-        public DashboardWorkflow Workflow { get; } = new(session, diagnostics);
+        public DashboardWorkflow Workflow { get; } = new(session, diagnostics, accountReference);
         public CancellationTokenSource? Cancellation { get; set; }
         public Task<UiCommandResult>? Pending { get; set; }
         public Task<UiCommandResult>? Background { get; set; }

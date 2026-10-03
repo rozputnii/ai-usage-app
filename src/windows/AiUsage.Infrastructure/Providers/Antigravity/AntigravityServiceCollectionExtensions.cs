@@ -18,7 +18,7 @@ public static class AntigravityServiceCollectionExtensions
     public static IServiceCollection AddAntigravityProductSession(this IServiceCollection services, string ownedStateDirectory)
     {
         services.AddAntigravityIntegration();
-        services.TryAddSingleton(new AntigravityStateStore(ownedStateDirectory));
+        services.TryAddSingleton(p => new AntigravityStateStore(ownedStateDirectory, null, p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(p => new AntigravitySession(p.GetRequiredService<AntigravityAuthClient>(), p.GetRequiredService<AntigravityQuotaClient>(), p.GetRequiredService<AntigravityStateStore>(), p.GetRequiredService<TimeProvider>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         return services;
     }

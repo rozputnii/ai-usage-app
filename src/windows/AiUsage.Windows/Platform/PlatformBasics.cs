@@ -68,6 +68,7 @@ internal sealed class NavigationService : INavigationService
         }
         current = request;
         Navigated?.Invoke(this, request);
+        Composition.ApplicationDiagnostics.Current?.NavigationCompleted();
     }
 
     public void GoBack()
@@ -76,6 +77,7 @@ internal sealed class NavigationService : INavigationService
             return;
         current = back.Pop();
         Navigated?.Invoke(this, current);
+        Composition.ApplicationDiagnostics.Current?.NavigationCompleted();
     }
 }
 

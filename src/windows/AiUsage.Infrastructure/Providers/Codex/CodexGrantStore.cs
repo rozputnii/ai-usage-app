@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -16,21 +17,23 @@ internal sealed record CodexStoredGrant(string AccountId, string RefreshToken)
 internal sealed class CodexGrantStore
 {
     private readonly Action? afterStage;
+    private readonly IDiagnosticSink? diagnostics;
     private static readonly ProviderStatePolicy<StoredRecord> Policy = new(
         "codex.grant", "AiUsage.Codex.Grant.v1"u8.ToArray(), CodexGrantJson.Default.StoredRecord,
         Revision, _ => null, (state, _) => state, Validate, MaximumBytes: 64 * 1024, SeparateJournal: true);
 
     public CodexGrantStore(string ownedDirectory) : this(ownedDirectory, null) { }
-    internal CodexGrantStore(string ownedDirectory, Action? afterStage)
+    internal CodexGrantStore(string ownedDirectory, Action? afterStage, IDiagnosticSink? diagnostics = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownedDirectory);
         Directory = Path.GetFullPath(ownedDirectory);
         this.afterStage = afterStage;
+        this.diagnostics = diagnostics;
     }
 
     public string Directory { get; }
     internal Task<ProviderStateLease<StoredRecord>> AcquireAsync(CancellationToken cancellationToken) =>
-        Policy.AcquireAsync(Directory, afterStage, cancellationToken);
+        Policy.AcquireAsync(Directory, afterStage, diagnostics, cancellationToken);
 
     // Legacy synchronous entry points remain until the separate T-03 contract cleanup.
     public CodexStoredGrant? Read() => ReadAsync().GetAwaiter().GetResult();

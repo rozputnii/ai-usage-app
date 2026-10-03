@@ -39,7 +39,13 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
     public void BindingFailure() => Signal(DiagnosticEvent.BindingFailure, DiagnosticSeverity.Warning);
     public void DispatchRejected() => Signal(DiagnosticEvent.DispatchRejected, DiagnosticSeverity.Warning);
     public void CommandFailure(Exception exception) => sink?.Fatal(DiagnosticEvent.OperationFailure, exception, true);
-    public void WindowVisibility(bool hidden) => Signal(hidden ? DiagnosticEvent.WindowHidden : DiagnosticEvent.WindowShown);
+    public void WindowVisibility(bool hidden)
+    {
+        if (watchdog is not null) watchdog.Active = !hidden;
+        Signal(hidden ? DiagnosticEvent.WindowHidden : DiagnosticEvent.WindowShown);
+    }
+    public void DispatcherRecovered(double durationMs) => sink?.RecordDuration(DiagnosticEvent.DispatcherRecovered, durationMs);
+    public void NavigationCompleted() => Signal(DiagnosticEvent.NavigationCompleted);
     public bool TryRunProbe(Action exit) => DiagnosticProbe.TryStart(this, exit);
     public static void RunAnimation(Action action)
     {

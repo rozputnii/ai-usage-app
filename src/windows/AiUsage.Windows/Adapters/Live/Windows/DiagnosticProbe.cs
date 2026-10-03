@@ -12,7 +12,7 @@ internal static class DiagnosticProbe
     internal static bool TryStart(ApplicationDiagnostics diagnostics, Action exit)
     {
         var kind = Environment.GetEnvironmentVariable("AIU_DIAGNOSTIC_PROBE");
-        if (kind is not ("ui" or "dispatcher" or "binding" or "converter" or "animation" or "background")) return false;
+        if (kind is not ("ui" or "dispatcher" or "binding" or "converter" or "animation" or "background" or "stall")) return false;
         var root = Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY");
         if (root is null || !Path.GetFullPath(root).StartsWith(Path.Combine(Path.GetTempPath(), "aiu-ui-probe-"), StringComparison.OrdinalIgnoreCase) ||
             Directory.Exists(Path.Combine(root, "providers"))) return false;
@@ -29,12 +29,14 @@ internal static class DiagnosticProbe
                 case "converter": _ = Controls.Bind.Token(panel, "missing-secret-canary"); break;
                 case "animation": ApplicationDiagnostics.RunAnimation(() => throw new InvalidOperationException("animation-secret-canary")); break;
                 case "background": _ = ObserveAsync(); break;
+                case "stall": Thread.Sleep(TimeSpan.FromSeconds(14)); break;
                 case "binding":
                     var text = new TextBlock();
                     text.SetBinding(TextBlock.TextProperty, new Binding { Source = new object(), Path = new PropertyPath("missing-secret-canary") });
                     panel.Children.Add(text);
                     break;
             }
+            if (kind is "ui" or "dispatcher") return; // Fatal probes must terminate through the runtime, never our timer.
             var timer = queue.CreateTimer();
             timer.Interval = TimeSpan.FromSeconds(2);
             timer.IsRepeating = false;

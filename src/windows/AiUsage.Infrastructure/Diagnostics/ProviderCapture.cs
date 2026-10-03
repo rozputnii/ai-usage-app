@@ -14,6 +14,7 @@ internal sealed class ProviderCapture
     private readonly long tick = Stopwatch.GetTimestamp();
     private readonly DiagnosticContext? operation = FileDiagnostics.Operation.Value;
     private readonly string method;
+    private readonly Guid? requestCorrelation;
     private int completed;
 
     internal ProviderCapture(FileDiagnostics log, HttpRequestMessage request)
@@ -21,6 +22,7 @@ internal sealed class ProviderCapture
         this.log = log;
         policy = EndpointPolicy.Classify(request.RequestUri);
         method = request.Method == HttpMethod.Get ? "GET" : request.Method == HttpMethod.Post ? "POST" : "other";
+        requestCorrelation = Correlation(request.Headers);
     }
 
     internal void Complete(string state, HttpResponseMessage? response, JsonDocument? body, long? observedBytes, TimeSpan? retryAfter)
@@ -53,6 +55,7 @@ internal sealed class ProviderCapture
                 declaredBytes = response?.Content.Headers.ContentLength, observedBytes,
                 contentType = contentType is "application/json" or "text/json" ? contentType : "other-or-absent",
                 retryAfterSeconds = retryAfter?.TotalSeconds, policyId = policy.Id, completeness = state,
+                requestCorrelation, responseCorrelation = response is null ? null : Correlation(response.Headers),
                 body = sanitized?.Body, redactions = sanitized?.Redactions ?? [], duplicateProperties = sanitized?.DuplicateProperties ?? false
             };
             log.Event(DiagnosticEvent.HttpCompleted, response is not null && !response.IsSuccessStatusCode ? DiagnosticSeverity.Warning : DiagnosticSeverity.Information,
@@ -62,5 +65,12 @@ internal sealed class ProviderCapture
                 log.Event(DiagnosticEvent.CaptureLost, DiagnosticSeverity.Warning, context: new { captureId = id, reason = "queue-or-size-limit" });
         }
         catch (Exception) { log.Record(DiagnosticEvent.CaptureLost, DiagnosticCategory.Unexpected, DiagnosticSeverity.Warning); }
+    }
+
+    private static Guid? Correlation(System.Net.Http.Headers.HttpHeaders headers)
+    {
+        if (!headers.TryGetValues("x-request-id", out var values)) return null;
+        var candidates = values.Take(2).ToArray();
+        return candidates.Length == 1 && Guid.TryParseExact(candidates[0], "D", out var value) ? value : null;
     }
 }

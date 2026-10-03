@@ -1,4 +1,5 @@
 using AiUsage.Core.Usage;
+using AiUsage.Core.Diagnostics;
 using System.Text.Json.Serialization.Metadata;
 
 namespace AiUsage.Infrastructure.Providers;
@@ -13,14 +14,14 @@ internal sealed record ProviderStatePolicy<TState>(
     Func<TState, bool>? NeedsMigration = null, Func<TState, TState>? Migrate = null,
     Func<TState, TState>? WithoutMigrationCache = null) where TState : class
 {
-    internal Task<ProviderStateLease<TState>> AcquireAsync(string directory, Action? afterStage, CancellationToken cancellationToken) => Task.Run(() =>
+    internal Task<ProviderStateLease<TState>> AcquireAsync(string directory, Action? afterStage, IDiagnosticSink? diagnostics, CancellationToken cancellationToken) => Task.Run(() =>
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
         {
-            return new ProviderStateLease<TState>(directory, ProviderStatePaths.Acquire(directory, FileName + ".lock"), this, afterStage);
+            return new ProviderStateLease<TState>(directory, ProviderStatePaths.Acquire(directory, FileName + ".lock"), this, afterStage, diagnostics);
         }
-        catch (IOException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
-        catch (UnauthorizedAccessException) { throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (IOException error) { diagnostics?.Failure(DiagnosticEvent.LeaseUnavailable, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
+        catch (UnauthorizedAccessException error) { diagnostics?.Failure(DiagnosticEvent.LeaseUnavailable, error); throw new ProviderException(ProviderFailureKind.StorageUnavailable); }
     }, cancellationToken);
 }

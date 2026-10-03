@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AiUsage.Core.Usage;
+using AiUsage.Core.Diagnostics;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
 
@@ -18,15 +19,17 @@ internal sealed class CodexQuotaCache
     private const int MaximumRecordBytes = 512 * 1024;
     private readonly string path;
     private readonly Action? beforeDelete;
+    private readonly IDiagnosticSink? diagnostics;
 
     public CodexQuotaCache(string ownedDirectory) : this(ownedDirectory, null) { }
 
-    internal CodexQuotaCache(string ownedDirectory, Action? beforeDelete)
+    internal CodexQuotaCache(string ownedDirectory, Action? beforeDelete, IDiagnosticSink? diagnostics = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownedDirectory);
         Directory = Path.GetFullPath(ownedDirectory);
         path = Path.Combine(Directory, "codex.quota.json");
         this.beforeDelete = beforeDelete;
+        this.diagnostics = diagnostics;
     }
 
     /// <summary>The app-owned directory this cache may write to; nothing outside it is touched.</summary>
@@ -46,37 +49,43 @@ internal sealed class CodexQuotaCache
             var bytes = await ReadBoundedAsync(path, cancellationToken).ConfigureAwait(false);
             var record = JsonSerializer.Deserialize(bytes, CodexCacheJson.Default.CachedQuotaRecord);
             if (record?.Version is not (1 or 2) || record.Quota is null || record.RetrievedAt is not { } retrievedAt)
-                return null;
+                return Discarded();
             if (!ProviderStateMigration.Valid(record.Quota))
-                return null;
+                return Discarded();
             if (record.Version == 1)
             {
+                diagnostics?.Signal(DiagnosticEvent.MigrationStarted);
                 var backup = path + ".v1.bak";
                 if (File.Exists(backup))
                 {
                     var existing = await ReadBoundedAsync(backup, cancellationToken).ConfigureAwait(false);
-                    if (!existing.AsSpan().SequenceEqual(bytes)) return null;
+                    if (!existing.AsSpan().SequenceEqual(bytes)) return Discarded();
                 }
                 else
                 {
                     await WriteFlushedAsync(backup + ".new", bytes, cancellationToken).ConfigureAwait(false);
                     var verified = await ReadBoundedAsync(backup + ".new", cancellationToken).ConfigureAwait(false);
-                    if (!verified.AsSpan().SequenceEqual(bytes)) return null;
+                    if (!verified.AsSpan().SequenceEqual(bytes)) return Discarded();
                     CheckPaths();
                     File.Move(backup + ".new", backup);
                 }
                 record.Quota = ProviderStateMigration.UpgradeQuota("codex", record.Quota);
-                if (record.Quota is null) return null;
+                if (record.Quota is null) return Discarded();
                 await WriteRecordAsync(new(record.Quota, retrievedAt), cancellationToken).ConfigureAwait(false);
+                diagnostics?.Signal(DiagnosticEvent.MigrationCompleted);
             }
             return new CachedQuota(record.Quota, retrievedAt);
         }
         // A corrupted or foreign record is treated as no cache rather than as a failure to report.
-        catch (JsonException) { return null; }
-        catch (NotSupportedException) { return null; }
-        catch (Exception error) when (error is InvalidOperationException or KeyNotFoundException or FormatException) { return null; }
-        catch (Exception error) when (error is IOException or UnauthorizedAccessException) { return null; }
+        catch (Exception error) when (error is JsonException or NotSupportedException or InvalidOperationException or KeyNotFoundException or FormatException or IOException or UnauthorizedAccessException)
+        { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); return Discarded(); }
     }, cancellationToken);
+
+    private CachedQuota? Discarded()
+    {
+        diagnostics?.Signal(DiagnosticEvent.CacheDiscarded, DiagnosticSeverity.Warning);
+        return null;
+    }
 
     /// <summary>Replaces the cached reading. A failed write leaves the previous record intact.</summary>
     public void Write(CachedQuota cached) => WriteAsync(cached).GetAwaiter().GetResult();
@@ -140,7 +149,8 @@ internal sealed class CodexQuotaCache
                 File.Delete(path + ".v1.bak.new");
             }
             // A stale cache is not a credential; failing to remove it must not block disconnecting.
-            catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            { diagnostics?.Failure(DiagnosticEvent.PersistenceFailure, error); }
         }, cancellationToken);
     }
 

@@ -8,14 +8,16 @@ namespace AiUsage.Composition;
 internal sealed class DispatcherWatchdog : IDisposable
 {
     private readonly DispatcherQueue queue;
-    private readonly IDiagnosticSink diagnostics;
+    private readonly ApplicationDiagnostics diagnostics;
     private readonly Timer timer;
     private long previous = Environment.TickCount64;
     private long pending;
     private int warned;
     private int disposed;
+    private int active = 1;
+    public bool Active { set => Interlocked.Exchange(ref active, value ? 1 : 0); }
 
-    internal DispatcherWatchdog(DispatcherQueue queue, IDiagnosticSink diagnostics)
+    internal DispatcherWatchdog(DispatcherQueue queue, ApplicationDiagnostics diagnostics)
     {
         this.queue = queue;
         this.diagnostics = diagnostics;
@@ -27,7 +29,7 @@ internal sealed class DispatcherWatchdog : IDisposable
         if (Volatile.Read(ref disposed) != 0) return;
         var now = Environment.TickCount64;
         var gap = now - Interlocked.Exchange(ref previous, now);
-        if (Debugger.IsAttached || gap > 6000)
+        if (Debugger.IsAttached || gap > 6000 || Volatile.Read(ref active) == 0)
         {
             Interlocked.Exchange(ref pending, 0);
             Interlocked.Exchange(ref warned, 0);
@@ -43,9 +45,9 @@ internal sealed class DispatcherWatchdog : IDisposable
         Interlocked.Exchange(ref pending, now);
         if (!queue.TryEnqueue(() =>
         {
-            Interlocked.Exchange(ref pending, 0);
+            var sentAt = Interlocked.Exchange(ref pending, 0);
             if (Volatile.Read(ref disposed) == 0 && Interlocked.Exchange(ref warned, 0) != 0)
-                diagnostics.Signal(DiagnosticEvent.DispatcherRecovered);
+                diagnostics.DispatcherRecovered(Math.Max(0, Environment.TickCount64 - sentAt));
         })) Interlocked.Exchange(ref pending, 0);
     }
 
