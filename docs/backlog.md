@@ -373,11 +373,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-037 - [astra] Provider parser extensions and stored-format version 2
 - goal: G-003
-- status: blocked
+- status: done
 - depends_on: [AIU-035, AIU-042]
 - specification: docs/specs/AIU-037-provider-limits-v2/spec.md
 - evidence: docs/specs/AIU-037-provider-limits-v2/verification.md
-- blocker: Implementation and local verification are complete; required independent security-lifecycle review is unavailable. The external Claude reviewer returned a weekly usage-limit error on 2026-10-03. Codex subagents remain disabled. WIP publication is a save point, not review approval.
+- outcome-note: Closed on 2026-10-03 after independent review of a3ef130 identified four P2 findings, all corrected in f844c33 and verified by targeted regressions, 530 Infrastructure tests, 179 Presentation tests and the Windows consumer build. Review findings and primary resolution evidence are recorded separately; no second independent verdict is claimed.
 - integration-note: AIU-036 already captures existing normalized snapshots under explicit legacy-window-v1, legacy-balance-v1 and legacy-extra-v1 series keys. Establish an explicit compatible mapping to native limit keys when adopting this model; never silently merge unlike series or discard the recorded history. See the AIU-036 specification.
 - trigger: owner-selection
 - outcome: The Claude, Codex, Copilot and Antigravity parsers fill the AIU-035 model for every provider limit in the research 5.5 mapping. This includes the Codex negative credit balance (M-02), the reset precision the provider actually sent (M-04) and the Codex individual control (M-07): its percentages become a window, and its raw amounts become a secondary amount of unknown unit. The Codex quota cache moves to envelope version 2 and the Claude, Copilot and Antigravity states to version 2, each with a forward migration (research 5.7).

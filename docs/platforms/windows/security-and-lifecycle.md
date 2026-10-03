@@ -113,7 +113,7 @@ checkpoint for retry. Existing byte limits apply. These operations are per provi
 not atomic across all providers. No install, trust or portable-backup policy changes.
 
 Local fixture evidence is in [AIU-037 verification](../../specs/AIU-037-provider-limits-v2/verification.md).
-Required independent review is BLOCKED; implementation publication is a WIP save point.
+Independent review findings have been corrected and verified; the record distinguishes the original verdict from primary correction verification.
 
 ## Deferred security scope
 Manifest PKI/expiry/replay and actual signing legal-identity eligibility are AIU-015/014, not bootstrap code. No custom crypto framework or secret manager server before needed.
