@@ -440,6 +440,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - outcome: The owner proposed this in the AIU-034 Claude Design round (D-186). The main window would show the month-to-date spend, and today's spend, of pay-as-you-go API tokens as an "Extra" group, separate from subscription quotas. The handoff draft showed Anthropic API and OpenAI API cards with a monthly total, today's spend and no cap. They were removed from the design reference, because D-183 and the constitution exclude API-key billing from consumer quotas.
 - acceptance: (1) Before any work, an owner decision amends the constitution line "Do not confuse consumer quotas with API billing" and D-183's exclusion, and names the authorized credentials (admin or usage API keys), their storage under DPAPI and a security-lifecycle review. (2) Provider evidence, from source and live, establishes each usage or billing endpoint, its unit, its currency and minor units, its period and its freshness. (3) API spend is never summed with, converted into or shown as part of a subscription quota. (4) No figure appears without an established source; an unknown value is never 0.
 - supersedes: Nothing. It needs an owner amendment of D-183.
+- boundary-note: AIU-044 owns monetary subscription readings already available through existing account connections, including their budget presentation and the on-extra-usage mark. Those readings are not standalone API-key billing merely because they are denominated in money. The 2026-10-04 AIU-044 clarification does not select AIU-041 or settle its display period or access decisions.
 - source: docs/decisions/accepted.md (D-186)
 
 ## AIU-043 - Structured file logging, provider-response evidence and crash diagnostics
@@ -453,14 +454,17 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: Owner request on 2026-10-03 selects implementation of AIU-043 and a concise agent rule for useful logging without noise. Completion request authorized an Astra low independent review; subsequent explicit permission covered existing-session live checks. Final verification records the completed gates and unavailable accounts.
 - scope-note: Full response capture means pre-model response structure and policy-approved original values, with explicit redaction/completeness metadata. It never means plaintext tokens, cookies or arbitrary unclassified payload values. AIU-039 is not a prerequisite; instrument whichever presentation is active and retain coverage across its later switch. Focused independent review followed the current one-subagent policy.
 
-## AIU-044 - Integrate extra usage into its owning account
+## AIU-044 - Restore account-owned monetary usage and preserve work budgets
 - goal: G-003
 - status: idea
 - depends_on: [AIU-039]
 - trigger: owner-selection
-- outcome: Redesign Claude extra-usage presentation so it clearly belongs to the connected account and cannot be mistaken for another account. Decide an account-level placement before restoring monetary figures, history and cap controls.
-- acceptance: No separate extra-usage account-like card; enabled, disabled and extra-usage-only accounts remain understandable; sign-out clearly targets the owning account; existing readings, caps and credentials are preserved.
+- outcome: Replace blanket CL-X suppression with monetary information inside its owning account. Preserve supported monthly work-budget presentation and the design's separate on-extra-usage mark, which measures spending since a 5h/7d window filled. Render from evidenced facts without guessing personal versus work from a label, wire variant or finite limit; unresolved purpose/scope gets neutral factual presentation rather than disappearing.
+- acceptance: AC-01 through AC-06 in the draft specification cover account-owned presentation, finite monthly monetary budgets, unchanged spend-since-full semantics, unknown/disabled states, multi-account and stored-data preservation, and relevant ordinary Windows verification. No second account-like card or duplicate pool; no fabricated personal allowance, reset or prepaid balance.
+- specification: docs/specs/AIU-044-account-monetary-usage/spec.md
+- evidence: docs/specs/AIU-044-account-monetary-usage/verification.md
 - registration-note: Owner requested this follow-up on 2026-10-03 after live AIU-039 verification. Standalone extra-usage cards are disabled now in the live Ledger. This entry does not select future implementation.
+- scope-note: Owner requested this task-definition revision on 2026-10-04 and retained the design's on-extra-usage baseline, withdrawing the proposed daily baseline for that mark. The draft does not introduce a personal/work switch, new provider access, standalone API billing or data migration. Real work-plan mapping remains unverified; source research and synthetic examples must not be described as live proof. Implementation is not selected.
 
 ## Deferred clarifications, not forgotten
 

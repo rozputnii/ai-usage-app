@@ -25,6 +25,11 @@ when it has no other displayed limits, without monetary figures. Preserve stored
 readings/caps and provider transport. Account-integrated extra-usage presentation is
 deferred to AIU-044; synthetic design-reference scenarios remain available for development.
 
+Follow-up clarification, 2026-10-04: [AIU-044's draft](../AIU-044-account-monetary-usage/spec.md)
+addresses the overly broad CL-X exclusion, including monetary-only accounts and supported
+monthly work budgets. The existing suppression above remains historical implemented
+behavior until that item is selected and delivered; it is not a permanent classification rule.
+
 Connect multiple distinct accounts of the same provider concurrently and make Ledger
 the product interface. Every account has a stable app-owned reference, independent
 credentials, cache, label, limits, caps, history and actions in the main window and
