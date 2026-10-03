@@ -262,3 +262,40 @@ Final documentation/diff check: PASS. The document validator returned valid=true
 no diagnostics after completed task evidence fields were made single repository-relative
 artifact paths. `git diff --check` passed. This corrected record syntax only; no
 acceptance criterion or validator requirement was weakened.
+
+## Owner-operated sign-in follow-up - 2026-10-03
+
+Owner requested an isolated ordinary app instance and manually signed in. Build
+`c9c4e9a`, Release unpackaged; isolated root recorded only in ignored local
+`manual-session.json`. No CLI credential reads or agent-driven sign-in occurred.
+
+- PASS: Claude OAuth and `/api/oauth/usage` returned HTTP 200. A subsequent quota
+  capture `b05e0552-11bc-4707-b3a0-ef065da8aa96` has one terminal event, one committed
+  reference and a Completed operation. This supersedes the earlier unavailable-session
+  result for the first owner-described work account. The second Claude account is NOT_RUN.
+- PASS: Copilot device authorization completed, followed by identity and quota HTTP
+  200. Capture `548d91bc-90fe-42ea-b52d-a9540b766993` has one terminal/committed reference
+  and Completed outcome. Codex capture `71ba5257-f99c-4f20-952d-e86300aa5a5d` does too.
+- BLOCKED: Antigravity connection reports RegistrationUnavailable before any HTTP
+  request. This is missing operator OAuth client configuration, not a provider quota
+  rejection or evidence that the owner's plan is unsupported.
+- No critical incident was present at inspection. Raw/private response values,
+  account identities, device codes and credentials remain outside this record.
+
+The owner's missing-display observations are separate from capture success. Claude's
+response contains enabled spend/extra_usage with non-null used and limit amounts.
+Current LiveMapping projects these into Extra usage in account details; the old
+main list does not render them as the planned unified limit row. Actual visibility
+on this owner's screen was not independently exercised. Calculated workday budgets
+are not wired into this live presentation: AIU-039 remains ready, unimplemented.
+The inspected Copilot response/current parser describes a monthly quota with a
+November 1 reset; the owner-described weekly display may refer to Codex. No weekly
+Copilot contract is inferred from that description.
+
+Owner reports late appearance of the device code. GitHub supplied it in about
+313 ms; 36 authorization_pending polls preceded successful authorization. Those
+polls do not measure code-render delay. LiveConnectionFlow opens the browser before
+publishing WaitingForAuthorization/DeviceUserCode, which permits the browser page
+to appear first. Exact delay/root cause is NOT_RUN pending an instrumented UI
+reproduction; no code-render timestamp, UI fix or successful latency check is claimed.
+The supplied screenshot establishes the GitHub device-entry page, not app timing.
