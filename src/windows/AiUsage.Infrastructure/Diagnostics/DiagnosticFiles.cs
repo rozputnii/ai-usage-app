@@ -12,6 +12,7 @@ public static partial class DiagnosticFiles
     private static partial Regex OwnedName();
 
     internal static string Folder(string root) => Path.Combine(Path.GetFullPath(root), "logs");
+    public static void ValidateDirectory(string directory) => Check(directory);
 
     internal static void Check(string path)
     {
@@ -46,7 +47,7 @@ public static partial class DiagnosticFiles
     {
         Check(folder);
         if (!Directory.Exists(folder)) return [];
-        return Directory.EnumerateFiles(folder).Where(p => Identify(p, out _, out _)).ToArray();
+        return Directory.EnumerateFiles(folder).Where(p => OwnedName().IsMatch(Path.GetFileName(p))).ToArray();
     }
 
     internal static void Prune(string folder, DateTimeOffset now, DiagnosticOptions options, string? reserveKind = null, long reserveBytes = 0, bool onlyReservedKind = false)

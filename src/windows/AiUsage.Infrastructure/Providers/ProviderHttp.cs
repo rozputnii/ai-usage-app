@@ -53,13 +53,14 @@ internal static class ProviderHttp
                 observed = stream.Length;
                 state = observed == 0 ? "empty" : "malformed";
                 body = await JsonDocument.ParseAsync(stream, new JsonDocumentOptions { MaxDepth = 32 }, timeout.Token).ConfigureAwait(false);
+                state = "complete-sanitized";
             }
             catch (JsonException)
             {
                 if (response.IsSuccessStatusCode)
                     throw new ProviderHttpException(TransportFailure.InvalidResponse, response.StatusCode);
             }
-            capture?.Complete("complete-sanitized", response, body, observed, retryAfter);
+            capture?.Complete(state, response, body, observed, retryAfter);
             return new ProviderHttpResponse(response.StatusCode, body, retryAfter);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -68,12 +69,14 @@ internal static class ProviderHttp
             throw new ProviderHttpException(TransportFailure.Timeout);
         }
         catch (OperationCanceledException) { state = "cancelled"; throw; }
-        catch (HttpRequestException)
+        catch (HttpRequestException exception)
         {
+            state = exception.HttpRequestError == HttpRequestError.ConfigurationLimitExceeded ? "oversized" : "network-failure";
             throw new ProviderHttpException(TransportFailure.NetworkFailure);
         }
         catch (IOException)
         {
+            state = "network-failure";
             throw new ProviderHttpException(TransportFailure.NetworkFailure);
         }
         finally

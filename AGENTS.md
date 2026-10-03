@@ -53,6 +53,25 @@ authority. Backlog status and historical permissions do not select work.
 - Documentation changes: consult docs/workflow/formats.md.
 - Verification: use docs/workflow/verification.md and README.md commands.
 
+## Useful logging
+
+When adding or changing behavior, review its diagnostic needs as part of implementation.
+Use the shared AIU-043 pipeline at the boundary that owns the operation: log meaningful
+outcomes, actionable failures, state/recovery transitions and evidence needed to explain
+provider or persistence problems. Check existing events first; keep one detailed record
+per failure and preserve operation/capture correlation. Add or update logging when it
+helps answer a concrete debugging question; trivial pure helpers need none.
+
+Do not log every method, loop iteration, animation frame, timer tick or routine success.
+Keep verbose timing/breadcrumbs opt-in, coalesce recurring warnings with counts, and use
+appropriate severity (expected cancellation is not an error). Never pass credentials,
+private identities/paths, arbitrary exception text or raw provider bodies to a generic
+logger. Extend the existing reviewed projection/policy only when needed; do not add a
+logging framework, wrapper, dependency or configuration without a current requirement.
+For changed failure paths, verify useful context, secret exclusion and bounded noise;
+use existing logs during debugging before adding speculative instrumentation. See
+[the reading guide](docs/workflow/logging.md).
+
 ## Boundaries and completion
 
 Never read or import source CLI credentials without explicit current

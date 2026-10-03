@@ -71,6 +71,7 @@ internal sealed class AppLifetime(MotionSettings motion) : IAppLifetime
         if (IsHiddenToTray == hidden)
             return;
         IsHiddenToTray = hidden;
+        AiUsage.Composition.ApplicationDiagnostics.Current?.WindowVisibility(hidden);
         VisibilityChanged?.Invoke(this, EventArgs.Empty);
     }
 

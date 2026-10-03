@@ -36,6 +36,6 @@ internal static class LedgerMotion
         var storyboard = new Storyboard();
         storyboard.Children.Add(animation);
         storyboard.Completed += (_, _) => storyboard.Stop();
-        storyboard.Begin();
+        Composition.ApplicationDiagnostics.RunAnimation(storyboard.Begin);
     }
 }

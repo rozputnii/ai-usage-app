@@ -28,23 +28,29 @@ Export plaintext documented versioned bundle without secrets; warn about private
 Reset settings preserves accounts/credentials/history/labels/order. Factory reset explicitly stops refresh/Host/logging, closes DB pools and all files, removes all mutable app-owned state and owned startup/notification state, then launches true first-run state. Same installed binaries remain. No deletion of original CLI logins/user-owned exports. OS-level preserved install/notification permissions and external remote grants are outside this local-reset contract; document actual limits rather than claim literal reinstall.
 
 ## Diagnostics
-Normal history contains normalized data only. Failure diagnostics are safe allowlisted structure (field/type info, redacted values where safe); unknown payload not blindly saved after regex substitutions. Seven-day retention; manual export re-sanitizes IDs/email/paths. Full exception objects and request/response bodies aren't generic log arguments. No automatic network telemetry.
+Normal quota/history stores remain normalized only. AIU-043 adds a separate `logs`
+namespace under the existing owned state root, with packaged/development/Demo/console
+isolation. Endpoint policies project bounded provider responses before any file or
+Serilog argument; unknown scalar values and unsafe/dynamic names are withheld. Bodies,
+headers, credentials and arbitrary exception objects/messages/Data are never generic log
+arguments. Safe type/HResult/stack/inner-chain metadata may be projected; symbol paths
+are repository-relative. Sanitized output is not automatically safe for public export.
 
-AIU-028 T-04 stores `diagnostics.v1.log` under the existing app-owned state root, separate from
-provider files. It contains UTC timestamps and fixed event/category codes only, is bounded to
-64 KiB, and prunes records older than seven days at startup and on writes. Oldest records are
-dropped when the cap is reached. Retention resumes when the app next runs; no background cleanup
-runs while it is closed. Demo uses the development root's `Demo` subdirectory. The development
-state override applies to both, keeping synthetic checks isolated.
+Maximum retention is 72 hours for traces, 168 hours for application/response evidence,
+and one calendar month for critical incidents. Independent class size budgets, bounded
+queues and startup/hourly/write pruning limit storage. Filename timestamps preserve the
+original age; previews exclude expired records. Retention resumes next run when closed.
+Critical output bypasses the ordinary queue and forces its file to disk; unavailable or
+stalled storage and native/forced termination cannot guarantee a final record.
 
-Only defined enums cross the sink boundary. Exception messages, runtime type names, stacks,
-inner exceptions, Data, provider payloads and opaque identifiers are never fields or arguments
-to the sink. Existing file records are rebuilt from validated fields before retention. The
-file and existing directory ancestors are checked for reparse points; the opened file is
-exclusive, with no recursive deletion or path supplied by provider data. Same-user race or
-tampering protection is not guaranteed. Storage failure drops diagnostic output and does not
-replace the original failure. Partial writes can lose diagnostic records. No export is enabled
-by T-04; future factory reset includes this file as app-owned mutable data.
+The pipeline validates owned names and reparse boundaries, never recursively deletes
+unknown entries, and removes only the recognized legacy diagnostics.v1.log. Sign-out
+and settings reset do not renew retention. Explicit future stored-data/factory reset
+must stop writers before DiagnosticFiles.DeleteOwned; deferred reset UI is unchanged.
+Logs are excluded from migration checkpoints, quota storage, automatic exports and Git.
+Same-user path-substitution races remain outside these path checks' guarantee. No
+telemetry or host trust/WER changes are introduced. Delivery and independent-review
+limits are recorded in [AIU-043 verification](../../specs/AIU-043-file-logging/verification.md).
 
 ## Security tests before relevant features merge
 - Cross-account token/grant mismatch rejected; rotating refresh pair preserved through quota cancellation.

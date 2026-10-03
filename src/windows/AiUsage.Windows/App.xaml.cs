@@ -15,6 +15,7 @@ namespace AiUsage;
 /// Product composition by default; --demo selects isolated synthetic adapters.
 /// Close hides to the tray; confirmed Exit drains provider work before disposing sessions.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "WinUI owns Application; StopCoreAsync and Ledger exit dispose diagnostics after host disposal.")]
 public partial class App : Application
 {
     private IHost? host;
@@ -26,33 +27,35 @@ public partial class App : Application
 
     public App()
     {
-        InitializeComponent();
+        diagnostics.Initialize(Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal));
         UnhandledException += OnUnhandledException;
+        try { InitializeComponent(); }
+        catch (Exception exception) { diagnostics.StartupFailure(exception); throw; }
+        DebugSettings.BindingFailed += (_, _) => diagnostics.BindingFailure();
+        DebugSettings.IsBindingTracingEnabled = true;
     }
 
     /// <summary>
-    /// A fault that escapes to the dispatcher (for example a library's async void handler) is recorded as a fixed
-    /// event and category, and the dashboard keeps running: provider state is durable and journaled, so staying up is
-    /// safer for the user than terminating mid-sign-in. Faults the runtime treats as fatal still terminate.
+    /// Unknown UI failures remain fatal. Only local, explicitly recoverable boundaries may continue.
     /// </summary>
     private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
     {
         diagnostics.UnhandledFailure(e.Exception);
-        e.Handled = true;
     }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         try
         {
+            diagnostics.Watch(DispatcherQueue.GetForCurrentThread());
+            if (diagnostics.TryRunProbe(Exit)) return;
             // AIU-038 (PD-038-01): the redesigned presentation on demo data, isolated from product and plain --demo.
             if (LedgerRegistration.Requested(Environment.GetCommandLineArgs()))
             {
-                LedgerRegistration.Start(Exit);
+                LedgerRegistration.Start(() => { diagnostics.Dispose(); Exit(); });
                 return;
             }
             var demo = Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal);
-            diagnostics.Initialize(demo);
             var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });
             diagnostics.Register(builder.Services);
             builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
@@ -60,6 +63,7 @@ public partial class App : Application
             builder.Services.AddPresentationFeatures().AddPlatformServices();
             if (demo) builder.Services.AddDemoServices();
             else builder.Services.AddLiveServices();
+            diagnostics.RegisterSurface(builder.Services, demo);
             host = builder.Build();
             await host.StartAsync();
 
@@ -130,6 +134,7 @@ public partial class App : Application
                 diagnostics.DisposalFailure(error);
                 Environment.ExitCode = 1;
             }
+            diagnostics.Dispose();
             Exit();
         }
     }

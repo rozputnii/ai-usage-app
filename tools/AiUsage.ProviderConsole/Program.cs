@@ -12,6 +12,7 @@ internal static class Program
 {
     private static async Task<int> Main(string[] args)
     {
+        using var diagnostics = ConsoleDiagnostics.Start();
         if (args.Length == 0 || args is ["--help"] or ["help"])
         {
             Console.WriteLine("AI Usage provider console\n  inspect <quota-json-file>  Normalize a Codex fixture offline.\n  inspect-claude <file>      Normalize a Claude fixture offline.\n  inspect-copilot <file>     Normalize an OMP Copilot fixture offline.\n  inspect-antigravity <file> Normalize an OMP Antigravity fixture offline.\n  measure-backend           Offline synthetic Release measurements in an isolated temporary store.\n  login                     Interactive Codex sign-in; credentials remain in memory.\n  claude                    Private unsupported Claude connection with app-owned encrypted state.\n  copilot                   OMP device sign-in with app-owned encrypted state.\n  antigravity               Provider-restricted Antigravity connection with app-owned encrypted state.\n  history codex|copilot <owned-provider-directory>  Read seven UTC days with an existing AI Usage session; print statuses/counts only.\n\nNo CLI auth stores, token arguments or inference requests are used.");
@@ -64,7 +65,7 @@ internal static class Program
             Console.Write("Open the provider sign-in page in your browser now? [y/N] ");
             if (!string.Equals(Console.ReadLine(), "y", StringComparison.OrdinalIgnoreCase))
                 return 0;
-            using var services = new ServiceCollection().AddCodexIntegration().BuildServiceProvider();
+            using var services = ConsoleDiagnostics.Services().AddCodexIntegration().BuildServiceProvider();
             var auth = services.GetRequiredService<CodexAuthClient>();
             var quota = services.GetRequiredService<CodexQuotaClient>();
             using var authorization = auth.BeginBrowserLogin();

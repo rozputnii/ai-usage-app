@@ -148,6 +148,11 @@ internal sealed partial class SystemStatusViewModel : SnapshotViewModel
     private async Task ToggleLogAsync() =>
         LogText = LogText.Length > 0 ? string.Empty : await diagnostics.PreviewLogsAsync(CancellationToken.None);
 
+    public bool CanOpenLogs => diagnostics.CanOpenLogs;
+
+    [RelayCommand]
+    private Task OpenLogsAsync() => diagnostics.OpenLogsAsync();
+
     [RelayCommand]
     private void OpenUpdates() => Context.Navigation.Navigate(new(PageKey.Settings, Tab: SettingsTab.Updates));
 

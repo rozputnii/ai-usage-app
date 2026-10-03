@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 
 namespace AiUsage.Infrastructure.Providers.Codex;
@@ -10,14 +11,16 @@ namespace AiUsage.Infrastructure.Providers.Codex;
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed partial class CodexSession : IProviderSession, IDisposable
 {
+    private readonly IDiagnosticSink? diagnostics;
     private readonly CodexAuthClient auth;
     private readonly CodexQuotaClient quota;
     private readonly CodexGrantStore store;
     private readonly CodexQuotaCache cache;
     private readonly CodexHistoryClient history;
 
-    internal CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store, CodexQuotaCache cache, CodexHistoryClient history)
+    internal CodexSession(CodexAuthClient auth, CodexQuotaClient quota, CodexGrantStore store, CodexQuotaCache cache, CodexHistoryClient history, IDiagnosticSink? diagnostics = null)
     {
+        this.diagnostics = diagnostics;
         this.auth = auth;
         this.quota = quota;
         this.store = store;
@@ -120,6 +123,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
         }
         catch (CodexException error) when (error.Kind == ProviderFailureKind.RateLimited)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             // A known rejection preserves the existing retry semantics. Unknown outcomes
             // leave the intent in place, including across process termination/relaunch.
             stored = await lease.SaveAsync(record, revision, CancellationToken.None).ConfigureAwait(false);
@@ -127,6 +131,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
         }
         catch (CodexException error) when (error.Kind != ProviderFailureKind.AuthenticationRequired)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             throw new ProviderException(ProviderFailureKind.RecoveryRequired);
         }
         catch (OperationCanceledException)
@@ -147,6 +152,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
         }
         catch (CodexException error) when (error.Kind != ProviderFailureKind.AuthenticationRequired)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             // A quota failure is not a lost session: the grant stays usable, and the last known
             // reading is offered as explicitly stale rather than replaced by nothing.
             return Stale(ProviderSessionStatus.QuotaUnavailable, error.Kind);
@@ -210,6 +216,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
         }
         catch (CodexException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             // Keep a refused grant non-replayable; explicit fresh authorization can replace its intact intent.
             credentials?.Dispose();
             credentials = null;
@@ -217,15 +224,17 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
         }
         catch (CodexException error)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             return State = Stale(
                 credentials is null ? ProviderSessionStatus.NotConnected : ProviderSessionStatus.QuotaUnavailable, error.Kind);
         }
         catch (ProviderException error)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             return State = StorageFailure(error.Kind);
         }
-        catch (IOException) { return State = StorageFailure(ProviderFailureKind.StorageUnavailable); }
-        catch (UnauthorizedAccessException) { return State = StorageFailure(ProviderFailureKind.StorageUnavailable); }
+        catch (IOException error) { diagnostics?.Failure(DiagnosticEvent.OperationFailure, error); return State = StorageFailure(ProviderFailureKind.StorageUnavailable); }
+        catch (UnauthorizedAccessException error) { diagnostics?.Failure(DiagnosticEvent.OperationFailure, error); return State = StorageFailure(ProviderFailureKind.StorageUnavailable); }
         catch (OperationCanceledException)
         {
             if (State.Status != ProviderSessionStatus.RecoveryRequired)

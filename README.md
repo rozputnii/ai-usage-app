@@ -84,6 +84,11 @@ For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that ex
 
 ## Native Windows package
 
+Local structured logging, sanitized provider evidence, retention and diagnostic switches
+are described in the [logging guide](docs/workflow/logging.md). Use **Settings → System
+status → Open logs** for the current mode's folder. Provider bodies are sanitized before
+they reach files; Debug tracing is opt-in. Logs are local and excluded from backups/Git.
+
 Requires Windows 11 24H2+ x64, the selected .NET SDK and Visual Studio MSBuild. Pinned NuGet build tools supply XAML/MSIX tooling in the verified local environment. Core and Infrastructure remain platform-neutral .NET libraries.
 
 From the repository root, in PowerShell:

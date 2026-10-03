@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 
 namespace AiUsage.Infrastructure.Providers.Copilot;
@@ -6,14 +7,16 @@ namespace AiUsage.Infrastructure.Providers.Copilot;
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed partial class CopilotSession : IProviderSession, IDisposable
 {
+    private readonly IDiagnosticSink? diagnostics;
     private readonly CopilotAuthClient auth;
     private readonly CopilotQuotaClient quota;
     private readonly CopilotStateStore store;
     private readonly TimeProvider clock;
     private readonly CopilotHistoryClient history;
 
-    internal CopilotSession(CopilotAuthClient auth, CopilotQuotaClient quota, CopilotStateStore store, TimeProvider clock, CopilotHistoryClient history)
+    internal CopilotSession(CopilotAuthClient auth, CopilotQuotaClient quota, CopilotStateStore store, TimeProvider clock, CopilotHistoryClient history, IDiagnosticSink? diagnostics = null)
     {
+        this.diagnostics = diagnostics;
         this.auth = auth;
         this.quota = quota;
         this.store = store;
@@ -46,6 +49,7 @@ public sealed partial class CopilotSession : IProviderSession, IDisposable
         }
         catch (ProviderException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             stored = await lease.SaveAsync(stored with { NeedsReauthentication = true }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
             return Cached(error.Kind);
         }
@@ -65,7 +69,8 @@ public sealed partial class CopilotSession : IProviderSession, IDisposable
             ProviderFailureKind? failure = null;
             try { reading = await quota.GetQuotaAsync(next, token).ConfigureAwait(false); }
             catch (ProviderException error) when (stored is null && error.Kind is not (ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch))
-            { failure = error.Kind; }
+            {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error); failure = error.Kind; }
             // A replacement must prove quota access; failure never replaces the previous connection.
             token.ThrowIfCancellationRequested();
             stored = await lease.SaveAsync(new()
@@ -109,6 +114,7 @@ public sealed partial class CopilotSession : IProviderSession, IDisposable
         }
         catch (ProviderException error)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             if (error.Kind is ProviderFailureKind.StorageUnavailable or ProviderFailureKind.RecoveryRequired or ProviderFailureKind.GrantNotRemoved)
             {
                 stored = null; HasStoredGrant = true;

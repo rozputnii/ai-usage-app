@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <ProjectReference Include="../../../src/windows/AiUsage.Infrastructure/AiUsage.Infrastructure.csproj" />
+    <ProjectReference Include="../../../tools/AiUsage.DiagnosticsProbe/AiUsage.DiagnosticsProbe.csproj" ReferenceOutputAssembly="false" />
     <None Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -52,7 +52,11 @@ internal sealed partial class LiveUsageSource : IProviderHistorySource
             completion.TrySetResult(result);
         }
         catch (OperationCanceledException) { completion.TrySetCanceled(); }
-        catch (Exception) { completion.TrySetResult(ProviderHistoryResult.Unavailable(range, HistoryStatus.Failed)); }
+        catch (Exception exception)
+        {
+            diagnostics?.Failure(AiUsage.Core.Diagnostics.DiagnosticEvent.OperationFailure, exception);
+            completion.TrySetResult(ProviderHistoryResult.Unavailable(range, HistoryStatus.Failed));
+        }
         finally
         {
             lock (sync) { entry.HistoryActive = false; entry.Cancellation = null; cancellation.Dispose(); }

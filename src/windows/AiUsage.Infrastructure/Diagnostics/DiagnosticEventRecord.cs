@@ -7,13 +7,11 @@ internal sealed record DiagnosticEventRecord(
     string Component, int ProcessId, string SessionId, long Sequence, Guid? OperationId,
     Guid? ParentOperationId, string? Operation, string? Outcome, double? DurationMs,
     SafeException? Exception = null, bool? Terminating = null, int? ThreadId = null,
-    long? LostRecords = null, object? Context = null);
+    long? LostRecords = null, object? Context = null, Guid? AccountReference = null);
 
-internal sealed record DiagnosticContext(Guid Id, Guid? Parent, string Operation);
+internal sealed record DiagnosticContext(Guid Id, Guid? Parent, string Operation, Guid? AccountReference);
 
-public enum DiagnosticOperation { Startup, Shutdown, Connect, Resume, Refresh, AutomaticRefresh, Disconnect, History, Recovery, Persistence, Command }
-
-public sealed class DiagnosticScope : IDisposable
+public sealed class DiagnosticScope : IDiagnosticOperation
 {
     private readonly FileDiagnostics owner;
     private readonly DiagnosticContext? previous;
@@ -22,11 +20,11 @@ public sealed class DiagnosticScope : IDisposable
     private string outcome = "completed";
     private int disposed;
 
-    internal DiagnosticScope(FileDiagnostics owner, DiagnosticOperation operation)
+    internal DiagnosticScope(FileDiagnostics owner, DiagnosticOperation operation, Guid? accountReference)
     {
         this.owner = owner;
         previous = FileDiagnostics.Operation.Value;
-        context = new(Guid.NewGuid(), previous?.Id, operation.ToString());
+        context = new(Guid.NewGuid(), previous?.Id, operation.ToString(), accountReference ?? previous?.AccountReference);
         FileDiagnostics.Operation.Value = context;
         owner.Event(DiagnosticEvent.OperationStarted, DiagnosticSeverity.Information);
     }
@@ -38,12 +36,14 @@ public sealed class DiagnosticScope : IDisposable
     }
 
     public void Cancelled() => outcome = "cancelled";
+    public void SetOutcome(DiagnosticOutcome outcome) => this.outcome = outcome.ToString();
 
     public void Dispose()
     {
         if (Interlocked.Exchange(ref disposed, 1) != 0) return;
-        owner.Event(outcome == "cancelled" ? DiagnosticEvent.OperationCancelled : DiagnosticEvent.OperationCompleted,
-            DiagnosticSeverity.Information, outcome: outcome, duration: System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+        owner.Event(outcome is "cancelled" or "Cancelled" or "ExitCancelled" ? DiagnosticEvent.OperationCancelled : DiagnosticEvent.OperationCompleted,
+            outcome is "failed" or "Failed" or "RecoveryRequired" ? DiagnosticSeverity.Error : DiagnosticSeverity.Information,
+            outcome: outcome, duration: System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds);
         FileDiagnostics.Operation.Value = previous;
     }
 }

@@ -68,6 +68,7 @@ and fatal handling independently of the ordinary writer.
 ## Handoff
 
 Base: main, clean working tree at selection. No live-provider access authorized.
-Next action: write and run T-01 diagnostic storage regression tests.
+Next action: inspect the Release UI fault-probe results and finish the final package,
+performance and document checks before updating the acceptance matrix.
 Required independent implementation review is unavailable with the current tools and
 disabled Codex subagents; implementation/checkpoints do not claim review approval.

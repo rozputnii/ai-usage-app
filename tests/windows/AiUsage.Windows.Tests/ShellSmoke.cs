@@ -34,6 +34,7 @@ public sealed partial class ShellSmoke
     [InlineData("tray-exit")]
     [InlineData("repeated-exit")]
     [InlineData("capabilities")]
+    [InlineData("logging")]
     public void ShellLaunchesNavigatesAndExits(string scenario)
     {
         var aumid = Environment.GetEnvironmentVariable("AIU_SMOKE_AUMID");
@@ -88,7 +89,7 @@ public sealed partial class ShellSmoke
             // The tray icon is created by the window; without it there is no tray presence at all.
             Assert.True(TrayIconPresent(pid), "No tray icon window owned by the launched process.");
 
-            if (scenario is "navigation" or "appearance")
+            if (scenario is "navigation" or "appearance" or "logging")
                 Navigate(window, evidence!, scenario);
             if (scenario == "appearance")
                 DarkOnly(window, evidence!);
@@ -247,6 +248,13 @@ public sealed partial class ShellSmoke
 
         Assert.Null(window.FindFirstDescendant(cf => cf.ByAutomationId("BackButton")));
         Show("SettingsButton", "DensitySelector", "settings");
+        if (scenario == "logging")
+        {
+            Assert.True(Required(window, "OpenLogs").IsEnabled);
+            Required(window, "PreviewLog").AsButton().Invoke();
+            Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("LogPreview"))?.Name.Contains("SessionStarted", StringComparison.Ordinal) == true,
+                TimeSpan.FromSeconds(5)), "Diagnostic preview should show this isolated session.");
+        }
         // Every former settings tab and the former System status page are sections of this one view.
         foreach (var id in new[] { "HistoryEnabledSwitch", "UpdateStatus", "StatusBuild" })
             Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId(id)));

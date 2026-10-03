@@ -35,7 +35,7 @@ internal static class ClaudeConsole
         }
         Console.WriteLine("Private, unsupported Claude integration using OMP's flow. Anthropic prohibits third-party Claude.ai login and token storage. This is not provider-approved.");
         Console.WriteLine("This console uses its own encrypted connection. It does not read CLI logins or the desktop app's connection. Choose connect to open consent in your browser.");
-        using var services = new ServiceCollection().AddClaudeIntegration().BuildServiceProvider();
+        using var services = ConsoleDiagnostics.Services().AddClaudeIntegration().BuildServiceProvider();
         var store = new ClaudeStateStore(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AiUsage", "ProviderConsole"));
         ClaudeSession CreateSession() => new(services.GetRequiredService<ClaudeAuthClient>(), services.GetRequiredService<ClaudeQuotaClient>(), store, TimeProvider.System);
         var session = CreateSession();

@@ -55,7 +55,7 @@ internal abstract partial class MotionAwareControl : UserControl
             if (storyboard is null)
             {
                 storyboard = CreateStoryboard();
-                storyboard.Begin();
+                Composition.ApplicationDiagnostics.RunAnimation(storyboard.Begin);
             }
         }
         else

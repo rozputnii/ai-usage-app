@@ -23,7 +23,11 @@ internal static class Bind
     public static Thickness RowPadding(bool compactDensity) => compactDensity ? new Thickness(0, 7, 0, 7) : new Thickness(0, 11, 0, 11);
 
     /// <summary>Token brush for code-drawn controls; the app has one (dark) token dictionary (D-182).</summary>
-    public static Brush Token(FrameworkElement element, string key) => (Brush)Application.Current.Resources[key];
+    public static Brush Token(FrameworkElement element, string key)
+    {
+        try { return (Brush)Application.Current.Resources[key]; }
+        catch (Exception exception) { Composition.ApplicationDiagnostics.Current?.CommandFailure(exception); throw; }
+    }
 
     public static string ToneKey(ValueTone tone) => tone switch
     {

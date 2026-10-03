@@ -41,3 +41,33 @@ run passed. The validator implementation was not changed and no requirement was 
 Next action: obtain the owner's review of the draft specification and design before
 selecting implementation or writing its execution plan. No feature completion or
 independent review approval is claimed by documentation publication.
+
+## Implementation checkpoint - 2026-10-03
+
+The subsequent owner request selected implementation and an agent rule for useful,
+low-noise logging. Base `44cee2e`; initial implementation checkpoint `b91da5d`.
+The preparation-only next action above is historical. No source CLI credentials or
+live provider accounts were read. All new payloads and fault probes are synthetic.
+
+Observed on local Windows, pinned .NET SDK 10.0.401/runtime 10.0.12:
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Initial diagnostics/capture tests | PASS | 9 tests; JSON, precision, canaries, malformed success, calendar-month retention, cleanup, critical persistence |
+| Infrastructure regressions | PASS | 544 tests, Release, including dedicated managed crash child process and additional queue/link/correlation tests |
+| Presentation regressions | PASS | 262 tests; corrected duplicate failure emission and kept backend names behind the adapter boundary |
+| Windows Debug unpackaged build | PASS | No warnings/errors |
+| Windows Release unpackaged build | PASS | No warnings/errors; ordinary Release probe binary, no debugger |
+| Local ordinary Windows smoke | PASS | 7 actual Debug scenarios: launch, navigation, appearance, tray exit, repeated exit, capabilities, close-to-tray/restore; `.ai-usage-local/AIU-043/smoke-debug` |
+| Managed fatal probe | PASS | Dedicated disposable process terminated nonzero; critical JSON contained stack, terminating flag, no canary; restart reported PreviousExitUnknown |
+| Independent implementation review | BLOCKED | Current tools provide no authorized independent reviewer; Codex subagents remain disabled. Primary self-review is not independent review |
+| Live provider captures | NOT_RUN | No current authorization/accounts used; synthetic replies do not establish AC-15 |
+
+The first crash probe inside the xUnit executable stalled before the app's global
+handler, while its normal queue completed. Replaced that runner-dependent probe with
+a dedicated child executable; the real unhandled exception then terminated and left
+the required file. This is test isolation, not a change to runtime termination policy.
+
+Remaining checkpoint work: Release UI fault probes, final log-policy checks, package
+build, performance comparison, final document validation and focused review disposition.
+No complete-feature claim is made by this checkpoint or automatic main publication.

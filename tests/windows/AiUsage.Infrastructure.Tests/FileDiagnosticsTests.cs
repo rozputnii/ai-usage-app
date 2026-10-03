@@ -91,6 +91,78 @@ public sealed class FileDiagnosticsTests : IDisposable
         Assert.True(log.LostRecords > 0);
     }
 
+    [Fact]
+    public async Task CriticalWriterDoesNotDependOnLockedExpiredApplicationFile()
+    {
+        var folder = Path.Combine(root, "logs");
+        Directory.CreateDirectory(folder);
+        var stale = DiagnosticFiles.NewName(folder, "application", clock.Now.AddDays(-8), "jsonl");
+        using var locked = new FileStream(stale, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+        using var log = new FileDiagnostics(root, clock: clock);
+        log.Fatal(DiagnosticEvent.UnhandledFailure, new IOException("canary"), true);
+        Assert.Single(Directory.GetFiles(folder, "critical-*.jsonl"));
+        await log.FlushAsync();
+        Assert.True(log.LostRecords > 0);
+    }
+
+    [Fact]
+    public async Task ConcurrentOperationsKeepDistinctOpaqueAccountAndParentReferences()
+    {
+        using var log = new FileDiagnostics(root);
+        var accounts = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        await Task.WhenAll(accounts.Select(async account =>
+        {
+            using var parent = log.Begin(DiagnosticOperation.Refresh, account);
+            await Task.Yield();
+            using var child = log.Begin(DiagnosticOperation.Persistence);
+            log.Signal(DiagnosticEvent.RecoveryCompleted);
+        }));
+        await log.FlushAsync();
+        var records = Directory.GetFiles(log.DirectoryPath, "application-*.jsonl").SelectMany(p => ReadShared(p).Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            .Select(s => JsonDocument.Parse(s).RootElement.Clone()).Where(e => e.GetProperty("eventId").GetString() == "OperationStarted").ToArray();
+        Assert.Equal(4, records.Length);
+        foreach (var account in accounts)
+        {
+            var group = records.Where(e => e.GetProperty("accountReference").GetGuid() == account).ToArray();
+            Assert.Equal(2, group.Length);
+            var parent = Assert.Single(group, e => e.GetProperty("operation").GetString() == "Refresh");
+            var child = Assert.Single(group, e => e.GetProperty("operation").GetString() == "Persistence");
+            Assert.Equal(parent.GetProperty("operationId").GetGuid(), child.GetProperty("parentOperationId").GetGuid());
+        }
+    }
+
+    [Fact]
+    public async Task QueueSaturationIsReportedAndRepeatedBindingWarningsAreCoalesced()
+    {
+        using var log = new FileDiagnostics(root, new DiagnosticOptions { QueueBytes = 4096, QueueEntries = 3 });
+        for (var i = 0; i < 1000; i++) log.Signal(DiagnosticEvent.BindingFailure, DiagnosticSeverity.Warning);
+        await log.FlushAsync();
+        var preview = await log.PreviewAsync();
+        Assert.InRange(preview.Split("BindingFailure", StringSplitOptions.None).Length - 1, 1, 2);
+        for (var i = 0; i < 10000; i++) log.Signal(DiagnosticEvent.OperationStarted);
+        await log.FlushAsync();
+        Assert.True(log.LostRecords > 0);
+        Assert.Contains("LoggerHealth", await log.PreviewAsync());
+    }
+
+    [Fact]
+    public void CleanupRejectsRedirectedNamespace()
+    {
+        Directory.CreateDirectory(root);
+        var target = Path.Combine(root, "target");
+        Directory.CreateDirectory(target);
+        var link = Path.Combine(root, "logs");
+        using var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe")
+        {
+            Arguments = $"/c mklink /J \"{link}\" \"{target}\"", UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardOutput = true, RedirectStandardError = true
+        })!;
+        process.WaitForExit();
+        Assert.Equal(0, process.ExitCode);
+        try { Assert.Throws<IOException>(() => DiagnosticFiles.DeleteOwned(root)); Assert.Empty(Directory.GetFiles(target)); }
+        finally { Directory.Delete(link); }
+    }
+
     public void Dispose() { if (Directory.Exists(root)) Directory.Delete(root, true); }
     internal static string ReadShared(string path)
     {

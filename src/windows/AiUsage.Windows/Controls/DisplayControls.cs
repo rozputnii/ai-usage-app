@@ -147,7 +147,7 @@ public sealed partial class Motion : DependencyObject
         var storyboard = new Storyboard();
         storyboard.Children.Add(fade);
         storyboard.Children.Add(rise);
-        storyboard.Begin();
+        Composition.ApplicationDiagnostics.RunAnimation(storyboard.Begin);
     }
 
     public static readonly DependencyProperty AcknowledgeProperty = DependencyProperty.RegisterAttached(
@@ -181,7 +181,7 @@ public sealed partial class Motion : DependencyObject
         Storyboard.SetTargetProperty(animation, "Opacity");
         var storyboard = new Storyboard();
         storyboard.Children.Add(animation);
-        storyboard.Begin();
+        Composition.ApplicationDiagnostics.RunAnimation(storyboard.Begin);
     }
 
     public static readonly DependencyProperty RotateProperty = DependencyProperty.RegisterAttached(
@@ -209,7 +209,7 @@ public sealed partial class Motion : DependencyObject
         Storyboard.SetTargetProperty(animation, "Angle");
         var storyboard = new Storyboard();
         storyboard.Children.Add(animation);
-        storyboard.Begin();
+        Composition.ApplicationDiagnostics.RunAnimation(storyboard.Begin);
     }
 }
 

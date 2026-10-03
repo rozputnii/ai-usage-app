@@ -1,4 +1,5 @@
 using AiUsage.Core.Usage;
+using AiUsage.Core.Diagnostics;
 
 namespace AiUsage.Core.Dashboard;
 
@@ -6,8 +7,9 @@ namespace AiUsage.Core.Dashboard;
 /// Coordinates the single dashboard's work without owning credentials or desktop objects.
 /// StopAsync must finish before the session is disposed. It never retries a provider operation.
 /// </summary>
-public sealed class DashboardWorkflow(IProviderSession session) : IDisposable
+public sealed class DashboardWorkflow(IProviderSession session, IDiagnosticSink? diagnostics = null) : IDisposable
 {
+    private readonly Guid accountReference = Guid.NewGuid();
     private readonly object sync = new();
     private readonly CancellationTokenSource lifetime = new();
     private Task<ProviderSessionState>? active;
@@ -26,19 +28,19 @@ public sealed class DashboardWorkflow(IProviderSession session) : IDisposable
                 return cached;
             await showCached(cached).ConfigureAwait(false);
             return await session.ResumeAsync(token).ConfigureAwait(false);
-        }, cancellationToken);
+        }, DiagnosticOperation.Resume, cancellationToken);
 
     public Task<ProviderSessionState> ConnectAsync(Action<Uri> openBrowser, CancellationToken cancellationToken = default) =>
-        RunAsync(token => session.ConnectAsync(openBrowser, token), cancellationToken);
+        RunAsync(token => session.ConnectAsync(openBrowser, token), DiagnosticOperation.Connect, cancellationToken);
 
     public Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default) =>
-        RunAsync(session.RefreshAsync, cancellationToken);
+        RunAsync(session.RefreshAsync, DiagnosticOperation.Refresh, cancellationToken);
 
     public Task<ProviderSessionState> ConnectWithChallengeAsync(Action<AuthorizationChallenge> authorize, CancellationToken cancellationToken = default) =>
-        RunAsync(token => session.ConnectWithChallengeAsync(authorize, token), cancellationToken);
+        RunAsync(token => session.ConnectWithChallengeAsync(authorize, token), DiagnosticOperation.Connect, cancellationToken);
 
     public Task<ProviderSessionState> DisconnectAsync(CancellationToken cancellationToken = default) =>
-        RunAsync(session.DisconnectAsync, cancellationToken);
+        RunAsync(session.DisconnectAsync, DiagnosticOperation.Disconnect, cancellationToken);
 
     public bool TrySubmitCode(string code)
     {
@@ -46,7 +48,7 @@ public sealed class DashboardWorkflow(IProviderSession session) : IDisposable
             return !stopped && session.TrySubmitCode(code);
     }
 
-    private Task<ProviderSessionState> RunAsync(Func<CancellationToken, Task<ProviderSessionState>> operation, CancellationToken token)
+    private Task<ProviderSessionState> RunAsync(Func<CancellationToken, Task<ProviderSessionState>> operation, DiagnosticOperation kind, CancellationToken token)
     {
         lock (sync)
         {
@@ -56,18 +58,37 @@ public sealed class DashboardWorkflow(IProviderSession session) : IDisposable
                 return Task.FromException<ProviderSessionState>(new InvalidOperationException("Dashboard work is already in progress."));
             // The lifetime token is read here, not after the yield below: disposal may release the
             // source while the operation is still starting, and a cancelled token stays usable.
-            return active = ExecuteAsync(operation, lifetime.Token, token);
+            return active = ExecuteAsync(operation, kind, lifetime.Token, token);
         }
     }
 
-    private static async Task<ProviderSessionState> ExecuteAsync(Func<CancellationToken, Task<ProviderSessionState>> operation,
-        CancellationToken lifetimeToken, CancellationToken token)
+    private async Task<ProviderSessionState> ExecuteAsync(Func<CancellationToken, Task<ProviderSessionState>> operation,
+        DiagnosticOperation kind, CancellationToken lifetimeToken, CancellationToken token)
     {
         // Publish active before a browser callback or a reentrant shutdown can run.
         await Task.Yield();
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(lifetimeToken, token);
-        linked.Token.ThrowIfCancellationRequested();
-        return await operation(linked.Token).ConfigureAwait(false);
+        using var diagnostic = diagnostics?.Begin(kind, accountReference);
+        try
+        {
+            linked.Token.ThrowIfCancellationRequested();
+            var result = await operation(linked.Token).ConfigureAwait(false);
+            diagnostic?.SetOutcome(result.Status == ProviderSessionStatus.ReauthenticationRequired ? DiagnosticOutcome.Reauthentication :
+                result.Status == ProviderSessionStatus.RecoveryRequired ? DiagnosticOutcome.RecoveryRequired :
+                result.Failure is not null ? DiagnosticOutcome.Failed : result.FromCache ? DiagnosticOutcome.StaleFallback : DiagnosticOutcome.Completed);
+            return result;
+        }
+        catch (OperationCanceledException)
+        {
+            diagnostic?.SetOutcome(lifetimeToken.IsCancellationRequested ? DiagnosticOutcome.ExitCancelled : DiagnosticOutcome.Cancelled);
+            throw;
+        }
+        catch (Exception exception)
+        {
+            diagnostic?.SetOutcome(DiagnosticOutcome.Failed);
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, exception);
+            throw;
+        }
     }
 
     public Task StopAsync()

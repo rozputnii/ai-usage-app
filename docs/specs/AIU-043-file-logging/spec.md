@@ -1,10 +1,10 @@
 ---
 id: AIU-043
 type: feature
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: The owner requested task preparation on 2026-10-03, including broad file logging, current provider responses, fatal flush and tiered retention. This draft records that intent and proposed technical safeguards; it does not claim design approval or implementation selection.
+approval_basis: Owner request on 2026-10-03 explicitly selected AIU-043 implementation and a concise useful-logging rule for AI agents. This supersedes the earlier preparation-only scope; no live-provider access or independent-review waiver was granted.
 ---
 
 # Structured file logging, provider-response evidence and crash diagnostics
@@ -19,8 +19,7 @@ deserialization and semantics without inferring a contract from normalized model
 
 Logging must be useful in the owner's ordinary unpackaged and packaged Windows
 use, including Release without a debugger. It must remain bounded, local and
-independent of UI responsiveness. This task defines implementation work; this
-registration changes documentation only.
+independent of UI responsiveness. Implementation is selected by the owner request recorded above.
 
 ## Scope and relationship to current contracts
 
@@ -317,7 +316,7 @@ No provider inference requests, new permissions, automatic sign-in, CLI credenti
 import, generic profiler, distributed tracing backend, automatic memory dumps,
 remote telemetry, public fixture upload or permanent raw-response archive. No
 screen-reader/contrast/extreme-DPI matrix or host accessibility/display changes.
-No implementation plan or product code is selected by this draft.
+Implementation progress and remaining gates are recorded in tasks.md and verification.md.
 
 See [design](design.md) for alternatives, source references and proposed defaults,
 and [verification](verification.md) for actual preparation evidence.

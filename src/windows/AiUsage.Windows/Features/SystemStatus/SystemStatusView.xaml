@@ -107,6 +107,7 @@
         <controls:WrapPanel HorizontalSpacing="8" VerticalSpacing="6">
           <Button x:Uid="Status_PreviewDiagnostics" controls:CapabilityGate.Key="PreviewDiagnostics" AutomationProperties.AutomationId="PreviewDiagnostics" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleDiagnosticsCommand}" />
           <Button x:Uid="Status_PreviewLog" controls:CapabilityGate.Key="PreviewLogs" AutomationProperties.AutomationId="PreviewLog" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.ToggleLogCommand}" />
+          <Button Content="Open logs" AutomationProperties.AutomationId="OpenLogs" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.OpenLogsCommand}" Visibility="{x:Bind controls:Bind.Visible(ViewModel.CanOpenLogs)}" />
           <Button x:Uid="Status_OpenData" AutomationProperties.AutomationId="StatusOpenData" Style="{StaticResource SecondaryButton}" Command="{x:Bind ViewModel.OpenDataPrivacyCommand}" />
           <TextBlock x:Uid="Status_PreviewNote" Style="{StaticResource CaptionText}" VerticalAlignment="Center" />
         </controls:WrapPanel>

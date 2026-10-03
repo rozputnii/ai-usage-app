@@ -28,7 +28,7 @@ internal static class CopilotConsole
         }
         Console.WriteLine("Experimental OMP-compatible Copilot connection using OpenCode's registration. Provider approval is not established.");
         Console.WriteLine("Choose connect to authorize in your browser. State is encrypted separately from the Windows app; no CLI login is read.");
-        using var services = new ServiceCollection().AddCopilotProductSession(Path.Combine(
+        using var services = ConsoleDiagnostics.Services().AddCopilotProductSession(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AiUsage", "ProviderConsole")).BuildServiceProvider();
         var session = services.GetRequiredService<CopilotSession>();
         Show(await session.ReadCachedStateAsync(token));

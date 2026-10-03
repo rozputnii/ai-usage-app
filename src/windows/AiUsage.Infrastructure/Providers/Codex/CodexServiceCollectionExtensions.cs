@@ -30,7 +30,7 @@ public static class CodexServiceCollectionExtensions
         services.AddCodexIntegration();
         services.TryAddSingleton(new CodexGrantStore(ownedStateDirectory));
         services.TryAddSingleton(new CodexQuotaCache(ownedStateDirectory));
-        services.TryAddSingleton(p => new CodexSession(p.GetRequiredService<CodexAuthClient>(), p.GetRequiredService<CodexQuotaClient>(), p.GetRequiredService<CodexGrantStore>(), p.GetRequiredService<CodexQuotaCache>(), p.GetRequiredService<CodexHistoryClient>()));
+        services.TryAddSingleton(p => new CodexSession(p.GetRequiredService<CodexAuthClient>(), p.GetRequiredService<CodexQuotaClient>(), p.GetRequiredService<CodexGrantStore>(), p.GetRequiredService<CodexQuotaCache>(), p.GetRequiredService<CodexHistoryClient>(), p.GetService<AiUsage.Core.Diagnostics.IDiagnosticSink>()));
         services.TryAddSingleton(services => new DashboardWorkflow(services.GetRequiredService<CodexSession>()));
         return services;
     }

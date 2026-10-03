@@ -442,7 +442,14 @@ Persist normalized samples only, enabled by default. Disabling collection stops 
 Keep raw normalized observations for approximately 90 days, then hourly/daily rollups for approximately one year, configurable. Deduplicate unchanged values while preserving freshness/coverage. Do not sum percentages across resets.
 
 ### D-137 - Diagnostic retention
-Keep sanitized failure/unknown-schema diagnostics only, for seven days. Blacklist-only redaction must not leak secrets in previously unknown fields.
+Owner amendment (2026-10-03, AIU-043 implementation selection): retain bounded local
+structured events and sanitized evidence for every executed provider response. Maximum
+ages are 72 hours for opt-in traces, 168 hours for application/response evidence, and
+one calendar month for critical incidents. Size budgets may evict earlier. Unknown
+scalar values and unsafe property names are withheld by endpoint policy; blacklist-only
+redaction is insufficient. Safe exception type/stack/inner-chain projection is permitted,
+but arbitrary messages, private paths, credentials and raw payload arguments are not.
+See [AIU-043](../specs/AIU-043-file-logging/spec.md) and its verification for delivery gates.
 
 ### D-138 - Telemetry
 No cloud or automatic crash telemetry, and no automatic memory dumps. Diagnostic export is manual and sanitized; exception details are allowlisted.

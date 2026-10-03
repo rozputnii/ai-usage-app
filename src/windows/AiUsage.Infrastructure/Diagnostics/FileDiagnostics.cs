@@ -18,7 +18,9 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     private readonly DiagnosticOptions options;
     private readonly TimeProvider clock;
     private readonly object gate = new();
-    private readonly Queue<Pending> pending = new();
+    private readonly LinkedList<Pending> pending = new();
+    private readonly Dictionary<DiagnosticEvent, (DateTimeOffset First, DateTimeOffset Last, long Count)> suppressed = [];
+    private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Exception, object> failures = new();
     private readonly SemaphoreSlim wake = new(0, 1);
     private readonly Task worker;
     private readonly ConcurrentQueue<string> breadcrumbs = new();
@@ -55,7 +57,21 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     public string DirectoryPath { get; }
     public long LostRecords => Interlocked.Read(ref lost);
     internal bool CaptureBodies => options.CaptureBodies;
-    public DiagnosticScope Begin(DiagnosticOperation operation) => new(this, operation);
+    public IDiagnosticOperation Begin(DiagnosticOperation operation, Guid? accountReference = null) => new DiagnosticScope(this, operation, accountReference);
+    public void Signal(DiagnosticEvent eventCode, DiagnosticSeverity severity = DiagnosticSeverity.Information)
+    {
+        if (eventCode is DiagnosticEvent.BindingFailure or DiagnosticEvent.DispatchRejected)
+        {
+            lock (gate)
+            {
+                var now = clock.GetUtcNow();
+                if (suppressed.TryGetValue(eventCode, out var previous))
+                { suppressed[eventCode] = (previous.First, now, previous.Count + 1); return; }
+                suppressed[eventCode] = (now, now, 0);
+            }
+        }
+        Event(eventCode, severity);
+    }
 
     public void Record(DiagnosticEvent eventCode, DiagnosticCategory category) => Record(eventCode, category,
         eventCode == DiagnosticEvent.BudgetStoreRecovered ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error);
@@ -68,7 +84,20 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
 
     public void Failure(DiagnosticEvent eventCode, Exception exception)
     {
-        try { Event(eventCode, exception is OperationCanceledException ? DiagnosticSeverity.Information : DiagnosticSeverity.Error, exception: SafeException.Project(exception)); }
+        try
+        {
+            if (!failures.TryAdd(exception, new object())) return;
+            var kind = exception switch
+            {
+                Providers.ProviderException provider => provider.Kind,
+                Providers.Codex.CodexException codex => codex.Kind,
+                _ => (AiUsage.Core.Usage.ProviderFailureKind?)null
+            };
+            var severity = exception is OperationCanceledException ? DiagnosticSeverity.Information :
+                kind is AiUsage.Core.Usage.ProviderFailureKind.AuthenticationRequired or AiUsage.Core.Usage.ProviderFailureKind.RateLimited or
+                    AiUsage.Core.Usage.ProviderFailureKind.Timeout or AiUsage.Core.Usage.ProviderFailureKind.NetworkFailure ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
+            Event(eventCode, severity, exception: SafeException.Project(exception), context: new { incidentId = Guid.NewGuid(), failureCategory = kind?.ToString() });
+        }
         catch (Exception) { Interlocked.Increment(ref lost); }
     }
 
@@ -93,7 +122,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     {
         var operation = Operation.Value;
         return new(1, clock.GetUtcNow(), severity.ToString(), id.ToString(), "AiUsage", Environment.ProcessId, session,
-            Interlocked.Increment(ref sequence), operation?.Id, operation?.Parent, operation?.Operation, outcome, duration, exception, Context: context);
+            Interlocked.Increment(ref sequence), operation?.Id, operation?.Parent, operation?.Operation, outcome, duration, exception, Context: context, AccountReference: operation?.AccountReference);
     }
 
     public void Fatal(DiagnosticEvent id, Exception? error, bool terminating)
@@ -136,12 +165,16 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             if (item.Bytes.Length > options.QueueBytes) { Interlocked.Increment(ref lost); return false; }
             while (pending.Count >= options.QueueEntries || queuedBytes + item.Bytes.Length > options.QueueBytes)
             {
-                if (item.Severity < DiagnosticSeverity.Error) { Interlocked.Increment(ref lost); return false; }
-                var dropped = pending.Dequeue();
+                var candidate = pending.First;
+                while (candidate is not null && candidate.Value.Kind != "trace") candidate = candidate.Next;
+                if (candidate is null && item.Severity < DiagnosticSeverity.Error) { Interlocked.Increment(ref lost); return false; }
+                candidate ??= pending.First!;
+                var dropped = candidate.Value;
+                pending.Remove(candidate);
                 queuedBytes -= dropped.Bytes.Length;
                 Interlocked.Increment(ref lost);
             }
-            pending.Enqueue(item);
+            pending.AddLast(item);
             queuedBytes += item.Bytes.Length;
         }
         Signal();
@@ -166,10 +199,15 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         do
         {
             await wake.WaitAsync(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+            FlushSuppressed();
             while (true)
             {
                 Pending? item;
-                lock (gate) { item = pending.Count == 0 ? null : pending.Dequeue(); if (item is not null) queuedBytes -= item.Bytes.Length; }
+                lock (gate)
+                {
+                    item = pending.First?.Value;
+                    if (item is not null) { pending.RemoveFirst(); queuedBytes -= item.Bytes.Length; }
+                }
                 if (item is null) break;
                 try { Write(item); }
                 catch (Exception) { Interlocked.Increment(ref lost); CloseWriters(); }
@@ -202,6 +240,20 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         {
             try { DiagnosticFiles.Check(marker); File.Delete(marker); }
             catch (Exception) { Interlocked.Increment(ref lost); }
+        }
+    }
+
+    private void FlushSuppressed(bool force = false)
+    {
+        lock (gate)
+        {
+            foreach (var (id, summary) in suppressed.ToArray())
+            {
+                if (!force && stopped == 0 && clock.GetUtcNow() - summary.First < TimeSpan.FromSeconds(10)) continue;
+                suppressed.Remove(id);
+                if (summary.Count > 0) Event(id, DiagnosticSeverity.Warning,
+                    context: new { suppressedCount = summary.Count, firstAt = summary.First, lastAt = summary.Last });
+            }
         }
     }
 
@@ -248,7 +300,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             using (var file = new FileStream(stage, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             { file.Write(item.Bytes); file.Flush(); }
             File.Move(stage, path);
-            var committed = CreateRecord(DiagnosticEvent.HttpCompleted, DiagnosticSeverity.Information,
+            var committed = CreateRecord(DiagnosticEvent.CapturePersisted, DiagnosticSeverity.Information,
                 context: new { captureId = item.CaptureId, persisted = true });
             Write(new("application", committed.Timestamp, JsonSerializer.SerializeToUtf8Bytes(committed, JsonOptions), DiagnosticSeverity.Information));
             return;
@@ -322,6 +374,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     public void Dispose()
     {
         if (Volatile.Read(ref stopped) != 0) return;
+        FlushSuppressed(force: true);
         Event(DiagnosticEvent.SessionExited, DiagnosticSeverity.Information);
         Interlocked.Exchange(ref stopped, 1);
         Signal();

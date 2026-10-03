@@ -73,7 +73,7 @@ internal sealed class LiveAutoRefresh : IDisposable
         }
         catch (Exception error)
         {
-            diagnostics?.Record(DiagnosticEvent.OperationFailure, DiagnosticProjection.Category(error));
+            diagnostics?.Failure(DiagnosticEvent.BackgroundFailure, error);
         }
     }
 

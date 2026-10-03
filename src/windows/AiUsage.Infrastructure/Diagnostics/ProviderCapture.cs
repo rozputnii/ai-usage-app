@@ -55,6 +55,9 @@ internal sealed class ProviderCapture
                 retryAfterSeconds = retryAfter?.TotalSeconds, policyId = policy.Id, completeness = state,
                 body = sanitized?.Body, redactions = sanitized?.Redactions ?? [], duplicateProperties = sanitized?.DuplicateProperties ?? false
             };
+            log.Event(DiagnosticEvent.HttpCompleted, response is not null && !response.IsSuccessStatusCode ? DiagnosticSeverity.Warning : DiagnosticSeverity.Information,
+                outcome: state, duration: Stopwatch.GetElapsedTime(tick).TotalMilliseconds,
+                context: new { captureId = id, provider = policy.Provider, route = policy.Route, method, status = envelope.status, persisted = false });
             if (!log.Capture(JsonSerializer.SerializeToUtf8Bytes(envelope, FileDiagnostics.JsonOptions), started, id))
                 log.Event(DiagnosticEvent.CaptureLost, DiagnosticSeverity.Warning, context: new { captureId = id, reason = "queue-or-size-limit" });
         }

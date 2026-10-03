@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
 
 namespace AiUsage.Infrastructure.Providers.Antigravity;
@@ -9,13 +10,15 @@ namespace AiUsage.Infrastructure.Providers.Antigravity;
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed class AntigravitySession : IProviderSession, IDisposable
 {
+    private readonly IDiagnosticSink? diagnostics;
     private readonly AntigravityAuthClient auth;
     private readonly AntigravityQuotaClient quota;
     private readonly AntigravityStateStore store;
     private readonly TimeProvider clock;
 
-    internal AntigravitySession(AntigravityAuthClient auth, AntigravityQuotaClient quota, AntigravityStateStore store, TimeProvider clock)
+    internal AntigravitySession(AntigravityAuthClient auth, AntigravityQuotaClient quota, AntigravityStateStore store, TimeProvider clock, IDiagnosticSink? diagnostics = null)
     {
+        this.diagnostics = diagnostics;
         this.auth = auth;
         this.quota = quota;
         this.store = store;
@@ -112,6 +115,7 @@ public sealed class AntigravitySession : IProviderSession, IDisposable
         }
         catch (ProviderException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             credentials = null;
             stored = await lease.SaveAsync(stored! with { NeedsReauthentication = true }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
             return Cached(error.Kind);
@@ -151,6 +155,7 @@ public sealed class AntigravitySession : IProviderSession, IDisposable
         }
         catch (ProviderException error)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             if (error.Kind is ProviderFailureKind.StorageUnavailable or ProviderFailureKind.RecoveryRequired or ProviderFailureKind.GrantNotRemoved)
             {
                 credentials = null;

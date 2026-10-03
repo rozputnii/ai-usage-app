@@ -14,4 +14,6 @@ public interface IDiagnosticsService
     Task<string> PreviewDiagnosticsAsync(CancellationToken cancellationToken);
 
     Task<string> PreviewLogsAsync(CancellationToken cancellationToken);
+    bool CanOpenLogs => false;
+    Task OpenLogsAsync() => Task.CompletedTask;
 }

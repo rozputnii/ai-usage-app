@@ -36,7 +36,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         Providers = providers ?? ProviderCatalog.Default;
         this.diagnostics = diagnostics;
         this.recorder = recorder;
-        entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value));
+        entries = sessions.ToDictionary(pair => pair.Key, pair => new Entry(pair.Value, diagnostics));
         current = new(0, UiMode.Live, DateTimeOffset.UtcNow, [], Capabilities(),
             new([], [], [], false, false, false, [Preferences.DefaultGlobalRule]),
             new(typeof(LiveUsageSource).Assembly.GetName().Version?.ToString() ?? "", "", HealthState.Idle,
@@ -54,7 +54,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         Enum.GetValues<UiCommandKind>().Select(kind => new CapabilityItem(kind.ToString(), null,
             kind is UiCommandKind.Connect or UiCommandKind.RefreshAccount or UiCommandKind.RefreshAll or
                 UiCommandKind.Disconnect or UiCommandKind.CancelOperation or UiCommandKind.SetPreference or
-                UiCommandKind.ResetSettings or UiCommandKind.Rename or UiCommandKind.Reorder or UiCommandKind.SetVisibility or UiCommandKind.SetExpansion
+                UiCommandKind.ResetSettings or UiCommandKind.Rename or UiCommandKind.Reorder or UiCommandKind.SetVisibility or UiCommandKind.SetExpansion or UiCommandKind.PreviewLogs
                 ? Availability.Available : Availability.Unavailable,
             null, CapabilityOrigin.Existing)).Append(new(CapabilityKeys.ViewHistory, null, Availability.Available, null, CapabilityOrigin.Existing)).ToArray();
 
@@ -190,9 +190,11 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
             started = Replace(account with { Operation = operation });
         }
         started.Deliver();
+        var workflowCompleted = false;
         try
         {
             var state = await run(entry.Workflow, cancellation.Token).ConfigureAwait(false);
+            workflowCompleted = true;
             if (recorder is not null && operation != AccountOperation.Disconnecting && state.Status == ProviderSessionStatus.QuotaAvailable &&
                 !state.FromCache && state.Failure is null && state.Quota is not null)
             {
@@ -200,7 +202,7 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
                 catch (OperationCanceledException) { throw; }
                 catch (Exception error)
                 {
-                    diagnostics?.Record(DiagnosticEvent.OperationFailure, DiagnosticProjection.Category(error));
+                    diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
                     state = state with { Failure = ProviderFailureKind.StorageUnavailable };
                 }
             }
@@ -217,7 +219,8 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
         }
         catch (Exception error)
         {
-            diagnostics?.Record(DiagnosticEvent.OperationFailure, DiagnosticProjection.Category(error));
+            // Workflow records its original exception before propagation. Only post-workflow failures belong here.
+            if (workflowCompleted) diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             Update(id, entry.Session.State with { Failure = ProviderFailureKind.InternalError });
             return UiCommandResult.Failed(LiveMapping.Failure(ProviderFailureKind.InternalError));
         }
@@ -319,10 +322,10 @@ internal sealed partial class LiveUsageSource : IUsageSource, IDisposable
     {
         foreach (var entry in entries.Values) entry.Workflow.Dispose();
     }
-    private sealed class Entry(IProviderSession session)
+    private sealed class Entry(IProviderSession session, IDiagnosticSink? diagnostics)
     {
         public IProviderSession Session { get; } = session;
-        public DashboardWorkflow Workflow { get; } = new(session);
+        public DashboardWorkflow Workflow { get; } = new(session, diagnostics);
         public CancellationTokenSource? Cancellation { get; set; }
         public Task<UiCommandResult>? Pending { get; set; }
         public Task<UiCommandResult>? Background { get; set; }

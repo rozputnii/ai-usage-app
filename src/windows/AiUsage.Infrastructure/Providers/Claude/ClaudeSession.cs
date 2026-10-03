@@ -1,3 +1,4 @@
+using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Providers.Claude;
 using AiUsage.Core.Usage;
 
@@ -7,13 +8,15 @@ namespace AiUsage.Infrastructure.Providers.Claude;
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed class ClaudeSession : IProviderSession, IDisposable
 {
+    private readonly IDiagnosticSink? diagnostics;
     private readonly ClaudeAuthClient auth;
     private readonly ClaudeQuotaClient quota;
     private readonly ClaudeStateStore store;
     private readonly TimeProvider clock;
 
-    internal ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota, ClaudeStateStore store, TimeProvider clock)
+    internal ClaudeSession(ClaudeAuthClient auth, ClaudeQuotaClient quota, ClaudeStateStore store, TimeProvider clock, IDiagnosticSink? diagnostics = null)
     {
+        this.diagnostics = diagnostics;
         this.auth = auth;
         this.quota = quota;
         this.store = store;
@@ -121,6 +124,7 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
         }
         catch (ProviderException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             credentials = null;
             stored = await lease.SaveAsync(stored! with { NeedsReauthentication = true }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
             return Cached(ProviderFailureKind.AuthenticationRequired);
@@ -157,6 +161,7 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
         }
         catch (ProviderException error)
         {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             var failure = error.Kind;
             if (error.Kind is ProviderFailureKind.StorageUnavailable or ProviderFailureKind.RecoveryRequired or ProviderFailureKind.GrantNotRemoved)
             {

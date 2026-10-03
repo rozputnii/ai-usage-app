@@ -11,7 +11,7 @@ internal static class HistoryConsole
     internal static async Task<int> RunAsync(string provider, string ownedDirectory, CancellationToken token)
     {
         if (provider is not ("codex" or "copilot") || !Directory.Exists(ownedDirectory)) return 2;
-        var registration = new ServiceCollection();
+        var registration = ConsoleDiagnostics.Services();
         if (provider == "codex") registration.AddCodexProductSession(ownedDirectory);
         else registration.AddCopilotProductSession(ownedDirectory);
         using var services = registration.BuildServiceProvider();

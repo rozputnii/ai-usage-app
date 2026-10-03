@@ -5,14 +5,21 @@ using Microsoft.Windows.ApplicationModel.Resources;
 
 namespace AiUsage.Platform;
 
-internal sealed class UiDispatcher(DispatcherQueue queue) : IUiDispatcher
+internal sealed class UiDispatcher(DispatcherQueue queue, AiUsage.Composition.ApplicationDiagnostics diagnostics) : IUiDispatcher
 {
     public bool HasThreadAccess => queue.HasThreadAccess;
 
     public void Post(Action action)
     {
-        if (!queue.TryEnqueue(() => action()))
+        if (!queue.TryEnqueue(() =>
+        {
+            try { action(); }
+            catch (Exception exception) { diagnostics.CommandFailure(exception); throw; }
+        }))
+        {
+            diagnostics.DispatchRejected();
             throw new InvalidOperationException("The UI dispatcher is shutting down.");
+        }
     }
 }
 
