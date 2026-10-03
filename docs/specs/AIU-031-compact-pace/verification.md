@@ -56,5 +56,25 @@ question, so no additional runtime logging was needed for this presentation-only
   exhaustion, reset text, attention status, model-group exclusion and hidden-group behavior
   are checked by `LiveAdapterTests.ClaudeOverviewIncludesSharedWeeklyLimitWithoutPromotingModelLimits`.
 - PASS: Presentation suite 264/264; Infrastructure suite 590/590, Release .NET 10.0.401.
-- Pending: Windows package/build and live rendered check after the owner exits the running
-  development instance; restart using the existing isolated session directory.
+- PASS: independent read-only review of `bb60a94`, no actionable findings; no independent
+  live execution was claimed.
+- PASS: unpackaged Windows Release build, no warnings/errors. Unsigned MSIX `2026.10.355.0`
+  built and manifest identity/version checked; SHA-256
+  `E85FCC7BCBCC9322A1B9D36542AB2FDF67CC23F16A5AF8C8A72C452D8251DC2A`.
+  Toolchain warning: unavailable `mspdbcmf.exe` prevents a symbols package, not the MSIX.
+- FAIL then PASS: the first isolated Demo `ShellLaunchesNavigatesAndExits(navigation)`
+  attempt could not find `RowOpen` immediately after returning from Settings. One rerun
+  of the same build passed Settings, account, history, return navigation and confirmed exit.
+  No product or harness changes were made for the retry; the first failure is retained in
+  ignored local evidence, rather than treated as a passing run.
+- PASS: actual corrected `bb60a94` Windows instance, 2026-10-03 17:03 Europe/Lisbon,
+  resumed the same owner-operated app state after the old process exited. Claude was fresh,
+  with separate `5h` and `7d` columns, `7d` at **0 % left / Exhausted**, a critical bar,
+  attention mark and "Back in 2 d 18 h". Settings and return to Overview also worked.
+  Codex and Copilot remained connected. Local evidence is retained under
+  `.ai-usage-local/AIU-043/claude-overview-live.{txt,jpg}`; no session files are committed.
+- NOT_RUN: package installation/update, unrelated UI scenarios, and inference attempts.
+
+Next action: none for this correction. The corrected isolated instance remains open for
+the owner. The five-hour reading is preserved as reported, not interpreted as permission
+to use Claude while the shared weekly limit is exhausted.
