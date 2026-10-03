@@ -91,7 +91,7 @@ public sealed record WindowItem(
     DateTimeOffset? ResetsAt,
     bool AlertsMuted)
 {
-    /// <summary>Extension (spec §12): headline window for Overview; absent means the first window of the first visible group.</summary>
+    /// <summary>Headline window; Overview includes its group. Absent means the first visible group.</summary>
     public bool Primary { get; init; }
 }
 

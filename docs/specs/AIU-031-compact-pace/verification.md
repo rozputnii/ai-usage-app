@@ -36,3 +36,25 @@ Demo time is Monday 15 Sept 2026 12:00 UTC with weekly windows resetting Thursda
 ## Owner closure - 2026-09-29
 
 Owner decision, 2026-09-29: closed. Pace colors on live readings are not verified because the AIU-034 work-day budget replaces them. The remaining NOT_RUN rows are deferred to the AIU-034 implementation items. The NOT_RUN rows above stay NOT_RUN; they are not converted to PASS.
+
+## Claude shared weekly limit correction - 2026-10-03
+
+Base `d0e2f81`; changes in the commit containing this record. The owner reported that a
+fully consumed personal Claude weekly limit appeared as a green "100 % left" session bar.
+Existing app-owned AIU-043 sanitized captures and the running account detail confirmed
+`five_hour.utilization = 0`, no session reset, and `seven_day.utilization = 100` with a
+weekly reset. Parsing preserved both readings; Overview selected only the first group.
+
+The live adapter now marks both shared Claude groups as headline windows. Overview renders
+all marked groups and retains the original group/window identities for preferences and
+detail. Model-specific limits stay separate. No quota values, provider requests, credentials
+or durable formats changed. Existing sanitized response captures answered the debugging
+question, so no additional runtime logging was needed for this presentation-only correction.
+
+- PASS: synthetic regression first failed for both exhausted and partially used weekly
+  limits (only `5h` rendered). After the fix, both `5h` and `7d` render; weekly remainder,
+  exhaustion, reset text, attention status, model-group exclusion and hidden-group behavior
+  are checked by `LiveAdapterTests.ClaudeOverviewIncludesSharedWeeklyLimitWithoutPromotingModelLimits`.
+- PASS: Presentation suite 264/264; Infrastructure suite 590/590, Release .NET 10.0.401.
+- Pending: Windows package/build and live rendered check after the owner exits the running
+  development instance; restart using the existing isolated session directory.

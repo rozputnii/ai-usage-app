@@ -30,6 +30,12 @@ red once today's share is used.
   "Sign-in expired" and an inline Sign in link.
 - Other quota groups, contexts, extensions and the sparkline leave the usage view; they remain
   in account detail.
+- Owner-reported correction (2026-10-03): shared Claude session and weekly limits must both
+  appear in Overview even though the provider adapter preserves them as separate groups.
+  Groups containing explicitly marked headline windows are shown together; without those
+  markers the first visible group remains the default. Hidden groups stay hidden and
+  model-specific weekly groups remain in account detail. Keep reported measurements intact;
+  an unused session window does not imply that an exhausted weekly limit permits new use.
 - The default window is 760 × 600 effective pixels.
 
 ## Pace colors

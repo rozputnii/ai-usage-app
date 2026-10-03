@@ -38,7 +38,12 @@ internal static class LiveMapping
                 window.RemainingPercent is not null || window.UsedPercent is not null ? ValueState.Known : ValueState.Unknown,
                 window.Amount is { } amount ? new NativeAmount(amount.Remaining?.ToString(CultureInfo.InvariantCulture),
                     amount.Used?.ToString(CultureInfo.InvariantCulture), amount.Limit?.ToString(CultureInfo.InvariantCulture), amount.Unit) : null,
-                window.Duration?.TotalSeconds, window.ResetsAt, false)).ToArray())
+                window.Duration?.TotalSeconds, window.ResetsAt, false)
+                {
+                    // Claude reports the shared session and weekly windows as separate groups.
+                    // Both belong in the headline; model-specific weekly groups stay in detail.
+                    Primary = provider == "claude" && group.Id is "claude:5h" or "claude:7d"
+                }).ToArray())
             { Allowed = group.Allowed, LimitReached = group.LimitReached }).ToArray() ?? [];
         return new(provider, provider, (providers ?? ProviderCatalog.Default).Get(provider).Name, quota?.PlanType, connection,
             AccountOperation.Idle,

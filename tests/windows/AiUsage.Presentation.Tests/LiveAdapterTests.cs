@@ -5,12 +5,51 @@ using AiUsage.Core.Usage;
 using AiUsage.Features.Presentation;
 using AiUsage.Features.Connection;
 using AiUsage.Features.Settings;
+using AiUsage.Features.Overview;
+using AiUsage.Features.Accounts;
 using Xunit;
 
 namespace AiUsage.Presentation.Tests;
 
 public sealed class LiveAdapterTests
 {
+    [Theory]
+    [InlineData(100d, 0d)]
+    [InlineData(40d, 60d)]
+    public void ClaudeOverviewIncludesSharedWeeklyLimitWithoutPromotingModelLimits(double used, double remaining)
+    {
+        using var host = new TestHost();
+        var reset = host.Clock.UtcNow.AddDays(3);
+        // Synthetic equivalent of the owner-observed response: an unused session and a consumed weekly limit.
+        var quota = new QuotaSnapshot(host.Clock.UtcNow, null,
+            [new("claude:5h", "Claude 5 Hour", null, null, null, null,
+                [new("5h", 0, 100, TimeSpan.FromHours(5), null)]),
+             new("claude:7d", "Claude 7 Day", null, null, null, null,
+                [new("7d", used, remaining, TimeSpan.FromDays(7), reset)]),
+             new("claude:7d:sonnet", "Sonnet", "sonnet", null, null, null,
+                [new("7d", 100, 0, TimeSpan.FromDays(7), reset)])], null, null, null, null);
+        var account = LiveMapping.Map("claude", new(ProviderSessionStatus.QuotaAvailable, quota), true);
+        var snapshot = host.Usage.Current with { Accounts = [account] };
+        var row = new AccountRowViewModel(account.Id, host.Context, host.Overview().AddAccount, (_, _) => { });
+        row.Update(account, snapshot, 1, 1, false, false);
+
+        Assert.Equal(["5h", "7d"], row.Windows.Select(w => w.Label));
+        Assert.Contains($"{remaining:0} % left", row.Windows[1].HintText);
+        Assert.Equal(3, account.Contexts.Single().Groups.Count); // Model detail stays intact.
+        if (remaining == 0)
+        {
+            Assert.Equal(ValueTone.Critical, row.Windows[1].PaceTone);
+            Assert.StartsWith("Back in", row.Windows[1].BackInText);
+            Assert.Equal(RowStatus.Attention, row.Status);
+        }
+
+        // A hidden weekly group stays hidden even when it is a headline limit.
+        var weeklyId = account.Contexts.Single().Groups[1].Id;
+        var preferences = snapshot.Preferences with { HiddenTargets = [weeklyId] };
+        row.Update(account, snapshot with { Preferences = preferences }, 1, 1, false, false);
+        Assert.Equal("5h", Assert.Single(row.Windows).Label);
+    }
+
     [Theory]
     [InlineData(ProviderFailureKind.ProviderUnavailable)]
     [InlineData(ProviderFailureKind.NetworkFailure)]

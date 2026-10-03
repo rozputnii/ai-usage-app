@@ -11,7 +11,7 @@ namespace AiUsage.Features.Overview;
 public enum RowStatus { None, Attention, Stale, Failure }
 
 /// <summary>
-/// One compact Overview row (D-181): label, one status mark, one bar per window of the primary group and the sign-out
+/// One compact Overview row (D-181): label, one status mark, one bar per window of the primary groups and the sign-out
 /// action. Numbers, resets and pace advice live in each bar's hover text and in the accessible name; other groups,
 /// plan, history and freshness stay in account detail.
 /// </summary>
@@ -122,12 +122,16 @@ internal sealed partial class AccountRowViewModel : ObservableObject
         RetryCommand.NotifyCanExecuteChanged();
 
         var selectedContext = QuotaRules.SelectedContext(item, preferences);
-        var primaryGroup = QuotaRules.VisibleGroups(selectedContext, preferences).FirstOrDefault();
-        var primaryWindows = primaryGroup?.Windows ?? [];
-        CollectionSync.Sync(Windows, primaryWindows, w => w.Id, vm => vm.Id, w => new QuotaWindowViewModel(w.Id), (vm, w) =>
+        var groups = QuotaRules.VisibleGroups(selectedContext, preferences).ToArray();
+        var primaryGroups = groups.Where(group => group.Windows.Any(window => window.Primary)).ToArray();
+        if (primaryGroups.Length == 0)
+            primaryGroups = groups.Take(1).ToArray();
+        var primaryWindows = primaryGroups.SelectMany(group => group.Windows.Select(window => (Group: group, Window: window))).ToArray();
+        CollectionSync.Sync(Windows, primaryWindows, entry => entry.Window.Id, vm => vm.Id,
+            entry => new QuotaWindowViewModel(entry.Window.Id), (vm, entry) =>
         {
-            vm.Update(item, primaryGroup!, w, preferences, format);
-            vm.ApplyPace(w, item.Freshness, preferences, format);
+            vm.Update(item, entry.Group, entry.Window, preferences, format);
+            vm.ApplyPace(entry.Window, item.Freshness, preferences, format);
         });
         HasPrimary = Windows.Count > 0;
         NoPrimaryText = format.T(item.Connection == ConnectionState.NotConnected ? "Row_MonitoringStopped" : "Row_NoWindows");
