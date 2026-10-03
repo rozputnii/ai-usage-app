@@ -57,11 +57,13 @@ public sealed partial class ShellSmoke
                 return completed.Count >= 2;
             }, TimeSpan.FromMinutes(12)), "The installed app did not retry the offline synthetic account automatically.");
             Assert.True(completed.Max() - completed.Min() >= TimeSpan.FromMinutes(9));
+            Capture(window!, evidence, "automatic-offline-retry");
+            // The migrated cache has no period start, so the honest Not ready card
+            // keeps the observed amount without inventing a complete budget caption.
             Assert.Contains(window!.FindAllDescendants(), element =>
-                (element.Properties.Name.ValueOrDefault ?? "").Contains("25 of 100", StringComparison.Ordinal));
+                (element.Properties.Name.ValueOrDefault ?? "") == "25 used");
             Assert.Contains(window.FindAllDescendants(), element =>
                 (element.Properties.Name.ValueOrDefault ?? "").Contains("sync failed", StringComparison.OrdinalIgnoreCase));
-            Capture(window!, evidence, "automatic-offline-retry");
             File.WriteAllText(Path.Combine(evidence, "automatic-refresh.json"), JsonSerializer.Serialize(new
             { passed = true, packaged = true, syntheticOffline = true, attempts = completed.Count, elapsedSeconds = (completed.Max() - completed.Min()).TotalSeconds }));
             FocusForKeyboard(window!, window!, evidence, "automatic-exit");

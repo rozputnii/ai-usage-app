@@ -293,13 +293,22 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   interruption, process restart and retry, corrupt-preference restoration from the
   original checkpoint, newer-layout refusal and secret-free recovery-summary export.
   Original grant bytes still decrypt to the synthetic fixture; preferences are preserved.
-- Automatic offline retry is still running against the production timer, with a
-  synthetic Copilot grant and cached 25-of-100 reading. No clock acceleration, manual
-  refresh or product test switch is used. This run is not yet PASS.
+- Automatic offline retry occurred in the installed process at 20:41:05 and 20:51:04 UTC
+  (599.933s apart), using the production timer with a synthetic Copilot grant and cached
+  25-of-100 reading. No clock acceleration, manual refresh or product test switch was used.
+  The combined test FAIL was its subsequent caption assertion: the historical cache lacks
+  a period start, so the correct Not ready card displays "25 used", not "25 of 100".
+  The installed recovery screenshot confirms the retained amount and sync-failed mark.
+  Corrected the assertion and moved capture before it; the full repeat is still running.
 - Live Claude failure injection BLOCKED: automatic approval review rejected launching
   the verification app through a process-local proxy, stating only "blocked by policy".
   The proxy was never used by the app and was stopped; the live app was restored through
   ordinary launch. No alternative bypass was attempted. Offline synthetic behavior is
   separate evidence and cannot establish live Claude outage handling or token renewal.
+- The backlog additionally requires automatic refresh and reading-series persistence
+  for a real account in the installed package. This remains NOT_RUN. Prepared a separate
+  network-enabled guest configuration with the same package and no mapped personal data;
+  owner-led sign-in is required. The host permits only one Sandbox instance, so this
+  configuration must start after the offline retry check finishes.
 - Local ignored evidence: .ai-usage-local/AIU-039/final-acceptance/evidence-03/run.
   Earlier environment/harness failures are retained in evidence and evidence-02.

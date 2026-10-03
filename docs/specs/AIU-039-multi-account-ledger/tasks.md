@@ -123,9 +123,12 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 
 ## Handoff
 
-Exact next action: collect the running installed automatic offline retry result from
-.ai-usage-local/AIU-039/final-acceptance/evidence-03/run/automatic-ui.log, then record
-its actual verdict and reconcile final acceptance. Installed update and recovery passed
+Exact next action: collect the corrected installed automatic offline retry result from
+.ai-usage-local/AIU-039/final-acceptance/evidence-03/automatic-recheck.log, then stop
+that synthetic Sandbox and start the prepared live-acceptance.wsb configuration for
+owner-led sign-in and installed automatic refresh/reading-series evidence. The first
+retry timer ran correctly but its later caption assertion was wrong; the repeat is pending.
+Installed update and recovery passed
 with synthetic data in a network-disabled Sandbox. Live two-account admission, refresh,
 restart and selected sign-out/reconnect passed; live failure injection is BLOCKED by
 automatic approval review ("blocked by policy"), with no bypass attempted.
