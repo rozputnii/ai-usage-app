@@ -39,9 +39,8 @@ independent of UI responsiveness. Implementation is selected by the owner reques
   the current `--demo --ledger` early-return path also needs isolated coverage.
 - The requested capture and 3-day/month retention amend the intended scope of
   D-137 and the Diagnostics section of the Windows security/lifecycle document.
-  On implementation approval, update those canonical contracts together, including
-  the old exception-detail restriction. Until then, this is a proposed replacement,
-  not a claim that richer logging already exists. D-065, D-138's local/manual policy,
+  The selected implementation updates those canonical contracts together, including
+  the old exception-detail restriction. D-065, D-138's local/manual policy,
   the constitution's no-plaintext-secrets rule and normalized quota storage remain.
 - AIU-013 retains portable import, general diagnostic export/repair and product resets.
   AIU-040 still owns removal of old history requests. Log any existing request that
@@ -318,5 +317,5 @@ remote telemetry, public fixture upload or permanent raw-response archive. No
 screen-reader/contrast/extreme-DPI matrix or host accessibility/display changes.
 Implementation progress and remaining gates are recorded in tasks.md and verification.md.
 
-See [design](design.md) for alternatives, source references and proposed defaults,
-and [verification](verification.md) for actual preparation evidence.
+See [design](design.md) for alternatives, source references and defaults,
+and [verification](verification.md) for actual implementation evidence and remaining gates.

@@ -30,7 +30,9 @@ are omitted. Source locations are repository-relative when symbols provide them.
 Each `HttpCompleted` event names a capture ID and terminal status. A later
 `CapturePersisted` confirms that the matching response artifact was committed; the
 first event alone does not. Artifacts may subsequently expire. Metadata contains a
-fixed route template, never query values, credentials, request bodies or headers.
+fixed route template, never query values, credentials or request bodies. The only
+captured correlation header is `x-request-id` when it is exactly a GUID; arbitrary
+header values, cookies and redirect locations are omitted.
 The body is the bounded response seen before DTO projection, **after sanitization**.
 It is not a raw-response archive or a fixture to feed directly into the parser.
 

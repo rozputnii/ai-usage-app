@@ -1,7 +1,7 @@
 ---
 id: AIU-043
 type: design
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
 ---
@@ -146,12 +146,25 @@ prove crash survival. Use ordinary unpackaged Windows smoke; a VM is needed only
 for a specific isolation requirement, not all logging tests.
 
 Focused independent implementation review covers sensitive payload projection,
-exception disclosure and owned cleanup. It is not required to invent a product
-review verdict for this documentation draft. Codex subagents are disabled. Use an
+exception disclosure and owned cleanup. Codex subagents are disabled. Use an
 authorized available independent reviewer or record the required review as blocked;
 the primary's self-review is not independent review.
 
-No implementation tasks or live checks start from this document. After owner
-selection, approve the concrete design, reconcile D-137/security lifecycle and
-prepare the implementation plan against this specification. The first inventory
-must account for whichever AIU-039/040 changes have actually landed by then.
+The subsequent owner request selected implementation on 2026-10-03. The sequential
+plan is in tasks.md; D-137/security lifecycle now describe the selected pipeline.
+No live-provider authority or independent-review waiver follows from that selection.
+The current endpoint and boundary inventory is in coverage.md.
+
+Implementation ruling: an isolated ordinary Release probe on the pinned SDK showed
+that a raw DispatcherQueue callback bypasses both global hooks, while an async-void
+UI fault can invoke Application.UnhandledException and then continue. This matches
+the failure modes reported in [WinUI issue 10964](https://github.com/microsoft/microsoft-ui-xaml/issues/10964),
+but the local probe is the evidence for this build. Owned dispatch/converter/animation
+boundaries therefore force critical capture before rethrow. The global XAML handler
+explicitly leaves Handled false and calls Environment.Exit(1) after capture/drain so
+an unknown unsafe UI state cannot continue. This uses no FailFast, dump or WER changes.
+
+Performance ruling: scanning every artifact for every event made a 200-response burst
+take more than ten seconds to drain. Event files now reserve a full bounded roll on
+opening; response pruning uses directory metadata and touches exact paths again only
+when deleting. This retains size/age checks without repeated full-directory path walks.
