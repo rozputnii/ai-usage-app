@@ -9,5 +9,8 @@
     <ProjectReference Include="../../../src/windows/AiUsage.Infrastructure/AiUsage.Infrastructure.csproj" />
     <ProjectReference Include="../../../tools/AiUsage.DiagnosticsProbe/AiUsage.DiagnosticsProbe.csproj" ReferenceOutputAssembly="false" />
     <None Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Exercise actual provider parsers through the platform-neutral Ledger projection. -->
+    <Compile Include="../../../src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerProjection.cs" Link="Ledger/LiveLedgerProjection.cs" />
+    <Compile Include="../../../src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs" Link="Ledger/LedgerContract.cs" />
   </ItemGroup>
 </Project>

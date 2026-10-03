@@ -34,7 +34,17 @@ internal enum AccountHealth { Ok, SyncFailedFresh, SyncFailedStale, SignInExpire
 
 internal sealed record ProviderOption(ProviderKind Provider, bool Added, bool SigningIn);
 
-internal sealed record SignInStripModel(SignInPhase Phase, ProviderKind Provider, string? AccountName, int? LimitsFound);
+internal sealed record SignInStripModel(SignInPhase Phase, ProviderKind Provider, string? AccountName, int? LimitsFound)
+{
+    public Guid? AttemptId { get; init; }
+    public string? ReconnectAccountId { get; init; }
+    public string? UserCode { get; init; }
+    public bool AcceptsManualCode { get; init; }
+    public SignInFailure? Failure { get; init; }
+    public override string ToString() => "SignInStripModel (redacted)";
+}
+
+internal enum SignInFailure { Duplicate, WrongAccount, Storage, AccessDenied, Expired, Browser, Registration, Provider }
 
 internal enum SignInPhase { Waiting, Succeeded, Failed, Cancelled }
 
@@ -191,7 +201,10 @@ internal sealed record CapSettingModel(
     string? ProviderCurrency,
     TrackingModel? Tracking);
 
-internal sealed record SettingsSummaries(TimeSpan RefreshInterval, string UpdatesSummary, int FailedSyncs, IReadOnlyList<ProviderKind> FailedProviders);
+internal sealed record SettingsSummaries(TimeSpan RefreshInterval, string UpdatesSummary, int FailedSyncs, IReadOnlyList<ProviderKind> FailedProviders)
+{
+    public string? LocalStatus { get; init; }
+}
 
 internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop)
 {
@@ -221,6 +234,9 @@ internal interface ILedgerSource
     Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct);
     Task MoveCardAsync(string cardId, int offset, CancellationToken ct);
     Task SignInAsync(ProviderKind provider, CancellationToken ct);
+    Task ReconnectAsync(string accountId, CancellationToken ct);
+    Task RefreshAccountAsync(string accountId, CancellationToken ct);
+    bool TrySubmitSignInCode(Guid attemptId, string code);
     Task CancelSignInAsync(CancellationToken ct);
     Task SignOutAsync(string accountId, CancellationToken ct);
     Task<CommandOutcome> DeleteStoredDataAsync(CancellationToken ct);

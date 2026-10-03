@@ -119,8 +119,8 @@
       </StackPanel>
     </Grid>
 
-    <!-- Sign-in strip (34) under the title row. -->
-    <Grid x:Name="SignInStrip" Grid.Row="1" Height="34" Padding="16,0,16,0" ColumnSpacing="8" Background="{StaticResource LedgerCardBrush}"
+    <!-- One transient sign-in strip, including device instructions or a manual callback code. -->
+    <Grid x:Name="SignInStrip" Grid.Row="1" MinHeight="34" Padding="16,4,16,4" ColumnSpacing="8" Background="{StaticResource LedgerCardBrush}"
           BorderBrush="{StaticResource LedgerLineBrush}" BorderThickness="0,0,0,1" Visibility="{x:Bind Show(ViewModel.HasStrip), Mode=OneWay}">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" />
@@ -128,12 +128,22 @@
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
       <Ellipse Width="8" Height="8" Fill="{x:Bind lc:LedgerTheme.ToneMark(ViewModel.StripTone), Mode=OneWay}" VerticalAlignment="Center" />
-      <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.StripText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" VerticalAlignment="Center" />
-      <TextBlock Grid.Column="2" Text="{x:Bind StripSubText(ViewModel.StripSub, ViewModel.StripBusy), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
+      <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Spacing="2" VerticalAlignment="Center">
+        <TextBlock Text="{x:Bind ViewModel.StripText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
+        <TextBlock Text="{x:Bind StripSubText(ViewModel.StripSub, ViewModel.StripBusy), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+      </StackPanel>
       <Button Grid.Column="3" Content="{x:Bind ViewModel.StripAction, Mode=OneWay}" Command="{x:Bind ViewModel.StripActionCommand}"
               Style="{x:Bind StripActionStyle(ViewModel.StripActionIsPrimary), Mode=OneWay}" Visibility="{x:Bind ShowText(ViewModel.StripAction), Mode=OneWay}" />
-      <ProgressBar Grid.ColumnSpan="4" IsIndeterminate="True" VerticalAlignment="Bottom" Margin="-16,0,-16,-1" Height="2" MinHeight="2"
+      <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Spacing="4" Margin="0,6,0,2" Visibility="{x:Bind Show(ViewModel.StripAcceptsCode), Mode=OneWay}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBox Width="320" Text="{x:Bind ViewModel.SignInCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Paste the code from the browser" AutomationProperties.Name="Sign-in code" />
+          <Button Content="Submit code" Command="{x:Bind ViewModel.SubmitSignInCodeCommand}" />
+        </StackPanel>
+        <TextBlock Text="{x:Bind ViewModel.CodeError, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" />
+      </StackPanel>
+      <ProgressBar Grid.RowSpan="2" Grid.ColumnSpan="4" IsIndeterminate="True" VerticalAlignment="Bottom" Margin="-16,0,-16,-1" Height="2" MinHeight="2"
                    Foreground="{StaticResource LedgerInk2Brush}" Background="{StaticResource LedgerRailBrush}"
                    Visibility="{x:Bind ShowProgress(ViewModel.StripBusy), Mode=OneWay}" />
     </Grid>

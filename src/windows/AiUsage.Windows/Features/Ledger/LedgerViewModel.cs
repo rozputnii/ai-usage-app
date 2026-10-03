@@ -7,7 +7,7 @@ namespace AiUsage.Features.Ledger;
 
 internal sealed record ProviderItem(ProviderKind Provider, string Name, string Description, bool Added, bool SigningIn)
 {
-    public bool IsEnabled => !Added && !SigningIn;
+    public bool IsEnabled => !SigningIn;
     public string MenuRight => Added ? "added" : SigningIn ? "waiting…" : string.Empty;
     public string ButtonText => SigningIn ? "Waiting…" : "Sign in";
     public string ButtonName => "Sign in to " + Name;
@@ -69,6 +69,10 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string StripAction { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool StripActionIsPrimary { get; private set; }
     [ObservableProperty] public partial bool StripBusy { get; private set; }
+    [ObservableProperty] public partial bool StripAcceptsCode { get; private set; }
+    [ObservableProperty] public partial string SignInCode { get; set; } = string.Empty;
+    [ObservableProperty] public partial string CodeError { get; private set; } = string.Empty;
+    private Guid? codeAttempt;
     [ObservableProperty] public partial bool HasUndo { get; private set; }
     [ObservableProperty] public partial string UndoText { get; private set; } = string.Empty;
     [ObservableProperty] public partial LedgerHistoryViewModel? History { get; private set; }
@@ -164,17 +168,39 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         if (strip is null || ReferenceEquals(strip, hiddenStrip) || strip == hiddenStrip)
         {
             HasStrip = false;
+            SignInCode = string.Empty;
+            CodeError = string.Empty;
+            StripAcceptsCode = false;
             return;
         }
         var provider = LedgerFormat.ProviderName(strip.Provider);
         HasStrip = true;
         StripBusy = strip.Phase == SignInPhase.Waiting;
+        StripAcceptsCode = StripBusy && strip.AcceptsManualCode;
+        if (codeAttempt != strip.AttemptId || !StripBusy)
+        {
+            SignInCode = string.Empty;
+            CodeError = string.Empty;
+            codeAttempt = strip.AttemptId;
+        }
         (StripTone, StripText, StripSub, StripAction, StripActionIsPrimary) = strip.Phase switch
         {
             SignInPhase.Waiting => (Tone.Neutral, "Waiting for " + provider + " sign-in in your browser", IsFirstRun ? "nothing is read until you finish" : string.Empty, "Cancel", false),
             SignInPhase.Succeeded => (Tone.Ok, (strip.AccountName ?? provider) + " added", strip.LimitsFound is { } n ? n + (n == 1 ? " limit found" : " limits found") : string.Empty, string.Empty, false),
             SignInPhase.Cancelled => (Tone.Attention, provider + " sign-in was cancelled in the browser", string.Empty, "Try again", true),
             _ => (Tone.Attention, provider + " sign-in failed", string.Empty, "Try again", true),
+        };
+        if (StripBusy && strip.UserCode is { } userCode) StripSub = "Enter this code in your browser: " + userCode;
+        if (strip.Phase == SignInPhase.Failed) StripSub = strip.Failure switch
+        {
+            SignInFailure.Duplicate => "This account is already connected",
+            SignInFailure.WrongAccount => "Choose the account you are reconnecting",
+            SignInFailure.Storage => "Local storage needs recovery before sign-in can continue",
+            SignInFailure.AccessDenied => "Authorization was denied",
+            SignInFailure.Expired => "The sign-in attempt expired",
+            SignInFailure.Browser => "The browser sign-in could not start",
+            SignInFailure.Registration => "Provider registration is not configured on this PC",
+            _ => "The provider could not complete sign-in",
         };
         if (strip.Phase == SignInPhase.Succeeded)
         {
@@ -263,14 +289,29 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     public async Task SignInAsync(ProviderKind provider)
     {
         hiddenStrip = null;
-        await source.SignInAsync(provider, CancellationToken.None);
         announce("Waiting for " + LedgerFormat.ProviderName(provider) + " sign-in in your browser");
+        await source.SignInAsync(provider, CancellationToken.None);
+    }
+
+    public Task ReconnectAsync(string accountId)
+    {
+        hiddenStrip = null;
+        return source.ReconnectAsync(accountId, CancellationToken.None);
+    }
+
+    [RelayCommand]
+    public void SubmitSignInCode()
+    {
+        var code = SignInCode;
+        SignInCode = string.Empty;
+        CodeError = codeAttempt is { } attempt && source.TrySubmitSignInCode(attempt, code) ? string.Empty : "Code was not accepted; check the current sign-in attempt";
     }
 
     [RelayCommand]
     public Task StripActionAsync() => source.Current.SignInStrip switch
     {
         { Phase: SignInPhase.Waiting } => source.CancelSignInAsync(CancellationToken.None),
+        { Phase: SignInPhase.Cancelled or SignInPhase.Failed, ReconnectAccountId: { } id } => ReconnectAsync(id),
         { Phase: SignInPhase.Cancelled or SignInPhase.Failed } strip => SignInAsync(strip.Provider),
         _ => Task.CompletedTask,
     };

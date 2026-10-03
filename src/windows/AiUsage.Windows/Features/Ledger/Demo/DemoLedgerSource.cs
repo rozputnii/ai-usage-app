@@ -174,22 +174,34 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         return Task.CompletedTask;
     }
 
-    public Task SignInAsync(ProviderKind provider, CancellationToken ct)
+    public Task SignInAsync(ProviderKind provider, CancellationToken ct) => BeginSignIn(provider, null);
+
+    public Task ReconnectAsync(string accountId, CancellationToken ct)
     {
+        var account = Current.Accounts.FirstOrDefault(a => a.AccountId == accountId);
+        return account is null ? Task.CompletedTask : BeginSignIn(account.Provider, accountId);
+    }
+
+    public Task RefreshAccountAsync(string accountId, CancellationToken ct) => RefreshAsync(ct);
+    public bool TrySubmitSignInCode(Guid attemptId, string code) => false;
+
+    private Task BeginSignIn(ProviderKind provider, string? reconnect)
+    {
+        if (Current.SignInStrip?.Phase == SignInPhase.Waiting) return Task.CompletedTask;
         pendingSignIn?.Dispose();
         Publish(Current with
         {
-            SignInStrip = new SignInStripModel(SignInPhase.Waiting, provider, null, null),
+            SignInStrip = new SignInStripModel(SignInPhase.Waiting, provider, null, null) { AttemptId = Guid.NewGuid(), ReconnectAccountId = reconnect },
             Providers = [.. Current.Providers.Select(p => p with { SigningIn = p.Provider == provider })],
         });
-        pendingSignIn = scheduler.Schedule(TimeSpan.FromSeconds(3), () => CompleteSignIn(provider));
+        pendingSignIn = scheduler.Schedule(TimeSpan.FromSeconds(3), () => CompleteSignIn(provider, reconnect));
         return Task.CompletedTask;
     }
 
-    private void CompleteSignIn(ProviderKind provider)
+    private void CompleteSignIn(ProviderKind provider, string? reconnect)
     {
         pendingSignIn = null;
-        var existing = Current.Accounts.FirstOrDefault(a => a.Provider == provider);
+        var existing = Current.Accounts.FirstOrDefault(a => a.AccountId == reconnect);
         AccountModel account;
         if (existing is not null && signedOutCards.Remove(existing.AccountId, out var cards))
             account = existing with { Health = AccountHealth.Ok, Cards = cards };
@@ -197,6 +209,12 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
             account = existing with { Health = AccountHealth.Ok, Cards = [.. existing.Cards.Select(c => c with { Freshness = Freshness.Fresh(), Marks = [.. c.Marks.Where(m => m.Kind != MarkKind.SignInExpired)], Action = c.Action == CardAction.SignIn ? CardAction.None : c.Action })] };
         else
             account = DemoLedgerScenarios.SignedInAccount(provider);
+        if (existing is null && Current.Accounts.Any(a => a.AccountId == account.AccountId))
+        {
+            var suffix = "-" + Guid.NewGuid().ToString("N");
+            account = account with { AccountId = account.AccountId + suffix, DisplayName = account.DisplayName + " 2",
+                Cards = account.Cards.Select(c => c with { CardId = c.CardId + suffix, CapTargetId = c.CapTargetId is null ? null : c.CapTargetId + suffix }).ToArray() };
+        }
         var accounts = existing is null ? [.. Current.Accounts, account] : Current.Accounts.Select(a => a.AccountId == existing.AccountId ? account : a).ToArray();
         Publish(Current with
         {

@@ -69,3 +69,28 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   required for that later scope. Product composition, UI and live checks remain NOT_RUN.
 - PASS: integrated Infrastructure after cache binding and migration, 621/621, zero
   errors/failures/skips (12.676 seconds); document validator and diff check PASS.
+
+## T-03/T-04 adapter save point, 2026-10-03
+
+- Independent follow-up review: GPT-6 Astra low, frozen `e7725d6` versus the prior
+  review tree, PASS with no new material findings. Scope: in-place adoption, duplicate
+  legacy-location rejection, layout 2 ordering and bound Codex v3 caches. Earlier P2
+  addressed. Independent test execution NOT_RUN; immutable Git objects only.
+- Preferences: separate account-keyed metadata, compatible global import only, protected
+  refusal to overwrite invalid/newer files, extension-data roundtrip and deferred work days.
+  Focused tests RED on missing implementation, then PASS 5/5.
+- Ledger projection: Core budget/day-start/session/extra-usage calculations, conservative
+  known-window pairing, account-scoped cards, unknown/zero/unlimited distinctions,
+  currency mismatch, day off and 35-day history. Focused tests RED on missing implementation,
+  then PASS 5/5. Initial fixture failures corrected to use explicit UTC midnight.
+- Live source: capture only fresh successful readings, serialized commands and UI-dispatch
+  publication, per-account refresh scheduling, persisted calendar/caps/order and typed
+  transient sign-in challenges. Focused tests RED on missing implementation, PASS 3/3.
+- Actual Claude/Codex/Copilot/Antigravity parsers through the same Ledger projection:
+  PASS 4/4, synthetic payloads only. Browser-launch failure cleanup regression PASS 1/1
+  against the existing provider failure handling; no credential workflow change needed.
+- Presentation Release suite PASS 277/277, zero errors/failures/skips (0.762 seconds).
+- Unpackaged Windows Debug x64 build PASS, zero warnings/errors (43.04 seconds).
+- NOT_RUN: interactive Ledger smoke, package build/install and live providers. The live
+  source is not activated in product composition yet. Full deletion, retained recovery/
+  diagnostics surfaces and old-UI retirement remain implementation work.

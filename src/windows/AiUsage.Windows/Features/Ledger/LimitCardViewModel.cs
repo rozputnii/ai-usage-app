@@ -155,7 +155,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public async Task ActionAsync()
     {
         if (Model.Action == CardAction.SignIn)
-            await owner.SignInAsync(Account.Provider);
+            await owner.ReconnectAsync(Account.AccountId);
         else if (Model.Action == CardAction.SetCap)
             BeginCapEdit();
     }

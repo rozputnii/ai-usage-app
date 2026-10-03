@@ -38,27 +38,27 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [x] Add ProviderSessionFactory under Infrastructure/Accounts; Create(provider, storageId)
   accepts only app-generated GUID storage references and uses existing hardened clients.
 - [x] Run focused tests (expect initial failure, then pass); run applicable regressions.
-- [ ] Inspect diff and commit/push a coherent WIP save point.
+- [x] Inspect diff and commit/push a coherent WIP save point.
 
 ### T-02 - Protected registry and account workflow
-- status: in-progress
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-01, AC-02, AC-04, AC-05, AC-10
-- evidence: not-run
+- evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 
-- [ ] Add Core/Accounts/IAccountService.cs: credential-free account snapshots and
+- [x] Add Core/Accounts/IAccountService.cs: credential-free account snapshots and
   initialize, connect/reconnect, refresh, cancel, code submission, disconnect and stop.
-- [ ] Add AccountRegistry using the existing protected state lease, with stable account
+- [x] Add AccountRegistry using the existing protected state lease, with stable account
   references, private provider bindings and storage references. Persist pending admission
   and retired grant cleanup so restart never guesses which grant belongs to an account.
-- [ ] Add AccountService; tests assert duplicate rejection, reconnect identity matching,
+- [x] Add AccountService; tests assert duplicate rejection, reconnect identity matching,
   two-account independence, signed-out identity reuse, cancellation and shutdown drain.
 - [ ] Test registry corruption/newer version, redirected paths and staged-write interruption;
   failure must preserve recoverable data and keep private values out of generic diagnostics.
-- [ ] Run relevant regression suites, inspect and save.
+- [x] Run relevant regression suites, inspect and save.
 
 ### T-03 - Forward migration and persisted preferences
-- status: pending
+- status: in-progress
 - depends_on: [T-02]
 - acceptance: AC-03, AC-05, AC-10
 - evidence: not-run
@@ -73,7 +73,7 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 - [ ] Run migration and persistence regressions, inspect and save.
 
 ### T-04 - Live budget, history and Ledger contract
-- status: pending
+- status: in-progress
 - depends_on: [T-03]
 - acceptance: AC-06, AC-07, AC-10
 - evidence: not-run
@@ -121,8 +121,10 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 
 ## Handoff
 
-Exact next action: verify and save the T-02 workflow and T-03 in-place migration,
-then implement account-keyed Ledger preferences and the live budget projection.
+Exact next action: implement the owned-data deletion coordinator with crash-resumption
+tests, then activate the live Ledger source through product startup and recovery.
+T-03/T-04 foundations and the Windows build are verified; remaining projection/source
+edge cases and interactive checks are not promoted to completed acceptance.
 All three decisions are resolved; PD-039-03 explicitly includes full local deletion.
 
 Ruling: retain existing grant files in place during adoption, tracked by a protected

@@ -52,6 +52,18 @@ public sealed class AccountServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task BrowserLaunchFailureCleansCandidateAndAllowsAnotherAttempt()
+    {
+        using var service = Create();
+        await service.InitializeAsync(Token);
+        var failed = await service.ConnectAsync("claude", null, Guid.NewGuid(), _ => throw new InvalidOperationException("Synthetic browser unavailable"), Token);
+        Assert.Equal(AccountOutcome.Failed, failed.Outcome);
+        Assert.Empty((await new AccountRegistry(root).ReadAsync(Token)).Pending);
+        Assert.Equal(AccountOutcome.Done, (await Connect(service, "first")).Outcome);
+        await service.StopAsync();
+    }
+
+    [Fact]
     public async Task TwoAccountsRejectDuplicateAndWrongReconnectWithoutChangingEitherReference()
     {
         using var service = Create();

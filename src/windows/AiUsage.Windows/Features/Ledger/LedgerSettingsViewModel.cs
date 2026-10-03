@@ -100,9 +100,9 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         AlwaysOnTop = prefs.AlwaysOnTop;
         MonitoringText = "every " + LedgerFormat.Duration(current.Summaries.RefreshInterval);
         UpdatesText = current.Summaries.UpdatesSummary;
-        SystemStatusText = current.Summaries.FailedSyncs == 0
+        SystemStatusText = current.Summaries.LocalStatus ?? (current.Summaries.FailedSyncs == 0
             ? "all accounts synced"
-            : current.Summaries.FailedSyncs + (current.Summaries.FailedSyncs == 1 ? " sync failed · " : " syncs failed · ") + string.Join(", ", current.Summaries.FailedProviders.Select(LedgerFormat.ProviderName));
+            : current.Summaries.FailedSyncs + (current.Summaries.FailedSyncs == 1 ? " sync failed · " : " syncs failed · ") + string.Join(", ", current.Summaries.FailedProviders.Select(LedgerFormat.ProviderName)));
 
         DayOfWeek[] order = [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday];
         if (WorkDays.Count == 0)
