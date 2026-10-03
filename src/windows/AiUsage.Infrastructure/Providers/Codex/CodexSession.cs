@@ -37,6 +37,7 @@ public sealed partial class CodexSession : IProviderSession, IDisposable
 
     /// <summary>True when a grant is stored, whether or not it still works.</summary>
     public bool HasStoredGrant { get; private set; }
+    internal Accounts.ProviderIdentity? Identity => stored?.AccountId is { } id ? new(id) : null;
 
     /// <summary>
     /// The last cached reading for a connected account, marked stale. Used to render something

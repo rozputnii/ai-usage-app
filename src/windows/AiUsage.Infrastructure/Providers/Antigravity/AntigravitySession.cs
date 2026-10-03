@@ -31,6 +31,7 @@ public sealed class AntigravitySession : IProviderSession, IDisposable
     private bool disposed;
 
     public bool HasStoredGrant { get; private set; }
+    internal Accounts.ProviderIdentity? Identity => stored is null ? null : new(stored.AccountId, stored.ProjectId);
     public ProviderSessionState State { get; private set; } = ProviderSessionState.NotConnected;
 
     public Task<ProviderSessionState> ReadCachedStateAsync(CancellationToken cancellationToken = default) =>

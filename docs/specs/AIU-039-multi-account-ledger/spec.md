@@ -1,10 +1,10 @@
 ---
 id: AIU-039
 type: feature
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: Owner selected AIU-039 on 2026-10-03. Scope derives from the backlog amendment and D-073, D-093, D-094, D-183 through D-187. The selected work is authorized; the migration attribution, presentation-contract amendments and deletion scope below await owner decisions. This draft is not recorded as approved.
+approval_basis: Owner selected AIU-039 on 2026-10-03 and accepted the presented recommendations for legacy-data separation and Ledger contract additions in the reply "all 3 now yes". Implementation proceeds within that selected scope. The third answer is being clarified because the preceding question and recommendation used opposite yes/no meanings for full deletion.
 ---
 
 # Multiple accounts and live Ledger
@@ -66,6 +66,9 @@ Sources: [backlog](../../backlog.md), [AIU-038 contract](../AIU-038-ledger-prese
 
 ### PD-039-01 - Legacy data attribution
 
+Resolved 2026-10-03: owner accepted retention without automatic attribution. The
+recommendation below is the implementation rule; no manual assignment UI is added.
+
 Observed: `LiveMapping.Map` uses the provider name as account ID; `LiveUsageSource`
 passes that same target to `QuotaObservationRecorder`. Reading series/caps have an
 account-target field but no independently verified identity binding. Reconnecting can
@@ -87,6 +90,10 @@ No automatic attribution based only on the current login is acceptable.
 Needed before storage migration implementation; affects AC-03 and AC-05.
 
 ### PD-039-02 - Presentation contract and retirement agreement
+
+Resolved 2026-10-03: owner accepted the described Ledger additions with the existing
+design retained. Direct owner agreement governs the coordinated replacement, without
+messaging another chat or claiming another author's review.
 
 The existing provider -> account -> limits shape is reusable. Its source currently
 accepts only a provider for sign-in, and its strip has no authorization challenge.
@@ -174,6 +181,7 @@ Needed before data-settings wiring; affects AC-08 and AC-10.
 
 Implementation proceeds sequentially on main, with coherent WIP save points under
 CONTRIBUTING. Do not treat a save point as feature completion. A detailed implementation
-plan follows resolution of the decisions above; [design.md](design.md) records the
+plan follows the settled account/contract scope; PD-039-03 only gates deletion work.
+[design.md](design.md) records the
 proposed boundaries. [verification.md](verification.md) owns observed results and
 [tasks.md](tasks.md) contains the exact continuation action.

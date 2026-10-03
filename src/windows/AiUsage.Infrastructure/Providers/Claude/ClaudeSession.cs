@@ -30,6 +30,7 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
     private bool disposed;
 
     public bool HasStoredGrant { get; private set; }
+    internal Accounts.ProviderIdentity? Identity => stored is null ? null : new(stored.Identity.AccountId, stored.Identity.OrganizationId);
     public ProviderSessionState State { get; private set; } = ProviderSessionState.NotConnected;
 
     public Task<ProviderSessionState> ReadCachedStateAsync(CancellationToken cancellationToken = default) =>

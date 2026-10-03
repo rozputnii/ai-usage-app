@@ -28,6 +28,7 @@ public sealed partial class CopilotSession : IProviderSession, IDisposable
     private CopilotStoredState? stored;
     private bool disposed;
     public bool HasStoredGrant { get; private set; }
+    internal Accounts.ProviderIdentity? Identity => stored is null ? null : new(stored.AccountId);
     public ProviderSessionState State { get; private set; } = ProviderSessionState.NotConnected;
     public Task<ProviderSessionState> ReadCachedStateAsync(CancellationToken cancellationToken = default) =>
         RunAsync((_, _) => Task.FromResult(Cached()), cancellationToken);

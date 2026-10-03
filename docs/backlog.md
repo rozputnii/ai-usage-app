@@ -404,9 +404,9 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-039 - [astra] Multi-account live adapters, new presentation and Windows acceptance
 - goal: G-003
-- status: selected
+- status: in-progress
 - depends_on: [AIU-035, AIU-036, AIU-037, AIU-038]
-- readiness-note: All implementation dependencies are complete and integrated into main as of 2026-10-03. Owner selected AIU-039 on 2026-10-03; specification/design preparation is recorded, with legacy attribution, presentation-contract and deletion-scope decisions pending. Product implementation has not started. The ordinary-desktop verification amendment in AGENTS.md supersedes the older display/accessibility matrix below.
+- readiness-note: All implementation dependencies are complete and integrated into main as of 2026-10-03. Owner selected AIU-039 and accepted legacy-data separation and the Ledger contract additions. Sequential implementation has started; full-deletion scope is being clarified independently. The ordinary-desktop verification amendment in AGENTS.md supersedes the older display/accessibility matrix below.
 - specification: docs/specs/AIU-039-multi-account-ledger/spec.md
 - evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 - trigger: owner-selection

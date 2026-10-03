@@ -26,6 +26,23 @@
 
 ## Acceptance
 
-AC-01 through AC-11: NOT_RUN. Draft documents do not establish feature acceptance.
-PD-039-01 through PD-039-03 await owner decisions. No historical evidence is promoted
-to multi-account or live Ledger evidence.
+AC-01 through AC-11 remain incomplete. PD-039-01 and PD-039-02 are accepted by the owner;
+PD-039-03 awaits clarification. No historical evidence is promoted to live Ledger evidence.
+
+## T-01 account session construction, 2026-10-03
+
+Added private verified-identity projections and an Infrastructure session factory selecting
+an isolated GUID storage directory for each account. Product composition is not switched yet.
+Six new tests check two independently protected accounts for each of the four providers,
+restoration, selected sign-out, opaque context equality and invalid factory inputs.
+
+- RED: focused MultiAccountSessionTests build failed because Infrastructure.Accounts did not exist.
+- PASS: focused MultiAccountSessionTests, 6/6, using actual DPAPI stores and no provider requests.
+- PASS: Infrastructure Release suite, 596/596, zero skipped/errors (14.607 seconds).
+- PASS: Presentation Release suite, 264/264, zero skipped/errors (0.728 seconds).
+- PASS: document validator, valid true with no diagnostics.
+- NOT_RUN: UI, package, live authentication and independent security review; no product switch.
+
+Commands used the existing user-local .NET 10.0.401 executable with `--no-restore` and the
+README test projects. The focused command added `-class "*MultiAccountSessionTests"`.
+These results cover T-01 only, not the account registry, migration or multi-account product.

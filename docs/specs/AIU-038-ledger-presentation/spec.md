@@ -9,6 +9,13 @@ approval_basis: Owner selection, 2026-10-02, of AIU-038 on a dedicated worktree 
 
 # Redesigned presentation from the imported design
 
+AIU-039 amendment, 2026-10-03: the owner accepted extending this contract for
+multiple accounts, account-targeted reconnect and transient authorization challenges
+in the existing sign-in strip. Added providers remain available for another sign-in.
+AIU-039 coordinates live wiring and retirement of the replaced D-180/D-181 views;
+the original demo verification below remains historical evidence. See
+[AIU-039](../AIU-039-multi-account-ledger/spec.md#pd-039-02---presentation-contract-and-retirement-agreement).
+
 ## 1. Scope
 
 Owner amendment, 2026-10-03: this personal app targets the owner's ordinary desktop

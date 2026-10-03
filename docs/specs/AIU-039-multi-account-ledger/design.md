@@ -1,16 +1,17 @@
 ---
 id: AIU-039
 type: design
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
 ---
 
 # Proposed implementation boundaries
 
-This is a reviewable proposal, not an approved implementation or a claim that live
-identity and migration tests have run. Resolve the three decisions in [spec.md](spec.md)
-before dependent implementation. No new dependency or generic persistence framework.
+Owner accepted the account/migration and presentation recommendations recorded in
+[spec.md](spec.md). PD-039-03 remains a deletion-only clarification. This design does
+not claim that live identity or migration tests have run. No new dependency or generic
+persistence framework.
 
 ## Alternatives
 
