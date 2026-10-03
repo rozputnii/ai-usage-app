@@ -288,7 +288,10 @@ criteria and run them on the new interface:
 - Holiday and vacation calendars.
 - Budget notifications.
 - History-based forecasting beyond the five-hour session estimate (AIU-024).
-- More than one account per provider.
+- More than one account per provider in this original research/reference scenario.
+  Owner amendment (2026-10-03): this exclusion does not apply to AIU-039 delivery;
+  that next technical item must implement simultaneous multi-account support under
+  D-073, using the existing provider -> account -> limits hierarchy.
 - Platforms other than Windows.
 
 ## Owner clarification - 2026-09-29

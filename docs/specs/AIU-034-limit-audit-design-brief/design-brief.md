@@ -26,6 +26,15 @@ ChatGPT, GitHub Copilot and Antigravity. They open the window or the tray flyout
 day for a few seconds, and they want an answer without reading. This scope has one account per
 provider.
 
+Owner delivery amendment (2026-10-03): AIU-039 must implement multiple simultaneous
+accounts of each provider under D-073. Reuse the provider -> account -> limits
+hierarchy below, with independent account labels, limits, budgets, history, status
+and actions in the main window and tray. Adding another account must not disconnect
+the first. The one-per-provider counts in this original reference scenario remain
+fixture descriptions, not a restriction on AIU-039 delivery. See
+[AIU-039](../../backlog.md#aiu-039---astra-multi-account-live-adapters-new-presentation-and-windows-acceptance)
+for lifecycle and acceptance requirements.
+
 The four glance questions, verbatim from the specification, and the section 3 element that
 answers each:
 
@@ -259,8 +268,10 @@ budget runs from `U0` to `U0 + T`; the pace mark is at `B x E`.
 - **Single window (R-01).** Every provider, account and limit of section 3, including
   model-scoped weekly windows and credit and monetary pools, is in the one main window. There
   is no account detail view, modal dialog or pop-up window.
-- **Hierarchy.** Provider, then account, then limits. This scope has one account per provider,
-  but the account level stays so that a name, status and actions belong to the account.
+- **Hierarchy.** Provider, then account, then limits. The original scenario has one
+  account per provider; AIU-039 renders multiple accounts under the same provider
+  under the owner delivery amendment above. Names, status and actions belong to
+  each account, not to its provider.
 - **Account line.** Each account shows its name, its status with the limit that sets it
   (section 3.11), its reading marks (stale, refresh failed, sign-in expired) and an icon-only
   sign-out. The status is readable without expanding the account.
