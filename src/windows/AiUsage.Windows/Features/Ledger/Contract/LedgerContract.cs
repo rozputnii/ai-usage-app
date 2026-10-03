@@ -108,6 +108,7 @@ internal enum CardState
     LimitUnknown,
     NoCap,
     SignedOut,
+    NoDisplayedLimits,
 }
 
 internal sealed record Freshness(bool IsStale, DateTimeOffset? ReadingAt)

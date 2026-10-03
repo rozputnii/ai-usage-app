@@ -253,7 +253,7 @@ public sealed class LedgerCardTests
         var states = StateGallery.Accounts.SelectMany(a => a.Cards).Select(c => c.State).ToHashSet();
         foreach (var state in Enum.GetValues<CardState>().Where(s => s != CardState.NoCap))
             Assert.Contains(state, states);
-        Assert.Equal(52, StateGallery.Accounts.Count);
+        Assert.Equal(53, StateGallery.Accounts.Count);
     }
 
     [Fact]
@@ -757,7 +757,7 @@ public sealed class LedgerInteractionTests
         Assert.Equal(6, window.Demo!.Scenarios.Count);
         window.ToggleSettings();
         window.LoadScenario(DemoLedgerScenarios.States);
-        Assert.Equal(51, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
+        Assert.Equal(52, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
         Assert.All(window.Cards, c => Assert.False(c.IsNew));
         window.LoadScenario(DemoLedgerScenarios.FirstRun);
         Assert.True(window.IsFirstRun);

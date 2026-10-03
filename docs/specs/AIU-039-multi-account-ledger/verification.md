@@ -239,3 +239,29 @@ These results cover T-01 only, not the account registry, migration or multi-acco
   were opened. UI helper menu-cache/geometry errors were recovered by fresh observation;
   an initial log date-filter type mismatch produced no evidence and was corrected by
   selecting completed operations directly.
+
+## Owner-requested extra-usage display pause, 2026-10-03
+
+- Owner requested hiding standalone extra-usage cards now and recording a future
+  account-integrated redesign. Registered AIU-044 as an idea; no future work selected.
+- Live projection skips CL-X cards while retaining transport, observations, caps and
+  the owning account. An extra-usage-only account has a neutral account status card,
+  no monetary figures and the existing sign-out action. Synthetic design-reference
+  scenarios remain available; the new status is covered in their gallery.
+- Regression RED: an account with weekly and extra-usage facts still had two cards.
+  Presentation PASS 115/115 (0.415s), including enabled/disabled extra usage, an account
+  with only extra usage and all gallery states. Updated gallery counts for the new state.
+- Infrastructure run: 644/645 passed; the old parser-to-Ledger test expected the now-hidden
+  money card. Updated it to assert preserved source money/null facts and absent card;
+  targeted ParserLedgerTests PASS 4/4 (0.328s). No provider or persistence code changed.
+- Unpackaged build PASS, zero warnings/errors (16.32s). Earlier build failed because
+  the running verification app held its files; focused the app, exited cleanly and rebuilt.
+- Actual updated Windows UI PASS: both existing accounts restored with their original
+  references, the subscription weekly card remained, no separate Extra usage card was
+  present, and the second account showed No subscription limits to display with Sign out
+  available on hover. No account was signed out or deleted during this display check.
+- Unsigned MSIX build PASS: 2026.10.357.0, SHA-256
+  28C3CCFC99DB9AD5920076CF75559174CE4A4843961B4121A50AD19864110DDF.
+  Only the existing SDK missing-symbol-tool warning; no installation or publication.
+- Document validation PASS (valid true, no diagnostics); diff whitespace check PASS.
+  Overall AIU-039 acceptance gaps remain unchanged.

@@ -39,6 +39,8 @@ internal static class LiveLedgerProjection
         foreach (var data in normalized)
         {
             var facts = data.Facts;
+            // AIU-044 will integrate extra usage into its account; standalone cards are paused.
+            if (facts.Key.Family == "CL-X") continue;
             // Only a known shared pool may consume its short window into the period card.
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;
@@ -80,7 +82,7 @@ internal static class LiveLedgerProjection
         }
         if (!account.Connected || cards.Count == 0)
             cards = [new(id + ":status", null, CardLayout.Note, ScaleModel.Percent, PeriodModel.Unknown,
-                !account.Connected ? CardState.SignedOut : CardState.NotReady, new(stale, readingAt), [], LimitFigures.UsedOnly(null),
+                !account.Connected ? CardState.SignedOut : normalized.Any(l => l.Facts.Key.Family == "CL-X") ? CardState.NoDisplayedLimits : CardState.NotReady, new(stale, readingAt), [], LimitFigures.UsedOnly(null),
                 null, null, null, null, !account.Connected || health == AccountHealth.SignInExpired ? CardAction.SignIn : CardAction.None, null)];
         return new(id, Provider(account.Provider), name, health, readingAt, account.LastFailureAt, null, cards);
     }

@@ -394,6 +394,7 @@ internal static class CardVisuals
             CardState.LimitUnknown => [new NoteLine(period, (f.Used is { } u ? LedgerFormat.Value(card.Scale, u) + " " + unit + " used" : "used unknown"), reset)],
             CardState.ValueUnknown => [new NoteLine(period, "used unknown", reset)],
             CardState.SignedOut => [new NoteLine(string.Empty, "no current figures", "history kept")],
+            CardState.NoDisplayedLimits => [new NoteLine(string.Empty, "No subscription limits to display", string.Empty)],
             CardState.NoCap => [new NoteLine(string.Empty, f.ProviderBalance is { } b ? "balance " + LedgerFormat.Value(card.Scale, b) + " " + unit + " (provider)" : "no cap set", "no budget")],
             _ => [new NoteLine(period, f.Used is { } used ? LedgerFormat.Value(card.Scale, used) + " used" : "used unknown", reset)],
         };

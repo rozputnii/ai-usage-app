@@ -11,6 +11,12 @@ approval_basis: Owner selected AIU-039 on 2026-10-03 and accepted legacy-data se
 
 ## Outcome
 
+Owner amendment, 2026-10-03: hide standalone Claude extra-usage cards in the live
+Ledger because they look like separate accounts. Keep the owning account manageable
+when it has no other displayed limits, without monetary figures. Preserve stored
+readings/caps and provider transport. Account-integrated extra-usage presentation is
+deferred to AIU-044; synthetic design-reference scenarios remain available for development.
+
 Connect multiple distinct accounts of the same provider concurrently and make Ledger
 the product interface. Every account has a stable app-owned reference, independent
 credentials, cache, label, limits, caps, history and actions in the main window and

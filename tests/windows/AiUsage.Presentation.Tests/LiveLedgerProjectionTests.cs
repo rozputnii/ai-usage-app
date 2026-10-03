@@ -2,6 +2,7 @@ using AiUsage.Adapters.Live;
 using AiUsage.Core.Accounts;
 using AiUsage.Core.Budget;
 using AiUsage.Core.Usage;
+using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 using Xunit;
 using FactValue = AiUsage.Core.Usage.LimitValue;
@@ -80,6 +81,29 @@ public sealed class LiveLedgerProjectionTests
         Assert.Contains(projected.Cards, c => c.ScopeLabel == "Custom / Scope" && c.Layout == CardLayout.Period);
         var other = LiveLedgerProjection.Account(account with { AccountId = Guid.NewGuid() }, "Work", [Data(weekly)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
         Assert.NotEqual(projected.Cards[0].CardId, other.Cards[0].CardId);
+    }
+
+    [Fact]
+    public void ExtraUsageCardsAreHiddenWithoutRemovingTheirAccount()
+    {
+        var weekly = Weekly();
+        var spend = new LimitFacts(new("claude", "CL-X", "extra"), LimitKind.MonetaryPool, "USD", FactValue.Unknown)
+        { Used = new MoneyQuantity(100, 2, "USD"), AllowsCalendarFallback = true };
+        var quota = new QuotaSnapshot(Now, null, [], null, null, null, null);
+        var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
+        foreach (var enabled in new[] { true, false })
+        {
+            var extra = Data(spend with { Enabled = enabled });
+            var model = LiveLedgerProjection.Account(account, "Work", [Data(weekly), extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+            Assert.Equal(LiveLedgerProjection.CardId(Data(weekly).Series), Assert.Single(model.Cards).CardId);
+            var onlyExtra = LiveLedgerProjection.Account(account, "Work", [extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+            Assert.Equal(AccountHealth.Ok, onlyExtra.Health);
+            var placeholder = Assert.Single(onlyExtra.Cards);
+            Assert.Equal(Account.ToString("N") + ":status", placeholder.CardId);
+            Assert.Null(placeholder.Figures.Used);
+            var visual = CardVisuals.Build(placeholder, onlyExtra, ValueMode.Used, Now);
+            Assert.Equal("No subscription limits to display", Assert.Single(visual.NoteLines).Value);
+        }
     }
 
     [Fact]

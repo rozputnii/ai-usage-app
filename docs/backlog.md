@@ -449,6 +449,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: Owner request on 2026-10-03 selects implementation of AIU-043 and a concise agent rule for useful logging without noise. Completion request authorized an Astra low independent review; subsequent explicit permission covered existing-session live checks. Final verification records the completed gates and unavailable accounts.
 - scope-note: Full response capture means pre-model response structure and policy-approved original values, with explicit redaction/completeness metadata. It never means plaintext tokens, cookies or arbitrary unclassified payload values. AIU-039 is not a prerequisite; instrument whichever presentation is active and retain coverage across its later switch. Focused independent review followed the current one-subagent policy.
 
+## AIU-044 - Integrate extra usage into its owning account
+- goal: G-003
+- status: idea
+- depends_on: [AIU-039]
+- trigger: owner-selection
+- outcome: Redesign Claude extra-usage presentation so it clearly belongs to the connected account and cannot be mistaken for another account. Decide an account-level placement before restoring monetary figures, history and cap controls.
+- acceptance: No separate extra-usage account-like card; enabled, disabled and extra-usage-only accounts remain understandable; sign-out clearly targets the owning account; existing readings, caps and credentials are preserved.
+- registration-note: Owner requested this follow-up on 2026-10-03 after live AIU-039 verification. Standalone extra-usage cards are disabled now in the live Ledger. This entry does not select future implementation.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

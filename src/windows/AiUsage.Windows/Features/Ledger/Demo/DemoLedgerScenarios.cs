@@ -302,6 +302,7 @@ internal static class DemoLedgerScenarios
             ("H7", ProviderKind.Claude, "Claude Max", W5("h7", CardState.OnTrack, 44, 50, 82.4m, 30, marks: [new CardMark(MarkKind.SyncFailed)], freshness: Freshness.Fresh(At(10, 14, 14, 10))), AccountHealth.SyncFailedFresh),
             ("H8", ProviderKind.Claude, "Claude Pro", W5("h8", CardState.OnTrack, 40, 47, 60, 40, marks: [new CardMark(MarkKind.SignInExpired)], freshness: Freshness.Stale(At(10, 14, 13, 20)), action: CardAction.SignIn), AccountHealth.SignInExpired),
             ("H9", ProviderKind.Codex, "Codex Pro", Note("h9", null, CardState.SignedOut, ScaleModel.Percent, PeriodModel.Week, null, action: CardAction.SignIn), AccountHealth.SignedOut),
+            ("H11", ProviderKind.Claude, "Claude", Note("h11", null, CardState.NoDisplayedLimits, ScaleModel.Percent, PeriodModel.Unknown, null), AccountHealth.Ok),
             ("H10", ProviderKind.Claude, "Claude Max", D7("h10", CardState.OnTrack, 20, 23, 34, reset: mon9, scope: "7d · Opus"), AccountHealth.Ok),
             ("O1", ProviderKind.Claude, "Claude Max", W5("o1", CardState.DayOff, 50, 56, 62.5m, 50, dayOff: new DayOffPreview(DayOfWeek.Monday, 16.7m, 14.7m)), AccountHealth.Ok),
             ("O2", ProviderKind.Antigravity, "Antigravity AI Plus", D7("o2", CardState.DayOff, 40, 58, 55, dayOff: new DayOffPreview(DayOfWeek.Monday, 20.0m, 14.0m)), AccountHealth.Ok),

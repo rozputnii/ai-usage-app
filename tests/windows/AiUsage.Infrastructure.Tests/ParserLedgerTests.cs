@@ -28,17 +28,17 @@ public sealed class ParserLedgerTests
     }
 
     [Fact]
-    public void ClaudeParserPreservesOpaqueScopeAndMoneyAlongsidePairedWindows()
+    public void ClaudeParserPreservesMoneyButLedgerHidesItsStandaloneCard()
     {
         var now = new DateTimeOffset(2026, 9, 14, 10, 0, 0, TimeSpan.Zero);
         Assert.True(ClaudeQuotaParser.TryParse(File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fixtures", "claude-usage.synthetic.json")), now, out var reading));
         var model = Project("claude", reading!.Quota, now);
         Assert.Contains(model.Cards, c => c.Layout == CardLayout.FiveHourAndPeriod && c.Figures.Used == 40);
         Assert.Contains(model.Cards, c => c.ScopeLabel == "Family / Fable" && c.Figures.Used == 55);
-        var extra = Assert.Single(model.Cards, c => c.ScopeLabel == "Extra usage");
-        Assert.Equal(ScaleModel.Money("EUR", 2), extra.Scale);
-        Assert.Equal(123.45m, extra.Figures.Used);
-        Assert.Equal(LimitValueKind.Unknown, extra.Figures.ProviderLimit.Kind);
+        Assert.DoesNotContain(model.Cards, c => c.ScopeLabel == "Extra usage");
+        var extra = Assert.Single(reading.Quota.Limits!.Limits, f => f.Key.Family == "CL-X");
+        Assert.Equal(new MoneyQuantity(12345, 2, "EUR"), extra.Used);
+        Assert.Equal(LimitValueState.ExplicitNull, extra.Limit.State);
     }
 
     [Fact]

@@ -124,7 +124,7 @@ Base: `ddc81ea`; original source baseline `9131e47`.
 ## Handoff
 
 Exact next action: prepare the remaining installed-package acceptance against the built
-2026.10.356.0 artifact and identify the specific isolated install/update check for owner
+2026.10.357.0 artifact and identify the specific isolated install/update check for owner
 authorization. Live two-account admission, refresh, restart and selected sign-out/reconnect
 passed; induced live provider failures remain NOT_RUN.
 The owner authorized this live check on 2026-10-03 and performs browser sign-in personally.
