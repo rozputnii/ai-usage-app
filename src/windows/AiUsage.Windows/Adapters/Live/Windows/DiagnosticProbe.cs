@@ -3,12 +3,43 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace AiUsage.Composition;
 
 /// <summary>Explicit offline test entry, requiring a disposable temp root; never starts provider services.</summary>
 internal static class DiagnosticProbe
 {
+    internal static bool Requested(string kind)
+    {
+        var root = Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY");
+        return Environment.GetEnvironmentVariable("AIU_DIAGNOSTIC_PROBE") == kind && root is not null &&
+            Path.GetFullPath(root).StartsWith(Path.Combine(Path.GetTempPath(), "aiu-ui-probe-"), StringComparison.OrdinalIgnoreCase) &&
+            !Directory.Exists(Path.Combine(root, "providers"));
+    }
+
+    internal static void BeforeXaml()
+    {
+        if (Requested("xaml-startup"))
+            _ = Microsoft.UI.Xaml.Markup.XamlReader.Load("<Grid xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'><MissingProbeElement /></Grid>");
+    }
+
+    internal static bool ConfigureHost(IServiceCollection services)
+    {
+        var startup = Requested("host-startup");
+        var disposal = Requested("host-disposal");
+        if (startup || disposal) services.AddSingleton<IHostedService>(_ => new HostFault(startup));
+        return disposal;
+    }
+
+    private sealed class HostFault(bool startup) : IHostedService, IDisposable
+    {
+        public Task StartAsync(CancellationToken cancellationToken) => startup ? throw new InvalidOperationException("startup-secret-canary") : Task.CompletedTask;
+        public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+        public void Dispose() { if (!startup) throw new InvalidOperationException("disposal-secret-canary"); }
+    }
+
     internal static bool TryStart(ApplicationDiagnostics diagnostics, Action exit)
     {
         var kind = Environment.GetEnvironmentVariable("AIU_DIAGNOSTIC_PROBE");

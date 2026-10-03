@@ -41,6 +41,11 @@ public sealed class DiagnosticStorageFaultTests : IDisposable
         Assert.Contains("RecoveryCompleted", preview);
         Assert.DoesNotContain("CapturePersisted", preview);
         log.Dispose();
+        using (var restarted = new FileDiagnostics(root))
+        {
+            Assert.DoesNotContain("CapturePersisted", await restarted.PreviewAsync());
+            Assert.Single(Directory.GetFiles(log.DirectoryPath, "response-*.stage"));
+        }
         DiagnosticFiles.DeleteOwned(root);
         Assert.Empty(Directory.GetFiles(log.DirectoryPath));
     }

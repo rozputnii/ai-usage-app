@@ -218,6 +218,18 @@ public sealed partial class ShellSmoke
     [Fact]
     public void CloseToTrayRestoresDashboard() => ShellLaunchesNavigatesAndExits("close-to-tray");
 
+    [Fact]
+    public void DemoLogsOpenIsolatedFolder()
+    {
+        var previous = Environment.GetEnvironmentVariable("AIU_SMOKE_MODE");
+        try
+        {
+            Environment.SetEnvironmentVariable("AIU_SMOKE_MODE", "demo");
+            ShellLaunchesNavigatesAndExits("logging");
+        }
+        finally { Environment.SetEnvironmentVariable("AIU_SMOKE_MODE", previous); }
+    }
+
     /// <summary>
     /// One window without tabs: the header gear shows every settings section (System status included) in place of the
     /// usage view, and Back returns. In demo, account detail opens from its compact row and History from the detail;
@@ -254,6 +266,8 @@ public sealed partial class ShellSmoke
             Required(window, "PreviewLog").AsButton().Invoke();
             Assert.True(WaitUntil(() => window.FindFirstDescendant(cf => cf.ByAutomationId("LogPreview"))?.Name.Contains("SessionStarted", StringComparison.Ordinal) == true,
                 TimeSpan.FromSeconds(5)), "Diagnostic preview should show this isolated session.");
+            Required(window, "OpenLogs").AsButton().Invoke();
+            VerifyOpenedLogs(demo);
         }
         // Every former settings tab and the former System status page are sections of this one view.
         foreach (var id in new[] { "HistoryEnabledSwitch", "UpdateStatus", "StatusBuild" })
@@ -269,6 +283,39 @@ public sealed partial class ShellSmoke
             TimeSpan.FromSeconds(5)), "A native provider value must be visible without a load action.");
         Back("DetailTitle");
         Back();
+    }
+
+    private static void VerifyOpenedLogs(bool demo)
+    {
+        var root = Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY");
+        Assert.False(string.IsNullOrWhiteSpace(root), "Open logs smoke requires an isolated root.");
+        var expected = Path.GetFullPath(demo ? Path.Combine(root!, "Demo", "logs") : Path.Combine(root!, "logs"));
+        dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("Shell.Application", throwOnError: true)!)!;
+        try
+        {
+            Assert.True(WaitUntil(() =>
+            {
+                dynamic windows = shell.Windows();
+                try
+                {
+                    for (var i = 0; i < (int)windows.Count; i++)
+                    {
+                        dynamic candidate = windows.Item(i);
+                        try
+                        {
+                            if (!Uri.TryCreate((string)candidate.LocationURL, UriKind.Absolute, out Uri? uri) || !uri.IsFile ||
+                                !string.Equals(Path.GetFullPath(uri.LocalPath), expected, StringComparison.OrdinalIgnoreCase)) continue;
+                            candidate.Quit(); // Close only this test's unique folder, preserving other Explorer windows.
+                            return true;
+                        }
+                        finally { Marshal.FinalReleaseComObject(candidate); }
+                    }
+                    return false;
+                }
+                finally { Marshal.FinalReleaseComObject(windows); }
+            }, TimeSpan.FromSeconds(10)), "Open logs must navigate Explorer to this mode's isolated logs folder.");
+        }
+        finally { Marshal.FinalReleaseComObject(shell); }
     }
 
     /// <summary>The app is dark-only (D-182): Settings offers no theme choice, whatever the Windows app mode.</summary>

@@ -29,7 +29,7 @@ public partial class App : Application
     {
         diagnostics.Initialize(Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal));
         UnhandledException += OnUnhandledException;
-        try { InitializeComponent(); }
+        try { DiagnosticProbe.BeforeXaml(); InitializeComponent(); }
         catch (Exception exception) { diagnostics.StartupFailure(exception); throw; }
         DebugSettings.BindingFailed += (_, _) => diagnostics.BindingFailure();
         DebugSettings.IsBindingTracingEnabled = true;
@@ -68,8 +68,10 @@ public partial class App : Application
             if (demo) builder.Services.AddDemoServices();
             else builder.Services.AddLiveServices();
             diagnostics.RegisterSurface(builder.Services, demo);
+            var disposalProbe = DiagnosticProbe.ConfigureHost(builder.Services);
             host = builder.Build();
             await host.StartAsync();
+            if (disposalProbe) { await StopAsync(); return; }
 
             var services = host.Services;
             Providers = services.GetRequiredService<ProviderCatalog>();
