@@ -404,9 +404,11 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-039 - [astra] Multi-account live adapters, new presentation and Windows acceptance
 - goal: G-003
-- status: ready
+- status: selected
 - depends_on: [AIU-035, AIU-036, AIU-037, AIU-038]
-- readiness-note: All implementation dependencies are complete and integrated into main as of 2026-10-03. Ready for owner selection and specification; implementation has not started. The ordinary-desktop verification amendment in AGENTS.md supersedes the older display/accessibility matrix below.
+- readiness-note: All implementation dependencies are complete and integrated into main as of 2026-10-03. Owner selected AIU-039 on 2026-10-03; specification/design preparation is recorded, with legacy attribution, presentation-contract and deletion-scope decisions pending. Product implementation has not started. The ordinary-desktop verification amendment in AGENTS.md supersedes the older display/accessibility matrix below.
+- specification: docs/specs/AIU-039-multi-account-ledger/spec.md
+- evidence: docs/specs/AIU-039-multi-account-ledger/verification.md
 - trigger: owner-selection
 - outcome: Implement simultaneous multiple accounts per provider under D-073, including the Core session/account contracts, Infrastructure persistence and Windows live adapters needed to feed the AIU-038 presentation from the engine, parsers, reading series and budget configuration. Render each account with its own label, limits, budget, history, status and actions within the existing provider -> account -> limits design; adding another account must not require signing out of the first. The product then switches from the current views to the new presentation. The retired D-180 and D-181 views, view models and pace code are removed, not left behind. The XAML and view-model removal is agreed with the [opus] owner of AIU-038.
 - scope-note: Owner amendment, 2026-10-03: include multi-account support in this next technical implementation item, fulfilling D-073 rather than creating a separate follow-up. The one-account-per-provider limit in the original AIU-034 reference scenario and delivered AIU-038 demo is not a product delivery constraint for AIU-039. This request updates the planned scope; it does not start implementation or change completed historical evidence.
