@@ -11,7 +11,7 @@ using Xunit;
 namespace AiUsage.Windows.Tests;
 
 /// <summary>Ordinary desktop interaction on isolated synthetic state; no sign-in or real credentials.</summary>
-public sealed class LedgerSmoke
+public sealed partial class LedgerSmoke
 {
     [Fact]
     public void AccountSpendingUsesNestedContentHistoryCapsAndAccountActions()
@@ -66,9 +66,9 @@ public sealed class LedgerSmoke
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             parent.Focus(); Keyboard.Press(VirtualKeyShort.F2);
             stage = "rename";
-            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))) is not null));
-            var rename = window.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))!.AsTextBox();
-            rename.Text = "Renamed account";
+            TextBox? rename = null;
+            Assert.True(Wait(() => (rename = window.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox()) is not null));
+            rename!.Text = "Renamed account";
             Keyboard.Press(VirtualKeyShort.RETURN);
             Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Renamed account")) is not null));
             var only = window.FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;

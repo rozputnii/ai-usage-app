@@ -18,6 +18,7 @@ internal static class DemoLedgerScenarios
     public const string SignIn = "sign-in";
     public const string Monetary = "monetary";
     public const string MonetaryWithWindows = "monetary-windows";
+    public const string WorkBudget = "work-budget";
 
     public static IReadOnlyList<(string Id, string Title)> All { get; } =
     [
@@ -29,6 +30,7 @@ internal static class DemoLedgerScenarios
         (SignIn, "Sign-in strip and expired sign-in"),
         (Monetary, "Account spending"),
         (MonetaryWithWindows, "Account spending with new windows"),
+        (WorkBudget, "Monthly work budget and subscription"),
     ];
 
     private static readonly TimeSpan Bst = TimeSpan.FromHours(1);
@@ -48,9 +50,25 @@ internal static class DemoLedgerScenarios
         SignIn => SignInSnapshot(),
         Monetary => MonetarySnapshot(),
         MonetaryWithWindows => MonetarySnapshot(true),
+        WorkBudget => WorkBudgetSnapshot(),
         _ => BriefSnapshot(),
     };
 
+    private static LedgerSnapshot WorkBudgetSnapshot()
+    {
+        var snapshot = BriefSnapshot();
+        var money = new LimitCardModel("work-month", "Spending", CardLayout.Pool, ScaleModel.Money("USD", 2),
+            PeriodModel.Month(true), CardState.OnTrack, Freshness.Fresh(), [],
+            new(29.66m, 29.66m, 181.22m, 90.90m, LimitValue.Known(2000), 2000, null, null, null),
+            null, AssumedMonth, null, "work-month", CardAction.None, null)
+        {
+            Monetary = new(new(2966, 2, "USD"), new(200000, 2, "USD"), LimitValueKind.Known, null, true,
+                "Monthly work budget · provider period unknown · calendar month assumed", null)
+        };
+        var codex = snapshot.Accounts.First(a => a.Provider == ProviderKind.Codex);
+        return snapshot with { Accounts = [new("work-account", ProviderKind.Claude, "Claude Work", AccountHealth.Ok,
+            BriefNow, null, null, [money]), codex with { DisplayName = "Codex subscription", Cards = [codex.Cards[0]] }] };
+    }
     private static LedgerSnapshot MonetarySnapshot(bool withWindows = false)
     {
         var snapshot = BriefSnapshot();

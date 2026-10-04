@@ -39,6 +39,27 @@ public sealed class MonetaryUsageTests
     }
 
     [Fact]
+    public void MonetaryOnlyAccountUsesReportedMonthlyAmountAndDailyBarsWithoutScopeMetadata()
+    {
+        var facts = Facts with { Used = new MoneyQuantity(2966, 2, "USD"), Limit = FactLimit.Finite(new MoneyQuantity(200000, 2, "USD")),
+            Reset = null, PeriodStart = null, PeriodStartOrigin = null, IsMonthly = false, AllowsCalendarFallback = true };
+        var data = Data(facts, MonetaryScope.Unknown);
+        data = data with { Runs = [data.Runs[^1]] };
+        var model = Project(data, name: "Claude");
+        var card = Assert.Single(model.Cards);
+        Assert.Equal(CardLayout.Pool, card.Layout);
+        Assert.Equal(29.66m, card.Figures.Used);
+        Assert.Equal(2000m, card.Figures.EffectiveLimit);
+        Assert.Equal(29.66m, card.Figures.DayStart);
+        Assert.True(card.Figures.TodayEnd > 29.66m);
+        Assert.Equal(new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero), card.Reset!.At);
+        Assert.Equal(ResetProvenance.Assumed, card.Reset.Provenance);
+        Assert.Null(card.Monetary!.BudgetUnavailable);
+        Assert.True(CardVisuals.Build(card, model, ValueMode.Used, Now).HasPeriodBar);
+        Assert.True(CardVisuals.Build(card, model, ValueMode.Used, Now).HasStrip);
+    }
+
+    [Fact]
     public void CompatibleMonthlyMoneyRetainsBudgetHistoryAndCapWithoutCommercialLabel()
     {
         var data = Data();
@@ -61,9 +82,8 @@ public sealed class MonetaryUsageTests
     }
 
     [Theory]
-    [InlineData(MonetaryScope.Unknown)]
     [InlineData(MonetaryScope.Shared)]
-    internal void UnresolvedOrSharedScopeKeepsFactsAndCapWithoutPersonalBudget(MonetaryScope scope)
+    internal void ExplicitSharedScopeKeepsFactsAndCapWithoutPersonalBudget(MonetaryScope scope)
     {
         var card = Assert.Single(Project(Data(scope: scope), new(new MoneyQuantity(30000, 2, "USD"), Now)).Cards);
         Assert.Equal(CardLayout.Note, card.Layout);
@@ -79,8 +99,8 @@ public sealed class MonetaryUsageTests
     [Fact]
     public void MissingZeroDisabledUnknownLimitAndCurrencyMismatchRemainNativeFacts()
     {
-        foreach (var facts in new[] { Facts with { Used = null }, Facts with { Used = new MoneyQuantity(0, 2, "USD") },
-            Facts with { Enabled = false }, Facts with { Limit = FactLimit.Unknown },
+        foreach (var facts in new[] { Facts with { Used = null },
+            Facts with { Enabled = false },
             Facts with { Limit = FactLimit.Finite(new MoneyQuantity(50000, 2, "EUR")) },
             Facts with { Used = new MoneyQuantity(123, null, null) } })
         {
@@ -100,6 +120,10 @@ public sealed class MonetaryUsageTests
         var noLimit = Assert.Single(Project(Data(Facts with { Limit = FactLimit.ExplicitNull })).Cards);
         Assert.Null(noLimit.Figures.EffectiveLimit);
         Assert.Equal(CardAction.SetCap, noLimit.Action);
+        var zero = Assert.Single(Project(Data(Facts with { Used = new MoneyQuantity(0, 2, "USD") }, MonetaryScope.Unknown)).Cards);
+        Assert.Equal(0m, zero.Figures.Used);
+        Assert.Equal(500m, zero.Figures.EffectiveLimit);
+        Assert.Null(zero.Monetary!.BudgetUnavailable);
     }
 
     [Fact]

@@ -50,7 +50,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         this.preferences = preferences; this.dispatch = dispatch; this.openBrowser = openBrowser;
         this.time = time ?? TimeProvider.System; this.zone = zone ?? TimeZoneInfo.Local; this.diagnostics = diagnostics;
         Current = new(this.time.GetUtcNow(), new(DayKind.WorkDay, false, null), [], Options([]), null,
-            new(BudgetSettingsModel.MondayToFriday, []), new(RefreshInterval, "Update checks unavailable", 0, []));
+            new(BudgetSettingsModel.MondayToFriday, []), new(RefreshInterval, "Update checks unavailable", 0, []) { IsStarting = true });
         accounts.Changed += AccountsChanged;
     }
 
@@ -68,7 +68,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         recovery = value;
         return dispatch(() =>
         {
-            Current = Current with { Summaries = Current.Summaries with { Recovery = value, DiagnosticsAvailable = DiagnosticsPreview is not null } };
+            Current = Current with { Summaries = Current.Summaries with { Recovery = value, IsStarting = false, DiagnosticsAvailable = DiagnosticsPreview is not null } };
             Changed?.Invoke(this, EventArgs.Empty);
         });
     }
@@ -186,8 +186,9 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
                 if (read.Recovered) lostCaptures.Add(account.AccountId);
                 var limit = new LedgerLimit(fact, series, read.Value);
                 data.Add(limit);
-                nextLimits.Add(LiveLedgerProjection.CardId(series), limit);
             }
+            data = [.. LiveLedgerProjection.AccountLimits(data)];
+            foreach (var limit in data) nextLimits.Add(LiveLedgerProjection.CardId(limit.Series), limit);
             var name = preferences.Current.Labels.GetValueOrDefault(id) ?? DefaultName(account, snapshots);
             var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday);
             model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId)).ToArray(), NextRetryAt = NextRetry(account) };

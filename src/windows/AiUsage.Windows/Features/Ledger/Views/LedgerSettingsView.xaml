@@ -25,10 +25,17 @@
           </Button>
         </Grid>
 
+        <StackPanel Spacing="8" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
+          <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
+          <Button Content="Retry recovery" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RetryRecovery}" IsEnabled="{x:Bind ViewModel.CanRetryRecovery, Mode=OneWay}" />
+          <Button Content="Restore legacy preferences" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RestorePreferences}" IsEnabled="{x:Bind ViewModel.CanRestorePreferences, Mode=OneWay}" />
+          <TextBlock Text="The checkpoint contains old appearance preferences only. It cannot restore sign-ins or quota history." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
+        </StackPanel>
+
         <StackPanel Spacing="8">
           <TextBlock Text="BUDGET" Style="{StaticResource LedgerSectionText}" />
           <TextBlock Text="Work days" Style="{StaticResource LedgerStrongText}" />
-          <ItemsControl ItemsSource="{x:Bind ViewModel.WorkDays}" IsTabStop="False" AutomationProperties.Name="Work days">
+          <ItemsControl ItemsSource="{x:Bind ViewModel.WorkDays}" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" IsTabStop="False" AutomationProperties.Name="Work days">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
@@ -48,7 +55,7 @@
 
         <StackPanel Spacing="6">
           <TextBlock Text="PERSONAL CAPS" Style="{StaticResource LedgerSectionText}" />
-          <ItemsControl ItemsSource="{x:Bind ViewModel.Caps}" IsTabStop="False">
+          <ItemsControl ItemsSource="{x:Bind ViewModel.Caps}" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" IsTabStop="False">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate><StackPanel Spacing="6" /></ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
@@ -85,9 +92,9 @@
             <TextBlock Text="Show values" Style="{StaticResource LedgerBodyText}" VerticalAlignment="Center" />
             <Border HorizontalAlignment="Right" Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
               <StackPanel Orientation="Horizontal" Spacing="2">
-                <Button Content="Used" Style="{StaticResource LedgerSegmentButton}" Click="OnUsed" Background="{x:Bind Segment(ViewModel.IsLeft, x:False), Mode=OneWay}"
+                <Button IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Used" Style="{StaticResource LedgerSegmentButton}" Click="OnUsed" Background="{x:Bind Segment(ViewModel.IsLeft, x:False), Mode=OneWay}"
                         Foreground="{x:Bind SegmentText(ViewModel.IsLeft, x:False), Mode=OneWay}" AutomationProperties.Name="Show values: used" />
-                <Button Content="Left" Style="{StaticResource LedgerSegmentButton}" Click="OnLeft" Background="{x:Bind Segment(ViewModel.IsLeft, x:True), Mode=OneWay}"
+                <Button IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Left" Style="{StaticResource LedgerSegmentButton}" Click="OnLeft" Background="{x:Bind Segment(ViewModel.IsLeft, x:True), Mode=OneWay}"
                         Foreground="{x:Bind SegmentText(ViewModel.IsLeft, x:True), Mode=OneWay}" AutomationProperties.Name="Show values: left" />
               </StackPanel>
             </Border>
@@ -96,14 +103,14 @@
             <TextBlock Text="Density" Style="{StaticResource LedgerBodyText}" VerticalAlignment="Center" />
             <Border HorizontalAlignment="Right" Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
               <StackPanel Orientation="Horizontal" Spacing="2">
-                <Button Content="Compact" Style="{StaticResource LedgerSegmentButton}" Click="OnCompact" Background="{x:Bind Segment(ViewModel.IsCompact, x:True), Mode=OneWay}"
+                <Button IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Compact" Style="{StaticResource LedgerSegmentButton}" Click="OnCompact" Background="{x:Bind Segment(ViewModel.IsCompact, x:True), Mode=OneWay}"
                         Foreground="{x:Bind SegmentText(ViewModel.IsCompact, x:True), Mode=OneWay}" AutomationProperties.Name="Density: compact" />
-                <Button Content="Comfortable" Style="{StaticResource LedgerSegmentButton}" Click="OnComfortable" Background="{x:Bind Segment(ViewModel.IsCompact, x:False), Mode=OneWay}"
+                <Button IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Comfortable" Style="{StaticResource LedgerSegmentButton}" Click="OnComfortable" Background="{x:Bind Segment(ViewModel.IsCompact, x:False), Mode=OneWay}"
                         Foreground="{x:Bind SegmentText(ViewModel.IsCompact, x:False), Mode=OneWay}" AutomationProperties.Name="Density: comfortable" />
               </StackPanel>
             </Border>
           </Grid>
-          <Button Style="{StaticResource LedgerFooterButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{x:Bind ViewModel.ToggleShowSignedOutCommand}"
+          <Button IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Style="{StaticResource LedgerFooterButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{x:Bind ViewModel.ToggleShowSignedOutCommand}"
                   AutomationProperties.Name="{x:Bind SwitchName('Show signed-out accounts', ViewModel.ShowSignedOut), Mode=OneWay}">
             <Grid ColumnSpacing="8">
               <Grid.ColumnDefinitions>
@@ -120,7 +127,7 @@
               </Grid>
             </Grid>
           </Button>
-          <Button Style="{StaticResource LedgerFooterButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{x:Bind ViewModel.ToggleAlwaysOnTopCommand}"
+          <Button IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Style="{StaticResource LedgerFooterButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{x:Bind ViewModel.ToggleAlwaysOnTopCommand}"
                   AutomationProperties.Name="{x:Bind SwitchName('Always on top', ViewModel.AlwaysOnTop), Mode=OneWay}">
             <Grid ColumnSpacing="8">
               <Grid.ColumnDefinitions>
@@ -175,12 +182,7 @@
           <TextBlock Text="SYSTEM STATUS" Style="{StaticResource LedgerSectionText}" />
         </Grid>
         <TextBlock Text="{x:Bind ViewModel.SystemStatusText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-        <StackPanel Spacing="8" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
-          <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
-          <Button Content="Retry recovery" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RetryRecovery}" IsEnabled="{x:Bind ViewModel.CanRetryRecovery, Mode=OneWay}" />
-          <Button Content="Restore legacy preferences" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RestorePreferences}" IsEnabled="{x:Bind ViewModel.CanRestorePreferences, Mode=OneWay}" />
-          <TextBlock Text="The checkpoint contains old appearance preferences only. It cannot restore sign-ins or quota history." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-        </StackPanel>
+
         <StackPanel Spacing="6">
           <Button Content="Preview diagnostics" Command="{x:Bind ViewModel.PreviewDiagnosticsCommand}" />
           <Button Content="Open logs" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.OpenLogs}" />

@@ -3,6 +3,7 @@ using AiUsage.Core.Accounts;
 using AiUsage.Core.Budget;
 using AiUsage.Core.Usage;
 using AiUsage.Features.Ledger.Contract;
+using AiUsage.Features.Ledger;
 using Xunit;
 using FactValue = AiUsage.Core.Usage.LimitValue;
 
@@ -10,6 +11,29 @@ namespace AiUsage.Presentation.Tests;
 
 public sealed class LiveLedgerSourceTests
 {
+    [Fact]
+    public async Task RecoveryDoesNotOfferSignInOrClaimAccountsAreSynced()
+    {
+        using var source = Source(new Accounts(), new Store(), new Clock());
+        try
+        {
+        await source.SetRecoveryAsync(new("Local data is unavailable", true, false));
+        using var window = new LedgerViewModel(source, new ManualScheduler());
+        Assert.False(window.IsFirstRun);
+        Assert.All(window.Providers, p => Assert.False(p.IsEnabled));
+        Assert.Equal("Local data is unavailable", window.Settings.SystemStatusText);
+        await window.SignInAsync(ProviderKind.Codex);
+        Assert.True(window.IsSettingsOpen);
+        Assert.Null(source.Current.SignInStrip);
+
+        await source.InitializeAsync(null, Token);
+        await source.SetRecoveryAsync(null);
+        Assert.True(window.IsFirstRun);
+        Assert.All(window.Providers, p => Assert.True(p.IsEnabled));
+        }
+        finally { await source.StopAsync(); }
+    }
+
     private static CancellationToken Token => TestContext.Current.CancellationToken;
     private sealed class Clock : TimeProvider
     {
@@ -78,8 +102,7 @@ public sealed class LiveLedgerSourceTests
             var cap = Assert.Single(source.Current.Budget.Caps);
             Assert.Equal(CapStatus.CurrencyMismatch, cap.Status);
             Assert.Equal("EUR", cap.Scale.Currency);
-            Assert.Null(cap.CapTargetId);
-            Assert.Equal(CommandOutcome.Rejected, await source.SetCapAsync(cap.CapId, 100, Token));
+            Assert.Equal(cap.CapId, cap.CapTargetId);
             Assert.Equal(before, store.Configuration);
             await source.StopAsync();
         }

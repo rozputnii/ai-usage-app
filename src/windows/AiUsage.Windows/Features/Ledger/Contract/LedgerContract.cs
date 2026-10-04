@@ -215,6 +215,7 @@ internal sealed record SettingsSummaries(TimeSpan RefreshInterval, string Update
     public string? LocalStatus { get; init; }
     public LedgerRecoveryModel? Recovery { get; init; }
     public bool DiagnosticsAvailable { get; init; }
+    public bool IsStarting { get; init; }
 }
 internal sealed record LedgerRecoveryModel(string Message, bool CanRetry, bool CanRestorePreferences);
 internal enum LedgerSupportAction { RetryRecovery, RestorePreferences, OpenDataFolder, OpenLogs, ExportRecovery }

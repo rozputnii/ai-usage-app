@@ -17,7 +17,7 @@ public sealed class ParserLedgerTests
     [Theory]
     [InlineData("\"spend\":{\"enabled\":true,\"used\":{\"amount_minor\":1250,\"currency\":\"USD\",\"exponent\":2},\"limit\":{\"amount_minor\":50000,\"currency\":\"USD\",\"exponent\":2}},\"extra_usage\":{\"is_enabled\":true,\"used_credits\":9999,\"monthly_limit\":99999,\"currency\":\"EUR\",\"decimal_places\":2}")]
     [InlineData("\"extra_usage\":{\"is_enabled\":true,\"used_credits\":1250,\"monthly_limit\":50000,\"currency\":\"USD\",\"decimal_places\":2}")]
-    public void CurrentAndLegacyFiniteMoneyProduceOneNeutralPoolWithoutPlanInference(string properties)
+    public void CurrentAndLegacyFiniteMoneyProduceMonthlyWorkBudgetWithoutChangingProviderPlan(string properties)
     {
         var now = new DateTimeOffset(2026, 10, 5, 12, 0, 0, TimeSpan.Zero);
         Assert.True(ClaudeQuotaParser.TryParse(Encoding.UTF8.GetBytes("{" + properties + "}"), now, out var reading));
@@ -29,9 +29,12 @@ public sealed class ParserLedgerTests
         Assert.Equal("Spending", card.ScopeLabel);
         Assert.Equal(12.50m, card.Figures.Used);
         Assert.Equal(500, card.Figures.ProviderLimit.Amount);
-        Assert.Null(card.Figures.EffectiveLimit);
-        Assert.Null(card.CapTargetId);
-        Assert.Contains("scope unverified", card.Monetary!.Qualification);
+        Assert.Equal(500, card.Figures.EffectiveLimit);
+        Assert.Equal(CardLayout.Pool, card.Layout);
+        Assert.True(card.Figures.TodayEnd > card.Figures.DayStart);
+        Assert.NotNull(card.CapTargetId);
+        Assert.Equal(new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero), card.Reset!.At);
+        Assert.Null(card.Monetary!.BudgetUnavailable);
     }
 
     private static AccountModel Project(string provider, QuotaSnapshot quota, DateTimeOffset now)
@@ -69,9 +72,8 @@ public sealed class ParserLedgerTests
         var now = new DateTimeOffset(2026, 9, 14, 10, 0, 0, TimeSpan.Zero);
         var quota = CodexQuotaParser.Parse(File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fixtures", "codex-usage.synthetic.json")), now);
         var model = Project("codex", quota, now);
-        var balance = Assert.Single(model.Cards, c => c.ScopeLabel == "Credits");
-        Assert.Equal(CardState.NoCap, balance.State);
-        Assert.Null(balance.Figures.ProviderBalance);
+        Assert.DoesNotContain(model.Cards, c => c.ScopeLabel == "Credits");
+        Assert.Null(Assert.Single(quota.Limits!.Limits, l => l.Key.Family == "CX-B").Remaining);
         Assert.Contains(model.Cards, c => c.State == CardState.ValueUnknown && c.Period.Kind == PeriodKind.Unknown);
     }
 

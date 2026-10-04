@@ -14,11 +14,21 @@ internal enum MonetaryScope { Unknown, Account, Shared }
 internal sealed record LedgerLimit(LimitFacts Facts, ReadingSeriesKey Series, IReadOnlyList<ReadingRun> Runs)
 {
     public MonetaryScope MonetaryScope { get; init; }
+    public bool UsesWorkBudget { get; init; }
 }
 
 /// <summary>Core facts and calculations projected once into display units. No transport or persistence.</summary>
 internal static class LiveLedgerProjection
 {
+    // Owner display policy: monetary-only accounts use a monthly work budget.
+    // This does not modify provider facts or claim independently verified commercial scope.
+    public static LedgerLimit[] AccountLimits(IReadOnlyList<LedgerLimit> limits)
+    {
+        var hasSubscriptionWindows = limits.Any(l => l.Facts.Kind == LimitKind.PercentWindow);
+        return limits.Select(l => l with { UsesWorkBudget = !hasSubscriptionWindows &&
+            l.Facts.Kind == LimitKind.MonetaryPool && l.MonetaryScope != MonetaryScope.Shared }).ToArray();
+    }
+
     public static string CardId(ReadingSeriesKey series) => series.AccountTarget + ":" + Convert.ToBase64String(Encoding.UTF8.GetBytes(
         JsonSerializer.Serialize(new[] { series.Limit.Provider, series.Limit.Family, series.Limit.NativeDiscriminator }, LedgerProjectionJson.Default.StringArray)));
 
@@ -39,11 +49,13 @@ internal static class LiveLedgerProjection
             ? AccountHealth.SignInExpired : session.Status == ProviderSessionStatus.RecoveryRequired ? AccountHealth.ProviderError
             : session.Failure is not null ? stale ? AccountHealth.SyncFailedStale : AccountHealth.SyncFailedFresh
             : readingAt is null ? AccountHealth.ProviderError : AccountHealth.Ok;
-        var normalized = limits.Select(l => l with { Series = new(id, l.Facts.Key) }).ToArray();
+        var normalized = AccountLimits(limits).Select(l => l with { Series = new(id, l.Facts.Key) }).ToArray();
+        var hasSubscriptionWindows = normalized.Any(l => l.Facts.Kind == LimitKind.PercentWindow);
         var cards = new List<LimitCardModel>();
         foreach (var data in normalized)
         {
             var facts = data.Facts;
+            if (hasSubscriptionWindows && facts.Key is { Provider: "codex", Family: "CX-B" }) continue;
             // Only a known shared pool may consume its short window into the period card.
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;
@@ -99,12 +111,12 @@ internal static class LiveLedgerProjection
         IReadOnlySet<DayOfWeek> workDays, DateOnly? workToday, bool stale)
     {
         var facts = data.Facts;
-        var period = PeriodResolver.Resolve(facts, now, zone);
+        var period = PeriodResolver.Resolve(data.UsesWorkBudget ? facts with { IsMonthly = true, AllowsCalendarFallback = true } : facts, now, zone);
         var used = facts.Kind == LimitKind.PercentWindow ? facts.UsedPercent is { } p ? new CountQuantity(p, "percent") : null : facts.Used;
         var runs = data.Runs;
         TrackingModel? tracking = null;
         // A balance or cumulative spend without a provider period needs locally tracked consumption.
-        if (period is not null && (facts.Used is null && facts.Remaining is not null || facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
+        if (period is not null && (facts.Used is null && facts.Remaining is not null || !data.UsesWorkBudget && facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
         {
             var tracked = ReadingCalculations.Track(runs, data.Series, period, now, facts.Used is null, 1);
             used = tracked.Used;
@@ -150,7 +162,7 @@ internal static class LiveLedgerProjection
     {
         var facts = data.Facts;
         var scope = data.MonetaryScope;
-        var qualification = scope switch
+        var qualification = data.UsesWorkBudget ? "Monthly work budget" : scope switch
         {
             MonetaryScope.Account => "Account spending",
             MonetaryScope.Shared => "Shared spending · not a personal allowance",
@@ -161,7 +173,7 @@ internal static class LiveLedgerProjection
         var compatible = facts.Used is MoneyQuantity used && Amount(used) is not null &&
             (facts.Limit.Value is null || QuantityMath.TryAlign(used, facts.Limit.Value, out _, out _, out _));
         var unavailable = facts.Enabled == false ? "Spending disabled · retained readings and caps kept"
-            : scope != MonetaryScope.Account ? "Budget and cap editing unavailable until spending scope is established"
+            : scope != MonetaryScope.Account && !data.UsesWorkBudget ? "Budget and cap editing unavailable until spending scope is established"
             : !compatible ? "Budget unavailable until compatible amounts and currency are known"
             : period is null ? "Budget and cap editing unavailable until the period is known" : null;
         static MonetaryAmount? Native(Quantity? value) => value is MoneyQuantity m ? new(m.MinorUnits, m.Exponent, m.Currency) : null;
@@ -249,7 +261,7 @@ internal static class LiveLedgerProjection
             var at = end > now ? now : end.AddTicks(-1);
             var allRuns = data.Runs;
             if (PeriodResolver.Resolve(data.Facts, at, zone) is { } period &&
-                (data.Facts.Used is null && data.Facts.Remaining is not null || data.Facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
+                (data.Facts.Used is null && data.Facts.Remaining is not null || !data.UsesWorkBudget && data.Facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
                 allRuns = ReadingCalculations.Track(allRuns, data.Series, period, at, data.Facts.Used is null, 1).Runs;
             var runs = allRuns.Where(r => r.FirstSeen <= at && r.LastConfirmed >= start).ToArray();
             decimal? total = null;

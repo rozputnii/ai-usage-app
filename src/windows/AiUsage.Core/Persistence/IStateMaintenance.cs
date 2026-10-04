@@ -1,6 +1,6 @@
 namespace AiUsage.Core.Persistence;
 
-public enum MaintenanceCondition { Ready, Interrupted, NewerSchema, RestoreFailed, DeletionPending }
+public enum MaintenanceCondition { Ready, Interrupted, NewerSchema, RestoreFailed, DeletionPending, InUse }
 public sealed record MaintenanceCheckpoint(string Id, DateTimeOffset CreatedAt, int LayoutVersion);
 public sealed record MaintenanceReport(MaintenanceCondition Condition, int? LayoutVersion, MaintenanceCheckpoint? Checkpoint);
 

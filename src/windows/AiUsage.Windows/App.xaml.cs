@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AppLifecycle;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AiUsage;
 
@@ -17,6 +20,7 @@ public partial class App : Application
     private IHost? host;
     private LedgerShell? shell;
     private Task? stopTask;
+    private AppInstance? instance;
     private readonly ApplicationDiagnostics diagnostics = new();
 
     public App()
@@ -48,6 +52,18 @@ public partial class App : Application
             diagnostics.Watch(DispatcherQueue.GetForCurrentThread());
             if (diagnostics.TryRunProbe(Exit)) return;
             var demo = Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal);
+            // One writer/window per data root. A launch after close-to-tray restores it.
+            var queue = DispatcherQueue.GetForCurrentThread();
+            var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(ApplicationStateDirectory.Get(demo))).ToUpperInvariant();
+            var key = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(root)));
+            instance = AppInstance.FindOrRegisterForKey(key);
+            if (!instance.IsCurrent)
+            {
+                await instance.RedirectActivationToAsync(AppInstance.GetCurrent().GetActivatedEventArgs());
+                await StopAsync();
+                return;
+            }
+            instance.Activated += (_, _) => queue.TryEnqueue(() => shell?.Show());
             var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { DisableDefaults = true });
             diagnostics.Register(builder.Services);
             builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
@@ -103,6 +119,7 @@ public partial class App : Application
                 Environment.ExitCode = 1;
             }
             diagnostics.Dispose();
+            if (instance?.IsCurrent == true) instance.UnregisterKey();
             Exit();
         }
     }

@@ -56,6 +56,7 @@ internal sealed class LedgerProductLifetime : IDisposable
                 {
                     MaintenanceCondition.NewerSchema => "These local data were written by a newer app. Open them with that version.",
                     MaintenanceCondition.DeletionPending => "Stored-data deletion is incomplete. Retry to finish it.",
+                    MaintenanceCondition.InUse => "AI Usage is already using these local data in another process. Open its window from the tray, or exit it and retry here. Your data is unchanged.",
                     _ => "Local data needs recovery before accounts can be opened. Existing data is preserved."
                 }, report.Condition != MaintenanceCondition.NewerSchema, report.Checkpoint is not null && report.Condition != MaintenanceCondition.NewerSchema));
                 return CommandOutcome.Unavailable;

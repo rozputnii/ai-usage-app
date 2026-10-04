@@ -35,10 +35,10 @@
     <tray:TaskbarIcon x:Name="TrayIcon" NoLeftClickDelay="True" LeftClickCommand="{x:Bind ShowTrayCommand}" ToolTipText="AI Usage">
       <tray:TaskbarIcon.ContextFlyout>
         <MenuFlyout>
-          <MenuFlyoutItem Text="Open AI Usage" Click="OnTrayOpen" />
-          <MenuFlyoutItem Text="Refresh" Click="OnTrayRefresh" />
+          <MenuFlyoutItem Text="Open AI Usage" Command="{x:Bind OpenWindowCommand}" />
+          <MenuFlyoutItem Text="Refresh" Command="{x:Bind ViewModel.RefreshCommand}" />
           <MenuFlyoutSeparator />
-          <MenuFlyoutItem Text="Exit" Click="OnTrayExit" />
+          <MenuFlyoutItem Text="Exit" Command="{x:Bind ExitCommand}" />
         </MenuFlyout>
       </tray:TaskbarIcon.ContextFlyout>
     </tray:TaskbarIcon>
@@ -65,15 +65,15 @@
                 AutomationProperties.Name="Demo scenarios" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Demo scenarios (demo build only)')}" Click="OnDemoClick" />
         <Border Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2" Margin="0,0,4,0">
           <StackPanel Orientation="Horizontal" Spacing="2">
-            <Button x:Name="UsedButton" Content="Used" Style="{StaticResource LedgerSegmentButton}" Click="OnUsedClick"
+            <Button x:Name="UsedButton" Content="Used" Style="{StaticResource LedgerSegmentButton}" Click="OnUsedClick" IsEnabled="{x:Bind ViewModel.CanUseAccounts, Mode=OneWay}"
                     Background="{x:Bind SegmentBackground(ViewModel.IsLeft, x:False), Mode=OneWay}" Foreground="{x:Bind SegmentForeground(ViewModel.IsLeft, x:False), Mode=OneWay}"
                     AutomationProperties.Name="Show values: used" />
-            <Button x:Name="LeftButton" Content="Left" Style="{StaticResource LedgerSegmentButton}" Click="OnLeftClick"
+            <Button x:Name="LeftButton" Content="Left" Style="{StaticResource LedgerSegmentButton}" Click="OnLeftClick" IsEnabled="{x:Bind ViewModel.CanUseAccounts, Mode=OneWay}"
                     Background="{x:Bind SegmentBackground(ViewModel.IsLeft, x:True), Mode=OneWay}" Foreground="{x:Bind SegmentForeground(ViewModel.IsLeft, x:True), Mode=OneWay}"
                     AutomationProperties.Name="Show values: left" />
           </StackPanel>
         </Border>
-        <Button x:Name="AddButton" Style="{StaticResource LedgerTitleIconButton}" AutomationProperties.Name="Add account" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Add account (Ctrl+N)')}">
+        <Button x:Name="AddButton" Style="{StaticResource LedgerTitleIconButton}" AutomationProperties.Name="Add account" IsEnabled="{x:Bind ViewModel.CanUseAccounts, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Add account (Ctrl+N)')}">
           <Path Data="M8,3 V13 M3,8 H13" Stroke="{StaticResource LedgerInkBrush}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" />
           <Button.Flyout>
             <Flyout x:Name="ProviderFlyout" Placement="BottomEdgeAlignedRight">
@@ -157,8 +157,9 @@
       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
       <StackPanel Grid.ColumnSpan="2" Orientation="Vertical" Spacing="6" Margin="16,10" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
         <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
-        <Button Content="Recovery and diagnostics" Command="{x:Bind ViewModel.ToggleSettingsCommand}" HorizontalAlignment="Left" />
+        <Button Content="Recovery and diagnostics" Command="{x:Bind ViewModel.OpenSettingsCommand}" HorizontalAlignment="Left" />
       </StackPanel>
+      <TextBlock Grid.ColumnSpan="2" Text="Opening local data…" Margin="16,10" Style="{StaticResource LedgerBodyText}" Visibility="{x:Bind Show(ViewModel.IsStarting), Mode=OneWay}" />
       <ScrollViewer x:Name="CardScroller" Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                     Visibility="{x:Bind Hide(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
         <lc:CardGridPanel x:Name="CardGrid" Gap="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
@@ -166,7 +167,7 @@
       </ScrollViewer>
 
       <ScrollViewer Grid.Row="1" Visibility="{x:Bind Show(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
-        <StackPanel Width="460" Spacing="12" Margin="16,44,16,16" HorizontalAlignment="Center">
+        <StackPanel MaxWidth="460" Spacing="12" Margin="16,44,16,16" HorizontalAlignment="Stretch">
           <TextBlock Text="Add an account" Style="{StaticResource LedgerHeadingText}" />
           <TextBlock Text="AI Usage shows how much of each subscription limit is left today. Sign-in opens your browser; nothing is read before you sign in." Style="{StaticResource LedgerIntroText}" />
           <ItemsControl ItemsSource="{x:Bind ViewModel.Providers}" IsTabStop="False">

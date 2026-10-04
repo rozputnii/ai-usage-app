@@ -25,6 +25,20 @@ public sealed class LiveLedgerProjectionTests
         LiveLedgerProjection.Card(data, cap, now ?? Now, TimeZoneInfo.Utc, BudgetSettingsModel.MondayToFriday, workToday, false);
 
     [Fact]
+    public void CodexSubscriptionWindowsDoNotDisplayACreditBalanceCard()
+    {
+        var weekly = Weekly() with { Key = new("codex", "CX-S", "weekly") };
+        var credits = new LimitFacts(new("codex", "CX-B", "credits"), LimitKind.CountablePool, "credits", FactValue.Unknown)
+        { Remaining = new CountQuantity(0, "credits"), HasCredits = false, AllowsCalendarFallback = true };
+        var account = new AccountSnapshot(Account, "codex", true,
+            new(ProviderSessionStatus.QuotaAvailable, new QuotaSnapshot(Now, "prolite", [], null, null, null, null)), false, null);
+        var model = LiveLedgerProjection.Account(account, "Codex prolite", [Data(weekly), Data(credits)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.Equal(LiveLedgerProjection.CardId(Data(weekly).Series), Assert.Single(model.Cards).CardId);
+        var onlyCredits = LiveLedgerProjection.Account(account, "Codex", [Data(credits)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.Equal(ScaleKind.Count, Assert.Single(onlyCredits.Cards).Scale.Kind);
+    }
+
+    [Fact]
     public void WeeklyUsesCoreBudgetAndRetainsUnknownAsUnknown()
     {
         var card = Card(Data(Weekly()));

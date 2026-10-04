@@ -138,8 +138,9 @@ public sealed class StateMaintenanceTests : IDisposable
         using var first = new StateMaintenance(root);
         Assert.Equal(MaintenanceCondition.Ready, (await first.InitializeAsync(Token)).Condition);
         using var second = new StateMaintenance(root);
-        Assert.Equal(MaintenanceCondition.Interrupted, (await second.InitializeAsync(Token)).Condition);
-        Assert.Equal(MaintenanceCondition.Interrupted, (await second.RetryAsync(Token)).Condition);
+        Assert.Equal(MaintenanceCondition.InUse, (await second.InitializeAsync(Token)).Condition);
+        Assert.Null(second.Current.Checkpoint);
+        Assert.Equal(MaintenanceCondition.InUse, (await second.RetryAsync(Token)).Condition);
         first.Dispose();
         Assert.Equal(MaintenanceCondition.Ready, (await second.RetryAsync(Token)).Condition);
     }

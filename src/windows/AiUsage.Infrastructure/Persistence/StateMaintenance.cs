@@ -132,6 +132,11 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
             diagnostics?.Signal(DiagnosticEvent.MigrationCompleted);
             return new(MaintenanceCondition.Ready, 1, summary);
         }
+        catch (IOException error) when (lease is null && error.HResult == unchecked((int)0x80070020))
+        {
+            diagnostics?.Signal(DiagnosticEvent.LeaseUnavailable, DiagnosticSeverity.Warning);
+            return new(MaintenanceCondition.InUse, null, null);
+        }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or CryptographicException or JsonException or ProviderException)
         {
             diagnostics?.Failure(lease is null ? DiagnosticEvent.LeaseUnavailable : DiagnosticEvent.PersistenceFailure, error);

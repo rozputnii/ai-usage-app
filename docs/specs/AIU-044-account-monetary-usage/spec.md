@@ -3,11 +3,36 @@ id: AIU-044
 type: feature
 status: implemented
 goal: G-003
-scope_version: 1
+scope_version: 2
 approval_basis: The owner selected implementation on 2026-10-04, following this specification, preserving supported monthly budgets and spending since window exhaustion, with verification, review, commit and push.
 ---
 
 # Account-owned monetary usage
+
+## Owner correction, 2026-10-04
+
+The owner reported the live UI showing an irrelevant Codex Credits card beside
+subscription percentage windows and blocking the monetary-only Claude account's
+budget. This correction supersedes conflicting classification and presentation
+restrictions below:
+
+- When an account reports subscription percentage windows, suppress the separate
+  Codex credit-balance card. Preserve its stored native facts and history.
+- An account with monetary usage and no subscription percentage windows uses the
+  work-account monthly-budget presentation. Use its native currency, used amount
+  and finite limit, with the calendar month ending at local midnight on the first
+  day of the next month when no provider period is supplied. This is the owner's
+  display policy; it does not assert independently verified provider plan/scope.
+- Render both the monthly bar and today's budget using existing work-day rules.
+  Lack of a commercial plan label or independently verified scope must not block
+  this view. Explicit shared scope, disabled usage and incompatible/unknown money
+  remain qualified; abstract credits must never be converted to money without a
+  supplied denomination. Missing historical readings must not become invented usage.
+- Preserve account/series identities, provider facts, credentials and stored history.
+  Cover the reported monetary-only USD scenario and Codex subscription-plus-credit
+  scenario in regressions and actual ordinary Windows UI checks.
+
+Observed correction checks are recorded in [ux-corrections-verification.md](ux-corrections-verification.md).
 
 ## Problem and intended result
 

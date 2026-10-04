@@ -37,6 +37,8 @@ internal sealed partial class LedgerWindow : Window
         this.exit = exit;
         this.showTray = showTray;
         ShowTrayCommand = new RelayCommand(showTray);
+        OpenWindowCommand = new RelayCommand(ShowAndActivate);
+        ExitCommand = new AsyncRelayCommand(exit);
         InitializeComponent();
         Title = "AI Usage";
         ExtendsContentIntoTitleBar = true;
@@ -52,7 +54,12 @@ internal sealed partial class LedgerWindow : Window
 
         AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape());
         AddAccelerator((VirtualKey)188, VirtualKeyModifiers.Control, () => { ViewModel.ToggleSettings(); return true; });
-        AddAccelerator(VirtualKey.N, VirtualKeyModifiers.Control, () => { AddButton.Flyout?.ShowAt(AddButton); return true; });
+        AddAccelerator(VirtualKey.N, VirtualKeyModifiers.Control, () =>
+        {
+            if (ViewModel.CanUseAccounts) AddButton.Flyout?.ShowAt(AddButton);
+            else ViewModel.OpenSettings();
+            return true;
+        });
         AddAccelerator(VirtualKey.Z, VirtualKeyModifiers.Control, () => { var handled = ViewModel.HasUndo; _ = ViewModel.UndoAsync(); return handled; });
         AddAccelerator(VirtualKey.F5, VirtualKeyModifiers.None, () => { _ = ViewModel.RefreshAsync(); return true; });
         AddAccelerator(VirtualKey.Q, VirtualKeyModifiers.Control, () => { _ = exit(); return true; });
@@ -67,6 +74,8 @@ internal sealed partial class LedgerWindow : Window
 
     public LedgerViewModel ViewModel { get; }
     public IRelayCommand ShowTrayCommand { get; }
+    public IRelayCommand OpenWindowCommand { get; }
+    public IAsyncRelayCommand ExitCommand { get; }
 
     private void AddAccelerator(VirtualKey key, VirtualKeyModifiers modifiers, Func<bool> action)
     {
@@ -270,12 +279,6 @@ internal sealed partial class LedgerWindow : Window
     private void OnUndoBlur(object sender, RoutedEventArgs e) => ViewModel.HoldUndo(false);
 
     // ---- Tray ----
-
-    private void OnTrayOpen(object sender, RoutedEventArgs e) => ShowAndActivate();
-
-    private void OnTrayRefresh(object sender, RoutedEventArgs e) => _ = ViewModel.RefreshAsync();
-
-    private void OnTrayExit(object sender, RoutedEventArgs e) => _ = exit();
 
     /// <summary>The tray mark takes the most urgent card colour; drawn synchronously as in the current tray (D9).</summary>
     private void UpdateTrayGlyph()

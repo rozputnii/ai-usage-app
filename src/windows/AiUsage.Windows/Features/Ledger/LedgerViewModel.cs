@@ -5,9 +5,9 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AiUsage.Features.Ledger;
 
-internal sealed record ProviderItem(ProviderKind Provider, string Name, string Description, bool Added, bool SigningIn)
+internal sealed record ProviderItem(ProviderKind Provider, string Name, string Description, bool Added, bool SigningIn, bool Available = true)
 {
-    public bool IsEnabled => !SigningIn;
+    public bool IsEnabled => Available && !SigningIn;
     public string MenuRight => Added ? "added" : SigningIn ? "waiting…" : string.Empty;
     public string ButtonText => SigningIn ? "Waiting…" : "Sign in";
     public string ButtonName => "Sign in to " + Name;
@@ -56,6 +56,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
 
     [ObservableProperty] public partial string ClockText { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool IsFirstRun { get; private set; }
+    [ObservableProperty] public partial bool CanUseAccounts { get; private set; }
+    [ObservableProperty] public partial bool IsStarting { get; private set; }
     [ObservableProperty] public partial bool IsDayOff { get; private set; }
     [ObservableProperty] public partial bool WorkTodayOn { get; private set; }
     [ObservableProperty] public partial string DayText { get; private set; } = string.Empty;
@@ -93,6 +95,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         var prefs = source.Preferences;
         var now = snapshot.LocalNow;
         NeedsRecovery = snapshot.Summaries.Recovery is not null;
+        IsStarting = snapshot.Summaries.IsStarting;
+        CanUseAccounts = !NeedsRecovery && !IsStarting;
         RecoveryText = snapshot.Summaries.Recovery?.Message ?? string.Empty;
         ClockText = LedgerFormat.TitleClock(now);
         IsLeft = prefs.Mode == ValueMode.Left;
@@ -105,7 +109,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(ValueModeName));
 
         var visible = snapshot.Accounts.Where(a => prefs.ShowSignedOut || a.Health != AccountHealth.SignedOut).ToArray();
-        IsFirstRun = snapshot.Accounts.Count == 0;
+        IsFirstRun = snapshot.Accounts.Count == 0 && CanUseAccounts;
         if (IsFirstRun)
             ClearUndo();
         var fresh = knownAccounts is null ? [] : visible.Where(a => !knownAccounts.Contains(a.AccountId)).Select(a => a.AccountId).ToHashSet();
@@ -134,7 +138,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         if (History is { } history && !cardsById.ContainsKey(history.CardId))
             CloseHistory();
 
-        Sync(Providers, snapshot.Providers.Select(p => new ProviderItem(p.Provider, LedgerFormat.ProviderName(p.Provider), Describe(p.Provider), p.Added, p.SigningIn)).ToList());
+        Sync(Providers, snapshot.Providers.Select(p => new ProviderItem(p.Provider, LedgerFormat.ProviderName(p.Provider), Describe(p.Provider), p.Added, p.SigningIn, CanUseAccounts)).ToList());
         UpdateStrip(snapshot.SignInStrip);
         Settings.Rebuild(snapshot, prefs);
     }
@@ -247,6 +251,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     public void ToggleSettings() => IsSettingsOpen = !IsSettingsOpen;
 
     [RelayCommand]
+    public void OpenSettings() => IsSettingsOpen = true;
+
+    [RelayCommand]
     public Task RefreshAsync() => source.RefreshAsync(CancellationToken.None);
 
     [RelayCommand]
@@ -297,6 +304,11 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [RelayCommand]
     public async Task SignInAsync(ProviderKind provider)
     {
+        if (!CanUseAccounts)
+        {
+            IsSettingsOpen = true;
+            return;
+        }
         hiddenStrip = null;
         announce("Waiting for " + LedgerFormat.ProviderName(provider) + " sign-in in your browser");
         await source.SignInAsync(provider, CancellationToken.None);

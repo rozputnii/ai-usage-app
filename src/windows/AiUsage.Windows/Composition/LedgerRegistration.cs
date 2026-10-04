@@ -61,6 +61,8 @@ internal sealed class LedgerShell : IDisposable
         window.Activate();
     }
 
+    public void Show() => window.ShowAndActivate();
+
     private void ShowTray()
     {
         popup ??= new LedgerTrayWindow(services.GetRequiredService<LedgerTrayViewModel>(), accountId =>
