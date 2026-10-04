@@ -1,7 +1,7 @@
 param(
     [string]$PageDirectory = '.ai-usage-local/ui-audit/pages',
     [string]$OutputDirectory = '.ai-usage-local/ui-audit/sandbox',
-    [string]$TestMethod = '*ReplayPagesRenderUsedAndLeft',
+    [string[]]$TestMethod = @('*ReplayPagesRenderUsedAndLeft'),
     [string]$FirstPage = ''
 )
 $ErrorActionPreference = 'Stop'
@@ -13,7 +13,7 @@ for ($ancestor = $output; $ancestor; $ancestor = [IO.Path]::GetDirectoryName($an
     if ((Test-Path -LiteralPath $ancestor) -and ((Get-Item -LiteralPath $ancestor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Audit staging must not use redirected directories.' }
 }
 if ((Test-Path -LiteralPath $output) -and @(Get-ChildItem -LiteralPath $output -Force).Count) { throw 'Choose a fresh output directory; previous evidence is preserved.' }
-if ($TestMethod -notmatch '^[A-Za-z0-9.*]+$' -or ($FirstPage -and $FirstPage -notmatch '^(overview|page-\d{3})$')) { throw 'Invalid test/page filter.' }
+if (!$TestMethod.Count -or @($TestMethod | Where-Object { $_ -notmatch '^[A-Za-z0-9.*]+$' }).Count -or ($FirstPage -and $FirstPage -notmatch '^(overview|page-\d{3})$')) { throw 'Invalid test/page filter.' }
 $pages = [IO.Path]::GetFullPath((Join-Path $repository $PageDirectory))
 if (!$pages.StartsWith($allowed, [StringComparison]::OrdinalIgnoreCase)) { throw 'Only isolated audit pages may be mapped into the guest.' }
 for ($ancestor = $pages; $ancestor; $ancestor = [IO.Path]::GetDirectoryName($ancestor)) {
@@ -41,7 +41,7 @@ try {
 
 # This script runs only in the disposable guest, with its own writable work directory.
 @'
-param([string]$Method, [string]$FirstPage)
+param([string]$FirstPage)
 $ErrorActionPreference = 'Stop'
 if ($env:USERNAME -ne 'WDAGUtilityAccount') { throw 'Synthetic audit requires Windows Sandbox.' }
 $report = [ordered]@{ Synthetic = $true; StartedAt = [DateTimeOffset]::UtcNow.ToString('o'); Status = 'STARTED'; Network = 'Disabled' }
@@ -67,9 +67,20 @@ try {
         Start-Sleep -Seconds 1
     }
     if ($LASTEXITCODE) { $report.Status = 'BLOCKED'; return }
-    & C:/AIU-Work/smoke/AiUsage.Windows.Tests.exe -method $Method -parallel none -xml C:/AIU-Evidence/native.xml *> C:/AIU-Evidence/native.log
+    $nativeArguments = @('-parallel', 'none', '-xml', 'C:/AIU-Evidence/native.xml')
+    foreach ($method in @((Get-Content C:/AIU-Input/build.json -Raw | ConvertFrom-Json).TestMethod)) { $nativeArguments += @('-method', $method) }
+    & C:/AIU-Work/smoke/AiUsage.Windows.Tests.exe @nativeArguments *> C:/AIU-Evidence/native.log
     $report.NativeExitCode = $LASTEXITCODE
-    $report.Status = if ($LASTEXITCODE) { 'FAIL' } else { 'PASS_REQUIRES_VISUAL_INSPECTION' }
+    [xml]$nativeXml = Get-Content C:/AIU-Evidence/native.xml -Raw
+    $assemblies = @($nativeXml.assemblies.assembly)
+    $report.Executed = ($assemblies | Measure-Object -Property total -Sum).Sum
+    $report.Passed = ($assemblies | Measure-Object -Property passed -Sum).Sum
+    $report.Failed = ($assemblies | Measure-Object -Property failed -Sum).Sum
+    $report.Skipped = ($assemblies | Measure-Object -Property skipped -Sum).Sum
+    $report.NotRun = ($assemblies | ForEach-Object { [int]$_.'not-run' } | Measure-Object -Sum).Sum
+    $report.Errors = ($assemblies | Measure-Object -Property errors -Sum).Sum
+    $report.Status = if ($report.NativeExitCode -or $report.Executed -le 0 -or $report.Passed -ne $report.Executed -or
+        $report.Failed -or $report.Skipped -or $report.NotRun -or $report.Errors) { 'FAIL' } else { 'PASS_REQUIRES_VISUAL_INSPECTION' }
 } catch { $report.Status = 'FAIL'; $report.Error = $_.Exception.Message }
 finally { $report | ConvertTo-Json | Set-Content C:/AIU-Evidence/run.json }
 '@ | Set-Content -LiteralPath (Join-Path $inputPath 'Run.ps1')
@@ -100,7 +111,7 @@ try {
         Start-Sleep -Seconds 1
     }
     if (!$ready) { throw 'BLOCKED: Sandbox has not established its interactive guest session.' }
-    $guestCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\AIU-Input\Run.ps1 -Method $TestMethod"
+    $guestCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\AIU-Input\Run.ps1"
     if ($FirstPage) { $guestCommand += " -FirstPage $FirstPage" }
     & wsb exec --id $sandbox.Id --command $guestCommand --run-as ExistingLogin --raw
     if ($LASTEXITCODE) { throw 'Sandbox command failed; inspect retained evidence.' }

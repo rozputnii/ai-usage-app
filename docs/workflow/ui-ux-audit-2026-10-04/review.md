@@ -30,3 +30,14 @@ Fresh read-only reviewer: GPT-6 Astra, low reasoning, frozen `9e60f773..ed092f0d
 | REV-05 | P2 | Failed capture followed by failed diagnostic write skipped owned-process cleanup | Corrected with best-effort evidence and cleanup/disposal in finally; new actual guest regression failed before the fix (cleanup-red.xml) and passed after it (cleanup-green.xml, 1/1) |
 
 The final independent verdict was FAIL for these three findings; dispositions above record subsequent primary corrections, not a rewritten reviewer verdict. Only targeted reruns follow the corrections. The comprehensive audit remains incomplete.
+
+## Shell and history follow-up
+
+Fresh read-only reviewer `/root/audit_shell_review_3`, GPT-6 Astra with low reasoning effort, inspected `9e51fbb` plus the current driver diff and stored evidence. Verdict: FAIL with two findings. The reviewer did not execute tests or operate the desktop.
+
+| ID | Severity | Finding | Primary disposition | Verification |
+| --- | --- | --- | --- | --- |
+| REV-06 | P2 | ShellClick computed its first point from the cached element before its fresh lookup; a zero-bounds element failed before the correction could apply | Fresh positive-bounds lookup now precedes pointer movement and input, with native ownership retained. The unsupported dead-icon-removal comment was removed | Actual four-case `tray-review-regressions-6` rerun: 2 PASS / 2 FAIL. The stale-point failure no longer occurred; visible-case overflow lifetime remains unresolved and requires its own actual rerun |
+| REV-07 | P2 | A history refresh retained the day selected when the read began, overwriting navigation made while it was pending | Select the current day only after the read completes and its generation/identity guards pass | New regression actually failed before correction; full Presentation PASS 185/185 in `presentation-history-navigation.xml`. Native gain/loss history transitions PASS 2/2 in `controls-regressions-5`, before this latest selection correction; final-build native recapture pending |
+
+The reviewer also recommended checking the native XML for a nonzero executed count and zero skipped/not-run tests before the Sandbox runner reports PASS. This is a harness evidence improvement, not an additional reviewer product defect.

@@ -97,7 +97,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         if (historyCardId is { } cardId)
         {
             if (!cardsById.ContainsKey(cardId)) CloseHistory();
-            else await ReadHistoryAsync(cardId, History?.CardId == cardId ? History.FocusDate : null);
+            else await ReadHistoryAsync(cardId);
         }
     }
 
@@ -406,10 +406,10 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             return;
         }
         historyCardId = card.CardId;
-        await ReadHistoryAsync(card.CardId, null);
+        await ReadHistoryAsync(card.CardId);
     }
 
-    private async Task ReadHistoryAsync(string cardId, DateOnly? focusDate)
+    private async Task ReadHistoryAsync(string cardId)
     {
         if (disposed)
             return;
@@ -419,6 +419,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         catch (OperationCanceledException) when (disposed) { return; }
         if (disposed || request != historyRequest || model is null || !cardsById.TryGetValue(cardId, out var card))
             return;
+        DateOnly? focusDate = History?.CardId == cardId ? History.FocusDate : null;
         foreach (var other in Cards)
             other.IsHistoryOpen = other == card;
         History = new LedgerHistoryViewModel(model, card.Name, card.Model.Scale, focusDate);

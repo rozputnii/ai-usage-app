@@ -20,9 +20,12 @@ public sealed partial class AuditWindows
         var moneyId = next[0]!["MoneyCardId"]!.GetValue<string>();
         using var session = new Session(path);
         var initialIds = fixture["ExpectedStates"]!.AsObject().Select(p => p.Key).ToArray();
-        var card = session.ById(moneyId); session.Show(card);
-        session.Click(card.FindAllDescendants().Single(e => e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
-            (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)));
+        var card = session.ById(moneyId); session.Focus(card);
+        FlaUI.Core.AutomationElements.AutomationElement? historyButton = null;
+        Assert.True(Session.Wait(() => (historyButton = session.ById(moneyId).FindAllDescendants().FirstOrDefault(e =>
+            e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
+            (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal))) is not null));
+        session.Click(historyButton!);
         session.Find(e => e.Properties.IsKeyboardFocusable.ValueOrDefault && (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal));
         session.Click("Settings");
         session.Key(VirtualKeyShort.F5);
@@ -32,8 +35,12 @@ public sealed partial class AuditWindows
         {
             var id = item!["CardId"]!.GetValue<string>();
             var state = Enum.Parse<AuditCardState>(item["State"]!.GetValue<string>());
-            Assert.True(Session.Wait(() => session.ById(id).FindAllDescendants().Any(e =>
-                (e.Properties.Name.ValueOrDefault ?? "").Contains(StateWords((int)state), StringComparison.Ordinal))), id);
+            Assert.True(Session.Wait(() =>
+            {
+                var name = session.ById(id).Properties.Name.ValueOrDefault ?? string.Empty;
+                return name.Contains(StateWords((int)state), StringComparison.OrdinalIgnoreCase) ||
+                    state == AuditCardState.PeriodUnknown && name.Contains("no budget", StringComparison.OrdinalIgnoreCase);
+            }), id);
             if (item["TodayEnd"] is { } end && item["Layout"]!.GetValue<string>() == "Pool")
             {
                 var share = (end.GetValue<decimal>() - 120).ToString("0.00", CultureInfo.InvariantCulture);

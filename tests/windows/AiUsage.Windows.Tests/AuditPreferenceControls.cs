@@ -36,6 +36,7 @@ public sealed partial class AuditWindows
             var modes = session.Window.FindAllDescendants().Where(e => e.Properties.Name.ValueOrDefault == "Show values: left" &&
                 e.Properties.ControlType.ValueOrDefault == ControlType.Button).ToArray();
             Assert.Equal(2, modes.Length);
+            session.Click("Preview diagnostics"); // Exercise settings mode controls after an actual wheel scroll.
             session.Click(modes[1]);
             RequirePreference(session, p => p["Preferences"]!["Mode"]!.GetValue<int>() == 1);
             Assert.Contains("left", session.ById(moneyId).Properties.Name.Value, StringComparison.Ordinal);
@@ -111,9 +112,11 @@ public sealed partial class AuditWindows
         Assert.Contains("left", restarted.ById(moneyId).Properties.Name.Value, StringComparison.Ordinal);
         Assert.Contains("cap", restarted.ById(moneyId).Properties.Name.Value, StringComparison.OrdinalIgnoreCase);
         restarted.Click("Settings");
+        Assert.True(Session.Wait(() => Visible(restarted, "Close settings")));
         Assert.NotNull(restarted.Find(e => e.Properties.Name.ValueOrDefault == "Always on top, on"));
         Assert.NotNull(restarted.Find(e => e.Properties.Name.ValueOrDefault == "Show signed-out accounts, on"));
         Assert.False(restarted.Find(e => e.Properties.Name.ValueOrDefault == "Monday, work day").IsEnabled);
+        Assert.True(Session.Wait(() => (GetWindowLongPtr(restarted.Window.Properties.NativeWindowHandle.Value, -20).ToInt64() & 8) != 0));
         RequirePreference(restarted, p => p["Preferences"]!["Mode"]!.GetValue<int>() == 1 && p["Preferences"]!["Density"]!.GetValue<int>() == 1);
         restarted.Capture("preferences-after-restart"); restarted.Exit();
     }
@@ -121,7 +124,8 @@ public sealed partial class AuditWindows
     private static AutomationElement CapInput(Session session) => session.Find(e =>
         (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Cap amount in", StringComparison.Ordinal));
     private static bool Visible(Session session, string name) => session.Window.FindAllDescendants().Any(e =>
-        e.Properties.Name.ValueOrDefault == name && !e.Properties.IsOffscreen.ValueOrDefault);
+        e.Properties.Name.ValueOrDefault == name && !e.Properties.IsOffscreen.ValueOrDefault &&
+        e.BoundingRectangle.Width > 0 && e.BoundingRectangle.Height > 0);
     private static void RequirePreference(Session session, Func<JsonNode, bool> check) => Assert.True(Session.Wait(() =>
     {
         var file = Path.Combine(session.Root, "preferences", "ledger", "appearance.v1.json");

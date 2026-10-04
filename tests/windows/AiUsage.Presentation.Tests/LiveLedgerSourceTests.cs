@@ -82,6 +82,30 @@ public sealed class LiveLedgerSourceTests
     }
 
     [Fact]
+    public async Task AHistoryRefreshKeepsNavigationMadeWhileTheReadIsPending()
+    {
+        var clock = new Clock(); var store = new Store();
+        var accounts = new Accounts { Current = [Account(Guid.NewGuid(), clock.Now, true)] };
+        using var source = Source(accounts, store, clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            using var window = new LedgerViewModel(source, new ManualScheduler());
+            await window.ToggleHistoryAsync(Assert.Single(window.Cards));
+            var previous = window.History!;
+            // Publish holds the source gate. The view-model's earlier event subscriber queues its
+            // history read; this subscriber then navigates before that queued read can complete.
+            source.Changed += (_, _) => previous.MoveFocus(-1);
+            accounts.Emit(); await source.WaitForIdleAsync();
+            for (var attempt = 0; attempt < 20 && ReferenceEquals(previous, window.History); attempt++) await Task.Delay(10, Token);
+            Assert.NotSame(previous, window.History);
+            Assert.Equal(previous.FocusDate, window.History!.FocusDate);
+            Assert.Equal(33, window.History.FocusIndex);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
     public async Task SwitchingHistoryDuringARefreshKeepsTheRequestedAccount()
     {
         var clock = new Clock();
