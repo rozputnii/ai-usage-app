@@ -26,7 +26,7 @@ These are formatting/projection repairs within existing behavior. No provider en
 
 ## Test and build results
 
-Audit base: `main` at `383644c`. Initial checkout was clean. Deterministic tests and product builds correspond to production/test sources saved at `2942e6feec44292763799b15660a9853f9087306`; subsequent review corrections affect only the native driver and its guards. Native executable: `src/windows/AiUsage.Windows/bin/x64/Debug/net10.0-windows10.0.26100.0/win-x64/AiUsage.exe`. EXE SHA-256: `3A25A0E283144D66D6A58847ED3F4985E5DC41813911D4958402E11838D8763B`; application DLL SHA-256: `F8D1FFEBF30C5065BCF637E91C41D47F4F315CD1669FBF509180E3F925434C16`. Environment: Windows console session, .NET SDK 10.0.401, ordinary host display settings unchanged.
+Audit base: `main` at `383644c`. Initial checkout was clean. Deterministic tests and product builds correspond to production/test sources saved at `2942e6feec44292763799b15660a9853f9087306`; subsequent review corrections affect only the native driver and its guards. The corrected driver was compiled and its blocked execution repeated from sources saved at `ae4f483129d99f8b176c306531b793738b1d0054`. Both checkpoints were pushed to main; the remote head was verified. Native executable: `src/windows/AiUsage.Windows/bin/x64/Debug/net10.0-windows10.0.26100.0/win-x64/AiUsage.exe`. EXE SHA-256: `3A25A0E283144D66D6A58847ED3F4985E5DC41813911D4958402E11838D8763B`; application DLL SHA-256: `F8D1FFEBF30C5065BCF637E91C41D47F4F315CD1669FBF509180E3F925434C16`. Environment: Windows console session, .NET SDK 10.0.401, ordinary host display settings unchanged.
 
 | Check | Actual result |
 | --- | --- |
