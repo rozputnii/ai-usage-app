@@ -1,7 +1,7 @@
 ---
 id: AIU-044
 type: design
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 ---
@@ -63,3 +63,14 @@ the calculation; do not substitute a local-day baseline.
 Logging review: projection and rendering are pure local transformations. Existing
 capture, refresh, persistence and command boundaries already own diagnostics; no
 new operational failure boundary or additional logging is needed.
+
+
+## Review corrections
+
+The integrated review identified two material issues, corrected in `2b34d6c`:
+retained cap amounts need their own display currency but replacements use the
+current limit scale with an empty editor for mismatches; and monetary views must
+detach from both grid and old account hosts before moving between standalone and
+subordinate presentation. Incompatible caps cannot be removed through a
+replacement editor, so decimal-only removal undo cannot reinterpret their currency.
+Targeted regressions reproduced both findings before their corrections.

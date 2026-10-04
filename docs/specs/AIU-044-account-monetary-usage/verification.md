@@ -1,4 +1,4 @@
-# AIU-044 preparation evidence
+# AIU-044 verification
 
 ## Task-definition review, 2026-10-04
 
@@ -57,5 +57,88 @@ The presentation contract adjustment and source uncertainty are recorded in
 - NOT_RUN: final package build and independent review at this checkpoint.
 - NOT_RUN: live provider scope/work-plan verification. No source credentials accessed.
 
-Exact next action: diagnose the recorded monetary smoke stage, then complete Windows
-verification, required independent review and final evidence before completion.
+Checkpoint next action (completed below): diagnose the recorded monetary smoke stage,
+then complete Windows verification, required independent review and final evidence.
+
+
+## Final implementation evidence, 2026-10-04
+
+Code reference: `2b34d6c` (implementation range `e97c7a5..2b34d6c`). Environment:
+Windows 11 x64, .NET SDK 10.0.401, ordinary local interactive desktop, isolated
+unpackaged Debug state and synthetic demo. Final package build completed at
+2026-10-03T23:59:04Z; final desktop checks completed on 2026-10-04 local time.
+
+| Criterion | Verdict and evidence |
+| --- | --- |
+| AC-01 | PASS: projection and parser regressions show mixed and monetary-only accounts with neutral Spending, independent of names and finite limits. Desktop smoke confirms nesting, one account header/action owner and both money-only/mixed transitions with stable IDs. |
+| AC-02 | PASS (synthetic compatible scope): `MonetaryUsageTests` covers finite monthly bar, daily budget, local history, personal cap and assumed calendar period. Current and legacy parser fixtures produce one pool; unknown/shared scope keeps facts and no personal remaining allowance. Live work allowance mapping remains NOT_RUN. |
+| AC-03 | PASS: Core and projection regressions retain spending since observed exhaustion across midnight, its start/reset and native money. Missing coverage, corrections, incompatible currency/scope, stale samples/snapshots and missing or changed current spending do not produce a mark. |
+| AC-04 | PASS: unknown, disabled, zero, unknown/null limits, finite caps, currency mismatches and two-account separation. Settings retain native cap currency; replacement editors use the current scale without an implicit conversion or invalid removal undo. Rename does not change semantics. |
+| AC-05 | PASS: source restart retains account names, series IDs and caps; the full Infrastructure suite retains existing storage/account lifecycle coverage. Diff inspection confirms no persistence format, grants, source credential access, migration, deletion or additional provider request. Desktop sign-out targets only its synthetic account. |
+| AC-06 | PASS: full relevant regression suites, document validation, unpackaged and unsigned package builds, main/tray/history/account-action Windows smoke and required review with findings resolved. Live provider scope remains explicitly separate and NOT_RUN. |
+
+### Executed commands
+
+- PASS: `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`
+  — 613 passed, zero failed/skipped.
+- PASS: `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`
+  — 125 passed, zero failed/skipped after review corrections.
+- PASS: `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`
+  — valid, no diagnostics; repeated after final documentation edits.
+- PASS: `git diff --check` and integrated primary acceptance/diff review.
+- PASS: `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None -p:OutputPath=C:/Users/danii/projects/ai-usage-app/.ai-usage-local/AIU-044/app/ --no-restore`
+  — zero warnings/errors. The pre-existing app in the standard Debug output remained running.
+- PASS: `./tools/windows/Build-Package.ps1 -MsixVersion 2026.10.302.0 -OutputDirectory .ai-usage-local/AIU-044/packages -NoRestore`
+  — unsigned-validation-only MSIX, SHA-256
+  `FCE6CD3888A6D9CDFD59DEBCB142DAC9D3A20A4EF7FA2B6339FC75F11D83AB07`.
+  The SDK warned that optional `mspdbcmf.exe` was absent, so no symbols package was
+  generated. No owned-code warnings, signing, installation or trust change.
+- PASS: Windows test harness Release build, then
+  `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-build --no-restore -- -noLogo -method '*LedgerSmoke.AccountSpendingUsesNestedContentHistoryCapsAndAccountActions' -method '*LedgerSmoke.LedgerLaunchSettingsHistoryAndExit'`
+  — all three cases passed. `AIU_SMOKE_EXE` pointed to the isolated output above;
+  `AIU_SMOKE_EVIDENCE_DIRECTORY` pointed to `.ai-usage-local/AIU-044/smoke-final`.
+  Evidence includes `money-smoke.json`, `ledger-demo.json`, `ledger-live-empty.json`
+  and actual screenshots for monetary history, cap editor and account actions.
+  The screenshots were inspected. Main/tray restoration, settings, local history,
+  account add/rename/sign-out, monetary nesting and transitions, and clean exit passed.
+
+Earlier smoke failures were resolved: the harness initially searched for a nonexistent
+Close history button (the UI uses Escape), its cleanup could mask failures, and the
+new test initially failed to retain a process handle for exit-code inspection. The
+actual history title omission was reproduced and fixed separately. These failures
+are not presented as passing runs.
+
+### Independent review
+
+Fresh read-only GPT-6 Astra (`low`) review via `convergence-review`, frozen range
+`e97c7a5..1e82ac7`, initially reported FAIL with two P2 findings:
+
+1. `LiveLedgerSource.BuildAsync` / `CapRow.ActAsync`: a retained cap's display currency
+   could also become the editor currency even though save used the current limit scale.
+   Fixed in `2b34d6c`. `MismatchedRetainedCapsAreDisplayedNativelyButReplacedInTheCurrentScale`
+   failed with EUR instead of USD, then passed with empty replacement fields, current
+   currency, preserved native display and no invalid removal undo. Full suite passed.
+2. `LedgerWindow.RebuildGrid`: a retained monetary view could be assigned a new parent
+   before detaching its old one, including a removed account host. Fixed in `2b34d6c`.
+   The actual Windows test failed on the money-only-to-mixed transition with WinUI's
+   parent-attachment error, then passed both directions after explicit detachment.
+
+The reviewer performed source/diff review and did not claim test or desktop execution.
+Primary integrated review and targeted verification resolved both material findings;
+no unresolved findings remain. No redundant second full review was required.
+
+### Provider and operational limits
+
+- Source classification: repository evidence and synthetic fixtures; source_verified_at:
+  2026-10-04; live_verified_at: null for monetary scope. No fresh upstream or real work-plan
+  mapping is claimed. Current live CL-X remains scope Unknown, displaying native facts
+  and local history; compatible Account-scope budgets and marks are exercised by fixtures.
+- NOT_RUN: new live authentication/provider scope checks and package installation/update.
+  They were not required for this bounded presentation change; no source CLI credentials
+  were read, imported or requested.
+- Diagnostics review: pure projection/rendering adds no operational failure boundary.
+  Existing refresh/capture/store/action diagnostics remain authoritative; no logging added.
+- No Narrator, contrast-theme, unusual display/DPI matrix, Sandbox or VM checks were run.
+
+No implementation work remains for AIU-044. Real monetary wire scope remains an explicit
+provider-evidence limitation, not an inferred personal/work classification.

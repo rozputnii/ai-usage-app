@@ -1,7 +1,7 @@
 ---
 id: AIU-044
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: The owner selected implementation on 2026-10-04, following this specification, preserving supported monthly budgets and spending since window exhaustion, with verification, review, commit and push.
@@ -52,7 +52,7 @@ and [AIU-039 temporary suppression](../AIU-039-multi-account-ledger/spec.md).
   neutral display of available facts or cause blanket hiding. A new transport,
   authorization scope or billing credential is outside this item.
 
-## Proposed presentation
+## Presentation
 
 | Available evidence | Presentation within the owning account |
 | --- | --- |
@@ -91,7 +91,7 @@ requires a separate explicit design decision and the applicable security review.
 
 AIU-041 remains separate standalone Anthropic/OpenAI API billing. A monetary subscription
 reading obtained through the existing connection belongs here; its currency does not
-make it an AIU-041 source. This proposal neither selects AIU-041 nor settles its display
+make it an AIU-041 source. This item neither selects AIU-041 nor settles its display
 period, credentials or previously recorded product-scope gates. Codex purchased-credit
 presentation is unchanged unless the owner separately selects a change to it.
 
@@ -120,9 +120,8 @@ presentation is unchanged unless the owner separately selects a change to it.
   classification. Record actual live scope verification separately; fixtures are not proof
   that a real work account exposes the modeled allowance.
 
-## Execution preparation
+## Implementation references
 
-When implementation is selected: confirm source/scope evidence, specify the smallest
-account-owned rendering adjustment, then implement and verify against AC-01 through
-AC-06. Record remaining provider uncertainty without replacing absent evidence with a
-plan-name heuristic. Current preparation evidence is in [verification.md](verification.md).
+The owner selected implementation on 2026-10-04. The bounded presentation-contract
+adjustment is recorded in [design.md](design.md), and observed checks and remaining
+provider uncertainty are recorded in [verification.md](verification.md).

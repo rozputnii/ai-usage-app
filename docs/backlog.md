@@ -456,7 +456,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-044 - Restore account-owned monetary usage and preserve work budgets
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-039]
 - trigger: owner-selection
 - outcome: Replace blanket CL-X suppression with monetary information inside its owning account. Preserve supported monthly work-budget presentation and the design's separate on-extra-usage mark, which measures spending since a 5h/7d window filled. Render from evidenced facts without guessing personal versus work from a label, wire variant or finite limit; unresolved purpose/scope gets neutral factual presentation rather than disappearing.
@@ -464,7 +464,9 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - specification: docs/specs/AIU-044-account-monetary-usage/spec.md
 - evidence: docs/specs/AIU-044-account-monetary-usage/verification.md
 - registration-note: Owner requested this follow-up on 2026-10-03 after live AIU-039 verification. The owner selected implementation on 2026-10-04.
-- scope-note: Owner requested this task-definition revision on 2026-10-04 and retained the design's on-extra-usage baseline, withdrawing the proposed daily baseline for that mark. The draft does not introduce a personal/work switch, new provider access, standalone API billing or data migration. Real work-plan mapping remains unverified; source research and synthetic examples must not be described as live proof. Implementation follows the selected specification and its bounded presentation design.
+- scope-note: Owner requested this task-definition revision on 2026-10-04 and retained the design's on-extra-usage baseline, withdrawing the proposed daily baseline for that mark. The implementation does not introduce a personal/work switch, new provider access, standalone API billing or data migration. Real work-plan mapping remains unverified; source research and synthetic examples must not be described as live proof. Implementation follows the selected specification and its bounded presentation design.
+
+- completion-note: Implemented and verified on 2026-10-04. Spending is account-owned; compatible monthly budgets and window-exhaustion marks are retained. Current Claude wire scope stays explicitly unresolved. Required independent review findings were fixed and verified; see the evidence record.
 
 ## Deferred clarifications, not forgotten
 
