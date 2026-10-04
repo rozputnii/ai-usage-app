@@ -18,6 +18,7 @@ internal sealed class LedgerProductLifetime : IDisposable
     private readonly StateMaintenance maintenance;
     private readonly ApplicationDiagnostics diagnostics;
     private readonly DispatcherQueueTimer timer;
+    private readonly string restartArguments;
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly CancellationTokenSource shutdown = new();
     private bool started;
@@ -25,9 +26,10 @@ internal sealed class LedgerProductLifetime : IDisposable
     private Task? stopping;
 
     public LedgerProductLifetime(string root, LiveLedgerSource source, StateMaintenance maintenance,
-        ApplicationDiagnostics diagnostics, DispatcherQueue queue)
+        ApplicationDiagnostics diagnostics, DispatcherQueue queue, string restartArguments = "")
     {
         this.root = root; this.source = source; this.maintenance = maintenance; this.diagnostics = diagnostics;
+        this.restartArguments = restartArguments;
         timer = queue.CreateTimer(); timer.Interval = TimeSpan.FromMinutes(1); timer.Tick += Tick;
         source.DeleteData = DeleteAsync;
         source.SupportAction = SupportAsync;
@@ -138,7 +140,7 @@ internal sealed class LedgerProductLifetime : IDisposable
             await diagnostics.StopForDeletionAsync();
             await new OwnedDataDeletion(root).RunAsync(confirmed: true, token);
             // The native restart API handles both packaged and unpackaged activation. Success terminates this process.
-            await Task.Run(() => AppInstance.Restart(string.Empty), CancellationToken.None);
+            await Task.Run(() => AppInstance.Restart(restartArguments), CancellationToken.None);
             await source.SetRecoveryAsync(new("Stored data was deleted. Close and reopen AI Usage to start again.", false, false));
             return CommandOutcome.Done;
         }

@@ -321,7 +321,7 @@ public sealed partial class AuditWindows
         public string Receipts => File.Exists(Path.Combine(Root, "requests.txt")) ? File.ReadAllText(Path.Combine(Root, "requests.txt")) : string.Empty;
 
         public int ProcessId => process.Id;
-        public Session(string input, string? evidenceDirectory = null, string? stateDirectory = null)
+        public Session(string input, string? evidenceDirectory = null, string? stateDirectory = null, int? attachProcessId = null)
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
             Input = input;
@@ -335,7 +335,15 @@ public sealed partial class AuditWindows
             Process? launchedProcess = null;
             try
             {
-                app = launched = Application.Launch(start);
+                if (attachProcessId is { } existingId)
+                {
+                    Assert.Equal("WDAGUtilityAccount", Environment.UserName);
+                    Assert.Equal("AI Usage synthetic audit v1", File.ReadAllText(Path.Combine(Root, "synthetic-audit.marker")));
+                    using var candidate = Process.GetProcessById(existingId);
+                    Assert.Equal(Path.GetFullPath(Required("AIU_SMOKE_EXE")), candidate.MainModule!.FileName, ignoreCase: true);
+                    Assert.True(Wait(() => HasProcessContext(candidate, Root, Input)), "BLOCKED: attachment requires the process-specific synthetic fixture receipt");
+                }
+                app = launched = attachProcessId is { } id ? Application.Attach(id) : Application.Launch(start);
                 process = launchedProcess = Process.GetProcessById(app.ProcessId);
                 _ = process.Handle;
                 Window? window = null;
@@ -359,7 +367,7 @@ public sealed partial class AuditWindows
                     Mouse.Click();
                 }
                 Assert.True(Wait(OwnsForeground), "BLOCKED: test process must own foreground input");
-                Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault is "Add an account" or "Opening local data…" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
+                Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault is "Add an account" or "Opening local data…" or "Recovery and diagnostics" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
             }
             catch
             {
@@ -383,11 +391,11 @@ public sealed partial class AuditWindows
                 throw;
             }
         }
-        public static Session FromFixture(JsonObject fixture, string id)
+        public static Session FromFixture(JsonObject fixture, string id, string? stateDirectory = null)
         {
             var path = Path.Combine(Required("AIU_AUDIT_PAGE_DIRECTORY"), id + ".fixture");
             File.WriteAllText(path, fixture.ToJsonString());
-            return new(path);
+            return new(path, stateDirectory: stateDirectory);
         }
         public AutomationElement Find(Func<AutomationElement, bool> predicate)
         {
@@ -529,8 +537,16 @@ public sealed partial class AuditWindows
             FlaUI.Core.Input.Wait.UntilInputIsProcessed();
             Assert.True(Wait(() => element.AsTextBox().Text == value), "Physical typing must produce the exact synthetic field value");
         }
-        public void Capture(string name)
+        public void Capture(string name, bool keepPointer = false)
         {
+            RequireUnobscuredWindow();
+            if (!keepPointer)
+            {
+                var bounds = Window.BoundingRectangle;
+                var caption = new System.Drawing.Point(bounds.Left + 70, bounds.Top + 18);
+                RequireMouseTarget(caption); Mouse.MoveTo(caption); RequireMouseTarget(caption);
+            }
+            Thread.Sleep(400); // Capture the settled layout, after the ordinary 250 ms motion and tooltip dismissal.
             for (var attempt = 0; ; attempt++)
             {
                 try

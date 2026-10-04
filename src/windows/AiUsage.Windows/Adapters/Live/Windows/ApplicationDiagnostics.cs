@@ -15,12 +15,12 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
     internal static ApplicationDiagnostics? Current { get; private set; }
     internal FileDiagnostics? Files => sink;
 
-    public void Initialize(bool demo)
+    public void Initialize(bool demo, string? auditRoot = null)
     {
         Current = this;
         try
         {
-            var root = ApplicationStateDirectory.Get(demo);
+            var root = auditRoot ?? ApplicationStateDirectory.Get(demo);
             if (!new OwnedDataDeletion(root).Pending)
                 sink = new FileDiagnostics(root, mode: demo ? "demo" : Packaged() ? "packaged" : "development");
         }

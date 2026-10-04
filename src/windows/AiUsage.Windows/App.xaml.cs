@@ -28,7 +28,7 @@ public partial class App : Application
     public App()
     {
         auditReplay = AuditReplay.Open(Environment.GetCommandLineArgs(), Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY"));
-        diagnostics.Initialize(Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal));
+        diagnostics.Initialize(Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal), auditReplay?.Root);
         UnhandledException += OnUnhandledException;
         try { DiagnosticProbe.BeforeXaml(); InitializeComponent(); }
         catch (Exception exception) { diagnostics.StartupFailure(exception); throw; }

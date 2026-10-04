@@ -2,6 +2,7 @@ using System.Text.Json;
 using AiUsage.Adapters.Live;
 using AiUsage.Adapters.Live.Audit;
 using AiUsage.Core.Budget;
+using AiUsage.Core.Diagnostics;
 using AiUsage.Features.Ledger.Contract;
 using AiUsage.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +17,13 @@ internal static class AuditLedgerRegistration
     {
         var input = replay.Input;
         var root = replay.Root;
+        replay.RecordProcess();
         var receiptGate = new object();
-        void Receipt(string value) { lock (receiptGate) File.AppendAllText(Path.Combine(root, "requests.txt"), value + Environment.NewLine); }
+        void Receipt(string value)
+        {
+            lock (receiptGate) File.AppendAllText(Path.Combine(root, "requests.txt"), value + Environment.NewLine +
+                (value.StartsWith("Initialize", StringComparison.Ordinal) ? "Process:" + Environment.ProcessId + ":" + value + Environment.NewLine : string.Empty));
+        }
         services.AddSingleton(input);
         services.AddSingleton(new AuditClock(input.Now));
         services.AddSingleton(p => new AuditAccounts(input, p.GetRequiredService<AuditClock>(), Receipt,
@@ -34,16 +40,32 @@ internal static class AuditLedgerRegistration
                 _ => Receipt("BrowserRequested:synthetic"), p.GetRequiredService<AuditClock>(), TimeZoneInfo.FindSystemTimeZoneById(input.ZoneId));
         });
         services.AddSingleton<ILedgerSource>(p => p.GetRequiredService<LiveLedgerSource>());
+        if (input.UseProductMaintenance)
+        {
+            // Exercise actual storage maintenance with the already registered fake account boundary.
+            // No credential migration or provider service is registered in this audit composition.
+            services.AddSingleton(p => new StateMaintenance(root, diagnostics: p.GetRequiredService<IDiagnosticSink>(),
+                accountMigration: _ => Task.CompletedTask));
+            services.AddSingleton(p => new LedgerProductLifetime(root, p.GetRequiredService<LiveLedgerSource>(),
+                p.GetRequiredService<StateMaintenance>(), p.GetRequiredService<ApplicationDiagnostics>(),
+                p.GetRequiredService<DispatcherQueue>(), replay.RestartArguments));
+        }
         services.AddSingleton(p => new AuditLedgerLifetime(root, input, p.GetRequiredService<LiveLedgerSource>(),
-            p.GetRequiredService<LocalBudgetStore>(), p.GetRequiredService<AuditAccounts>(), Receipt));
+            p.GetRequiredService<LocalBudgetStore>(), p.GetRequiredService<AuditAccounts>(), Receipt,
+            p.GetService<LedgerProductLifetime>()));
     }
 }
 
 internal sealed class AuditLedgerLifetime(string root, AuditInput input, LiveLedgerSource source,
-    LocalBudgetStore store, AuditAccounts accounts, Action<string> receipt)
+    LocalBudgetStore store, AuditAccounts accounts, Action<string> receipt, LedgerProductLifetime? product = null)
 {
     public async Task InitializeAsync()
     {
+        if (product is not null)
+        {
+            await product.InitializeAsync();
+            return;
+        }
         var seeded = Path.Combine(root, "seeded.marker");
         if (!File.Exists(seeded))
         {

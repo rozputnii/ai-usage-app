@@ -20,9 +20,13 @@ internal sealed record AuditInput(DateTimeOffset Now, string ZoneId, AccountSnap
     public bool ManualCode { get; init; }
     public bool BlockRefresh { get; init; }
     public bool BlockInitialization { get; init; }
+    public bool UseProductMaintenance { get; init; }
     public int RecoveryFailures { get; init; }
     public LedgerRecoveryModel? Recovery { get; init; }
 }
+
+internal sealed record AuditProcessReceipt(string SyntheticMarker, int ProcessId, DateTimeOffset ProcessStartedAt,
+    string FixtureSha256, DateTimeOffset ControlledNow, string ZoneId);
 
 internal sealed class AuditQuantityConverter : JsonConverter<Quantity>
 {
@@ -83,5 +87,6 @@ internal sealed class AuditLimitConverter : JsonConverter<FactLimit>
 
 [JsonSourceGenerationOptions(WriteIndented = true, Converters = new[] { typeof(AuditQuantityConverter), typeof(AuditLimitConverter) })]
 [JsonSerializable(typeof(AuditInput))]
+[JsonSerializable(typeof(AuditProcessReceipt))]
 [JsonSerializable(typeof(Quantity))]
 internal sealed partial class AuditJson : JsonSerializerContext;

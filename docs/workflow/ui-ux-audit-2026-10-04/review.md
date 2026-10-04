@@ -41,3 +41,16 @@ Fresh read-only reviewer `/root/audit_shell_review_3`, GPT-6 Astra with low reas
 | REV-07 | P2 | A history refresh retained the day selected when the read began, overwriting navigation made while it was pending | Select the current day only after the read completes and its generation/identity guards pass | New regression actually failed before correction; full Presentation PASS 185/185 in `presentation-history-navigation.xml`. Native gain/loss history transitions PASS 2/2 in `controls-regressions-5`, before this latest selection correction; final-build native recapture pending |
 
 The reviewer also recommended checking the native XML for a nonzero executed count and zero skipped/not-run tests before the Sandbox runner reports PASS. This is a harness evidence improvement, not an additional reviewer product defect.
+
+## Production maintenance follow-up
+
+Fresh read-only reviewer `/root/audit_maintenance_review`, GPT-6 Astra with low reasoning effort, inspected `2c0e52b` and the maintenance diff. Initial verdict FAIL; no reviewer tests, desktop input or provider access occurred.
+
+| ID | Severity | Finding | Primary disposition | Actual verification |
+| --- | --- | --- | --- | --- |
+| REV-08 | P2 | Executable-path matching and a caller's root marker did not prove that a restarted candidate belonged to the same synthetic fixture; attachment/input or cleanup could adopt an unrelated process | Before adoption, require matching PID, operating-system start time, fixture hash, synthetic marker, controlled time, timezone and executable path. Kill only specifically launched or proven synthetic replacements on failure | Presentation process-receipt assertions PASS; actual `maintenance-native-2` deletion and interrupted-restart cases PASS 2/2 |
+| REV-09 | P2 | Demo diagnostics used a nested root while production maintenance cleaned the selected root, leaving audit logs outside the tested deletion boundary | Initialize audit diagnostics at the exact validated maintenance root; recognized synthetic log sentinel survives cancellation and is removed on confirmation | Actual `maintenance-native-2` deletion cases PASS 2/2, including recognized logs and preserved external export |
+
+The reviewer also identified failure cleanup for direct pending-intent launches/replacements. Explicitly launched children are terminated in finally; replacement cleanup requires the same process-context proof. Targeted read-only follow-up verdict PASS for these findings and cleanup, without an automatic full-review loop. The reviewer did not run tests. Primary execution separately passed all five maintenance/activation cases after the correction; the earlier two failed deletion attempts remain preserved.
+
+REV-06's final actual four-variant tray rerun passed in `calendar-tray-7`; REV-07's native calendar/history interactions also passed against the corrected build. Complete final-build gallery recapture remains pending. The runner now validates nonzero XML execution and zero errors/failures/skips/not-run tests before reporting native PASS.

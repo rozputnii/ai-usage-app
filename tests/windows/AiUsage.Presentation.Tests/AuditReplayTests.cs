@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Security.Cryptography;
 using AiUsage.Adapters.Live.Audit;
 using AiUsage.Core.Accounts;
 using AiUsage.Core.Budget;
@@ -12,6 +13,30 @@ public sealed class AuditReplayTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 7, 12, 0, 0, TimeSpan.Zero);
     private static AuditInput Empty => new(Now, "UTC", [], [], [], BudgetConfiguration.Default);
+
+    [Fact]
+    public void MaintenanceReplayRestartsWithTheSameSyntheticSelectionAndRejectsAccountFixtures()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "aiu-audit-maintenance-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var fixture = Path.Combine(root, "input with spaces.json");
+        try
+        {
+            File.WriteAllText(fixture, JsonSerializer.Serialize(Empty with { UseProductMaintenance = true }, AuditJson.Default.AuditInput));
+            var replay = AuditReplay.Open(["--demo", "--audit-input=" + fixture], Path.Combine(root, "state"))!;
+            Assert.Equal("--demo --audit-input=\"" + fixture + "\"", replay.RestartArguments);
+            replay.RecordProcess();
+            var receipt = JsonSerializer.Deserialize(File.ReadAllText(Path.Combine(replay.Root, "process-" + Environment.ProcessId + ".json")), AuditJson.Default.AuditProcessReceipt)!;
+            Assert.Equal(Environment.ProcessId, receipt.ProcessId);
+            Assert.Equal(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(fixture))), receipt.FixtureSha256);
+            Assert.Equal(Now, receipt.ControlledNow); Assert.Equal("UTC", receipt.ZoneId);
+            var invalid = Empty with { UseProductMaintenance = true, NextAccounts = [] };
+            File.WriteAllText(fixture, JsonSerializer.Serialize(invalid, AuditJson.Default.AuditInput));
+            Assert.Throws<InvalidDataException>(() => AuditReplay.Open(["--demo", "--audit-input=" + fixture], Path.Combine(root, "rejected")));
+            Assert.False(Directory.Exists(Path.Combine(root, "rejected")));
+        }
+        finally { Directory.Delete(root, true); }
+    }
 
     [Theory]
     [InlineData(false)]
