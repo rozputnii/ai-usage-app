@@ -17,6 +17,7 @@ internal static class DemoLedgerScenarios
     public const string FirstRun = "first-run";
     public const string SignIn = "sign-in";
     public const string Monetary = "monetary";
+    public const string MonetaryWithWindows = "monetary-windows";
 
     public static IReadOnlyList<(string Id, string Title)> All { get; } =
     [
@@ -27,6 +28,7 @@ internal static class DemoLedgerScenarios
         (FirstRun, "First run"),
         (SignIn, "Sign-in strip and expired sign-in"),
         (Monetary, "Account spending"),
+        (MonetaryWithWindows, "Account spending with new windows"),
     ];
 
     private static readonly TimeSpan Bst = TimeSpan.FromHours(1);
@@ -45,10 +47,11 @@ internal static class DemoLedgerScenarios
         FirstRun => Empty(BriefNow),
         SignIn => SignInSnapshot(),
         Monetary => MonetarySnapshot(),
+        MonetaryWithWindows => MonetarySnapshot(true),
         _ => BriefSnapshot(),
     };
 
-    private static LedgerSnapshot MonetarySnapshot()
+    private static LedgerSnapshot MonetarySnapshot(bool withWindows = false)
     {
         var snapshot = BriefSnapshot();
         var money = new LimitCardModel("money-mixed", "Spending", CardLayout.Pool, ScaleModel.Money("USD", 2),
@@ -71,7 +74,8 @@ internal static class DemoLedgerScenarios
         return snapshot with { Accounts =
         [
             snapshot.Accounts[0] with { DisplayName = "Mixed account", Cards = [snapshot.Accounts[0].Cards[0], money] },
-            new("money-account", ProviderKind.Claude, "Money only", AccountHealth.Ok, BriefNow, null, null, [unknown])
+            new("money-account", ProviderKind.Claude, "Money only", AccountHealth.Ok, BriefNow, null, null,
+                withWindows ? [snapshot.Accounts[0].Cards[0] with { CardId = "money-window" }, unknown] : [unknown])
         ] };
     }
 

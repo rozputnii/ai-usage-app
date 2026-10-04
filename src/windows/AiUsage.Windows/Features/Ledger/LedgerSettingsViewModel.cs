@@ -60,10 +60,12 @@ internal sealed partial class CapRow : ObservableObject
             await owner.RemoveUnmatchedAsync(Model.CapId);
             return;
         }
-        if (Model.CapTargetId is not { } target)
+        if (Model.CapTargetId is not { } target || owner.CapCard(target) is not { } card)
             return;
-        Editor = new CapEditorViewModel(Model.Scale, Model.Amount, "month",
-            amount => owner.Owner.SetCapAsync(target, amount, Model.Amount, Label), () => Editor = null);
+        // A mismatched retained amount is not a conversion or a removable cap in this scale.
+        decimal? current = Model.Status == CapStatus.CurrencyMismatch ? null : Model.Amount;
+        Editor = new CapEditorViewModel(card.Scale, current, LedgerFormat.PeriodWords(card.Period),
+            amount => owner.Owner.SetCapAsync(target, amount, current, Label), () => Editor = null);
     }
 }
 
@@ -96,7 +98,8 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     public string CapsNote => "A cap is yours, never the provider’s limit. The lower of cap and provider limit applies. Caps are set in the pool’s own unit or currency.";
     public string DeleteNote => "Deletes sign-ins, names, preferences, caps, history and logs on this PC, including retained history from older versions. Enter confirms, Esc cancels.";
 
-    internal bool HasCard(string capTargetId) => snapshot?.Accounts.Any(a => a.Cards.Any(c => c.CapTargetId == capTargetId)) == true;
+    internal LimitCardModel? CapCard(string capTargetId) => snapshot?.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CapTargetId == capTargetId);
+    internal bool HasCard(string capTargetId) => CapCard(capTargetId) is not null;
 
     public void Rebuild(LedgerSnapshot current, LedgerPreferences prefs)
     {

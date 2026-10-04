@@ -24,6 +24,7 @@ public sealed class LedgerSmoke
         start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Path.Combine(Path.GetTempPath(), "aiu-money-smoke-" + Guid.NewGuid().ToString("N"));
         using var app = Application.Launch(start);
         using var process = Process.GetProcessById(app.ProcessId);
+        _ = process.Handle;
         using var automation = new UIA3Automation();
         Window? window = null;
         var passed = false;
@@ -77,6 +78,30 @@ public sealed class LedgerSmoke
             Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "12.50 EUR");
             Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "200.00 EUR (provider)");
             using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-account.png"), System.Drawing.Imaging.ImageFormat.Png);
+            void SelectScenario(string name)
+            {
+                window.FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
+                AutomationElement? item = null;
+                Assert.True(Wait(() =>
+                {
+                    item = automation.GetDesktop().FindAllChildren().Where(w =>
+                        GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
+                        .Select(w => w.FindFirstDescendant(cf => cf.ByName(name))).FirstOrDefault(e => e is not null);
+                    return item is not null;
+                }));
+                item!.AsMenuItem().Invoke();
+            }
+            stage = "money only gains windows";
+            SelectScenario("Account spending with new windows");
+            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByAutomationId("money-window"))?
+                .FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is not null));
+            stage = "money only loses windows";
+            SelectScenario("Account spending");
+            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByAutomationId("money-window")) is null &&
+                window.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is not null));
+            only = window.FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
+            only.Focus();
+            Assert.True(Wait(() => only.FindFirstDescendant(cf => cf.ByName("Sign out Money only")) is not null));
             only.FindFirstDescendant(cf => cf.ByName("Sign out Money only"))!.AsButton().Invoke();
             stage = "sign out";
             Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is null));

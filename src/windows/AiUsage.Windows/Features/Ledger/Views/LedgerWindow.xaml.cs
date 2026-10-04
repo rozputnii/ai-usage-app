@@ -165,11 +165,14 @@ internal sealed partial class LedgerWindow : Window
         var wanted = new List<UIElement>();
         var columns = Math.Max(1, CardGrid.Columns);
         var openIndex = -1;
+        // A retained series may move between the grid and an account section as windows appear/disappear.
+        // Detach hosts even on views that are about to leave the grid.
+        foreach (var view in views.Values)
+            view.MonetarySection = null;
         foreach (var card in ViewModel.Cards)
         {
             if (!views.TryGetValue(card, out var view))
                 views[card] = view = new LedgerCardView { ViewModel = card };
-            view.MonetarySection = null;
         }
         foreach (var card in ViewModel.Cards.Where(c => !c.IsAccountSection))
         {
@@ -177,7 +180,11 @@ internal sealed partial class LedgerWindow : Window
             var first = ViewModel.Cards.First(c => c.Account.AccountId == card.Account.AccountId && !c.IsAccountSection);
             var spending = ReferenceEquals(first, card)
                 ? ViewModel.Cards.FirstOrDefault(c => c.Account.AccountId == card.Account.AccountId && c.IsAccountSection) : null;
-            if (spending is not null) view.MonetarySection = views[spending];
+            if (spending is not null)
+            {
+                CardGrid.Children.Remove(views[spending]);
+                view.MonetarySection = views[spending];
+            }
             wanted.Add(view);
             if (card.IsHistoryOpen || spending?.IsHistoryOpen == true)
                 openIndex = wanted.Count - 1;

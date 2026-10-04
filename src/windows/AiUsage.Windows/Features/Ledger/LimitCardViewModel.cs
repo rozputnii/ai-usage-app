@@ -155,7 +155,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
         if (!CanEditCap)
             return;
         var target = Model.CapTargetId!;
-        var before = Model.Cap?.Amount;
+        var before = Model.Cap?.Status == CapStatus.CurrencyMismatch ? null : Model.Cap?.Amount;
         CapEditor = new CapEditorViewModel(Model.Scale, before, LedgerFormat.PeriodWords(Model.Period),
             amount => owner.SetCapAsync(target, amount, before, Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty)),
             () => CapEditor = null);

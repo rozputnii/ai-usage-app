@@ -754,7 +754,7 @@ public sealed class LedgerInteractionTests
     public void DemoScenariosSwitchAndResetViewState()
     {
         var (window, _, _, _) = Start();
-        Assert.Equal(7, window.Demo!.Scenarios.Count);
+        Assert.Equal(8, window.Demo!.Scenarios.Count);
         window.ToggleSettings();
         window.LoadScenario(DemoLedgerScenarios.States);
         Assert.Equal(52, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
