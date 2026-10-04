@@ -17,7 +17,7 @@ internal sealed partial class LedgerHistoryViewModel : ObservableObject
     private readonly HistoryModel model;
     private readonly ScaleModel scale;
 
-    public LedgerHistoryViewModel(HistoryModel model, string accountName, ScaleModel scale)
+    public LedgerHistoryViewModel(HistoryModel model, string accountName, ScaleModel scale, DateOnly? focusDate = null)
     {
         this.model = model;
         this.scale = scale;
@@ -45,6 +45,9 @@ internal sealed partial class LedgerHistoryViewModel : ObservableObject
         Baseline = model.BaselinePerWorkDay is { } b ? (double)(b / Top) : null;
         BaselineText = model.BaselinePerWorkDay is { } baseline ? "baseline " + LedgerFormat.Value(scale, baseline) + " / work day" : string.Empty;
         FocusIndex = model.Days.Count - 1;
+        if (focusDate is { } date)
+            for (var i = 0; i < model.Days.Count; i++)
+                if (model.Days[i].Date == date) { FocusIndex = i; break; }
     }
 
     public string CardId => model.CardId;
@@ -62,6 +65,8 @@ internal sealed partial class LedgerHistoryViewModel : ObservableObject
     public string KeysHint => "← → day · Esc closes";
 
     [ObservableProperty] public partial int FocusIndex { get; private set; }
+
+    public DateOnly FocusDate => model.Days[FocusIndex].Date;
 
     public string FocusText
     {

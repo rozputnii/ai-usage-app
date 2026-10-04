@@ -19,6 +19,8 @@ internal sealed record AuditInput(DateTimeOffset Now, string ZoneId, AccountSnap
     public SignInFailure? SignInFailure { get; init; }
     public bool ManualCode { get; init; }
     public bool BlockRefresh { get; init; }
+    public bool BlockInitialization { get; init; }
+    public int RecoveryFailures { get; init; }
     public LedgerRecoveryModel? Recovery { get; init; }
 }
 

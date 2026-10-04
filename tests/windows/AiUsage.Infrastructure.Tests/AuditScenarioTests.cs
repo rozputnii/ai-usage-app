@@ -17,7 +17,7 @@ using Xunit;
 namespace AiUsage.Infrastructure.Tests;
 
 /// <summary>Independent expected states/amounts over real parsers, local recording and budget projection; exports exactly tested inputs.</summary>
-public sealed class AuditScenarioTests
+public sealed partial class AuditScenarioTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 7, 12, 0, 0, TimeSpan.Zero);
     private static readonly DateTimeOffset WeeklyReset = new(2026, 10, 12, 0, 0, 0, TimeSpan.Zero);

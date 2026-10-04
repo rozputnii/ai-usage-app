@@ -61,7 +61,9 @@ public sealed partial class AuditWindows
                     var accountIndex = input["Accounts"]!.AsArray().ToList().FindIndex(a =>
                         pair.Key.StartsWith(a!["AccountId"]!.GetValue<string>().Replace("-", string.Empty, StringComparison.Ordinal) + ":", StringComparison.Ordinal));
                     Assert.True(accountIndex >= 0);
-                    AssertDisplayedValue(session, pair.Key, expectations[accountIndex]!.AsObject(), input["Accounts"]![accountIndex]!, mode);
+                    var cardExpected = expectations.FirstOrDefault(e => e?["CardId"]?.GetValue<string>() == pair.Key)
+                        ?? expectations[accountIndex];
+                    AssertDisplayedValue(session, pair.Key, cardExpected!.AsObject(), input["Accounts"]![accountIndex]!, mode);
                     session.Capture(pageId + "-" + mode + "-" + expected.ToList().FindIndex(p => p.Key == pair.Key).ToString(CultureInfo.InvariantCulture));
                 }
                 session.ScrollToTop();
@@ -277,6 +279,22 @@ public sealed partial class AuditWindows
             session.RecordTree("failure-value-" + expected["Id"]!.GetValue<string>() + "-" + mode);
         }
         Assert.True(visible, "Expected independent visible value: " + literal);
+        if (layout is "Period" or "Pool" && expected["TodayEnd"] is { } todayEnd &&
+            state is not ("UsedUp" or "NotReady" or "SignedOut"))
+        {
+            // A first observation today establishes its own baseline; a real zero remains zero.
+            var baseline = expected["Baseline"]?.GetValue<decimal>() ?? used;
+            var end = todayEnd.GetValue<decimal>();
+            var share = end - baseline;
+            var today = used - baseline;
+            var todayText = used <= end ? Format(mode == "left" ? end - used : today) + " of " + Format(share) + " " + mode
+                : state == "DayOff" ? Format(today) + " used · a work day would allow " + Format(share)
+                : mode == "left" ? "Nothing left today" : Format(today) + " used of " + Format(share) + " allowed";
+            Assert.True(Session.Wait(() => session.ById(cardId).FindAllDescendants().Any(e =>
+                e.Properties.ControlType.ValueOrDefault == ControlType.Group &&
+                (e.Properties.Name.ValueOrDefault ?? "").Contains(todayText, StringComparison.Ordinal))),
+                "Expected independent today tooltip: " + todayText);
+        }
     }
 
     private static decimal DecimalPower(int exponent)
@@ -295,7 +313,12 @@ public sealed partial class AuditWindows
         public string Input { get; }
         public string Root { get; }
         public string Evidence { get; }
-        public Window Window { get; private set; }
+        private Window? initialWindow;
+        public Window Window
+        {
+            get => windowHandle == IntPtr.Zero ? initialWindow! : automation.FromHandle(windowHandle).AsWindow();
+            private set => initialWindow = value;
+        }
         public string Receipts => File.Exists(Path.Combine(Root, "requests.txt")) ? File.ReadAllText(Path.Combine(Root, "requests.txt")) : string.Empty;
 
         public int ProcessId => process.Id;
@@ -322,7 +345,7 @@ public sealed partial class AuditWindows
                 if (!started) RecordStartupFailure();
                 Assert.True(started, "The isolated audit window did not start; see startup-failure.json");
                 Window = window!;
-                windowHandle = Window.Properties.NativeWindowHandle.Value;
+                windowHandle = GetAncestor(Window.Properties.NativeWindowHandle.Value, 2);
                 Window.SetForeground();
                 if (!OwnsForeground())
                 {
@@ -337,7 +360,7 @@ public sealed partial class AuditWindows
                     Mouse.Click();
                 }
                 Assert.True(Wait(OwnsForeground), "BLOCKED: test process must own foreground input");
-                Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "Add an account" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
+                Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault is "Add an account" or "Opening local data…" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
             }
             catch
             {
@@ -401,14 +424,13 @@ public sealed partial class AuditWindows
         }
         public AutomationElement ById(string id) => Find(e => e.Properties.AutomationId.ValueOrDefault == id);
         public void Click(string name) => Click(Find(e => e.Properties.Name.ValueOrDefault == name &&
-            !e.Properties.IsOffscreen.ValueOrDefault &&
             e.Properties.ControlType.ValueOrDefault is ControlType.Button or ControlType.CheckBox));
         public void Click(AutomationElement element)
         {
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             Show(element);
             Assert.True(element.IsEnabled, element.Properties.Name.ValueOrDefault);
-            Assert.False(element.IsOffscreen);
+            Assert.False(element.Properties.IsOffscreen.ValueOrDefault);
             var point = element.GetClickablePoint();
             RequireMouseTarget(point);
             Mouse.MoveTo(point);
@@ -418,11 +440,22 @@ public sealed partial class AuditWindows
         }
         public void Show(AutomationElement element)
         {
+            try { ShowCore(element); }
+            catch (COMException error) when (error.HResult == unchecked((int)0x80040201))
+            {
+                // WinUI can replace an ancestor's UIA provider during layout. Retry once;
+                // native ownership and point checks still precede all physical input.
+                Thread.Sleep(150);
+                ShowCore(element);
+            }
+        }
+        private void ShowCore(AutomationElement element)
+        {
             DesktopTestEnvironment.RequireUnlockedDesktop();
             RequireOwnedElement(element);
             element.Patterns.ScrollItem.PatternOrDefault?.ScrollIntoView();
             FlaUI.Core.Input.Wait.UntilInputIsProcessed();
-            if (element.IsOffscreen) element.Focus();
+            if (element.Properties.IsOffscreen.ValueOrDefault) element.Focus();
             var viewport = Window.BoundingRectangle;
             for (AutomationElement? parent = element; parent is not null; parent = parent.Parent)
             {
@@ -438,7 +471,7 @@ public sealed partial class AuditWindows
             for (var attempt = 0; attempt < 15; attempt++)
             {
                 var target = element.BoundingRectangle;
-                if (target.Top >= viewport.Top + 2 && target.Bottom <= viewport.Bottom - 2 && !element.IsOffscreen) break;
+                if (target.Top >= viewport.Top + 2 && target.Bottom <= viewport.Bottom - 2 && !element.Properties.IsOffscreen.ValueOrDefault) break;
                 // Some WinUI buttons expose neither ScrollItem nor a reliable IsOffscreen value.
                 // Wheel inside their own column, never at an off-window target point.
                 var wheelPoint = new System.Drawing.Point(Math.Clamp(target.Left + target.Width / 2, viewport.Left + 20, viewport.Right - 20),

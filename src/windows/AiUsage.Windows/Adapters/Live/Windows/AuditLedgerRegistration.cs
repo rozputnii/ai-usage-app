@@ -20,7 +20,8 @@ internal static class AuditLedgerRegistration
         void Receipt(string value) { lock (receiptGate) File.AppendAllText(Path.Combine(root, "requests.txt"), value + Environment.NewLine); }
         services.AddSingleton(input);
         services.AddSingleton(new AuditClock(input.Now));
-        services.AddSingleton(p => new AuditAccounts(input, p.GetRequiredService<AuditClock>(), Receipt));
+        services.AddSingleton(p => new AuditAccounts(input, p.GetRequiredService<AuditClock>(), Receipt,
+            () => File.Exists(Path.Combine(root, "initialize.release"))));
         services.AddSingleton(p => new LocalBudgetStore(root));
         services.AddSingleton(p =>
         {
@@ -51,9 +52,15 @@ internal sealed class AuditLedgerLifetime(string root, AuditInput input, LiveLed
             File.WriteAllText(seeded, "synthetic");
         }
         source.DiagnosticsPreview = _ => { receipt("PreviewDiagnostics"); return Task.FromResult("SYNTHETIC AUDIT · provider transport disabled · isolated temporary storage"); };
+        var recoveryFailures = input.RecoveryFailures;
         source.SupportAction = async (action, token) =>
         {
             receipt("Support:" + action);
+            if (action == LedgerSupportAction.RetryRecovery && recoveryFailures-- > 0)
+            {
+                receipt("RecoveryFailed:synthetic");
+                return CommandOutcome.Unavailable;
+            }
             if (action is LedgerSupportAction.RetryRecovery or LedgerSupportAction.RestorePreferences) await source.SetRecoveryAsync(null);
             if (action == LedgerSupportAction.ExportRecovery) await File.WriteAllTextAsync(Path.Combine(root, "recovery-diagnostics.txt"), "SYNTHETIC AUDIT\nNo credentials or provider bodies\n", token);
             return CommandOutcome.Done;

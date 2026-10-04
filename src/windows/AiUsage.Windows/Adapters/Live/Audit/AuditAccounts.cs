@@ -5,7 +5,7 @@ using AiUsage.Features.Ledger.Contract;
 namespace AiUsage.Adapters.Live.Audit;
 
 /// <summary>Offline account boundary. Requests have synthetic target receipts; no HTTP/browser/credential access exists.</summary>
-internal sealed class AuditAccounts(AuditInput input, AuditClock clock, Action<string> receipt) : IAccountService, IDisposable
+internal sealed class AuditAccounts(AuditInput input, AuditClock clock, Action<string> receipt, Func<bool>? initializationReleased = null) : IAccountService, IDisposable
 {
     private readonly CancellationTokenSource shutdown = new();
     private TaskCompletionSource<AccountResult>? login;
@@ -14,7 +14,24 @@ internal sealed class AuditAccounts(AuditInput input, AuditClock clock, Action<s
     private int added;
     public IReadOnlyList<AccountSnapshot> Current { get; private set; } = input.Accounts;
     public event EventHandler? Changed;
-    public Task InitializeAsync(CancellationToken token) => Task.CompletedTask;
+    public Task InitializeAsync(CancellationToken token)
+    {
+        var task = InitializeCoreAsync(token);
+        pending.Add(task);
+        return task;
+    }
+    private async Task InitializeCoreAsync(CancellationToken token)
+    {
+        receipt("InitializeStarted");
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, shutdown.Token);
+        try
+        {
+            while (input.BlockInitialization && initializationReleased?.Invoke() != true)
+                await Task.Delay(50, linked.Token);
+            receipt("InitializeCompleted");
+        }
+        catch (OperationCanceledException) { receipt("InitializeCancelled"); }
+    }
 
     public async Task<AccountResult> ConnectAsync(string provider, Guid? reconnectAccountId, Guid attemptId,
         Action<AuthorizationChallenge> authorize, CancellationToken token)

@@ -14,6 +14,24 @@ public sealed class AuditReplayTests
     private static AuditInput Empty => new(Now, "UTC", [], [], [], BudgetConfiguration.Default);
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HeldInitializationReleasesOrDrainsOnShutdown(bool release)
+    {
+        var released = false;
+        var receipts = new List<string>();
+        using var accounts = new AuditAccounts(Empty with { BlockInitialization = true }, new(Now), receipts.Add, () => released);
+        var initialize = accounts.InitializeAsync(CancellationToken.None);
+        Assert.False(initialize.IsCompleted);
+        if (release) released = true;
+        else await accounts.StopAsync();
+        await initialize.WaitAsync(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+        Assert.Contains(release ? "InitializeCompleted" : "InitializeCancelled", receipts);
+        if (release) await accounts.StopAsync();
+        Assert.Contains("Stopped", receipts);
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]

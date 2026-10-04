@@ -129,8 +129,9 @@ internal sealed partial class LedgerWindow : Window
         switch (e.PropertyName)
         {
             case nameof(LedgerViewModel.History):
+                var historyWasOpen = historyPanel.History?.CardId == ViewModel.History?.CardId;
                 RebuildGrid();
-                if (ViewModel.History is not null)
+                if (ViewModel.History is not null && !historyWasOpen)
                     DispatcherQueue.TryEnqueue(() =>
                     {
                         historyPanel.StartBringIntoView();

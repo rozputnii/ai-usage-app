@@ -12,6 +12,103 @@ namespace AiUsage.Presentation.Tests;
 public sealed class LiveLedgerSourceTests
 {
     [Fact]
+    public async Task OpenHistoryUpdatesAfterStoredReadingsChangeAndKeepsItsSelectedDay()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var account = Account(id, clock.Now, true);
+        var facts = account.Session.Quota!.Limits!.Limits[0];
+        var series = new ReadingSeriesKey(id.ToString("N"), facts.Key);
+        var midnight = new DateTimeOffset(clock.Now.Date, TimeSpan.Zero);
+        ReadingRun Run(decimal value, DateTimeOffset at) => new(series, new CountQuantity(value, "requests"), at, at, "month", null, SnapshotSource.ProviderApi)
+            { PeriodStartedAt = midnight.AddDays(-4), ResetAt = facts.Reset!.At };
+        var store = new Store { Runs = [Run(10, midnight), Run(20, clock.Now)] };
+        var accounts = new Accounts { Current = [account] };
+        using var source = Source(accounts, store, clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            using var window = new LedgerViewModel(source, new ManualScheduler());
+            var card = Assert.Single(window.Cards);
+            await window.ToggleHistoryAsync(card);
+            Assert.Equal(10, Assert.Single(window.History!.Bars).Value);
+            window.History.MoveFocus(-1);
+            store.Runs = [Run(10, midnight), Run(35, clock.Now)];
+            var quota = account.Session.Quota;
+            var changed = facts with { Used = new CountQuantity(35, "requests") };
+            accounts.Current = [account with { Session = account.Session with { Quota = quota with { Limits = quota.Limits with { Limits = [changed] } } } }];
+            accounts.Emit(); await source.WaitForIdleAsync();
+            for (var attempt = 0; attempt < 20 && window.History!.Bars[0].Value != 25; attempt++) await Task.Delay(10, Token);
+            Assert.Equal(25, Assert.Single(window.History!.Bars).Value);
+            Assert.Equal(33, window.History.FocusIndex);
+            await source.RenameAccountAsync(id.ToString("N"), "SYNTHETIC renamed history", Token);
+            for (var attempt = 0; attempt < 20 && window.History!.Title != "SYNTHETIC renamed history"; attempt++) await Task.Delay(10, Token);
+            Assert.Equal("SYNTHETIC renamed history", window.History!.Title);
+            var selected = window.History.FocusDate;
+            clock.Now = clock.Now.AddDays(1);
+            await source.TickAsync(Token);
+            for (var attempt = 0; attempt < 20 && window.History!.FocusIndex != 32; attempt++) await Task.Delay(10, Token);
+            Assert.Equal(selected, window.History!.FocusDate);
+            Assert.Equal(32, window.History.FocusIndex);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ClosingHistoryWhileItsReadIsPendingRejectsTheLateCompletion(bool dispose)
+    {
+        var clock = new Clock(); var account = Account(Guid.NewGuid(), clock.Now, true);
+        var store = new Store(); var accounts = new Accounts { Current = [account] };
+        using var source = Source(accounts, store, clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            using var window = new LedgerViewModel(source, new ManualScheduler());
+            store.HoldRead = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            store.ReadEntered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            accounts.Emit();
+            await store.ReadEntered.Task.WaitAsync(Token);
+            var history = window.ToggleHistoryAsync(Assert.Single(window.Cards));
+            Assert.False(history.IsCompleted);
+            if (dispose) window.Dispose();
+            else window.CloseHistory();
+            store.HoldRead.SetResult();
+            await source.WaitForIdleAsync(); await history;
+            Assert.Null(window.History);
+            Assert.False(Assert.Single(window.Cards).IsHistoryOpen);
+        }
+        finally { store.HoldRead?.TrySetResult(); await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task SwitchingHistoryDuringARefreshKeepsTheRequestedAccount()
+    {
+        var clock = new Clock();
+        var store = new Store();
+        var accounts = new Accounts { Current = [Account(Guid.NewGuid(), clock.Now, true), Account(Guid.NewGuid(), clock.Now, true)] };
+        using var source = Source(accounts, store, clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            using var window = new LedgerViewModel(source, new ManualScheduler());
+            await window.ToggleHistoryAsync(window.Cards[0]);
+            store.HoldRead = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            store.ReadEntered = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            accounts.Emit(); await store.ReadEntered.Task.WaitAsync(Token);
+            var requested = window.Cards[1].CardId;
+            var history = window.ToggleHistoryAsync(window.Cards[1]);
+            Assert.False(history.IsCompleted);
+            store.HoldRead.SetResult();
+            await source.WaitForIdleAsync(); await history;
+            for (var attempt = 0; attempt < 20 && window.History!.CardId != requested; attempt++) await Task.Delay(10, Token);
+            Assert.Equal(requested, window.History!.CardId);
+            Assert.False(window.Cards[0].IsHistoryOpen);
+            Assert.True(window.Cards[1].IsHistoryOpen);
+        }
+        finally { store.HoldRead?.TrySetResult(); await source.StopAsync(); }
+    }
+    [Fact]
     public async Task RetryKeepsTheSharedStripCancelCommandAvailableWhileLoginIsPending()
     {
         var accounts = new Accounts { HoldLogin = true };
@@ -100,10 +197,17 @@ public sealed class LiveLedgerSourceTests
         public BudgetConfiguration Configuration = BudgetConfiguration.Default;
         public List<string> Captured { get; } = [];
         public bool FailCapture;
+        public ReadingRun[] Runs = [];
+        public TaskCompletionSource? HoldRead;
+        public TaskCompletionSource? ReadEntered;
         public Task RecordAsync(string accountTarget, string provider, ProviderSessionState state, CancellationToken token)
         { if (FailCapture) throw new IOException(); Captured.Add(accountTarget); return Task.CompletedTask; }
         public Task<StoreWrite> AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token) => throw new NotSupportedException();
-        public Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token) => Task.FromResult(new StoreRead<IReadOnlyList<ReadingRun>>([]));
+        public async Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token)
+        {
+            if (HoldRead is { } hold) { ReadEntered?.TrySetResult(); await hold.Task.WaitAsync(token); }
+            return new(Runs.Where(r => r.Series == series).ToArray());
+        }
         public Task<StoreRead<BudgetConfiguration>> LoadConfigurationAsync(CancellationToken token) => Task.FromResult(new StoreRead<BudgetConfiguration>(Configuration));
         public Task<StoreWrite> SaveConfigurationAsync(BudgetConfiguration configuration, CancellationToken token)
         { Configuration = configuration; return Task.FromResult(new StoreWrite()); }

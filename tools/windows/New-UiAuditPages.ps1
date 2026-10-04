@@ -3,7 +3,9 @@ param(
     [Parameter(Mandatory)][string]$OutputDirectory,
     [Parameter(Mandatory)][string]$CoverageDirectory,
     [string]$NativeBlocker = '',
-    [string[]]$ScenarioPatterns = @('*')
+    [string[]]$ScenarioPatterns = @('*'),
+    [string]$CompositeDirectory = '',
+    [string]$TransitionDirectory = ''
 )
 $ErrorActionPreference = 'Stop'
 $inputRoot = [IO.Path]::GetFullPath($InputDirectory)
@@ -85,4 +87,27 @@ foreach ($group in ($cases | Where-Object { $scenario = $_.Id; @($ScenarioPatter
 $matrix | Export-Csv -LiteralPath (Join-Path $coverageRoot 'coverage.csv') -NoTypeInformation -Encoding utf8
 $matrix | Select-Object ScenarioId, PlannedScreenshot, RelevantCard, ScreenshotResult, VisualInspection, NativeResult |
     Export-Csv -LiteralPath (Join-Path $coverageRoot 'screenshot-index.csv') -NoTypeInformation -Encoding utf8
+if ($CompositeDirectory) {
+    $compositeIndex = foreach ($fixturePath in (Get-ChildItem -LiteralPath $CompositeDirectory -Filter '*.json' | Where-Object Name -NotLike '*.expectations.json' | Sort-Object Name)) {
+        $scenarioId = $fixturePath.BaseName
+        $fixture = Get-Content -LiteralPath $fixturePath.FullName -Raw | ConvertFrom-Json -AsHashtable -DateKind String
+        if ($fixture.SyntheticMarker -ne 'AI Usage synthetic audit v1') { throw 'Composite requires the synthetic marker.' }
+        $pageId = 'page-{0:D3}' -f (++$pageNumber)
+        Copy-Item -LiteralPath $fixturePath.FullName -Destination (Join-Path $outputRoot ($pageId + '.json'))
+        Copy-Item -LiteralPath (Join-Path $CompositeDirectory ($scenarioId + '.expectations.json')) -Destination (Join-Path $outputRoot ($pageId + '.expectations.json'))
+        [pscustomobject]@{ ScenarioId = $scenarioId; PlannedScreenshot = 'gallery/' + $pageId + '-used.png; gallery/' + $pageId + '-left.png'
+            RelevantCard = @($fixture.ExpectedStates.Keys) -join '; '; NativeResult = 'NOT_RUN'; VisualInspection = 'NOT_RUN' }
+    }
+    $compositeIndex | Export-Csv -LiteralPath (Join-Path $coverageRoot 'additional-screenshot-index.csv') -NoTypeInformation -Encoding utf8
+}
+if ($TransitionDirectory) {
+    $transitionRoot = Join-Path $outputRoot 'transitions'
+    New-Item -ItemType Directory -Path $transitionRoot -Force | Out-Null
+    foreach ($fixturePath in (Get-ChildItem -LiteralPath $TransitionDirectory -Filter '*.json' | Where-Object Name -NotLike '*.expectations.json')) {
+        $fixture = Get-Content -LiteralPath $fixturePath.FullName -Raw | ConvertFrom-Json -AsHashtable -DateKind String
+        if ($fixture.SyntheticMarker -ne 'AI Usage synthetic audit v1' -or !$fixture.NextAccounts -or !$fixture.NextNow) { throw 'Transition requires a tested synthetic replacement.' }
+        Copy-Item -LiteralPath $fixturePath.FullName -Destination $transitionRoot
+        Copy-Item -LiteralPath (Join-Path $TransitionDirectory ($fixturePath.BaseName + '.next.expectations.json')) -Destination $transitionRoot
+    }
+}
 "Prepared $($matrix.Count) parser-tested scenarios on $pageNumber pages plus an overview. No screenshots or native passes are implied."

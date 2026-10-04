@@ -34,6 +34,10 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     private Func<Task>? undoAction;
     private SignInStripModel? hiddenStrip;
     private bool undoHeld;
+    private readonly CancellationTokenSource historyLifetime = new();
+    private int historyRequest;
+    private string? historyCardId;
+    private bool disposed;
 
     public LedgerViewModel(ILedgerSource source, ILedgerScheduler scheduler, Action<string>? announce = null, LedgerDemoControls? demo = null)
     {
@@ -87,7 +91,15 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     /// <summary>Asks the view to bring a card into view and focus it (tray row click, Enter in the tray).</summary>
     public event EventHandler<string>? FocusCardRequested;
 
-    private void OnSourceChanged(object? sender, EventArgs e) => Rebuild();
+    private async void OnSourceChanged(object? sender, EventArgs e)
+    {
+        Rebuild();
+        if (historyCardId is { } cardId)
+        {
+            if (!cardsById.ContainsKey(cardId)) CloseHistory();
+            else await ReadHistoryAsync(cardId, History?.CardId == cardId ? History.FocusDate : null);
+        }
+    }
 
     private void Rebuild()
     {
@@ -388,22 +400,35 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
 
     public async Task ToggleHistoryAsync(LimitCardViewModel card)
     {
-        if (History?.CardId == card.CardId)
+        if (historyCardId == card.CardId)
         {
             CloseHistory();
             return;
         }
-        var model = await source.GetHistoryAsync(card.CardId, CancellationToken.None);
-        if (model is null)
+        historyCardId = card.CardId;
+        await ReadHistoryAsync(card.CardId, null);
+    }
+
+    private async Task ReadHistoryAsync(string cardId, DateOnly? focusDate)
+    {
+        if (disposed)
+            return;
+        var request = ++historyRequest;
+        HistoryModel? model;
+        try { model = await source.GetHistoryAsync(cardId, historyLifetime.Token); }
+        catch (OperationCanceledException) when (disposed) { return; }
+        if (disposed || request != historyRequest || model is null || !cardsById.TryGetValue(cardId, out var card))
             return;
         foreach (var other in Cards)
             other.IsHistoryOpen = other == card;
-        History = new LedgerHistoryViewModel(model, card.Name, card.Model.Scale);
+        History = new LedgerHistoryViewModel(model, card.Name, card.Model.Scale, focusDate);
     }
 
     [RelayCommand]
     public void CloseHistory()
     {
+        historyRequest++;
+        historyCardId = null;
         var cardId = History?.CardId;
         foreach (var card in Cards)
             card.IsHistoryOpen = false;
@@ -478,7 +503,12 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
+        if (disposed) return;
+        disposed = true;
+        historyRequest++;
         source.Changed -= OnSourceChanged;
+        historyLifetime.Cancel();
+        historyLifetime.Dispose();
         undoExpiry?.Dispose();
         stripHide?.Dispose();
     }

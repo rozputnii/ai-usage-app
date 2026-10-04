@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Input;
@@ -49,11 +50,11 @@ public sealed partial class AuditWindows
         session.Key(VirtualKeyShort.RETURN);
         Assert.True(Session.Wait(() => session.IsVisible)); session.RequireForeground();
         session.HideToTray(); session.TrayIconClick(false);
-        popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray" && !e.Properties.IsOffscreen.ValueOrDefault);
+        popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray" && session.SurfaceIsVisible(e));
         session.Key(VirtualKeyShort.ESCAPE);
-        Assert.True(Session.Wait(() => popup.Properties.IsOffscreen.ValueOrDefault));
+        Assert.True(Session.Wait(() => !session.SurfaceIsVisible(popup)));
         session.TrayIconClick(false);
-        popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray" && !e.Properties.IsOffscreen.ValueOrDefault);
+        popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray" && session.SurfaceIsVisible(e));
         var firstRow = popup.FindAllDescendants().First(e => e.Properties.IsKeyboardFocusable.ValueOrDefault &&
             (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude", StringComparison.Ordinal));
         session.Click(firstRow);
@@ -79,14 +80,36 @@ public sealed partial class AuditWindows
 
     private sealed partial class Session
     {
-        public bool IsVisible => IsWindowVisible(windowHandle);
+        public bool IsVisible => IsWindowVisible(GetAncestor(windowHandle, 2)); // UIA may expose an unshown WinUI child bridge.
+        public bool SurfaceIsVisible(AutomationElement surface)
+        {
+            RequireOwnedElement(surface);
+            for (AutomationElement? parent = surface; parent is not null; parent = parent.Parent)
+            {
+                var handle = parent.Properties.NativeWindowHandle.ValueOrDefault;
+                if (handle != IntPtr.Zero) return IsWindowVisible(GetAncestor(handle, 2));
+            }
+            throw new InvalidOperationException("An owned tray surface needs a native window");
+        }
         public void RequireForeground() => Assert.True(Wait(OwnsForeground));
         public void HideToTray()
         {
-            Click(Find(e => e.Properties.Name.ValueOrDefault == "Close" && !e.Properties.IsOffscreen.ValueOrDefault &&
-                e.Properties.ControlType.ValueOrDefault == ControlType.Button));
+            ClickCaption("Close");
             Assert.True(Wait(() => !IsVisible));
             Assert.False(process.HasExited);
+        }
+        public void ClickCaption(string name)
+        {
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+            AutomationElement? button = null;
+            Assert.True(Wait(() => (button = Window.FindAllDescendants().FirstOrDefault(e => e.Properties.Name.ValueOrDefault == name &&
+                e.Properties.ControlType.ValueOrDefault == ControlType.Button && e.BoundingRectangle.Width > 0 && e.BoundingRectangle.Height > 0)) is not null),
+                "The restored main window must expose its native caption button before a click");
+            Assert.NotNull(button);
+            Assert.True(button.Properties.IsEnabled.ValueOrDefault);
+            var point = button.GetClickablePoint();
+            RequireMouseTarget(point); Mouse.MoveTo(point); RequireMouseTarget(point); Mouse.Click();
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
         }
         public void AssertExited()
         {
@@ -112,30 +135,64 @@ public sealed partial class AuditWindows
             Assert.Equal("explorer", explorer.ProcessName, ignoreCase: true);
             AutomationElement? Icon(AutomationElement parent) => parent.FindAllDescendants().FirstOrDefault(e =>
                 e.Properties.Name.ValueOrDefault == "AI Usage" && e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
-                !e.Properties.IsOffscreen.ValueOrDefault);
+                !e.Properties.IsOffscreen.ValueOrDefault && e.BoundingRectangle.Width > 0 && e.BoundingRectangle.Height > 0);
             var icon = Icon(taskbar);
             if (icon is null)
             {
-                var toggle = taskbar.FindAllDescendants().FirstOrDefault(e =>
-                    (e.Properties.Name.ValueOrDefault ?? "").Contains("Hidden Icons", StringComparison.OrdinalIgnoreCase));
-                Assert.NotNull(toggle);
-                ShellClick(toggle, (int)shellId, false);
-                AutomationElement? overflow = null;
-                Assert.True(Wait(() => (overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"))) is not null));
+                var overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
+                if (overflow is null || !IsWindowVisible(overflow.Properties.NativeWindowHandle.ValueOrDefault))
+                {
+                    var toggle = taskbar.FindAllDescendants().FirstOrDefault(e =>
+                        (e.Properties.Name.ValueOrDefault ?? "").Contains("Hidden Icons", StringComparison.OrdinalIgnoreCase));
+                    Assert.NotNull(toggle);
+                    ShellClick(toggle, (int)shellId, false);
+                    Assert.True(Wait(() => (overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"))) is not null &&
+                        IsWindowVisible(overflow.Properties.NativeWindowHandle.ValueOrDefault)));
+                }
                 icon = Icon(overflow!);
             }
             Assert.NotNull(icon);
             ShellClick(icon, (int)shellId, right);
             Assert.True(Wait(OwnsForeground), "The clicked tray icon must open a surface owned by this audit app");
         }
-        private static void ShellClick(AutomationElement element, int shellId, bool right)
+        private int shellStep;
+        private void ShellClick(AutomationElement element, int shellId, bool right)
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
-            var point = element.GetClickablePoint();
+            RecordShell("before");
+            var point = ShellPoint(element);
+            DesktopTestEnvironment.RequireOwnedPoint(shellId, point); Mouse.MoveTo(point);
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+            Thread.Sleep(150); // Let the guest shell finish its ordinary overflow/hover layout.
+            RecordShell("hover");
+            point = ShellPoint(element);
             DesktopTestEnvironment.RequireOwnedPoint(shellId, point); Mouse.MoveTo(point);
             DesktopTestEnvironment.RequireOwnedPoint(shellId, point);
             if (right) Mouse.RightClick(); else Mouse.Click();
             FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+        }
+        private void RecordShell(string stage)
+        {
+            Assert.Equal("WDAGUtilityAccount", Environment.UserName);
+            var surfaces = automation.GetDesktop().FindAllChildren().Where(e =>
+                e.Properties.ClassName.ValueOrDefault is "Shell_TrayWnd" or "TopLevelWindowForOverflowXamlIsland");
+            File.WriteAllText(Path.Combine(Evidence, "shell-" + Path.GetFileNameWithoutExtension(Input) + "-" + shellStep++ + "-" + stage + ".json"),
+                JsonSerializer.Serialize(surfaces.Select(e => new {
+                    Class = e.Properties.ClassName.ValueOrDefault, Bounds = e.BoundingRectangle,
+                    Visible = IsWindowVisible(e.Properties.NativeWindowHandle.ValueOrDefault),
+                    Children = e.FindAllDescendants().Take(150).Select(child => new {
+                        Name = child.Properties.Name.ValueOrDefault, Type = child.Properties.ControlType.ValueOrDefault.ToString(),
+                        Bounds = child.BoundingRectangle, Offscreen = child.Properties.IsOffscreen.ValueOrDefault }) }).ToArray()));
+        }
+        private static System.Drawing.Point ShellPoint(AutomationElement element)
+        {
+            try { return element.GetClickablePoint(); }
+            catch (FlaUI.Core.Exceptions.NoClickablePointException)
+            {
+                var bounds = element.BoundingRectangle;
+                Assert.True(bounds.Width > 0 && bounds.Height > 0);
+                return new(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+            }
         }
         public void CaptureSurface(AutomationElement surface, string name)
         {
@@ -150,5 +207,7 @@ public sealed partial class AuditWindows
         }
         [DllImport("user32.dll")]
         private static extern bool IsWindowVisible(IntPtr handle);
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetAncestor(IntPtr handle, uint flags);
     }
 }
