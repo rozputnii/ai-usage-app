@@ -10,6 +10,7 @@
 - [Control inventory](controls.csv): 69 mouse-action/variant rows, 21 keyboard rows and three non-applicable visible-control requests. None is claimed as physically verified in this audit.
 - [Gallery status](gallery.md) and [screenshot index](screenshot-index.csv): every corpus scenario mapped to a planned readable Used/Left page and exact synthetic card ID; all final images NOT_CAPTURED.
 - [Implementation/handoff plan](plan.md).
+- [Independent checkpoint review and finding dispositions](review.md).
 
 ## Product defects fixed
 
@@ -25,7 +26,7 @@ These are formatting/projection repairs within existing behavior. No provider en
 
 ## Test and build results
 
-Audit base: `main` at `383644c`. Initial checkout was clean. The exact save-point source reference and review evidence will be recorded as work progresses; current results are from the audit working tree, not the untouched base. Native executable: `src/windows/AiUsage.Windows/bin/x64/Debug/net10.0-windows10.0.26100.0/win-x64/AiUsage.exe`. Environment: Windows console session, .NET SDK 10.0.401, ordinary host display settings unchanged.
+Audit base: `main` at `383644c`. Initial checkout was clean. Deterministic tests and product builds correspond to production/test sources saved at `2942e6feec44292763799b15660a9853f9087306`; subsequent review corrections affect only the native driver and its guards. Native executable: `src/windows/AiUsage.Windows/bin/x64/Debug/net10.0-windows10.0.26100.0/win-x64/AiUsage.exe`. EXE SHA-256: `3A25A0E283144D66D6A58847ED3F4985E5DC41813911D4958402E11838D8763B`; application DLL SHA-256: `F8D1FFEBF30C5065BCF637E91C41D47F4F315CD1669FBF509180E3F925434C16`. Environment: Windows console session, .NET SDK 10.0.401, ordinary host display settings unchanged.
 
 | Check | Actual result |
 | --- | --- |
@@ -39,12 +40,12 @@ Audit base: `main` at `383644c`. Initial checkout was clean. The exact save-poin
 | Unsigned MSIX validation build | PASS 2026.10.409.0, identity/version validated, no installation/signing; external tooling warns mspdbcmf.exe is unavailable so no symbols package |
 | Actual initial Ledger smoke | BLOCKED after launching isolated unpackaged app: could not acquire foreground input; three foreground failures before stopping the suite; no valid app evidence |
 | Read-only desktop prerequisite after harness correction | BLOCKED: LockApp/LogonUI input; xUnit reports one failed prerequisite, not a product defect |
-| New replay/control/auth native driver | BLOCKED 11/11 attempted tests at the input guard; no application interaction/capture executed |
+| New replay/control/auth native driver | BLOCKED 11/11 attempted tests at the input guard; repeated after review corrections with the same blocker; no application interaction/capture executed |
 | Final screenshots and rendered visual inspection | BLOCKED / NOT_CAPTURED |
 | Document validation | PASS, no diagnostics |
-| Integrated/fresh independent review | Pending; no successful review claim yet |
+| Integrated/fresh independent review | Source review executed against frozen checkpoint; two material driver findings corrected and compiled. Successful native runtime verification remains BLOCKED; see review.md |
 
-Local execution logs/results: `.ai-usage-local/ui-audit/infrastructure.xml`, `presentation.xml`, `desktop-prerequisite.xml`, `native.xml`; earlier regression failures stay separately in `product-regressions-red.xml`, `native-precision-red.xml`, `overflow-precision-red.xml`. Generated output and all captures remain outside Git. Invalid lock-screen captures are excluded from deliverables and publication.
+Local execution logs/results: `.ai-usage-local/ui-audit/infrastructure.xml`, `presentation.xml`, `desktop-prerequisite.xml`, `native.xml`, `native-after-review.xml`; earlier regression failures stay separately in `product-regressions-red.xml`, `native-precision-red.xml`, `overflow-precision-red.xml`. Generated output and all captures remain outside Git. Invalid lock-screen captures are excluded from deliverables and publication.
 
 Harness corrections are distinct from product fixes. Shared-project concurrent compilation collided in compiler output; sequential reruns passed. The first input-desktop-name probe falsely considered Default sufficient while LockApp still owned input; a foreground process check was added and its actual read-only rerun correctly reported BLOCKED. Audit root validation now runs before diagnostics creates directories, requires explicit `--demo`, a synthetic marker and an isolated marked temporary root, and rejects redirection. Replay includes the observations actually submitted by the production recorder, so cached startup cannot lose first-observation baselines. PowerShell page generation retains ISO timestamp strings rather than converting them through the host timezone. Rehydrated corpus inputs were actually rerun against the real store and projection.
 

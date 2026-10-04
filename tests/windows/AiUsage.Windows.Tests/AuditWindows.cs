@@ -208,16 +208,42 @@ public sealed class AuditWindows
             var start = new ProcessStartInfo(Required("AIU_SMOKE_EXE")) { UseShellExecute = false };
             start.ArgumentList.Add("--demo"); start.ArgumentList.Add("--audit-input=" + input);
             start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Root;
-            app = Application.Launch(start);
-            process = Process.GetProcessById(app.ProcessId);
-            _ = process.Handle;
-            Window? window = null;
-            Assert.True(Wait(() => (window = automation.GetDesktop().FindAllChildren().FirstOrDefault(w =>
-                w.Properties.ProcessId.ValueOrDefault == app.ProcessId && w.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) is not null)?.AsWindow()) is not null), "The isolated audit window did not start");
-            Window = window!;
-            Window.SetForeground();
-            Assert.True(Wait(() => GetForegroundWindow() == Window.Properties.NativeWindowHandle.Value), "BLOCKED: test window must own foreground input");
-            Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "Add an account" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
+            Application? launched = null;
+            Process? launchedProcess = null;
+            try
+            {
+                app = launched = Application.Launch(start);
+                process = launchedProcess = Process.GetProcessById(app.ProcessId);
+                _ = process.Handle;
+                Window? window = null;
+                Assert.True(Wait(() => (window = automation.GetDesktop().FindAllChildren().FirstOrDefault(w =>
+                    w.Properties.ProcessId.ValueOrDefault == app.ProcessId && w.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) is not null)?.AsWindow()) is not null), "The isolated audit window did not start");
+                Window = window!;
+                Window.SetForeground();
+                Assert.True(Wait(() => GetForegroundWindow() == Window.Properties.NativeWindowHandle.Value), "BLOCKED: test window must own foreground input");
+                Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "Add an account" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
+            }
+            catch
+            {
+                // Construction can fail before the caller's using statement owns this session.
+                // Only the process launched above is eligible for cleanup.
+                try
+                {
+                    if (launchedProcess is { HasExited: false })
+                    {
+                        launchedProcess.Kill();
+                        launchedProcess.WaitForExit(5000);
+                    }
+                    else if (launched is { HasExited: false }) launched.Kill();
+                }
+                finally
+                {
+                    launchedProcess?.Dispose();
+                    launched?.Dispose();
+                    automation.Dispose();
+                }
+                throw;
+            }
         }
         public static Session FromFixture(JsonObject fixture, string id)
         {
@@ -237,11 +263,15 @@ public sealed class AuditWindows
             e.Properties.ControlType.ValueOrDefault is ControlType.Button or ControlType.CheckBox));
         public void Click(AutomationElement element)
         {
-            DesktopTestEnvironment.RequireUnlockedDesktop();
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             Show(element);
             Assert.True(element.IsEnabled, element.Properties.Name.ValueOrDefault);
             Assert.False(element.IsOffscreen);
-            element.Click();
+            var point = element.GetClickablePoint();
+            RequireMouseTarget(point);
+            Mouse.MoveTo(point);
+            RequireMouseTarget(point);
+            Mouse.Click();
         }
         public void Show(AutomationElement element)
         {
@@ -250,39 +280,51 @@ public sealed class AuditWindows
             element.Patterns.ScrollItem.PatternOrDefault?.ScrollIntoView();
             if (element.IsOffscreen) element.Focus();
             var bounds = element.BoundingRectangle;
-            Mouse.MoveTo(bounds.Left + bounds.Width / 2, bounds.Top + Math.Min(15, bounds.Height / 2));
+            var point = new System.Drawing.Point(bounds.Left + bounds.Width / 2, bounds.Top + Math.Min(15, bounds.Height / 2));
+            RequireMouseTarget(point);
+            Mouse.MoveTo(point);
         }
         public void ScrollToTop()
         {
-            DesktopTestEnvironment.RequireUnlockedDesktop();
             var bounds = Window.BoundingRectangle;
-            Mouse.MoveTo(bounds.Left + bounds.Width / 3, bounds.Top + bounds.Height / 2);
+            var point = new System.Drawing.Point(bounds.Left + bounds.Width / 3, bounds.Top + bounds.Height / 2);
+            RequireMouseTarget(point);
+            Mouse.MoveTo(point);
+            RequireMouseTarget(point);
             Mouse.Scroll(30);
             Thread.Sleep(200);
         }
         public void Key(VirtualKeyShort key)
         {
-            DesktopTestEnvironment.RequireUnlockedDesktop();
-            Assert.NotEqual(0u, GetWindowThreadProcessId(GetForegroundWindow(), out var owner));
-            Assert.Equal((uint)app.ProcessId, owner);
-            Keyboard.Press(key);
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+            Keyboard.Type(key);
         }
         public void Type(AutomationElement element, string value)
         {
-            Click(element); Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A); Keyboard.Type(value);
+            Click(element);
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
+            foreach (var character in value)
+            {
+                DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+                Keyboard.Type(character);
+            }
         }
         public void Capture(string name)
         {
-            DesktopTestEnvironment.RequireUnlockedDesktop();
+            RequireUnobscuredWindow();
             Assert.Equal(Window.Properties.NativeWindowHandle.Value, GetForegroundWindow());
             using var capture = Window.Capture();
-            DesktopTestEnvironment.RequireUnlockedDesktop();
+            RequireUnobscuredWindow();
             capture.Save(Path.Combine(Evidence, name + ".png"), System.Drawing.Imaging.ImageFormat.Png);
         }
         public void Exit()
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
-            Window.SetForeground(); Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
+            Window.SetForeground();
+            Assert.True(Wait(() => GetForegroundWindow() == Window.Properties.NativeWindowHandle.Value), "BLOCKED: test window must own exit input");
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "The audit process must drain and exit");
             Assert.Equal(0, process.ExitCode);
             Assert.Contains("Stopped", Receipts, StringComparison.Ordinal);
@@ -291,6 +333,20 @@ public sealed class AuditWindows
         {
             if (!process.HasExited) { process.Kill(); process.WaitForExit(5000); }
             process.Dispose(); app.Dispose(); automation.Dispose();
+        }
+        private void RequireMouseTarget(System.Drawing.Point point)
+        {
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+            DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, point);
+        }
+        private void RequireUnobscuredWindow()
+        {
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+            var bounds = Window.BoundingRectangle;
+            // A regular grid rejects covered captures; rendered evidence still requires visual inspection.
+            for (var y = bounds.Top + 8; y < bounds.Bottom - 8; y += 32)
+                for (var x = bounds.Left + 8; x < bounds.Right - 8; x += 32)
+                    DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, new(x, y));
         }
         public static bool Wait(Func<bool> condition)
         {
@@ -305,7 +361,5 @@ public sealed class AuditWindows
         }
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr handle, out uint owner);
     }
 }

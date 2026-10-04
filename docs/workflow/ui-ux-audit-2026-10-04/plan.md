@@ -27,6 +27,8 @@ Base: main `383644c`, clean checkout. Presentation baseline PASS 128/128; Infras
 
 Native blocker: desktop is locked. Initial smoke app launches could not acquire input; invalid lock-screen captures are excluded. Corrected read-only desktop prerequisite reports BLOCKED before input/capture. Unlock request is pending. 170 corpus rows, 39 additional scenario rows and 93 control/keyboard/non-applicable rows record actual gaps, with zero final screenshots. See report.md.
 
+Checkpoint `2942e6f` freezes deterministic product/test changes. Fresh independent review found two native-driver safety/lifetime issues: physical input lacked foreground/hit-test ownership guards and failed construction could leave its child process alive. Both are corrected; driver compilation PASS and all 11 native tests actually rerun BLOCKED at the locked-desktop prerequisite. See review.md. Product suites need no repeat for these driver-only corrections. Document validation PASS before review-record additions; rerun on final records. Save point publication remains in progress; `[skip ci]` prevents release publication.
+
 ## Handoff
 
-Exact next action: run AuditDesktopPrerequisite.UnlockedInputDesktopIsAvailable after the owner unlocks Windows; if PASS, rerun the actual replay/control driver, repair any harness/product failures and complete the remaining composite/control fixtures and inspected screenshots. While locked, finish integrated/fresh review and publication of this explicitly incomplete save point. No comprehensive completion claim has been made.
+Exact next action: run AuditDesktopPrerequisite.UnlockedInputDesktopIsAvailable after the owner unlocks Windows; if PASS, rerun the actual replay/control driver, repair any harness/product failures and complete the remaining composite/control fixtures and inspected screenshots. No comprehensive completion claim has been made.

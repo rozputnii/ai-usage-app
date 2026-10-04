@@ -34,6 +34,21 @@ internal static class DesktopTestEnvironment
             "BLOCKED: unlock the Windows desktop before application input or capture");
     }
 
+    internal static void RequireOwnedForeground(int processId)
+    {
+        RequireUnlockedDesktop();
+        Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var owner) != 0 && owner == processId,
+            "BLOCKED: the isolated test process must own foreground input");
+    }
+
+    internal static void RequireOwnedPoint(int processId, System.Drawing.Point point)
+    {
+        RequireUnlockedDesktop();
+        var hit = WindowFromPoint(point);
+        Assert.True(hit != IntPtr.Zero && GetWindowThreadProcessId(hit, out var owner) != 0 && owner == processId,
+            "BLOCKED: another window covers the isolated test target");
+    }
+
     [DllImport("user32.dll")]
     private static extern bool SetProcessDpiAwarenessContext(IntPtr context);
 
@@ -47,4 +62,6 @@ internal static class DesktopTestEnvironment
     private static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+    [DllImport("user32.dll")]
+    private static extern IntPtr WindowFromPoint(System.Drawing.Point point);
 }
