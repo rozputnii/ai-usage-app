@@ -36,7 +36,7 @@ internal static class LiveLedgerRegistration
         return services;
     }
 
-    private static Task Dispatch(DispatcherQueue queue, Action action)
+    internal static Task Dispatch(DispatcherQueue queue, Action action)
     {
         if (queue.HasThreadAccess) { action(); return Task.CompletedTask; }
         var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);

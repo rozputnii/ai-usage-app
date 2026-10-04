@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using AiUsage.Features.Ledger.Contract;
 
 namespace AiUsage.Features.Ledger;
@@ -31,7 +32,7 @@ internal static class LedgerFormat
 
     public static string Money(string? currency, int? exponent, decimal amount)
     {
-        var digits = Math.Clamp(exponent ?? 2, 0, 6);
+        var digits = Math.Clamp(exponent ?? 2, 0, 18);
         var number = Round(amount, digits).ToString("#,0." + new string('0', digits), En).TrimEnd('.');
         return currency switch
         {
@@ -152,13 +153,18 @@ internal static class LedgerFormat
     public static bool TryParseAmount(string text, ScaleModel scale, out decimal amount)
     {
         amount = 0;
-        var cleaned = text.Trim().Replace(",", string.Empty, StringComparison.Ordinal).Replace("$", string.Empty, StringComparison.Ordinal)
-            .Replace("€", string.Empty, StringComparison.Ordinal).Replace("£", string.Empty, StringComparison.Ordinal).Trim();
-        if (scale.Currency is { Length: > 0 } code)
-            cleaned = cleaned.Replace(code, string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
-        if (!decimal.TryParse(cleaned, NumberStyles.AllowDecimalPoint, En, out var parsed) || parsed < 0)
+        var cleaned = text.Trim();
+        if (scale.Kind == ScaleKind.Money && scale.Currency is { Length: > 0 } code)
+        {
+            var symbol = code switch { "USD" => "$", "EUR" => "€", "GBP" => "£", _ => code };
+            if (cleaned.StartsWith(symbol, StringComparison.OrdinalIgnoreCase)) cleaned = cleaned[symbol.Length..].Trim();
+            else if (cleaned.StartsWith(code, StringComparison.OrdinalIgnoreCase)) cleaned = cleaned[code.Length..].Trim();
+            else if (cleaned.EndsWith(code, StringComparison.OrdinalIgnoreCase)) cleaned = cleaned[..^code.Length].Trim();
+        }
+        if (!Regex.IsMatch(cleaned, @"\A(?:(?:[0-9]+|[0-9]{1,3}(?:,[0-9]{3})+)(?:\.[0-9]*)?|\.[0-9]+)\z", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)) ||
+            !decimal.TryParse(cleaned, NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands, En, out var parsed) || parsed < 0)
             return false;
-        var digits = scale.Kind == ScaleKind.Money ? Math.Clamp(scale.Exponent ?? 2, 0, 6) : 0;
+        var digits = scale.Kind == ScaleKind.Money ? Math.Clamp(scale.Exponent ?? 2, 0, 18) : 0;
         if (decimal.Round(parsed, digits) != parsed)
             return false;
         amount = parsed;
@@ -167,6 +173,6 @@ internal static class LedgerFormat
 
     /// <summary>The editable form of an amount: digits with separators, no currency symbol.</summary>
     public static string EditText(ScaleModel scale, decimal amount) => scale.Kind == ScaleKind.Money
-        ? Round(amount, Math.Clamp(scale.Exponent ?? 2, 0, 6)).ToString("#,0." + new string('0', Math.Clamp(scale.Exponent ?? 2, 0, 6)), En).TrimEnd('.')
+        ? Round(amount, Math.Clamp(scale.Exponent ?? 2, 0, 18)).ToString("#,0." + new string('0', Math.Clamp(scale.Exponent ?? 2, 0, 18)), En).TrimEnd('.')
         : Round(amount).ToString("#,0", En);
 }

@@ -16,6 +16,7 @@ public sealed partial class LedgerSmoke
     [Fact]
     public void AccountSpendingUsesNestedContentHistoryCapsAndAccountActions()
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
         Assert.False(string.IsNullOrWhiteSpace(exe)); Assert.False(string.IsNullOrWhiteSpace(evidence));
@@ -56,13 +57,13 @@ public sealed partial class LedgerSmoke
             Keyboard.Press(VirtualKeyShort.RETURN);
             Assert.True(Wait(() => window.FindAllDescendants().Any(e =>
                 (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Mixed account history,", StringComparison.Ordinal))));
-            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-history.png"), System.Drawing.Imaging.ImageFormat.Png);
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-history.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             money = window.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))!;
             stage = "cap";
             money.Focus(); Keyboard.Press(VirtualKeyShort.KEY_C);
             Assert.True(Wait(() => money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).Any(e => !e.IsOffscreen)));
-            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             parent.Focus(); Keyboard.Press(VirtualKeyShort.F2);
             stage = "rename";
@@ -77,7 +78,7 @@ public sealed partial class LedgerSmoke
             Assert.True(Wait(() => only.FindFirstDescendant(cf => cf.ByName("Sign out Money only")) is not null));
             Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "12.50 EUR");
             Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "200.00 EUR (provider)");
-            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-account.png"), System.Drawing.Imaging.ImageFormat.Png);
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-account.png"), System.Drawing.Imaging.ImageFormat.Png);
             void SelectScenario(string name)
             {
                 window.FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
@@ -130,6 +131,7 @@ public sealed partial class LedgerSmoke
     [InlineData(true)]
     public void ConfirmedDeletionAndInterruptedDeletionRestartCleanly(bool pending)
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
         Assert.False(string.IsNullOrWhiteSpace(exe)); Assert.False(string.IsNullOrWhiteSpace(evidence));
@@ -199,6 +201,7 @@ public sealed partial class LedgerSmoke
     [InlineData(false)]
     public void LedgerLaunchSettingsHistoryAndExit(bool demo)
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
         Assert.False(string.IsNullOrWhiteSpace(exe)); Assert.False(string.IsNullOrWhiteSpace(evidence));
@@ -345,7 +348,7 @@ public sealed partial class LedgerSmoke
             if (!process.HasExited)
             {
                 if (window is not null)
-                    try { using var screenshot = window.Capture(); screenshot.Save(Path.Combine(evidence!, prefix + "-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
+                    try { DesktopTestEnvironment.RequireUnlockedDesktop(); using var screenshot = window.Capture(); screenshot.Save(Path.Combine(evidence!, prefix + "-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
                     catch (Exception) { }
                 process.Kill(); process.WaitForExit(5000);
             }

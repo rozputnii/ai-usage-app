@@ -191,7 +191,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             foreach (var limit in data) nextLimits.Add(LiveLedgerProjection.CardId(limit.Series), limit);
             var name = preferences.Current.Labels.GetValueOrDefault(id) ?? DefaultName(account, snapshots);
             var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday);
-            model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId)).ToArray(), NextRetryAt = NextRetry(account) };
+            model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId)).ToArray(),
+                NextRetryAt = NextRetry(account) is { } retry ? TimeZoneInfo.ConvertTime(retry, zone) : null };
             models.Add(model);
         }
         limits = nextLimits;

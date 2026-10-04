@@ -1,4 +1,5 @@
 using AiUsage.Composition;
+using AiUsage.Adapters.Live.Audit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -22,9 +23,11 @@ public partial class App : Application
     private Task? stopTask;
     private AppInstance? instance;
     private readonly ApplicationDiagnostics diagnostics = new();
+    private readonly AuditReplay? auditReplay;
 
     public App()
     {
+        auditReplay = AuditReplay.Open(Environment.GetCommandLineArgs(), Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY"));
         diagnostics.Initialize(Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal));
         UnhandledException += OnUnhandledException;
         try { DiagnosticProbe.BeforeXaml(); InitializeComponent(); }
@@ -68,7 +71,7 @@ public partial class App : Application
             diagnostics.Register(builder.Services);
             builder.Services.Replace(ServiceDescriptor.Singleton<IHostLifetime, WindowOwnedLifetime>());
             builder.Services.AddLedger();
-            if (demo) builder.Services.AddLedgerDemo();
+            if (demo) builder.Services.AddLedgerDemo(auditReplay);
             else builder.Services.AddLiveLedgerServices();
             var disposalProbe = DiagnosticProbe.ConfigureHost(builder.Services);
             host = builder.Build();
@@ -76,6 +79,7 @@ public partial class App : Application
             if (disposalProbe) { await StopAsync(); return; }
 
             shell = LedgerRegistration.Start(host.Services, StopAsync);
+            if (host.Services.GetService<AuditLedgerLifetime>() is { } audit) await audit.InitializeAsync();
             if (!demo) await host.Services.GetRequiredService<LedgerProductLifetime>().InitializeAsync();
         }
         catch (Exception error)
@@ -97,6 +101,8 @@ public partial class App : Application
             {
                 if (host.Services.GetService<LedgerProductLifetime>() is { } product)
                     await product.StopAsync();
+                if (host.Services.GetService<AuditLedgerLifetime>() is { } audit)
+                    await audit.StopAsync();
                 using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                 await host.StopAsync(timeout.Token);
             }

@@ -1,4 +1,5 @@
 using AiUsage.Controls.Ledger;
+using AiUsage.Adapters.Live.Audit;
 using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 using AiUsage.Features.Ledger.Demo;
@@ -19,8 +20,13 @@ internal static class LedgerRegistration
         return services;
     }
 
-    public static IServiceCollection AddLedgerDemo(this IServiceCollection services)
+    public static IServiceCollection AddLedgerDemo(this IServiceCollection services, AuditReplay? audit = null)
     {
+        if (audit is not null)
+        {
+            services.AddAuditLedger(audit);
+            return services;
+        }
         services.AddSingleton<DemoLedgerSource>();
         services.AddSingleton<ILedgerSource>(provider => provider.GetRequiredService<DemoLedgerSource>());
         return services;

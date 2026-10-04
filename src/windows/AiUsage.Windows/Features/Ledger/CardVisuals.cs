@@ -88,10 +88,13 @@ internal static class CardVisuals
                 string.Empty, [], false, resetText, resetTip, lines, action, noteName);
         }
 
-        var used = (double)(card.Figures.Used ?? 0);
-        var max = BarMax(card);
+        // Keep display arithmetic decimal. Only drawing coordinates and weights need doubles.
+        var displayUsed = card.Figures.Used ?? 0;
+        var displayMax = BarMax(card);
+        var used = (double)displayUsed;
+        var max = (double)displayMax;
         double Pc(double v) => max <= 0 ? 0 : v / max * 100;
-        string Fm(double v) => LedgerFormat.Value(card.Scale, (decimal)v);
+        string Fm(decimal v) => LedgerFormat.Value(card.Scale, v);
 
         if (card.Layout == CardLayout.UsedOnly)
         {
@@ -100,7 +103,7 @@ internal static class CardVisuals
             var segs = new List<BarSegment> { Seg(0, u, PaintOf(Part.Used, neutral, left, false), left) };
             if (left)
                 segs.Add(Seg(u, 100 - u, PaintOf(Part.Allow, neutral, left, false), left));
-            var footer = left ? Fm(max - used) + " left" : Fm(used) + " used";
+            var footer = left ? Fm(displayMax - displayUsed) + " left" : Fm(displayUsed) + " used";
             var footerTip = card.State == CardState.NotReady
                 ? new[] { "Old period reading", "Not used for today’s budget" }
                 : ["Window length unknown", "Used and reset come from the provider"];
@@ -114,15 +117,17 @@ internal static class CardVisuals
         var usedUp = card.State == CardState.UsedUp;
         var off = card.State == CardState.DayOff;
         var rush = card.State == CardState.Rush;
-        var u0 = (double)(card.Figures.DayStart ?? card.Figures.Used ?? 0);
-        var t = (double)(card.Figures.TodayEnd ?? card.Figures.Used ?? 0);
+        var displayStart = card.Figures.DayStart ?? displayUsed;
+        var displayEnd = card.Figures.TodayEnd ?? displayUsed;
+        var u0 = (double)displayStart;
+        var t = (double)displayEnd;
         var cap = AppliedCap(card);
         var keys = Keys(tone);
         var fiveHour = card.Layout == CardLayout.FiveHourAndPeriod && card.FiveHour?.WindowShare is not null;
 
         var cells = usedUp ? [] : fiveHour
-            ? FiveHourCells(card, keys, left, off, rush, used, u0, t, Fm)
-            : [TodayCell(card, keys, left, off, rush, used, u0, t, period, Fm)];
+            ? FiveHourCells(card, keys, left, off, rush, used, u0, t)
+            : [TodayCell(card, keys, left, off, rush, displayUsed, displayStart, displayEnd, period, Fm)];
         if (left)
             cells = [.. Enumerable.Reverse(cells)];
 
@@ -165,7 +170,7 @@ internal static class CardVisuals
 
         // Over label.
         string? over = null;
-        if (used > t && !off && !usedUp)
+        if (displayUsed > displayEnd && !off && !usedUp)
         {
             if (card.Scale.Kind == ScaleKind.Percent)
             {
@@ -173,19 +178,19 @@ internal static class CardVisuals
                 over = left ? LedgerFormat.Minus + (p - 100).ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " %" : p.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " %";
             }
             else
-                over = (left ? LedgerFormat.Minus : "+") + Fm(used - t);
+                over = (left ? LedgerFormat.Minus : "+") + Fm(displayUsed - displayEnd);
         }
 
-        var (footerText, footerTipLines, estimate) = FooterOf(card, left, used, max, cap, rush, Fm, now);
-        var top = cap is { } capValue ? (double)capValue : max;
-        var todayLine = used > t ? "today " + Fm(used - t) + " over" : left ? "today " + Fm(t - used) + " left" : "today " + Fm(used - u0) + " of " + Fm(t - u0);
+        var (footerText, footerTipLines, estimate) = FooterOf(card, left, displayUsed, displayMax, cap, rush, Fm, now);
+        var top = cap ?? displayMax;
+        var todayLine = displayUsed > displayEnd ? "today " + Fm(displayUsed - displayEnd) + " over" : left ? "today " + Fm(displayEnd - displayUsed) + " left" : "today " + Fm(displayUsed - displayStart) + " of " + Fm(displayEnd - displayStart);
         var barTip = new List<string>
         {
             BarName(card, period),
-            (left ? Fm(top - used) + " of " + Fm(top) + " left" : Fm(used) + " of " + Fm(top) + " used") + " · " + todayLine,
+            (left ? Fm(top - displayUsed) + " of " + Fm(top) + " left" : Fm(displayUsed) + " of " + Fm(top) + " used") + " · " + todayLine,
         };
         if (capP < 100 && cap is { } capAmount)
-            barTip.Add(used > (double)capAmount ? "Past the tick: over custom cap " + Fm((double)capAmount) : "Hatched: above custom cap " + Fm((double)capAmount));
+            barTip.Add(displayUsed > capAmount ? "Past the tick: over custom cap " + Fm(capAmount) : "Hatched: above custom cap " + Fm(capAmount));
 
         var today = cells.Count == 0 ? string.Empty : TodaySummary(card, cells, left);
         var name = Name(card, account, StateWords(card, account, pill, marks, now), today + " " + LedgerFormat.PeriodWords(card.Period) + " " + footerText + ".", (resetTip.Count > 0 ? resetTip[0] : null));
@@ -417,14 +422,14 @@ internal static class CardVisuals
         };
     }
 
-    private static double BarMax(LimitCardModel card)
+    private static decimal BarMax(LimitCardModel card)
     {
         var f = card.Figures;
-        var used = (double)(f.Used ?? 0);
+        var used = f.Used ?? 0;
         if (card.Scale.Kind == ScaleKind.Percent)
-            return (double)(f.EffectiveLimit ?? 100);
-        var baseMax = f.ProviderLimit is { Kind: LimitValueKind.Known, Amount: { } limit } ? limit : card.Cap?.Amount ?? f.EffectiveLimit ?? (decimal)used;
-        return Math.Max((double)baseMax, used);
+            return f.EffectiveLimit ?? 100;
+        var baseMax = f.ProviderLimit is { Kind: LimitValueKind.Known, Amount: { } limit } ? limit : card.Cap?.Amount ?? f.EffectiveLimit ?? used;
+        return Math.Max(baseMax, used);
     }
 
     private static decimal? AppliedCap(LimitCardModel card) => card.Cap is { Status: CapStatus.Applied } cap ? cap.Amount : null;
@@ -480,16 +485,16 @@ internal static class CardVisuals
         return new StripCell(weight, ordered, label, off, tip);
     }
 
-    private static StripCell TodayCell(LimitCardModel card, (string M, string P) tone, bool left, bool off, bool rush, double used, double u0, double t, string period, Func<double, string> fm)
+    private static StripCell TodayCell(LimitCardModel card, (string M, string P) tone, bool left, bool off, bool rush, decimal used, decimal u0, decimal t, string period, Func<decimal, string> fm)
     {
         var share = t - u0;
         var today = used - u0;
-        var gray = rush ? 0 : Math.Max(0, (double)(card.Figures.UsualShare ?? 0) - share);
+        var gray = rush ? 0 : Math.Max(0, (card.Figures.UsualShare ?? 0) - share);
         var lines = new List<string> { off ? "Today · day off" : rush ? "Today · rush" : "Today" };
         (Part, double)[] parts;
         if (used > t)
         {
-            parts = [(Part.UsedCrit, share), (Part.Over, used - t), (Part.Gray, gray)];
+            parts = [(Part.UsedCrit, (double)share), (Part.Over, (double)(used - t)), (Part.Gray, (double)gray)];
             if (off)
                 lines.Add(fm(today) + " used · a work day would allow " + fm(share));
             else
@@ -500,7 +505,7 @@ internal static class CardVisuals
         }
         else
         {
-            parts = [(Part.Used, today), (Part.Allow, t - used), (Part.Gray, gray)];
+            parts = [(Part.Used, (double)today), (Part.Allow, (double)(t - used)), (Part.Gray, (double)gray)];
             lines.Add(left ? fm(t - used) + " of " + fm(share) + " left" : fm(today) + " of " + fm(share) + " used");
         }
         if (gray > 0)
@@ -514,7 +519,7 @@ internal static class CardVisuals
         return Cell(1, parts, tone, left, off, false, lines);
     }
 
-    private static List<StripCell> FiveHourCells(LimitCardModel card, (string M, string P) tone, bool left, bool off, bool rush, double used, double u0, double t, Func<double, string> fm)
+    private static List<StripCell> FiveHourCells(LimitCardModel card, (string M, string P) tone, bool left, bool off, bool rush, double used, double u0, double t)
     {
         var five = card.FiveHour!;
         var ws = (double)five.WindowShare!.Value;
@@ -588,13 +593,13 @@ internal static class CardVisuals
         return cells;
     }
 
-    private static (string Text, IReadOnlyList<string> Tip, bool Estimate) FooterOf(LimitCardModel card, bool left, double used, double max, decimal? cap, bool rush, Func<double, string> fm, DateTimeOffset now)
+    private static (string Text, IReadOnlyList<string> Tip, bool Estimate) FooterOf(LimitCardModel card, bool left, decimal used, decimal max, decimal? cap, bool rush, Func<decimal, string> fm, DateTimeOffset now)
     {
         var f = card.Figures;
         var estimate = f.Tracking is not null;
         if (cap is { } c)
         {
-            var capValue = (double)c;
+            var capValue = c;
             var text = (estimate ? "≈ " : string.Empty) + (left
                 ? used <= capValue ? fm(capValue - used) + " left to cap" : fm(used - capValue) + " over cap"
                 : fm(used) + " of " + fm(capValue) + " cap");
@@ -606,7 +611,7 @@ internal static class CardVisuals
             if (f.ProviderBalance is { } balance)
                 tip.Add("Provider balance " + LedgerFormat.Value(card.Scale, balance) + " " + LedgerFormat.Unit(card.Scale));
             else if (f.ProviderLimit is { Kind: LimitValueKind.Known, Amount: { } limit })
-                tip.Add("Provider limit " + fm((double)limit) + " · " + fm((double)limit - used) + " left");
+                tip.Add("Provider limit " + fm(limit) + " · " + fm(limit - used) + " left");
             else if (f.ProviderLimit.Kind == LimitValueKind.Unlimited)
                 tip.Add("Provider: unlimited");
             else

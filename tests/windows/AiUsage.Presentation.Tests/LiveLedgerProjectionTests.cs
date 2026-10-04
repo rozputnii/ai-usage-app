@@ -11,6 +11,41 @@ namespace AiUsage.Presentation.Tests;
 
 public sealed class LiveLedgerProjectionTests
 {
+    [Fact]
+    public void SuccessfulEmptyQuotaUsesTheSupportedNoDisplayedLimitsState()
+    {
+        foreach (var provider in new[] { "claude", "codex", "copilot", "antigravity" })
+        {
+            var account = new AccountSnapshot(Account, provider, true,
+                new(ProviderSessionStatus.QuotaAvailable, new QuotaSnapshot(Now, null, [], null, null, null, null)), false, null);
+            var model = LiveLedgerProjection.Account(account, "Synthetic empty", [], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+            var card = Assert.Single(model.Cards);
+            Assert.Equal(CardState.NoDisplayedLimits, card.State);
+            Assert.Contains(CardVisuals.Build(card, model, ValueMode.Used, Now).NoteLines,
+                line => line.Value == "No subscription limits to display");
+        }
+    }
+
+    [Fact]
+    public void TimestampResetAndReadingClocksUseTheSelectedLocalZone()
+    {
+        var zone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Lisbon");
+        var weekly = Weekly();
+        var shortWindow = weekly with { Key = new("claude", "CL-S", "short"), Duration = TimeSpan.FromHours(5),
+            Reset = new(Now.AddHours(3), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var quota = new QuotaSnapshot(Now, null, [], null, null, null, null);
+        var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota,
+            Failure: ProviderFailureKind.NetworkFailure), false, Now);
+        var model = LiveLedgerProjection.Account(account, "Synthetic clocks", [Data(weekly), Data(shortWindow)], BudgetConfiguration.Default, Now, zone, null);
+        var card = Assert.Single(model.Cards);
+        Assert.Equal(TimeSpan.FromHours(1), card.Reset!.At!.Value.Offset);
+        Assert.Equal(1, card.Reset.At.Value.Hour); // Provider reset is UTC midnight.
+        Assert.Equal(16, card.FiveHour!.CurrentWindowEndsAt!.Value.Hour); // 15:00 UTC -> 16:00 local.
+        Assert.Equal(13, model.LastReadingAt!.Value.Hour);
+        Assert.Equal(13, model.LastSyncFailedAt!.Value.Hour);
+        Assert.Equal(13, card.Marks.Single(m => m.Kind == MarkKind.SyncFailed).Since!.Value.Hour);
+        Assert.Equal(Now.AddHours(3), card.FiveHour.CurrentWindowEndsAt); // Same instant.
+    }
     private static readonly DateTimeOffset Now = new(2026, 10, 5, 12, 0, 0, TimeSpan.Zero);
     private static readonly Guid Account = Guid.Parse("00000000-0000-0000-0000-000000000039");
     private static LimitFacts Weekly(decimal? used = 40) => new(new("claude", "CL-W", "shared"), LimitKind.PercentWindow, "percent", FactValue.NotApplicable)

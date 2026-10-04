@@ -13,6 +13,7 @@ public sealed partial class LedgerSmoke
     [Fact]
     public void WorkBudgetShowsMonthlyAndDailyBarsBesideSubscriptionWithoutCredits()
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
         Assert.False(string.IsNullOrWhiteSpace(exe));
@@ -34,9 +35,9 @@ public sealed partial class LedgerSmoke
             Assert.NotNull(window.FindFirstDescendant(cf => cf.ByName("today")));
             Assert.Null(window.FindFirstDescendant(cf => cf.ByName("Credits")));
             Directory.CreateDirectory(evidence!);
-            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "work-budget-used.png"), System.Drawing.Imaging.ImageFormat.Png);
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "work-budget-used.png"), System.Drawing.Imaging.ImageFormat.Png);
             window.FindFirstDescendant(cf => cf.ByName("Show values: left"))!.AsButton().Click();
-            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "work-budget-left.png"), System.Drawing.Imaging.ImageFormat.Png);
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "work-budget-left.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000));
             Assert.Equal(0, process.ExitCode);
@@ -49,6 +50,7 @@ public sealed partial class LedgerSmoke
     [InlineData(true)]
     public void NativeTrayExitTerminatesTheOwningProcess(bool hidden)
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         Assert.False(string.IsNullOrWhiteSpace(exe));
         var start = new ProcessStartInfo(exe!, "--demo") { UseShellExecute = false };
@@ -113,6 +115,7 @@ public sealed partial class LedgerSmoke
     [InlineData("Antigravity")]
     public void FirstRunSignInButtonsRespondToMouseClicksWithSettingsOpen(string provider)
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
         Assert.False(string.IsNullOrWhiteSpace(exe));
@@ -139,7 +142,7 @@ public sealed partial class LedgerSmoke
             Assert.True(Wait(() => window.FindAllDescendants().Any(e =>
                 (e.Properties.Name.ValueOrDefault ?? "").EndsWith(" added", StringComparison.Ordinal))), "The sign-in click must add a synthetic account");
             Directory.CreateDirectory(evidence!);
-            using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "sign-in-" + provider.Replace(' ', '-') + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "sign-in-" + provider.Replace(' ', '-') + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000));
             Assert.Equal(0, process.ExitCode);
@@ -150,6 +153,7 @@ public sealed partial class LedgerSmoke
     [Fact]
     public void BusyStorageExplainsTheBlockAndRetryEnablesSignIn()
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         Assert.False(string.IsNullOrWhiteSpace(exe));
         var root = Path.Combine(Path.GetTempPath(), "aiu-busy-ui-" + Guid.NewGuid().ToString("N"));
@@ -186,6 +190,7 @@ public sealed partial class LedgerSmoke
     [Fact]
     public void RepeatedLaunchRestoresTheExistingWindowWithoutRecovery()
     {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
         Assert.False(string.IsNullOrWhiteSpace(exe));
         var start = new ProcessStartInfo(exe!) { UseShellExecute = false };

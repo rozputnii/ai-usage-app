@@ -12,5 +12,6 @@
     <!-- Exercise actual provider parsers through the platform-neutral Ledger projection. -->
     <Compile Include="../../../src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerProjection.cs" Link="Ledger/LiveLedgerProjection.cs" />
     <Compile Include="../../../src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs" Link="Ledger/LedgerContract.cs" />
+    <Compile Include="../../../src/windows/AiUsage.Windows/Adapters/Live/Audit/AuditInput.cs" Link="Ledger/AuditInput.cs" />
   </ItemGroup>
 </Project>

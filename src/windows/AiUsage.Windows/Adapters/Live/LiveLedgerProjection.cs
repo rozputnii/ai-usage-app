@@ -60,7 +60,7 @@ internal static class LiveLedgerProjection
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;
             var card = Card(data, cap, now, zone, configuration.WorkDays.ToHashSet(), workToday, stale) with
-            { Freshness = new(stale, readingAt), ScopeLabel = Label(facts, session.Quota) };
+            { Freshness = new(stale, Local(readingAt, zone)), ScopeLabel = Label(facts, session.Quota) };
             var shortData = normalized.FirstOrDefault(s => IsPair(s.Facts, facts, session.Quota));
             if (shortData is not null && shortData.Facts.UsedPercent is { } shortUsed)
             {
@@ -72,14 +72,14 @@ internal static class LiveLedgerProjection
                 {
                     Layout = card.Layout == CardLayout.Period ? CardLayout.FiveHourAndPeriod : card.Layout,
                     FiveHour = new(estimate.Cost is { } cost ? BudgetDisplay.Down(cost, .1m) : null, shortUsed, shortUsed > 0,
-                        shortData.Facts.Reset?.At, figures.Weekly is { WholeSessions: <= int.MaxValue } count ? (int)count.WholeSessions : null,
+                        Local(shortData.Facts.Reset?.At, zone), figures.Weekly is { WholeSessions: <= int.MaxValue } count ? (int)count.WholeSessions : null,
                         card.State == CardState.Rush && facts.Reset is { } reset ? (int)Math.Max(0, (reset.At - now).TotalHours / 5) : null),
                     State = shortUsed >= 100 && shortData.Facts.Reset?.At > now && card.State is not (CardState.UsedUp or CardState.NotReady or CardState.DayOff or CardState.ValueUnknown)
                         ? CardState.FiveHourFull : card.State
                 };
             }
             var marks = card.Marks.ToList();
-            if (health is AccountHealth.SyncFailedFresh or AccountHealth.SyncFailedStale) marks.Add(new(MarkKind.SyncFailed, account.LastFailureAt));
+            if (health is AccountHealth.SyncFailedFresh or AccountHealth.SyncFailedStale) marks.Add(new(MarkKind.SyncFailed, Local(account.LastFailureAt, zone)));
             if (health == AccountHealth.SignInExpired) marks.Add(new(MarkKind.SignInExpired));
             var spend = normalized.FirstOrDefault(l => l.Facts.Key.Family == "CL-X");
             if (!stale && spend is { MonetaryScope: MonetaryScope.Account } && spend.Facts.Enabled != false &&
@@ -91,7 +91,7 @@ internal static class LiveLedgerProjection
                 {
                     var evidence = ExtraUsageEvidence.Calculate(window.Runs, window.Series, window.Facts.Duration!.Value, spend.Runs, spend.Series, now);
                     if (evidence.OnExtraUsage != true) continue;
-                    marks.Add(new(MarkKind.OnExtraUsage, evidence.FullSince, window.Facts.Reset?.At, Amount: Amount(evidence.SpendSinceFull),
+                    marks.Add(new(MarkKind.OnExtraUsage, Local(evidence.FullSince, zone), Local(window.Facts.Reset?.At, zone), Amount: Amount(evidence.SpendSinceFull),
                         Currency: evidence.SpendSinceFull?.Currency, Exponent: evidence.SpendSinceFull?.Exponent));
                     break;
                 }
@@ -100,12 +100,16 @@ internal static class LiveLedgerProjection
         }
         if (!account.Connected || cards.Count == 0)
             cards = [new(id + ":status", null, CardLayout.Note, ScaleModel.Percent, PeriodModel.Unknown,
-                !account.Connected ? CardState.SignedOut : CardState.NotReady, new(stale, readingAt), [], LimitFigures.UsedOnly(null),
+                !account.Connected ? CardState.SignedOut : session.Quota is not null ? CardState.NoDisplayedLimits : CardState.NotReady,
+                new(stale, Local(readingAt, zone)), [], LimitFigures.UsedOnly(null),
                 null, null, null, null, !account.Connected || health == AccountHealth.SignInExpired ? CardAction.SignIn : CardAction.None, null)];
         if (cards.Any(c => c.Monetary is null))
             cards = cards.Select(c => c.Monetary is not null && c.Action == CardAction.SignIn ? c with { Action = CardAction.None } : c).ToList();
-        return new(id, Provider(account.Provider), name, health, readingAt, account.LastFailureAt, null, cards);
+        return new(id, Provider(account.Provider), name, health, Local(readingAt, zone), Local(account.LastFailureAt, zone), null, cards);
     }
+
+    private static DateTimeOffset? Local(DateTimeOffset? instant, TimeZoneInfo zone) =>
+        instant is { } value ? TimeZoneInfo.ConvertTime(value, zone) : null;
 
     public static LimitCardModel Card(LedgerLimit data, PersonalCap? cap, DateTimeOffset now, TimeZoneInfo zone,
         IReadOnlySet<DayOfWeek> workDays, DateOnly? workToday, bool stale)
@@ -135,7 +139,7 @@ internal static class LiveLedgerProjection
         var left = share - result.UsedToday;
         var state = State(facts, used, result, period, now, off && !extraDay, left);
         var marks = new List<CardMark>();
-        if (facts.Reset?.At <= now) marks.Add(new(MarkKind.PastReset, facts.Reset.At));
+        if (facts.Reset?.At <= now) marks.Add(new(MarkKind.PastReset, Local(facts.Reset.At, zone)));
         if (extraDay && state == CardState.OnTrack) marks.Add(new(MarkKind.ExtraDay));
         var capModel = cap is null ? null : new CapModel(Amount(cap.Amount) ?? 0, result.Binding == LimitBinding.PersonalCap,
             result.CapRejected ? CapStatus.CurrencyMismatch : CapStatus.Applied);
@@ -146,7 +150,7 @@ internal static class LiveLedgerProjection
         var layout = state is CardState.SignedOut or CardState.ValueUnknown or CardState.NotIncluded or CardState.NoCap or CardState.LimitUnknown
             ? CardLayout.Note : state is CardState.PeriodUnknown or CardState.NotReady || result.Reason == NoBudgetReason.ShortWindow
                 ? CardLayout.UsedOnly : facts.Kind == LimitKind.PercentWindow ? CardLayout.Period : CardLayout.Pool;
-        var reset = facts.Reset is { } known ? new ResetModel(known.Precision == ResetPrecision.Date ? null : known.At,
+        var reset = facts.Reset is { } known ? new ResetModel(known.Precision == ResetPrecision.Date ? null : Local(known.At, zone),
             known.Precision == ResetPrecision.Date ? DateOnly.FromDateTime(known.At.Date) : null, ResetProvenance.Provider,
             period?.StartOrigin == ValueOrigin.Assumed ? WorkCalendar.Date(period.Start, zone) : null)
             : period is null ? null : new ResetModel(period.End, null, ResetProvenance.Assumed, WorkCalendar.Date(period.Start, zone));
