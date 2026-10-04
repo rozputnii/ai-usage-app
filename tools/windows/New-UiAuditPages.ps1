@@ -34,6 +34,12 @@ function Write-Page([string]$pageId, [object[]]$selected, [bool]$inventory) {
         foreach ($entry in $fixture.Labels.GetEnumerator()) { $page.Labels[$entry.Key] = $entry.Value }
         foreach ($entry in $fixture.ExpectedStates.GetEnumerator()) { $page.ExpectedStates[$entry.Key] = $entry.Value }
     }
+    if ($pageId -eq 'overview') {
+        foreach ($account in $page.Accounts) {
+            $providerName = switch ($account.Provider) { 'claude' { 'Claude' } 'codex' { 'Codex' } 'copilot' { 'Copilot' } 'antigravity' { 'Antigravity' } }
+            $page.Labels[$account.AccountId.Replace('-', '')] = $providerName + ' · SYNTHETIC'
+        }
+    }
     $page | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath (Join-Path $outputRoot ($pageId + '.json')) -Encoding utf8
     $selected | ConvertTo-Json -Depth 100 -AsArray | Set-Content -LiteralPath (Join-Path $outputRoot ($pageId + '.expectations.json')) -Encoding utf8
     if (!$inventory) { return }

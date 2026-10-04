@@ -21,12 +21,15 @@ public sealed class AuditWindows
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();
         var pages = Required("AIU_AUDIT_PAGE_DIRECTORY");
-        var files = Directory.EnumerateFiles(pages, "*.json").Where(p => !p.EndsWith(".expectations.json", StringComparison.Ordinal)).Order().ToArray();
+        var firstPage = Environment.GetEnvironmentVariable("AIU_AUDIT_FIRST_PAGE");
+        var files = Directory.EnumerateFiles(pages, "*.json").Where(p => !p.EndsWith(".expectations.json", StringComparison.Ordinal))
+            .Where(p => string.IsNullOrEmpty(firstPage) || string.CompareOrdinal(Path.GetFileNameWithoutExtension(p), firstPage) >= 0).Order().ToArray();
         Assert.NotEmpty(files);
         foreach (var file in files)
         {
             var pageId = Path.GetFileNameWithoutExtension(file);
             var input = JsonNode.Parse(File.ReadAllText(file))!.AsObject();
+            var expectations = JsonNode.Parse(File.ReadAllText(Path.Combine(pages, pageId + ".expectations.json")))!.AsArray();
             using var session = new Session(file);
             var expected = input["ExpectedStates"]!.AsObject();
             if (expected.Any(p => p.Value!.GetValue<int>() == 18))
@@ -50,6 +53,10 @@ public sealed class AuditWindows
                         (pair.Value.GetValue<int>() == 15 && name.Contains("disabled", StringComparison.OrdinalIgnoreCase)), name);
                     Assert.Contains("SYNTHETIC", name, StringComparison.Ordinal);
                     Assert.True(card.BoundingRectangle.Width >= 250, "Cards must stay readable at normal window size");
+                    var accountIndex = input["Accounts"]!.AsArray().ToList().FindIndex(a =>
+                        pair.Key.StartsWith(a!["AccountId"]!.GetValue<string>().Replace("-", string.Empty, StringComparison.Ordinal) + ":", StringComparison.Ordinal));
+                    Assert.True(accountIndex >= 0);
+                    AssertDisplayedValue(session, pair.Key, expectations[accountIndex]!.AsObject(), input["Accounts"]![accountIndex]!, mode);
                     session.Capture(pageId + "-" + mode + "-" + expected.ToList().FindIndex(p => p.Key == pair.Key).ToString(CultureInfo.InvariantCulture));
                 }
                 session.ScrollToTop();
@@ -97,7 +104,7 @@ public sealed class AuditWindows
         session.Click("Close settings");
         session.ScrollToTop();
         var input = JsonNode.Parse(File.ReadAllText(session.Input))!;
-        var moneyAccount = input["Labels"]!.AsObject().Single(p => p.Value!.GetValue<string>().EndsWith("M-ordinary", StringComparison.Ordinal)).Key;
+        var moneyAccount = input["Accounts"]!.AsArray().Single(a => a!["Provider"]!.GetValue<string>() == "claude")!["AccountId"]!.GetValue<string>().Replace("-", string.Empty, StringComparison.Ordinal);
         var moneyId = input["ExpectedStates"]!.AsObject().Single(p => p.Key.StartsWith(moneyAccount + ":", StringComparison.Ordinal)).Key;
         var card = session.ById(moneyId);
         session.Show(card);
@@ -189,15 +196,78 @@ public sealed class AuditWindows
     private static string Required(string variable) => Environment.GetEnvironmentVariable(variable) is { Length: > 0 } value
         ? value : throw new InvalidOperationException(variable + " is required");
 
+    private static void AssertDisplayedValue(Session session, string cardId, JsonObject expected, JsonNode account, string mode)
+    {
+        if (expected["Used"] is null || expected["State"]!.GetValue<string>() == "SignedOut") return;
+        var used = expected["Used"]!.GetValue<decimal>();
+        var layout = expected["Layout"]!.GetValue<string>();
+        var suffix = cardId[(cardId.IndexOf(':') + 1)..];
+        if (suffix == "status") return;
+        var key = JsonNode.Parse(Convert.FromBase64String(suffix))!.AsArray();
+        var fact = account["Session"]!["Quota"]!["Limits"]!["Limits"]!.AsArray().Single(f =>
+            f!["Key"]!["Family"]!.GetValue<string>() == key[1]!.GetValue<string>() &&
+            f["Key"]!["NativeDiscriminator"]!.GetValue<string>() == key[2]!.GetValue<string>())!;
+        var money = fact["Used"]?["kind"]?.GetValue<string>() == "money";
+        var percent = fact["UsedPercent"] is not null;
+        var exponent = money ? fact["Used"]!["exponent"]!.GetValue<int>() : 0;
+        var currency = money ? fact["Used"]!["currency"]!.GetValue<string>() : null;
+        string Format(decimal amount)
+        {
+            if (percent) return decimal.Round(amount, 0, MidpointRounding.AwayFromZero).ToString("0", CultureInfo.InvariantCulture) + " %";
+            var number = amount.ToString("N" + exponent.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+            return currency switch { "USD" => "$" + number, "EUR" => "€" + number, "GBP" => "£" + number, null => number, _ => currency + " " + number };
+        }
+        string? footer = null;
+        if (layout is "Period" or "FiveHourAndPeriod" or "UsedOnly")
+            footer = Format(mode == "left" ? 100 - used : used) + (mode == "left" ? " left" : " used");
+        else if (layout == "Pool")
+        {
+            if (expected["Cap"] is { } capValue)
+            {
+                var cap = capValue.GetValue<decimal>();
+                footer = mode == "used" ? Format(used) + " of " + Format(cap) + " cap"
+                    : used <= cap ? Format(cap - used) + " left to cap" : Format(used - cap) + " over cap";
+            }
+            else
+            {
+                var nativeLimit = fact["Limit"]!["value"]!;
+                var limit = money ? nativeLimit["minor"]!.GetValue<decimal>() / DecimalPower(exponent) : nativeLimit["value"]!.GetValue<decimal>();
+                footer = Format(mode == "left" ? limit - used : used) + " of " + Format(limit) + (mode == "left" ? " left" : " used");
+            }
+        }
+        var state = expected["State"]!.GetValue<string>();
+        var balance = account["Session"]!["Quota"]?["Credits"]?["Balance"];
+        var literal = footer ?? (money ? used.ToString("F" + exponent.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture) + " " + currency
+            : state == "NoCap" ? balance is null ? "no cap set" : "balance " + Format(balance.GetValue<decimal>())
+            : state == "NotIncluded" ? "not included in plan" : Format(used));
+        var visible = Session.Wait(() => session.ById(cardId).FindAllDescendants().Any(e =>
+            e.Properties.ControlType.ValueOrDefault == ControlType.Text && !e.IsOffscreen &&
+            (e.Properties.Name.ValueOrDefault ?? "").Contains(literal, StringComparison.Ordinal)));
+        if (!visible)
+        {
+            session.Capture("failure-value-" + expected["Id"]!.GetValue<string>() + "-" + mode);
+            session.RecordTree("failure-value-" + expected["Id"]!.GetValue<string>() + "-" + mode);
+        }
+        Assert.True(visible, "Expected independent visible value: " + literal);
+    }
+
+    private static decimal DecimalPower(int exponent)
+    {
+        decimal result = 1;
+        for (var i = 0; i < exponent; i++) result *= 10;
+        return result;
+    }
+
     private sealed class Session : IDisposable
     {
         private readonly Application app;
         private readonly Process process;
+        private readonly IntPtr windowHandle;
         private readonly UIA3Automation automation = new();
         public string Input { get; }
         public string Root { get; } = Path.Combine(Path.GetTempPath(), "aiu-ui-audit-" + Guid.NewGuid().ToString("N"));
         public string Evidence { get; } = Required("AIU_SMOKE_EVIDENCE_DIRECTORY");
-        public Window Window { get; }
+        public Window Window { get; private set; }
         public string Receipts => File.Exists(Path.Combine(Root, "requests.txt")) ? File.ReadAllText(Path.Combine(Root, "requests.txt")) : string.Empty;
 
         public Session(string input)
@@ -216,10 +286,25 @@ public sealed class AuditWindows
                 process = launchedProcess = Process.GetProcessById(app.ProcessId);
                 _ = process.Handle;
                 Window? window = null;
-                Assert.True(Wait(() => (window = automation.GetDesktop().FindAllChildren().FirstOrDefault(w =>
-                    w.Properties.ProcessId.ValueOrDefault == app.ProcessId && w.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) is not null)?.AsWindow()) is not null), "The isolated audit window did not start");
+                var started = Wait(() => (window = OwnedSurfaces().FirstOrDefault(w =>
+                    w.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) is not null)?.AsWindow()) is not null);
+                if (!started) RecordStartupFailure();
+                Assert.True(started, "The isolated audit window did not start; see startup-failure.json");
                 Window = window!;
+                windowHandle = Window.Properties.NativeWindowHandle.Value;
                 Window.SetForeground();
+                if (GetForegroundWindow() != Window.Properties.NativeWindowHandle.Value)
+                {
+                    // Windows may deny programmatic activation of a later test process.
+                    // An initial single caption click is safe only after native hit testing;
+                    // every subsequent keyboard/content action requires owned foreground.
+                    var bounds = Window.BoundingRectangle;
+                    var caption = new System.Drawing.Point(bounds.Left + 50, bounds.Top + 18);
+                    DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, caption);
+                    Mouse.MoveTo(caption);
+                    DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, caption);
+                    Mouse.Click();
+                }
                 Assert.True(Wait(() => GetForegroundWindow() == Window.Properties.NativeWindowHandle.Value), "BLOCKED: test window must own foreground input");
                 Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "Add an account" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
             }
@@ -257,7 +342,32 @@ public sealed class AuditWindows
             Assert.True(Wait(() => (found = OwnedSurfaces().SelectMany(w => w.FindAllDescendants()).FirstOrDefault(predicate)) is not null), "Required audit control was not found");
             return found!;
         }
-        private IEnumerable<AutomationElement> OwnedSurfaces() => automation.GetDesktop().FindAllChildren().Where(w => w.Properties.ProcessId.ValueOrDefault == app.ProcessId);
+        private IEnumerable<AutomationElement> OwnedSurfaces() => automation.GetDesktop().FindAllChildren().Where(w =>
+            w.Properties.NativeWindowHandle.ValueOrDefault is var handle && handle != IntPtr.Zero &&
+            GetWindowThreadProcessId(handle, out var owner) != 0 && owner == app.ProcessId);
+        private void RecordStartupFailure()
+        {
+            var candidates = automation.GetDesktop().FindAllChildren().Select(w =>
+            {
+                var handle = w.Properties.NativeWindowHandle.ValueOrDefault;
+                _ = GetWindowThreadProcessId(handle, out var owner);
+                return (Window: w, NativeOwner: owner);
+            }).Where(w => w.NativeOwner == app.ProcessId || w.Window.Properties.ProcessId.ValueOrDefault == app.ProcessId);
+            File.WriteAllText(Path.Combine(Evidence, "startup-failure.json"), JsonSerializer.Serialize(new
+            {
+                Synthetic = true, ProcessExited = process.HasExited, ExitCode = process.HasExited ? (int?)process.ExitCode : null,
+                Windows = candidates.Select(w => new
+                {
+                    Name = w.Window.Properties.Name.ValueOrDefault, NativeOwner = w.NativeOwner,
+                    AutomationOwner = w.Window.Properties.ProcessId.ValueOrDefault,
+                    Children = w.Window.FindAllDescendants().Take(80).Select(e => new
+                    {
+                        Name = e.Properties.Name.ValueOrDefault, Type = e.Properties.ControlType.ValueOrDefault.ToString(),
+                        Id = e.Properties.AutomationId.ValueOrDefault
+                    }).ToArray()
+                }).ToArray()
+            }));
+        }
         public AutomationElement ById(string id) => Find(e => e.Properties.AutomationId.ValueOrDefault == id);
         public void Click(string name) => Click(Find(e => e.Properties.Name.ValueOrDefault == name &&
             e.Properties.ControlType.ValueOrDefault is ControlType.Button or ControlType.CheckBox));
@@ -276,7 +386,7 @@ public sealed class AuditWindows
         public void Show(AutomationElement element)
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
-            Assert.Equal(app.ProcessId, element.Properties.ProcessId.Value);
+            RequireOwnedElement(element);
             element.Patterns.ScrollItem.PatternOrDefault?.ScrollIntoView();
             if (element.IsOffscreen) element.Focus();
             var bounds = element.BoundingRectangle;
@@ -312,12 +422,31 @@ public sealed class AuditWindows
         }
         public void Capture(string name)
         {
-            RequireUnobscuredWindow();
-            Assert.Equal(Window.Properties.NativeWindowHandle.Value, GetForegroundWindow());
-            using var capture = Window.Capture();
-            RequireUnobscuredWindow();
-            capture.Save(Path.Combine(Evidence, name + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+            for (var attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    Window = automation.FromHandle(windowHandle).AsWindow();
+                    RequireUnobscuredWindow();
+                    using var capture = Window.Capture();
+                    RequireUnobscuredWindow();
+                    capture.Save(Path.Combine(Evidence, name + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+                    return;
+                }
+                catch (COMException) when (attempt == 0 && !process.HasExited)
+                {
+                    // WinUI can replace a UIA provider after layout; retry once with a fresh
+                    // binding to the observed native window, without relaxing input guards.
+                    Thread.Sleep(150);
+                }
+            }
         }
+        public void RecordTree(string name) => File.WriteAllText(Path.Combine(Evidence, name + ".json"), JsonSerializer.Serialize(
+            OwnedSurfaces().SelectMany(w => w.FindAllDescendants()).Select(e => new
+            {
+                Name = e.Properties.Name.ValueOrDefault, Type = e.Properties.ControlType.ValueOrDefault.ToString(),
+                Id = e.Properties.AutomationId.ValueOrDefault, Visible = !e.IsOffscreen, Enabled = e.IsEnabled
+            }).ToArray()));
         public void Exit()
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
@@ -338,6 +467,20 @@ public sealed class AuditWindows
         {
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, point);
+        }
+        private void RequireOwnedElement(AutomationElement element)
+        {
+            // WinUI's guest UIA provider can report ProcessId=0. Establish ownership through
+            // the nearest native ancestor before invoking any UIA focus/scroll operation.
+            for (AutomationElement? ancestor = element; ancestor is not null; ancestor = ancestor.Parent)
+            {
+                var handle = ancestor.Properties.NativeWindowHandle.ValueOrDefault;
+                if (handle == IntPtr.Zero) continue;
+                Assert.True(GetWindowThreadProcessId(handle, out var owner) != 0 && owner == app.ProcessId,
+                    "BLOCKED: the isolated app must own the target's native ancestor");
+                return;
+            }
+            Assert.Fail("BLOCKED: target ownership cannot be established");
         }
         private void RequireUnobscuredWindow()
         {
@@ -361,5 +504,7 @@ public sealed class AuditWindows
         }
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr handle, out uint owner);
     }
 }

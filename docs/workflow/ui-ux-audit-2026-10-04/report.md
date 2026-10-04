@@ -1,14 +1,14 @@
 # Synthetic Windows UI/UX audit — in progress
 
-**The requested comprehensive audit is not complete.** Deterministic coverage and repairs have been implemented and executed. Actual application mouse/keyboard verification and the final screenshot gallery are BLOCKED: the Windows console is locked, with LockApp/LogonUI owning input. An unlock request is pending. Additional composite replay and control-driver gaps are also recorded explicitly; unlocking alone does not make those rows pass.
+**The requested comprehensive audit is not complete.** Deterministic coverage and repairs have been implemented and executed. The host Windows console remains locked. At the owner's follow-up request, a network-disabled Windows Sandbox supplies an independent interactive desktop: the actual synthetic overview Used/Left mouse/capture/exit scenario passed and its images were inspected. The remaining corpus is now running there. Additional composite replay, control-driver and gallery gaps are still recorded explicitly; the successful overview does not make those rows pass.
 
 ## Deliverable records
 
 - [Supported behavior inventory](inventory.md): provider families, layouts, states, scales, precedence, invalid/unreachable combinations and source references.
 - [Coverage matrix](coverage.csv): 170 stable parser-to-recorder-to-budget-to-projection scenarios, independent expected values, controlled clocks and native verdicts.
 - [Additional scenario inventory](additional-scenarios.csv): 39 composite/transition/lifetime/history/recovery requirements, supporting tests and remaining exact replay gaps.
-- [Control inventory](controls.csv): 69 mouse-action/variant rows, 21 keyboard rows and three non-applicable visible-control requests. None is claimed as physically verified in this audit.
-- [Gallery status](gallery.md) and [screenshot index](screenshot-index.csv): every corpus scenario mapped to a planned readable Used/Left page and exact synthetic card ID; all final images NOT_CAPTURED.
+- [Control inventory](controls.csv): 69 mouse-action/variant rows, 21 keyboard rows and three non-applicable visible-control requests. Used/Left physically verified; remaining controls pending.
+- [Gallery status](gallery.md) and [screenshot index](screenshot-index.csv): every corpus scenario mapped to a planned readable Used/Left page and exact synthetic card ID; captured rows remain separate from rendered inspection.
 - [Implementation/handoff plan](plan.md).
 - [Independent checkpoint review and finding dispositions](review.md).
 
@@ -41,9 +41,12 @@ Audit base: `main` at `383644c`. Initial checkout was clean. Deterministic tests
 | Actual initial Ledger smoke | BLOCKED after launching isolated unpackaged app: could not acquire foreground input; three foreground failures before stopping the suite; no valid app evidence |
 | Read-only desktop prerequisite after harness correction | BLOCKED: LockApp/LogonUI input; xUnit reports one failed prerequisite, not a product defect |
 | New replay/control/auth native driver | BLOCKED 11/11 attempted tests at the input guard; repeated after review corrections with the same blocker; no application interaction/capture executed |
-| Final screenshots and rendered visual inspection | BLOCKED / NOT_CAPTURED |
+| Windows Sandbox desktop prerequisite | PASS; independent guest session while host stays locked |
+| Actual synthetic overview in Sandbox | PASS one native test: Used/Left clicks, four expected card states, ten captures and clean exit; Used/Left overview images inspected |
+| Parser corpus in Sandbox | In progress; completed page results are recorded individually in coverage.csv; a single looping test is not counted as passing before all its pages finish |
+| Final screenshots and rendered visual inspection | In progress; overview captured, remaining corpus/control/gallery evidence pending |
 | Document validation | PASS, no diagnostics |
-| Integrated/fresh independent review | Source review executed against frozen checkpoint; two material driver findings corrected and compiled. Successful native runtime verification remains BLOCKED; see review.md |
+| Integrated/fresh independent review | Source review executed against frozen checkpoint; two material driver findings corrected and compiled. Their guards now permit verified owned guest interaction; see review.md |
 
 Local execution logs/results: `.ai-usage-local/ui-audit/infrastructure.xml`, `presentation.xml`, `desktop-prerequisite.xml`, `native.xml`, `native-after-review.xml`; earlier regression failures stay separately in `product-regressions-red.xml`, `native-precision-red.xml`, `overflow-precision-red.xml`. Generated output and all captures remain outside Git. Invalid lock-screen captures are excluded from deliverables and publication.
 
@@ -68,7 +71,14 @@ dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-build -
 dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-build -- -class '*AuditWindows' -parallel none -xml .ai-usage-local/ui-audit/native.xml
 ```
 
-The driver performs physical clicks, checks fake request receipts, and records native assertion results separately from visual inspection. It still requires an actual first run to repair any harness defects; no compile/source check upgrades it to PASS. Remaining controls/composite cases must be implemented and exercised as listed, including native tray Open/Refresh, physical caption close, restart persistence, all tooltips, overlay/snapshot transitions, actual isolated recovery/cleanup and in-flight exit.
+The driver performs physical clicks, checks fake request receipts, and records native assertion results separately from visual inspection. Guest runs exposed harness issues: WinUI UIA ProcessId=0, denied programmatic activation, a replaced UIA provider during capture, and a Note-layout expectation incorrectly requiring retained usage to be visible. Native ownership, an owned-caption activation click, one fresh capture binding retry and contract-specific independent expectations correct these issues. Actual reruns are required and recorded; no compile/source check upgrades a row to PASS. Remaining controls/composite cases must be implemented and exercised as listed, including native tray Open/Refresh, physical caption close, restart persistence, all tooltips, overlay/snapshot transitions, actual isolated recovery/cleanup and in-flight exit.
+
+Sandbox continuation uses Windows Sandbox CLI, guest Windows 11 build 26100, and a self-contained unpackaged Release build. Networking and clipboard/device sharing are disabled. Only the synthetic input staging directory (read-only) and an initially empty evidence directory (writable) are mapped. The host console stays locked; no authentication, trust, display settings or installed-app changes are involved. Source reference `f5adf034ebc70d91259b1d645dc56531d3a8bdf8`; app DLL SHA-256 `17EB1F30BE31A597B9472192F06882B8632628372CC71D4C3D15BE83069DFAE2`. Release build and driver publish commands:
+
+```powershell
+dotnet publish src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -r win-x64 -p:Platform=x64 -p:WindowsPackageType=None -p:SelfContained=true -p:WindowsAppSDKSelfContained=true -o .ai-usage-local/ui-audit/sandbox-probe/input/app -v:minimal
+dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true -o .ai-usage-local/ui-audit/sandbox-probe/input/smoke --no-restore -v:minimal
+```
 
 ```powershell
 dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo

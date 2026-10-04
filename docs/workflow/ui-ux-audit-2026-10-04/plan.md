@@ -9,8 +9,8 @@
 **Acceptance:** Every applicable inventory row needs deterministic assertions, real UI evidence where applicable, a readable final screenshot, and an accurate verdict. Every supported clickable control needs a physical mouse click and observed outcome/target. Compilation, UIA existence, demo figures, and screenshot generation alone are insufficient. Unsupported, unreachable and blocked cases must be explained.
 
 - [x] Inventory provider families, parser policies, contracts, state precedence, layouts, controls, shortcuts and existing tests; remaining exact composite scenarios are explicit.
-- [x] Add reproducible replay inputs, controlled clocks and fake request receipts, keeping external boundaries isolated; deterministic replay assertions pass, native verification remains blocked.
-- [ ] Add independent arithmetic/threshold/transition assertions and parser-to-projection corpus tests; export the tested corpus for Windows replay.
+- [x] Add reproducible replay inputs, controlled clocks and fake request receipts, keeping external boundaries isolated; deterministic replay assertions pass and native corpus execution is in progress.
+- [x] Add independent arithmetic/threshold assertions and parser-to-projection corpus tests; export the tested 170-case corpus for Windows replay. Exact additional composite transitions remain pending.
 - [ ] Run actual Windows mouse/keyboard scenarios, ordinary resize/scroll checks and native lifetime/tray checks. Preserve failures separately.
 - [ ] Reproduce and repair product defects with meaningful regression tests; rerun affected checks.
 - [ ] Capture and inspect final screenshots, produce scenario/control indexes and actual results.
@@ -31,4 +31,8 @@ Checkpoint `2942e6f` freezes deterministic product/test changes. Fresh independe
 
 ## Handoff
 
-Exact next action: run AuditDesktopPrerequisite.UnlockedInputDesktopIsAvailable after the owner unlocks Windows; if PASS, rerun the actual replay/control driver, repair any harness/product failures and complete the remaining composite/control fixtures and inspected screenshots. No comprehensive completion claim has been made.
+Owner follow-up authorized investigating Windows Sandbox while the host stays locked. Concrete reason: the host cannot provide an interactive test desktop. A network-disabled disposable guest exposes only a read-only synthetic input directory and an empty writable evidence directory; clipboard, microphone, camera and printer sharing are disabled. No host trust changes, installed-app operations or real credentials are involved. Self-contained unpackaged application and test driver builds run inside the guest.
+
+Guest desktop prerequisite PASS. Actual overview Used/Left mouse clicks, state checks, captures and clean exit PASS; both overview images inspected. UIA reports ProcessId=0 for the guest WinUI window, so the harness now establishes ownership using the native window handle and native ancestor before focus/scroll, retaining foreground and point hit-test guards. The failed startup-filter attempts are harness failures, not application failures; the corrected driver was actually rerun successfully.
+
+Exact next action: inspect the running Sandbox corpus result and first captures, repair any failing native scenarios, then complete the remaining controls/composite fixtures and final gallery. The comprehensive audit remains in progress.
