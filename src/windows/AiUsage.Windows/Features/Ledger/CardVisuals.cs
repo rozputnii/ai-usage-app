@@ -92,7 +92,7 @@ internal static class CardVisuals
         var displayUsed = card.Figures.Used ?? 0;
         var displayMax = BarMax(card);
         var used = (double)displayUsed;
-        var max = (double)displayMax;
+        var max = (double)Math.Max(displayMax, displayUsed);
         double Pc(double v) => max <= 0 ? 0 : v / max * 100;
         string Fm(decimal v) => LedgerFormat.Value(card.Scale, v);
 
@@ -429,7 +429,7 @@ internal static class CardVisuals
         if (card.Scale.Kind == ScaleKind.Percent)
             return f.EffectiveLimit ?? 100;
         var baseMax = f.ProviderLimit is { Kind: LimitValueKind.Known, Amount: { } limit } ? limit : card.Cap?.Amount ?? f.EffectiveLimit ?? used;
-        return Math.Max(baseMax, used);
+        return baseMax;
     }
 
     private static decimal? AppliedCap(LimitCardModel card) => card.Cap is { Status: CapStatus.Applied } cap ? cap.Amount : null;

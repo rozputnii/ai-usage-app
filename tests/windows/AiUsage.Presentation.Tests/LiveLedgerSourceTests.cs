@@ -12,6 +12,33 @@ namespace AiUsage.Presentation.Tests;
 public sealed class LiveLedgerSourceTests
 {
     [Fact]
+    public async Task RetryKeepsTheSharedStripCancelCommandAvailableWhileLoginIsPending()
+    {
+        var accounts = new Accounts { HoldLogin = true };
+        using var source = Source(accounts, new Store(), new Clock());
+        await source.InitializeAsync(null, Token);
+        using var window = new LedgerViewModel(source, new ManualScheduler());
+        try
+        {
+            var initial = window.SignInCommand.ExecuteAsync(ProviderKind.Claude);
+            await source.WaitForIdleAsync();
+            await window.StripActionCommand.ExecuteAsync(null);
+            await initial;
+            Assert.Equal("Try again", window.StripAction);
+            var retry = window.StripActionCommand.ExecuteAsync(null);
+            await source.WaitForIdleAsync();
+            Assert.Equal("Cancel", window.StripAction);
+            Assert.False(retry.IsCompleted);
+            Assert.True(window.StripActionCommand.CanExecute(null));
+            await window.StripActionCommand.ExecuteAsync(null);
+            await retry;
+            Assert.Equal(2, accounts.CancelledLogins);
+            Assert.Equal("Try again", window.StripAction);
+            Assert.Empty(source.Current.Accounts);
+        }
+        finally { await source.StopAsync(); }
+    }
+    [Fact]
     public async Task RecoveryDoesNotOfferSignInOrClaimAccountsAreSynced()
     {
         using var source = Source(new Accounts(), new Store(), new Clock());
@@ -42,19 +69,31 @@ public sealed class LiveLedgerSourceTests
     }
     private sealed class Accounts : IAccountService
     {
+        public bool HoldLogin;
+        public int CancelledLogins;
+        private TaskCompletionSource<AccountResult>? login;
         public IReadOnlyList<AccountSnapshot> Current { get; set; } = [];
         public event EventHandler? Changed;
         public void Emit() => Changed?.Invoke(this, EventArgs.Empty);
         public Func<Guid, AccountResult>? Refresh;
         public List<Guid> Refreshed { get; } = [];
         public Task InitializeAsync(CancellationToken token) => Task.CompletedTask;
-        public Task<AccountResult> ConnectAsync(string provider, Guid? reconnectAccountId, Guid attemptId, Action<AuthorizationChallenge> authorize, CancellationToken token) => Task.FromResult(new AccountResult(AccountOutcome.Failed));
-        public Task CancelConnectAsync(Guid attemptId) => Task.CompletedTask;
+        public Task<AccountResult> ConnectAsync(string provider, Guid? reconnectAccountId, Guid attemptId, Action<AuthorizationChallenge> authorize, CancellationToken token)
+        {
+            if (!HoldLogin) return Task.FromResult(new AccountResult(AccountOutcome.Failed));
+            login = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            return login.Task;
+        }
+        public Task CancelConnectAsync(Guid attemptId)
+        {
+            if (login?.TrySetResult(new(AccountOutcome.Cancelled)) == true) CancelledLogins++;
+            return Task.CompletedTask;
+        }
         public bool TrySubmitCode(Guid attemptId, string code) => true;
         public Task<AccountResult> RefreshAsync(Guid accountId, CancellationToken token)
         { Refreshed.Add(accountId); return Task.FromResult(Refresh?.Invoke(accountId) ?? new AccountResult(AccountOutcome.Done, accountId)); }
         public Task<AccountResult> DisconnectAsync(Guid accountId, CancellationToken token) => Task.FromResult(new AccountResult(AccountOutcome.Done, accountId));
-        public Task StopAsync() => Task.CompletedTask;
+        public Task StopAsync() { login?.TrySetResult(new(AccountOutcome.Cancelled)); return Task.CompletedTask; }
     }
     private sealed class Store : IReadingSeriesStore, IBudgetConfigurationStore, IQuotaObservationRecorder
     {

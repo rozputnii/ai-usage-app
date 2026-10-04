@@ -1,6 +1,6 @@
 # Synthetic Windows UI/UX audit — in progress
 
-**The requested comprehensive audit is not complete.** Deterministic coverage and repairs have been implemented and executed. The host Windows console remains locked. At the owner's follow-up request, a network-disabled Windows Sandbox supplies an independent interactive desktop: the actual synthetic overview Used/Left mouse/capture/exit scenario passed and its images were inspected. The remaining corpus is now running there. Additional composite replay, control-driver and gallery gaps are still recorded explicitly; the successful overview does not make those rows pass.
+**The requested comprehensive audit is not complete.** All 170 baseline parser/recorder/budget/projection scenarios have passed native Used/Left amount/state checks in an isolated, network-disabled Windows Sandbox. All four first-run sign-in buttons and all four duplicate-provider menu entries have passed physical clicks, synthetic service receipts and account isolation assertions. Rendered inspection, additional composite scenarios and the remaining controls are in progress. The host stays locked; no host unlocking or real authentication was attempted.
 
 ## Deliverable records
 
@@ -21,6 +21,10 @@
 | Supported money precision stopped at six decimals | Formatting/editing/parsing supports the contract's 0..18 exponents | AuditFormattingTests supported exponents and tiny known values; failed before fix |
 | Cap input silently accepted a foreign symbol or malformed separators | Strip only the selected money denomination at the boundary; validate English grouping; reject currency symbols on abstract credits | AuditFormattingTests foreign USD/EUR, misplaced code, invalid comma grouping, credits; failed before fix |
 | Money text lost cents through double drawing conversions, including small overflow disappearing | Decimal display arithmetic retained; double conversion restricted to drawing geometry/weights | AuditFormattingTests.CardTextKeepsNativeMoneyPrecisionWhenGeometryNeedsDoubles and SmallOverageOnALargeMoneyAmountKeepsItsOverflowLabel; all three cases failed before fix |
+| Provider overage inflated the displayed limit to the used amount | Keep the actual provider limit for text/markers, allowing drawing geometry to contain overage | AuditFormattingTests.ProviderOverageDoesNotInflateTheDisplayedLimit, Used/Left red then green; native page-018 now shows $300.01 of $300.00 used and −$0.01 of $300.00 left |
+| Cancel was disabled during a retried sign-in | Shared strip command remains available while the source controls attempt concurrency | LiveLedgerSourceTests.RetryKeepsTheSharedStripCancelCommandAvailableWhileLoginIsPending, red then green; native successful authentication rerun cancels twice and completes via synthetic manual code |
+| Workday button name remained stale after toggling | Notify the computed name binding when selection changes | LedgerInteractionTests.WorkDayNameNotifiesBindingsAndTheLastSelectionCannotBeRemoved, red then green |
+| Last selected workday silently rejected an enabled click | Disable that toggle until another workday is selected | Same regression independently checks command availability; actual native final rerun pending |
 
 These are formatting/projection repairs within existing behavior. No provider endpoint, feature, dependency, credential lifecycle, product layout or installed application was changed. Trivial formatting needs no new logging; existing diagnostics remain in use.
 
@@ -33,7 +37,7 @@ Audit base: `main` at `383644c`. Initial checkout was clean. Deterministic tests
 | Infrastructure baseline | PASS 613/613 |
 | Presentation baseline | PASS 128/128 |
 | Final deterministic Infrastructure so far | PASS 783/783, zero skipped; includes 170 corpus cases and serialized observation replay assertions |
-| Final deterministic Presentation so far | PASS 161/161, zero skipped; 33 added tests relative to baseline |
+| Final deterministic Presentation so far | PASS 169/169, zero skipped; 41 added tests relative to baseline; presentation-workday-fixes.xml |
 | Project validator regressions | PASS 80/80 |
 | Debug unpackaged app build | PASS, zero warnings/errors |
 | Windows test driver compilation | PASS, zero warnings/errors; does not establish interactions |
@@ -43,7 +47,11 @@ Audit base: `main` at `383644c`. Initial checkout was clean. Deterministic tests
 | New replay/control/auth native driver | BLOCKED 11/11 attempted tests at the input guard; repeated after review corrections with the same blocker; no application interaction/capture executed |
 | Windows Sandbox desktop prerequisite | PASS; independent guest session while host stays locked |
 | Actual synthetic overview in Sandbox | PASS one native test: Used/Left clicks, four expected card states, ten captures and clean exit; Used/Left overview images inspected |
-| Parser corpus in Sandbox | In progress; completed page results are recorded individually in coverage.csv; a single looping test is not counted as passing before all its pages finish |
+| Parser corpus in Sandbox | PASS 170/170 baseline scenarios across overview and 51 pages; page-014 through page-051 looping test PASS in 658.457 seconds, earlier pages retained as individually passing results |
+| First-run and duplicate-provider physical controls | PASS one native test covering all eight provider actions, settings open during first run, service requests, preserved original cards and clean exits; first-run-debug.xml, 62.861 seconds |
+| Synthetic authentication success | PASS one native test including cancellation, retry, second cancellation, invalid and valid manual code, success and clean exit; auth-debug.xml |
+| Synthetic authentication failure reasons | PASS 8/8 native theory cases for Duplicate, WrongAccount, Storage, AccessDenied, Expired, Browser, Registration and Provider; exact explanation, retry/cancel and no incorrect account addition asserted |
+| Settings, editors, history and support | PASS one native test in 70.827 seconds after the bounded physical-scroll correction; settings/workday actions, history key navigation, rename, cap validation/save/remove, support receipts, sign-out/reconnect and fake deletion cancellation/confirmation |
 | Final screenshots and rendered visual inspection | In progress; overview captured, remaining corpus/control/gallery evidence pending |
 | Document validation | PASS, no diagnostics |
 | Integrated/fresh independent review | Source review executed against frozen checkpoint; two material driver findings corrected and compiled. Their guards now permit verified owned guest interaction; see review.md |
@@ -90,3 +98,9 @@ git diff --check
 The recorded package command already produced that version and intentionally refuses overwrite. A changed/repeated package build needs a fresh unused local version. Package SHA-256: `7508F40F7C82CFF7852C2BEADB64071D9F3018FE8CFADFFA7D5EEF620F914F1B`. It is unsigned validation evidence, not release/install evidence. Git save points use `[skip ci]` to avoid the main-push Preview release workflow; no release is authorized by this audit.
 
 Completion requires real native outcomes and inspected readable final captures for every applicable row, plus the remaining exact scenario/control coverage and required review. No screenshot or full-coverage completion is claimed while these gaps remain.
+
+## Current Sandbox checkpoint
+
+The baseline gallery uses app DLL SHA-256 `F932E68956CDD7223BC9D012D1E024F2A02E8FDC4FD2CF9F4FC26885FAAFCFDE`, built from `9e60f773` plus the recorded overage fix. Native captures and reports are in `.ai-usage-local/ui-audit/sandbox-probe/evidence/corpus-gallery`. Inspected overview and pages 001–012 and 018 are readable; remaining images are NOT_RUN for visual inspection. This is interim evidence: the complete gallery must be rerun after the final fixes. Auth retry validation subsequently used app hash `402C9F6D92C46708C64EB47E529DB83869B7C245B5D9AC893EE458765B7FFFEB`. The latest workday-fix app hash is `10D9C462ABB77A11566B27458817C2F212F20F4ADC1665059038AB1135FDD769`; remaining control tests are running against it.
+
+There are 952 passing deterministic product tests (783 Infrastructure + 169 Presentation), 211 more than the baseline. Unsigned package 2026.10.411.0 passed with the authentication/workday fixes, SHA-256 `4A2C1E6180E6DC84C112AFF30E0629AAF89FAD7DF47EBC18A75AC51EA3BA0EF6`; external symbol tooling warning only. Earlier product and harness failure evidence is retained under `sandbox-probe/evidence/failures` and the separate red-test XML files. Settings scrolling and physical text-entry timing exposed driver issues; corrected implementations were actually rerun successfully. A reusable Sandbox runner is implemented but its end-to-end reproduction check is still NOT_RUN.

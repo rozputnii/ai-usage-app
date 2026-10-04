@@ -10,9 +10,12 @@ internal sealed partial class WorkDayToggle(LedgerSettingsViewModel owner, DayOf
     public DayOfWeek Day { get; } = day;
     public string Label => LedgerFormat.WeekdayShort(Day);
     public string AccessibleName => LedgerFormat.WeekdayName(Day) + (IsOn ? ", work day" : ", day off");
-    [ObservableProperty] public partial bool IsOn { get; set; } = isOn;
+    public bool CanToggle => !IsOn || owner.WorkDays.Count(d => d.IsOn) > 1;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(AccessibleName))]
+    public partial bool IsOn { get; set; } = isOn;
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanToggle))]
     public Task ToggleAsync() => owner.ToggleWorkDayAsync(Day);
 }
 
@@ -125,6 +128,8 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         else
             foreach (var toggle in WorkDays)
                 toggle.IsOn = current.Budget.WorkDays.Contains(toggle.Day);
+        foreach (var toggle in WorkDays)
+            toggle.ToggleCommand.NotifyCanExecuteChanged();
 
         Caps.Clear();
         foreach (var cap in current.Budget.Caps)

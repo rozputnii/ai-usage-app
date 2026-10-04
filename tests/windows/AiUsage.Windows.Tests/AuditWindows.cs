@@ -14,7 +14,7 @@ using Xunit;
 namespace AiUsage.Windows.Tests;
 
 /// <summary>Physical input on the actual unpackaged build. Fixtures were exported after real parser/budget assertions.</summary>
-public sealed class AuditWindows
+public sealed partial class AuditWindows
 {
     [Fact]
     public void ReplayPagesRenderUsedAndLeft()
@@ -36,6 +36,11 @@ public sealed class AuditWindows
             {
                 session.Click("Add account");
                 session.Click("Show signed-out accounts");
+                var signedOutId = expected.First(p => p.Value!.GetValue<int>() == 18).Key;
+                Assert.True(Session.Wait(() => session.Window.FindAllDescendants().Any(e => e.Properties.AutomationId.ValueOrDefault == signedOutId)),
+                    "Signed-out preference must visibly finish before dismissing the flyout");
+                session.Capture(pageId + "-signed-out-toggle");
+                session.RecordTree(pageId + "-signed-out-toggle");
                 session.Key(VirtualKeyShort.ESCAPE);
             }
             foreach (var mode in new[] { "used", "left" })
@@ -148,8 +153,10 @@ public sealed class AuditWindows
         session.Capture("controls-deleted-first-run"); session.Exit();
     }
 
+    [Fact]
+    public void MockAuthenticationSuccess() => MockAuthenticationCodeCancellationRetryAndOutcomes(-1);
+
     [Theory]
-    [InlineData(-1)]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]
@@ -162,8 +169,10 @@ public sealed class AuditWindows
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();
         var fixture = JsonNode.Parse(File.ReadAllText(Path.Combine(Required("AIU_AUDIT_PAGE_DIRECTORY"), "overview.json")))!.AsObject();
+        fixture["NextAccounts"] = fixture["Accounts"]!.DeepClone();
         fixture["Accounts"] = new JsonArray(); fixture["Observations"] = new JsonArray(); fixture["ExpectedStates"] = new JsonObject();
         fixture["Configuration"]!["Caps"] = new JsonArray(); fixture["ManualCode"] = true;
+        AddLoginLabels(fixture);
         fixture["SignInFailure"] = failure < 0 ? null : JsonValue.Create(failure);
         using var session = Session.FromFixture(fixture, "auth-" + failure.ToString(CultureInfo.InvariantCulture));
         session.Click("Sign in to Claude");
@@ -173,14 +182,31 @@ public sealed class AuditWindows
         Assert.True(Session.Wait(() => session.Receipts.Contains("CancelConnect", StringComparison.Ordinal)));
         session.Capture("auth-" + failure.ToString(CultureInfo.InvariantCulture) + "-cancelled");
         session.Click("Try again");
+        session.Click("Cancel");
+        Assert.True(Session.Wait(() => session.Receipts.Split('\n').Count(line => line.StartsWith("CancelConnect", StringComparison.Ordinal)) == 2));
+        session.Click("Try again");
         session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Sign-in code"), "invalid-synthetic-code");
         session.Click("Submit code");
-        Assert.Contains("SubmitCode", session.Receipts, StringComparison.Ordinal);
+        Assert.True(Session.Wait(() => session.Receipts.Contains("SubmitCode", StringComparison.Ordinal)));
+        Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Code was not accepted; check the current sign-in attempt"));
         session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Sign-in code"), "synthetic-code");
         session.Click("Submit code");
+        Assert.True(Session.Wait(() => session.Receipts.Contains("SubmitCode:Accepted", StringComparison.Ordinal)), "The fake provider must accept the exact current synthetic code");
         Assert.True(Session.Wait(() => !session.Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "Sign-in code" && !e.IsOffscreen)));
         session.Capture("auth-" + failure.ToString(CultureInfo.InvariantCulture) + "-result");
-        if (failure >= 0) Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Try again"));
+        if (failure >= 0)
+        {
+            Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Try again"));
+            var reason = failure switch
+            {
+                0 => "This account is already connected", 1 => "Choose the account you are reconnecting",
+                2 => "Local storage needs recovery before sign-in can continue", 3 => "Authorization was denied",
+                4 => "The sign-in attempt expired", 5 => "The browser sign-in could not start",
+                6 => "Provider registration is not configured on this PC", _ => "The provider could not complete sign-in"
+            };
+            Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == reason));
+            Assert.DoesNotContain(session.Window.FindAllDescendants(), e => (e.Properties.AutomationId.ValueOrDefault ?? "").StartsWith("00000000000000000000000000006501:", StringComparison.Ordinal));
+        }
         else Assert.NotNull(session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").EndsWith(" added", StringComparison.Ordinal)));
         session.Exit();
     }
@@ -213,9 +239,11 @@ public sealed class AuditWindows
         var currency = money ? fact["Used"]!["currency"]!.GetValue<string>() : null;
         string Format(decimal amount)
         {
-            if (percent) return decimal.Round(amount, 0, MidpointRounding.AwayFromZero).ToString("0", CultureInfo.InvariantCulture) + " %";
-            var number = amount.ToString("N" + exponent.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
-            return currency switch { "USD" => "$" + number, "EUR" => "€" + number, "GBP" => "£" + number, null => number, _ => currency + " " + number };
+            var sign = amount < 0 ? "−" : string.Empty;
+            var magnitude = Math.Abs(amount);
+            if (percent) return sign + decimal.Round(magnitude, 0, MidpointRounding.AwayFromZero).ToString("0", CultureInfo.InvariantCulture) + " %";
+            var number = magnitude.ToString("N" + exponent.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+            return sign + (currency switch { "USD" => "$" + number, "EUR" => "€" + number, "GBP" => "£" + number, null => number, _ => currency + " " + number });
         }
         string? footer = null;
         if (layout is "Period" or "FiveHourAndPeriod" or "UsedOnly")
@@ -293,7 +321,7 @@ public sealed class AuditWindows
                 Window = window!;
                 windowHandle = Window.Properties.NativeWindowHandle.Value;
                 Window.SetForeground();
-                if (GetForegroundWindow() != Window.Properties.NativeWindowHandle.Value)
+                if (!OwnsForeground())
                 {
                     // Windows may deny programmatic activation of a later test process.
                     // An initial single caption click is safe only after native hit testing;
@@ -305,7 +333,7 @@ public sealed class AuditWindows
                     DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, caption);
                     Mouse.Click();
                 }
-                Assert.True(Wait(() => GetForegroundWindow() == Window.Properties.NativeWindowHandle.Value), "BLOCKED: test window must own foreground input");
+                Assert.True(Wait(OwnsForeground), "BLOCKED: test process must own foreground input");
                 Assert.True(Wait(() => Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "Add an account" || (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal))));
             }
             catch
@@ -382,13 +410,29 @@ public sealed class AuditWindows
             Mouse.MoveTo(point);
             RequireMouseTarget(point);
             Mouse.Click();
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
         }
         public void Show(AutomationElement element)
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
             RequireOwnedElement(element);
             element.Patterns.ScrollItem.PatternOrDefault?.ScrollIntoView();
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
             if (element.IsOffscreen) element.Focus();
+            for (var attempt = 0; attempt < 15; attempt++)
+            {
+                var target = element.BoundingRectangle;
+                var viewport = Window.BoundingRectangle;
+                if (target.Top >= viewport.Top + 50 && target.Bottom <= viewport.Bottom - 12 && !element.IsOffscreen) break;
+                // Some WinUI buttons expose neither ScrollItem nor a reliable IsOffscreen value.
+                // Wheel inside their own column, never at an off-window target point.
+                var wheelPoint = new System.Drawing.Point(Math.Clamp(target.Left + target.Width / 2, viewport.Left + 20, viewport.Right - 20),
+                    viewport.Top + viewport.Height / 2);
+                RequireMouseTarget(wheelPoint); Mouse.MoveTo(wheelPoint); RequireMouseTarget(wheelPoint);
+                Mouse.Scroll(target.Top < viewport.Top + 50 ? 2 : -2);
+                FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+                Thread.Sleep(100);
+            }
             var bounds = element.BoundingRectangle;
             var point = new System.Drawing.Point(bounds.Left + bounds.Width / 2, bounds.Top + Math.Min(15, bounds.Height / 2));
             RequireMouseTarget(point);
@@ -412,13 +456,18 @@ public sealed class AuditWindows
         public void Type(AutomationElement element, string value)
         {
             Click(element);
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+            Assert.True(Wait(() => element.Properties.HasKeyboardFocus.ValueOrDefault), "Mouse click must focus the exact input field");
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
             foreach (var character in value)
             {
                 DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
                 Keyboard.Type(character);
             }
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+            Assert.True(Wait(() => element.AsTextBox().Text == value), "Physical typing must produce the exact synthetic field value");
         }
         public void Capture(string name)
         {
@@ -445,13 +494,14 @@ public sealed class AuditWindows
             OwnedSurfaces().SelectMany(w => w.FindAllDescendants()).Select(e => new
             {
                 Name = e.Properties.Name.ValueOrDefault, Type = e.Properties.ControlType.ValueOrDefault.ToString(),
-                Id = e.Properties.AutomationId.ValueOrDefault, Visible = !e.IsOffscreen, Enabled = e.IsEnabled
+                Id = e.Properties.AutomationId.ValueOrDefault, Visible = !e.Properties.IsOffscreen.ValueOrDefault,
+                Enabled = e.Properties.IsEnabled.ValueOrDefault
             }).ToArray()));
         public void Exit()
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
             Window.SetForeground();
-            Assert.True(Wait(() => GetForegroundWindow() == Window.Properties.NativeWindowHandle.Value), "BLOCKED: test window must own exit input");
+            Assert.True(Wait(OwnsForeground), "BLOCKED: test process must own exit input");
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "The audit process must drain and exit");
@@ -460,7 +510,20 @@ public sealed class AuditWindows
         }
         public void Dispose()
         {
-            if (!process.HasExited) { process.Kill(); process.WaitForExit(5000); }
+            if (!process.HasExited)
+            {
+                try
+                {
+                    Capture("failure-" + Path.GetFileNameWithoutExtension(Input));
+                    RecordTree("failure-" + Path.GetFileNameWithoutExtension(Input));
+                    File.WriteAllText(Path.Combine(Evidence, "failure-" + Path.GetFileNameWithoutExtension(Input) + ".requests.txt"), Receipts);
+                }
+                catch (Exception failure)
+                {
+                    File.WriteAllText(Path.Combine(Evidence, "failure-capture.json"), JsonSerializer.Serialize(new { Type = failure.GetType().Name }));
+                }
+                process.Kill(); process.WaitForExit(5000);
+            }
             process.Dispose(); app.Dispose(); automation.Dispose();
         }
         private void RequireMouseTarget(System.Drawing.Point point)
@@ -468,6 +531,7 @@ public sealed class AuditWindows
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, point);
         }
+        private bool OwnsForeground() => GetWindowThreadProcessId(GetForegroundWindow(), out var owner) != 0 && owner == app.ProcessId;
         private void RequireOwnedElement(AutomationElement element)
         {
             // WinUI's guest UIA provider can report ProcessId=0. Establish ownership through

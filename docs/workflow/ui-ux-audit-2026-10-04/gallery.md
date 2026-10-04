@@ -1,11 +1,15 @@
-# Screenshot gallery status
+# Screenshot gallery — interim evidence
 
-**BLOCKED — no valid final application screenshots captured.** The interactive desktop is locked. Initial smoke captures showed the lock screen, so they are excluded from the gallery, publication and coverage evidence. They are not product UI failures or app screenshots.
+The real unpackaged Windows application is running with synthetic data in a network-disabled Windows Sandbox. All 170 baseline scenarios have captured Used/Left images and passed native assertions. The overview and pages 001–012 and 018 have been visually inspected. Remaining inspection and final-build recapture are pending; this is not the complete final gallery.
 
-The reproducible corpus currently has 170 parser-tested scenarios covering all 20 card states, all five layouts and the four providers. `New-UiAuditPages.ps1` prepares 51 pages at a shared controlled clock per page, plus a four-provider overview. This is gallery preparation only.
+[Screenshot index](screenshot-index.csv) maps every baseline scenario to its actual image and exact card ID. [Controls](controls.csv) and [additional scenarios](additional-scenarios.csv) record the remaining editor, history, authentication, recovery, transition and lifetime coverage. Generated images remain outside Git.
 
-[Screenshot index](screenshot-index.csv) maps every corpus scenario to planned Used/Left images and its exact synthetic card ID. Every row is NOT_CAPTURED / BLOCKED. Per-card captures are also planned to preserve readability after scrolling. Expanded history, editors, settings, authentication and recovery need additional captures; see [controls](controls.csv) and [additional scenarios](additional-scenarios.csv).
+![Synthetic four-provider overview, Used](../../../.ai-usage-local/ui-audit/sandbox-probe/evidence/corpus-gallery/overview-used.png)
 
-Local final image destination: `.ai-usage-local/ui-audit/gallery/`. No generated mockup, composed interface, lock-screen capture, earlier build or element-existence check may fill a missing gallery entry. A successful capture still needs visual inspection before its inspection verdict becomes PASS.
+![Synthetic money overage, Used](../../../.ai-usage-local/ui-audit/sandbox-probe/evidence/corpus-gallery/page-018-used.png)
 
-Exact continuation commands are in [the report](report.md). The Windows suite rejects locked/LogonUI foreground input before launching an audit application, clicking controls or capturing images.
+![Synthetic money overage, Left](../../../.ai-usage-local/ui-audit/sandbox-probe/evidence/corpus-gallery/page-018-left.png)
+
+All current baseline captures: [.ai-usage-local/ui-audit/sandbox-probe/evidence/corpus-gallery](../../../.ai-usage-local/ui-audit/sandbox-probe/evidence/corpus-gallery). Native first-run and duplicate-provider captures: [controls-gallery](../../../.ai-usage-local/ui-audit/sandbox-probe/evidence/controls-gallery). Failed earlier attempts are preserved separately under `sandbox-probe/evidence/failures`; lock-screen captures are excluded.
+
+See [the report](report.md) for build hashes, execution results and reproduction commands. A generated capture establishes neither visual inspection nor successful interaction by itself. Final evidence must follow all remaining fixes.

@@ -66,4 +66,20 @@ public sealed class AuditFormattingTests
         Assert.Equal("+$0.01", CardVisuals.Build(card, account, ValueMode.Used, DateTimeOffset.UnixEpoch).OverLabel);
         Assert.Equal("−$0.01", CardVisuals.Build(card, account, ValueMode.Left, DateTimeOffset.UnixEpoch).OverLabel);
     }
+
+    [Theory]
+    [InlineData(false, "$300.01 of $300.00 used")]
+    [InlineData(true, "−$0.01 of $300.00 left")]
+    public void ProviderOverageDoesNotInflateTheDisplayedLimit(bool left, string footer)
+    {
+        var card = new LimitCardModel("synthetic-money", null, CardLayout.Pool, ScaleModel.Money("USD", 2), PeriodModel.Month(false),
+            CardState.UsedUp, Freshness.Fresh(), [],
+            new(300.01m, 120m, 130m, 10m, LimitValue.Known(300m), 300m, null, null, null),
+            null, null, null, "synthetic-money", CardAction.None, null);
+        var account = new AccountModel("synthetic", ProviderKind.Claude, "SYNTHETIC", AccountHealth.Ok, null, null, null, [card]);
+        var visual = CardVisuals.Build(card, account, left ? ValueMode.Left : ValueMode.Used, DateTimeOffset.UnixEpoch);
+        Assert.Equal(footer, visual.Footer);
+        Assert.Contains("Provider limit $300.00 USD", visual.FooterTip);
+        Assert.Contains(footer, visual.BarTip[1], StringComparison.Ordinal);
+    }
 }

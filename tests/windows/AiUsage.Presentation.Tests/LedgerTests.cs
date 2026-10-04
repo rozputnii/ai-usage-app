@@ -517,6 +517,24 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
+    public async Task WorkDayNameNotifiesBindingsAndTheLastSelectionCannotBeRemoved()
+    {
+        var (window, _, _, _) = Start();
+        var friday = window.Settings.WorkDays.Single(d => d.Day == DayOfWeek.Friday);
+        var changed = new List<string?>();
+        friday.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+        await friday.ToggleAsync();
+        Assert.Contains(nameof(WorkDayToggle.AccessibleName), changed);
+        Assert.Equal("Friday, day off", friday.AccessibleName);
+        foreach (var day in new[] { DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday })
+            await window.Settings.WorkDays.Single(d => d.Day == day).ToggleCommand.ExecuteAsync(null);
+        var monday = window.Settings.WorkDays.Single(d => d.Day == DayOfWeek.Monday);
+        Assert.False(monday.ToggleCommand.CanExecute(null));
+        await friday.ToggleCommand.ExecuteAsync(null);
+        Assert.True(monday.ToggleCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task WorkTodayColoursTheDayOffUntilUndone()
     {
         var (window, source, _, _) = Start(DemoLedgerScenarios.DayOff);

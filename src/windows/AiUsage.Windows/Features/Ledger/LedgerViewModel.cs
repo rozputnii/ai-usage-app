@@ -328,7 +328,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         CodeError = codeAttempt is { } attempt && source.TrySubmitSignInCode(attempt, code) ? string.Empty : "Code was not accepted; check the current sign-in attempt";
     }
 
-    [RelayCommand]
+    // Retry waits for provider completion; the same button must remain available to cancel it.
+    // The source guards attempt identity and prevents concurrent sign-in attempts.
+    [RelayCommand(AllowConcurrentExecutions = true)]
     public Task StripActionAsync() => source.Current.SignInStrip switch
     {
         { Phase: SignInPhase.Waiting } => source.CancelSignInAsync(CancellationToken.None),

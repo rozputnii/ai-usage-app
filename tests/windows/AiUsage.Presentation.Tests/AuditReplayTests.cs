@@ -128,4 +128,25 @@ public sealed class AuditReplayTests
         Assert.Contains("Stopped", receipts);
         Assert.Empty(accounts.Current);
     }
+
+    [Theory]
+    [InlineData("claude")]
+    [InlineData("codex")]
+    [InlineData("copilot")]
+    [InlineData("antigravity")]
+    public async Task FirstRunMockLoginUsesTheSelectedProvidersSyntheticReplacement(string provider)
+    {
+        var template = new AccountSnapshot(Guid.NewGuid(), provider, true,
+            ProviderSessionState.NotConnected with { Status = ProviderSessionStatus.QuotaAvailable }, false, null);
+        using var accounts = new AuditAccounts(Empty with { ManualCode = true, NextAccounts = [template] }, new(Now), _ => { });
+        var attempt = Guid.NewGuid();
+        var connect = accounts.ConnectAsync(provider, null, attempt, _ => { }, TestContext.Current.CancellationToken);
+        Assert.True(accounts.TrySubmitCode(attempt, "synthetic-code"));
+        Assert.Equal(AccountOutcome.Done, (await connect).Outcome);
+        var added = Assert.Single(accounts.Current);
+        Assert.Equal(provider, added.Provider);
+        Assert.True(added.Connected);
+        Assert.NotEqual(template.AccountId, added.AccountId);
+        Assert.Equal(template.Session, added.Session);
+    }
 }

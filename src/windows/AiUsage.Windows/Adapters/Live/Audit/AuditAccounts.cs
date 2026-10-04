@@ -35,7 +35,8 @@ internal sealed class AuditAccounts(AuditInput input, AuditClock clock, Action<s
         if (attempt != attemptId || result.Outcome != AccountOutcome.Done) return result;
         var existing = Current.FirstOrDefault(a => a.AccountId == reconnectAccountId);
         var id = reconnectAccountId ?? new Guid(0, 0, 0, 0, 0, 0, 0, 0, 0, (byte)(++added + 100), 1);
-        var template = input.Accounts.FirstOrDefault(a => a.Provider == provider)?.Session ?? ProviderSessionState.NotConnected;
+        var template = input.Accounts.FirstOrDefault(a => a.Provider == provider)?.Session
+            ?? input.NextAccounts?.FirstOrDefault(a => a.Provider == provider)?.Session ?? ProviderSessionState.NotConnected;
         var account = existing is null ? new AccountSnapshot(id, provider, true, template, false, null)
             : existing with { Connected = true, Session = existing.Session with { Status = ProviderSessionStatus.QuotaAvailable, Failure = null } };
         Current = existing is null ? [.. Current, account] : [.. Current.Select(a => a.AccountId == id ? account : a)];
@@ -70,8 +71,9 @@ internal sealed class AuditAccounts(AuditInput input, AuditClock clock, Action<s
     }
     public bool TrySubmitCode(Guid attemptId, string code)
     {
-        receipt("SubmitCode");
-        return attempt == attemptId && code == "synthetic-code" && login?.TrySetResult(Result()) == true;
+        var accepted = attempt == attemptId && code == "synthetic-code" && login?.TrySetResult(Result()) == true;
+        receipt("SubmitCode:" + (accepted ? "Accepted" : "Rejected"));
+        return accepted;
     }
     public async Task<AccountResult> RefreshAsync(Guid accountId, CancellationToken token)
     {
