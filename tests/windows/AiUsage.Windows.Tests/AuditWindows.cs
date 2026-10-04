@@ -408,6 +408,16 @@ public sealed partial class AuditWindows
             GetWindowThreadProcessId(handle, out var owner) != 0 && owner == app.ProcessId);
         private void RecordStartupFailure()
         {
+            // Preserve only this explicitly selected, marked synthetic root's diagnostics.
+            if (File.Exists(Path.Combine(Root, "synthetic-audit.marker")) &&
+                File.ReadAllText(Path.Combine(Root, "synthetic-audit.marker")) == "AI Usage synthetic audit v1")
+            {
+                var logs = Path.Combine(Root, "logs");
+                if (Directory.Exists(logs))
+                    foreach (var file in Directory.EnumerateFiles(logs, "application-*.jsonl"))
+                        File.Copy(file, Path.Combine(Evidence, "startup-" + Path.GetFileName(file)), overwrite: true);
+                File.WriteAllText(Path.Combine(Evidence, "startup-requests.txt"), Receipts);
+            }
             var candidates = automation.GetDesktop().FindAllChildren().Select(w =>
             {
                 var handle = w.Properties.NativeWindowHandle.ValueOrDefault;

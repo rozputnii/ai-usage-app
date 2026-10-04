@@ -37,7 +37,8 @@ internal static class AuditLedgerRegistration
             return new LiveLedgerSource(p.GetRequiredService<AuditAccounts>(), p.GetRequiredService<LocalBudgetStore>(),
                 p.GetRequiredService<LocalBudgetStore>(), new QuotaObservationRecorder(p.GetRequiredService<LocalBudgetStore>()),
                 preference, action => LiveLedgerRegistration.Dispatch(p.GetRequiredService<DispatcherQueue>(), action),
-                _ => Receipt("BrowserRequested:synthetic"), p.GetRequiredService<AuditClock>(), TimeZoneInfo.FindSystemTimeZoneById(input.ZoneId));
+                _ => Receipt("BrowserRequested:synthetic"), p.GetRequiredService<AuditClock>(), TimeZoneInfo.FindSystemTimeZoneById(input.ZoneId),
+                scopeAnnotations: input.ScopeAnnotations);
         });
         services.AddSingleton<ILedgerSource>(p => p.GetRequiredService<LiveLedgerSource>());
         if (input.UseProductMaintenance)

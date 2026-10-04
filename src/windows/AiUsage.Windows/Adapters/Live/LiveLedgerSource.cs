@@ -20,6 +20,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     private readonly TimeProvider time;
     private readonly TimeZoneInfo zone;
     private readonly IDiagnosticSink? diagnostics;
+    private readonly IReadOnlyDictionary<string, MonetaryScope>? scopeAnnotations;
     private readonly object sync = new();
     private readonly SemaphoreSlim gate = new(1, 1);
     private readonly CancellationTokenSource shutdown = new();
@@ -44,8 +45,10 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
 
     public LiveLedgerSource(IAccountService accounts, IReadingSeriesStore readings, IBudgetConfigurationStore budgets,
         IQuotaObservationRecorder recorder, LedgerPreferenceStore preferences, Func<Action, Task> dispatch,
-        Action<Uri> openBrowser, TimeProvider? time = null, TimeZoneInfo? zone = null, IDiagnosticSink? diagnostics = null)
+        Action<Uri> openBrowser, TimeProvider? time = null, TimeZoneInfo? zone = null, IDiagnosticSink? diagnostics = null,
+        IReadOnlyDictionary<string, MonetaryScope>? scopeAnnotations = null)
     {
+        this.scopeAnnotations = scopeAnnotations;
         this.accounts = accounts; this.readings = readings; this.budgets = budgets; this.recorder = recorder;
         this.preferences = preferences; this.dispatch = dispatch; this.openBrowser = openBrowser;
         this.time = time ?? TimeProvider.System; this.zone = zone ?? TimeZoneInfo.Local; this.diagnostics = diagnostics;
@@ -184,7 +187,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
                 var series = new ReadingSeriesKey(id, fact.Key);
                 var read = await readings.ReadAsync(series, token);
                 if (read.Recovered) lostCaptures.Add(account.AccountId);
-                var limit = new LedgerLimit(fact, series, read.Value);
+                var limit = new LedgerLimit(fact, series, read.Value)
+                    { MonetaryScope = scopeAnnotations?.GetValueOrDefault(LiveLedgerProjection.CardId(series)) ?? MonetaryScope.Unknown };
                 data.Add(limit);
             }
             data = [.. LiveLedgerProjection.AccountLimits(data)];

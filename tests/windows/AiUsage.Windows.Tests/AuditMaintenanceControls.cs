@@ -21,7 +21,8 @@ public sealed partial class AuditWindows
         RequireRecovery(session, "already using these local data");
         Assert.DoesNotContain("InitializeCompleted", session.Receipts, StringComparison.Ordinal);
         AssertSignInUnavailable(session);
-        session.Click("Settings");
+        session.Click("Recovery and diagnostics");
+        Assert.True(Session.Wait(() => Visible(session, "Close settings")));
         Assert.False(session.Find(e => e.Properties.Name.ValueOrDefault == "Restore legacy preferences").IsEnabled);
         session.Click("Retry recovery");
         session.Find(e => e.Properties.Name.ValueOrDefault == "Action unavailable; local data is preserved");
@@ -62,7 +63,8 @@ public sealed partial class AuditWindows
         using (var restore = Session.FromFixture(fixture, "maintenance-restore", root))
         {
             RequireRecovery(restore, "Local data needs recovery"); restore.Click("Settings"); restore.Click("Preview diagnostics");
-            restore.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Legacy preferences checkpoint: True", StringComparison.Ordinal));
+            var preview = restore.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Legacy preferences checkpoint: True", StringComparison.Ordinal));
+            restore.Show(preview);
             restore.Capture("REC-04-production-restore-preview");
             using (var barrier = new FileStream(target + ".new", FileMode.OpenOrCreate, FileAccess.Write, FileShare.None))
             {
@@ -80,6 +82,8 @@ public sealed partial class AuditWindows
         RequireRecovery(newer, "written by a newer app"); AssertSignInUnavailable(newer); newer.Click("Settings");
         Assert.False(newer.Find(e => e.Properties.Name.ValueOrDefault == "Retry recovery").IsEnabled);
         Assert.False(newer.Find(e => e.Properties.Name.ValueOrDefault == "Restore legacy preferences").IsEnabled);
+        newer.Show(newer.Find(e => e.Properties.Name.ValueOrDefault == "Retry recovery"));
+        newer.Capture("REC-04-production-newer-schema-disabled-controls");
         newer.Click("Export recovery summary");
         var export = Path.Combine(root, "recovery-diagnostics.txt"); Assert.True(Session.Wait(() => File.Exists(export)));
         var text = File.ReadAllText(export); Assert.Contains("Condition: NewerSchema", text, StringComparison.Ordinal);

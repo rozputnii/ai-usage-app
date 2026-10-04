@@ -14,6 +14,24 @@ public sealed class AuditReplayTests
     private static readonly DateTimeOffset Now = new(2026, 10, 7, 12, 0, 0, TimeSpan.Zero);
     private static AuditInput Empty => new(Now, "UTC", [], [], [], BudgetConfiguration.Default);
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(99)]
+    public void AuditScopeAnnotationRejectsUnmatchedAndUndefinedScopesBeforeCreatingStorage(int scope)
+    {
+        var root = Path.Combine(Path.GetTempPath(), "aiu-audit-annotation-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root); var fixture = Path.Combine(root, "input.json");
+        try
+        {
+            var input = Empty with { ScopeAnnotations = new() { ["unmatched-synthetic-series"] = (AiUsage.Adapters.Live.MonetaryScope)scope } };
+            File.WriteAllText(fixture, JsonSerializer.Serialize(input, AuditJson.Default.AuditInput));
+            var state = Path.Combine(root, "state");
+            Assert.Throws<InvalidDataException>(() => AuditReplay.Open(["--demo", "--audit-input=" + fixture], state));
+            Assert.False(Directory.Exists(state));
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
     [Fact]
     public void MaintenanceReplayRestartsWithTheSameSyntheticSelectionAndRejectsAccountFixtures()
     {

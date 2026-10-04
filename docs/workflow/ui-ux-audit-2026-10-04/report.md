@@ -1,4 +1,6 @@
-# Synthetic Windows UI/UX audit — in progress
+# Synthetic Windows UI/UX audit — paused
+
+**Owner stopped execution on 2026-10-04.** The follow-up is [AIU-045](../../specs/AIU-045-ui-audit-follow-up/spec.md); read its [findings/handoff](../../specs/AIU-045-ui-audit-follow-up/verification.md) before using the historical checkpoints below. The latest WIP annotation build failed before window creation in two native runs. It has no final verification or complete gallery. Preserve it for diagnosis; do not automatically resume the audit.
 
 **The requested comprehensive audit is not complete.** The latest full deterministic suites pass 1045/1045 (859 Infrastructure + 186 Presentation). All 235 parser/recorder/budget/projection corpus scenarios and six composite dashboards have passed native Used/Left checks in isolated, network-disabled Windows Sandbox runs. All four first-run sign-in buttons and duplicate-provider menu entries, all four visible/hidden and idle/in-flight tray variants, three calendar transitions and five production recovery/deletion/activation checks have passed physical input and observable outcomes. Final-build recapture, complete rendered inspection and remaining cap/history/hover/resize/keyboard variants are pending. The host stays locked; no host unlocking or real authentication was attempted.
 

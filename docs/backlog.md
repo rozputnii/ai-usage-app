@@ -468,6 +468,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 - completion-note: Implemented and verified on 2026-10-04. Spending is account-owned; compatible monthly budgets and window-exhaustion marks are retained. Current Claude wire scope stays explicitly unresolved. Required independent review findings were fixed and verified; see the evidence record.
 
+## AIU-045 - Triage and fix synthetic Windows audit findings
+- goal: G-003
+- status: paused
+- depends_on: [AIU-039, AIU-044]
+- trigger: owner-resumption-after-discussion
+- outcome: Preserve the interrupted 2026-10-04 audit, diagnose the newly observed audit-build startup failure, review the unfinished scope-annotation changes, and agree on bounded fixes and verification batches. Keep confirmed product defects, harness faults, unverified hypotheses and missing evidence distinct.
+- specification: docs/specs/AIU-045-ui-audit-follow-up/spec.md
+- evidence: docs/specs/AIU-045-ui-audit-follow-up/verification.md
+- registration-note: On 2026-10-04 the owner stopped the long-running audit and requested preservation of all findings and a follow-up task for fixes and discussion in later sessions. This registers that task; it does not resume implementation or the comprehensive audit.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

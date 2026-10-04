@@ -1,0 +1,14 @@
+{
+    "Synthetic":  true,
+    "StartedAt":  "2026-10-04T19:53:22.8590112+00:00",
+    "Status":  "FAIL",
+    "Network":  "Disabled",
+    "DesktopExitCode":  0,
+    "NativeExitCode":  1,
+    "Executed":  3,
+    "Passed":  2,
+    "Failed":  1,
+    "Skipped":  0,
+    "NotRun":  0,
+    "Errors":  0
+}

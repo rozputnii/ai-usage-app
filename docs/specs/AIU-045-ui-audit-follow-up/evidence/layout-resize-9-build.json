@@ -1,0 +1,10 @@
+{
+  "Source": "f4891b912b32609da5f1c212a5f2d43834e2cc30",
+  "Dirty": true,
+  "ApplicationSha256": "CB756EB359EF66A7DE47FD95E9D70BF4C0F69A93BC998437E88FC46C91CB7135",
+  "DriverSha256": "EEF8AE17C870B82488501191A2D121D3277D82B0B5E645608915AA3332BBB70B",
+  "TestMethod": [
+    "*AuditWindows.OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable"
+  ],
+  "FirstPage": ""
+}
