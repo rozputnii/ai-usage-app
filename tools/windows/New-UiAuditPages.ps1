@@ -2,7 +2,8 @@ param(
     [Parameter(Mandatory)][string]$InputDirectory,
     [Parameter(Mandatory)][string]$OutputDirectory,
     [Parameter(Mandatory)][string]$CoverageDirectory,
-    [string]$NativeBlocker = ''
+    [string]$NativeBlocker = '',
+    [string[]]$ScenarioPatterns = @('*')
 )
 $ErrorActionPreference = 'Stop'
 $inputRoot = [IO.Path]::GetFullPath($InputDirectory)
@@ -74,7 +75,7 @@ $overview = @('M-ordinary', 'P-codex-ordinary', 'C-ordinary', 'P-antigravity-ord
 }
 Write-Page 'overview' $overview $false
 $pageNumber = 0
-foreach ($group in ($cases | Group-Object Now)) {
+foreach ($group in ($cases | Where-Object { $scenario = $_.Id; @($ScenarioPatterns | Where-Object { $scenario -like $_ }).Count -gt 0 } | Group-Object Now,Zone)) {
     $groupCases = @($group.Group)
     for ($offset = 0; $offset -lt $groupCases.Count; $offset += 4) {
         $last = [Math]::Min($offset + 3, $groupCases.Count - 1)
@@ -84,4 +85,4 @@ foreach ($group in ($cases | Group-Object Now)) {
 $matrix | Export-Csv -LiteralPath (Join-Path $coverageRoot 'coverage.csv') -NoTypeInformation -Encoding utf8
 $matrix | Select-Object ScenarioId, PlannedScreenshot, RelevantCard, ScreenshotResult, VisualInspection, NativeResult |
     Export-Csv -LiteralPath (Join-Path $coverageRoot 'screenshot-index.csv') -NoTypeInformation -Encoding utf8
-"Prepared $($cases.Count) parser-tested scenarios on $pageNumber pages plus an overview. No screenshots or native passes are implied."
+"Prepared $($matrix.Count) parser-tested scenarios on $pageNumber pages plus an overview. No screenshots or native passes are implied."

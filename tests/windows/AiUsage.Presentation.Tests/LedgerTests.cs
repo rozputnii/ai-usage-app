@@ -59,6 +59,29 @@ public sealed class LedgerCardTests
     private static CardVisual Brief(string id, ValueMode mode = ValueMode.Used) => Visual(BriefScenario, id, mode);
     private static CardVisual Case(string id, ValueMode mode = ValueMode.Used) => Visual(StateGallery, id, mode);
 
+    [Theory]
+    [InlineData(false, null, "Grey: month limit cuts today’s share")]
+    [InlineData(true, null, "Grey: month limit cuts today’s share")]
+    [InlineData(false, false, "Grey: month limit cuts today’s share")]
+    [InlineData(true, false, "Grey: month limit cuts today’s share")]
+    [InlineData(false, true, "Grey: cap cuts today’s share")]
+    [InlineData(true, true, "Grey: cap cuts today’s share")]
+    public void TodayTooltipNamesTheBindingLimit(bool money, bool? binding, string expected)
+    {
+        var card = DemoLedgerScenarios.Money("synthetic", CardState.OnTrack, 120, 125.5m, 130, 240, 300, 15) with
+        {
+            Scale = money ? ScaleModel.Money("USD", 2) : ScaleModel.Count("requests"),
+            Cap = binding is { } binds ? new(240, binds, CapStatus.Applied) : null
+        };
+        var account = Find(BriefScenario, "claude-week").Account;
+        foreach (var mode in Enum.GetValues<ValueMode>())
+        {
+            var cell = Assert.Single(CardVisuals.Build(card, account, mode, BriefScenario.LocalNow).Cells);
+            Assert.Contains(expected, cell.Tip);
+            Assert.Equal(5, cell.Parts.Single(p => p.Paint.Fill == "Grey").Weight);
+        }
+    }
+
     [Fact]
     public void LedgerSourcesStayOffTheBackendAndThePlatform()
     {

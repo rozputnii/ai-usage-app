@@ -356,6 +356,9 @@ internal static class CardVisuals
             (card.Freshness.ReadingAt is { } reading ? "Reading from " + LedgerFormat.Clock(reading) : "Reading still fresh") + Retry(account, now),
         ]),
         MarkKind.SignInExpired => new MarkVisual(mark.Kind, "sign-in expired", false, ["Sign-in expired", "Sign in again to refresh"]),
+        MarkKind.PastReset when mark.ScopeLabel is { } scope => new MarkVisual(mark.Kind, scope + " past reset", false,
+            [scope + " reading is from before the reset" + (mark.Since is { } reset ? " at " + LedgerFormat.Clock(reset) : string.Empty),
+             "Waiting for the first reading of the new " + scope + " window"]),
         _ => new MarkVisual(mark.Kind, "past reset", false, ["Reading is from before the reset", "Waiting for the first reading of the new period"]),
     };
 
@@ -509,7 +512,7 @@ internal static class CardVisuals
             lines.Add(left ? fm(t - used) + " of " + fm(share) + " left" : fm(today) + " of " + fm(share) + " used");
         }
         if (gray > 0)
-            lines.Add("Grey: " + (card.Scale.Kind == ScaleKind.Percent ? period + " limit cuts today’s share" : "cap cuts today’s share"));
+            lines.Add("Grey: " + (card.Cap is { Binding: true, Status: CapStatus.Applied } ? "cap cuts today’s share" : period + " limit cuts today’s share"));
         if (card.Layout == CardLayout.FiveHourAndPeriod && card.FiveHour is { } five)
             lines.Add("Current 5h window " + LedgerFormat.Round(five.CurrentWindowUsed) + " % used" + (five.CurrentWindowEndsAt is { } end ? " · until " + LedgerFormat.Clock(end) : string.Empty));
         if (off)

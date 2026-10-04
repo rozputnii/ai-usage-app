@@ -11,6 +11,43 @@ namespace AiUsage.Presentation.Tests;
 
 public sealed class LiveLedgerProjectionTests
 {
+    [Theory]
+    [InlineData(-1, false)]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    public void ExpiredShortWindowDoesNotClaimCurrentUsageOrDiscardTheWeeklyBudget(int seconds, bool expired)
+    {
+        var reset = Now.AddHours(3);
+        var weekly = Weekly();
+        var shortWindow = weekly with { Key = new("claude", "CL-S", "short"), UsedPercent = 100,
+            Duration = TimeSpan.FromHours(5), Reset = new(reset, ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var account = new AccountSnapshot(Account, "claude", true,
+            new(ProviderSessionStatus.QuotaAvailable, new QuotaSnapshot(Now, null, [], null, null, null, null)), false, null);
+        var now = reset.AddSeconds(seconds);
+        var model = LiveLedgerProjection.Account(account, "SYNTHETIC short reset", [Data(weekly), Data(shortWindow)],
+            BudgetConfiguration.Default, now, TimeZoneInfo.Utc, null);
+        var card = Assert.Single(model.Cards);
+        Assert.Equal(40, card.Figures.Used);
+        Assert.Equal(40, card.Figures.TodayEnd);
+        if (expired)
+        {
+            Assert.Null(card.FiveHour);
+            Assert.Equal(CardLayout.Period, card.Layout);
+            Assert.Equal(CardState.TodayUsed, card.State);
+            Assert.Contains(card.Marks, m => m.Kind == MarkKind.PastReset && m.Since == reset);
+            var visual = CardVisuals.Build(card, model, ValueMode.Used, now);
+            Assert.Contains(visual.Marks, m => m.Text == "5h past reset");
+            Assert.DoesNotContain(visual.Cells.SelectMany(c => c.Tip), line => line.Contains("Current 5h window", StringComparison.Ordinal));
+        }
+        else
+        {
+            Assert.Equal(CardState.FiveHourFull, card.State);
+            Assert.Equal(100, card.FiveHour!.CurrentWindowUsed);
+            Assert.Equal(CardLayout.FiveHourAndPeriod, card.Layout);
+        }
+        Assert.Equal(100, shortWindow.UsedPercent); // Retain the provider fact without inventing a replacement.
+    }
+
     [Fact]
     public void SuccessfulEmptyQuotaUsesTheSupportedNoDisplayedLimitsState()
     {

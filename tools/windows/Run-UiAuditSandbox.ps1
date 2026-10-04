@@ -53,9 +53,16 @@ try {
     $env:AIU_AUDIT_PAGE_DIRECTORY = 'C:/AIU-Work/pages'
     $env:AIU_SMOKE_EVIDENCE_DIRECTORY = 'C:/AIU-Evidence/gallery'
     $env:AIU_AUDIT_FIRST_PAGE = $FirstPage
+    # A fresh guest can have no foreground window after its login helper closes.
+    # Open only its synthetic work folder before the read-only desktop prerequisite.
+    Start-Process explorer.exe -ArgumentList 'C:\AIU-Work' -WindowStyle Hidden
     for ($probe = 0; $probe -lt 6; $probe++) {
-        & C:/AIU-Work/smoke/AiUsage.Windows.Tests.exe -class '*AuditDesktopPrerequisite' -parallel none -xml C:/AIU-Evidence/desktop.xml *> C:/AIU-Evidence/desktop.log
+        $probeXml = 'C:/AIU-Evidence/desktop-' + $probe + '.xml'
+        $probeLog = 'C:/AIU-Evidence/desktop-' + $probe + '.log'
+        & C:/AIU-Work/smoke/AiUsage.Windows.Tests.exe -class '*AuditDesktopPrerequisite' -parallel none -xml $probeXml *> $probeLog
         $report.DesktopExitCode = $LASTEXITCODE
+        Copy-Item -LiteralPath $probeXml -Destination C:/AIU-Evidence/desktop.xml -Force
+        Copy-Item -LiteralPath $probeLog -Destination C:/AIU-Evidence/desktop.log -Force
         if (!$LASTEXITCODE) { break }
         Start-Sleep -Seconds 1
     }
@@ -85,8 +92,19 @@ if ($LASTEXITCODE -or !$sandbox.Id) { throw 'Sandbox start did not return an ID.
 $sandbox.Id | Set-Content -LiteralPath (Join-Path $output 'sandbox-id.txt')
 try {
     Start-Process -FilePath (Get-Command wsb.exe).Source -ArgumentList 'connect','--id',$sandbox.Id -WindowStyle Hidden
-    $guestCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\AIU-Input\Run.ps1 -Method $TestMethod -FirstPage '$FirstPage'"
+    $ready = $false
+    for ($probe = 0; $probe -lt 30; $probe++) {
+        $probeOutput = & wsb exec --id $sandbox.Id --command 'whoami.exe' --run-as ExistingLogin --raw 2>&1
+        if (!$LASTEXITCODE) { $ready = $true; break }
+        $probeOutput | Out-File -LiteralPath (Join-Path $evidencePath 'desktop-ready.log') -Append
+        Start-Sleep -Seconds 1
+    }
+    if (!$ready) { throw 'BLOCKED: Sandbox has not established its interactive guest session.' }
+    $guestCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\AIU-Input\Run.ps1 -Method $TestMethod"
+    if ($FirstPage) { $guestCommand += " -FirstPage $FirstPage" }
     & wsb exec --id $sandbox.Id --command $guestCommand --run-as ExistingLogin --raw
     if ($LASTEXITCODE) { throw 'Sandbox command failed; inspect retained evidence.' }
 } finally { & wsb stop --id $sandbox.Id --raw }
-Get-Content -LiteralPath (Join-Path $evidencePath 'run.json')
+$result = Get-Content -LiteralPath (Join-Path $evidencePath 'run.json') -Raw | ConvertFrom-Json
+$result | ConvertTo-Json
+if ($result.Status -ne 'PASS_REQUIRES_VISUAL_INSPECTION') { throw 'The native run did not pass; inspect retained evidence.' }

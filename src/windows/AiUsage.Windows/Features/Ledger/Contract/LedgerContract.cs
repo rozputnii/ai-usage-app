@@ -126,7 +126,7 @@ internal sealed record Freshness(bool IsStale, DateTimeOffset? ReadingAt)
 }
 
 /// <summary>A word beside the card name. OnExtraUsage carries the spend since the window filled in the pool's currency.</summary>
-internal sealed record CardMark(MarkKind Kind, DateTimeOffset? Since = null, DateTimeOffset? Until = null, decimal? Amount = null, string? Currency = null, int? Exponent = null);
+internal sealed record CardMark(MarkKind Kind, DateTimeOffset? Since = null, DateTimeOffset? Until = null, decimal? Amount = null, string? Currency = null, int? Exponent = null, string? ScopeLabel = null);
 
 internal enum MarkKind { OnExtraUsage, ExtraDay, SyncFailed, SignInExpired, PastReset }
 

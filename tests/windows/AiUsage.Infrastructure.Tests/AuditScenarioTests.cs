@@ -23,12 +23,13 @@ public sealed class AuditScenarioTests
     private static readonly DateTimeOffset WeeklyReset = new(2026, 10, 12, 0, 0, 0, TimeSpan.Zero);
     private sealed record Case(string Id, string Provider, string Json, decimal? Baseline, CardState State,
         decimal? Used, decimal? TodayEnd, CardLayout Layout, decimal? Cap = null, DateTimeOffset? Time = null,
-        AccountHealth Health = AccountHealth.Ok, bool Estimate = false);
+        AccountHealth Health = AccountHealth.Ok, bool Estimate = false, string Zone = "UTC", DateTimeOffset? Fetched = null, int? Fit = null);
     private static string N(decimal? value) => value?.ToString(CultureInfo.InvariantCulture) ?? "null";
     private static string Stamp(DateTimeOffset value) => value.ToString("O", CultureInfo.InvariantCulture);
-    private static string Week(string provider, decimal? used, decimal? shortUsed = null, bool pair = false, DateTimeOffset? reset = null, bool shortReset = true)
+    private static string Week(string provider, decimal? used, decimal? shortUsed = null, bool pair = false, DateTimeOffset? reset = null, bool shortReset = true,
+        DateTimeOffset? shortEndOverride = null)
     {
-        var shortEnd = shortReset ? Stamp(Now.AddHours(3)) : null;
+        var shortEnd = shortReset ? Stamp(shortEndOverride ?? Now.AddHours(3)) : null;
         if(provider=="claude")
         {
             var body=new Dictionary<string,object?> { ["seven_day"]=new { utilization=used,resets_at=Stamp(reset??WeeklyReset) } };
@@ -38,7 +39,7 @@ public sealed class AuditScenarioTests
         if(provider=="codex")
         {
             var limits=new Dictionary<string,object?> { ["secondary_window"]=new { used_percent=used,limit_window_seconds=604800,reset_at=(reset??WeeklyReset).ToUnixTimeSeconds() } };
-            if(pair) limits["primary_window"]=new { used_percent=shortUsed,limit_window_seconds=18000,reset_at=shortReset?(long?)Now.AddHours(3).ToUnixTimeSeconds():null };
+            if(pair) limits["primary_window"]=new { used_percent=shortUsed,limit_window_seconds=18000,reset_at=shortReset?(long?)(shortEndOverride ?? Now.AddHours(3)).ToUnixTimeSeconds():null };
             return JsonSerializer.Serialize(new { rate_limit=limits,credits=new { has_credits=true,balance=500 } });
         }
         var buckets=new List<object> { new { bucketId="weekly",window="weekly",remainingFraction=used is null?null:1-used/100,resetTime=Stamp(reset??WeeklyReset) } };
@@ -170,6 +171,49 @@ public sealed class AuditScenarioTests
         foreach(var (provider,json) in new[] { ("claude","{\"seven_day\":null}"),("codex","{\"plan_type\":\"synthetic\"}"),
             ("copilot","{\"quota_snapshots\":{}}"),("antigravity","{\"groups\":[]}") })
             yield return new("E-"+provider,provider,json,null,CardState.NoDisplayedLimits,null,null,CardLayout.Note);
+        foreach (var provider in new[] { "claude", "codex", "antigravity" })
+        {
+            yield return new("PREC-01-" + provider, provider, Week(provider, 60, 100, true), 40, CardState.FiveHourFull, 60, 60, CardLayout.FiveHourAndPeriod);
+            foreach (var seconds in new[] { -1, 0, 1 })
+                yield return new("WRESET-01-" + provider + "-" + (seconds < 0 ? "before" : seconds == 0 ? "at" : "after"), provider,
+                    Week(provider, 45, 100, true), 40, seconds < 0 ? CardState.FiveHourFull : CardState.OnTrack,
+                    45, 60, seconds < 0 ? CardLayout.FiveHourAndPeriod : CardLayout.Period,
+                    Time: Now.AddHours(3).AddSeconds(seconds), Fetched: Now);
+            yield return new("WRESET-02-" + provider, provider, Week(provider, 45, 0, true, shortEndOverride: Now.AddHours(8)),
+                40, CardState.OnTrack, 45, 60, CardLayout.FiveHourAndPeriod, Time: Now.AddHours(3).AddSeconds(1));
+            foreach (var used in new[] { 69.9m, 70, 70.1m, 89.9m, 90, 90.1m })
+            {
+                yield return new("PREC-04-paired-" + provider + "-" + N(used), provider, Week(provider, 45, used, true),
+                    40, CardState.OnTrack, 45, 60, CardLayout.FiveHourAndPeriod);
+                var single = JsonSerializer.SerializeToNode(JsonSerializer.Deserialize<object>(Week(provider, 45, used, true)))!.AsObject();
+                if (provider == "claude") single.Remove("seven_day");
+                else if (provider == "codex") { single["rate_limit"]!.AsObject().Remove("secondary_window"); single.Remove("credits"); }
+                else single["groups"]![0]!["buckets"]!.AsArray().RemoveAt(0);
+                yield return new("PREC-04-single-" + provider + "-" + N(used), provider, single.ToJsonString(), null,
+                    CardState.OnTrack, used, null, CardLayout.UsedOnly);
+            }
+        }
+        yield return new("PREC-02", "claude", Money(180.01m), 120, CardState.OverCap, 180.01m, 123.75m,
+            CardLayout.Pool, 180, Now.AddDays(3));
+        foreach (var money in new[] { false, true })
+        foreach (var (used, state) in new[] { (money ? 66.99m : 66m, CardState.OnTrack), (67m, CardState.OnTrack),
+                     (money ? 67.01m : 68m, CardState.CapClose) })
+            yield return new("PREC-03-" + (money ? "money-" : "count-") + N(used), money ? "claude" : "copilot",
+                money ? Money(used) : Pool(used), 60, state, used, 70, CardLayout.Pool, 240);
+        foreach (var hours in new[] { 4, 6, 10 })
+        {
+            var friday = Now.AddDays(2);
+            yield return new("WRUSH-01-" + hours, "claude", Week("claude", 45, 35, true, friday.AddHours(hours),
+                    shortEndOverride: friday.AddHours(3)), 40, CardState.Rush, 45, 100, CardLayout.FiveHourAndPeriod,
+                Time: friday, Estimate: true, Fit: hours / 5);
+        }
+        foreach (var (id, time, end) in new[]
+        {
+            ("spring-before", new DateTimeOffset(2026, 3, 29, 0, 59, 59, TimeSpan.Zero), 100m),
+            ("spring-at", new DateTimeOffset(2026, 3, 29, 1, 0, 0, TimeSpan.Zero), 100m),
+            ("fall-before", new DateTimeOffset(2026, 10, 25, 0, 59, 59, TimeSpan.Zero), 50m),
+            ("fall-at", new DateTimeOffset(2026, 10, 25, 1, 0, 0, TimeSpan.Zero), 50m)
+        }) yield return new("CAL-03-" + id, "claude", Money(0), 0, CardState.DayOff, 0, end, CardLayout.Pool, Time: time, Zone: "Europe/Lisbon");
     }
 
     private static ProviderSessionState Parse(string provider, string json, DateTimeOffset fetched)
@@ -193,7 +237,7 @@ public sealed class AuditScenarioTests
     {
         var now = item.Time ?? Now;
         var id = new Guid(number,0,0,new byte[8]);
-        var fetched = item.Health is AccountHealth.SyncFailedStale or AccountHealth.SignInExpired ? now.AddHours(-1) : now;
+        var fetched = item.Fetched ?? (item.Health is AccountHealth.SyncFailedStale or AccountHealth.SignInExpired ? now.AddHours(-1) : now);
         var session = Parse(item.Provider,item.Json,fetched);
         session = item.Health switch
         {
@@ -212,7 +256,7 @@ public sealed class AuditScenarioTests
             var value = fact.Used;
             if (value is null || fact.Duration==TimeSpan.FromHours(5)) continue;
             var baseline = item.Baseline is { } start ? value is MoneyQuantity m ? (Quantity)new MoneyQuantity(checked((long)(start*(decimal)Math.Pow(10,m.Exponent!.Value))),m.Exponent,m.Currency) : new CountQuantity(start,fact.Unit) : null;
-            if (baseline is not null) observations.Add(new(series,baseline,new DateTimeOffset(now.Date,TimeSpan.Zero))
+            if (baseline is not null) observations.Add(new(series,baseline,WorkCalendar.Midnight(WorkCalendar.Date(now,TimeZoneInfo.FindSystemTimeZoneById(item.Zone)),TimeZoneInfo.FindSystemTimeZoneById(item.Zone)))
             { ResetAt=fact.Reset?.At,PeriodStartedAt=fact.PeriodStart<=now?fact.PeriodStart:null,PlanType=session.Quota.PlanType });
         }
         if(item.Estimate && facts.FirstOrDefault(f=>f.Duration==TimeSpan.FromHours(5)) is { } shortFact &&
@@ -227,7 +271,7 @@ public sealed class AuditScenarioTests
                 foreach(var (time,shortPercent,weekPercent) in new[] { (at,0m,10m+15*day),(at.AddHours(2),50m,15m+15*day) })
                 {
                     observations.Add(new(s,new CountQuantity(shortPercent,"percent"),time) { ResetAt=at.AddHours(5),PeriodStartedAt=at,PlanType=session.Quota.PlanType });
-                    if(day!=2 || time!=at) observations.Add(new(w,new CountQuantity(weekPercent,"percent"),time)
+                    if(time != new DateTimeOffset(now.Date,TimeSpan.Zero)) observations.Add(new(w,new CountQuantity(weekPercent,"percent"),time)
                         { ResetAt=weekly.Reset?.At,PeriodStartedAt=weekly.PeriodStart,PlanType=session.Quota.PlanType });
                 }
             }
@@ -235,7 +279,7 @@ public sealed class AuditScenarioTests
         var capFact = facts.FirstOrDefault(f=>f.Kind!=LimitKind.PercentWindow);
         var caps = item.Cap is { } cap && capFact is not null ? new[] { new StoredPersonalCap(new(id.ToString("N"),capFact.Key),
             new(capFact.Kind==LimitKind.MonetaryPool ? new MoneyQuantity((long)(cap*100),2,"USD") : new CountQuantity(cap,capFact.Unit),now)) } : [];
-        return new(now,"UTC",[account],new() { [id.ToString("N")]= "SYNTHETIC · " + item.Id },observations.ToArray(),BudgetConfiguration.Default with { Caps=caps });
+        return new(now,item.Zone,[account],new() { [id.ToString("N")]= "SYNTHETIC · " + item.Id },observations.ToArray(),BudgetConfiguration.Default with { Caps=caps });
     }
 
     [Theory]
@@ -245,6 +289,7 @@ public sealed class AuditScenarioTests
         var item=AllCases().Single(c=>c.Id==id);
         var number = AllCases().Select(c=>c.Id).ToList().IndexOf(item.Id)+1;
         var input = Input(item,number);
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(input.ZoneId);
         var root = Path.Combine(Path.GetTempPath(),"aiu-audit-corpus-"+Guid.NewGuid().ToString("N"));
         using var store = new LocalBudgetStore(root);
         try
@@ -259,13 +304,16 @@ public sealed class AuditScenarioTests
                 var series = new ReadingSeriesKey(account.AccountId.ToString("N"),fact.Key);
                 data.Add(new(fact,series,(await store.ReadAsync(series,CancellationToken.None)).Value));
             }
-            var model = LiveLedgerProjection.Account(account,input.Labels[account.AccountId.ToString("N")],data,input.Configuration,input.Now,TimeZoneInfo.Utc,null);
+            var model = LiveLedgerProjection.Account(account,input.Labels[account.AccountId.ToString("N")],data,input.Configuration,input.Now,zone,null);
             var card = Assert.Single(model.Cards);
             Assert.Equal(item.State,card.State);
             Assert.Equal(item.Used,card.Figures.Used);
             Assert.Equal(item.TodayEnd,card.Figures.TodayEnd);
             Assert.Equal(item.Layout,card.Layout);
             Assert.Equal(item.Health,model.Health);
+            if (item.Fit is { } fit) Assert.Equal(fit,card.FiveHour!.FitBeforeReset);
+            if (item.Id.StartsWith("WRESET-01-",StringComparison.Ordinal) && !item.Id.EndsWith("before",StringComparison.Ordinal))
+                Assert.Contains(card.Marks,m=>m.Kind==MarkKind.PastReset && m.ScopeLabel=="5h");
             if(item.Estimate && card.FiveHour is not null)
             {
                 Assert.Equal(10,card.FiveHour.WindowShare);
@@ -285,7 +333,7 @@ public sealed class AuditScenarioTests
                 replayData.Add(new(fact,series,(await replayStore.ReadAsync(series,CancellationToken.None)).Value));
             }
             var replayCard = Assert.Single(LiveLedgerProjection.Account(roundtrip.Accounts[0],input.Labels[account.AccountId.ToString("N")],replayData,
-                input.Configuration,input.Now,TimeZoneInfo.Utc,null).Cards);
+                input.Configuration,input.Now,zone,null).Cards);
             Assert.Equal(item.State,replayCard.State);
             Assert.Equal(item.Used,replayCard.Figures.Used);
             Assert.Equal(item.TodayEnd,replayCard.Figures.TodayEnd);
@@ -314,7 +362,7 @@ public sealed class AuditScenarioTests
         File.WriteAllText(Path.Combine(directory,item.Id+".json"),JsonSerializer.Serialize(input,AuditJson.Default.AuditInput));
         File.WriteAllText(Path.Combine(directory,item.Id+".provider.json"),item.Json);
         File.WriteAllText(Path.Combine(directory,item.Id+".expectation.json"),JsonSerializer.Serialize(new
-        { item.Id,item.Provider,input.Now,item.Baseline,State=item.State.ToString(),item.Used,item.TodayEnd,
+        { item.Id,item.Provider,input.Now,item.Zone,item.Baseline,State=item.State.ToString(),item.Used,item.TodayEnd,
             Layout=item.Layout.ToString(),item.Cap,Health=item.Health.ToString(),item.Estimate,
             Test="AuditScenarioTests.ParserRecorderBudgetAndProjectionMatchIndependentExpectations",Deterministic="PASS" }));
     }

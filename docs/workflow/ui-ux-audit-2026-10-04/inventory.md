@@ -1,6 +1,6 @@
 # Supported behavior inventory
 
-Audit base: `383644c`. Scope is the owner's ordinary Windows desktop use, exclusively synthetic data. This is an implementation inventory, not a new provider capability or a live-provider verification. [Coverage](coverage.csv) contains parser-tested numeric scenarios; [additional scenarios](additional-scenarios.csv) records transitions and combinations outside that corpus. [Controls](controls.csv) separates command tests from physical clicks. All native results currently remain BLOCKED by the locked desktop.
+Audit base: `383644c`. Scope is the owner's ordinary Windows desktop use, exclusively synthetic data. This is an implementation inventory, not a new provider capability or a live-provider verification. [Coverage](coverage.csv) contains 235 parser-tested scenarios; [additional scenarios](additional-scenarios.csv) records transitions and combinations. [Controls](controls.csv) separates command tests from physical clicks. The host remains locked; native execution uses an isolated, network-disabled Windows Sandbox. The baseline 170 scenarios passed native assertions; added scenarios and remaining controls are still in progress.
 
 ## Sources inspected
 

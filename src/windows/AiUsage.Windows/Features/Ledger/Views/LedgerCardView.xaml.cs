@@ -169,6 +169,7 @@ internal sealed partial class LedgerCardView : UserControl
     private Visibility TodayLabelVisibility(bool hasStrip, bool hasNote) => Show(hasStrip || hasNote);
     private Visibility FooterVisibility(CapEditorViewModel? editor) => Show(editor is null);
     private Visibility EditorVisibility(CapEditorViewModel? editor) => Show(editor is not null);
+    private KeyboardNavigationMode BarTabNavigation(bool editing) => editing ? KeyboardNavigationMode.Local : KeyboardNavigationMode.Once;
     private Visibility ShowNoteAction(bool hasAction, bool editing) => Show(hasAction && !editing);
     private Visibility ShowCompactOver(bool hasOver, bool compact) => Show(compact && hasOver);
     private Visibility ShowComfortableOver(bool hasOver, bool compact) => Show(!compact && hasOver);

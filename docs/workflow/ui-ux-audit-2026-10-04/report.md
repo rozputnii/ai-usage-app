@@ -5,7 +5,7 @@
 ## Deliverable records
 
 - [Supported behavior inventory](inventory.md): provider families, layouts, states, scales, precedence, invalid/unreachable combinations and source references.
-- [Coverage matrix](coverage.csv): 170 stable parser-to-recorder-to-budget-to-projection scenarios, independent expected values, controlled clocks and native verdicts.
+- [Coverage matrix](coverage.csv): 235 stable parser-to-recorder-to-budget-to-projection scenarios, independent expected values, controlled clocks and native verdicts.
 - [Additional scenario inventory](additional-scenarios.csv): 39 composite/transition/lifetime/history/recovery requirements, supporting tests and remaining exact replay gaps.
 - [Control inventory](controls.csv): 69 mouse-action/variant rows, 21 keyboard rows and three non-applicable visible-control requests. Used/Left physically verified; remaining controls pending.
 - [Gallery status](gallery.md) and [screenshot index](screenshot-index.csv): every corpus scenario mapped to a planned readable Used/Left page and exact synthetic card ID; captured rows remain separate from rendered inspection.
@@ -25,6 +25,9 @@
 | Cancel was disabled during a retried sign-in | Shared strip command remains available while the source controls attempt concurrency | LiveLedgerSourceTests.RetryKeepsTheSharedStripCancelCommandAvailableWhileLoginIsPending, red then green; native successful authentication rerun cancels twice and completes via synthetic manual code |
 | Workday button name remained stale after toggling | Notify the computed name binding when selection changes | LedgerInteractionTests.WorkDayNameNotifiesBindingsAndTheLastSelectionCannotBeRemoved, red then green |
 | Last selected workday silently rejected an enabled click | Disable that toggle until another workday is selected | Same regression independently checks command availability; actual native final rerun pending |
+| Expired paired 5h reading remained presented as the current full window | Retain longer-period budget; show a qualified 5h past-reset mark until fresh replacement | LiveLedgerProjectionTests short reset before/at/after regressions failed at/after reset before correction; 12 parser corpus reset/replacement cases PASS; added native rerun in progress |
+| Tab skipped Save in the inline cap editor | Use local Tab navigation inside bars while the cap editor is open | Actual preferences-check-3 native failure at Save focus; preferences-check-4/5 passed Save and reverse focus, then failed on a separate driver focus selector; corrected full rerun in progress |
+| Uncapped/nonbinding money and count tooltips claimed a personal cap cut today's share | Name the applied binding cap or period limit | TodayTooltipNamesTheBindingLimit: four product failures reproduced; six count/money variants and both modes now PASS. A capitalization-only test expectation error is retained separately |
 
 These are formatting/projection repairs within existing behavior. No provider endpoint, feature, dependency, credential lifecycle, product layout or installed application was changed. Trivial formatting needs no new logging; existing diagnostics remain in use.
 
@@ -104,3 +107,9 @@ Completion requires real native outcomes and inspected readable final captures f
 The baseline gallery uses app DLL SHA-256 `F932E68956CDD7223BC9D012D1E024F2A02E8FDC4FD2CF9F4FC26885FAAFCFDE`, built from `9e60f773` plus the recorded overage fix. Native captures and reports are in `.ai-usage-local/ui-audit/sandbox-probe/evidence/corpus-gallery`. Inspected overview and pages 001–012 and 018 are readable; remaining images are NOT_RUN for visual inspection. This is interim evidence: the complete gallery must be rerun after the final fixes. Auth retry validation subsequently used app hash `402C9F6D92C46708C64EB47E529DB83869B7C245B5D9AC893EE458765B7FFFEB`. The latest workday-fix app hash is `10D9C462ABB77A11566B27458817C2F212F20F4ADC1665059038AB1135FDD769`; remaining control tests are running against it.
 
 There are 952 passing deterministic product tests (783 Infrastructure + 169 Presentation), 211 more than the baseline. Unsigned package 2026.10.411.0 passed with the authentication/workday fixes, SHA-256 `4A2C1E6180E6DC84C112AFF30E0629AAF89FAD7DF47EBC18A75AC51EA3BA0EF6`; external symbol tooling warning only. Earlier product and harness failure evidence is retained under `sandbox-probe/evidence/failures` and the separate red-test XML files. Settings scrolling and physical text-entry timing exposed driver issues; corrected implementations were actually rerun successfully. A reusable Sandbox runner is implemented but its end-to-end reproduction check is still NOT_RUN.
+
+## Expanded deterministic checkpoint
+
+Current product suites PASS 1026/1026 (Infrastructure 848, Presentation 178), zero skipped or not run. Exact XML: `.ai-usage-local/ui-audit/infrastructure-checkpoint-2.xml` and `presentation-tooltips-green-2.xml`. The 235-case corpus adds 65 cases beyond the native baseline. The new 5h reset, cap Tab navigation and binding-tooltip corrections bring reproduced product defects to twelve. The complete native/gallery verdict remains in progress.
+
+The reusable Sandbox runner's overview reproduction passed at `runner-check-2`; Used overview visually inspected. Each run records source/dirty status and application/driver hashes. Failed evidence-storage cleanup regression passed in the guest after failing before correction. New preference runs preserved empty-input, bootstrap and UIA-focus harness failures in separate directories; no failed run was promoted to PASS. `expanded-native-1` is executing added scenarios and control regressions against the latest compiled application. No host unlock, installed application change or live provider request occurred.

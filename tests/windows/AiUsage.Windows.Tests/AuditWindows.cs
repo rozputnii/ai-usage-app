@@ -286,22 +286,25 @@ public sealed partial class AuditWindows
         return result;
     }
 
-    private sealed class Session : IDisposable
+    private sealed partial class Session : IDisposable
     {
         private readonly Application app;
         private readonly Process process;
         private readonly IntPtr windowHandle;
         private readonly UIA3Automation automation = new();
         public string Input { get; }
-        public string Root { get; } = Path.Combine(Path.GetTempPath(), "aiu-ui-audit-" + Guid.NewGuid().ToString("N"));
-        public string Evidence { get; } = Required("AIU_SMOKE_EVIDENCE_DIRECTORY");
+        public string Root { get; }
+        public string Evidence { get; }
         public Window Window { get; private set; }
         public string Receipts => File.Exists(Path.Combine(Root, "requests.txt")) ? File.ReadAllText(Path.Combine(Root, "requests.txt")) : string.Empty;
 
-        public Session(string input)
+        public int ProcessId => process.Id;
+        public Session(string input, string? evidenceDirectory = null, string? stateDirectory = null)
         {
             DesktopTestEnvironment.RequireUnlockedDesktop();
             Input = input;
+            Evidence = evidenceDirectory ?? Required("AIU_SMOKE_EVIDENCE_DIRECTORY");
+            Root = stateDirectory ?? Path.Combine(Path.GetTempPath(), "aiu-ui-audit-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(Evidence);
             var start = new ProcessStartInfo(Required("AIU_SMOKE_EXE")) { UseShellExecute = false };
             start.ArgumentList.Add("--demo"); start.ArgumentList.Add("--audit-input=" + input);
@@ -398,6 +401,7 @@ public sealed partial class AuditWindows
         }
         public AutomationElement ById(string id) => Find(e => e.Properties.AutomationId.ValueOrDefault == id);
         public void Click(string name) => Click(Find(e => e.Properties.Name.ValueOrDefault == name &&
+            !e.Properties.IsOffscreen.ValueOrDefault &&
             e.Properties.ControlType.ValueOrDefault is ControlType.Button or ControlType.CheckBox));
         public void Click(AutomationElement element)
         {
@@ -419,17 +423,28 @@ public sealed partial class AuditWindows
             element.Patterns.ScrollItem.PatternOrDefault?.ScrollIntoView();
             FlaUI.Core.Input.Wait.UntilInputIsProcessed();
             if (element.IsOffscreen) element.Focus();
+            var viewport = Window.BoundingRectangle;
+            for (AutomationElement? parent = element; parent is not null; parent = parent.Parent)
+            {
+                var handle = parent.Properties.NativeWindowHandle.ValueOrDefault;
+                if (handle == IntPtr.Zero) continue;
+                Assert.True(GetWindowThreadProcessId(handle, out var owner) != 0 && owner == app.ProcessId);
+                viewport = parent.BoundingRectangle;
+                break;
+            }
+            for (var parent = element.Parent; parent is not null; parent = parent.Parent)
+                if (parent.Patterns.Scroll.PatternOrDefault?.VerticallyScrollable.ValueOrDefault == true)
+                { viewport = System.Drawing.Rectangle.Intersect(viewport, parent.BoundingRectangle); break; }
             for (var attempt = 0; attempt < 15; attempt++)
             {
                 var target = element.BoundingRectangle;
-                var viewport = Window.BoundingRectangle;
-                if (target.Top >= viewport.Top + 50 && target.Bottom <= viewport.Bottom - 12 && !element.IsOffscreen) break;
+                if (target.Top >= viewport.Top + 2 && target.Bottom <= viewport.Bottom - 2 && !element.IsOffscreen) break;
                 // Some WinUI buttons expose neither ScrollItem nor a reliable IsOffscreen value.
                 // Wheel inside their own column, never at an off-window target point.
                 var wheelPoint = new System.Drawing.Point(Math.Clamp(target.Left + target.Width / 2, viewport.Left + 20, viewport.Right - 20),
                     viewport.Top + viewport.Height / 2);
                 RequireMouseTarget(wheelPoint); Mouse.MoveTo(wheelPoint); RequireMouseTarget(wheelPoint);
-                Mouse.Scroll(target.Top < viewport.Top + 50 ? 2 : -2);
+                Mouse.Scroll(target.Top < viewport.Top + 2 ? 2 : -2);
                 FlaUI.Core.Input.Wait.UntilInputIsProcessed();
                 Thread.Sleep(100);
             }
@@ -452,6 +467,18 @@ public sealed partial class AuditWindows
         {
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             Keyboard.Type(key);
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+        }
+        public void Chord(params VirtualKeyShort[] keys)
+        {
+            DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
+            Keyboard.TypeSimultaneously(keys);
+            FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+        }
+        public void Focus(AutomationElement element)
+        {
+            Show(element); element.Focus();
+            Assert.True(Wait(() => element.Properties.HasKeyboardFocus.ValueOrDefault));
         }
         public void Type(AutomationElement element, string value)
         {
@@ -461,6 +488,7 @@ public sealed partial class AuditWindows
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
             FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+            if (value.Length == 0) Key(VirtualKeyShort.BACK);
             foreach (var character in value)
             {
                 DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);
@@ -495,7 +523,9 @@ public sealed partial class AuditWindows
             {
                 Name = e.Properties.Name.ValueOrDefault, Type = e.Properties.ControlType.ValueOrDefault.ToString(),
                 Id = e.Properties.AutomationId.ValueOrDefault, Visible = !e.Properties.IsOffscreen.ValueOrDefault,
-                Enabled = e.Properties.IsEnabled.ValueOrDefault
+                Enabled = e.Properties.IsEnabled.ValueOrDefault,
+                Focused = e.Properties.HasKeyboardFocus.ValueOrDefault,
+                Focusable = e.Properties.IsKeyboardFocusable.ValueOrDefault
             }).ToArray()));
         public void Exit()
         {
@@ -510,21 +540,29 @@ public sealed partial class AuditWindows
         }
         public void Dispose()
         {
-            if (!process.HasExited)
+            try
             {
-                try
+                if (!process.HasExited)
                 {
-                    Capture("failure-" + Path.GetFileNameWithoutExtension(Input));
-                    RecordTree("failure-" + Path.GetFileNameWithoutExtension(Input));
-                    File.WriteAllText(Path.Combine(Evidence, "failure-" + Path.GetFileNameWithoutExtension(Input) + ".requests.txt"), Receipts);
+                    try
+                    {
+                        Capture("failure-" + Path.GetFileNameWithoutExtension(Input));
+                        RecordTree("failure-" + Path.GetFileNameWithoutExtension(Input));
+                        File.WriteAllText(Path.Combine(Evidence, "failure-" + Path.GetFileNameWithoutExtension(Input) + ".requests.txt"), Receipts);
+                    }
+                    catch (Exception failure)
+                    {
+                        try { File.WriteAllText(Path.Combine(Evidence, "failure-capture.json"), JsonSerializer.Serialize(new { Type = failure.GetType().Name })); }
+                        catch (IOException) { }
+                        catch (UnauthorizedAccessException) { }
+                    }
                 }
-                catch (Exception failure)
-                {
-                    File.WriteAllText(Path.Combine(Evidence, "failure-capture.json"), JsonSerializer.Serialize(new { Type = failure.GetType().Name }));
-                }
-                process.Kill(); process.WaitForExit(5000);
             }
-            process.Dispose(); app.Dispose(); automation.Dispose();
+            finally
+            {
+                try { if (!process.HasExited) { process.Kill(); process.WaitForExit(5000); } }
+                finally { process.Dispose(); app.Dispose(); automation.Dispose(); }
+            }
         }
         private void RequireMouseTarget(System.Drawing.Point point)
         {

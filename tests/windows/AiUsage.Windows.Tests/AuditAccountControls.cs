@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using System.Diagnostics;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.WindowsAPI;
 using Xunit;
@@ -7,6 +8,27 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class AuditWindows
 {
+    [Fact]
+    public void FailedEvidenceStorageStillTerminatesOnlyTheOwnedAuditProcess()
+    {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
+        var evidence = Path.Combine(Required("AIU_SMOKE_EVIDENCE_DIRECTORY"), "unavailable-" + Guid.NewGuid().ToString("N"));
+        var session = new Session(Path.Combine(Required("AIU_AUDIT_PAGE_DIRECTORY"), "overview.json"), evidence);
+        using var owned = Process.GetProcessById(session.ProcessId);
+        try
+        {
+            Directory.Delete(evidence);
+            File.WriteAllText(evidence, "Synthetic unavailable evidence destination");
+            session.Dispose();
+            Assert.True(owned.WaitForExit(5000));
+        }
+        finally
+        {
+            if (!owned.HasExited) { owned.Kill(); owned.WaitForExit(5000); }
+            if (File.Exists(evidence)) File.Delete(evidence);
+        }
+    }
+
     private static readonly (string Provider, string Name)[] Providers =
         [("claude", "Claude"), ("codex", "Codex"), ("copilot", "GitHub Copilot"), ("antigravity", "Antigravity")];
 

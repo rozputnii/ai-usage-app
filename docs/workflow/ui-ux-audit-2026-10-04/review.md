@@ -18,3 +18,15 @@ The reviewer found no material regression in the five inspected product fixes. T
 The comprehensive task remains incomplete: native interaction, visual inspection, gallery, composite transitions and remaining controls cannot be marked PASS. The reviewer inspected the submitted test/build evidence without independently rerunning it. Live-provider/authentication behavior, credentials, installed-app operations, host trust/settings and excluded accessibility/display matrices were set aside because the current request prohibits them.
 
 No automatic full-review loop was run. Targeted compilation and a real blocked native rerun followed the corrections. Unlocked runtime verification of those corrections remains explicit, alongside the other gaps in report.md and the inventories.
+
+## Native checkpoint review
+
+Fresh read-only reviewer: GPT-6 Astra, low reasoning, frozen `9e60f773..ed092f0db4c96d3c70112ccb8eb1913ef0a086f6`, without implementation conversation. The reviewer inspected stored XML but executed no tests, desktop input, Sandbox actions or provider access. No material finding in the overage, retry/cancel, workday or synthetic authentication changes.
+
+| ID | Severity | Finding | Disposition and actual targeted evidence |
+| --- | --- | --- | --- |
+| REV-03 | P2 | Single quotes around the powershell.exe -File FirstPage argument are literal and break the filter | Corrected: omit empty argument, pass validated nonempty value without quotes; actual runner-check-2 overview Used/Left native test PASS 1/1, 29.219 seconds. Earlier login bootstrap failure preserved separately |
+| REV-04 | P2 | CTL-05 Escape/no-change and CTL-26 settings Left claims exceeded actions in the cited native test | Corrected both to NOT_RUN; exact physical actions still pending |
+| REV-05 | P2 | Failed capture followed by failed diagnostic write skipped owned-process cleanup | Corrected with best-effort evidence and cleanup/disposal in finally; new actual guest regression failed before the fix (cleanup-red.xml) and passed after it (cleanup-green.xml, 1/1) |
+
+The final independent verdict was FAIL for these three findings; dispositions above record subsequent primary corrections, not a rewritten reviewer verdict. Only targeted reruns follow the corrections. The comprehensive audit remains incomplete.

@@ -62,7 +62,8 @@ internal static class LiveLedgerProjection
             var card = Card(data, cap, now, zone, configuration.WorkDays.ToHashSet(), workToday, stale) with
             { Freshness = new(stale, Local(readingAt, zone)), ScopeLabel = Label(facts, session.Quota) };
             var shortData = normalized.FirstOrDefault(s => IsPair(s.Facts, facts, session.Quota));
-            if (shortData is not null && shortData.Facts.UsedPercent is { } shortUsed)
+            var shortExpired = shortData?.Facts.Reset?.At is { } shortEnd && shortEnd <= now;
+            if (!shortExpired && shortData is not null && shortData.Facts.UsedPercent is { } shortUsed)
             {
                 var estimate = SessionEstimator.Estimate(data.Runs.Concat(shortData.Runs),
                     new(shortData.Series, data.Series, "shared", "shared", TimeSpan.FromHours(5), TimeSpan.FromDays(7)), now);
@@ -79,6 +80,7 @@ internal static class LiveLedgerProjection
                 };
             }
             var marks = card.Marks.ToList();
+            if (shortExpired) marks.Add(new(MarkKind.PastReset, Local(shortData!.Facts.Reset!.At, zone), ScopeLabel: "5h"));
             if (health is AccountHealth.SyncFailedFresh or AccountHealth.SyncFailedStale) marks.Add(new(MarkKind.SyncFailed, Local(account.LastFailureAt, zone)));
             if (health == AccountHealth.SignInExpired) marks.Add(new(MarkKind.SignInExpired));
             var spend = normalized.FirstOrDefault(l => l.Facts.Key.Family == "CL-X");

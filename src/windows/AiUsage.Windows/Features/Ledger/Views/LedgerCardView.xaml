@@ -82,7 +82,7 @@
 
       <!-- Bars: today row, period row, footer or cap editor. -->
       <Grid x:Name="Bars" ColumnSpacing="10" Visibility="{x:Bind BarsVisibility(ViewModel.Visual.NoteLines.Count), Mode=OneWay}"
-            XYFocusKeyboardNavigation="Enabled" TabFocusNavigation="Once">
+            XYFocusKeyboardNavigation="Enabled" TabFocusNavigation="{x:Bind BarTabNavigation(ViewModel.IsEditingCap), Mode=OneWay}">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="40" />
           <ColumnDefinition Width="*" />
