@@ -60,6 +60,29 @@ public sealed class MonetaryUsageTests
     }
 
     [Fact]
+    public void WorkBudgetStartsANewCalendarPeriodWithoutCarryingPreviousMonthSpending()
+    {
+        var now = new DateTimeOffset(2026, 11, 1, 0, 5, 0, TimeSpan.Zero);
+        var facts = Facts with { Used = new MoneyQuantity(1000, 2, "USD"), Limit = FactLimit.Finite(new MoneyQuantity(200000, 2, "USD")),
+            Reset = null, PeriodStart = null, IsMonthly = false, AllowsCalendarFallback = true };
+        var key = new ReadingSeriesKey(Id.ToString("N"), facts.Key);
+        ReadingRun[] runs = [new(key, new MoneyQuantity(190000, 2, "USD"), now.AddMinutes(-10), now.AddMinutes(-10), "raw-unbounded", null, SnapshotSource.ProviderApi),
+            new(key, new MoneyQuantity(1000, 2, "USD"), now, now, "raw-unbounded", null, SnapshotSource.ProviderApi)];
+        var data = new LedgerLimit(facts, key, runs);
+        var quota = new QuotaSnapshot(now, null, [], null, null, null, null);
+        var model = LiveLedgerProjection.Account(new(Id, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null),
+            "Work", [data], BudgetConfiguration.Default, now, TimeZoneInfo.Utc, null);
+        var card = Assert.Single(model.Cards);
+        Assert.Equal(0m, card.Figures.DayStart);
+        Assert.Equal(10m, card.Figures.Used);
+        Assert.True(card.Figures.TodayEnd > 80m);
+        var history = LiveLedgerProjection.History(LiveLedgerProjection.AccountLimits([data])[0], now, TimeZoneInfo.Utc);
+        Assert.Equal(10m, history.Days[^1].Used);
+        Assert.All(runs, r => Assert.Equal("raw-unbounded", r.PeriodInstance));
+        Assert.Equal(new MoneyQuantity(190000, 2, "USD"), runs[0].Value);
+    }
+
+    [Fact]
     public void CompatibleMonthlyMoneyRetainsBudgetHistoryAndCapWithoutCommercialLabel()
     {
         var data = Data();

@@ -111,9 +111,9 @@ internal static class LiveLedgerProjection
         IReadOnlySet<DayOfWeek> workDays, DateOnly? workToday, bool stale)
     {
         var facts = data.Facts;
-        var period = PeriodResolver.Resolve(data.UsesWorkBudget ? facts with { IsMonthly = true, AllowsCalendarFallback = true } : facts, now, zone);
+        var period = ResolvePeriod(data, now, zone);
         var used = facts.Kind == LimitKind.PercentWindow ? facts.UsedPercent is { } p ? new CountQuantity(p, "percent") : null : facts.Used;
-        var runs = data.Runs;
+        var runs = BudgetRuns(data, period);
         TrackingModel? tracking = null;
         // A balance or cumulative spend without a provider period needs locally tracked consumption.
         if (period is not null && (facts.Used is null && facts.Remaining is not null || !data.UsesWorkBudget && facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
@@ -259,8 +259,9 @@ internal static class LiveLedgerProjection
             var start = WorkCalendar.Midnight(date, zone);
             var end = WorkCalendar.Midnight(date.AddDays(1), zone);
             var at = end > now ? now : end.AddTicks(-1);
-            var allRuns = data.Runs;
-            if (PeriodResolver.Resolve(data.Facts, at, zone) is { } period &&
+            var period = ResolvePeriod(data, at, zone);
+            var allRuns = BudgetRuns(data, period);
+            if (period is not null &&
                 (data.Facts.Used is null && data.Facts.Remaining is not null || !data.UsesWorkBudget && data.Facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
                 allRuns = ReadingCalculations.Track(allRuns, data.Series, period, at, data.Facts.Used is null, 1).Runs;
             var runs = allRuns.Where(r => r.FirstSeen <= at && r.LastConfirmed >= start).ToArray();
@@ -275,7 +276,23 @@ internal static class LiveLedgerProjection
             }
             days.Add(new(date, total));
         }
-        return new(CardId(data.Series), Period(data.Facts, PeriodResolver.Resolve(data.Facts, now, zone)), days, null, resets.Order().ToArray(), today);
+        return new(CardId(data.Series), Period(data.Facts, ResolvePeriod(data, now, zone)), days, null, resets.Order().ToArray(), today);
+    }
+
+    private static PeriodBounds? ResolvePeriod(LedgerLimit data, DateTimeOffset at, TimeZoneInfo zone) =>
+        PeriodResolver.Resolve(data.UsesWorkBudget ? data.Facts with { IsMonthly = true, AllowsCalendarFallback = true } : data.Facts, at, zone);
+
+    private static IReadOnlyList<ReadingRun> BudgetRuns(LedgerLimit data, PeriodBounds? period)
+    {
+        if (!data.UsesWorkBudget || period?.EndOrigin != ValueOrigin.Assumed || data.Facts.Used is null) return data.Runs;
+        // Apply the display policy only to derived readings; provider history stays unchanged.
+        var instance = "work-month:" + period.Start.UtcTicks.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return data.Runs.Where(r => r.FirstSeen < period.End && r.LastConfirmed >= period.Start).Select(r => r with
+        {
+            FirstSeen = r.FirstSeen < period.Start ? period.Start : r.FirstSeen,
+            LastConfirmed = r.LastConfirmed > period.End ? period.End : r.LastConfirmed,
+            PeriodInstance = instance, PeriodStartedAt = period.Start, RestartAfter = null
+        }).ToArray();
     }
 }
 
