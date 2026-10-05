@@ -33,4 +33,4 @@ Do not rerun the full audit or expand the harness automatically. On resumption, 
 
 ## Exact next action after resumption
 
-The read-only diagnosis of AUD-01 and AUD-02 is complete; see the [analysis record](analysis-2026-10-05.md). Next, the owner records decisions AIU045-D1..D9 from its section 7. D1 option (c) has been in effect since 2026-10-05: `AIU_PREVIEW_ENABLED=false`, so a push to main no longer publishes a Preview. Then one primary session starts T-01 (CI and publication safety). Do not start T-02..T-04 before the decisions are recorded, do not launch another broad matrix, and do not resume the comprehensive audit.
+The read-only diagnosis of AUD-01 and AUD-02 is complete, and the owner accepted decisions AIU045-D1..D9 on 2026-10-06; see the [analysis record](analysis-2026-10-05.md), sections 7 and 11. D1 option (c) has been in effect since 2026-10-05: `AIU_PREVIEW_ENABLED=false`, so a push to main no longer publishes a Preview. Next, one primary session starts T-01 (CI and publication safety) and moves T-01..T-04 into `tasks.md`. Run T-02..T-04 in order after T-01, do not launch another broad matrix, and do not resume the comprehensive audit.

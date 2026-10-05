@@ -477,6 +477,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - specification: docs/specs/AIU-045-ui-audit-follow-up/spec.md
 - evidence: docs/specs/AIU-045-ui-audit-follow-up/verification.md
 - registration-note: On 2026-10-04 the owner stopped the long-running audit and requested preservation of all findings and a follow-up task for fixes and discussion in later sessions. This registers that task; it does not resume implementation or the comprehensive audit.
+- decision-note: On 2026-10-06 the owner accepted decisions AIU045-D1..D9 in docs/specs/AIU-045-ui-audit-follow-up/analysis-2026-10-05.md (section 7). Preview publication is off (`AIU_PREVIEW_ENABLED=false`). The next bounded batch is T-01 from that record; the comprehensive audit stays paused.
 
 ## Deferred clarifications, not forgotten
 
