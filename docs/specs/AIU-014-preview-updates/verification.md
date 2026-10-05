@@ -103,3 +103,13 @@ folder. No personal state was mapped. Evidence is kept locally and ignored:
 - Each main push publishes one Preview, including documentation-only pushes.
 - Certificate expiry and rotation (2028-09-22), official signing, Stable and public
   distribution remain deferred.
+
+## App Installer package-open failure (2026-10-04)
+
+The owner's App Installer error is preserved in the [bug report](bug-2026-10-04-installer-connection-aborted.md).
+The dialog showed `0x80072EFE` while opening the versioned `2026.10.404.0` MSIX.
+The attached manifest matched the live feed; direct WinHTTP retrieval of the current
+package succeeded and matched its published SHA-256. A disposable Sandbox registered
+the feed, while its App Installer GUI path was not available for testing. These checks
+did not reproduce the reported failure or establish its root cause. No installer fix
+is verified by this investigation.
