@@ -2,6 +2,8 @@
 
 Owner pause: 2026-10-04. **The audit is not complete.** This task preserves work for discussion and fixes in later sessions. No new product fix or audit run is authorized by this handoff itself.
 
+**Health analysis, 2026-10-05:** the [analysis record](analysis-2026-10-05.md) holds the observed AUD-01 root cause, the ANL findings register, the owner decisions AIU045-D1..D9 and the proposed tasks T-01..T-04. It supersedes the read-only diagnosis step below; the exact next action is in its section 11. The AUD-01..AUD-10 rows below remain the preserved handoff state at the pause.
+
 ## Saved code and execution boundary
 
 - Original audit base: `383644c`; latest preceding committed checkpoint: `f4891b912b32609da5f1c212a5f2d43834e2cc30` on main.
@@ -74,4 +76,4 @@ Read the evidence first. The latest failing scenario was invoked with:
 
 Choose a **new** output directory for any future rerun; existing evidence must not be overwritten. The runner rebuilds the application and driver, records source/dirty state and hashes, then operates only inside its network-disabled guest. It requires already exported synthetic pages. Do not run this command while the task remains paused.
 
-The exact next action is discussion and read-only diagnosis of AUD-01/AUD-02, not another comprehensive test run.
+The read-only diagnosis of AUD-01/AUD-02 was completed on 2026-10-05 on the host with synthetic input; see the [analysis record](analysis-2026-10-05.md), section 3. The exact next action is its section 11, not another comprehensive test run.

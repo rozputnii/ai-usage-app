@@ -13,7 +13,7 @@ The owner stopped the comprehensive audit because it was taking too long. Preser
 
 ## Intended result
 
-Review the [findings and handoff](verification.md), agree on a small next batch, and fix demonstrated defects within existing product behavior. The first unresolved issue is repeatable startup termination of the latest synthetic audit build, before a window appears. Its root cause is unknown; ordinary product startup has not been checked against that working snapshot.
+Review the [findings and handoff](verification.md), agree on a small next batch, and fix demonstrated defects within existing product behavior. The first issue was repeatable startup termination of the latest synthetic audit build, before a window appears. Its root cause was observed on 2026-10-05 and is recorded in the [analysis record](analysis-2026-10-05.md); it is not yet fixed. Ordinary `--demo` startup of HEAD was unaffected, while Release, packaged and live startup remain NOT_RUN.
 
 The earlier [audit report](../../workflow/ui-ux-audit-2026-10-04/report.md), [coverage matrix](../../workflow/ui-ux-audit-2026-10-04/coverage.csv), [additional scenarios](../../workflow/ui-ux-audit-2026-10-04/additional-scenarios.csv), [controls](../../workflow/ui-ux-audit-2026-10-04/controls.csv), [gallery index](../../workflow/ui-ux-audit-2026-10-04/screenshot-index.csv) and [independent reviews](../../workflow/ui-ux-audit-2026-10-04/review.md) remain the detailed evidence. They are incomplete audit records, not a final acceptance claim.
 
@@ -33,4 +33,4 @@ Do not rerun the full audit or expand the harness automatically. On resumption, 
 
 ## Exact next action after resumption
 
-Read AUD-01 and AUD-02 in verification.md and compare the last passing maintenance/layout application with the scope-annotation working snapshot. First obtain the exception or failure boundary for the two preserved startup failures; do not launch another broad matrix. Agree on the next bounded batch before continuing the original comprehensive audit.
+The read-only diagnosis of AUD-01 and AUD-02 is complete; see the [analysis record](analysis-2026-10-05.md). Next, the owner records decisions AIU045-D1..D9 from its section 7. D1 option (c) has been in effect since 2026-10-05: `AIU_PREVIEW_ENABLED=false`, so a push to main no longer publishes a Preview. Then one primary session starts T-01 (CI and publication safety). Do not start T-02..T-04 before the decisions are recorded, do not launch another broad matrix, and do not resume the comprehensive audit.
