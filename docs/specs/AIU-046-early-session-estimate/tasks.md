@@ -61,10 +61,10 @@ schema_version: 1
 ---
 
 ### T-01 - Core interval estimator
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: [AC-02, AC-03, AC-04, AC-05]
-- evidence: not-run
+- evidence: commit ed89d1b; SessionEstimateTests 11/11, Infrastructure suite 882/882, Presentation suite 189/189; measure-backend sessions/four-pairs median 75.95 ms (19.0 ms per pair); independent task review approved
 
 **Files:**
 - Modify: `src/windows/AiUsage.Core/Budget/SessionEstimator.cs` (replace `SessionSample`, `SessionEstimate`, `Estimate`, `Figures`; keep `Percent`, `Cover`, `LastPlanChange`, `SessionPair`, `SessionFigures`)
@@ -176,7 +176,7 @@ schema_version: 1
   pair, stop and report to the owner before optimizing.
 
 ### T-02 - Contract and projection mapping
-- status: pending
+- status: in-progress
 - depends_on: [T-01]
 - acceptance: [AC-06]
 - evidence: not-run
@@ -327,12 +327,11 @@ schema_version: 1
 - Branch `users/5-hour-limits-display-1e0e91` in worktree
   `.claude/worktrees/5-hour-limits-display-1e0e91`, based on `main` at `ff1d788`.
   Docs commits `e76caf0` and `6c105d3` are local only, not merged or pushed.
-- Done: spec, design, D-188, backlog and G-003 registration. No product code has
-  changed yet.
-- Local state: `tools/AiUsage.ProjectValidation` is restored. Restore the test
-  projects before the first `--no-restore` run.
+- Done: spec, design, D-188, backlog and G-003 registration. T-01 done in `ed89d1b`
+  (independent review approved; Minor findings deferred to the whole-branch review).
+- Local state: the test projects and `tools/AiUsage.ProviderConsole` are restored.
 - The design's figures come from a throwaway simulation that is not in the repo.
   T-01's tests re-establish them.
-- Exact next action: start T-01, Step 1. Dispatch one implementer subagent with the
-  T-01 block, Global Constraints, Review Focus, spec.md and design.md, then a fresh
-  reviewer before T-02.
+- Exact next action: T-02, Step 1. Dispatch one implementer subagent with the T-02
+  block, Global Constraints, Review Focus, spec.md and design.md, then a fresh
+  reviewer before T-03.
