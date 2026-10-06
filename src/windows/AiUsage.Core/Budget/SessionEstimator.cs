@@ -115,7 +115,7 @@ public static class SessionEstimator
         var allowance = new double[part.Length];
         for (int j = 0; j < part.Length; j++)
             allowance[j] = j > 0 && part[j].W > part[j - 1].W && !double.IsPositiveInfinity(high)
-                ? Math.Min(1, high * (part[j].S - part[j - 1].S + 1) / 100) : 1;
+                ? Math.Clamp(high * (part[j].S - part[j - 1].S + 1) / 100, 0, 1) : 1;
         double low = 0, upper = double.PositiveInfinity;
         for (int i = 0; i < part.Length; i++)
         for (int k = i + 1; k < part.Length; k++)
