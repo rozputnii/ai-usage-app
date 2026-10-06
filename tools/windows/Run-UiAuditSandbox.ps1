@@ -110,7 +110,10 @@ try {
     Start-Process -FilePath (Get-Command wsb.exe).Source -ArgumentList 'connect','--id',$sandbox.Id -WindowStyle Hidden
     $ready = $false
     for ($probe = 0; $probe -lt 30; $probe++) {
+        # Windows PowerShell 5.1 turns redirected native stderr into a terminating error under Stop.
+        $ErrorActionPreference = 'Continue'
         $probeOutput = & wsb exec --id $sandbox.Id --command 'whoami.exe' --run-as ExistingLogin --raw 2>&1
+        $ErrorActionPreference = 'Stop'
         if (!$LASTEXITCODE) { $ready = $true; break }
         $probeOutput | Out-File -LiteralPath (Join-Path $evidencePath 'desktop-ready.log') -Append
         Start-Sleep -Seconds 1
