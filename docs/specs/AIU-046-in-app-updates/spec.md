@@ -1,10 +1,10 @@
 ---
 id: AIU-046
 type: feature
-status: approved
+status: implementing
 goal: G-004
 scope_version: 1
-approval_basis: Owner design conversation on 2026-10-06 selected approach A (Windows App Installer APIs called from the app), three update modes with Always as default, and automatic restart only while the window is hidden. The owner approved each design section and approved this written specification on 2026-10-06. Planning amendment 2026-10-06, presented in the owner's plan review - the exact install option name, the first automatic check at 60 seconds, the 30-second drain limit and the AIU-043 projection exception in Boundaries.
+approval_basis: Owner design conversation on 2026-10-06 selected approach A (Windows App Installer APIs called from the app), three update modes with Always as default, and automatic restart only while the window is hidden. The owner approved each design section and approved this written specification on 2026-10-06. Planning amendment 2026-10-06, presented in the owner's plan review - the exact install option name, the first automatic check at 60 seconds, the 30-second drain limit and the AIU-043 projection exception in Boundaries. Review amendment 2026-10-06 (independent review findings I-1..I-3, awaiting owner confirmation) - install failure suspends automatic installs, provider commands pause during the drain, and install-failure records are coalesced.
 ---
 
 # In-app updates
@@ -65,7 +65,11 @@ The manual **Check for updates** command works in every mode.
 - Check failure: status "Check failed · will retry" (manual check shows the HRESULT);
   the next scheduled check retries.
 - Install failure: the process stays alive, restart registration is removed, refresh
-  resumes, and the status offers **Retry**.
+  resumes, and the status offers **Retry**. Automatic installs stop for that process, so a
+  failing update is not retried every 5 minutes. An install call that returns without
+  Windows closing the app is handled the same way and shows the "didn't apply" status.
+- While an install drains, refresh, per-account refresh, sign-in and sign-out start no
+  new provider work; an in-progress sign-in counts as provider work to wait for.
 - Loop guard: if the app starts with `--updated-from` equal to its own version, the
   update did not apply. Automatic install is suspended for that process; the status says
   "Automatic update didn't apply · install manually"; the manual button still works.
@@ -86,7 +90,8 @@ so the available-version text does not name one.
 
 Through the AIU-043 pipeline at the Windows boundary: `UpdateCheckFailed` (HRESULT only,
 repeated failures coalesced with a count and reset after success), `UpdateInstallStarted`
-(automatic or manual, current version), `UpdateInstallFailed` (HRESULT) and
+(automatic or manual, current version), `UpdateInstallFailed` (HRESULT, coalesced the
+same way with a count) and
 `UpdateApplied` (from and to version, on launch). Routine up-to-date results and timer
 ticks are not logged. No feed bodies, exception text or user paths.
 

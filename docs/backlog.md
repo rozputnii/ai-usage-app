@@ -482,13 +482,14 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-046 - In-app update check, install and restart
 - goal: G-004
-- status: selected
+- status: review
 - depends_on: [AIU-014]
 - trigger: owner-selection
 - outcome: The app checks its Preview feed itself, installs a found version with one button, and in automatic mode installs and relaunches while the window is hidden. Windows App Installer's own feed checks stay unchanged. The title-bar Settings button shows a gear.
 - acceptance: AC-01 through AC-08 in the specification cover the persisted Off/OnLaunch/Always mode, check timing, hidden-window automatic install, failure recovery and loop guard, unpackaged status, installed relaunch, the gear glyph and bounded logging.
 - specification: docs/specs/AIU-046-in-app-updates/spec.md
-- registration-note: Owner requested this on 2026-10-06 after Preview 2026.10.604.0 staged but failed to register (`0x80073D02`) because the tray app was running. The design was approved in conversation; the written specification awaits owner review before planning.
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
+- registration-note: Owner requested this on 2026-10-06 after Preview 2026.10.604.0 staged but failed to register (`0x80073D02`) because the tray app was running. The owner approved the design, written spec and plan the same day. Implemented and verified in Sandbox on 2026-10-06. Awaiting owner review and integration; the owner live update check is NOT_RUN.
 
 ## Deferred clarifications, not forgotten
 

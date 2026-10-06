@@ -69,10 +69,10 @@ approval_basis).
    Pinned by T-04 `LoopGuardSuspendsAutomaticInstall`.
 
 ### T-01 - Spike: App Installer API, capability and relaunch (throwaway)
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: AC-06
-- evidence: not-run
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
 
 Answers three questions before product code: does `CheckUpdateAvailabilityAsync` see a
 newer feed version; does `AddPackageByAppInstallerFileAsync(ForceTargetAppShutdown)`
@@ -80,9 +80,9 @@ update the app's own package without `packageManagement`; and does `RegisterAppl
 relaunch it with arguments, both after 60 s uptime and under 60 s. Windows Sandbox is
 needed because this installs and updates packages and trusts a certificate.
 
-- [ ] **Step 1: Create the throwaway branch** `spike/aiu-046-update-api` from this branch.
+- [x] **Step 1: Create the throwaway branch** `spike/aiu-046-update-api` from this branch.
   It is never merged or pushed.
-- [ ] **Step 2: Add the probe to `App.OnLaunched`.** Every start appends the package
+- [x] **Step 2: Add the probe to `App.OnLaunched`.** Every start appends the package
   version and command line to `LocalState/spike.log`. If `LocalState/spike-trigger.txt`
   exists (content `wait` or `now`), delete it, wait 70 s (for `wait`) or 0 s (for `now`),
   then log `CheckUpdateAvailabilityAsync().Availability` and its `ExtendedError?.HResult`,
@@ -91,36 +91,36 @@ needed because this installs and updates packages and trusts a certificate.
   ForceTargetAppShutdown, new PackageManager().GetDefaultPackageVolume())`, and log the
   `ExtendedErrorCode?.HResult` if the call returns. A trigger file is used because the
   packaged app has no alias to pass arguments.
-- [ ] **Step 3: Build two signed packages**, `2026.10.698.0` and `2026.10.699.0`, with
+- [x] **Step 3: Build two signed packages**, `2026.10.698.0` and `2026.10.699.0`, with
   `./tools/windows/Build-Package.ps1 -MsixVersion <v> -CertificateThumbprint <owner's local
   development certificate> -NoRestore`. These are guest-only and never published. If the
   local development certificate is missing, mark the task BLOCKED and ask the owner.
-- [ ] **Step 4: Prepare a local file feed.** Copy the published feed's XML shape
+- [x] **Step 4: Prepare a local file feed.** Copy the published feed's XML shape
   (`tools/windows/PreviewRelease.psm1` `New-PreviewFeed`), using `file:///` URIs to the
   mapped Sandbox folder. Write `feed.appinstaller` listing 698. Map read-only: packages,
   public CER, offline dependencies, runtime installer. Map writable: the feed folder and
   an empty evidence folder.
-- [ ] **Step 5: In the Sandbox,** trust the CER in the guest only, install the
+- [x] **Step 5: In the Sandbox,** trust the CER in the guest only, install the
   dependencies, `Add-AppxPackage -AppInstallerFile feed.appinstaller`, and launch the app
   once. Rewrite the feed to list 699 at the same URI. Write `wait` to the trigger and
   launch. Expected: the log shows `Available`, the process exits, and 699 starts with
   `--spike-relaunched`.
-- [ ] **Step 6: Repeat the under-60-s case.** In a fresh Sandbox, repeat Step 5 with the
+- [x] **Step 6: Repeat the under-60-s case.** In a fresh Sandbox, repeat Step 5 with the
   trigger `now`. Record whether the relaunch happened.
-- [ ] **Step 7: Record outcomes.** Write Availability values, HRESULTs, the relaunch command
+- [x] **Step 7: Record outcomes.** Write Availability values, HRESULTs, the relaunch command
   lines, the final version, and whether `0x80070005`/capability errors appeared to
   `docs/specs/AIU-046-in-app-updates/verification.md` under "T-01 spike", as PASS/FAIL per
   question. Commit only that file on the feature branch:
   `git commit -m "docs(AIU-046): record App Installer API spike"`.
-- [ ] **Step 8: Gate.** If the update needs `packageManagement` or fails, stop and ask the
+- [x] **Step 8: Gate.** If the update needs `packageManagement` or fails, stop and ask the
   owner. If only the under-60-s relaunch fails, continue: the coordinator already delays
   installs to 60 s. Delete the spike branch.
 
 ### T-02 - Contract, preferences and source plumbing
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: AC-01, AC-05
-- evidence: not-run
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs`
@@ -143,7 +143,7 @@ needed because this installs and updates packages and trusts a certificate.
   `Task<bool> PauseRefreshAsync(TimeSpan busyLimit, CancellationToken ct)`;
   `void ResumeRefresh()`.
 
-- [ ] **Step 1: Write failing preference tests** in `LedgerPreferenceTests`:
+- [x] **Step 1: Write failing preference tests** in `LedgerPreferenceTests`:
 
 ```csharp
 [Fact]
@@ -163,7 +163,7 @@ public async Task FilesWithoutUpdateModeLoadAsAlwaysAndModePersists()
 public async Task UnknownUpdateModeIsRejectedWithoutOverwrite() // "Updates":7 → LoadAsync false, zero writes
 ```
 
-- [ ] **Step 2: Write failing source tests** in `LiveLedgerSourceTests` (use the existing
+- [x] **Step 2: Write failing source tests** in `LiveLedgerSourceTests` (use the existing
   `Accounts` fake; add a settable `Busy` flag to its snapshots if it has none):
   - `UpdateStatusSurvivesSnapshotRebuild`: `SetUpdatesAsync(new(UpdateState.UpToDate, "2026.10.604.0"))`,
     trigger a rebuild (`TickAsync`), assert `Current.Summaries.Updates.State == UpToDate`.
@@ -171,9 +171,9 @@ public async Task UnknownUpdateModeIsRejectedWithoutOverwrite() // "Updates":7 �
   - `PauseRefreshWaitsForBusyAccounts`: with one busy account, `PauseRefreshAsync(TimeSpan.FromMilliseconds(300), ct)`
     returns `false` and `TickAsync` refreshes again afterwards. With no busy account it returns `true`,
     and `TickAsync` makes no `RefreshAsync` call until `ResumeRefresh()`.
-- [ ] **Step 3: Run tests, expect FAIL** (compile errors on `UpdateMode`/`UpdateStatus`):
+- [x] **Step 3: Run tests, expect FAIL** (compile errors on `UpdateMode`/`UpdateStatus`):
   `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`
-- [ ] **Step 4: Implement the contract, the `Valid` check
+- [x] **Step 4: Implement the contract, the `Valid` check
   (`Enum.IsDefined(state.Preferences.Updates)`) and the source members.** `SetUpdatesAsync`
   mirrors `SetRecoveryAsync`: it stores a field and publishes `Summaries with { Updates = value }`.
   `BuildAsync` and the constructor use that field instead of the hard-coded text.
@@ -183,14 +183,14 @@ public async Task UnknownUpdateModeIsRejectedWithoutOverwrite() // "Updates":7 �
   every 250 ms (`Task.Delay(…, time, ct)`) until `busyLimit`. On timeout, clear `paused` and
   return `false`. `TickAsync` returns `Task.CompletedTask` while paused. Demo summaries use
   `new UpdateStatus(UpdateState.UpToDate, "2026.10.604.0", now)`.
-- [ ] **Step 5: Run tests, expect PASS** (same command; the full suite stays green).
-- [ ] **Step 6: Commit**: `git commit -m "feat(AIU-046): carry update mode and status through the Ledger contract"`
+- [x] **Step 5: Run tests, expect PASS** (same command; the full suite stays green).
+- [x] **Step 6: Commit**: `git commit -m "feat(AIU-046): carry update mode and status through the Ledger contract"`
 
 ### T-03 - AIU-043 update records
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: AC-08
-- evidence: not-run
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
 
 **Files:**
 - Modify: `src/windows/AiUsage.Core/Diagnostics/IDiagnosticSink.cs` (append four enum values)
@@ -203,7 +203,7 @@ public async Task UnknownUpdateModeIsRejectedWithoutOverwrite() // "Updates":7 �
 - Produces: `public sealed record UpdateFacts(int? ErrorCode = null, bool? Automatic = null, Version? From = null, Version? To = null, int? Consecutive = null)`
   in `AiUsage.Infrastructure.Diagnostics`, and `public void FileDiagnostics.Update(DiagnosticEvent eventCode, UpdateFacts facts)`.
 
-- [ ] **Step 1: Write the failing test** `UpdateRecordsCarryOnlyTypedFacts`:
+- [x] **Step 1: Write the failing test** `UpdateRecordsCarryOnlyTypedFacts`:
   - `log.Update(UpdateCheckFailed, new(ErrorCode: unchecked((int)0x80072EFE), Consecutive: 12))`
   - `log.Update(UpdateApplied, new(From: new(2026,10,602,0), To: new(2026,10,604,0)))`
   - `log.Update(DiagnosticEvent.OperationFailure, new(ErrorCode: 1))`
@@ -212,20 +212,20 @@ public async Task UnknownUpdateModeIsRejectedWithoutOverwrite() // "Updates":7 �
     `context.consecutive == 12`. Assert that `UpdateApplied` has
     `context.fromVersion == "2026.10.602.0"` and `toVersion == "2026.10.604.0"`.
     Assert that no `OperationFailure` record was written.
-- [ ] **Step 2: Run, expect FAIL:**
+- [x] **Step 2: Run, expect FAIL:**
   `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`
-- [ ] **Step 3: Implement `Update`.** It ignores any event outside the four. Severity:
+- [x] **Step 3: Implement `Update`.** It ignores any event outside the four. Severity:
   `UpdateCheckFailed` → Warning, `UpdateInstallFailed` → Error, otherwise Information.
   Context: `new { errorCode = $"0x{code:X8}" or null, trigger = "automatic"|"manual"|null, fromVersion, toVersion, consecutive }`
   via the existing `Event(…, context:)`.
-- [ ] **Step 4: Run, expect PASS** (full Infrastructure suite).
-- [ ] **Step 5: Commit**: `git commit -m "feat(AIU-046): add typed update records to the AIU-043 projection"`
+- [x] **Step 4: Run, expect PASS** (full Infrastructure suite).
+- [x] **Step 5: Commit**: `git commit -m "feat(AIU-046): add typed update records to the AIU-043 projection"`
 
 ### T-04 - UpdateCoordinator
-- status: pending
+- status: done
 - depends_on: [T-02]
 - acceptance: AC-02, AC-03, AC-04, AC-05
-- evidence: not-run
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
 
 **Files:**
 - Create: `src/windows/AiUsage.Windows/Adapters/Live/UpdateCoordinator.cs` (compiled into
@@ -315,7 +315,7 @@ Rules the tests pin (the algorithm the signatures leave open):
   `ResumeRefresh` and publishes `InstallFailed` with the code. The next check can make it
   `Ready` again.
 
-- [ ] **Step 1: Write the failing tests** in `UpdateCoordinatorTests.cs`. Fakes:
+- [x] **Step 1: Write the failing tests** in `UpdateCoordinatorTests.cs`. Fakes:
   - `FakePackage`: `Support`, `CurrentVersion = "2026.10.604.0"`, `Result`, `Checks`,
     `Installs`, `LastArguments`, `InstallResult`, `Hold` with a `TaskCompletionSource`.
   - `FakeHost`: settable `Mode`, `WindowHidden`, `SignInActive`, `PauseResult = true`,
@@ -363,18 +363,18 @@ Rules the tests pin (the algorithm the signatures leave open):
     → `(true, "2026.10.602.0")`; `--updated-from=..\x` → `UpdatedFrom == null`.
   - `StatusTextMatchesSpec` (Theory over each `UpdateState`): `LedgerFormat.UpdateText` equals
     the Global Constraints copy; `UpToDate` matches `^Up to date · checked \d\d:\d\d$`.
-- [ ] **Step 2: Run, expect FAIL** (missing types):
+- [x] **Step 2: Run, expect FAIL** (missing types):
   `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`
-- [ ] **Step 3: Implement `UpdateCoordinator.cs` and `LedgerFormat.UpdateText`** per the
+- [x] **Step 3: Implement `UpdateCoordinator.cs` and `LedgerFormat.UpdateText`** per the
   signatures and rules above.
-- [ ] **Step 4: Run, expect PASS** (full Presentation suite).
-- [ ] **Step 5: Commit**: `git commit -m "feat(AIU-046): add the update coordinator"`
+- [x] **Step 4: Run, expect PASS** (full Presentation suite).
+- [x] **Step 5: Commit**: `git commit -m "feat(AIU-046): add the update coordinator"`
 
 ### T-05 - Windows adapter, lifetime, launch, settings UI and gear
-- status: pending
+- status: done
 - depends_on: [T-03, T-04]
 - acceptance: AC-03, AC-05, AC-06, AC-07, AC-08
-- evidence: not-run
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
 
 **Files:**
 - Create: `src/windows/AiUsage.Windows/Adapters/Live/Windows/AppInstallerUpdates.cs`
@@ -389,7 +389,7 @@ Rules the tests pin (the algorithm the signatures leave open):
   `ApplicationDiagnostics : IUpdateLog`; `LedgerShell.WindowHidden` and
   `event EventHandler? LedgerShell.VisibilityChanged`; `LedgerRegistration.Start(IServiceProvider, Func<Task>, bool background)`.
 
-- [ ] **Step 1: `AppInstallerUpdates`.**
+- [x] **Step 1: `AppInstallerUpdates`.**
   - `Support`: `Package.Current` throws `InvalidOperationException` → `NotPackaged`;
     `GetAppInstallerInfo()` null → `NoFeed`.
   - `CurrentVersion`: `Id.Version` as `Major.Minor.Build.Revision`.
@@ -403,10 +403,10 @@ Rules the tests pin (the algorithm the signatures leave open):
   - P/Invoke via `[LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]`
     for `RegisterApplicationRestart(string, uint)` and `UnregisterApplicationRestart()`.
     If the analyzers require it, set `AllowUnsafeBlocks` in this csproj only.
-- [ ] **Step 2: `ApplicationDiagnostics : IUpdateLog`.** Each method maps to
+- [x] **Step 2: `ApplicationDiagnostics : IUpdateLog`.** Each method maps to
   `sink?.Update(event, new UpdateFacts(...))`. Versions are parsed with `Version.TryParse`;
   invalid versions become null.
-- [ ] **Step 3: Window visibility and background start.**
+- [x] **Step 3: Window visibility and background start.**
   - `LedgerWindow` raises `VisibilityChanged` in `ShowAndActivate` and in the `OnClosing`
     hide, and exposes `IsHidden`.
   - `LedgerShell(…, bool background)` forwards both. When `background` is true it calls
@@ -414,7 +414,7 @@ Rules the tests pin (the algorithm the signatures leave open):
   - `App.OnLaunched` parses `UpdateLaunch.Parse(Environment.GetCommandLineArgs())` and passes
     `launch.Background` to `LedgerRegistration.Start`. After `InitializeAsync` it calls
     `product.StartUpdates(shell, launch)`. Demo mode has no coordinator.
-- [ ] **Step 4: `LedgerProductLifetime` as host.**
+- [x] **Step 4: `LedgerProductLifetime` as host.**
   - `StartUpdates` creates the coordinator with `AppInstallerUpdates`, `this`, `diagnostics`,
     the `ILedgerScheduler`, `TimeProvider.System` and `launch`. It sets
     `source.CheckUpdates = _ => coordinator.CheckAsync(true)` and
@@ -430,7 +430,7 @@ Rules the tests pin (the algorithm the signatures leave open):
   - `ResumeRefresh` → `source.ResumeRefresh()`, release `gate` if held, `timer.Start()`.
   - `PublishAsync` → `source.SetUpdatesAsync`.
   - `StopAsync`/`Dispose` dispose the coordinator first.
-- [ ] **Step 5: Settings view model and view.**
+- [x] **Step 5: Settings view model and view.**
   - New observable properties: `UpdateVersionText`, `CanCheckUpdates` (not `NotPackaged`,
     `NoFeed`, `Checking`, `Installing`), `CanInstallUpdate` (`Available`, `Ready`,
     `InstallFailed`, `NotApplied`), `InstallUpdateText` (`Retry` for `InstallFailed`,
@@ -444,10 +444,10 @@ Rules the tests pin (the algorithm the signatures leave open):
     Add an `Updates` row with a three-segment `Off · On launch · Always` selector copied
     from the Density markup (Click handlers `OnUpdatesOff/OnLaunch/Always`; `Segment(...)`
     helpers) with automation names `Automatic updates: off|on launch|always`.
-- [ ] **Step 6: Gear.** In `LedgerWindow.xaml` (`SettingsButton`, lines 114-118), replace
+- [x] **Step 6: Gear.** In `LedgerWindow.xaml` (`SettingsButton`, lines 114-118), replace
   the `Path` with
   `<FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;" FontSize="16" Foreground="{StaticResource LedgerInkBrush}" />`.
-- [ ] **Step 7: Build and run unpackaged.**
+- [x] **Step 7: Build and run unpackaged.**
   `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`
   → 0 warnings, 0 errors. Start it with an empty `AIU_DEVELOPMENT_STATE_DIRECTORY`. Expected:
   - the gear is in the title bar;
@@ -457,19 +457,19 @@ Rules the tests pin (the algorithm the signatures leave open):
   Start again with `--background`. Expected: no window, a tray icon whose left-click popup
   and Open work. If `ForceCreate` leaves the tray inert, use `Activate()` followed by
   `AppWindow.Hide()` and record that.
-- [ ] **Step 8: Run all suites** (README "Local checks"), then commit:
+- [x] **Step 8: Run all suites** (README "Local checks"), then commit:
   `git commit -m "feat(AIU-046): install feed updates from the app and relaunch"`
 
 ### T-06 - Verification, review and records
-- status: pending
+- status: done
 - depends_on: [T-05]
 - acceptance: AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07, AC-08
-- evidence: not-run
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
 
-- [ ] **Step 1: Run the local checks.** Run the README "Local checks" block plus a Release
+- [x] **Step 1: Run the local checks.** Run the README "Local checks" block plus a Release
   build (`-c Release`). Expected: every suite passes, the validator returns 0, and
   `git diff --check` is clean.
-- [ ] **Step 2: Sandbox packaged update (AC-06).** Reuse the T-01 local-feed setup with the
+- [x] **Step 2: Sandbox packaged update (AC-06).** Reuse the T-01 local-feed setup with the
   real feature: build 2026.10.695.0, 696 and 697, guest-only. Install 695 through the feed,
   then advance the feed once per case and record the version and command line:
   - (a) Manual: Settings → Check for updates → Install and restart. Expected: the app
@@ -478,16 +478,16 @@ Rules the tests pin (the algorithm the signatures leave open):
     relaunches on the new version, tray only (`--background`).
   - (c) Window open. Expected: `Update ready` and no install until the window is hidden.
   - (d) `OnLaunch`: restart the app. Expected: one check after 60 s.
-- [ ] **Step 3: Independent focused review** (CONTRIBUTING: forced process shutdown and
+- [x] **Step 3: Independent focused review** (CONTRIBUTING: forced process shutdown and
   restart registration). Dispatch the `aiu-reviewer` agent with this file, the spec and
   `git diff main...HEAD`. Fix material findings and rerun the targeted checks.
-- [ ] **Step 4: Records.**
+- [x] **Step 4: Records.**
   - In `verification.md`, list each check with PASS/FAIL/NOT_RUN/BLOCKED.
   - The owner live check (spec step 5) stays NOT_RUN until a later Preview updates the
     owner's install by itself.
   - Set backlog AIU-046 `status` and evidence per `docs/workflow/formats.md`.
   - Set this file's task statuses and add a one-line Handoff with the exact next action.
-- [ ] **Step 5: Preview gate and integration.** Run the `--demo` Release startup smoke and a
+- [x] **Step 5: Preview gate and integration.** Run the `--demo` Release startup smoke and a
   primary diff review. Commit
   (`git commit -m "docs(AIU-046): record in-app update verification"`) and integrate to
   `main` per CONTRIBUTING, which publishes a Preview after CI is green. Tell the owner to
@@ -495,4 +495,29 @@ Rules the tests pin (the algorithm the signatures leave open):
 
 ## Handoff
 
-Plan written 2026-10-06. Next action: owner plan review and execution choice, then T-01.
+Implemented and verified 2026-10-06 on `users/updates-check-unavailable-f5396f`. The commits run from
+`e2467ec` (spec) to the records commit. Evidence is in [verification.md](verification.md).
+
+What changed from the plan:
+- T-05 replaced `TaskbarIcon.ForceCreate` with `Activate()` plus `AppWindow.Hide()`, because the icon
+  ignored clicks after a background start.
+- The review fixes I-1..I-3 changed the spec (approval_basis records the review amendment).
+
+Deferred minor findings (owner decides):
+- M-1: install is refused while local-data recovery is pending.
+- M-2: a pending automatic install queued before 60 s is not re-checked.
+- M-3: scheduled checks briefly hide the Install button.
+- M-4: spurious install records can be written at exit.
+- M-5: `--background` is decided after the drain.
+- M-6: unexpected Package API exceptions at startup.
+- M-7: brief "development build" text at startup.
+- M-8: a deletion requested during an install is lost.
+- M-9: test gaps.
+
+AC-06 owner live check: NOT_RUN.
+
+Next action:
+1. Owner reviews the branch and the review amendment.
+2. Integrate to `main`, which publishes a Preview.
+3. The owner installs that Preview once the existing way: close the app, then App Installer.
+4. The next Preview must update and relaunch by itself.

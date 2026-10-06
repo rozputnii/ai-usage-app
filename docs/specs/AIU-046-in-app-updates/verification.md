@@ -26,3 +26,41 @@ Findings for implementation:
 - Host SignTool verification fails as designed (the root is untrusted on the host).
 
 Decision: no manifest capability is needed, so implementation continues as specified.
+
+## Acceptance (2026-10-06)
+
+| Criterion | Verdict | Evidence |
+| --- | --- | --- |
+| AC-01 | PASS | `FilesWithoutUpdateModeLoadAsAlwaysAndModePersists` and `UnknownUpdateModeIsRejectedWithoutOverwrite`. Local unpackaged run: the selector wrote `"Updates":1`, and On launch was still selected after a restart. Sandbox run (d) persisted `"Updates":1` in the installed package. |
+| AC-02 | PASS | Coordinator tests cover Always (60 s, then every 5 minutes), OnLaunch (once), Off (manual only) and a shared concurrent check. Sandbox (d): with OnLaunch, "Update ready" appeared 64 s after launch. |
+| AC-03 | PASS | Coordinator tests cover hidden or open window and sign-in. Sandbox (c): with the window open, Always found 696 at about 60 s and showed "Update ready"; it was still on 695 20 s later. Sandbox (b): after closing to the tray, it installed automatically. |
+| AC-04 | PASS | Tests: `FailedInstallResumesRefreshAndOffersRetry`, `FailedAutomaticInstallIsNotRetriedAutomatically`, `InstallThatReturnsWithoutClosingTheAppResumesAndSuspends`, `DrainTimeoutReturnsToAvailableWithoutInstalling`, `LoopGuardSuspendsAutomaticInstall`, `PauseRefreshWaitsForBusyAccounts`, `ProviderCommandsDoNothingWhileRefreshIsPaused` and `PauseWaitsForAWaitingSignIn`. A real Windows install failure was not provoked in Sandbox. |
+| AC-05 | PASS | Local unpackaged Debug run: "Updates unavailable in development build", with no Check or Install button and an empty version line. The hard-coded summary was removed. The no-feed state is unit-tested only. |
+| AC-06 | PASS (Sandbox); owner live NOT_RUN | Windows Sandbox, a local `file:///` feed and packages 695→698 built from this branch (see below). The owner-installed Preview stays NOT_RUN until a later published Preview updates the owner's install by itself. |
+| AC-07 | PASS | The gear (Segoe Fluent Icons E713) was seen in the local unpackaged run and in Sandbox screenshots. |
+| AC-08 | PASS | `UpdateRecordsCarryOnlyTypedFacts`. Sandbox logs contain only `UpdateInstallStarted` (trigger, fromVersion) and `UpdateApplied` (fromVersion, toVersion) for each update. They contain no URI, path or exception text: the only privacy-grep matches were the empty `"exception":null` field. |
+
+### Sandbox packaged update (T-06)
+
+The guest trusted the CER only inside the Sandbox. Packages 2026.10.695.0–698.0 were built from commit `b7695ab`, and the feed was advanced while the app ran.
+
+| Case | Verdict | Observation |
+| --- | --- | --- |
+| (c) Always, window open | PASS | "Update ready" with the install button. No install for 20 s; version 695. |
+| (a) Manual Install and restart | PASS | 696 registered 36 s after the click. Relaunched with the window and `--updated-from=2026.10.695.0`, no `--background`. |
+| (b) Always, closed to tray | PASS | 697 registered about 90 s later. Relaunched without a window and with `--updated-from=2026.10.696.0 --background`. |
+| (b) Tray icon after background relaunch | FAIL → fixed | The tray icon did not open the popup. A control experiment with the unpackaged Release build showed that a normal start works, while a `--background` start using `TaskbarIcon.ForceCreate` ignored both UIA invoke and a real click. Fix `33760d4` activates the window and hides it at once. Rerun: all four trials open the popup, and the window stays hidden before the click. The packaged flow was not rerun after this fix. |
+| (d) OnLaunch, then hidden | PASS | "Update ready" after 64 s. Closing to the tray installed 698, relaunched with `--updated-from=2026.10.697.0 --background`. |
+
+Then the independent review found three Important issues: a returning install left refresh paused, a failing install was retried every 5 minutes, and provider work could start during the drain. All three are fixed with tests in `617104b`. The deferred minor findings are recorded in the handoff.
+
+### Local checks
+
+At `33760d4`:
+- Presentation: 232/232
+- Infrastructure: 880/880
+- ProjectValidation: 82/82
+- Validator: valid
+- `git diff --check`: clean
+- Debug and Release builds: 0 warnings
+- Release `--demo` startup smoke: window shown, Updates section rendered
