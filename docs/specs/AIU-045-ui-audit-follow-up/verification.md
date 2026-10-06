@@ -155,3 +155,50 @@ The runner published the app (`AiUsage.dll` `20B7E8F4E0C5E3F64CFAC5ED23A64E8E40E
 - Dispatch gates (analysis section 6): gate 5 met apart from the AC-02 rerun; gate 6 BLOCKED; gate 7 is the primary diff review, outside this lane; gate 8 met (ANL-09 above).
 
 Exact next action (updated 2026-10-06): the runner's readiness probe now tolerates native stderr under Windows PowerShell 5.1 (`3e0a509`, merged as `f409def`), and by primary ruling the aborted guest start did not consume the one authorized D7a session, so once the owner has unlocked the desktop the primary reruns steps 2 to 5 on the pushed candidate, including the single Sandbox batch with the three filters above into a new output directory, before the Preview dispatch (owner checkpoint list in [spec.md](spec.md)).
+
+## Candidate verification rerun 2026-10-06
+
+T-03 desktop lane (task J) rerun after the owner unlocked the desktop. Primary check at 09:31:23; the lane check at 09:31:50 found no `LogonUI`, and `wsb list --raw` was empty. Run in the main checkout from `5bb0e3bc55696c5652e713d38963cdbb0ec51983` (`5bb0e3b`, equal to `origin/main`; `src/` and `tests/` unchanged since `8364408`). The lane added three test-only commits and one more test-only commit after the Sandbox batch (below). No product code changed.
+
+Every app launch used `--demo` and a fresh `%TEMP%` root, except the D9 live-empty case, which used an empty isolated root with zero accounts. No sign-in, credential, owner installation or real state was touched. The desktop stayed unlocked for the whole lane: every scripted loop checked `LogonUI` before each run, and none reported a lock.
+
+Small result files are in [evidence/candidate-2026-10-06b](evidence/candidate-2026-10-06b/release-build.json). In the copied XML, the computer and user names are blanked and the repository and profile paths are shortened. Raw logs, XML, scripts and captures stay in the git-ignored `.ai-usage-local/AIU-045/run-2026-10-06/evidence/candidate-2026-10-06b/` and `.ai-usage-local/ui-audit/candidate-2026-10-06b/`.
+
+| Item | Verdict | Evidence |
+| --- | --- | --- |
+| Step 1: Release build of `5bb0e3b` | PASS | Same command as above; 0 warnings, 0 errors. `AiUsage.dll` `5ACA08763B40FA1B984F89FBA956B3D973938C7D87924F0CF54032529BE605CA`, `AiUsage.exe` `4379D56CB0A57C3824D699118BC0992C05143CF553E39269C475ABC6C0F74D11`. Both differ from the `8364408` build (`C12DF590...`, `9FE362F6...`) although `src/` is unchanged, which again shows that a hash identifies a build instance. Steps 2 to 4 ran on this build; [release-build.json](evidence/candidate-2026-10-06b/release-build.json) |
+| Step 2: host Release `--demo` startup and Ctrl+Q exit | PASS | Lock state checked before any input (foreground `AiUsage`, no `LogonUI`). SetForegroundWindow succeeded on the first step, Ctrl+Q was sent with the window verified foreground, and the process exited in 0.19 s with code 0. Log: `SessionStarted` with `mode` `demo` and build `1.0.0+5bb0e3b...`, then `SessionExited`. No 1000/1001/1026 event in the window; [step2-release-demo.json](evidence/candidate-2026-10-06b/step2-release-demo.json) |
+| `LedgerSmoke.LedgerLaunchSettingsHistoryAndExit(demo: True)` | PASS | `-preEnumerateTheories -id 5a3dff3a...0637`; final run [native-ledgerlaunch-demo.xml](evidence/candidate-2026-10-06b/native-ledgerlaunch-demo.xml). Also passed on the unmodified driver (first run, 9.8 s). One stale-window failure in 17 runs was fixed in `11645ac`, after which it passed 20 of 20 |
+| `LedgerSmoke.AccountSpendingUsesNestedContentHistoryCapsAndAccountActions` | PASS after test fix | The unmodified test failed intermittently (5 of 25 runs) on a stale main-window element (below). After `02e0ca8` it passed 30 of 30 and 15 of 15; final run [native-account-spending.xml](evidence/candidate-2026-10-06b/native-account-spending.xml); red [red-account-spending-history.xml](evidence/candidate-2026-10-06b/red-account-spending-history.xml) |
+| `LedgerActivationSmoke` / `LedgerSmoke.WorkBudgetShowsMonthlyAndDailyBarsBesideSubscriptionWithoutCredits` | PASS | First run 2.0 s, final run [native-work-budget.xml](evidence/candidate-2026-10-06b/native-work-budget.xml) |
+| Step 4 (D9): `LedgerLaunchSettingsHistoryAndExit(demo: False)` live-empty | PASS after test fix (ANL-10 resolved) | Red 4 of 4 times: `ElementNotEnabledException` at the Used/Left invoke (`LedgerSmoke.cs:241` at `5bb0e3b`), [red-ledgerlaunch-live-empty.xml](evidence/candidate-2026-10-06b/red-ledgerlaunch-live-empty.xml). Fixed in `4c32153` and `11645ac`, then 15 of 15; final run [native-ledgerlaunch-live-empty.xml](evidence/candidate-2026-10-06b/native-ledgerlaunch-live-empty.xml) |
+| `ShellSmoke.PackagedLedgerLaunchesAndExits` | NOT_RUN | Needs an installed package; owner checkpoint |
+| Step 5 (D7a): the one Sandbox batch | FAIL (1 of 3) | `candidate-2026-10-06b`; build `11645ac`, `Dirty` false, empty `source.diff`, app `BB85955C...`; guest desktop prerequisite passed and the app started in every scenario. `ReplayPagesRenderUsedAndLeft` PASS (840.6 s, all 29 combined pages); `SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart` PASS (53.5 s); `OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable` FAIL at `AuditLayoutControls.cs:47`. [sandbox-run.json](evidence/candidate-2026-10-06b/sandbox-run.json), [sandbox-native.xml](evidence/candidate-2026-10-06b/sandbox-native.xml), [sandbox-build.json](evidence/candidate-2026-10-06b/sandbox-build.json). No second guest was started |
+| Layout scenario after the test fix (host, supplementary) | PASS | The same failure at `:47` reproduced 3 of 3 times on the host ([red-layout-host.xml](evidence/candidate-2026-10-06b/red-layout-host.xml)). After `e40c76d` it passed 5 of 5 on the host with `--demo --audit-input` on the same combined pages ([green-layout-host.xml](evidence/candidate-2026-10-06b/green-layout-host.xml)). This is not the Sandbox evidence AC-02 names |
+
+**Failures and red-to-green fixes (all test-only).** Counts and runs are in [red-green.json](evidence/candidate-2026-10-06b/red-green.json).
+
+- **Stale main-window element (`02e0ca8`, `11645ac`).** The account-spending smoke failed at the history, nested-content or scenario steps in 5 of 25 unmodified runs.
+  - Diagnostic runs (instrumentation not committed) showed the following. Keyboard focus and foreground were correct. After Enter, the focused element was the history panel named "Mixed account history, ...". The launch HWND stayed alive as the process's only window throughout.
+  - The test's cached `Window` element nevertheless returned COMException 0x80040201 for every property and an empty descendant list, while a freshly enumerated element for the same HWND found the history (diagnostic runs 49 and 59). The audit harness already notes this behavior ("WinUI can replace an ancestor's UIA provider during layout").
+  - The smokes now resolve the window afresh for every query. With a fresh tree, the live-empty "needs recovery" check became a real scan and met elements replaced during live startup. It now repeats until one scan completes and asserts that scan's result. Before, a stale cached window returned an empty tree, so the check could pass without scanning anything.
+- **ANL-10 (`4c32153`).** The failure capture shows "Opening local data...". During startup, Used/Left and Add are disabled by design (`CanUseAccounts = !NeedsRecovery && !IsStarting`). The test helper waited only for a button to exist. It now waits for the button to be enabled. With zero accounts, Used/Left become enabled once startup finishes and the case passes, so Used/Left was neither wrongly disabled nor enabled too late. This was a test race; there is no product race.
+- **Layout scenario (`e40c76d`).** The Sandbox failure capture shows the expected product state: Escape closed only the cap editor, and history and the settings panel stayed open. The "Close settings" header button had been scrolled out of the settings panel by the earlier diagnostic-preview step, so the visibility check (not offscreen) failed. The check now scrolls that button into view and then requires it visible; a closed panel is collapsed and has no such element.
+- No assertion or timeout was relaxed. The negative checks in the account-spending smoke now also require the expected element in the same fresh tree.
+
+**FIX native reruns (Sandbox, `11645ac`).**
+
+- FIX-09 and FIX-11 PASS: `SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart` passed. It covers the last workday disabled, re-enabled and disabled again, and Tab reaching Save in the cap editor.
+- FIX-10 PASS: `ReplayPagesRenderUsedAndLeft` passed on all 29 combined pages, including the WRESET-01/02 pages `page-015`..`page-018`.
+- The layout run reached and passed the AUD-03 target selection: the cap editor opened on the Claude monetary card, and Escape left no cap (`:41-46`).
+
+**Statuses after the rerun.**
+
+- AUD-01: no startup failure recurred; the guest started the app in all three scenarios. The AC-02 Sandbox rerun of the layout scenario is FAIL because of the `:47` test defect, which is now fixed (`e40c76d`) and passes on the host. Closing AC-02 needs either a primary or owner ruling that accepts the host PASS, or another authorized Sandbox batch.
+- AUD-03: the corrected target selection passed in the Sandbox; the full scenario passes only on the host.
+- ANL-04: PASS (Release `--demo` startup with Ctrl+Q exit 0, and live-empty).
+- ANL-07: the three native smoke methods PASS on this candidate (two after test fixes); the AIU-043 probes PASS from the first lane.
+- ANL-10: resolved (test race, `4c32153`).
+- Dispatch gate 6: met.
+
+Exact next action: the primary reviews `02e0ca8`, `4c32153`, `11645ac` and `e40c76d` (test-only), and rules on AC-02. Either the host PASS of the corrected layout scenario is accepted, or one more Sandbox batch of `*AuditWindows.OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable` is authorized into a new output directory.

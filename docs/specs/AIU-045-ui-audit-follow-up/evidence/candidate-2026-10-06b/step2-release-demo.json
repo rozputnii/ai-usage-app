@@ -1,0 +1,24 @@
+{
+    "Synthetic":  true,
+    "Started":  "2026-10-06T09:33:00.3831696+01:00",
+    "Exe":  "Release AiUsage.exe (rerun build: dll 5ACA0876..., exe 4379D56C...)",
+    "CommandLineHasDemo":  true,
+    "WindowSeen":  true,
+    "Title":  "AI Usage",
+    "PreInputCheckAt":  "2026-10-06T09:33:18.9958688+01:00",
+    "PreInputForeground":  "AiUsage",
+    "PreInputLogonUI":  false,
+    "ForegroundSteps":  [
+                            "SetForegroundWindow:True"
+                        ],
+    "ExitRequested":  "Ctrl+Q (keybd_event) with target verified foreground",
+    "ExitSeconds":  0.19,
+    "Killed":  false,
+    "ExitCode":  "0x00000000 (0)",
+    "SessionStarted":  "demo",
+    "SessionStartedBuild":  "1.0.0+5bb0e3bc55696c5652e713d38963cdbb0ec51983",
+    "SessionExited":  1,
+    "AiUsageExeEvents1000_1001_1026":  0,
+    "OtherEvents":  0,
+    "Verdict":  "PASS"
+}

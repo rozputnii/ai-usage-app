@@ -1,0 +1,23 @@
+{
+    "Source":  "5bb0e3bc55696c5652e713d38963cdbb0ec51983",
+    "Command":  "dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore",
+    "At":  "2026-10-06T09:32:36+01:00",
+    "Warnings":  0,
+    "Errors":  0,
+    "AiUsageDllSha256":  "5ACA08763B40FA1B984F89FBA956B3D973938C7D87924F0CF54032529BE605CA",
+    "AiUsageExeSha256":  "4379D56CB0A57C3824D699118BC0992C05143CF553E39269C475ABC6C0F74D11",
+    "EqualsEarlierBuild1":  false,
+    "Earlier":  {
+                    "Source":  "8364408",
+                    "AiUsageDllSha256":  "C12DF590488E120ECE781D0495CC65017D42FB862235DE3C1D34E29FA9E99D9A",
+                    "AiUsageExeSha256":  "9FE362F631583D66ADB1E58C0566587BF4818C91BFB106478072ADD4C548ED84"
+                },
+    "SrcTestsChangedSince8364408":  false,
+    "FinalNativeDriverSha256":  "8EF997B610265DFD11344A77F5E4C6C78DCB024A91ED5561E245D56CE8814152",
+    "StepsRunOnThisBuild":  "2, 3, 4 (until the Sandbox publish replaced bin at 10:09:18)",
+    "HostLayoutRunsBuild":  {
+                                "AiUsageDllSha256":  "BB85955CBF84DFD9506557F42E27616E82A9E7D18A77A3D78D2351653109A45F",
+                                "AiUsageExeSha256":  "61BDFEC72B4A5E53ED1A4494AEE0B3BA66D1147E8B9D84A9708DEA483E18FB00",
+                                "Note":  "self-contained bin output left by the Sandbox runner publish at 11645ac"
+                            }
+}

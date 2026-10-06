@@ -1,0 +1,28 @@
+{
+    "AccountSpending":  {
+                            "RedUnmodified":  [
+                                                  "5 of 25 failed: initial run (history), rerun1 pass, rerun2 (history), rerun3 (money only loses windows, NullReference on Demo scenarios), rerun4 pass; red loop 2 of 20 (cap, history)"
+                                              ],
+                            "Mechanism":  "cached main-window UIA element invalid (0x80040201) while the launch HWND stays alive and is the only owned window; a fresh element on the same HWND finds the open, focused history (diagnostic runs 49 and 59)",
+                            "Fix":  "02e0ca8",
+                            "Green":  "0 of 30 failed (green loop), 0 of 15 (final driver loop), final single run PASS"
+                        },
+    "LiveEmpty":  {
+                      "Red":  "4 of 4 ElementNotEnabledException at the Used/Left invoke (LedgerSmoke.cs:255 at 02e0ca8 = :241 at 383644c); capture shows Opening local data...",
+                      "Fix":  "4c32153",
+                      "Green":  "5 of 5",
+                      "ScanRed":  "4 of 10 COMException 0x80040201 in the recovery scan after fresh-window resolution",
+                      "ScanFix":  "11645ac",
+                      "ScanGreen":  "15 of 15, final single run PASS"
+                  },
+    "LedgerLaunchDemo":  {
+                             "Red":  "1 failure (COMException 0x80040201 on cached window Capture) in 17 runs",
+                             "Fix":  "11645ac",
+                             "Green":  "20 of 20, final single run PASS"
+                         },
+    "LayoutScenario":  {
+                           "Red":  "Sandbox batch FAIL at AuditLayoutControls.cs:47; host 3 of 3 at :47",
+                           "Fix":  "e40c76d",
+                           "Green":  "host 5 of 5 (no second Sandbox guest)"
+                       }
+}
