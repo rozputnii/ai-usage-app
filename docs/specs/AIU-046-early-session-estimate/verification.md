@@ -2,19 +2,20 @@
 
 Evidence for [the specification](spec.md) and [the plan](tasks.md). Host: the owner's
 Windows 11 Pro 10.0.26200 desktop, .NET 10, branch `users/5-hour-limits-display-1e0e91`.
-Product source at `ce050f1`. The checks ran at `7e0f58e`, which adds only task records
-after it. Times are local (+01:00), 2026-10-06.
+Product source at `bbe71fe`. The checks ran on that tree after the whole-branch review
+fixes; the records commit that follows adds only documents. Times are local (+01:00),
+2026-10-06.
 
 ## Commands
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Infrastructure suite | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS. 882/882 on the second run (18:09). The first run (18:07) had 881/882: `DiagnosticCrashTests.ManagedChildCrashLeavesCriticalStackBeforeTermination` timed out. This is the known first-start latency after a rebuild on this host (AIU-045 ANL-05). A plain rerun on the same binaries decides, so no timeout was changed. |
-| Presentation suite | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 193/193 (18:07) |
+| Infrastructure suite | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 884/884 on the first run (18:36). An earlier run of the same tree before the last test edit had one failure in the new Cover test, which was fixed before this run; it was not the diagnostics timeout. |
+| Presentation suite | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 193/193 (18:36). The first run at this tree had 192/193: `TrayShowsTheOneWindowCell` expected the label without the demo account name; the assertion was corrected and the second run passed. |
 | Validator tests | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS, see the [last section](#validation-and-diff-check-on-the-records-commit) |
 | Document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS, see the [last section](#validation-and-diff-check-on-the-records-commit) |
 | Diff check | `git diff --check` and `git diff --check ff1d788..HEAD` | PASS, see the [last section](#validation-and-diff-check-on-the-records-commit) |
-| App build (README) | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS, 0 warnings, 0 errors (18:09) |
+| App build (README) | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS, 0 warnings, 0 errors (18:36) |
 
 ## Estimator cost (T-01, commit `ed89d1b`)
 
@@ -50,6 +51,8 @@ accessible name, which the app builds from the same tooltip lines.
 - **R7.** In Left mode the one-window cell draws `[Allow | Track]`, following D-186.
   This is pinned by `OneWindowCellFollowsLeftModeDayOffAndFull`.
 - **R8.** The tooltip bounds round outward to whole numbers, as in H3's "(7–13 %)".
+- **R10.** The tooltip upper bound `WindowShareHigh` rounds up to 0.1, the lower bound down, so
+  the shown range always contains the guaranteed bounds (`PairedCardCarriesRoughBoundsAndRange`).
 
 ## Acceptance criteria
 
@@ -67,18 +70,22 @@ Open item: AC-07 stays BLOCKED until the owner connects Claude in the unpackaged
 development build and the live one-window state is observed, or the owner waives the
 live clause.
 
-## Validation and diff check on the records commit
+## Validation and diff check after the whole-branch review fixes
 
-The following ran on the working tree that became the records commit (about 18:15):
+The following ran at `bbe71fe` plus the edited records (about 18:38):
 
 - `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo`:
   PASS, 82/82.
 - `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`:
   PASS, `{"valid":true,"diagnostics":[]}`.
-- `git diff --check` on the staged records and `git diff --check ff1d788..HEAD` after the
-  commit: PASS, no output.
+- `git diff --check ff1d788..HEAD` and `git diff --check` on the edited records: PASS, no
+  output.
 
-Status correction after review: AC-07 and AC-01 are relabelled above. T-04 is `blocked`,
-AIU-046 is `in-progress`, and the spec and design are `implementing`. On that working
-tree the validator printed `{"valid":true,"diagnostics":[]}`, and `git diff --check`
-printed nothing.
+The review fixes were: a restored `Cover` gap and endpoint test, the tick allowance clamped
+at 0 (`TickAllowanceNeverGoesNegativeWhenFiveHourFalls`), the tray tip of the one-window
+cell keeping its window line, `WindowShareHigh` rounded up (R10), and the specification's
+approval line. Mutation checks: bridging `Cover` fails the new coverage test, an exclusive
+end fails it and eight more, and removing the clamp fails the allowance test.
+
+Status is unchanged: AC-07's live clause stays BLOCKED, T-04 is `blocked`, AIU-046 is
+`in-progress`, and no interactive check was run.
