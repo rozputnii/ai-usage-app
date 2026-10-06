@@ -42,6 +42,11 @@ claim. Never let an automatic commit or push upgrade a NOT_RUN, BLOCKED or FAIL 
 PASS; record actual status in the task and verification documents as usual, and say in the
 commit message when the work is still in progress.
 
+Owner decision (2026-10-06, AIU045-D1): save points run CI normally and never carry
+`[skip ci]`. Previews publish only through an explicit owner `workflow_dispatch` of the
+validation workflow on `main`; a push to `main` never publishes one. A green push to
+`main` is a candidate, not a release.
+
 Inspect outgoing commits and preserve unrelated tracked and untracked changes. Keep
 credentials, local sessions, private account data and generated output out of Git. Never
 force-push, rewrite published history, or bypass protection. If the remote has diverged,
@@ -63,7 +68,7 @@ Small fixes need a brief plan and check evidence in their completion/commit reco
 
 The primary alone updates canonical state and integrates changes. Explicit parallel work requires declared ownership, safe paths, isolated write workers and verification of the integrated result. Review actual diffs; a worker claim is not completion.
 
-Routine edits require primary diff/acceptance review and relevant checks. Material credential, destructive-data or privilege changes require focused independent review; public release approval or an explicit owner request requires full independent review. Use fresh, relevant evidence and read-only review with appropriate scope, without a prescribed vendor or model family. Report unavailable required review honestly. Zero findings is valid; after fixes run targeted checks, without an automatic full-review loop. Unresolved material findings block integration.
+Routine edits require primary diff/acceptance review and relevant checks. Material credential, destructive-data or privilege changes require focused independent review; public release approval or an explicit owner request requires full independent review. Owner decision (2026-10-06, AIU045-D4): a Preview is an owner-test build, not public release approval; its gate is the [Preview gate](docs/workflow/verification.md#preview-gate) list, and full independent review stays for public release approval or an explicit owner request. Use fresh, relevant evidence and read-only review with appropriate scope, without a prescribed vendor or model family. Report unavailable required review honestly. Zero findings is valid; after fixes run targeted checks, without an automatic full-review loop. Unresolved material findings block integration.
 
 ## Contributions and checks
 

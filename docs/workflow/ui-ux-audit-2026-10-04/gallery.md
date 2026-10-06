@@ -1,3 +1,5 @@
+Historical record, frozen 2026-10-06 (AIU-045 AUD-10); not maintained.
+
 # Screenshot gallery — interim evidence
 
 The real unpackaged Windows application is running with synthetic data in a network-disabled Windows Sandbox. All 170 baseline scenarios have captured Used/Left images and passed native assertions. The overview and pages 001–012 and 018 have been visually inspected. Remaining inspection and final-build recapture are pending; this is not the complete final gallery.
