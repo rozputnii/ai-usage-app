@@ -61,6 +61,24 @@ The later pending-read navigation correction belongs to FIX-13: asynchronous ref
 
 See [review.md](../../workflow/ui-ux-audit-2026-10-04/review.md) for the original verdicts and targeted reruns. REV-01 input/point ownership; REV-02 constructor-failure cleanup; REV-03 runner argument quoting; REV-04 overstated control coverage; REV-05 cleanup after evidence-write failure; REV-06 stale shell point lookup; REV-07 pending history selection; REV-08 restarted-process identity proof; REV-09 diagnostic/deletion root mismatch. All have recorded dispositions. This does not constitute review of the latest uncommitted scope-annotation changes.
 
+## Fix run 2026-10-06: T-01 and T-02 integration evidence
+
+Executed by the primary session of the [orchestration prompt](orchestration-prompt-2026-10-06.md) with reviewed worktree implementers (briefs A..G, I; reviews under the git-ignored `.ai-usage-local/AIU-045/run-2026-10-06/`). Every launch used `--demo` and a fresh `%TEMP%` root.
+
+| Item | Verdict | Evidence |
+| --- | --- | --- |
+| ANL-01, ANL-03 (dispatch-only publication, AIU045-D1a) | PASS | `2f85275`: `preview` job gated on `workflow_dispatch` + `PublishPreview`; `Test-PreviewRelease.ps1` 40 assertions (was 29); CI run 37416927644 on `c26f18b`: `validate` and `windows-package` success, `preview` skipped |
+| ANL-08 (validator rejects links into `.ai-usage-local/`) | PASS | `8f05989`; validator tests 82/82 (1 red before the fix); canonical validation valid |
+| ANL-05 (intermittent diagnostics tests) | PASS / NOT_REPRODUCED | `13814e1`: `ForcedKill...` reproduced 21/56 pre-fix full-suite runs (17 with the exact CI message, under CPU pressure or 4 CPUs, 0/20 idle), fixed by waiting on the killed probe's process object; 20 consecutive idle runs 870/870 and 0/20 failures under the same pressure afterwards; `EventsAreJson...` NOT_REPRODUCED in 96 runs, unchanged |
+| AUD-01 fix, AUD-02, ANL-09 (AIU045-D3a revert, D2b packaged gate) | PASS | `5560205`: page and maintenance fixtures without `ScopeAnnotations` open (red `ArgumentNullException`/`NullReferenceException` then green); packaged process ignores `--audit-input`; no `ScopeAnnotations` reference remains in `src`; host A/B on the Debug build: run A (original `combined-pages/overview.json`) now shows the window and writes the marker, run B unchanged |
+| AUD-04 (observable `Open` failure) | PASS | Altered `SyntheticMarker` on the host: exit code 90, stderr `InvalidDataException`, no state directory or marker created |
+| ANL-11 (omitted-property probes) | PASS with a ruling | `2c0913c` + `f4c13fd`: the source generator overwrites every `init` initializer when a property is omitted, also for types without a parameterized constructor; `AccountRecord.Connected` and `ReadingObservation.RoundingUnit` now keep their defaults through constructor parameters; registry and stored-state `Version`/`Accounts`/`Pending` keep failing closed (RecoveryRequired) by primary ruling, asserted by six probes; Infrastructure 879/879 |
+| ANL-17 and the CSV destination (task F) | PASS (static) / BLOCKED (dry run) | `cce0d60`: `source.diff` + `SourceDiffSha256` beside `build.json`; `New-UiAuditPages.ps1` `CoverageDirectory` defaults under `.ai-usage-local/ui-audit/coverage/`; parse checks 0 errors; the dry run needs PowerShell 7, which is not installed on the host |
+| Suites on merged `main` (`c26f18b`) | PASS | Debug build 0 warnings; Infrastructure 870/870; Presentation 189/189 (191 - 2 deleted seam cases - 3 deleted annotation cases + 3 new); validator tests 82/82; canonical valid |
+| Documentation records (task G) | PASS | `c24de6e`: CONTRIBUTING D1/D4 wording, Preview gate section, AIU-014 scope-note sentence, D6(a) annotations in the AIU-039/043/044 records, AUD-10 freeze banners, AUD-05..09 opt-in notes |
+
+Deferred minor observations and every primary ruling are listed in the run ledger and in the final report at the owner checkpoint; none blocks the candidate. The wave 1.5 merge (`effcb4b`, `8cf68de`) and its CI run are recorded in the candidate verification section below once that lane completes.
+
 ## Last actual verification
 
 - Last full suites: PASS 1045/1045 = Infrastructure 859 + Presentation 186, before the latest scope work. XML: `infrastructure-maintenance-context.xml`, `presentation-process-receipts.xml`.
