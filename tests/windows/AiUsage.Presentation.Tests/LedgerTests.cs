@@ -805,7 +805,7 @@ public sealed class LedgerInteractionTests
         Assert.Equal(TrayStripKind.Cells, strip.Kind);
         Assert.Equal(["Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], Assert.Single(strip.Cells).Tip);
         // The one-window cell has no title line, so the label is followed by its full tip, including the window line.
-        Assert.Equal(["Codex Pro · 5h + 7d", "Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], strip.Tip);
+        Assert.Equal(["H2 · Codex Pro · 5h + 7d", "Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], strip.Tip);
     }
 
     [Fact]
