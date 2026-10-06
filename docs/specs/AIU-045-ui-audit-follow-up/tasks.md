@@ -37,7 +37,7 @@ Closes ANL-01, ANL-03, ANL-05 and ANL-08 (ANL-02 was fixed in `7efd28f`). Worker
 Closes AUD-01 (fix), AUD-02, AUD-04, ANL-09, ANL-11 and ANL-17 under AIU045-D2b and D3a. Worker briefs C (revert the scope-annotation seam, packaged gate, observable Open failure), E (omitted-property probes; no product code) and F (`aiu-simple-implementer`; audit tool scripts) run in isolated worktrees. If E reports a red probe, fixer I continues on E's branch and this write-set is amended with the named record files before I starts. Runs concurrently with T-01 by owner request; the integrated result is verified once at Gate 1 before anything is pushed.
 
 ### T-03 - Candidate verification and Preview
-- status: pending
+- status: blocked
 - depends_on: [T-01, T-02]
 - ownership: Candidate verification on the serialized desktop lane and WIP diff dispositions
 - writes: [docs/specs/AIU-045-ui-audit-follow-up/verification.md, docs/specs/AIU-045-ui-audit-follow-up/evidence/**, src/**, tests/**]
@@ -46,24 +46,28 @@ Closes AUD-01 (fix), AUD-02, AUD-04, ANL-09, ANL-11 and ANL-17 under AIU045-D2b 
 - isolation: none
 - agent: primary
 - acceptance: AC-02, AC-04, AC-05
-- evidence: not-run
+- evidence: docs/specs/AIU-045-ui-audit-follow-up/verification.md (section "Candidate verification 2026-10-06"; desktop lane BLOCKED, records `525fc26`; Sandbox runner fix merged as `f409def`)
 
 Closes AUD-01 (AC-02 closure), AUD-03, ANL-04, ANL-07, ANL-10 and ANL-21; ships FIX-01..FIX-14 as a candidate. Reviewer R0 reads the WIP product diff (`383644c..BASE -- src`) and proposes keep/test/fix dispositions for the ANL-21 notes; fixer H implements the ruled items in a worktree. Worker J then runs alone in the main checkout as the sole writer of `src/` and `tests/`: Release build and SHA-256, host `--demo` smoke, native smoke methods, the D9 live-empty smoke and one Sandbox batch (D7a). The owner dispatches the Preview at the checkpoint; installed-build checks are recorded afterwards.
 
+Blocked (2026-10-06). R0 found nothing to fix (all four ANL-21 notes ruled keep; H skipped). J's Release build and the AIU-043 probes PASS, but the interactive desktop was locked for the whole lane, so the host smoke, the native methods and the D9 live-empty smoke are BLOCKED; the Sandbox batch stopped at the runner's readiness probe under Windows PowerShell 5.1 before any guest command (fixed by task F2, `3e0a509`). By primary ruling the one authorized D7a session is still available. Exact next action: the owner unlocks the desktop; the primary reruns the J lane, steps 2-5, including the single Sandbox batch with the filters `*AuditWindows.OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable`, `*AuditWindows.SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart` (FIX-09, FIX-11) and `*AuditWindows.ReplayPagesRenderUsedAndLeft` (FIX-10), on the pushed candidate before the Preview dispatch.
+
 ### T-04 - Records, process and cleanup
-- status: pending
+- status: in-progress
 - depends_on: [T-03]
 - ownership: Closing records, post-install records and local housekeeping
-- writes: [docs/backlog.md, docs/specs/AIU-045-ui-audit-follow-up/spec.md, docs/specs/AIU-045-ui-audit-follow-up/tasks.md, docs/specs/AIU-045-ui-audit-follow-up/analysis-2026-10-05.md, docs/specs/AIU-045-ui-audit-follow-up/verification.md, docs/decisions/pending.md, AGENTS.md, docs/specs/AIU-039-multi-account-ledger/verification.md, docs/specs/AIU-043-file-logging/verification.md, docs/specs/AIU-044-account-monetary-usage/verification.md, docs/specs/AIU-014-preview-updates/verification.md]
+- writes: [docs/backlog.md, docs/specs/AIU-045-ui-audit-follow-up/spec.md, docs/specs/AIU-045-ui-audit-follow-up/tasks.md, docs/specs/AIU-045-ui-audit-follow-up/analysis-2026-10-05.md, docs/specs/AIU-045-ui-audit-follow-up/verification.md, docs/decisions/pending.md, AGENTS.md, docs/specs/AIU-038-ledger-presentation/spec.md, docs/specs/AIU-039-multi-account-ledger/verification.md, docs/specs/AIU-043-file-logging/verification.md, docs/specs/AIU-044-account-monetary-usage/verification.md, docs/specs/AIU-014-preview-updates/verification.md]
 - shared: []
 - parallel: true
 - isolation: required
 - agent: primary
 - acceptance: AC-01, AC-04, AC-05
-- evidence: not-run
+- evidence: docs/specs/AIU-045-ui-audit-follow-up/analysis-2026-10-05.md (section "Final status (2026-10-06, before the owner checkpoint)") and docs/specs/AIU-045-ui-audit-follow-up/verification.md
 
 Closes AUD-05..AUD-10 (opt-in follow-ups and the frozen historical record), ANL-06 (records), ANL-12, ANL-13 (records), ANL-14, ANL-15, ANL-18, ANL-19 and the ANL-20 deferral note under D4, D5, D6 and D8. Worker K writes the closing records in a docs-only worktree while the primary performs the confirmed D5 cleanup and the ANL-19 renormalization (no tracked change). Worker N records the owner's installed-build results after the checkpoint.
 
+In progress (2026-10-06). K's closing records are written: the final status table in the analysis record, the spec's owner checkpoint list, the backlog completion-note, the AIU-038 section 4.3 contract note and the AIU-044 AC-03 sentence (ANL-21, write-set extended by primary ruling), and the removal of the AGENTS.md Codex subagent policy section; no `pending.md` entry, because no decision is open. The primary's D5 cleanup and the ANL-19 renormalization are done (no tracked change). T-04 cannot be `done` while T-03 is blocked, and task N records the installed-build results only after the owner checkpoint.
+
 ## Handoff
 
-Base: `6161e3b` (= `origin/main` at kickoff, clean). Kickoff answers (2026-10-06): desktop lane unlocked; D5 cleanup confirmed as listed; AGENTS.md Codex section removal authorized; no consent to read installed-app logs (ANL-16 stays pending). Run ledger: `.ai-usage-local/AIU-045/run-2026-10-06/ledger.md` (git-ignored). Exact next action: wave 1, dispatch briefs A..G and reviewer R0 in parallel, then Gate 1.
+Base: `6161e3b` (= `origin/main` at kickoff, clean). Kickoff answers (2026-10-06): desktop lane unlocked; D5 cleanup confirmed as listed; AGENTS.md Codex section removal authorized; no consent to read installed-app logs (ANL-16 stays pending). Run ledger: `.ai-usage-local/AIU-045/run-2026-10-06/ledger.md` (git-ignored). Exact next action (2026-10-06): the owner checkpoint list in [spec.md](spec.md), starting with unlocking the desktop so that the primary can rerun the T-03 desktop lane (steps 2-5, including the single Sandbox batch) on the pushed candidate.

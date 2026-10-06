@@ -21,21 +21,6 @@ language used in user conversations or agent sessions. This includes task,
 handoff, and inter-agent prompts. Conversational replies may use the user's
 language.
 
-## Codex subagent policy
-
-This policy applies only to OpenAI Codex agents working in this repository. It
-does not apply to other coding tools, IDE assistants, external agents, or
-application/runtime model selection.
-
-- Codex subagents are enabled. Use GPT-6 Astra with reasoning effort `low`
-  (`model = "gpt-6-astra"`) for every Codex subagent.
-- Allow at most one concurrent Codex subagent per session, excluding the
-  primary agent.
-- The primary Codex agent keeps its configured model and owns architecture,
-  difficult reasoning, integration, and final decisions.
-- If GPT-6 Astra or `low` is unavailable for a Codex subagent, report the
-  constraint instead of substituting another model or reasoning effort.
-
 Ask when a missing decision changes scope, product intent, significant
 architecture, dependencies, security boundaries, or external/destructive
 authority. Backlog status and historical permissions do not select work.
