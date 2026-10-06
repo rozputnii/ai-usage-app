@@ -14,8 +14,6 @@ internal sealed record AuditInput(DateTimeOffset Now, string ZoneId, AccountSnap
 {
     public string SyntheticMarker { get; init; } = "AI Usage synthetic audit v1";
     public Dictionary<string, CardState> ExpectedStates { get; init; } = [];
-    // Explicit presentation-contract evidence, never inferred from provider subscription names or payloads.
-    public Dictionary<string, MonetaryScope> ScopeAnnotations { get; init; } = [];
     public AccountSnapshot[]? NextAccounts { get; init; }
     public DateTimeOffset? NextNow { get; init; }
     public SignInFailure? SignInFailure { get; init; }

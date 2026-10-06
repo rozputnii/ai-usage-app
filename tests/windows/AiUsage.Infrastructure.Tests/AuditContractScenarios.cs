@@ -44,8 +44,9 @@ public sealed partial class AuditScenarioTests
         observations.Add(new(moneyKey, new MoneyQuantity(scenario == "EXTRA-02-correction" ? 900 : 1100, 2,
             scenario == "EXTRA-02-currency" ? "EUR" : "USD"), new DateTimeOffset(Now.Date, TimeSpan.Zero)));
         var moneyId = LiveLedgerProjection.CardId(moneyKey);
-        input = input with { Observations = observations.ToArray(), ScopeAnnotations = scenario == "EXTRA-02-unknown" ? []
-            : new() { [moneyId] = scenario == "EXTRA-02-shared" ? MonetaryScope.Shared : MonetaryScope.Account } };
+        input = input with { Observations = observations.ToArray() };
+        Dictionary<string, MonetaryScope> scopes = scenario == "EXTRA-02-unknown" ? []
+            : new() { [moneyId] = scenario == "EXTRA-02-shared" ? MonetaryScope.Shared : MonetaryScope.Account };
         input.Labels[account.AccountId.ToString("N")] += " · explicit presentation scope";
         if (scenario == "EXTRA-02-stale")
         {
@@ -63,7 +64,7 @@ public sealed partial class AuditScenarioTests
             {
                 var key = new ReadingSeriesKey(account.AccountId.ToString("N"), fact.Key);
                 data.Add(new(fact, key, (await store.ReadAsync(key, CancellationToken.None)).Value)
-                    { MonetaryScope = input.ScopeAnnotations.GetValueOrDefault(LiveLedgerProjection.CardId(key)) });
+                    { MonetaryScope = scopes.GetValueOrDefault(LiveLedgerProjection.CardId(key)) });
             }
             var model = LiveLedgerProjection.Account(account, input.Labels[account.AccountId.ToString("N")], data, input.Configuration, input.Now, TimeZoneInfo.Utc, null);
             var card = Assert.Single(model.Cards, c => c.CardId == LiveLedgerProjection.CardId(weeklyKey));
@@ -94,7 +95,8 @@ public sealed partial class AuditScenarioTests
         first.Labels[first.Accounts[0].AccountId.ToString("N")] += " · explicit scope annotation";
         second.Labels[second.Accounts[0].AccountId.ToString("N")] += " · scope unknown";
         var input = first with { Accounts = [.. first.Accounts, .. second.Accounts], Labels = first.Labels.Concat(second.Labels).ToDictionary(),
-            Observations = [.. first.Observations, .. second.Observations], ScopeAnnotations = new() { [firstId] = shared ? MonetaryScope.Shared : MonetaryScope.Account } };
+            Observations = [.. first.Observations, .. second.Observations] };
+        var scopes = new Dictionary<string, MonetaryScope> { [firstId] = shared ? MonetaryScope.Shared : MonetaryScope.Account };
         var root = Path.Combine(Path.GetTempPath(), "aiu-audit-scope-" + Guid.NewGuid().ToString("N"));
         using var store = new LocalBudgetStore(root);
         try
@@ -106,7 +108,7 @@ public sealed partial class AuditScenarioTests
                 await new QuotaObservationRecorder(capture).RecordAsync(account.AccountId.ToString("N"), "claude", account.Session, CancellationToken.None);
                 var facts = Assert.Single(account.Session.Quota!.Limits!.Limits); var key = new ReadingSeriesKey(account.AccountId.ToString("N"), facts.Key);
                 var data = new LedgerLimit(facts, key, (await store.ReadAsync(key, CancellationToken.None)).Value)
-                    { MonetaryScope = input.ScopeAnnotations.GetValueOrDefault(LiveLedgerProjection.CardId(key)) };
+                    { MonetaryScope = scopes.GetValueOrDefault(LiveLedgerProjection.CardId(key)) };
                 cards.Add(Assert.Single(LiveLedgerProjection.Account(account, input.Labels[account.AccountId.ToString("N")], [data], input.Configuration, input.Now, TimeZoneInfo.Utc, null).Cards));
             }
             var annotated = cards[0]; var ordinary = cards[1];

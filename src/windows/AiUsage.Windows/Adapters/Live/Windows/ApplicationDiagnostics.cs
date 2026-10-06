@@ -75,7 +75,7 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
         sink = null;
         if (draining is not null) await draining.StopAsync();
     }
-    private static bool Packaged()
+    internal static bool Packaged()
     {
         try { _ = Windows.ApplicationModel.Package.Current.Id; return true; }
         catch (InvalidOperationException) { return false; }
