@@ -309,6 +309,7 @@ public sealed partial class AuditWindows
         private readonly Process process;
         private readonly IntPtr windowHandle;
         private readonly UIA3Automation automation = new();
+        private readonly List<string> standardError = [];
         public string Input { get; }
         public string Root { get; }
         public string Evidence { get; }
@@ -328,7 +329,7 @@ public sealed partial class AuditWindows
             Evidence = evidenceDirectory ?? Required("AIU_SMOKE_EVIDENCE_DIRECTORY");
             Root = stateDirectory ?? Path.Combine(Path.GetTempPath(), "aiu-ui-audit-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(Evidence);
-            var start = new ProcessStartInfo(Required("AIU_SMOKE_EXE")) { UseShellExecute = false };
+            var start = new ProcessStartInfo(Required("AIU_SMOKE_EXE")) { UseShellExecute = false, RedirectStandardError = true };
             start.ArgumentList.Add("--demo"); start.ArgumentList.Add("--audit-input=" + input);
             start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Root;
             Application? launched = null;
@@ -343,8 +344,17 @@ public sealed partial class AuditWindows
                     Assert.Equal(Path.GetFullPath(Required("AIU_SMOKE_EXE")), candidate.MainModule!.FileName, ignoreCase: true);
                     Assert.True(Wait(() => HasProcessContext(candidate, Root, Input)), "BLOCKED: attachment requires the process-specific synthetic fixture receipt");
                 }
-                app = launched = attachProcessId is { } id ? Application.Attach(id) : Application.Launch(start);
-                process = launchedProcess = Process.GetProcessById(app.ProcessId);
+                if (attachProcessId is { } id) app = launched = Application.Attach(id);
+                else
+                {
+                    // Same as Application.Launch, but owning the process keeps a rejected audit selection's
+                    // standard error (exception type name only) and exit code for the startup record.
+                    launchedProcess = Process.Start(start)!;
+                    launchedProcess.ErrorDataReceived += (_, e) => { if (e.Data is not null) lock (standardError) standardError.Add(e.Data); };
+                    launchedProcess.BeginErrorReadLine();
+                    app = launched = new Application(launchedProcess);
+                }
+                process = launchedProcess ??= Process.GetProcessById(app.ProcessId);
                 _ = process.Handle;
                 Window? window = null;
                 var started = Wait(() => (window = OwnedSurfaces().FirstOrDefault(w =>
@@ -414,10 +424,20 @@ public sealed partial class AuditWindows
             {
                 var logs = Path.Combine(Root, "logs");
                 if (Directory.Exists(logs))
-                    foreach (var file in Directory.EnumerateFiles(logs, "application-*.jsonl"))
+                    foreach (var file in Directory.EnumerateFiles(logs, "application-*.jsonl").Concat(Directory.EnumerateFiles(logs, "critical-*.jsonl")))
                         File.Copy(file, Path.Combine(Evidence, "startup-" + Path.GetFileName(file)), overwrite: true);
                 File.WriteAllText(Path.Combine(Evidence, "startup-requests.txt"), Receipts);
             }
+            // Recorded with or without a marker: a rejected selection exits before creating one.
+            // After exit, drain redirected standard error, bounded in case an inherited handle keeps the pipe open.
+            if (process.HasExited)
+            {
+                using var drained = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                try { process.WaitForExitAsync(drained.Token).Wait(); }
+                catch (AggregateException) { /* Keep what was captured before the bound. */ }
+            }
+            string[] errors;
+            lock (standardError) errors = [.. standardError];
             var candidates = automation.GetDesktop().FindAllChildren().Select(w =>
             {
                 var handle = w.Properties.NativeWindowHandle.ValueOrDefault;
@@ -427,6 +447,7 @@ public sealed partial class AuditWindows
             File.WriteAllText(Path.Combine(Evidence, "startup-failure.json"), JsonSerializer.Serialize(new
             {
                 Synthetic = true, ProcessExited = process.HasExited, ExitCode = process.HasExited ? (int?)process.ExitCode : null,
+                StandardError = errors,
                 Windows = candidates.Select(w => new
                 {
                     Name = w.Window.Properties.Name.ValueOrDefault, NativeOwner = w.NativeOwner,

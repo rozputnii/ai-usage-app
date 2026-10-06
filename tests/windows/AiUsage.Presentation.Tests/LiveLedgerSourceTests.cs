@@ -11,43 +11,6 @@ namespace AiUsage.Presentation.Tests;
 
 public sealed class LiveLedgerSourceTests
 {
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    public async Task MonetaryScopeAnnotationsAreExplicitAndLimitedToTheirAccount(int scopeValue)
-    {
-        var clock = new Clock(); var store = new Store(); var first = Guid.NewGuid(); var second = Guid.NewGuid();
-        var facts = new LimitFacts(new("claude", "CL-X", "extra-usage"), LimitKind.MonetaryPool, "USD", FactValue.Finite(new MoneyQuantity(30000, 2, "USD")))
-            { Used = new MoneyQuantity(12550, 2, "USD"), AllowsCalendarFallback = true, Enabled = true };
-        AccountSnapshot Money(Guid id) => new(id, "claude", true, new(ProviderSessionStatus.QuotaAvailable,
-            new QuotaSnapshot(clock.Now, null, [], null, null, null, null) { Limits = new(clock.Now, null, SnapshotSource.ProviderApi, "synthetic", [facts]) }, FromCache: true), false, null);
-        var accounts = new Accounts { Current = [Money(first), Money(second)] };
-        store.Runs = new[] { first, second }.SelectMany(id =>
-        {
-            var series = new ReadingSeriesKey(id.ToString("N"), facts.Key);
-            var start = new ReadingRun(series, new MoneyQuantity(10000, 2, "USD"), new DateTimeOffset(clock.Now.Date, TimeSpan.Zero),
-                new DateTimeOffset(clock.Now.Date, TimeSpan.Zero), "month", null, SnapshotSource.ProviderApi);
-            return new[] { start, start with { Value = facts.Used!, FirstSeen = clock.Now, LastConfirmed = clock.Now } };
-        }).ToArray();
-        var firstId = LiveLedgerProjection.CardId(new(first.ToString("N"), facts.Key));
-        using var source = new LiveLedgerSource(accounts, store, store, store,
-            new LedgerPreferenceStore(_ => Task.FromResult<string?>(null), (_, _) => Task.CompletedTask),
-            action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc,
-            scopeAnnotations: new Dictionary<string, MonetaryScope> { [firstId] = (MonetaryScope)scopeValue });
-        try
-        {
-            await source.InitializeAsync(null, Token);
-            var firstCard = Assert.Single(source.Current.Accounts[0].Cards); var secondCard = Assert.Single(source.Current.Accounts[1].Cards);
-            Assert.Equal(scopeValue == 2 ? CardLayout.Note : CardLayout.Pool, firstCard.Layout);
-            Assert.Equal(scopeValue == 2 ? null : firstId, firstCard.CapTargetId);
-            Assert.Equal(CardLayout.Pool, secondCard.Layout); Assert.NotNull(secondCard.CapTargetId);
-            Assert.Equal(125.50m, firstCard.Figures.Used); Assert.Equal(125.50m, secondCard.Figures.Used);
-            Assert.Equal(facts, accounts.Current[0].Session.Quota!.Limits!.Limits[0]);
-        }
-        finally { await source.StopAsync(); }
-    }
-
     [Fact]
     public async Task OpenHistoryUpdatesAfterStoredReadingsChangeAndKeepsItsSelectedDay()
     {

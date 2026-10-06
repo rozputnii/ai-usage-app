@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Security.Cryptography;
 using AiUsage.Adapters.Live.Audit;
 using AiUsage.Core.Accounts;
@@ -14,20 +15,45 @@ public sealed class AuditReplayTests
     private static readonly DateTimeOffset Now = new(2026, 10, 7, 12, 0, 0, TimeSpan.Zero);
     private static AuditInput Empty => new(Now, "UTC", [], [], [], BudgetConfiguration.Default);
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(99)]
-    public void AuditScopeAnnotationRejectsUnmatchedAndUndefinedScopesBeforeCreatingStorage(int scope)
+    [Fact]
+    public void OpenAcceptsPageFixtureWithoutScopeAnnotations() => AssertOpensFixtureWithoutScopeAnnotations(Empty);
+
+    [Fact]
+    public void OpenAcceptsMaintenanceFixtureWithoutScopeAnnotations() =>
+        AssertOpensFixtureWithoutScopeAnnotations(Empty with { UseProductMaintenance = true });
+
+    // AUD-01: exported page and maintenance fixtures omit the former annotation property.
+    private static void AssertOpensFixtureWithoutScopeAnnotations(AuditInput input)
     {
-        var root = Path.Combine(Path.GetTempPath(), "aiu-audit-annotation-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(root); var fixture = Path.Combine(root, "input.json");
+        var root = Path.Combine(Path.GetTempPath(), "aiu-audit-omitted-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var fixture = Path.Combine(root, "input.json");
         try
         {
-            var input = Empty with { ScopeAnnotations = new() { ["unmatched-synthetic-series"] = (AiUsage.Adapters.Live.MonetaryScope)scope } };
-            File.WriteAllText(fixture, JsonSerializer.Serialize(input, AuditJson.Default.AuditInput));
+            var json = JsonNode.Parse(JsonSerializer.Serialize(input, AuditJson.Default.AuditInput))!.AsObject();
+            json.Remove("ScopeAnnotations");
+            File.WriteAllText(fixture, json.ToJsonString());
             var state = Path.Combine(root, "state");
-            Assert.Throws<InvalidDataException>(() => AuditReplay.Open(["--demo", "--audit-input=" + fixture], state));
+            Assert.NotNull(AuditReplay.Open(["--demo", "--audit-input=" + fixture], state, packaged: false));
+            Assert.True(File.Exists(Path.Combine(state, "synthetic-audit.marker")));
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    [Fact]
+    public void OpenIgnoresAuditInputInPackagedProcess()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "aiu-audit-packaged-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var fixture = Path.Combine(root, "input.json");
+        var state = Path.Combine(root, "state");
+        try
+        {
+            File.WriteAllText(fixture, JsonSerializer.Serialize(Empty, AuditJson.Default.AuditInput));
+            Assert.Null(AuditReplay.Open(["--demo", "--audit-input=" + fixture], state, packaged: true));
+            Assert.Null(AuditReplay.Open(["--demo", "--audit-input=" + Path.Combine(root, "missing.json")], state, packaged: true));
             Assert.False(Directory.Exists(state));
+            Assert.False(File.Exists(Path.Combine(state, "synthetic-audit.marker")));
         }
         finally { Directory.Delete(root, true); }
     }
@@ -41,7 +67,7 @@ public sealed class AuditReplayTests
         try
         {
             File.WriteAllText(fixture, JsonSerializer.Serialize(Empty with { UseProductMaintenance = true }, AuditJson.Default.AuditInput));
-            var replay = AuditReplay.Open(["--demo", "--audit-input=" + fixture], Path.Combine(root, "state"))!;
+            var replay = AuditReplay.Open(["--demo", "--audit-input=" + fixture], Path.Combine(root, "state"), packaged: false)!;
             Assert.Equal("--demo --audit-input=\"" + fixture + "\"", replay.RestartArguments);
             replay.RecordProcess();
             var receipt = JsonSerializer.Deserialize(File.ReadAllText(Path.Combine(replay.Root, "process-" + Environment.ProcessId + ".json")), AuditJson.Default.AuditProcessReceipt)!;
@@ -50,7 +76,7 @@ public sealed class AuditReplayTests
             Assert.Equal(Now, receipt.ControlledNow); Assert.Equal("UTC", receipt.ZoneId);
             var invalid = Empty with { UseProductMaintenance = true, NextAccounts = [] };
             File.WriteAllText(fixture, JsonSerializer.Serialize(invalid, AuditJson.Default.AuditInput));
-            Assert.Throws<InvalidDataException>(() => AuditReplay.Open(["--demo", "--audit-input=" + fixture], Path.Combine(root, "rejected")));
+            Assert.Throws<InvalidDataException>(() => AuditReplay.Open(["--demo", "--audit-input=" + fixture], Path.Combine(root, "rejected"), packaged: false));
             Assert.False(Directory.Exists(Path.Combine(root, "rejected")));
         }
         finally { Directory.Delete(root, true); }
@@ -82,15 +108,15 @@ public sealed class AuditReplayTests
     {
         var root = Path.Combine(Path.GetTempPath(), "aiu-audit-reject-" + Guid.NewGuid().ToString("N"));
         var args = demo ? new[] { "--demo", "--audit-input=does-not-exist" } : ["--audit-input=does-not-exist"];
-        Assert.Throws<InvalidOperationException>(() => AuditReplay.Open(args, storage ? root : null));
+        Assert.Throws<InvalidOperationException>(() => AuditReplay.Open(args, storage ? root : null, packaged: false));
         Assert.False(Directory.Exists(root));
     }
 
     [Fact]
     public void OrdinaryLaunchDoesNotInspectOrCreateAuditStorage()
     {
-        Assert.Null(AuditReplay.Open([], "not-a-valid-absolute-path"));
-        Assert.Null(AuditReplay.Open(["--demo"], null));
+        Assert.Null(AuditReplay.Open([], "not-a-valid-absolute-path", packaged: false));
+        Assert.Null(AuditReplay.Open(["--demo"], null, packaged: false));
     }
 
     [Fact]
@@ -104,11 +130,11 @@ public sealed class AuditReplayTests
         {
             File.WriteAllText(fixture, JsonSerializer.Serialize(Empty, AuditJson.Default.AuditInput));
             var args = new[] { "--demo", "--audit-input=" + fixture };
-            Assert.NotNull(AuditReplay.Open(args, state));
+            Assert.NotNull(AuditReplay.Open(args, state, packaged: false));
             File.WriteAllText(Path.Combine(state, "preserve.txt"), "synthetic retained state");
-            Assert.NotNull(AuditReplay.Open(args, state));
+            Assert.NotNull(AuditReplay.Open(args, state, packaged: false));
             File.WriteAllText(Path.Combine(state, "synthetic-audit.marker"), "different marker");
-            Assert.Throws<InvalidOperationException>(() => AuditReplay.Open(args, state));
+            Assert.Throws<InvalidOperationException>(() => AuditReplay.Open(args, state, packaged: false));
             Assert.Equal("synthetic retained state", File.ReadAllText(Path.Combine(state, "preserve.txt")));
         }
         finally { Directory.Delete(root, true); }

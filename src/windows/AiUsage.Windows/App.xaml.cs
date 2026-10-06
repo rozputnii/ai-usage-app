@@ -27,7 +27,17 @@ public partial class App : Application
 
     public App()
     {
-        auditReplay = AuditReplay.Open(Environment.GetCommandLineArgs(), Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY"));
+        try
+        {
+            auditReplay = AuditReplay.Open(Environment.GetCommandLineArgs(),
+                Environment.GetEnvironmentVariable("AIU_DEVELOPMENT_STATE_DIRECTORY"), ApplicationDiagnostics.Packaged());
+        }
+        catch (Exception exception)
+        {
+            // A rejected audit selection exits before diagnostics start: exception type name only, distinct exit code.
+            Console.Error.WriteLine(exception.GetType().Name);
+            Environment.Exit(AuditReplay.OpenFailureExitCode);
+        }
         diagnostics.Initialize(Environment.GetCommandLineArgs().Contains("--demo", StringComparer.Ordinal), auditReplay?.Root);
         UnhandledException += OnUnhandledException;
         try { DiagnosticProbe.BeforeXaml(); InitializeComponent(); }
