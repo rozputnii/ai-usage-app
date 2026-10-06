@@ -62,7 +62,15 @@ Equal ($publishText -match '-FeedUri "\$SiteUrl/AiUsage\.appinstaller"') $true
 Equal ($publishText -match '-PackageUri "https://github\.com/\$repo/releases/download/\$tag/\$\(\$package\.Name\)"') $true
 Equal ($publishText -match 'Uri="https://github\.com/\$repo/releases/download/\$tag/\$\(\$file\.Name\)" \}') $true
 Equal ($publishText -match '(?:-PackageUri |Uri=)"\$SiteUrl/\$\(\$(?:package|file)\.Name\)"') $false
-$madePublic = $publishText.IndexOf("'release','edit',`$tag,'--repo',`$repo,'--draft=false'")
+Equal ($publishText -match 'Copy-Item -LiteralPath \$(?:package|file)\.FullName -Destination \$site') $false
+Equal ($publishText -match "\.Replace\('\{\{TAG\}\}', \`$tag\)") $true
+$indexPage = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '../../tools/windows/preview-index.html'))
+$releaseLinks = 'https://github\.com/rozputnii/ai-usage-app/releases/download/\{\{TAG\}\}/'
+Equal ($indexPage -match "href=""$($releaseLinks)\{\{PACKAGE\}\}""") $true
+Equal ($indexPage -match "href=""$($releaseLinks)Microsoft\.WindowsAppRuntime\.2\.msix""") $true
+Equal ($indexPage -match "href=""(?!$releaseLinks)[^""]*(?:\.msix|\{\{PACKAGE\}\})""") $false
+Equal ($indexPage -match 'href="AiUsage\.appinstaller"' -and $indexPage -match 'href="AiUsage\.Development\.cer"') $true
+$madePublic =$publishText.IndexOf("'release','edit',`$tag,'--repo',`$repo,'--draft=false'")
 Equal ($madePublic -gt 0 -and $madePublic -lt $publishText.IndexOf('"site=$site" >> $env:GITHUB_OUTPUT')) $true
 $head = git rev-parse HEAD
 if ($LASTEXITCODE -ne 0) { throw 'Release ancestry tests require a Git checkout.' }

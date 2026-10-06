@@ -141,7 +141,8 @@ The feed stays on that site, but its package and Windows App SDK dependency URIs
 at the immutable assets of the same GitHub release (amended 2026-10-06, ANL-12): on the
 owner's machine the IPv6 path to GitHub Pages reset TLS connections and App Installer
 aborted the Pages download (0x80072EFE), while the IPv4-only release hosts worked every
-time. The site keeps copies for its direct-install links.
+time. The install page's direct-download links use the same release assets; the site no
+longer carries package copies.
 Draft releases reserve versions before building; a failure consumes its version. The
 release queue retains up to 100 pending jobs. Only a candidate containing every prior
 published source can update the feed; a late older source may publish an artifact but

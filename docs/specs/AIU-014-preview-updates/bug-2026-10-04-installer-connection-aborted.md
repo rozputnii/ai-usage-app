@@ -44,7 +44,8 @@ Since the 2026-10-06 fix, the feed, its `Uri` attribute, the CER, `release.json`
 immutable assets of the same release:
 `https://github.com/rozputnii/ai-usage-app/releases/download/preview-<version>/<file>`.
 The release is made public before the Pages deploy, so these URIs resolve when the new
-feed goes live. The site keeps package copies for the direct-install links in `index.html`.
+feed goes live. The direct-download links in `index.html` use the same release assets,
+and the site no longer carries the package or dependency.
 
 ## History
 
