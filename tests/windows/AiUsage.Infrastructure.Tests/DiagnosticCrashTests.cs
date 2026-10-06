@@ -30,7 +30,7 @@ public sealed class DiagnosticCrashTests
         }
         finally
         {
-            if (!child.HasExited) { child.Kill(entireProcessTree: true); await child.WaitForExitAsync(TestContext.Current.CancellationToken); }
+            if (!child.HasExited) { child.Kill(entireProcessTree: true); child.WaitForExit(); }
             if (Directory.Exists(root)) Directory.Delete(root, true);
         }
     }
@@ -65,14 +65,16 @@ public sealed class DiagnosticCrashTests
                 await Task.Delay(50, TestContext.Current.CancellationToken);
             Assert.True(Directory.Exists(folder));
             child.Kill(entireProcessTree: true);
-            await child.WaitForExitAsync(TestContext.Current.CancellationToken);
+            // WaitForExitAsync can return once the exit code is set, before Windows has closed the killed
+            // probe's handles; its session lease would still read as a live process. Wait on the process object.
+            child.WaitForExit();
             Assert.Empty(Directory.GetFiles(folder, "critical-*.jsonl"));
             using var restarted = new FileDiagnostics(root);
             Assert.Contains("PreviousExitUnknown", await restarted.PreviewAsync());
         }
         finally
         {
-            if (!child.HasExited) { child.Kill(entireProcessTree: true); await child.WaitForExitAsync(TestContext.Current.CancellationToken); }
+            if (!child.HasExited) { child.Kill(entireProcessTree: true); child.WaitForExit(); }
             if (Directory.Exists(root)) Directory.Delete(root, true);
         }
     }
