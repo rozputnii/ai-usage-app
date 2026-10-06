@@ -59,9 +59,9 @@ internal sealed partial class AppInstallerUpdates : IPackageUpdates
             var manager = new PackageManager();
             var result = await manager.AddPackageByAppInstallerFileAsync(feed, AddPackageByAppInstallerOptions.ForceTargetAppShutdown,
                 manager.GetDefaultPackageVolume()).AsTask(ct);
-            if (result.ExtendedErrorCode is null) return null;
+            // Reaching here means Windows did not close this process: drop the restart registration either way.
             _ = UnregisterApplicationRestart();
-            return result.ExtendedErrorCode.HResult;
+            return result.ExtendedErrorCode?.HResult;
         }
         catch (Exception error)
         {

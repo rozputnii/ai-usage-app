@@ -99,7 +99,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         try { await running; }
         catch (Exception error) when (error is not OperationCanceledException || !token.IsCancellationRequested) { /* The lifetime logs tick failures. */ }
         var started = time.GetTimestamp();
-        while (accounts.Current.Any(a => a.Busy))
+        while (accounts.Current.Any(a => a.Busy) || SigningIn)
         {
             if (time.GetElapsedTime(started) >= busyLimit)
             {
@@ -112,6 +112,9 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     }
 
     public void ResumeRefresh() { lock (sync) paused = false; }
+    // Provider commands start no new work while an update install is draining; Windows may close the process next.
+    private bool Paused { get { lock (sync) return paused; } }
+    private bool SigningIn { get { lock (sync) return strip?.Phase == SignInPhase.Waiting; } }
 
     public async Task InitializeAsync(string? legacyPreferences, CancellationToken token)
     {
@@ -369,7 +372,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         Guid attempt = Guid.NewGuid();
         lock (sync)
         {
-            if (stopped || !initialized || strip?.Phase == SignInPhase.Waiting) return;
+            if (stopped || paused || !initialized || strip?.Phase == SignInPhase.Waiting) return;
             strip = new(SignInPhase.Waiting, provider, null, null) { AttemptId = attempt, ReconnectAccountId = reconnect?.ToString("N") };
         }
         QueueRebuild();
@@ -418,17 +421,20 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     }
     public async Task SignOutAsync(string accountId, CancellationToken ct)
     {
+        if (Paused) return;
         if (Guid.TryParseExact(accountId, "N", out var id) && (await accounts.DisconnectAsync(id, ct)).Outcome != AccountOutcome.Done)
             localStatus = "Sign-out could not finish; the stored sign-in still needs attention";
         QueueRebuild(); await WaitForIdleAsync();
     }
     public async Task RefreshAccountAsync(string accountId, CancellationToken ct)
     {
+        if (Paused) return;
         if (Guid.TryParseExact(accountId, "N", out var id)) await accounts.RefreshAsync(id, ct);
         QueueRebuild(); await WaitForIdleAsync();
     }
     public async Task RefreshAsync(CancellationToken ct)
     {
+        if (Paused) return;
         await Task.WhenAll(accounts.Current.Where(a => a.Connected).Select(a => accounts.RefreshAsync(a.AccountId, ct)));
         QueueRebuild(); await WaitForIdleAsync();
     }

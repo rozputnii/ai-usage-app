@@ -160,6 +160,7 @@ internal sealed class UpdateCoordinator(IPackageUpdates package, IUpdateHost hos
 
     private async Task CheckCoreAsync()
     {
+        var before = Status;
         Publish(Status with { State = UpdateState.Checking, ErrorCode = null });
         UpdateCheckResult result;
         try { result = await package.CheckAsync(stop.Token); }
@@ -172,6 +173,12 @@ internal sealed class UpdateCoordinator(IPackageUpdates package, IUpdateHost hos
             return;
         }
         checkFailures = 0;
+        if (result.Available && before.State == UpdateState.InstallFailed)
+        {
+            // Keep the failure and its code visible; Retry stays the only way to install again.
+            Publish(before with { CheckedAt = time.GetUtcNow() });
+            return;
+        }
         var state = !result.Available ? UpdateState.UpToDate : suspended ? UpdateState.NotApplied :
             mode != UpdateMode.Off ? UpdateState.Ready : UpdateState.Available;
         Publish(new(state, version, time.GetUtcNow()));
@@ -196,9 +203,16 @@ internal sealed class UpdateCoordinator(IPackageUpdates package, IUpdateHost hos
             int? code;
             try { code = await package.InstallAsync("--updated-from=" + version + (host.WindowHidden ? " --background" : string.Empty), stop.Token); }
             catch (Exception error) when (error is not OperationCanceledException) { code = error.HResult; }
-            if (code is not { } failure) return; // Windows is closing this process to install.
-            if (++installFailures == 1 || installFailures % LogEvery == 0) log.InstallFailed(failure, installFailures);
+            // A failed or returning install suspends automatic installs in this process; only the button tries again.
+            suspended = true;
             host.ResumeRefresh();
+            if (code is not { } failure)
+            {
+                // Windows normally closes this process before the call returns; a return means nothing was applied here.
+                Publish(Status with { State = UpdateState.NotApplied, ErrorCode = null });
+                return;
+            }
+            if (++installFailures == 1 || installFailures % LogEvery == 0) log.InstallFailed(failure, installFailures);
             Publish(Status with { State = UpdateState.InstallFailed, ErrorCode = failure });
         }
         finally { installing = false; }

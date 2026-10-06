@@ -116,7 +116,7 @@ public sealed class UpdateCoordinatorTests
         scheduler.Run(Minute);
         await coordinator.CheckAsync(manual: true);
         Assert.Equal(UpdateState.Available, host.Status!.State);
-        await coordinator.InstallAsync(automatic: false);
+        _ = coordinator.InstallAsync(automatic: false); // A successful install never returns: Windows closes the process.
         Assert.Equal("--updated-from=2026.10.604.0", package.LastArguments);
         Assert.Equal([(false, Current)], log.Starts);
     }
@@ -149,6 +149,42 @@ public sealed class UpdateCoordinatorTests
         Assert.Equal(1, host.Resumed);
         Assert.Equal(new UpdateStatus(UpdateState.InstallFailed, Current, host.Status!.CheckedAt, busy), host.Status);
         Assert.Equal([(busy, 1)], log.InstallFailures);
+    }
+
+    [Fact]
+    public async Task InstallThatReturnsWithoutClosingTheAppResumesAndSuspends()
+    {
+        var (coordinator, package, host, _, scheduler) = Create(UpdateMode.Always);
+        host.WindowHidden = true;
+        package.Result = new(true, null);
+        package.InstallReturns = true;
+        coordinator.Start();
+        scheduler.Run(Minute);
+        Assert.Equal(1, package.Installs);
+        Assert.Equal(1, host.Resumed);
+        Assert.Equal(UpdateState.NotApplied, host.Status!.State);
+        scheduler.Run(Interval);
+        Assert.Equal(1, package.Installs);
+        await coordinator.InstallAsync(automatic: false);
+        Assert.Equal(2, package.Installs);
+    }
+
+    [Fact]
+    public async Task FailedAutomaticInstallIsNotRetriedAutomatically()
+    {
+        var (coordinator, package, host, _, scheduler) = Create(UpdateMode.Always);
+        var busy = unchecked((int)0x80073D02);
+        host.WindowHidden = true;
+        package.Result = new(true, null);
+        package.InstallResult = busy;
+        coordinator.Start();
+        scheduler.Run(Minute);
+        scheduler.Run(Interval);
+        Assert.Equal(1, package.Installs);
+        Assert.Equal(UpdateState.InstallFailed, host.Status!.State);
+        Assert.Equal(busy, host.Status.ErrorCode);
+        await coordinator.InstallAsync(automatic: false);
+        Assert.Equal(2, package.Installs);
     }
 
     [Fact]
@@ -213,7 +249,7 @@ public sealed class UpdateCoordinatorTests
         Assert.Equal(0, package.Installs);
         Assert.Equal(UpdateState.NotApplied, host.Status!.State);
         Assert.Empty(log.Applications);
-        await coordinator.InstallAsync(automatic: false);
+        _ = coordinator.InstallAsync(automatic: false);
         Assert.Equal(1, package.Installs);
     }
 
@@ -280,11 +316,17 @@ public sealed class UpdateCoordinatorTests
         public UpdateCheckResult Result { get; set; } = new(false, null);
         public TaskCompletionSource<UpdateCheckResult>? Hold { get; set; }
         public int? InstallResult { get; set; }
+        /// <summary>By default an install never returns, as when Windows closes the process; set to model a success return.</summary>
+        public bool InstallReturns { get; set; }
         public int Checks { get; private set; }
         public int Installs { get; private set; }
         public string? LastArguments { get; private set; }
         public Task<UpdateCheckResult> CheckAsync(CancellationToken ct) { Checks++; return Hold?.Task ?? Task.FromResult(Result); }
-        public Task<int?> InstallAsync(string restartArguments, CancellationToken ct) { Installs++; LastArguments = restartArguments; return Task.FromResult(InstallResult); }
+        public Task<int?> InstallAsync(string restartArguments, CancellationToken ct)
+        {
+            Installs++; LastArguments = restartArguments;
+            return InstallResult is not null || InstallReturns ? Task.FromResult(InstallResult) : new TaskCompletionSource<int?>().Task;
+        }
     }
 
     private sealed class FakeHost : IUpdateHost

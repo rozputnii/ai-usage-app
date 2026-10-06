@@ -227,6 +227,47 @@ public sealed class LiveLedgerSourceTests
         finally { await source.StopAsync(); }
     }
 
+    [Fact]
+    public async Task ProviderCommandsDoNothingWhileRefreshIsPaused()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var accounts = new Accounts { Current = [Account(id, clock.Now)] };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.True(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+            await source.RefreshAsync(Token);
+            await source.RefreshAccountAsync(id.ToString("N"), Token);
+            await source.SignInAsync(ProviderKind.Copilot, Token);
+            Assert.Empty(accounts.Refreshed);
+            Assert.Null(source.Current.SignInStrip);
+            source.ResumeRefresh();
+            await source.RefreshAccountAsync(id.ToString("N"), Token);
+            Assert.Equal([id], accounts.Refreshed);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task PauseWaitsForAWaitingSignIn()
+    {
+        var clock = new Clock();
+        var accounts = new Accounts { HoldLogin = true };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            var signIn = source.SignInAsync(ProviderKind.Copilot, Token);
+            Assert.Equal(SignInPhase.Waiting, source.Current.SignInStrip?.Phase);
+            Assert.False(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+            await source.CancelSignInAsync(Token);
+            await signIn;
+            Assert.True(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+        }
+        finally { await source.StopAsync(); }
+    }
+
     private static CancellationToken Token => TestContext.Current.CancellationToken;
     private sealed class Clock : TimeProvider
     {

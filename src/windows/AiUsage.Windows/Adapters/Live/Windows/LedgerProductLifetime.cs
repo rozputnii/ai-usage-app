@@ -188,7 +188,7 @@ internal sealed class LedgerProductLifetime : IUpdateHost, IDisposable
             timer.Stop();
             return await source.PauseRefreshAsync(TimeSpan.FromSeconds(30), token);
         }
-        catch (OperationCanceledException) { ReleaseUpdateGate(); throw; }
+        catch { ReleaseUpdateGate(); throw; }
     }
 
     void IUpdateHost.ResumeRefresh()
