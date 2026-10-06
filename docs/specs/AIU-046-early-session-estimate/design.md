@@ -1,7 +1,7 @@
 ---
 id: AIU-046
 type: design
-status: draft
+status: implemented
 goal: G-003
 scope_version: 1
 ---

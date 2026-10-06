@@ -1,7 +1,7 @@
 ---
 id: AIU-046
 type: feature
-status: draft
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner direction, 2026-10-06, in conversation. The owner asked to show the five-hour window at once and to show a rough window count as early as possible, refining it automatically. The owner chose the interval estimator (approach B), the one-window state and a range for rough estimates (option a). Recorded as D-188. This written specification awaits owner review.

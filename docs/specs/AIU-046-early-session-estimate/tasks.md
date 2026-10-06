@@ -280,10 +280,10 @@ schema_version: 1
 - [ ] **Step 5: Commit** with `feat(AIU-046): one five-hour window cell and estimate range footer`.
 
 ### T-04 - Records, full checks and live run
-- status: in-progress
+- status: done
 - depends_on: [T-03]
 - acceptance: [AC-07]
-- evidence: not-run
+- evidence: docs/specs/AIU-046-early-session-estimate/verification.md; supersession notes in AIU-034/035/038; Infrastructure 882/882, Presentation 193/193, validator tests and document validation pass, diff check clean; demo H2, H3 (rough) and A1 (settled) observed PASS; live unpackaged one-window observation BLOCKED (no connected account in the development state)
 
 **Files:**
 - Modify:
@@ -326,13 +326,19 @@ schema_version: 1
   chose subagent-driven execution in a new primary session.
 - Branch `users/5-hour-limits-display-1e0e91` in worktree
   `.claude/worktrees/5-hour-limits-display-1e0e91`, based on `main` at `ff1d788`.
-  Docs commits `e76caf0` and `6c105d3` are local only, not merged or pushed.
+  All branch commits are local only, not merged or pushed.
 - Done: spec, design, D-188, backlog and G-003 registration. T-01 done in `ed89d1b`,
   T-02 in `4a792d2`, T-03 in `bf3c1d6` and `ce050f1`
   (independent review approved; Minor findings deferred to the whole-branch review).
-- Local state: the test projects and `tools/AiUsage.ProviderConsole` are restored.
+  T-04 records the supersession notes, the checks and the observations in
+  [verification.md](verification.md).
+- Local state: the test projects, `tools/AiUsage.ProviderConsole`,
+  `tools/AiUsage.ProjectValidation` and the app project are restored. The unpackaged
+  development state now holds an empty initialised store with no account.
+- Blocker: the live one-window observation (AC-07) is BLOCKED. No account is connected
+  in the unpackaged development state, and signing in needs the owner.
 - The design's figures come from a throwaway simulation that is not in the repo.
   T-01's tests re-establish them.
-- Exact next action: T-04, Step 1. Dispatch one implementer subagent with the T-04
-  block, Global Constraints, Review Focus, spec.md and design.md, then a fresh
-  reviewer, then the whole-branch review.
+- Exact next action: run the whole-branch review of `ff1d788..HEAD`. Then ask the
+  owner whether to merge to `main` and push, and whether to sign in to the unpackaged
+  build for the live observation first.
