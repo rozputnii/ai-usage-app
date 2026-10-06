@@ -341,7 +341,15 @@ schema_version: 1
   observes the live run or waives the clause.
 - The design's figures come from a throwaway simulation that is not in the repo.
   T-01's tests re-establish them.
-- Exact next action: run the whole-branch review of `ff1d788..HEAD`. Then the owner
-  either connects Claude in the unpackaged development build, so that the live
-  one-window state can be observed for AC-07, or waives the live clause. Then ask the
-  owner whether to merge to `main` and push.
+- Whole-branch review of `ff1d788..3ad65d9` (convergence-review): ready with fixes,
+  no Critical. One fix wave (`c125f3b`..`2616e99`) restored the `Cover` gap test,
+  recorded the owner approval in the spec, clamped the tick allowance, kept the
+  window line in the one-window tray tip and rounded the upper share bound up; a
+  scoped re-review found all five addressed. Results are in verification.md.
+- Open owner questions from the review: a rush or over-today card without an
+  estimate draws today's allowance nowhere and shows the red over label beside a
+  neutral 5h cell; the bounds are guaranteed only while `C` is constant across the
+  pooled windows.
+- Exact next action: the owner either connects Claude in the unpackaged development
+  build, so that the live one-window state can be observed for AC-07, or waives the
+  live clause. Then ask the owner whether to merge to `main` and push.
