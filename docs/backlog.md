@@ -480,6 +480,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - decision-note: On 2026-10-06 the owner accepted decisions AIU045-D1..D9 in docs/specs/AIU-045-ui-audit-follow-up/analysis-2026-10-05.md (section 7). Preview publication is off (`AIU_PREVIEW_ENABLED=false`). The next bounded batch is T-01 from that record; the comprehensive audit stays paused.
 - completion-note: Fix run of 2026-10-06 complete. T-01..T-04 are done. Preview 2026.10.602.0 was published from `4ea9667` (owner dispatch, run 37475616318; the feed's package and dependency URIs now use the immutable GitHub release, which fixed the owner's `0x80072EFE` install failure of 2026.10.601.0) and was installed by the owner with the App Installer GUI; packaged startup, close-to-tray with relaunch, and Open logs passed. Sandbox batch 2 passed the corrected layout scenario (`b17937b`). Final statuses are in the analysis record, section "Final status (2026-10-06, before the owner checkpoint)", and the installed-build results are in the evidence record, section "Post-install verification 2026-10-06". The comprehensive audit continuation and the listed opt-in follow-ups (AUD-05..AUD-09, ANL-20, ANL-23, the AIU-043 device-code delay) stay separately selectable.
 
+## AIU-046 - Show five-hour windows early with an interval session estimate
+- goal: G-003
+- status: selected
+- depends_on: [AIU-035, AIU-038]
+- trigger: owner-selection
+- outcome: Show the current five-hour window as one today cell at once, and show the remaining five-hour window count as soon as integer-rounded readings bound it: a range while rough, one number once settled, narrowing automatically as windows accumulate. Replace the median-of-ratios readiness rule with guaranteed interval bounds (D-188).
+- acceptance: AC-01 through AC-07 in the specification cover the one-window state, guaranteed bounds under both rounding modes, minimum data, narrowing, adaptation and exclusions, rough and settled display, and verification.
+- specification: docs/specs/AIU-046-early-session-estimate/spec.md
+- evidence: not-run
+- registration-note: The owner asked on 2026-10-06 why the Claude five-hour limit was not shown and selected this change in conversation, choosing the interval estimator, the one-window state and a range for rough estimates.
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
