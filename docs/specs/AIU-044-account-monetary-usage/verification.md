@@ -142,3 +142,22 @@ no unresolved findings remain. No redundant second full review was required.
 
 No implementation work remains for AIU-044. Real monetary wire scope remains an explicit
 provider-evidence limitation, not an inferred personal/work classification.
+
+## Post-done corrections (2026-10-06)
+
+Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-044, and its backlog status is unchanged. The synthetic UI audit that started from `383644c`, the source of the last published Preview `2026.10.404.0`, found the defects below in AIU-044 scope (AC-02 and AC-04, as mapped in ANL-06 of the AIU-045 [analysis record](../AIU-045-ui-audit-follow-up/analysis-2026-10-05.md)) after this task was done. As of 2026-10-06 the fixes are on `main`, but no published Preview contains them; shipping them is AIU-045 T-03. Defect descriptions and regression evidence are in the AIU-045 [verification record](../AIU-045-ui-audit-follow-up/verification.md) and the [audit report](../../workflow/ui-ux-audit-2026-10-04/report.md).
+
+| FIX | Defect | Fixing commit | Regression evidence added with the fix |
+| --- | --- | --- | --- |
+| FIX-03 | Money formatting and editing supported only six decimals despite the contract's 0..18 exponents. | `2942e6f` | `AuditFormattingTests.SupportedMoneyPrecisionIsNotTruncated`, `TinyKnownMoneyMustNotDisplayAsZero` and `CapEditingKeepsNativePrecision` |
+| FIX-04 | Cap input accepted incompatible currency symbols and malformed separators. | `2942e6f` | `AuditFormattingTests.InvalidOrForeignCapAmountsAreRejected` and `AbstractCreditsCannotAcceptACurrencySymbol` |
+| FIX-05 | Double conversion lost money cents and small overflow on large amounts. | `2942e6f` | `AuditFormattingTests.CardTextKeepsNativeMoneyPrecisionWhenGeometryNeedsDoubles` and `SmallOverageOnALargeMoneyAmountKeepsItsOverflowLabel` |
+| FIX-06 | Provider overage increased the displayed provider-limit denominator. | `ed092f0` | `AuditFormattingTests.ProviderOverageDoesNotInflateTheDisplayedLimit` |
+| FIX-11 | Tab skipped Save in the inline cap editor. | `2e50e69` | Native red/green evidence only, with no deterministic test (see audit report); the final native rerun is part of AIU-045 T-03. |
+| FIX-12 | Uncapped or nonbinding today tooltips blamed a personal cap. | `2e50e69` | `LedgerCardTests.TodayTooltipNamesTheBindingLimit` |
+
+The fixing commits are `[skip ci]` WIP save points in `git log 383644c..b84bf7c`. Each row's commit is the one that added its regression test (for FIX-11, its cap-editor Tab-navigation change) and changed the fixed source file; the audit report gives no per-commit mapping. The native smoke passes recorded above predate these changes and do not carry over to current `main` (ANL-07); AIU-045 T-03 reruns them.
+
+Never-accepted gap (ANL-13), as of 2026-10-06:
+
+- The installed-app repeat-launch and storage-lease fault (a second process reporting LeaseUnavailable after close-to-tray; see the [UX corrections record](ux-corrections-verification.md)) was fixed with unpackaged evidence only; host package installation and packaged activation were NOT_RUN. Status: pending the owner's installed-build check (AIU-045 T-03).

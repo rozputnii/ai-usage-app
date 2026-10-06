@@ -344,3 +344,20 @@ These results cover T-01 only, not the account registry, migration or multi-acco
 - AIU-039 implementation is complete, with the documented live failure-injection BLOCKED
   result and harness cleanup limitation retained. Standalone extra usage stays hidden;
   its future account-integrated design remains unselected AIU-044.
+
+## Post-done corrections (2026-10-06)
+
+Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-039, and its backlog status is unchanged. The synthetic UI audit that started from `383644c`, the source of the last published Preview `2026.10.404.0`, found the defects below in AIU-039 scope (AC-04, AC-06, AC-07 and AC-08, as mapped in ANL-06 of the AIU-045 [analysis record](../AIU-045-ui-audit-follow-up/analysis-2026-10-05.md)) after this task was done. As of 2026-10-06 the fixes are on `main`, but no published Preview contains them; shipping them is AIU-045 T-03. Defect descriptions and regression evidence are in the AIU-045 [verification record](../AIU-045-ui-audit-follow-up/verification.md) and the [audit report](../../workflow/ui-ux-audit-2026-10-04/report.md).
+
+| FIX | Defect | Fixing commit | Regression test added with the fix |
+| --- | --- | --- | --- |
+| FIX-01 | A successful empty provider reading rendered NotReady instead of NoDisplayedLimits. | `2942e6f` | `LiveLedgerProjectionTests.SuccessfulEmptyQuotaUsesTheSupportedNoDisplayedLimitsState` |
+| FIX-02 | Reset, reading and failure timestamps displayed UTC clocks instead of the selected local timezone. | `2942e6f` | `LiveLedgerProjectionTests.TimestampResetAndReadingClocksUseTheSelectedLocalZone` |
+| FIX-07 | Cancel was disabled during a retried sign-in. | `ed092f0` | `LiveLedgerSourceTests.RetryKeepsTheSharedStripCancelCommandAvailableWhileLoginIsPending` |
+| FIX-08 | Workday accessible and control names stayed stale after toggling. | `ed092f0` | `LedgerInteractionTests.WorkDayNameNotifiesBindingsAndTheLastSelectionCannotBeRemoved` |
+| FIX-09 | The final selected workday looked enabled while its click was silently rejected. | `ed092f0` | The FIX-08 test; the final native rerun is pending (AIU-045 T-03). |
+| FIX-10 | Expired paired five-hour readings still appeared to be the current full window. | `2e50e69` | `LiveLedgerProjectionTests.ExpiredShortWindowDoesNotClaimCurrentUsageOrDiscardTheWeeklyBudget`; the final native rerun is pending (AIU-045 T-03). |
+| FIX-13 | Open history did not refresh its readings or renamed account label. | `9e51fbb`, corrected in `2c0e52b` | `LiveLedgerSourceTests.OpenHistoryUpdatesAfterStoredReadingsChangeAndKeepsItsSelectedDay`; the `2c0e52b` pending-read navigation correction adds `AHistoryRefreshKeepsNavigationMadeWhileTheReadIsPending`. |
+| FIX-14 | A pending history read could reopen the panel after it was closed. | `9e51fbb` | `LiveLedgerSourceTests.ClosingHistoryWhileItsReadIsPendingRejectsTheLateCompletion` |
+
+The fixing commits are `[skip ci]` WIP save points in `git log 383644c..b84bf7c`. Each row's commit is the one that added its regression test and changed the fixed source file; the audit report gives no per-commit mapping. ANL-13 lists no never-accepted AIU-039 gap, and the gaps already recorded above are unchanged. The native smoke passes recorded above predate these changes and do not carry over to current `main` (ANL-07); AIU-045 T-03 reruns them.

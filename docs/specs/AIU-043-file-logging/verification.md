@@ -299,3 +299,14 @@ publishing WaitingForAuthorization/DeviceUserCode, which permits the browser pag
 to appear first. Exact delay/root cause is NOT_RUN pending an instrumented UI
 reproduction; no code-render timestamp, UI fix or successful latency check is claimed.
 The supplied screenshot establishes the GitHub device-entry page, not app timing.
+
+## Post-done corrections (2026-10-06)
+
+Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-043, and its backlog status is unchanged. No FIX-01..FIX-14 defect belongs to AIU-043; its post-done change is the AC-08 startup ordering below.
+
+**AC-08 startup-ordering change (recorded 2026-10-06).** The synthetic UI audit that started from `383644c` changed the startup order in the `App` constructor: `2942e6f` calls `AuditReplay.Open` before `diagnostics.Initialize` and the unhandled-exception hook, and `f4891b9` passes the audit root to `diagnostics.Initialize`. A failure inside `Open` therefore happens before diagnostics exist, so the AC-08 early-startup fault handling cannot record it. This is the AUD-01 and AUD-04 mechanism in section 3 of the AIU-045 [analysis record](../AIU-045-ui-audit-follow-up/analysis-2026-10-05.md). The path is reachable only with `--demo --audit-input=...`; plain `--demo` and live startup never reach it. Its correction is AIU-045 T-02. The AC-08 native startup and disposal probes recorded above predate this change and are NOT_RUN at current `main` (ANL-07); AIU-045 T-03 reruns them.
+
+Never-accepted gaps (ANL-13), as of 2026-10-06:
+
+- AC-13: packaged Open logs (opening the packaged log folder) is NOT_RUN; the final acceptance disposition above passed AC-13 without it because no package installation was requested. Status: pending the owner's installed-build check (AIU-045 T-03).
+- The owner-reported device-code display delay (owner-operated sign-in follow-up above) was never diagnosed; its exact delay and root cause remain NOT_RUN. Status: pending the owner's installed-build check (AIU-045 T-03).

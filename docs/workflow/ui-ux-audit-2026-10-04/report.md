@@ -1,3 +1,5 @@
+Historical record, frozen 2026-10-06 (AIU-045 AUD-10); not maintained.
+
 # Synthetic Windows UI/UX audit — paused
 
 **Owner stopped execution on 2026-10-04.** The follow-up is [AIU-045](../../specs/AIU-045-ui-audit-follow-up/spec.md); read its [findings/handoff](../../specs/AIU-045-ui-audit-follow-up/verification.md) before using the historical checkpoints below. The latest WIP annotation build failed before window creation in two native runs. It has no final verification or complete gallery. Preserve it for diagnosis; do not automatically resume the audit.
