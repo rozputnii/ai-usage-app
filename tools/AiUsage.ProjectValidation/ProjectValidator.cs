@@ -252,7 +252,8 @@ public static class ProjectValidator
             var target = Uri.UnescapeDataString(destination.Split('#')[0]);
             var resolved = Path.GetFullPath(Path.Combine(root, Path.GetDirectoryName(file)!, target.Length == 0 ? Path.GetFileName(file) : target));
             var relative = Path.GetRelativePath(root, resolved).Replace('\\', '/');
-            if (!SafePath(root, relative) || !File.Exists(resolved) && !Directory.Exists(resolved)) error(file, "", "BROKEN_LINK", "Local Markdown link is missing or escapes the repository.");
+            if (!SafePath(root, relative) || !File.Exists(resolved) && !Directory.Exists(resolved) || relative.StartsWith(".ai-usage-local/", StringComparison.OrdinalIgnoreCase))
+                error(file, "", "BROKEN_LINK", $"Local Markdown link target '{relative}' is missing, escapes the repository or points into the ignored .ai-usage-local root.");
         }
     }
 }
