@@ -245,10 +245,12 @@ public sealed partial class LedgerSmoke
             }), "Ledger window did not appear");
             Assert.NotNull(window);
             Focus(window);
+            // Used/Left and account actions are disabled by design while startup shows "Opening local data..."
+            // (CanUseAccounts is false while IsStarting); live startup takes long enough to be visible. Invoke only enabled buttons.
             Button Button(string name)
             {
                 Button? button = null;
-                Assert.True(Wait(() => (button = window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is not null), "Missing button: " + name);
+                Assert.True(Wait(() => (button = window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is { IsEnabled: true }), "Missing or disabled button: " + name);
                 return button!;
             }
             Assert.NotNull(Button("Settings"));
