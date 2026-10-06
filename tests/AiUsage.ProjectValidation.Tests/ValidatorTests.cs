@@ -152,6 +152,26 @@ public sealed class ValidatorTests
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.File == file && d.Code == code);
     }
 
+    [Fact]
+    public void LinkIntoIgnoredLocalRootIsBrokenAndNamesTheTarget()
+    {
+        using var root = new Fixture();
+        root.Put(".ai-usage-local/evidence/a.png", "Synthetic local evidence.\n");
+        root.Put("docs/x.md", "[Evidence](../.ai-usage-local/evidence/a.png)\n");
+        var broken = Assert.Single(ProjectValidator.Validate(root.Path), d => d.Code == "BROKEN_LINK");
+        Assert.Equal("docs/x.md", broken.File);
+        Assert.Contains(".ai-usage-local/evidence/a.png", broken.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void LinkToAnExistingRepositoryDocumentIsAccepted()
+    {
+        using var root = new Fixture();
+        root.Put("docs/y.md", "# Y\n");
+        root.Put("docs/x.md", "[Y](y.md)\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+    }
+
 
     [Fact]
     public void EvidenceNeedsAnExistingArtifactAndWorkerIntegration()
