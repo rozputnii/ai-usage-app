@@ -319,3 +319,20 @@ schema_version: 1
   Update the statuses.
 - [ ] **Step 5: Commit** with `docs(AIU-046): record verification and supersession notes`.
   Then ask the owner whether to merge to `main` and push.
+
+## Handoff
+
+- 2026-10-06. Owner approved the spec, the design and this plan in conversation, and
+  chose subagent-driven execution in a new primary session.
+- Branch `users/5-hour-limits-display-1e0e91` in worktree
+  `.claude/worktrees/5-hour-limits-display-1e0e91`, based on `main` at `ff1d788`.
+  Docs commits `e76caf0` and `6c105d3` are local only, not merged or pushed.
+- Done: spec, design, D-188, backlog and G-003 registration. No product code has
+  changed yet.
+- Local state: `tools/AiUsage.ProjectValidation` is restored. Restore the test
+  projects before the first `--no-restore` run.
+- The design's figures come from a throwaway simulation that is not in the repo.
+  T-01's tests re-establish them.
+- Exact next action: start T-01, Step 1. Dispatch one implementer subagent with the
+  T-01 block, Global Constraints, Review Focus, spec.md and design.md, then a fresh
+  reviewer before T-02.
