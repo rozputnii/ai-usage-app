@@ -45,6 +45,16 @@ public sealed class SessionEstimateTests
     }
 
     [Fact]
+    public void TickAllowanceNeverGoesNegativeWhenFiveHourFalls()
+    {
+        // Pass 1: r0 -> r1 bounds H = 100 / 9 = 11.11. The tick at r2 follows a fall of 6, so its raw allowance
+        // H * (-6 + 1) / 100 = -0.56 must be clamped to 0; unclamped, r2 -> r3 would lift L to H and fake a Settled estimate.
+        var estimate = SessionEstimator.Estimate(Part("s", Now.AddHours(-2), (0, 0), (10, 0), (4, 1), (8, 1)), Pair, Now);
+        Assert.Equal(SessionEstimateLevel.None, estimate.Level);
+        Assert.Equal(0, estimate.Low);
+    }
+
+    [Fact]
     public void TwoTickPartMatchesHandComputedBounds()
     {
         // r0..r7 = (10,2) (12,2) (14,3) (16,3) (18,3) (20,3) (22,3) (24,4); ticks at r2 and r7.
@@ -177,6 +187,29 @@ public sealed class SessionEstimateTests
         Assert.NotEqual(SessionEstimateLevel.None, expected.Level);
         foreach (var merged in new[] { new[] { Key }, [ShortKey], [Key, ShortKey] })
             Assert.Equal(expected, SessionEstimator.Estimate(Merge(points, merged), Pair, Now));
+    }
+
+    [Fact]
+    public void WeeklyCoverageKeepsInclusiveEndpointsAndDoesNotBridgeGaps()
+    {
+        // Weekly runs of one value cover the five-hour readings from their first to their last instant inclusive.
+        var part = Part("s", Now.AddHours(-2), (10, 2), (12, 2), (14, 3), (16, 3), (18, 3), (20, 3), (22, 3), (24, 4));
+        var wide = Merge(part, [Key]);
+        var estimate = SessionEstimator.Estimate(wide, Pair, Now);
+        Assert.True(estimate.Ready);
+        Assert.Equal(SessionEstimator.Estimate(part, Pair, Now), estimate);
+        // Without the readings on the run endpoints, the two ticks are no longer seen.
+        var edges = new[] { 1, 2, 6, 7 }.Select(i => part[0].FirstSeen.AddMinutes(5 * i)).ToArray();
+        Assert.False(SessionEstimator.Estimate(part.Where(r => !edges.Contains(r.FirstSeen)), Pair, Now).Ready);
+
+        // The five-hour series continues through a weekly gap; its readings there are skipped, not bridged.
+        var points = Part("a", Now.AddHours(-40), Window(10, 2.3, Steps(.25, 40)));
+        var merged = Merge(points, [Key]);
+        var weekly = merged.Where(r => r.Series == Key).OrderBy(r => r.FirstSeen).ToArray();
+        var (gapStart, gapEnd) = (weekly[2].FirstSeen, weekly[3].LastConfirmed);
+        var gapped = SessionEstimator.Estimate(merged.Where(r => r.Series != Key || r.FirstSeen < gapStart || r.FirstSeen > gapEnd), Pair, Now);
+        Assert.True(gapped.Ready);
+        Assert.Equal(SessionEstimator.Estimate(points.Where(r => r.FirstSeen < gapStart || r.FirstSeen > gapEnd), Pair, Now), gapped);
     }
 
     // Joins consecutive equal values of the given series into one run, as the store does.
