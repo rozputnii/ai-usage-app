@@ -6,7 +6,7 @@ phase and remain open.
 
 | Criterion | Verdict | Evidence |
 | --- | --- | --- |
-| AC-01 | PASS | Main pushes eb52980 and d20178f ran validate, windows-package, then the gated preview job: runs [35895908547](https://github.com/rozputnii/ai-usage-app/actions/runs/35895908547) and [35899151315](https://github.com/rozputnii/ai-usage-app/actions/runs/35899151315). PRs, failed jobs and disabled provisioning cannot reach the job; the new guard also requires job `preview`. |
+| AC-01 | PASS (original); amended: NOT_RUN (hosted) | Main pushes eb52980 and d20178f ran validate, windows-package, then the gated preview job: runs [35895908547](https://github.com/rozputnii/ai-usage-app/actions/runs/35895908547) and [35899151315](https://github.com/rozputnii/ai-usage-app/actions/runs/35899151315). PRs, failed jobs and disabled provisioning cannot reach the job; the new guard also requires job `preview`. Amended 2026-10-06 (AIU045-D1) to owner dispatch only: local release-policy assertions cover the dispatch gate and the push rejection. A hosted push run with `preview` skipped and a hosted dispatch publication are not yet recorded. |
 | AC-02 | PASS | Actual reservations 2026.9.2301.0, then 2026.9.2302.0, above the failed run's retained draft 2026.9.2223.0. The second run promoted the feed only after the ancestry check (`promote feed: True`). A real late older source remains exercised only by local ancestry assertions. |
 | AC-03 | PASS | Hosted SignTool: `Successfully verified`, 1 file, 0 errors, in both runs. Signer B4C73392759C80CA5D1AA4004486B6C957417609 is the dedicated CI certificate. Runner-only root trust fix d28e6be/eb52980 passed independent review. |
 | AC-04 | PASS | Non-draft prereleases with five versioned assets each. The Pages feed returns HTTP 200 `application/appinstaller`, exact identity, WinAppRuntime dependency, HTTPS release URIs, and forward-only, nonblocking and background settings. A guest observed the launch-triggered forward update. |
@@ -100,9 +100,38 @@ folder. No personal state was mapped. Evidence is kept locally and ignored:
   is a repository setting outside this change.
 - The late-older-source guard is proven locally against real Git ancestry. The hosted
   runs exercised only the forward path.
-- Each main push publishes one Preview, including documentation-only pushes.
+- Since 2026-10-06 (AIU045-D1), a main push never publishes. Only an owner dispatch
+  with `PublishPreview=true` on `main` publishes, after that commit's validate and
+  windows-package jobs pass, and only while `AIU_PREVIEW_ENABLED` is `true`.
 - Certificate expiry and rotation (2028-09-22), official signing, Stable and public
   distribution remain deferred.
+
+## Rollback (2026-10-06)
+
+Recovery through the feed is forward-only (ANL-14): versions only increase and the feed
+sets `ForceUpdateFromAnyVersion=false`, so App Installer never installs an older
+Preview. The normal remedy is a newer Preview from a fixed main commit and an owner
+dispatch. Manual rollback is owner-only and has not been exercised:
+
+- Sideload an older release's MSIX asset, with its dependency asset, using
+  `Add-AppxPackage -ForceUpdateFromAnyVersion`. This keeps the package family and its data.
+- Or uninstall `AiUsage.Dev` and install the older asset. Uninstalling removes the
+  package's app data, including the installed app's state.
+
+Under D-140 an older build refuses normal operation on a newer unsupported schema, so
+roll back only to a release with the same persisted schemas. A direct sideload may not
+keep the feed registration (unverified); installing the next Preview through the
+`.appinstaller` link registers the feed again.
+
+## Retention and hosting (deferred, 2026-10-06)
+
+Deferred under ANL-20 until AIU-014 resumes or before a public channel:
+
+- On 2026-10-05 the repository held 106 Preview releases, while D-164 keeps the latest 50.
+- GitHub reports every release `immutable: false` (see Limits).
+- The Windows App Runtime dependency URL on the Pages site is unversioned, and each
+  Pages deploy replaces the whole site. Deploy race hypothesis, unverified: a client
+  that fetched the feed just before a deploy could request a package the deploy removed.
 
 ## App Installer package-open failure (2026-10-04)
 

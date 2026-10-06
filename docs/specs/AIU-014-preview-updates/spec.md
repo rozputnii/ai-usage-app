@@ -4,11 +4,12 @@ type: spec
 status: implementing
 goal: G-004
 scope_version: 1
-approval_basis: Derived from the owner's 2026-09-22 request for automatic main-push releases, narrowed to the owner as tester without official signing.
+approval_basis: Derived from the owner's 2026-09-22 request for automatic main-push releases, narrowed to the owner as tester without official signing. Owner amendment 2026-10-06 (AIU045-D1) made publication owner-dispatched.
 ---
 # Automatic development Preview updates
 
-Every successful main push produces a distinct signed development MSIX. The only
+Each successful owner-dispatched main run produces a distinct signed development MSIX
+(amended 2026-10-06, AIU045-D1; previously every successful main push). The only
 current audience is the owner as tester; public trust and Stable promotion remain
 deferred. Existing AIU-006 forward migration/recovery applies to installed updates.
 
@@ -20,8 +21,10 @@ import is needed for this task. Preserve existing data and use synthetic test st
 
 ## Acceptance
 
-- AC-01: Successful main push validation triggers serialized Preview publication;
-  PRs, failed checks and disabled provisioning cannot access signing/publishing.
+- AC-01: (amended 2026-10-06, AIU045-D1) Serialized Preview publication runs only
+  from an owner dispatch with `PublishPreview=true` on `main`, after the same commit's
+  validate and windows-package jobs pass. Pushes, PRs, failed checks and disabled
+  provisioning cannot access signing/publishing.
 - AC-02: Allocate UTC YYYY.M.DDNN.0 versions above all reserved release versions and
   the existing development floor 2026.9.2222.0. Failed reservations remain consumed;
   counter exhaustion and clock regression fail explicitly. Concurrent/retried runs

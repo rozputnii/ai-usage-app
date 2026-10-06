@@ -131,8 +131,12 @@ GitHub Pages, then enables `AIU_PREVIEW_ENABLED`. It never exports the existing 
 key or changes host certificate trust. Existing secrets/setup evidence stop a repeat;
 partial setup must be inspected, not overwritten or rotated automatically.
 
-Once enabled, successful main-push validation publishes distinct development
-prereleases and deploys `https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`.
+Pushes to `main` never publish (amended 2026-10-06, AIU045-D1): every green main
+commit is a candidate, not a release. The owner publishes one by dispatching
+`gh workflow run validation.yml --ref main -f PublishPreview=true`. That run validates
+and packages the same commit; only if both jobs pass does it publish a distinct
+development prerelease and deploy `https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`.
+`AIU_PREVIEW_ENABLED` is the kill switch: unless it is `true`, a dispatch skips publication.
 The feed's package and Windows App SDK dependency are served from the same site: App
 Installer failed to fetch GitHub release downloads, which redirect to short-lived storage
 URLs (0x80072EFE). Releases keep their own immutable copies.

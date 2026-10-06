@@ -40,8 +40,8 @@ $trustStore.Dispose()
 $savedJob = $env:GITHUB_JOB
 try {
     $env:GITHUB_JOB = 'validate'
-    Reject { Add-PreviewRunnerTrust -CertificatePath (Join-Path $PSScriptRoot 'missing.cer') -SignerThumbprint ('A' * 40) } 'owned hosted main-push job'
-    Reject { Remove-PreviewRunnerTrust -Thumbprint ('A' * 40) } 'owned hosted main-push job'
+    Reject { Add-PreviewRunnerTrust -CertificatePath (Join-Path $PSScriptRoot 'missing.cer') -SignerThumbprint ('A' * 40) } 'owner dispatch'
+    Reject { Remove-PreviewRunnerTrust -Thumbprint ('A' * 40) } 'owner dispatch'
 } finally { $env:GITHUB_JOB = $savedJob }
 $publish = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../../tools/windows/Publish-Preview.ps1'), [ref]$null, [ref]$null)
 Equal ($publish.Extent.Text -match 'TrustedPeople|CurrentUser\\Root|Import-Certificate') $false
@@ -55,6 +55,29 @@ Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($parent)) $tru
 Equal (Test-PreviewPromotion -Candidate $parent -PublishedCommits @($head, $parent)) $false
 Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($head)) $true
 Reject { Test-PreviewPromotion -Candidate ('0' * 40) -PublishedCommits @($head) }
+# Publication is owner-paced (AIU045-D1): a main push is a candidate, only an owner dispatch publishes.
+$runnerNames = 'GITHUB_ACTIONS', 'GITHUB_EVENT_NAME', 'GITHUB_REF', 'GITHUB_JOB', 'RUNNER_ENVIRONMENT', 'GITHUB_REPOSITORY'
+$savedRunner = @{}
+foreach ($name in $runnerNames) { $savedRunner[$name] = [Environment]::GetEnvironmentVariable($name) }
+try {
+    $env:GITHUB_ACTIONS = 'true'; $env:GITHUB_REF = 'refs/heads/main'; $env:GITHUB_JOB = 'preview'
+    $env:RUNNER_ENVIRONMENT = 'github-hosted'; $env:GITHUB_REPOSITORY = 'rozputnii/ai-usage-app'
+    $env:GITHUB_EVENT_NAME = 'push'
+    Reject { Assert-PreviewPublicationRunner } 'owner dispatch'
+    $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
+    Assert-PreviewPublicationRunner; $script:count++
+} finally { foreach ($name in $runnerNames) { [Environment]::SetEnvironmentVariable($name, $savedRunner[$name]) } }
+$workflow = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '../../.github/workflows/validation.yml'))
+$previewIf = [regex]::Match($workflow, '(?m)^  preview:\r?\n    if: ([^\r\n]+)').Groups[1].Value
+foreach ($term in @("github.event_name == 'workflow_dispatch'", 'inputs.PublishPreview == true', "github.ref == 'refs/heads/main'", "vars.AIU_PREVIEW_ENABLED == 'true'")) { Equal ($previewIf.Contains($term)) $true }
+Equal ($previewIf.Contains("github.event_name == 'push'")) $false
+Equal ($workflow -match '(?m)^  preview:\r?\n    if: [^\r\n]+\r?\n    needs: \[validate, windows-package\]\r?$') $true
+$dispatch = [regex]::Match($workflow, '(?m)^  workflow_dispatch:\r?\n(?:(?:    [^\r\n]*)?\r?\n)+').Value
+$publishInput = [regex]::Match($dispatch, '(?m)^      PublishPreview:\r?\n(?:        [^\r\n]*\r?\n)+').Value
+Equal ($publishInput -match '(?m)^        type: boolean\r?$') $true
+Equal ($publishInput -match '(?m)^        default: false\r?$') $true
+$versionInput = [regex]::Match($dispatch, '(?m)^      MsixVersion:\r?\n(?:        [^\r\n]*\r?\n)+').Value
+Equal ($versionInput -match '(?m)^        required: false\r?$') $true
 Write-Output "PASS: $script:count release policy and source ancestry assertions"
 # Expected negative native Git checks are assertions, not the script's exit status.
 exit 0

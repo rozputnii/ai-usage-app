@@ -513,6 +513,8 @@ Keep them out of normal PR CI. Use explicit local provider tests or dedicated CI
 ### D-157 - Release channels
 One direct installation and identity supports Stable and Preview. Every green main merge becomes Preview. Stable promotion manually selects the exact signed, tested artifact without rebuilding or resigning.
 
+Owner amendment (2026-10-06, AIU045-D1): Previews publish only through an explicit owner dispatch of a green main commit; every green main merge is a candidate, not a release.
+
 ### D-158 - No downgrade on channel switch
 Switching Preview to Stable changes the feed but keeps the newer installed binary until Stable catches up. Keep ForceUpdateFromAnyVersion disabled.
 
