@@ -8,7 +8,7 @@ using Microsoft.UI.Dispatching;
 namespace AiUsage.Composition;
 
 /// <summary>Desktop fault projection, available before host creation and after host disposal.</summary>
-internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
+internal sealed class ApplicationDiagnostics : IDiagnosticSink, IUpdateLog, IDisposable
 {
     private FileDiagnostics? sink;
     private DispatcherWatchdog? watchdog;
@@ -60,6 +60,11 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IDisposable
     public void Failure(DiagnosticEvent eventCode, Exception exception) => sink?.Failure(eventCode, exception);
     public IDiagnosticOperation? Begin(DiagnosticOperation operation, Guid? accountReference = null) => sink?.Begin(operation, accountReference);
     public void Signal(DiagnosticEvent eventCode, DiagnosticSeverity severity = DiagnosticSeverity.Information) => sink?.Signal(eventCode, severity);
+    public void CheckFailed(int errorCode, int consecutive) => sink?.Update(DiagnosticEvent.UpdateCheckFailed, new(ErrorCode: errorCode, Consecutive: consecutive));
+    public void InstallStarted(bool automatic, string version) => sink?.Update(DiagnosticEvent.UpdateInstallStarted, new(Automatic: automatic, From: ParsedVersion(version)));
+    public void InstallFailed(int errorCode, int consecutive) => sink?.Update(DiagnosticEvent.UpdateInstallFailed, new(ErrorCode: errorCode, Consecutive: consecutive));
+    public void Applied(string fromVersion, string toVersion) => sink?.Update(DiagnosticEvent.UpdateApplied, new(From: ParsedVersion(fromVersion), To: ParsedVersion(toVersion)));
+    private static Version? ParsedVersion(string value) => Version.TryParse(value, out var version) ? version : null;
     private void ManagedFailure(object sender, System.UnhandledExceptionEventArgs args) => sink?.Fatal(DiagnosticEvent.UnhandledFailure, args.ExceptionObject as Exception, args.IsTerminating);
     private void UnobservedFailure(object? sender, UnobservedTaskExceptionEventArgs args) => sink?.Failure(DiagnosticEvent.BackgroundFailure, args.Exception);
     public void Dispose()

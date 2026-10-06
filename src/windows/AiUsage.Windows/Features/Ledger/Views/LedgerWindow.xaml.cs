@@ -219,10 +219,18 @@ internal sealed partial class LedgerWindow : Window
         view.Focus(FocusState.Keyboard);
     }
 
+    /// <summary>True while the window is closed to the tray or not yet shown; AIU-046 installs updates only then.</summary>
+    public bool IsHidden { get; private set; } = true;
+    public event EventHandler? TrayVisibilityChanged;
+
+    /// <summary>A `--background` relaunch after an update: the tray icon without the window.</summary>
+    public void StartHidden() => TrayIcon.ForceCreate(enablesEfficiencyMode: false);
+
     public void ShowAndActivate()
     {
         AppWindow.Show();
         AiUsage.Composition.ApplicationDiagnostics.Current?.WindowVisibility(false);
+        SetHidden(false);
         if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter)
             presenter.Restore();
         Activate();
@@ -302,6 +310,14 @@ internal sealed partial class LedgerWindow : Window
         args.Cancel = true;
         AppWindow.Hide();
         Composition.ApplicationDiagnostics.Current?.WindowVisibility(true);
+        SetHidden(true);
+    }
+
+    private void SetHidden(bool hidden)
+    {
+        if (IsHidden == hidden) return;
+        IsHidden = hidden;
+        TrayVisibilityChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void CloseForExit()

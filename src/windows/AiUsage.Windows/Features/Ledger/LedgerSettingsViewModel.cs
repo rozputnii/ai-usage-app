@@ -86,6 +86,13 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     [ObservableProperty] public partial bool AlwaysOnTop { get; private set; }
     [ObservableProperty] public partial string MonitoringText { get; private set; } = string.Empty;
     [ObservableProperty] public partial string UpdatesText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial string UpdateVersionText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial bool CanCheckUpdates { get; private set; }
+    [ObservableProperty] public partial bool CanInstallUpdate { get; private set; }
+    [ObservableProperty] public partial string InstallUpdateText { get; private set; } = "Install and restart";
+    [ObservableProperty] public partial bool IsUpdateAlways { get; private set; }
+    [ObservableProperty] public partial bool IsUpdateOnLaunch { get; private set; }
+    [ObservableProperty] public partial bool IsUpdateOff { get; private set; }
     [ObservableProperty] public partial string SystemStatusText { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool IsDeleteArmed { get; private set; }
     [ObservableProperty] public partial bool HasCaps { get; private set; }
@@ -116,7 +123,15 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         ShowSignedOut = prefs.ShowSignedOut;
         AlwaysOnTop = prefs.AlwaysOnTop;
         MonitoringText = "every " + LedgerFormat.Duration(current.Summaries.RefreshInterval);
-        UpdatesText = current.Summaries.Updates.State.ToString();
+        var updates = current.Summaries.Updates;
+        UpdatesText = LedgerFormat.UpdateText(updates);
+        UpdateVersionText = updates.Version is { } version ? "Version " + version : string.Empty;
+        CanCheckUpdates = updates.State is not (UpdateState.NotPackaged or UpdateState.NoFeed or UpdateState.Checking or UpdateState.Installing);
+        CanInstallUpdate = updates.State is UpdateState.Available or UpdateState.Ready or UpdateState.InstallFailed or UpdateState.NotApplied;
+        InstallUpdateText = updates.State == UpdateState.InstallFailed ? "Retry" : "Install and restart";
+        IsUpdateAlways = prefs.Updates == UpdateMode.Always;
+        IsUpdateOnLaunch = prefs.Updates == UpdateMode.OnLaunch;
+        IsUpdateOff = prefs.Updates == UpdateMode.Off;
         SystemStatusText = current.Summaries.Recovery?.Message ?? (current.Summaries.IsStarting ? "Opening local data…" : current.Summaries.LocalStatus) ?? (current.Summaries.FailedSyncs == 0
             ? "all accounts synced"
             : current.Summaries.FailedSyncs + (current.Summaries.FailedSyncs == 1 ? " sync failed · " : " syncs failed · ") + string.Join(", ", current.Summaries.FailedProviders.Select(LedgerFormat.ProviderName)));
@@ -168,6 +183,15 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
 
     [RelayCommand]
     public Task SetDensityAsync(Density density) => source.SetPreferencesAsync(source.Preferences with { Density = density }, CancellationToken.None);
+
+    [RelayCommand]
+    public Task SetUpdateModeAsync(UpdateMode mode) => source.SetPreferencesAsync(source.Preferences with { Updates = mode }, CancellationToken.None);
+
+    [RelayCommand]
+    public Task CheckForUpdatesAsync() => source.CheckForUpdatesAsync(CancellationToken.None);
+
+    [RelayCommand]
+    public Task InstallUpdateAsync() => source.InstallUpdateAsync(CancellationToken.None);
 
     [RelayCommand]
     public Task SetValueModeAsync(ValueMode mode) => source.SetPreferencesAsync(source.Preferences with { Mode = mode }, CancellationToken.None);

@@ -444,6 +444,20 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
+    public async Task UpdatesSectionShowsVersionStatusAndModeSelector()
+    {
+        var (window, _, _, _) = Start();
+        Assert.Equal("Version 2026.10.604.0", window.Settings.UpdateVersionText);
+        Assert.Matches(@"^Up to date · checked \d\d:\d\d$", window.Settings.UpdatesText);
+        Assert.True(window.Settings.CanCheckUpdates);
+        Assert.False(window.Settings.CanInstallUpdate);
+        Assert.True(window.Settings.IsUpdateAlways);
+        await window.Settings.SetUpdateModeAsync(UpdateMode.OnLaunch);
+        Assert.True(window.Settings.IsUpdateOnLaunch);
+        Assert.False(window.Settings.IsUpdateAlways);
+    }
+
+    [Fact]
     public async Task RenameSavesOnEnterAndCancelsOnEscape()
     {
         var (window, source, _, _) = Start();

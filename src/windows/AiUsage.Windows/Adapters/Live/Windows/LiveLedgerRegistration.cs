@@ -3,6 +3,7 @@ using AiUsage.Adapters.Live;
 using AiUsage.Core.Accounts;
 using AiUsage.Core.Budget;
 using AiUsage.Core.Diagnostics;
+using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 using AiUsage.Infrastructure.Accounts;
 using AiUsage.Infrastructure.Persistence;
@@ -32,7 +33,8 @@ internal static class LiveLedgerRegistration
         });
         services.AddSingleton<ILedgerSource>(p => p.GetRequiredService<LiveLedgerSource>());
         services.AddSingleton(p => new LedgerProductLifetime(root, p.GetRequiredService<LiveLedgerSource>(),
-            p.GetRequiredService<StateMaintenance>(), p.GetRequiredService<ApplicationDiagnostics>(), p.GetRequiredService<DispatcherQueue>()));
+            p.GetRequiredService<StateMaintenance>(), p.GetRequiredService<ApplicationDiagnostics>(), p.GetRequiredService<DispatcherQueue>(),
+            p.GetRequiredService<ILedgerScheduler>()));
         return services;
     }
 

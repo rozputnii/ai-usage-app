@@ -1,4 +1,5 @@
 using AiUsage.Composition;
+using AiUsage.Adapters.Live;
 using AiUsage.Adapters.Live.Audit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -88,9 +89,15 @@ public partial class App : Application
             await host.StartAsync();
             if (disposalProbe) { await StopAsync(); return; }
 
-            shell = LedgerRegistration.Start(host.Services, StopAsync);
+            var launch = UpdateLaunch.Parse(Environment.GetCommandLineArgs());
+            shell = LedgerRegistration.Start(host.Services, StopAsync, launch.Background);
             if (host.Services.GetService<AuditLedgerLifetime>() is { } audit) await audit.InitializeAsync();
-            if (!demo) await host.Services.GetRequiredService<LedgerProductLifetime>().InitializeAsync();
+            if (!demo)
+            {
+                var product = host.Services.GetRequiredService<LedgerProductLifetime>();
+                await product.InitializeAsync();
+                product.StartUpdates(shell, launch);
+            }
         }
         catch (Exception error)
         {

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using AiUsage.Adapters.Live;
 using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Persistence;
+using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 using AiUsage.Infrastructure.Diagnostics;
 using AiUsage.Infrastructure.Persistence;
@@ -10,8 +11,8 @@ using Microsoft.Windows.AppLifecycle;
 
 namespace AiUsage.Composition;
 
-/// <summary>Desktop maintenance, refresh timer, recovery actions and writer drain for the live Ledger.</summary>
-internal sealed class LedgerProductLifetime : IDisposable
+/// <summary>Desktop maintenance, refresh timer, recovery actions, in-app updates and writer drain for the live Ledger.</summary>
+internal sealed class LedgerProductLifetime : IUpdateHost, IDisposable
 {
     private readonly string root;
     private readonly LiveLedgerSource source;
@@ -24,11 +25,15 @@ internal sealed class LedgerProductLifetime : IDisposable
     private bool started;
     private bool deletionStarted;
     private Task? stopping;
+    private readonly ILedgerScheduler scheduler;
+    private UpdateCoordinator? updates;
+    private LedgerShell? shell;
+    private bool updateHoldsGate;
 
     public LedgerProductLifetime(string root, LiveLedgerSource source, StateMaintenance maintenance,
-        ApplicationDiagnostics diagnostics, DispatcherQueue queue, string restartArguments = "")
+        ApplicationDiagnostics diagnostics, DispatcherQueue queue, ILedgerScheduler scheduler, string restartArguments = "")
     {
-        this.root = root; this.source = source; this.maintenance = maintenance; this.diagnostics = diagnostics;
+        this.root = root; this.source = source; this.maintenance = maintenance; this.diagnostics = diagnostics; this.scheduler = scheduler;
         this.restartArguments = restartArguments;
         timer = queue.CreateTimer(); timer.Interval = TimeSpan.FromMinutes(1); timer.Tick += Tick;
         source.DeleteData = DeleteAsync;
@@ -153,16 +158,67 @@ internal sealed class LedgerProductLifetime : IDisposable
         finally { gate.Release(); }
     }
 
+    /// <summary>AIU-046: starts in-app update checks once the window exists; demo and audit modes never call this.</summary>
+    public void StartUpdates(LedgerShell window, UpdateLaunch launch)
+    {
+        shell = window;
+        updates = new UpdateCoordinator(new AppInstallerUpdates(), this, diagnostics, scheduler, TimeProvider.System, launch);
+        source.CheckUpdates = _ => updates.CheckAsync(manual: true);
+        source.InstallUpdate = _ => updates.InstallAsync(automatic: false);
+        source.Changed += Reevaluate;
+        window.VisibilityChanged += Reevaluate;
+        updates.Start();
+    }
+
+    private void Reevaluate(object? sender, EventArgs args) => updates?.Reevaluate();
+
+    UpdateMode IUpdateHost.Mode => source.Preferences.Updates;
+    bool IUpdateHost.WindowHidden => shell?.WindowHidden ?? true;
+    bool IUpdateHost.SignInActive => source.Current.SignInStrip?.Phase == SignInPhase.Waiting;
+    Task IUpdateHost.PublishAsync(UpdateStatus status) => source.SetUpdatesAsync(status);
+
+    /// <summary>Holds the lifetime gate until the process ends or <see cref="IUpdateHost.ResumeRefresh"/>, so recovery and deletion cannot start mid-install.</summary>
+    async Task<bool> IUpdateHost.PauseRefreshAsync(CancellationToken token)
+    {
+        await gate.WaitAsync(token);
+        updateHoldsGate = true;
+        try
+        {
+            if (!started || deletionStarted || shutdown.IsCancellationRequested) return false;
+            timer.Stop();
+            return await source.PauseRefreshAsync(TimeSpan.FromSeconds(30), token);
+        }
+        catch (OperationCanceledException) { ReleaseUpdateGate(); throw; }
+    }
+
+    void IUpdateHost.ResumeRefresh()
+    {
+        source.ResumeRefresh();
+        ReleaseUpdateGate();
+        if (started && !deletionStarted && !shutdown.IsCancellationRequested) timer.Start();
+    }
+
+    private void ReleaseUpdateGate()
+    {
+        if (!updateHoldsGate) return;
+        updateHoldsGate = false;
+        gate.Release();
+    }
+
     public Task StopAsync() => stopping ??= StopCoreAsync();
     private async Task StopCoreAsync()
     {
         timer.Stop();
+        source.Changed -= Reevaluate;
+        updates?.Dispose();
+        ReleaseUpdateGate();
         await shutdown.CancelAsync();
         await source.StopAsync();
         await gate.WaitAsync(); gate.Release();
     }
     public void Dispose()
     {
+        updates?.Dispose();
         timer.Stop(); timer.Tick -= Tick;
         gate.Dispose(); shutdown.Dispose();
     }
