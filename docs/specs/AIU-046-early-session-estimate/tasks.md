@@ -176,10 +176,10 @@ schema_version: 1
   pair, stop and report to the owner before optimizing.
 
 ### T-02 - Contract and projection mapping
-- status: in-progress
+- status: done
 - depends_on: [T-01]
 - acceptance: [AC-06]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs; commit 4a792d2; PairedCardCarriesRoughBoundsAndRange red then green; Presentation suite 190/190, Infrastructure suite 882/882; independent task review approved
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs:163-169`
@@ -213,7 +213,7 @@ schema_version: 1
 - [ ] **Step 5: Commit** with `feat(AIU-046): carry estimate bounds and range to the card`.
 
 ### T-03 - One-window cell, rough and settled footers
-- status: pending
+- status: in-progress
 - depends_on: [T-02]
 - acceptance: [AC-01, AC-06]
 - evidence: not-run
@@ -327,11 +327,12 @@ schema_version: 1
 - Branch `users/5-hour-limits-display-1e0e91` in worktree
   `.claude/worktrees/5-hour-limits-display-1e0e91`, based on `main` at `ff1d788`.
   Docs commits `e76caf0` and `6c105d3` are local only, not merged or pushed.
-- Done: spec, design, D-188, backlog and G-003 registration. T-01 done in `ed89d1b`
+- Done: spec, design, D-188, backlog and G-003 registration. T-01 done in `ed89d1b`,
+  T-02 in `4a792d2`
   (independent review approved; Minor findings deferred to the whole-branch review).
 - Local state: the test projects and `tools/AiUsage.ProviderConsole` are restored.
 - The design's figures come from a throwaway simulation that is not in the repo.
   T-01's tests re-establish them.
-- Exact next action: T-02, Step 1. Dispatch one implementer subagent with the T-02
+- Exact next action: T-03, Step 1. Dispatch one implementer subagent with the T-03
   block, Global Constraints, Review Focus, spec.md and design.md, then a fresh
-  reviewer before T-03.
+  reviewer before T-04.
