@@ -41,6 +41,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     private string? localStatus;
     private SignInStripModel? strip;
     private LedgerRecoveryModel? recovery;
+    private UpdateStatus updates = UpdateStatus.NotPackaged;
+    private bool paused;
 
     public LiveLedgerSource(IAccountService accounts, IReadingSeriesStore readings, IBudgetConfigurationStore budgets,
         IQuotaObservationRecorder recorder, LedgerPreferenceStore preferences, Func<Action, Task> dispatch,
@@ -50,7 +52,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         this.preferences = preferences; this.dispatch = dispatch; this.openBrowser = openBrowser;
         this.time = time ?? TimeProvider.System; this.zone = zone ?? TimeZoneInfo.Local; this.diagnostics = diagnostics;
         Current = new(this.time.GetUtcNow(), new(DayKind.WorkDay, false, null), [], Options([]), null,
-            new(BudgetSettingsModel.MondayToFriday, []), new(RefreshInterval, "Update checks unavailable", 0, []) { IsStarting = true });
+            new(BudgetSettingsModel.MondayToFriday, []), new(RefreshInterval, UpdateStatus.NotPackaged, 0, []) { IsStarting = true });
         accounts.Changed += AccountsChanged;
     }
 
@@ -72,6 +74,44 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             Changed?.Invoke(this, EventArgs.Empty);
         });
     }
+
+    // Set by the desktop lifetime; the update coordinator owns checking and installing.
+    public Func<CancellationToken, Task>? CheckUpdates { get; set; }
+    public Func<CancellationToken, Task>? InstallUpdate { get; set; }
+    public Task CheckForUpdatesAsync(CancellationToken ct) => CheckUpdates?.Invoke(ct) ?? Task.CompletedTask;
+    public Task InstallUpdateAsync(CancellationToken ct) => InstallUpdate?.Invoke(ct) ?? Task.CompletedTask;
+    public Task SetUpdatesAsync(UpdateStatus value)
+    {
+        lock (sync) updates = value;
+        return dispatch(() =>
+        {
+            if (stopped) return;
+            Current = Current with { Summaries = Current.Summaries with { Updates = value } };
+            Changed?.Invoke(this, EventArgs.Empty);
+        });
+    }
+
+    /// <summary>Stops automatic refresh and waits for running provider work before an update closes the process.</summary>
+    public async Task<bool> PauseRefreshAsync(TimeSpan busyLimit, CancellationToken token)
+    {
+        Task running;
+        lock (sync) { paused = true; running = tick; }
+        try { await running; }
+        catch (Exception error) when (error is not OperationCanceledException || !token.IsCancellationRequested) { /* The lifetime logs tick failures. */ }
+        var started = time.GetTimestamp();
+        while (accounts.Current.Any(a => a.Busy))
+        {
+            if (time.GetElapsedTime(started) >= busyLimit)
+            {
+                ResumeRefresh();
+                return false;
+            }
+            await Task.Delay(TimeSpan.FromMilliseconds(250), time, token);
+        }
+        return true;
+    }
+
+    public void ResumeRefresh() { lock (sync) paused = false; }
 
     public async Task InitializeAsync(string? legacyPreferences, CancellationToken token)
     {
@@ -216,7 +256,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await PublishAsync(new(TimeZoneInfo.ConvertTime(now, zone), new(off ? DayKind.DayOff : DayKind.WorkDay, workToday,
             workToday ? WorkCalendar.Midnight(date.AddDays(1), zone) : null), models, Options(snapshots), currentStrip,
             new((preferences.Current.PendingWorkDays ?? configuration.WorkDays).ToHashSet(), caps),
-            new(RefreshInterval, "Update checks unavailable", failed.Length, failed.Select(a => a.Provider).Distinct().ToArray())
+            new(RefreshInterval, updates, failed.Length, failed.Select(a => a.Provider).Distinct().ToArray())
             { LocalStatus = lostCaptures.Count > 0 ? "History has missing readings because local capture failed" : localStatus,
                 Recovery = recovery, DiagnosticsAvailable = DiagnosticsPreview is not null }));
     }
@@ -396,7 +436,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
 
     public Task TickAsync(CancellationToken token)
     {
-        lock (sync) return stopped ? Task.CompletedTask : !tick.IsCompleted ? tick : tick = TickCoreAsync(token);
+        lock (sync) return stopped || paused ? Task.CompletedTask : !tick.IsCompleted ? tick : tick = TickCoreAsync(token);
     }
     private async Task TickCoreAsync(CancellationToken token)
     {

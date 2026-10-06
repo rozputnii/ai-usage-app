@@ -116,7 +116,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         ShowSignedOut = prefs.ShowSignedOut;
         AlwaysOnTop = prefs.AlwaysOnTop;
         MonitoringText = "every " + LedgerFormat.Duration(current.Summaries.RefreshInterval);
-        UpdatesText = current.Summaries.UpdatesSummary;
+        UpdatesText = current.Summaries.Updates.State.ToString();
         SystemStatusText = current.Summaries.Recovery?.Message ?? (current.Summaries.IsStarting ? "Opening local data…" : current.Summaries.LocalStatus) ?? (current.Summaries.FailedSyncs == 0
             ? "all accounts synced"
             : current.Summaries.FailedSyncs + (current.Summaries.FailedSyncs == 1 ? " sync failed · " : " syncs failed · ") + string.Join(", ", current.Summaries.FailedProviders.Select(LedgerFormat.ProviderName)));
