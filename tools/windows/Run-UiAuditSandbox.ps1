@@ -31,10 +31,15 @@ try {
     & dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true -o (Join-Path $inputPath 'smoke') -v:minimal
     if ($LASTEXITCODE) { throw 'Native driver publish failed.' }
     Copy-Item -LiteralPath $pages -Destination (Join-Path $inputPath 'pages') -Recurse
+    # Binary-safe: git writes the file itself; an empty diff still produces an empty file.
+    $sourceDiff = Join-Path $inputPath 'source.diff'
+    & git diff HEAD --binary --output=$sourceDiff
+    if ($LASTEXITCODE -or !(Test-Path -LiteralPath $sourceDiff)) { throw 'Source diff capture failed.' }
     [ordered]@{
         Source = (& git rev-parse HEAD); Dirty = [bool](& git status --porcelain)
         ApplicationSha256 = (Get-FileHash -LiteralPath (Join-Path $inputPath 'app/AiUsage.dll')).Hash
         DriverSha256 = (Get-FileHash -LiteralPath (Join-Path $inputPath 'smoke/AiUsage.Windows.Tests.dll')).Hash
+        SourceDiffSha256 = (Get-FileHash -LiteralPath $sourceDiff).Hash
         TestMethod = $TestMethod; FirstPage = $FirstPage
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $inputPath 'build.json')
 } finally { Pop-Location }

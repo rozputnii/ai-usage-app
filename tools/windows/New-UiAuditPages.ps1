@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory)][string]$InputDirectory,
     [Parameter(Mandatory)][string]$OutputDirectory,
-    [Parameter(Mandatory)][string]$CoverageDirectory,
+    [string]$CoverageDirectory = (Join-Path $PSScriptRoot '../../.ai-usage-local/ui-audit/coverage'),
     [string]$NativeBlocker = '',
     [string[]]$ScenarioPatterns = @('*'),
     [string]$CompositeDirectory = '',
