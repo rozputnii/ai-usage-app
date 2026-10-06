@@ -212,3 +212,25 @@ Owner-authorized second Sandbox batch for the corrected layout scenario only (lo
 - Build: source `e9a369f` (contains `e40c76d`), `Dirty` false, empty `source.diff`; application `AiUsage.dll` SHA-256 `C97B2D0A19DB2DB5E2D416168A6A21D3B3C85973703D3A4CE9C5F876CE8068D6`, driver `EC5CDD5C07E0DA58A6FA473FB1167E9E4F2547DF5BA7932827060D3FD6DAE3F4`.
 - Verdict: PASS. `OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable` passed 1/1 in 51.4 s; run status `PASS_REQUIRES_VISUAL_INSPECTION` (desktop prerequisite 0, native exit 0); six LIFE-04 captures written, visual inspection NOT_RUN. This is the AC-02 Sandbox rerun for AUD-01 and the full AUD-03 scenario; [sandbox-run.json](evidence/candidate-2026-10-06c/sandbox-run.json), [sandbox-native.xml](evidence/candidate-2026-10-06c/sandbox-native.xml).
 - Retained evidence: `.ai-usage-local/ui-audit/candidate-2026-10-06c/`.
+
+## Post-install verification 2026-10-06
+
+Recorded 2026-10-06 after the owner installed Preview 2026.10.602.0 on the owner's host. Every Preview dispatch was owner-authorized; the owner ran the installation and the installed-build checks. The primary read only the installed app's sanitized application log, with the owner's consent given 2026-10-06 (ANL-16); no grant file was read and no sign-in was performed. Raw evidence stays in the git-ignored `.ai-usage-local/` tree.
+
+| Item | Verdict | Evidence |
+| --- | --- | --- |
+| Preview dispatch run 37454494231 on `e9a369f` | PASS (published 2026.10.601.0) | Owner dispatch. Its App Installer GUI install failed on the owner's host with `0x80072EFE`: the IPv6 path to GitHub Pages resets connections (evidence in the [AIU-014 bug note](../AIU-014-preview-updates/bug-2026-10-04-installer-connection-aborted.md)). The failure was the feed's Pages-hosted package URI, not the build |
+| ANL-12 fix: feed package and dependency URIs on the immutable GitHub release | PASS | Fix `c703c96`, `c8a98c1` and `f32ff36` (merge `4ea9667`) moved both URIs to IPv4-only release hosts; independent review clean |
+| Dispatch-only gate on a push | PASS | Push run 37475079332 showed `preview` skipped with `AIU_PREVIEW_ENABLED=true` |
+| Preview dispatch run 37475616318 on `4ea9667` | PASS (published 2026.10.602.0, 2026-10-06T14:07:40Z) | The live feed's package and dependency URIs point at `github.com/.../releases/download/preview-2026.10.602.0/` |
+| Owner install of 2026.10.602.0 through the Pages `.appinstaller` with the App Installer GUI | PASS | The owner reported it "installed normally". Installed package `AiUsage.Dev` 2026.10.602.0, PackageFamilyName `AiUsage.Dev_951d0pt9hnds0`, status Ok. This closes ANL-12 |
+| Packaged startup | PASS | The packaged process ran from its WindowsApps folder |
+| Close-to-tray, then relaunch from Start | PASS | The window was restored without `LeaseUnavailable` (AIU-044 installed-app repeat launch and lease fault) |
+| Settings > System status > Open logs | PASS | The logs folder opened (AIU-043 AC-13 packaged Open logs) |
+| `ShellSmoke.PackagedLedgerLaunchesAndExits` | NOT_APPLICABLE on the owner's host, by design | Its first assertion requires the Windows Sandbox user `WDAGUtilityAccount`, which protects real data; the guard was not bypassed |
+| ANL-16: migration on the installed app | PASS for this install (migration completed); historical hypothesis not evaluable | Owner consent 2026-10-06; sanitized application log, migration events only. The app's only application log (created 2026-10-06T14:17Z) shows `MigrationStarted` 14:17:13.96Z, `MigrationCheckpointVerified` 14:17:14.21Z and `MigrationCompleted` 14:17:14.27Z, all Information. No package was installed before this install (the earlier package had been removed), so this was a fresh local state. The pre-removal logs that the ANL-16 hypothesis concerned no longer exist |
+| Sandbox batch 2 visual inspection (LIFE-04 captures) | PASS | `OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable` PASS 1/1 (`b17937b`). Primary visual inspection of the LIFE-04 captures: readable, expected product state. This closes AUD-03 |
+| ANL-23 (new finding, P3, product layout) | OPEN, deferred to a later bounded UI batch | Not a regression of this run. At the narrow resized window width, the history panel header's account title overlaps the hint text and the cap editor's Save button is clipped ("Sa"). Evidence: the LIFE-04 resized captures of Sandbox batch 2 (local, `.ai-usage-local/ui-audit/candidate-2026-10-06c/`) |
+| AIU-043 device-code display delay | NOT_RUN | Not exercised; no sign-in was performed. It stays open as a separate follow-up |
+
+Closure (2026-10-06): AUD-03, ANL-06, ANL-07, ANL-12, ANL-16 (for this install), the AIU-043 AC-13 and AIU-044 packaged repeat-launch gaps (ANL-13) and FIX-01..FIX-14 are recorded in the analysis record's final status; T-03 and T-04 are done and AIU-045 is closed. Opt-in follow-ups that need a separate owner selection: AUD-05..AUD-09, ANL-20, ANL-23 and the AIU-043 device-code delay.

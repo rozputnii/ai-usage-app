@@ -308,5 +308,5 @@ Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-043,
 
 Never-accepted gaps (ANL-13), as of 2026-10-06:
 
-- AC-13: packaged Open logs (opening the packaged log folder) is NOT_RUN; the final acceptance disposition above passed AC-13 without it because no package installation was requested. Status: pending the owner's installed-build check (AIU-045 T-03).
-- The owner-reported device-code display delay (owner-operated sign-in follow-up above) was never diagnosed; its exact delay and root cause remain NOT_RUN. Status: pending the owner's installed-build check (AIU-045 T-03).
+- AC-13: packaged Open logs (opening the packaged log folder) is NOT_RUN; the final acceptance disposition above passed AC-13 without it because no package installation was requested. Status: AC-13 packaged Open logs PASS 2026-10-06 (2026.10.602.0): Settings > System status > Open logs opened the logs folder (AIU-045 T-03).
+- The owner-reported device-code display delay (owner-operated sign-in follow-up above) was never diagnosed; its exact delay and root cause remain NOT_RUN. Status: not exercised on 2026-10-06 (no sign-in was performed); still open as a separate follow-up.

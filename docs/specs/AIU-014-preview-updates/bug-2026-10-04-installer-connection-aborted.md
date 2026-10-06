@@ -1,8 +1,9 @@
 # Bug report: App Installer aborts while opening the Preview package
 
-**Status:** Cause identified on the owner's host: IPv6 path resets to GitHub Pages;
-mitigated by serving packages from IPv4-only GitHub release hosts (pending installed
-verification). Updated 2026-10-06.
+**Status:** Resolved 2026-10-06: packages served from IPv4-only GitHub release hosts; the
+owner's App Installer GUI install of 2026.10.602.0 succeeded. Cause identified on the
+owner's host: the IPv6 path resets connections to GitHub Pages. That underlying IPv6
+network issue remains the owner's network matter.
 
 **Priority:** P2 (AIU045-D8, 2026-10-06): capture evidence on recurrence; no feed or
 hosting change until evidence exists. Raise to P1 if feed-registered installs fail to update.
@@ -146,6 +147,12 @@ and are reached over IPv4 only (see Hosting topology).
 Limits: the 2026-09-25 failure against GitHub release downloads remains unexplained; its
 host or network path may have differed. The fix is verified only when the owner's App
 Installer GUI install from the published feed succeeds.
+
+Verification (2026-10-06): the owner installed 2026.10.602.0, whose feed takes the package
+and dependency from the release assets, through the Pages `.appinstaller` with the App
+Installer GUI, and it installed normally (installed package `AiUsage.Dev` 2026.10.602.0,
+status Ok). The earlier 2026.10.601.0 feed, still Pages-hosted, had failed with `0x80072EFE`
+on the same host.
 
 ## Next diagnostic step
 
