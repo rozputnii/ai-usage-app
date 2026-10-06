@@ -137,7 +137,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-014 - Trusted direct Preview/Stable distribution
 - goal: G-004
-- status: paused
+- status: in-progress
 - depends_on: [AIU-006]
 - trigger: before-public
 - outcome: Verify signing eligibility/identity and runtime prerequisite delivery. Implement monotonic version allocation, Releases/Pages/App Installer, channel switching and nonblocking updates.
@@ -470,7 +470,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-045 - Triage and fix synthetic Windows audit findings
 - goal: G-003
-- status: paused
+- status: in-progress
 - depends_on: [AIU-039, AIU-044]
 - trigger: owner-resumption-after-discussion
 - outcome: Preserve the interrupted 2026-10-04 audit, diagnose the newly observed audit-build startup failure, review the unfinished scope-annotation changes, and agree on bounded fixes and verification batches. Keep confirmed product defects, harness faults, unverified hypotheses and missing evidence distinct.
