@@ -66,8 +66,8 @@ function Test-PreviewPromotion {
     return $true
 }
 function Assert-PreviewPublicationRunner {
-    if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'push' -or $env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_JOB -ne 'preview' -or
-        $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:GITHUB_REPOSITORY -ne 'rozputnii/ai-usage-app') { throw 'Preview publication requires the owned hosted main-push job.' }
+    if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -ne 'workflow_dispatch' -or $env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_JOB -ne 'preview' -or
+        $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:GITHUB_REPOSITORY -ne 'rozputnii/ai-usage-app') { throw 'Preview publication requires the owned hosted main owner dispatch.' }
 }
 # WinVerifyTrust anchors the self-signed development chain only in a Root store. The machine
 # store avoids the interactive CurrentUser\Root confirmation and is writable on the elevated,
