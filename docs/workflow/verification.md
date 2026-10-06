@@ -41,6 +41,8 @@ Each required AC has verdict PASS/FAIL/NOT_RUN/BLOCKED with command/check ID, ob
 ## Golden fixtures
 Sanitized input + normalized expected output, unknown/missing/legacy/new grouping/null/unlimited/exhausted/reset/credit cases. Critical independent assertions prevent both parser and expected JSON drifting together. Fixture update reason/source tracked, never blanket approve snapshots to get green.
 
+Persistence review (2026-10-06, ANL-11): a source-generated `[JsonSerializable]` record overwrites every `init` initializer when the JSON omits the property; give a persisted default through a constructor parameter, and cover each omitted-property case with a probe through the production context (see `PersistedRecordOmittedPropertyTests`).
+
 ## Lifecycle/performance
 Historical PUBLIC schema/layout versions retained as sanitized fixtures, not every identical Preview build. Test skipped-version upgrades and crash fault-injection at boundaries. Real package install/update/reset proof separate from DB fixture tests. Performance target measured on described reference Windows Release conditions, cold vs warm separated; no universal 500ms guarantee.
 
@@ -51,6 +53,8 @@ Owner decision (2026-10-06, AIU045-D4a): a Preview is an owner-test build, not p
 - an ordinary `--demo` startup smoke of the Release candidate when `src` changed;
 - a primary diff review;
 - an explicit owner dispatch.
+
+Before the `gh workflow run` dispatch (2026-10-06), confirm `git rev-parse origin/main` equals the gated candidate commit, or that the delta is docs/tools-only with green CI on it.
 
 Under the same decision (2026-10-06), these checks are opt-in only: the Sandbox UI corpus, gallery and control matrices; package, upgrade and feed smoke (for manifest, packaging, update or migration changes); live-provider checks (for provider or auth changes, with authorization); and independent review on the [CONTRIBUTING](../../CONTRIBUTING.md#review-and-integration) triggers.
 

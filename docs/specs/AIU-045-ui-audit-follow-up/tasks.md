@@ -18,7 +18,7 @@ Primary-owned paths (`.github/`, `CONTRIBUTING.md`, `AGENTS.md`, `docs/backlog.m
 - isolation: required
 - agent: primary
 - acceptance: AC-05
-- evidence: docs/specs/AIU-045-ui-audit-follow-up/verification.md (section "Fix run 2026-10-06"; integrated c26f18b and effcb4b; CI run 37416927644 green with preview skipped)
+- evidence: docs/specs/AIU-045-ui-audit-follow-up/verification.md (section "Fix run 2026-10-06"; integrated c26f18b and effcb4b; CI run 37416927644 on c26f18b and CI run 37417959587 on 8364408, which covers effcb4b and 8cf68de, green with preview skipped)
 
 Closes ANL-01, ANL-03, ANL-05 and ANL-08 (ANL-02 was fixed in `7efd28f`). Worker briefs A (dispatch-only Preview publication and AIU-014 records, AIU045-D1a), B (validator rejects links into the ignored local root), D (intermittent diagnostics tests, `systematic-debugging`) and G (process and cross-cutting records, D4a and D6a drafts) run as `aiu-implementer` in isolated worktrees with disjoint write-sets; each is independently reviewed, then merged by the primary. The merged push is the first CI run of the product suites on the WIP tree (main-green checkpoint).
 
@@ -32,7 +32,7 @@ Closes ANL-01, ANL-03, ANL-05 and ANL-08 (ANL-02 was fixed in `7efd28f`). Worker
 - isolation: required
 - agent: aiu-implementer
 - acceptance: AC-02, AC-03
-- evidence: docs/specs/AIU-045-ui-audit-follow-up/verification.md (section "Fix run 2026-10-06"; integrated c26f18b and 8cf68de; CI run 37416927644 green with preview skipped)
+- evidence: docs/specs/AIU-045-ui-audit-follow-up/verification.md (section "Fix run 2026-10-06"; integrated c26f18b and 8cf68de; CI run 37416927644 on c26f18b and CI run 37417959587 on 8364408, which covers effcb4b and 8cf68de, green with preview skipped)
 
 Closes AUD-01 (fix), AUD-02, AUD-04, ANL-09, ANL-11 and ANL-17 under AIU045-D2b and D3a. Worker briefs C (revert the scope-annotation seam, packaged gate, observable Open failure), E (omitted-property probes; no product code) and F (`aiu-simple-implementer`; audit tool scripts) run in isolated worktrees. If E reports a red probe, fixer I continues on E's branch and this write-set is amended with the named record files before I starts. Runs concurrently with T-01 by owner request; the integrated result is verified once at Gate 1 before anything is pushed.
 
