@@ -1,0 +1,17 @@
+{
+    "Source":  "836440889ccb5c8841b540e72aabbcf3138e03d6",
+    "Command":  "dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore",
+    "Build1":  {
+                   "At":  "2026-10-06T06:24:36+01:00",
+                   "Warnings":  0,
+                   "Errors":  0,
+                   "AiUsageDllSha256":  "C12DF590488E120ECE781D0495CC65017D42FB862235DE3C1D34E29FA9E99D9A",
+                   "AiUsageExeSha256":  "9FE362F631583D66ADB1E58C0566587BF4818C91BFB106478072ADD4C548ED84"
+               },
+    "Build2AfterSandboxPublish":  {
+                                      "At":  "2026-10-06T07:28:10+01:00",
+                                      "AiUsageDllSha256":  "98A4AA5759DFDFBF71F5D2B5A174C45065FF8C01FA7850C309A7B2426E31A6C9",
+                                      "AiUsageExeSha256":  "9FE362F631583D66ADB1E58C0566587BF4818C91BFB106478072ADD4C548ED84"
+                                  },
+    "NativeDriverSha256":  "600960BD99D348277DBDA16E4FA7ACFA3CC841F72F35374CEF3A5759042FC821"
+}

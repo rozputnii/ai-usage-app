@@ -1,0 +1,10 @@
+{
+    "Synthetic":  true,
+    "StartedAt":  "2026-10-06T07:26+01:00",
+    "Status":  "BLOCKED",
+    "Stage":  "host readiness probe (wsb exec whoami.exe --run-as ExistingLogin)",
+    "Error":  "NativeCommandError: wsb.exe \"Failed to start process in Windows Sandbox environment\" on the first, expected not-ready probe; terminating under ErrorActionPreference=Stop in Windows PowerShell 5.1 (tools/windows/Run-UiAuditSandbox.ps1:113)",
+    "GuestCommandRan":  false,
+    "NativeExecuted":  0,
+    "SandboxStopped":  true
+}

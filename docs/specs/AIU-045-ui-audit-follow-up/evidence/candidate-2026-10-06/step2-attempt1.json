@@ -1,0 +1,26 @@
+{
+    "Synthetic":  true,
+    "Started":  "2026-10-06T06:25:27.1043050+01:00",
+    "Exe":  "Release AiUsage.exe (build 1)",
+    "CommandLineHasDemo":  true,
+    "WindowSeen":  true,
+    "Title":  "AI Usage",
+    "ForegroundSteps":  [
+                            "SetForegroundWindow:False",
+                            "AttachThreadInput(attached=False):False",
+                            "CaptionClick:False"
+                        ],
+    "ExitRequested":  "GUARD: window not foreground; no keys sent",
+    "Killed":  true,
+    "ExitCode":  "0xFFFFFFFF (-1)",
+    "SessionStartedMode":  "demo",
+    "SessionExitedLines":  0,
+    "AiUsageExeEvents1000_1001_1026":  0,
+    "OtherEvents":  [
+                        "1001 Windows Error Reporting: Fault bucket 1244090593639281479, type 5",
+                        "1000 Application Error: Faulting application name: AiUsage.DiagnosticsProbe.exe, version: 1.0.0.0, time stamp: 0x6a890000",
+                        "1026 .NET Runtime: Application: AiUsage.DiagnosticsProbe.exe"
+                    ],
+    "ForegroundOwner":  "LockApp (LogonUI running)",
+    "Verdict":  "BLOCKED"
+}

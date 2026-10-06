@@ -1,0 +1,19 @@
+{
+    "RunId":  37417959587,
+    "HeadSha":  "836440889ccb5c8841b540e72aabbcf3138e03d6",
+    "Conclusion":  "success",
+    "Jobs":  [
+                 {
+                     "name":  "windows-package",
+                     "conclusion":  "success"
+                 },
+                 {
+                     "name":  "validate",
+                     "conclusion":  "success"
+                 },
+                 {
+                     "name":  "preview",
+                     "conclusion":  "skipped"
+                 }
+             ]
+}

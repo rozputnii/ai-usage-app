@@ -1,0 +1,13 @@
+{
+    "Source":  "836440889ccb5c8841b540e72aabbcf3138e03d6",
+    "Dirty":  false,
+    "ApplicationSha256":  "20B7E8F4E0C5E3F64CFAC5ED23A64E8E40E690FBE6E4A619BB5D717B55F9F481",
+    "DriverSha256":  "600960BD99D348277DBDA16E4FA7ACFA3CC841F72F35374CEF3A5759042FC821",
+    "SourceDiffSha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+    "TestMethod":  [
+                       "*AuditWindows.OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable",
+                       "*AuditWindows.SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart",
+                       "*AuditWindows.ReplayPagesRenderUsedAndLeft"
+                   ],
+    "FirstPage":  ""
+}

@@ -101,3 +101,57 @@ Read the evidence first. The latest failing scenario was invoked with:
 Choose a **new** output directory for any future rerun; existing evidence must not be overwritten. The runner rebuilds the application and driver, records source/dirty state and hashes, then operates only inside its network-disabled guest. It requires already exported synthetic pages. Do not run this command while the task remains paused.
 
 The read-only diagnosis of AUD-01/AUD-02 was completed on 2026-10-05 on the host with synthetic input; see the [analysis record](analysis-2026-10-05.md), section 3. The exact next action is its section 11, not another comprehensive test run.
+
+## Candidate verification 2026-10-06
+
+T-03 desktop lane (task J), run in the main checkout at `836440889ccb5c8841b540e72aabbcf3138e03d6` (`8364408`, equal to `origin/main`, clean tree). Every app launch used `--demo` and a fresh `%TEMP%` root, verified on the real command line. No sign-in, credential, owner installation or real state was touched. Small result files are in [evidence/candidate-2026-10-06](evidence/candidate-2026-10-06/release-build.json); raw logs, XML and scripts stay in the git-ignored `.ai-usage-local/AIU-045/run-2026-10-06/evidence/candidate-2026-10-06/`.
+
+**The interactive desktop was locked for the whole lane.** From the first host launch (06:25) to the last retry (07:25), `LockApp` owned the foreground and `LogonUI` was running, which is the project's own BLOCKED condition (`DesktopTestEnvironment.RequireUnlockedDesktop`). The host steps were retried three times at 20-minute intervals (06:45, 07:05, 07:25), with 30-second polling in between, and never saw an unlock. Every host step that needs desktop input is therefore BLOCKED, not FAIL.
+
+| Item | Verdict | Evidence |
+| --- | --- | --- |
+| CI on the candidate (wave 1.5 merges `effcb4b` D, `8cf68de` E+I, docs `8364408`) | PASS | Run 37417959587 on `8364408`: `validate` success, `windows-package` success, `preview` skipped; [ci-37417959587.json](evidence/candidate-2026-10-06/ci-37417959587.json) |
+| Step 1: Release build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: 0 warnings, 0 errors. `AiUsage.dll` `C12DF590488E120ECE781D0495CC65017D42FB862235DE3C1D34E29FA9E99D9A`, `AiUsage.exe` `9FE362F631583D66ADB1E58C0566587BF4818C91BFB106478072ADD4C548ED84`; [release-build.json](evidence/candidate-2026-10-06/release-build.json) |
+| Step 2: host Release `--demo` startup and Ctrl+Q exit | BLOCKED | One launch at 06:25: window appeared (title "AI Usage"), log `SessionStarted` with `mode` `demo`, no 1000/1001/1026 event for `AiUsage.exe`. Foreground could not be obtained: SetForegroundWindow, AttachThreadInput and a real caption click all left `LockApp` in front, so the guard sent no key and the process was killed (exit -1, no `SessionExited`). No Ctrl+Q exit was observed, so no PASS is claimed. Events 1000/1001/1026 in that window belong to `AiUsage.DiagnosticsProbe.exe` (the Infrastructure suite's crash canary from a concurrent run). [step2-attempt1.json](evidence/candidate-2026-10-06/step2-attempt1.json) |
+| Step 3: native driver publish | PASS | `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true -o .ai-usage-local/AIU-045/run-2026-10-06/evidence/smoke`; `AiUsage.Windows.Tests.dll` `600960BD99D348277DBDA16E4FA7ACFA3CC841F72F35374CEF3A5759042FC821` |
+| `LedgerSmoke.LedgerLaunchSettingsHistoryAndExit(demo: True)` | BLOCKED | Not run: desktop locked. Exact single-case command: `AiUsage.Windows.Tests.exe -preEnumerateTheories -id 5a3dff3a136c38a3a3444eff9e58f70f728f318dd0d4fc23a5036e9834030637 -parallel none -xml <file>` (the ID is the runner's listed unique ID of that case) |
+| `LedgerSmoke.AccountSpendingUsesNestedContentHistoryCapsAndAccountActions` | BLOCKED | Not run: desktop locked. Command: `-method AiUsage.Windows.Tests.LedgerSmoke.AccountSpendingUsesNestedContentHistoryCapsAndAccountActions -parallel none -xml <file>` |
+| `LedgerSmoke.WorkBudgetShowsMonthlyAndDailyBarsBesideSubscriptionWithoutCredits` | BLOCKED | Not run: desktop locked. Command: `-method AiUsage.Windows.Tests.LedgerSmoke.WorkBudgetShowsMonthlyAndDailyBarsBesideSubscriptionWithoutCredits -parallel none -xml <file>` |
+| AIU-043 startup and late-disposal checks as Windows.Tests methods | NOT_APPLICABLE | The AIU-043 record names them as harness probes, not test methods: "Actual invalid XAML and hosted-service StartAsync failure" (`completion-lifecycle.json`) and "Actual DI-owned hosted-service Dispose failure" (`completion-disposal.json`); no method in `tests/windows/AiUsage.Windows.Tests` runs them |
+| AIU-043 probes rerun on the candidate (supplementary) | PASS | Product entry `AIU_DIAGNOSTIC_PROBE` with a fresh `%TEMP%\aiu-ui-probe-*` root, `--demo`, no input needed: `xaml-startup` exit 0xC000027B, `host-startup` exit 1, each one terminating `StartupFailure`; `host-disposal` exit 1, one terminating `DisposalFailure`; no canary in any file. Same outcomes as the AIU-043 completion record. [aiu043-probes.json](evidence/candidate-2026-10-06/aiu043-probes.json) |
+| `ShellSmoke.PackagedLedgerLaunchesAndExits` | NOT_RUN | Needs an installed package; belongs to the owner checkpoint |
+| Step 4 (D9): `LedgerSmoke.LedgerLaunchSettingsHistoryAndExit(demo: False)` live-empty | BLOCKED | Not run: desktop locked. Prepared command: `AIU_SMOKE_MODE` unset, empty `AIU_DEVELOPMENT_STATE_DIRECTORY` under `%TEMP%`, `-preEnumerateTheories -id 45456c1d8b3c0b44ff8e51bbcc29d2aa4ff6636d35ab952c3ad5021806bf2c34`. No code change was made, because no failure was observed |
+| Step 5 (D7a): Sandbox batch | BLOCKED (harness) | See below; no guest command and no test ran. [sandbox-build.json](evidence/candidate-2026-10-06/sandbox-build.json), [sandbox-run.json](evidence/candidate-2026-10-06/sandbox-run.json) |
+
+**FIX scenario resolution (recorded before the Sandbox run).** The audit report's "Product defects fixed" table and `controls.csv` map the three FIX IDs to existing native scenarios:
+
+- FIX-09 (final selected workday looked enabled while its click was rejected): `AuditWindows.SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart`. Its `controls.csv` row CTL-24 ("Last selected workday") names that method, and the method asserts that the last workday is disabled, re-enabled by selecting another day, and disabled again after Undo and Ctrl+Z (`AuditPreferenceControls.cs:55-68`).
+- FIX-10 (expired paired five-hour readings still appeared current): `AuditWindows.ReplayPagesRenderUsedAndLeft`. The WRESET-01/WRESET-02 rows in `coverage.csv` name it as their native test; their pages are `page-015`..`page-018` of `combined-pages`. The method replays every page in the directory.
+- FIX-11 (Tab skipped Save in the inline cap editor): `AuditWindows.SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart`, the method of the `preferences-check-3..5` runs cited in the report; it asserts Tab from the amount reaches Save and Shift+Tab returns (`AuditPreferenceControls.cs:88-92`).
+
+The layout method lives in class `AuditWindows` (file `AuditLayoutControls.cs`), so its filter is `*AuditWindows.OrdinaryMouse...`; the brief's `*AuditLayoutControls.` form would match no test. FIX-09 and FIX-11 share one method, so the batch had three filters.
+
+**Sandbox batch.** Command (Windows PowerShell 5.1; `wsb list --raw` was empty before and after):
+
+```powershell
+./tools/windows/Run-UiAuditSandbox.ps1 -PageDirectory .ai-usage-local/ui-audit/combined-pages -OutputDirectory .ai-usage-local/ui-audit/candidate-2026-10-06 -TestMethod '*AuditWindows.OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable','*AuditWindows.SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart','*AuditWindows.ReplayPagesRenderUsedAndLeft'
+```
+
+The runner published the app (`AiUsage.dll` `20B7E8F4E0C5E3F64CFAC5ED23A64E8E40E690FBE6E4A619BB5D717B55F9F481`, self-contained) and the driver, wrote `build.json` with `Dirty` false and an empty `source.diff` (`SourceDiffSha256` `E3B0C442...B855`), started the Sandbox, and then stopped it after a few seconds. Root cause: the readiness loop at `Run-UiAuditSandbox.ps1:113` runs `& wsb exec ... 2>&1` under `$ErrorActionPreference = 'Stop'`. The first probe normally fails while the guest logs in ("A specified logon session does not exist"); every earlier run retried it, and each `desktop-ready.log` shows three failed probes. Under Windows PowerShell 5.1, a redirected native stderr line becomes a terminating `NativeCommandError`, so the loop aborted on its first probe. This reproduces locally without Sandbox (`ps51-native-stderr-repro.txt`). The fix is in `tools/`, outside this task's write-set, so it was not made. The batch did not reach the guest, so this is not an AUD-01 startup failure. Another Sandbox start needs a primary ruling: was the authorized D7a session consumed?
+
+**Deviations and observations.**
+
+- `AIU_SMOKE_MODE` is read by no test; every `LedgerSmoke` method creates its own fresh `%TEMP%` root through `start.Environment`, so the environment root is only a guard.
+- The Sandbox runner's self-contained publish writes into the same `bin\x64\Release\...\win-x64` folder as step 1 and replaced the step-1 binaries. A rebuild with the step-1 command produced the same `AiUsage.exe` hash but a different `AiUsage.dll` hash (`98A4AA5759DFDFBF71F5D2B5A174C45065FF8C01FA7850C309A7B2426E31A6C9`, same length) from the same clean source. The Release `AiUsage.dll` is not byte-reproducible across these builds, so a hash identifies a build instance, not the commit. The supplementary probes ran on this rebuild.
+- ANL-10 (source reading only, not a result): both title-bar Used/Left buttons bind `IsEnabled` to `CanUseAccounts = !NeedsRecovery && !IsStarting` (`LedgerWindow.xaml`, `LedgerViewModel.cs:111`). With zero accounts they are therefore enabled once live startup finishes. The test's `Button()` helper waits for existence, not enablement, before `Invoke`. That makes a test-side race during live startup the leading hypothesis for the 2026-10-04 `ElementNotEnabledException`, not a product defect. It stays unconfirmed until the method runs.
+
+**Statuses after this lane.**
+
+- AUD-01: the root cause and fix (`5560205`) and the host A/B are recorded above. The AC-02 closure rerun is BLOCKED (harness), so AUD-01 stays open for AC-02.
+- AUD-03: open (same rerun).
+- ANL-04: open. Release `--demo` startup reached a window and `SessionStarted`, but the Ctrl+Q exit is BLOCKED; live-empty is BLOCKED.
+- ANL-07: the AIU-043 startup and disposal probes PASS on the candidate; the three native smoke methods are BLOCKED.
+- ANL-10: open (BLOCKED).
+- Dispatch gates (analysis section 6): gate 5 met apart from the AC-02 rerun; gate 6 BLOCKED; gate 7 is the primary diff review, outside this lane; gate 8 met (ANL-09 above).
+
+Exact next action: once the desktop is unlocked, rerun steps 2 to 4 with the retained scripts and commands above. After a primary ruling on the runner fix (for example, keep `$ErrorActionPreference` at `Continue` around the readiness probe) and on a Sandbox restart, rerun the batch into a new output directory.

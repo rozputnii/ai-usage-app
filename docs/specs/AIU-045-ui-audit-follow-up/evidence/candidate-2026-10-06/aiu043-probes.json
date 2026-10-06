@@ -1,0 +1,47 @@
+[
+    {
+        "probe":  "xaml-startup",
+        "started":  "2026-10-06T07:28:54.7192365+01:00",
+        "demo":  true,
+        "exited":  true,
+        "exitCode":  "0xC000027B (-1073741189)",
+        "criticalCount":  1,
+        "events":  [
+                       "StartupFailure"
+                   ],
+        "terminating":  [
+                            true
+                        ],
+        "canaryFiles":  0
+    },
+    {
+        "probe":  "host-startup",
+        "started":  "2026-10-06T07:29:01.9349990+01:00",
+        "demo":  true,
+        "exited":  true,
+        "exitCode":  "0x00000001 (1)",
+        "criticalCount":  1,
+        "events":  [
+                       "StartupFailure"
+                   ],
+        "terminating":  [
+                            true
+                        ],
+        "canaryFiles":  0
+    },
+    {
+        "probe":  "host-disposal",
+        "started":  "2026-10-06T07:29:02.5940034+01:00",
+        "demo":  true,
+        "exited":  true,
+        "exitCode":  "0x00000001 (1)",
+        "criticalCount":  1,
+        "events":  [
+                       "DisposalFailure"
+                   ],
+        "terminating":  [
+                            true
+                        ],
+        "canaryFiles":  0
+    }
+]
