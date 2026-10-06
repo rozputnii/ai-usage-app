@@ -482,7 +482,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-046 - Show five-hour windows early with an interval session estimate
 - goal: G-003
-- status: done
+- status: in-progress
 - depends_on: [AIU-035, AIU-038]
 - trigger: owner-selection
 - outcome: Show the current five-hour window as one today cell at once, and show the remaining five-hour window count as soon as integer-rounded readings bound it: a range while rough, one number once settled, narrowing automatically as windows accumulate. Replace the median-of-ratios readiness rule with guaranteed interval bounds (D-188).

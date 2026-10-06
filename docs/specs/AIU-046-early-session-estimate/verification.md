@@ -55,16 +55,17 @@ accessible name, which the app builds from the same tooltip lines.
 
 | AC | Status | Evidence |
 | --- | --- | --- |
-| AC-01 | PASS (automated, demo) | `LedgerTests`: `FiveHourWithoutAnEstimateIsOneStrip`, `OneWindowCellFollowsLeftModeDayOffAndFull` and `TrayShowsTheOneWindowCell` pass in the Presentation run. Demo H2 was observed. The live case is BLOCKED (see AC-07). |
+| AC-01 | PASS (automated, demo); interactive tray/Left NOT_RUN; live BLOCKED | `LedgerTests`: `FiveHourWithoutAnEstimateIsOneStrip`, `OneWindowCellFollowsLeftModeDayOffAndFull` and `TrayShowsTheOneWindowCell` pass in the Presentation run. Demo H2 was observed. The interactive tray and Left-mode checks were NOT_RUN. The live case is BLOCKED (see AC-07). |
 | AC-02 | PASS | `SessionEstimateTests.BoundsContainTrueCostUnderBothRoundingModes` (seed 46, 2,000 runs) in the Infrastructure run |
 | AC-03 | PASS | `NoEstimateWithFewerThanTwoWeeklyTicks`, `TwoTickPartMatchesHandComputedBounds` and `SingleWindowReachesRoughByTwentyFiveWhenCostIsTen` |
 | AC-04 | PASS | `ConsistentPartsNeverWiden` |
 | AC-05 | PASS | `ConflictingOlderPartAndOlderAreExcluded` and `PlanChangeWeeklyInstanceSourceAgeAndExhaustionExclusions` |
 | AC-06 | PASS | `RoughEstimateShowsRangeAndSettledShowsOneNumber` and `PairedCardCarriesRoughBoundsAndRange`. Demo H3 and A1 were observed. |
-| AC-07 | PASS except the live run, which is BLOCKED | The suites, document validation and the diff check pass. The demo rough and settled cards were observed. A local unpackaged run on live readings could not show a paired card, because no account is connected in the development state. |
+| AC-07 | BLOCKED (live run) | PASS: the suites, document validation and the diff check. PASS: the demo rough and settled cards were observed. BLOCKED: a local unpackaged run on live readings could not show a paired card, because no account is connected in the development state. |
 
-Open item: the live one-window observation needs a connected Claude account in the
-unpackaged development state, or a later installed build, with the owner present.
+Open item: AC-07 stays BLOCKED until the owner connects Claude in the unpackaged
+development build and the live one-window state is observed, or the owner waives the
+live clause.
 
 ## Validation and diff check on the records commit
 
@@ -76,3 +77,8 @@ The following ran on the working tree that became the records commit (about 18:1
   PASS, `{"valid":true,"diagnostics":[]}`.
 - `git diff --check` on the staged records and `git diff --check ff1d788..HEAD` after the
   commit: PASS, no output.
+
+Status correction after review: AC-07 and AC-01 are relabelled above. T-04 is `blocked`,
+AIU-046 is `in-progress`, and the spec and design are `implementing`. On that working
+tree the validator printed `{"valid":true,"diagnostics":[]}`, and `git diff --check`
+printed nothing.

@@ -280,7 +280,7 @@ schema_version: 1
 - [ ] **Step 5: Commit** with `feat(AIU-046): one five-hour window cell and estimate range footer`.
 
 ### T-04 - Records, full checks and live run
-- status: done
+- status: blocked
 - depends_on: [T-03]
 - acceptance: [AC-07]
 - evidence: docs/specs/AIU-046-early-session-estimate/verification.md; supersession notes in AIU-034/035/038; Infrastructure 882/882, Presentation 193/193, validator tests and document validation pass, diff check clean; demo H2, H3 (rough) and A1 (settled) observed PASS; live unpackaged one-window observation BLOCKED (no connected account in the development state)
@@ -330,15 +330,18 @@ schema_version: 1
 - Done: spec, design, D-188, backlog and G-003 registration. T-01 done in `ed89d1b`,
   T-02 in `4a792d2`, T-03 in `bf3c1d6` and `ce050f1`
   (independent review approved; Minor findings deferred to the whole-branch review).
-  T-04 records the supersession notes, the checks and the observations in
-  [verification.md](verification.md).
+  T-04 recorded the supersession notes, the checks and the observations in
+  [verification.md](verification.md), and is blocked on AC-07's live clause.
 - Local state: the test projects, `tools/AiUsage.ProviderConsole`,
   `tools/AiUsage.ProjectValidation` and the app project are restored. The unpackaged
   development state now holds an empty initialised store with no account.
-- Blocker: the live one-window observation (AC-07) is BLOCKED. No account is connected
-  in the unpackaged development state, and signing in needs the owner.
+- Blocker: AC-07's live clause is BLOCKED. No account is connected in the unpackaged
+  development state, and signing in needs the owner. T-04 stays `blocked`, AIU-046
+  stays `in-progress` and the spec and design stay `implementing` until the owner
+  observes the live run or waives the clause.
 - The design's figures come from a throwaway simulation that is not in the repo.
   T-01's tests re-establish them.
-- Exact next action: run the whole-branch review of `ff1d788..HEAD`. Then ask the
-  owner whether to merge to `main` and push, and whether to sign in to the unpackaged
-  build for the live observation first.
+- Exact next action: run the whole-branch review of `ff1d788..HEAD`. Then the owner
+  either connects Claude in the unpackaged development build, so that the live
+  one-window state can be observed for AC-07, or waives the live clause. Then ask the
+  owner whether to merge to `main` and push.
