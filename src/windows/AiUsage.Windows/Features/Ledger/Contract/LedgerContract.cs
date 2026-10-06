@@ -166,7 +166,17 @@ internal sealed record FiveHourModel(
     bool CurrentWindowStarted,
     DateTimeOffset? CurrentWindowEndsAt,
     int? WindowsLeftInPeriod,
-    int? FitBeforeReset);
+    int? FitBeforeReset)
+{
+    /// <summary>Guaranteed share bounds, set only when the estimate is ready.</summary>
+    public decimal? WindowShareLow { get; init; }
+    public decimal? WindowShareHigh { get; init; }
+    /// <summary>Largest window count when the count is a range starting at <see cref="WindowsLeftInPeriod"/>.</summary>
+    public int? WindowsLeftMax { get; init; }
+    public bool Rough { get; init; }
+    /// <summary>Pooled five-hour parts behind the estimate.</summary>
+    public int Windows { get; init; }
+}
 
 /// <summary>A provider reset with time (At) or date-only precision (Date), or an assumed period end.</summary>
 internal sealed record ResetModel(DateTimeOffset? At, DateOnly? Date, ResetProvenance Provenance, DateOnly? AssumedStart);

@@ -299,4 +299,45 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(4, card.FiveHour.WindowsLeftInPeriod);
         Assert.Null(Assert.Single(Project(week with { UsedPercent = null }).Cards).FiveHour!.WindowsLeftInPeriod);
     }
+
+    [Fact]
+    public void PairedCardCarriesRoughBoundsAndRange()
+    {
+        var week = Weekly(40);
+        var shortFacts = week with { Key = new("claude", "CL-S", "short"), Duration = TimeSpan.FromHours(5), UsedPercent = 30,
+            Reset = new(Now.AddHours(2), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var weekData = Data(week);
+        var shortKey = new ReadingSeriesKey(Account.ToString("N"), shortFacts.Key);
+        List<ReadingRun> weeklyRuns = [.. weekData.Runs];
+        List<ReadingRun> shortRuns = [];
+        for (int i = 0; i < 3; i++)
+        {
+            var at = Now.AddDays(-3 + i);
+            var shortStart = new ReadingRun(shortKey, new CountQuantity(10, "percent"), at, at, "s" + i, null, SnapshotSource.ProviderApi);
+            shortRuns.Add(shortStart);
+            shortRuns.Add(shortStart with { Value = new CountQuantity(60, "percent"), FirstSeen = at.AddHours(4), LastConfirmed = at.AddHours(4) });
+            var weeklyStart = shortStart with { Series = weekData.Series, Value = new CountQuantity(20 + 6 * i, "percent"), PeriodInstance = "one" };
+            weeklyRuns.Add(weeklyStart);
+            weeklyRuns.Add(weeklyStart with { Value = new CountQuantity(26 + 6 * i, "percent"), FirstSeen = at.AddHours(4), LastConfirmed = at.AddHours(4) });
+        }
+        var quota = new QuotaSnapshot(Now, null, [], null, null, null, null) { Limits = new(Now, null, SnapshotSource.ProviderApi, "test", [week, shortFacts]) };
+        var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
+        AccountModel Project(IReadOnlyList<ReadingRun> weekly, IReadOnlyList<ReadingRun> shortSeries) =>
+            LiveLedgerProjection.Account(account, "Work", [weekData with { Runs = weekly }, new(shortFacts, shortKey, shortSeries)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+
+        var rough = Assert.Single(Project(weeklyRuns.OrderBy(r => r.FirstSeen).ToArray(), shortRuns).Cards).FiveHour!;
+        Assert.True(rough.Rough);
+        Assert.Equal(9.8m, rough.WindowShareLow);
+        Assert.Equal(14.2m, rough.WindowShareHigh);
+        Assert.Equal(11.8m, rough.WindowShare);
+        Assert.Equal(4, rough.WindowsLeftInPeriod);
+        Assert.Equal(6, rough.WindowsLeftMax);
+        Assert.Equal(3, rough.Windows);
+
+        var card = Assert.Single(Project(weekData.Runs, []).Cards);
+        Assert.Equal(CardLayout.FiveHourAndPeriod, card.Layout);
+        Assert.Null(card.FiveHour!.WindowShare);
+        Assert.False(card.FiveHour.Rough);
+        Assert.Null(card.FiveHour.WindowsLeftMax);
+    }
 }

@@ -76,7 +76,14 @@ internal static class LiveLedgerProjection
                     Layout = card.Layout == CardLayout.Period ? CardLayout.FiveHourAndPeriod : card.Layout,
                     FiveHour = new(estimate.Cost is { } cost ? BudgetDisplay.Down(cost, .1m) : null, shortUsed, shortUsed > 0,
                         Local(shortData.Facts.Reset?.At, zone), figures.Weekly is { WholeSessions: <= int.MaxValue } count ? (int)count.WholeSessions : null,
-                        card.State == CardState.Rush && facts.Reset is { } reset ? (int)Math.Max(0, (reset.At - now).TotalHours / 5) : null),
+                        card.State == CardState.Rush && facts.Reset is { } reset ? (int)Math.Max(0, (reset.At - now).TotalHours / 5) : null)
+                    {
+                        WindowShareLow = estimate.Ready ? BudgetDisplay.Down(estimate.Low, .1m) : null,
+                        WindowShareHigh = estimate is { Ready: true, High: { } high } ? BudgetDisplay.Down(high, .1m) : null,
+                        WindowsLeftMax = figures.Weekly is { UpTo: { } upTo and <= int.MaxValue } ? (int)upTo : null,
+                        Rough = estimate.Level == SessionEstimateLevel.Rough,
+                        Windows = estimate.Windows
+                    },
                     State = shortUsed >= 100 && shortData.Facts.Reset?.At > now && card.State is not (CardState.UsedUp or CardState.NotReady or CardState.DayOff or CardState.ValueUnknown)
                         ? CardState.FiveHourFull : card.State
                 };
