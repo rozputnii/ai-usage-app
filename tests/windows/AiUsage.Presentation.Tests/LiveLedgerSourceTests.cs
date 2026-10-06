@@ -259,6 +259,8 @@ public sealed class LiveLedgerSourceTests
         {
             await source.InitializeAsync(null, Token);
             var signIn = source.SignInAsync(ProviderKind.Copilot, Token);
+            // The strip reaches the snapshot through the asynchronous rebuild; wait for it before reading Current.
+            await source.WaitForIdleAsync();
             Assert.Equal(SignInPhase.Waiting, source.Current.SignInStrip?.Phase);
             Assert.False(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
             await source.CancelSignInAsync(Token);
