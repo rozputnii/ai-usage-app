@@ -80,22 +80,22 @@ unpackaged Debug state and synthetic demo. Final package build completed at
 ### Executed commands
 
 - PASS: `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`
-  — 613 passed, zero failed/skipped.
+  - 613 passed, zero failed/skipped.
 - PASS: `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`
-  — 125 passed, zero failed/skipped after review corrections.
+  - 125 passed, zero failed/skipped after review corrections.
 - PASS: `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`
-  — valid, no diagnostics; repeated after final documentation edits.
+  - valid, no diagnostics; repeated after final documentation edits.
 - PASS: `git diff --check` and integrated primary acceptance/diff review.
 - PASS: `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None -p:OutputPath=C:/Users/danii/projects/ai-usage-app/.ai-usage-local/AIU-044/app/ --no-restore`
-  — zero warnings/errors. The pre-existing app in the standard Debug output remained running.
+  - zero warnings/errors. The pre-existing app in the standard Debug output remained running.
 - PASS: `./tools/windows/Build-Package.ps1 -MsixVersion 2026.10.302.0 -OutputDirectory .ai-usage-local/AIU-044/packages -NoRestore`
-  — unsigned-validation-only MSIX, SHA-256
+  - unsigned-validation-only MSIX, SHA-256
   `FCE6CD3888A6D9CDFD59DEBCB142DAC9D3A20A4EF7FA2B6339FC75F11D83AB07`.
   The SDK warned that optional `mspdbcmf.exe` was absent, so no symbols package was
   generated. No owned-code warnings, signing, installation or trust change.
 - PASS: Windows test harness Release build, then
   `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-build --no-restore -- -noLogo -method '*LedgerSmoke.AccountSpendingUsesNestedContentHistoryCapsAndAccountActions' -method '*LedgerSmoke.LedgerLaunchSettingsHistoryAndExit'`
-  — all three cases passed. `AIU_SMOKE_EXE` pointed to the isolated output above;
+  - all three cases passed. `AIU_SMOKE_EXE` pointed to the isolated output above;
   `AIU_SMOKE_EVIDENCE_DIRECTORY` pointed to `.ai-usage-local/AIU-044/smoke-final`.
   Evidence includes `money-smoke.json`, `ledger-demo.json`, `ledger-live-empty.json`
   and actual screenshots for monetary history, cap editor and account actions.
@@ -157,6 +157,8 @@ Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-044,
 | FIX-12 | Uncapped or nonbinding today tooltips blamed a personal cap. | `2e50e69` | `LedgerCardTests.TodayTooltipNamesTheBindingLimit` |
 
 The fixing commits are `[skip ci]` WIP save points in `git log 383644c..b84bf7c`. Each row's commit is the one that added its regression test (for FIX-11, its cap-editor Tab-navigation change) and changed the fixed source file; the audit report gives no per-commit mapping. The native smoke passes recorded above predate these changes and do not carry over to current `main` (ANL-07); AIU-045 T-03 reruns them.
+
+AC-03 scope note (2026-10-06, AIU-045 ANL-21 #4): the on-extra-usage mark was verified at fixture and projection level only; live mode cannot reach it by design (`LiveLedgerProjection` adds the mark only for `MonetaryScope.Account` spending, and live readings stay `MonetaryScope.Unknown` because current wire mappings do not establish scope), and after the AIU045-D3(a) revert of the audit scope annotations no native or gallery evidence of that projected mark can exist on the final build.
 
 Never-accepted gap (ANL-13), as of 2026-10-06:
 

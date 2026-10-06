@@ -224,6 +224,8 @@ public enum CapStatus { Applied, Unmatched, CurrencyMismatch }
 public sealed record DayOffPreview(DayOfWeek NextWorkDay, decimal ShareBefore, decimal ShareAfter);
 ```
 
+Contract note (2026-10-06): `CardMark` also carries `Currency`, `Exponent` and `ScopeLabel`, as implemented at `383644c..8364408` (`LedgerContract.cs`): the on-extra-usage amount keeps its pool's currency and minor-unit exponent, and `ScopeLabel` names the scope of a mark such as the five-hour past-reset mark. These members are part of this presentation contract by primary ruling under AIU-045 (ANL-21 #3, review R0). This note annotates the contract without reopening AIU-038 and changes no status.
+
 ### 4.4 Card states
 
 `CardState` is computed by the source, never by the view model. The view model maps it to a

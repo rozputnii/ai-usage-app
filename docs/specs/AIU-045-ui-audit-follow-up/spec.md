@@ -1,19 +1,19 @@
 ---
 id: AIU-045
 type: feature
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: The owner stopped the audit on 2026-10-04 and requested a preserved findings register and a follow-up task for fixes and discussion in later sessions. Execution remains paused pending owner resumption.
+approval_basis: The owner stopped the audit on 2026-10-04 and requested a preserved findings register and a follow-up task for fixes and discussion in later sessions. On 2026-10-06 the owner accepted decisions AIU045-D1..D9 (analysis record, section 7) and resumed execution with the bounded fix run T-01..T-04.
 ---
 
 # Synthetic Windows audit follow-up
 
-The owner stopped the comprehensive audit because it was taking too long. Preserve its work and evidence; do not automatically restart it. The canonical execution status is paused in the backlog.
+The owner stopped the comprehensive audit because it was taking too long. Preserve its work and evidence; do not automatically restart it. The canonical execution status is in the backlog; the comprehensive audit stays paused (2026-10-06).
 
 ## Intended result
 
-Review the [findings and handoff](verification.md), agree on a small next batch, and fix demonstrated defects within existing product behavior. The first issue was repeatable startup termination of the latest synthetic audit build, before a window appears. Its root cause was observed on 2026-10-05 and is recorded in the [analysis record](analysis-2026-10-05.md); it is not yet fixed. Ordinary `--demo` startup of HEAD was unaffected, while Release, packaged and live startup remain NOT_RUN.
+Review the [findings and handoff](verification.md), agree on a small next batch, and fix demonstrated defects within existing product behavior. The first issue was repeatable startup termination of the latest synthetic audit build, before a window appears. Its root cause was observed on 2026-10-05 and is recorded in the [analysis record](analysis-2026-10-05.md). On 2026-10-06 it was fixed (`5560205`) and the host A/B run starts; the AC-02 rerun of the failing Windows scenario is still pending. Ordinary `--demo` startup of HEAD was unaffected; Release `--demo` startup reached the window on 2026-10-06 without an observed exit, and packaged and live startup remain NOT_RUN.
 
 The earlier [audit report](../../workflow/ui-ux-audit-2026-10-04/report.md), [coverage matrix](../../workflow/ui-ux-audit-2026-10-04/coverage.csv), [additional scenarios](../../workflow/ui-ux-audit-2026-10-04/additional-scenarios.csv), [controls](../../workflow/ui-ux-audit-2026-10-04/controls.csv), [gallery index](../../workflow/ui-ux-audit-2026-10-04/screenshot-index.csv) and [independent reviews](../../workflow/ui-ux-audit-2026-10-04/review.md) remain the detailed evidence. They are incomplete audit records, not a final acceptance claim.
 
@@ -33,4 +33,12 @@ Do not rerun the full audit or expand the harness automatically. On resumption, 
 
 ## Exact next action after resumption
 
-The read-only diagnosis of AUD-01 and AUD-02 is complete, and the owner accepted decisions AIU045-D1..D9 on 2026-10-06; see the [analysis record](analysis-2026-10-05.md), sections 7 and 11. D1 option (c) has been in effect since 2026-10-05: `AIU_PREVIEW_ENABLED=false`, so a push to main no longer publishes a Preview. Next, the owner starts one primary session with the [orchestration prompt](orchestration-prompt-2026-10-06.md), which registers T-01..T-04 in `tasks.md` and executes them with parallel, reviewed subagents up to the owner checkpoint (Preview dispatch and installed-build checks). Do not launch another broad matrix, and do not resume the comprehensive audit.
+Owner checkpoint (2026-10-06). The fix run reached it with T-01 and T-02 integrated and CI-green, T-03 blocked because the interactive desktop was locked for the whole desktop lane, and the final status of every AUD, FIX, ANL and T item recorded in the [analysis record](analysis-2026-10-05.md), section "Final status (2026-10-06, before the owner checkpoint)". `AIU_PREVIEW_ENABLED` stays `false` until step 2. In order:
+
+1. The owner unlocks the desktop and leaves it unused. The primary then reruns the T-03 desktop lane, steps 2-5, on the pushed candidate: host Release `--demo` startup and Ctrl+Q exit; the native `LedgerSmoke` methods; the D9 live-empty smoke; and the single D7a Sandbox batch into a new output directory with the filters `*AuditWindows.OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable`, `*AuditWindows.SettingsFormsUndoAndPreferencesSurviveAnIsolatedRestart` (FIX-09, FIX-11) and `*AuditWindows.ReplayPagesRenderUsedAndLeft` (FIX-10). The commands are in the [verification record](verification.md), section "Candidate verification 2026-10-06"; the Sandbox runner fix is merged (`f409def`).
+2. Only after that lane passes, the owner dispatches the Preview: `gh variable set AIU_PREVIEW_ENABLED --body true`, then `gh workflow run validation.yml --ref main -f PublishPreview=true`.
+3. On the installed build, the owner checks, or authorizes checking: the update applied; packaged startup; close-to-tray and relaunch restore the window without `LeaseUnavailable`; packaged Open logs (AIU-043 AC-13); optionally `ShellSmoke.PackagedLedgerLaunchesAndExits` with `AIU_SMOKE_AUMID`. Task N records the results.
+4. ANL-16: the owner did not consent at kickoff to reading the installed app's sanitized logs, so nothing was read; it stays open until the owner consents or declines.
+5. The `New-UiAuditPages.ps1` dry run needs PowerShell 7, which is not installed on the host; it is offered to the owner.
+
+Do not launch another broad matrix, and do not resume the comprehensive audit.
