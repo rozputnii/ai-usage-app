@@ -8,11 +8,9 @@ using Windows.System;
 namespace AiUsage.Features.Ledger.Views;
 
 /// <summary>One limit card (spec 6.2). The card is a keyboard stop with its full accessible name; Enter opens history,
-/// F2 renames, C edits the cap, Alt+Up/Down reorders. History and Sign out show on hover or focus.</summary>
+/// F2 renames, C edits the cap, Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.</summary>
 internal sealed partial class LedgerCardView : UserControl
 {
-    private bool pointerOver;
-
     public LedgerCardView() => InitializeComponent();
 
     public LedgerCardView? MonetarySection
@@ -49,6 +47,8 @@ internal sealed partial class LedgerCardView : UserControl
             });
         else if (e.PropertyName == nameof(LimitCardViewModel.IsRenaming) && !ViewModel.IsRenaming && RenameBox.FocusState != FocusState.Unfocused)
             Focus(FocusState.Programmatic);
+        else if (e.PropertyName == nameof(LimitCardViewModel.IsHistoryOpen) && !HistoryButton.IsPointerOver)
+            QuietIcon(HistoryButton);
         else if (e.PropertyName == nameof(LimitCardViewModel.CapEditor))
         {
             if (ViewModel.CapEditor is not null)
@@ -129,34 +129,17 @@ internal sealed partial class LedgerCardView : UserControl
             ViewModel.BeginCapEdit();
     }
 
-    private void OnPointerEntered(object sender, PointerRoutedEventArgs e)
+    private void OnIconPointerEntered(object sender, PointerRoutedEventArgs e) => ((UIElement)sender).Opacity = 1;
+
+    private void OnIconPointerExited(object sender, PointerRoutedEventArgs e) => QuietIcon((UIElement)sender);
+
+    /// <summary>Returns an icon to the style's quiet opacity; the History icon stays opaque while its history is open.</summary>
+    private void QuietIcon(UIElement icon)
     {
-        pointerOver = true;
-        UpdateIcons();
-    }
-
-    private void OnPointerExited(object sender, PointerRoutedEventArgs e)
-    {
-        pointerOver = false;
-        UpdateIcons();
-    }
-
-    private void OnGettingFocus(UIElement sender, GettingFocusEventArgs args) => DispatcherQueue.TryEnqueue(UpdateIcons);
-
-    private void OnLosingFocus(UIElement sender, LosingFocusEventArgs args) => DispatcherQueue.TryEnqueue(UpdateIcons);
-
-    private void UpdateIcons()
-    {
-        var focusedInside = XamlRoot is not null && FocusManager.GetFocusedElement(XamlRoot) is DependencyObject focused && IsInside(focused);
-        Icons.Visibility = pointerOver || focusedInside || ViewModel?.IsHistoryOpen == true ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    private bool IsInside(DependencyObject element)
-    {
-        for (var current = element; current is not null; current = VisualTreeHelper.GetParent(current))
-            if (ReferenceEquals(current, this))
-                return true;
-        return false;
+        if (ReferenceEquals(icon, HistoryButton) && ViewModel?.IsHistoryOpen == true)
+            icon.Opacity = 1;
+        else
+            icon.ClearValue(OpacityProperty);
     }
 
     // ---- x:Bind helpers ----

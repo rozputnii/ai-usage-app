@@ -224,6 +224,10 @@
     <Setter Property="MinHeight" Value="24" />
     <Setter Property="Padding" Value="0" />
   </Style>
+  <!-- Card icons stay visible but quiet; the card raises them to full opacity while the pointer is on the icon. -->
+  <Style x:Key="LedgerQuietIconButton" TargetType="Button" BasedOn="{StaticResource LedgerIconButton}">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
   <Style x:Key="LedgerTitleIconButton" TargetType="Button" BasedOn="{StaticResource LedgerIconButton}">
     <Setter Property="Width" Value="28" />
     <Setter Property="Height" Value="28" />
