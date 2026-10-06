@@ -515,6 +515,8 @@ One direct installation and identity supports Stable and Preview. Every green ma
 
 Owner amendment (2026-10-06, AIU045-D1): Previews publish only through an explicit owner dispatch of a green main commit; every green main merge is a candidate, not a release.
 
+Owner amendment (2026-10-06, later the same day): reverses the AIU045-D1 amendment. Every green main push publishes a Preview automatically again; an owner dispatch with `PublishPreview=true` can republish.
+
 ### D-158 - No downgrade on channel switch
 Switching Preview to Stable changes the feed but keeps the newer installed binary until Stable catches up. Keep ForceUpdateFromAnyVersion disabled.
 

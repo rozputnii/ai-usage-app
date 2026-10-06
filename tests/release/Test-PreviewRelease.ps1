@@ -80,22 +80,24 @@ Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($parent)) $tru
 Equal (Test-PreviewPromotion -Candidate $parent -PublishedCommits @($head, $parent)) $false
 Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($head)) $true
 Reject { Test-PreviewPromotion -Candidate ('0' * 40) -PublishedCommits @($head) }
-# Publication is owner-paced (AIU045-D1): a main push is a candidate, only an owner dispatch publishes.
+# Every green main push publishes; an owner dispatch can republish (owner decision 2026-10-06, reverses AIU045-D1).
 $runnerNames = 'GITHUB_ACTIONS', 'GITHUB_EVENT_NAME', 'GITHUB_REF', 'GITHUB_JOB', 'RUNNER_ENVIRONMENT', 'GITHUB_REPOSITORY'
 $savedRunner = @{}
 foreach ($name in $runnerNames) { $savedRunner[$name] = [Environment]::GetEnvironmentVariable($name) }
 try {
     $env:GITHUB_ACTIONS = 'true'; $env:GITHUB_REF = 'refs/heads/main'; $env:GITHUB_JOB = 'preview'
     $env:RUNNER_ENVIRONMENT = 'github-hosted'; $env:GITHUB_REPOSITORY = 'rozputnii/ai-usage-app'
+    $env:GITHUB_EVENT_NAME = 'pull_request'
+    Reject { Assert-PreviewPublicationRunner } 'main push or owner dispatch'
     $env:GITHUB_EVENT_NAME = 'push'
-    Reject { Assert-PreviewPublicationRunner } 'owner dispatch'
+    Assert-PreviewPublicationRunner; $script:count++
     $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
     Assert-PreviewPublicationRunner; $script:count++
 } finally { foreach ($name in $runnerNames) { [Environment]::SetEnvironmentVariable($name, $savedRunner[$name]) } }
 $workflow = [IO.File]::ReadAllText((Join-Path $PSScriptRoot '../../.github/workflows/validation.yml'))
 $previewIf = [regex]::Match($workflow, '(?m)^  preview:\r?\n    if: ([^\r\n]+)').Groups[1].Value
-foreach ($term in @("github.event_name == 'workflow_dispatch'", 'inputs.PublishPreview == true', "github.ref == 'refs/heads/main'", "vars.AIU_PREVIEW_ENABLED == 'true'")) { Equal ($previewIf.Contains($term)) $true }
-Equal ($previewIf.Contains("github.event_name == 'push'")) $false
+foreach ($term in @("(github.event_name == 'push' || github.event_name == 'workflow_dispatch' && inputs.PublishPreview == true)", "github.ref == 'refs/heads/main'", "vars.AIU_PREVIEW_ENABLED == 'true'")) { Equal ($previewIf.Contains($term)) $true }
+Equal ($previewIf.Contains('pull_request')) $false
 Equal ($workflow -match '(?m)^  preview:\r?\n    if: [^\r\n]+\r?\n    needs: \[validate, windows-package\]\r?$') $true
 $publishStep = $workflow.IndexOf('./tools/windows/Publish-Preview.ps1')
 Equal ($publishStep -gt 0 -and $publishStep -lt $workflow.IndexOf('- name: Deploy update feed')) $true

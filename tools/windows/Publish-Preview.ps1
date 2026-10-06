@@ -1,4 +1,4 @@
-# Runs only in the serialized GitHub-hosted release job of an owner dispatch on main, after that commit's validation succeeds.
+# Runs only in the serialized GitHub-hosted release job of a main push or owner dispatch, after that commit's validation succeeds.
 [CmdletBinding()]
 param([Parameter(Mandatory)][string]$SiteUrl)
 $ErrorActionPreference = 'Stop'

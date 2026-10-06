@@ -47,14 +47,13 @@ Persistence review (2026-10-06, ANL-11): a source-generated `[JsonSerializable]`
 Historical PUBLIC schema/layout versions retained as sanitized fixtures, not every identical Preview build. Test skipped-version upgrades and crash fault-injection at boundaries. Real package install/update/reset proof separate from DB fixture tests. Performance target measured on described reference Windows Release conditions, cold vs warm separated; no universal 500ms guarantee.
 
 ## Preview gate
-Owner decision (2026-10-06, AIU045-D4a): a Preview is an owner-test build, not public release approval, and it publishes only through an explicit owner dispatch (AIU045-D1). Under this decision (2026-10-06), the exact candidate commit requires:
+Owner decision (2026-10-06, AIU045-D4a): a Preview is an owner-test build, not public release approval. Owner decision (2026-10-06, later, reversing AIU045-D1): every green push to `main` publishes a Preview automatically, so the gate applies before pushing to `main`:
 
-- CI `validate` and `windows-package` green on that commit;
 - an ordinary `--demo` startup smoke of the Release candidate when `src` changed;
 - a primary diff review;
-- an explicit owner dispatch.
+- CI `validate` and `windows-package` green on that commit (enforced by the workflow before publication).
 
-Before the `gh workflow run` dispatch (2026-10-06), confirm `git rev-parse origin/main` equals the gated candidate commit, or that the delta is docs/tools-only with green CI on it.
+An owner dispatch with `PublishPreview=true` can republish the current `main` commit.
 
 Under the same decision (2026-10-06), these checks are opt-in only: the Sandbox UI corpus, gallery and control matrices; package, upgrade and feed smoke (for manifest, packaging, update or migration changes); live-provider checks (for provider or auth changes, with authorization); and independent review on the [CONTRIBUTING](../../CONTRIBUTING.md#review-and-integration) triggers.
 

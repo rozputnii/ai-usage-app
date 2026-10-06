@@ -131,12 +131,12 @@ GitHub Pages, then enables `AIU_PREVIEW_ENABLED`. It never exports the existing 
 key or changes host certificate trust. Existing secrets/setup evidence stop a repeat;
 partial setup must be inspected, not overwritten or rotated automatically.
 
-Pushes to `main` never publish (amended 2026-10-06, AIU045-D1): every green main
-commit is a candidate, not a release. The owner publishes one by dispatching
-`gh workflow run validation.yml --ref main -f PublishPreview=true`. That run validates
-and packages the same commit; only if both jobs pass does it publish a distinct
-development prerelease and deploy `https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`.
-`AIU_PREVIEW_ENABLED` is the kill switch: unless it is `true`, a dispatch skips publication.
+Every push to `main` publishes (owner decision 2026-10-06, reversing AIU045-D1's
+dispatch-only rule). The run validates and packages the pushed commit; only if both jobs
+pass does it publish a distinct development prerelease and deploy
+`https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`. The owner can republish
+the current commit with `gh workflow run validation.yml --ref main -f PublishPreview=true`.
+`AIU_PREVIEW_ENABLED` is the kill switch: unless it is `true`, no run publishes.
 The feed stays on that site, but its package and Windows App SDK dependency URIs point
 at the immutable assets of the same GitHub release (amended 2026-10-06, ANL-12): on the
 owner's machine the IPv6 path to GitHub Pages reset TLS connections and App Installer

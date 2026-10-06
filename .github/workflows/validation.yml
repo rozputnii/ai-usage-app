@@ -96,7 +96,7 @@ jobs:
             .ai-usage-local/AIU-002/ci-evidence.json
 
   preview:
-    if: github.event_name == 'workflow_dispatch' && inputs.PublishPreview == true && github.ref == 'refs/heads/main' && vars.AIU_PREVIEW_ENABLED == 'true'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch' && inputs.PublishPreview == true) && github.ref == 'refs/heads/main' && vars.AIU_PREVIEW_ENABLED == 'true'
     needs: [validate, windows-package]
     runs-on: windows-latest
     timeout-minutes: 30

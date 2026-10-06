@@ -43,9 +43,10 @@ PASS; record actual status in the task and verification documents as usual, and 
 commit message when the work is still in progress.
 
 Owner decision (2026-10-06, AIU045-D1): save points run CI normally and never carry
-`[skip ci]`. Previews publish only through an explicit owner `workflow_dispatch` of the
-validation workflow on `main`; a push to `main` never publishes one. A green push to
-`main` is a candidate, not a release.
+`[skip ci]`. Owner decision (2026-10-06, reverses AIU045-D1's dispatch-only rule): every
+green push to `main` publishes a development Preview automatically; an owner
+`workflow_dispatch` with `PublishPreview=true` can republish. A Preview is still an
+owner-test build, not a release.
 
 Inspect outgoing commits and preserve unrelated tracked and untracked changes. Keep
 credentials, local sessions, private account data and generated output out of Git. Never

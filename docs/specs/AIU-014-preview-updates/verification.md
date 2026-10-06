@@ -100,9 +100,12 @@ folder. No personal state was mapped. Evidence is kept locally and ignored:
   is a repository setting outside this change.
 - The late-older-source guard is proven locally against real Git ancestry. The hosted
   runs exercised only the forward path.
-- Since 2026-10-06 (AIU045-D1), a main push never publishes. Only an owner dispatch
-  with `PublishPreview=true` on `main` publishes, after that commit's validate and
-  windows-package jobs pass, and only while `AIU_PREVIEW_ENABLED` is `true`.
+- From AIU045-D1 until its reversal later on 2026-10-06, a main push never published.
+  Since the reversal, a main push or an owner dispatch with `PublishPreview=true` on
+  `main` publishes, after that commit's validate and windows-package jobs pass, and only
+  while `AIU_PREVIEW_ENABLED` is `true`. Local release-policy assertions cover push and
+  dispatch acceptance and `pull_request` rejection; the hosted push publication is
+  pending the first run after the change.
 - Certificate expiry and rotation (2028-09-22), official signing, Stable and public
   distribution remain deferred.
 
