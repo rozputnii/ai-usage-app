@@ -96,7 +96,7 @@ internal static class BackendMeasurements
                     var estimate = SessionEstimator.Estimate(all,
                         new(keys[i], keys[i + 1], "shared", "shared", TimeSpan.FromHours(5), TimeSpan.FromDays(7)), Now);
                     if (!estimate.Ready) throw new InvalidOperationException("Synthetic estimate is not ready.");
-                    count += estimate.Samples.Count;
+                    count += estimate.Windows;
                 }
                 return Task.FromResult(count);
             }).ConfigureAwait(false);

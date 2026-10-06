@@ -111,15 +111,17 @@ public sealed class PersistedBudgetCalculationTests : IDisposable
         var runs = (await reader.ReadAsync(Key, Token)).Value.Concat((await reader.ReadAsync(shortKey, Token)).Value).ToArray();
         var pair = new SessionPair(shortKey, Key, "shared", "shared", TimeSpan.FromHours(5), TimeSpan.FromDays(7));
         var estimate = SessionEstimator.Estimate(runs, pair, Day.AddDays(2).AddHours(5));
-        Assert.True(estimate.Ready);
-        Assert.Equal(12, estimate.Cost);
-        Assert.Equal(3, estimate.Samples.Count);
+        // Each part: S = 50, W = 6, so L = 100 * (6 - 1) / 51 and H = 100 * (6 + 1) / 49.
+        Assert.Equal(SessionEstimateLevel.Rough, estimate.Level);
+        Assert.Equal(9.804, (double)estimate.Low, 3);
+        Assert.Equal(14.286, (double)estimate.High!.Value, 3);
+        Assert.Equal(3, estimate.Windows);
         var figures = SessionEstimator.Figures(estimate, 47, 18.3m);
-        Assert.Equal(4, figures.Weekly!.WholeSessions);
+        Assert.Equal(new SessionCount(3, false, 5), figures.Weekly);
         Assert.Equal(1, figures.Today!.WholeSessions);
         await reader.AppendAsync([At(38, 2 * 1440 + 300) with { PlanType = "Max" }], Token);
         runs = (await reader.ReadAsync(Key, Token)).Value.Concat((await reader.ReadAsync(shortKey, Token)).Value).ToArray();
-        Assert.False(SessionEstimator.Estimate(runs, pair, Day.AddDays(2).AddHours(6)).Ready);
+        Assert.Equal(SessionEstimateLevel.None, SessionEstimator.Estimate(runs, pair, Day.AddDays(2).AddHours(6)).Level);
     }
 
     [Fact]

@@ -50,9 +50,9 @@ public sealed class BudgetScenarioTests
         Assert.True(b2.ProviderUsedUp);
         Assert.Equal(AccountLimitState.Ok, BudgetEngine.AccountState([c1, c2, c3]));
         Assert.Equal(AccountLimitState.Ok, BudgetEngine.AccountState([d1, d2]));
-        var ready = new SessionEstimate(true, 12, 2, 19.8m, []);
+        var ready = new SessionEstimate(SessionEstimateLevel.Settled, 12, 11, 13, 4);
         Assert.Equal(new SessionFigures(new(4, false), new(1, false)), SessionEstimator.Figures(ready, a2.Used!.Value, a2.TodayShare));
-        Assert.Null(SessionEstimator.Figures(new(false, null, null, 0, []), b2.Used!.Value, b2.TodayShare).Weekly);
+        Assert.Null(SessionEstimator.Figures(SessionEstimate.Empty, b2.Used!.Value, b2.TodayShare).Weekly);
     }
 
     [Fact]

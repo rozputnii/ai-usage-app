@@ -316,8 +316,10 @@ public sealed partial class AuditScenarioTests
                 Assert.Contains(card.Marks,m=>m.Kind==MarkKind.PastReset && m.ScopeLabel=="5h");
             if(item.Estimate && card.FiveHour is not null)
             {
-                Assert.Equal(10,card.FiveHour.WindowShare);
-                Assert.Equal((int)decimal.Floor((100-item.Used!.Value)/10),card.FiveHour.WindowsLeftInPeriod);
+                // Three parts of five-hour +50 and weekly +5: L = 100*(5-1)/51, H = 100*(5+1)/49, rough.
+                // C = sqrt(L*H) = 9.7999 shows as 9.7; the weekly count is the range minimum floor((100-w)/H).
+                Assert.Equal(9.7m,card.FiveHour.WindowShare);
+                Assert.Equal((int)decimal.Floor((100-item.Used!.Value)*49/600),card.FiveHour.WindowsLeftInPeriod);
             }
             // Startup must replay the actual recorded observations, including the first observation today.
             // A cached startup intentionally does not recapture the current account snapshot.

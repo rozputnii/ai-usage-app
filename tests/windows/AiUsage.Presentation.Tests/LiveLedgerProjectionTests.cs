@@ -293,8 +293,10 @@ public sealed class LiveLedgerProjectionTests
         var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
         AccountModel Project(LimitFacts weekly) => LiveLedgerProjection.Account(account, "Work", [weekData with { Facts = weekly, Runs = weeklyRuns.OrderBy(r => r.FirstSeen).ToArray() }, new(shortFacts, shortKey, shortRuns)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
         var card = Assert.Single(Project(week).Cards);
-        Assert.Equal(12, card.FiveHour!.WindowShare);
-        Assert.Equal(5, card.FiveHour.WindowsLeftInPeriod);
+        // Parts newest first: [100*8.8/71, 100*10.8/69], [100*3/41, 100*5/39], [100*5/51, 100*7/49];
+        // pooled [12.394, 12.821] is settled, C = sqrt(L*H) = 12.6056, and floor(60 / C) = 4.
+        Assert.Equal(12.6m, card.FiveHour!.WindowShare);
+        Assert.Equal(4, card.FiveHour.WindowsLeftInPeriod);
         Assert.Null(Assert.Single(Project(week with { UsedPercent = null }).Cards).FiveHour!.WindowsLeftInPeriod);
     }
 }
