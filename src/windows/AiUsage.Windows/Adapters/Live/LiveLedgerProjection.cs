@@ -79,7 +79,7 @@ internal static class LiveLedgerProjection
                         card.State == CardState.Rush && facts.Reset is { } reset ? (int)Math.Max(0, (reset.At - now).TotalHours / 5) : null)
                     {
                         WindowShareLow = estimate.Ready ? BudgetDisplay.Down(estimate.Low, .1m) : null,
-                        WindowShareHigh = estimate is { Ready: true, High: { } high } ? BudgetDisplay.Down(high, .1m) : null,
+                        WindowShareHigh = estimate is { Ready: true, High: { } high } ? BudgetDisplay.Up(high, .1m) : null,
                         WindowsLeftMax = figures.Weekly is { UpTo: { } upTo and <= int.MaxValue } ? (int)upTo : null,
                         Rough = estimate.Level == SessionEstimateLevel.Rough,
                         Windows = estimate.Windows

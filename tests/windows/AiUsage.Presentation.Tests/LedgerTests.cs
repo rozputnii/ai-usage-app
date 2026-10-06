@@ -804,7 +804,8 @@ public sealed class LedgerInteractionTests
         var strip = tray.Rows.SelectMany(r => r.Strips).Single(s => s.CardId == "h2");
         Assert.Equal(TrayStripKind.Cells, strip.Kind);
         Assert.Equal(["Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], Assert.Single(strip.Cells).Tip);
-        Assert.Contains("Window count: collecting data", strip.Tip);
+        // The one-window cell has no title line, so the label is followed by its full tip, including the window line.
+        Assert.Equal(["Codex Pro · 5h + 7d", "Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], strip.Tip);
     }
 
     [Fact]

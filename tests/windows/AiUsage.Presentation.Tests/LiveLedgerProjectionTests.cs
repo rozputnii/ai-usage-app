@@ -328,7 +328,7 @@ public sealed class LiveLedgerProjectionTests
         var rough = Assert.Single(Project(weeklyRuns.OrderBy(r => r.FirstSeen).ToArray(), shortRuns).Cards).FiveHour!;
         Assert.True(rough.Rough);
         Assert.Equal(9.8m, rough.WindowShareLow);
-        Assert.Equal(14.2m, rough.WindowShareHigh);
+        Assert.Equal(14.3m, rough.WindowShareHigh);
         Assert.Equal(11.8m, rough.WindowShare);
         Assert.Equal(4, rough.WindowsLeftInPeriod);
         Assert.Equal(6, rough.WindowsLeftMax);

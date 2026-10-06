@@ -10,6 +10,12 @@ public static class BudgetDisplay
         return decimal.Floor(value / quantum) * quantum;
     }
 
+    public static decimal Up(decimal value, decimal quantum)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantum);
+        return decimal.Ceiling(value / quantum) * quantum;
+    }
+
     public static decimal TowardZero(decimal value, decimal quantum)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantum);
