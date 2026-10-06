@@ -1,10 +1,10 @@
 ---
 id: AIU-046
 type: feature
-status: draft
+status: approved
 goal: G-004
 scope_version: 1
-approval_basis: Owner design conversation on 2026-10-06 selected approach A (Windows App Installer APIs called from the app), three update modes with Always as default, and automatic restart only while the window is hidden. The owner approved each design section; this written specification awaits owner review.
+approval_basis: Owner design conversation on 2026-10-06 selected approach A (Windows App Installer APIs called from the app), three update modes with Always as default, and automatic restart only while the window is hidden. The owner approved each design section and approved this written specification on 2026-10-06. Planning amendment 2026-10-06, presented in the owner's plan review - the exact install option name, the first automatic check at 60 seconds, the 30-second drain limit and the AIU-043 projection exception in Boundaries.
 ---
 
 # In-app updates
@@ -32,7 +32,8 @@ shows a gear instead of the current sun-like glyph.
 A persisted preference `UpdateMode` with values `Off`, `OnLaunch` and `Always`
 (default `Always`). Preference files written before this change read as `Always`.
 
-- `Always`: check every 5 minutes.
+- `Always`: first check once the process has run for at least 60 seconds, then every
+  5 minutes.
 - `OnLaunch`: one check once the process has run for at least 60 seconds.
 - `Off`: no automatic checks.
 
@@ -48,10 +49,13 @@ The manual **Check for updates** command works in every mode.
   no sign-in is in progress, and the window is hidden (tray). If the window is open,
   the status is "Update ready" with the install button, and the install starts when the
   window is hidden or the button is pressed.
-- Install: pause the refresh timer and wait for in-flight provider work; register
+- Install: wait until the process has run for at least 60 seconds (the restart API's
+  minimum); pause the refresh timer and wait for in-flight provider work; register
   restart with `RegisterApplicationRestart`; call
-  `PackageManager.AddPackageByAppInstallerFileAsync(feed, ForceApplicationShutdown)`.
-  Windows closes the process, installs and relaunches it.
+  `PackageManager.AddPackageByAppInstallerFileAsync(feed,
+  AddPackageByAppInstallerOptions.ForceTargetAppShutdown, volume)`. Windows closes the
+  process, installs and relaunches it. If provider work has not finished within 30
+  seconds, the install does not start and the status returns to the available state.
 - Relaunch arguments: `--updated-from=<version>` always; `--background` when the
   install started while the window was hidden, so the app returns to the tray without
   showing the window. A relaunch from the button shows the window.
@@ -88,8 +92,10 @@ ticks are not logged. No feed bodies, exception text or user paths.
 
 ## Boundaries
 
-Windows layer only (`AiUsage.Windows`): Core and Infrastructure do not change. A thin
-`IPackageUpdates` port wraps the Windows APIs; an `UpdateCoordinator` holds the mode,
+Windows layer only (`AiUsage.Windows`), except the shared AIU-043 projection: Core gains
+the four update `DiagnosticEvent` values and Infrastructure gains one typed
+`FileDiagnostics.Update` method, because the existing logging API cannot record an error
+code or versions. A thin `IPackageUpdates` port wraps the Windows APIs; an `UpdateCoordinator` holds the mode,
 timing, visibility and failure rules and is unit-tested with fakes. No custom
 downloader, feed parsing, version comparison, new dependency, manifest capability
 unless the spike proves one necessary, or change to the feed's `UpdateSettings`.
@@ -119,7 +125,7 @@ Windows App Installer's launch and background checks remain in place.
 
 1. Spike (throwaway, before product code): in Windows Sandbox with a local two-version
    feed (`tools/windows/Invoke-FeedUpdateSmoke.ps1`), confirm the check sees the newer
-   version, `AddPackageByAppInstallerFileAsync(ForceApplicationShutdown)` updates the
+   version, `AddPackageByAppInstallerFileAsync(ForceTargetAppShutdown)` updates the
    app's own package without `packageManagement`, and `RegisterApplicationRestart`
    relaunches it with arguments, including uptime under 60 seconds. A failure stops the
    work for an owner decision before implementation.
