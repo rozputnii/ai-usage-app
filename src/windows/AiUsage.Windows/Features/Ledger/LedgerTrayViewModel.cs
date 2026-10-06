@@ -71,8 +71,10 @@ internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposabl
         var visual = CardVisuals.Build(card, account, mode, now);
         var label = account.DisplayName + " · " + (card.ScopeLabel ?? (card.Layout == CardLayout.FiveHourAndPeriod ? "5h + " + LedgerFormat.PeriodLabel(card.Period) : LedgerFormat.PeriodLabel(card.Period)));
         var kind = card.Layout == CardLayout.UsedOnly ? TrayStripKind.EmptyDashed : card.State == CardState.UsedUp ? TrayStripKind.SolidCritical : TrayStripKind.Cells;
+        // A cell tip starts with its title, which the label replaces; the one-window cell has no title line.
+        var oneWindow = card is { Layout: CardLayout.FiveHourAndPeriod, FiveHour.WindowShare: null };
         var tip = kind == TrayStripKind.Cells && visual.Cells.Count > 0
-            ? [label, .. (mode == ValueMode.Left ? visual.Cells[^1] : visual.Cells[0]).Tip.Skip(1)]
+            ? [label, .. (mode == ValueMode.Left ? visual.Cells[^1] : visual.Cells[0]).Tip.Skip(oneWindow ? 0 : 1)]
             : new List<string> { label }.Concat(visual.PillTip).ToList();
         var mark = card.State == CardState.Rush ? TrayMark.Rush : card.Marks.Any(m => m.Kind == MarkKind.OnExtraUsage) ? TrayMark.ExtraUsage : TrayMark.None;
         var markTip = mark switch
