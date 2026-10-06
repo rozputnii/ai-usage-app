@@ -137,9 +137,11 @@ commit is a candidate, not a release. The owner publishes one by dispatching
 and packages the same commit; only if both jobs pass does it publish a distinct
 development prerelease and deploy `https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`.
 `AIU_PREVIEW_ENABLED` is the kill switch: unless it is `true`, a dispatch skips publication.
-The feed's package and Windows App SDK dependency are served from the same site: App
-Installer failed to fetch GitHub release downloads, which redirect to short-lived storage
-URLs (0x80072EFE). Releases keep their own immutable copies.
+The feed stays on that site, but its package and Windows App SDK dependency URIs point
+at the immutable assets of the same GitHub release (amended 2026-10-06, ANL-12): on the
+owner's machine the IPv6 path to GitHub Pages reset TLS connections and App Installer
+aborted the Pages download (0x80072EFE), while the IPv4-only release hosts worked every
+time. The site keeps copies for its direct-install links.
 Draft releases reserve versions before building; a failure consumes its version. The
 release queue retains up to 100 pending jobs. Only a candidate containing every prior
 published source can update the feed; a late older source may publish an artifact but

@@ -29,6 +29,13 @@ Reject { New-PreviewFeed @args }
 $args.PackageUri = 'https://example.org/releases/AiUsage.msix'
 $args.Dependencies[0].Uri = 'file:///C:/untrusted.msix'
 Reject { New-PreviewFeed @args }
+# ANL-12 (2026-10-06): the feed stays on Pages; packages come from the immutable release assets.
+$release = 'https://github.com/rozputnii/ai-usage-app/releases/download/preview-2026.10.601.0'
+$pagesFeed = 'https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller'
+[xml]$releaseFeed = New-PreviewFeed -Version '2026.10.601.0' -FeedUri $pagesFeed -PackageUri "$release/AiUsage.Windows_2026.10.601.0_x64.msix" -Dependencies @(@{ Name='Microsoft.Example'; Publisher='CN=Microsoft Example'; Version='1.0.0.0'; ProcessorArchitecture='x64'; Uri="$release/Microsoft.WindowsAppRuntime.2.msix" })
+Equal $releaseFeed.AppInstaller.Uri $pagesFeed
+Equal $releaseFeed.AppInstaller.MainPackage.Uri "$release/AiUsage.Windows_2026.10.601.0_x64.msix"
+Equal $releaseFeed.AppInstaller.Dependencies.Package.Uri "$release/Microsoft.WindowsAppRuntime.2.msix"
 Write-Output "PASS: $script:count release policy assertions"
 # Runner trust: hosted run 35785324979 proved CurrentUser\TrustedPeople does not satisfy SignTool
 # /pa for the self-signed signer; a Root store anchors it, and CurrentUser\Root would prompt.
@@ -47,6 +54,16 @@ $publish = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScri
 Equal ($publish.Extent.Text -match 'TrustedPeople|CurrentUser\\Root|Import-Certificate') $false
 $finally = @($publish.FindAll({ param($node) $node -is [Management.Automation.Language.TryStatementAst] -and $node.Finally }, $true))
 Equal (@($finally | Where-Object { $_.Body.Extent.Text -match 'Add-PreviewRunnerTrust' -and $_.Finally.Extent.Text -match 'Remove-PreviewRunnerTrust' }).Count) 1
+# ANL-12 (2026-10-06): package and dependency URIs use the owned repository's immutable release
+# assets (IPv4-only hosts); the feed address stays on Pages; the release is public before Pages deploys.
+$publishText = $publish.Extent.Text
+Equal ($publishText -match '(?m)^\$repo = \$env:GITHUB_REPOSITORY\r?\nif \(\$repo -cne ''rozputnii/ai-usage-app''\) \{ throw ') $true
+Equal ($publishText -match '-FeedUri "\$SiteUrl/AiUsage\.appinstaller"') $true
+Equal ($publishText -match '-PackageUri "https://github\.com/\$repo/releases/download/\$tag/\$\(\$package\.Name\)"') $true
+Equal ($publishText -match 'Uri="https://github\.com/\$repo/releases/download/\$tag/\$\(\$file\.Name\)" \}') $true
+Equal ($publishText -match '(?:-PackageUri |Uri=)"\$SiteUrl/\$\(\$(?:package|file)\.Name\)"') $false
+$madePublic = $publishText.IndexOf("'release','edit',`$tag,'--repo',`$repo,'--draft=false'")
+Equal ($madePublic -gt 0 -and $madePublic -lt $publishText.IndexOf('"site=$site" >> $env:GITHUB_OUTPUT')) $true
 $head = git rev-parse HEAD
 if ($LASTEXITCODE -ne 0) { throw 'Release ancestry tests require a Git checkout.' }
 $parent = git rev-parse HEAD~1
@@ -72,6 +89,8 @@ $previewIf = [regex]::Match($workflow, '(?m)^  preview:\r?\n    if: ([^\r\n]+)')
 foreach ($term in @("github.event_name == 'workflow_dispatch'", 'inputs.PublishPreview == true', "github.ref == 'refs/heads/main'", "vars.AIU_PREVIEW_ENABLED == 'true'")) { Equal ($previewIf.Contains($term)) $true }
 Equal ($previewIf.Contains("github.event_name == 'push'")) $false
 Equal ($workflow -match '(?m)^  preview:\r?\n    if: [^\r\n]+\r?\n    needs: \[validate, windows-package\]\r?$') $true
+$publishStep = $workflow.IndexOf('./tools/windows/Publish-Preview.ps1')
+Equal ($publishStep -gt 0 -and $publishStep -lt $workflow.IndexOf('- name: Deploy update feed')) $true
 $dispatch = [regex]::Match($workflow, '(?m)^  workflow_dispatch:\r?\n(?:(?:    [^\r\n]*)?\r?\n)+').Value
 $publishInput = [regex]::Match($dispatch, '(?m)^      PublishPreview:\r?\n(?:        [^\r\n]*\r?\n)+').Value
 Equal ($publishInput -match '(?m)^        type: boolean\r?$') $true
