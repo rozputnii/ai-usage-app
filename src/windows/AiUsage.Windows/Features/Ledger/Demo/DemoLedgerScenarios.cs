@@ -106,11 +106,18 @@ internal static class DemoLedgerScenarios
 
     public static LimitCardModel FiveHour(string id, CardState state, decimal u0, decimal u, decimal t, decimal cwU, DateTimeOffset? winEnd, DateTimeOffset reset,
         decimal? ws = 12, bool started = true, int? fit = null, string? scope = null, Freshness? freshness = null, IReadOnlyList<CardMark>? marks = null,
-        CardAction action = CardAction.None, DayOffPreview? dayOff = null, decimal? usual = null) =>
-        new(id, scope, CardLayout.FiveHourAndPeriod, ScaleModel.Percent, PeriodModel.Week, state, freshness ?? Freshness.Fresh(), marks ?? [],
+        CardAction action = CardAction.None, DayOffPreview? dayOff = null, decimal? usual = null, decimal? low = null, decimal? high = null, bool rough = false)
+    {
+        // A rough count runs from the high bound to the low bound; a settled one uses the share.
+        int? Left(decimal? share) => share is { } s && s > 0 && u < 100 ? (int)Math.Floor((100 - u) / s) : null;
+        return new(id, scope, CardLayout.FiveHourAndPeriod, ScaleModel.Percent, PeriodModel.Week, state, freshness ?? Freshness.Fresh(), marks ?? [],
             new LimitFigures(u, u0, t, usual, LimitValue.Known(100), 100, null, null, null),
-            new FiveHourModel(ws, cwU, started, winEnd, ws is { } share && share > 0 && u < 100 ? (int)Math.Floor((100 - u) / share) : null, fit),
+            new FiveHourModel(ws, cwU, started, winEnd, Left(rough ? high : ws), fit)
+            {
+                WindowShareLow = low, WindowShareHigh = high, WindowsLeftMax = rough ? Left(low) : null, Rough = rough, Windows = low is null ? 0 : 3
+            },
             Reset(reset), null, null, action, dayOff);
+    }
 
     public static LimitCardModel Week(string id, CardState state, decimal u0, decimal u, decimal t, decimal? usual, DateTimeOffset reset, string? scope = null,
         Freshness? freshness = null, IReadOnlyList<CardMark>? marks = null, DayOffPreview? dayOff = null, FiveHourModel? fiveHour = null) =>
@@ -348,6 +355,7 @@ internal static class DemoLedgerScenarios
             ("G5", ProviderKind.Copilot, "Copilot Business", Note("g5", "premium", CardState.LimitUnknown, ScaleModel.Count("requests"), PeriodModel.Month(true), CopilotReset, 340, CardAction.SetCap, capTarget: "g5"), AccountHealth.Ok),
             ("H1", ProviderKind.Antigravity, "Antigravity AI Plus", PeriodUnknownCard("h1", "group 2", 19, At(10, 19, 4, 0)), AccountHealth.Ok),
             ("H2", ProviderKind.Codex, "Codex Pro", Week("h2", CardState.OnTrack, 30, 33, 48, 18, At(10, 16, 9, 30), fiveHour: new FiveHourModel(null, 40, true, At(10, 14, 17, 10), null, null)), AccountHealth.Ok),
+            ("H3", ProviderKind.Claude, "Claude Max", FiveHour("h3", CardState.OnTrack, 44, 50, 82.4m, 30, win, mon9, ws: 10, low: 7, high: 13, rough: true), AccountHealth.Ok),
             ("H5", ProviderKind.Claude, "Claude Pro", new LimitCardModel("h5", null, CardLayout.UsedOnly, ScaleModel.Percent, PeriodModel.Week, CardState.NotReady,
                 Freshness.Stale(At(10, 14, 13, 55)), [new CardMark(MarkKind.PastReset)], LimitFigures.UsedOnly(88), null, Reset(At(10, 14, 14, 0)), null, null, CardAction.None, null), AccountHealth.Ok),
             ("H6", ProviderKind.Antigravity, "Antigravity AI Plus", Note("h6", null, CardState.ValueUnknown, ScaleModel.Percent, PeriodModel.Week, Reset(sat11)), AccountHealth.Ok),

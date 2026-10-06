@@ -65,7 +65,7 @@ internal sealed record CardVisual(
 /// </summary>
 internal static class CardVisuals
 {
-    private enum Part { Used, Allow, Gray, UsedCrit, Over, CritRest }
+    private enum Part { Used, Allow, Gray, UsedCrit, Over, CritRest, Track }
 
     private const double Epsilon = 0.01;
 
@@ -127,7 +127,9 @@ internal static class CardVisuals
 
         var cells = usedUp ? [] : fiveHour
             ? FiveHourCells(card, keys, left, off, rush, used, u0, t)
-            : [TodayCell(card, keys, left, off, rush, displayUsed, displayStart, displayEnd, period, Fm)];
+            : card is { Layout: CardLayout.FiveHourAndPeriod, FiveHour: { } one }
+                ? [OneWindowCell(one, keys, left, off)]
+                : [TodayCell(card, keys, left, off, rush, displayUsed, displayStart, displayEnd, period, Fm)];
         if (left)
             cells = [.. Enumerable.Reverse(cells)];
 
@@ -467,6 +469,7 @@ internal static class CardVisuals
             (Part.Allow, true) => new Paint(tone.M),
             (Part.Allow, false) => new Paint(tone.P, "Rail"),
             (Part.Gray, _) => new Paint("Grey"),
+            (Part.Track, _) => new Paint(Paint.Transparent),
             (Part.UsedCrit, true) => new Paint("CritP", "CritD"),
             (Part.UsedCrit, false) => new Paint("CritP"),
             (Part.Over, true) => new Paint("CritM", "CritP"),
@@ -481,7 +484,7 @@ internal static class CardVisuals
     private static BarRing Ring(double left, double width, Tone tone, bool mirror) =>
         mirror ? new BarRing(100 - left - width, width, tone) : new BarRing(left, width, tone);
 
-    private static int Rank(Part part, bool left) => part is Part.Gray or Part.CritRest ? (left ? 0 : 4) : (left ? part == Part.Allow : part != Part.Allow) ? 1 : 2;
+    private static int Rank(Part part, bool left) => part is Part.Gray or Part.CritRest or Part.Track ? (left ? 0 : 4) : (left ? part == Part.Allow : part != Part.Allow) ? 1 : 2;
 
     private static StripCell Cell(double weight, IEnumerable<(Part Part, double Weight)> parts, (string M, string P) tone, bool left, bool off, bool label, IReadOnlyList<string> tip)
     {
@@ -515,13 +518,28 @@ internal static class CardVisuals
         }
         if (gray > 0)
             lines.Add("Grey: " + (card.Cap is { Binding: true, Status: CapStatus.Applied } ? "cap cuts today’s share" : period + " limit cuts today’s share"));
-        if (card.Layout == CardLayout.FiveHourAndPeriod && card.FiveHour is { } five)
-            lines.Add("Current 5h window " + LedgerFormat.Round(five.CurrentWindowUsed) + " % used" + (five.CurrentWindowEndsAt is { } end ? " · until " + LedgerFormat.Clock(end) : string.Empty));
         if (off)
             lines.Add(used > t ? "More than a work day’s share · the next work days shrink evenly" : "No colours on a day off · Work today colours it");
         if (rush)
             lines.Add("Whole remainder · nothing carries past " + ResetPlain(card.Reset));
         return Cell(1, parts, tone, left, off, false, lines);
+    }
+
+    /// <summary>AIU-046 R-01: before a window count exists, today is the current 5h window over a neutral track.</summary>
+    private static StripCell OneWindowCell(FiveHourModel five, (string M, string P) tone, bool left, bool off)
+    {
+        var cwU = (double)five.CurrentWindowUsed;
+        var lines = new List<string>();
+        if (five.CurrentWindowStarted)
+        {
+            lines.Add("Current 5h window" + (five.CurrentWindowEndsAt is { } end ? " · until " + LedgerFormat.Clock(end) : string.Empty));
+            lines.Add(left ? LedgerFormat.Round(100 - five.CurrentWindowUsed) + " % left" : LedgerFormat.Round(five.CurrentWindowUsed) + " % used");
+        }
+        else
+            lines.Add("Next 5h window · starts on first use");
+        lines.Add("Window count: collecting data");
+        (Part, double)[] parts = left ? [(Part.Allow, 100 - cwU), (Part.Track, cwU)] : [(Part.Used, cwU), (Part.Track, 100 - cwU)];
+        return Cell(1, parts, tone, left, off, true, lines);
     }
 
     private static List<StripCell> FiveHourCells(LimitCardModel card, (string M, string P) tone, bool left, bool off, bool rush, double used, double u0, double t)
@@ -640,8 +658,12 @@ internal static class CardVisuals
                 if (rush && five.FitBeforeReset is { } fit)
                     windows = " · " + fit + " × 5h fit before the reset";
                 else if (five.WindowsLeftInPeriod is { } n && card.State != CardState.UsedUp)
-                    windows = " · ≈ " + n + " × 5h left";
-                footerTip = ["One 5h window ≈ " + LedgerFormat.Round(ws) + " % of " + LedgerFormat.PeriodLabel(card.Period) + " (estimate)", "≈ " + Math.Floor(100 / ws) + " windows per " + (card.Period.Kind == PeriodKind.CalendarMonth ? "month" : "week")];
+                    windows = " · ≈ " + n + (five.WindowsLeftMax > n ? "–" + five.WindowsLeftMax : string.Empty) + " × 5h left";
+                var share = "One 5h window ≈ " + LedgerFormat.Round(ws) + " % of " + LedgerFormat.PeriodLabel(card.Period);
+                share += five is { WindowShareLow: { } low, WindowShareHigh: { } high }
+                    ? " (" + LedgerFormat.Round(low) + "–" + LedgerFormat.Round(high) + " %)" + (five.Rough ? " · rough" : string.Empty) + " · from " + five.Windows + (five.Windows == 1 ? " window" : " windows")
+                    : " (estimate)";
+                footerTip = [share, "≈ " + Math.Floor(100 / ws) + " windows per " + (card.Period.Kind == PeriodKind.CalendarMonth ? "month" : "week")];
             }
             else
                 footerTip = ["5h window size not estimated yet", "Current 5h window " + LedgerFormat.Round(five.CurrentWindowUsed) + " % used" + (five.CurrentWindowEndsAt is { } end ? " · until " + LedgerFormat.Clock(end) : string.Empty)];
@@ -677,6 +699,8 @@ internal static class CardVisuals
     private static string TodaySummary(LimitCardModel card, IReadOnlyList<StripCell> cells, bool left)
     {
         var visual = left ? cells.Reverse().ToArray() : [.. cells];
+        if (card is { Layout: CardLayout.FiveHourAndPeriod, FiveHour: { WindowShare: null } one })
+            return one.CurrentWindowStarted ? "Current five-hour window " + LedgerFormat.Spoken(visual[0].Tip[1]) + "." : "Next five-hour window starts on first use.";
         if (card.Layout == CardLayout.FiveHourAndPeriod && card.FiveHour?.WindowShare is not null && visual.Length > 0)
         {
             var current = visual[0].Tip.Count > 1 ? visual[0].Tip[1] : string.Empty;

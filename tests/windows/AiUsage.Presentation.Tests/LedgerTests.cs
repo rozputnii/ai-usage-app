@@ -276,7 +276,7 @@ public sealed class LedgerCardTests
         var states = StateGallery.Accounts.SelectMany(a => a.Cards).Select(c => c.State).ToHashSet();
         foreach (var state in Enum.GetValues<CardState>().Where(s => s != CardState.NoCap))
             Assert.Contains(state, states);
-        Assert.Equal(53, StateGallery.Accounts.Count);
+        Assert.Equal(54, StateGallery.Accounts.Count);
     }
 
     [Fact]
@@ -377,10 +377,61 @@ public sealed class LedgerCardTests
     public void FiveHourWithoutAnEstimateIsOneStrip()
     {
         var h2 = Case("h2");
-        Assert.Single(h2.Cells);
-        Assert.False(h2.Cells[0].ShowLabel);
-        Assert.Equal(["5h window size not estimated yet", "Current 5h window 40 % used · until 17:10"], h2.FooterTip);
+        var cell = Assert.Single(h2.Cells);
+        Assert.True(cell.ShowLabel);
+        Assert.Equal([40.0, 60.0], cell.Parts.Select(p => p.Weight));
+        Assert.Equal([new Paint("OkM"), new Paint(Paint.Transparent)], cell.Parts.Select(p => p.Paint));
+        Assert.Equal(["Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], cell.Tip);
         Assert.Equal("33 % used", h2.Footer);
+        Assert.Equal(["5h window size not estimated yet", "Current 5h window 40 % used · until 17:10"], h2.FooterTip);
+        Assert.Contains("Current five-hour window 40 percent used.", h2.AccessibleName, StringComparison.Ordinal);
+    }
+
+    private static CardVisual Variant(string id, Func<LimitCardModel, LimitCardModel> change, ValueMode mode = ValueMode.Used)
+    {
+        var (card, account) = Find(StateGallery, id);
+        return CardVisuals.Build(change(card), account, mode, StateGallery.LocalNow);
+    }
+
+    private static LimitCardModel NoEstimate(LimitCardModel card) => card with { FiveHour = card.FiveHour! with { WindowShare = null } };
+
+    [Fact]
+    public void OneWindowCellFollowsLeftModeDayOffAndFull()
+    {
+        var left = Assert.Single(Case("h2", ValueMode.Left).Cells);
+        Assert.Equal("60 % left", left.Tip[1]);
+        Assert.Equal(60, left.Parts.Single(p => p.Paint == new Paint("OkM")).Weight);
+        Assert.Equal(new Paint(Paint.Transparent), left.Parts.Single(p => p.Weight == 40).Paint);
+
+        var next = Assert.Single(Variant("a5", NoEstimate).Cells);
+        Assert.Equal(["Next 5h window · starts on first use", "Window count: collecting data"], next.Tip);
+
+        var full = Variant("a4", NoEstimate);
+        Assert.Equal("5h full", full.Pill);
+        var fullCell = Assert.Single(full.Cells);
+        Assert.Equal(100, Assert.Single(fullCell.Parts).Weight);
+        Assert.Equal("100 % used", fullCell.Tip[1]);
+
+        var off = Assert.Single(Variant("h2", c => c with { State = CardState.DayOff }).Cells);
+        Assert.True(off.Dashed);
+        Assert.DoesNotContain(off.Parts, p => p.Paint.Fill.StartsWith("Crit", StringComparison.Ordinal) || p.Paint.Stripe?.StartsWith("Crit", StringComparison.Ordinal) == true);
+    }
+
+    [Fact]
+    public void RoughEstimateShowsRangeAndSettledShowsOneNumber()
+    {
+        var h3 = Case("h3");
+        Assert.Equal("50 % used · ≈ 3–7 × 5h left", h3.Footer);
+        Assert.Equal("One 5h window ≈ 10 % of 7d (7–13 %) · rough · from 3 windows", h3.FooterTip[0]);
+        Assert.True(h3.Cells.Count > 1);
+
+        var settled = Variant("h3", c => DemoLedgerScenarios.FiveHour("h3", CardState.OnTrack, 44, 50, 82.4m, 30,
+            DemoLedgerScenarios.At(10, 14, 17, 35), DemoLedgerScenarios.At(10, 19, 9, 0), ws: 10, low: 9.5m, high: 10.5m));
+        Assert.Equal("50 % used · ≈ 5 × 5h left", settled.Footer);
+        Assert.Equal("One 5h window ≈ 10 % of 7d (10–11 %) · from 3 windows", settled.FooterTip[0]);
+
+        var single = Variant("h3", c => c with { FiveHour = c.FiveHour! with { Windows = 1 } });
+        Assert.EndsWith("· rough · from 1 window", single.FooterTip[0], StringComparison.Ordinal);
     }
 
     [Fact]
@@ -743,6 +794,19 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
+    public void TrayShowsTheOneWindowCell()
+    {
+        var source = new DemoLedgerSource(new ManualScheduler());
+        source.LoadScenario(DemoLedgerScenarios.States);
+        using var tray = new LedgerTrayViewModel(source);
+        // The tray tip drops the cell title for its own label, so the strip is found by card.
+        var strip = tray.Rows.SelectMany(r => r.Strips).Single(s => s.CardId == "h2");
+        Assert.Equal(TrayStripKind.Cells, strip.Kind);
+        Assert.Equal(["Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], Assert.Single(strip.Cells).Tip);
+        Assert.Contains("Window count: collecting data", strip.Tip);
+    }
+
+    [Fact]
     public async Task TrayIsAMiniatureOfTheWindow()
     {
         var scheduler = new ManualScheduler();
@@ -798,7 +862,7 @@ public sealed class LedgerInteractionTests
         Assert.Equal(9, window.Demo!.Scenarios.Count);
         window.ToggleSettings();
         window.LoadScenario(DemoLedgerScenarios.States);
-        Assert.Equal(52, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
+        Assert.Equal(53, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
         Assert.All(window.Cards, c => Assert.False(c.IsNew));
         window.LoadScenario(DemoLedgerScenarios.FirstRun);
         Assert.True(window.IsFirstRun);
