@@ -102,13 +102,6 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public bool IsAccountSection => Model.Monetary is not null && Account.Cards.Any(c => c.Monetary is null);
     public string Name => Account.DisplayName;
     public string HeaderName => IsAccountSection ? string.Empty : Name;
-    public string MonetaryQualification => Model.Monetary?.Qualification ?? string.Empty;
-    public string BudgetUnavailable => Model.Monetary?.BudgetUnavailable ?? string.Empty;
-    public string MonetarySummary => Model.Monetary is { } money && Model.Layout != CardLayout.Note
-        ? "Reported used: " + LedgerFormat.NativeMoney(money.Used) + " · provider limit: " +
-          (money.LimitKind == LimitValueKind.Unlimited ? "unlimited" : LedgerFormat.NativeMoney(money.ProviderLimit)) +
-          (money.PersonalCap is null ? string.Empty : " · personal cap: " + LedgerFormat.NativeMoney(money.PersonalCap) +
-            (Model.Cap?.Status == CapStatus.CurrencyMismatch ? " (currency mismatch; not applied)" : string.Empty)) : string.Empty;
     public string? Tag => Model.ScopeLabel;
     public bool HasTag => !string.IsNullOrEmpty(Model.ScopeLabel);
     public bool CanEditCap => Model.CapTargetId is not null;

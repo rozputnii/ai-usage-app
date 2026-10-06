@@ -57,7 +57,7 @@ public sealed class MonetaryGroupingTests
         Assert.NotNull(money.CapEditor);
         money.CapEditor!.Text = "250";
         await money.CapEditor.SaveAsync();
-        Assert.Contains("250.00 USD", money.MonetarySummary);
+        Assert.Equal("250.00 USD", LedgerFormat.NativeMoney(money.Model.Monetary!.PersonalCap));
         var only = Assert.Single(model.Cards, c => c.CardId == "money-only");
         Assert.True(only.CanSignOut);
         Assert.True(only.CanOpenHistory);

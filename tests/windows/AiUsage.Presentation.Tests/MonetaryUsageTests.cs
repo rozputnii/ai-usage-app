@@ -196,6 +196,9 @@ public sealed class MonetaryUsageTests
             spend with { Runs = [baseline, spend.Runs[^1] with { Value = new MoneyQuantity(11000, 2, "EUR") }] },
             spend with { Runs = [baseline, baseline with { FirstSeen = fill.AddMinutes(1), LastConfirmed = fill.AddMinutes(1), Value = new MoneyQuantity(9000, 2, "USD") }, spend.Runs[^1]] } })
             Assert.DoesNotContain(Window(invalid).Marks, m => m.Kind == MarkKind.OnExtraUsage);
+        var disabled = LiveLedgerProjection.Account(account, "Arbitrary name", [new(weekly, key, [below, full]),
+            spend with { Facts = spend.Facts with { Enabled = false } }], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.DoesNotContain(disabled.Cards, c => c.Monetary is not null);
         Assert.DoesNotContain(Window(spend, account with { Session = account.Session with { Quota = account.Session.Quota! with { FetchedAt = Now.AddMinutes(-16) } } }).Marks, m => m.Kind == MarkKind.OnExtraUsage);
     }
 }

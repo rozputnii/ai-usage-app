@@ -262,6 +262,8 @@ internal static class CardVisuals
             if (money.Enabled == false) { pill = "disabled"; tip = ["Spending disabled", "Retained readings and caps kept"]; }
             else if (money.BudgetUnavailable is { } reason) { pill = "no budget"; tip = [reason]; }
             else if (card.State == CardState.NotIncluded) { pill = "zero limit"; tip = ["Provider reports a zero spending limit"]; }
+            // Scope and period caveats stay on hover instead of as card text.
+            tip = [.. tip, money.Qualification];
         }
         if (stale && card.Freshness.ReadingAt is { } at && tip.Count > 0)
             tip = [tip[0] + " · as of " + LedgerFormat.Clock(at), .. tip.Skip(1)];

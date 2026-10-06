@@ -56,6 +56,8 @@ internal static class LiveLedgerProjection
         {
             var facts = data.Facts;
             if (hasSubscriptionWindows && facts.Key is { Provider: "codex", Family: "CX-B" }) continue;
+            // Disabled spending beside subscription windows has nothing to show; its readings and cap stay stored.
+            if (hasSubscriptionWindows && facts.Key.Family == "CL-X" && facts.Enabled == false) continue;
             // Only a known shared pool may consume its short window into the period card.
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;

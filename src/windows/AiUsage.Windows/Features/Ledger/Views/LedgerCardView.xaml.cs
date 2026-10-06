@@ -146,7 +146,6 @@ internal sealed partial class LedgerCardView : UserControl
 
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
     private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
-    private Visibility ShowText(string? value) => Show(!string.IsNullOrEmpty(value));
     private Visibility BarsVisibility(int noteLines) => Show(noteLines == 0);
     private Visibility NoteVisibility(int noteLines) => Show(noteLines > 0);
     private Visibility TodayLabelVisibility(bool hasStrip, bool hasNote) => Show(hasStrip || hasNote);

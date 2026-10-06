@@ -181,13 +181,15 @@ public sealed class LiveLedgerProjectionTests
         {
             var extra = Data(spend with { Enabled = enabled });
             var model = LiveLedgerProjection.Account(account, name, [Data(Weekly()), extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
-            Assert.Equal(2, model.Cards.Count);
+            var only = LiveLedgerProjection.Account(account, name, [extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+            // Disabled spending is hidden beside subscription windows but stays visible on a spending-only account.
+            Assert.Equal(enabled == false ? 1 : 2, model.Cards.Count);
+            if (enabled == false) model = only;
             var money = Assert.Single(model.Cards, c => c.ScopeLabel == "Spending");
             Assert.Equal(LiveLedgerProjection.CardId(extra.Series), money.CardId);
             Assert.Equal(1m, money.Figures.Used);
             Assert.Null(money.Figures.TodayEnd);
             Assert.Null(money.Figures.EffectiveLimit);
-            var only = LiveLedgerProjection.Account(account, name, [extra], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
             Assert.Equal(money.CardId, Assert.Single(only.Cards).CardId);
             var visual = CardVisuals.Build(money, model, ValueMode.Left, Now);
             Assert.Contains(visual.NoteLines, l => l.Value.Contains("1.00 USD", StringComparison.Ordinal));

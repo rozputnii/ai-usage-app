@@ -71,12 +71,6 @@
       </Grid>
       <TextBlock Text="Enter saves · Esc cancels · the name is yours, the provider is unchanged" Style="{StaticResource LedgerCaptionText}" Margin="0,-4,0,0" TextWrapping="Wrap"
                  Visibility="{x:Bind Show(ViewModel.IsRenaming), Mode=OneWay}" />
-      <TextBlock Text="{x:Bind ViewModel.MonetaryQualification, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
-                 Visibility="{x:Bind ShowText(ViewModel.MonetaryQualification), Mode=OneWay}" />
-      <TextBlock Text="{x:Bind ViewModel.MonetarySummary, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
-                 Visibility="{x:Bind ShowText(ViewModel.MonetarySummary), Mode=OneWay}" />
-      <TextBlock Text="{x:Bind ViewModel.BudgetUnavailable, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
-                 Visibility="{x:Bind ShowText(ViewModel.BudgetUnavailable), Mode=OneWay}" />
 
       <!-- Bars: today row, period row, footer or cap editor. -->
       <Grid x:Name="Bars" ColumnSpacing="10" Visibility="{x:Bind BarsVisibility(ViewModel.Visual.NoteLines.Count), Mode=OneWay}"
