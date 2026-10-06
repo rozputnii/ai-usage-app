@@ -77,7 +77,7 @@ Executed by the primary session of the [orchestration prompt](orchestration-prom
 | Suites on merged `main` (`c26f18b`) | PASS | Debug build 0 warnings; Infrastructure 870/870; Presentation 189/189 (191 - 2 deleted seam cases - 3 deleted annotation cases + 3 new); validator tests 82/82; canonical valid |
 | Documentation records (task G) | PASS | `c24de6e`: CONTRIBUTING D1/D4 wording, Preview gate section, AIU-014 scope-note sentence, D6(a) annotations in the AIU-039/043/044 records, AUD-10 freeze banners, AUD-05..09 opt-in notes |
 
-Deferred minor observations and every primary ruling are listed in the run ledger and in the final report at the owner checkpoint; none blocks the candidate. The wave 1.5 merge (`effcb4b`, `8cf68de`) and its CI run are recorded in the candidate verification section below once that lane completes.
+Deferred minor observations and every primary ruling are listed in the run ledger and in the final report at the owner checkpoint; none blocks the candidate. The wave 1.5 merges (`effcb4b`, `8cf68de`) and their CI run 37417959587 on `8364408` are recorded in the candidate verification section below; the desktop lane on that candidate is BLOCKED and is rerun after the owner unlocks the desktop. The primary rulings and deferred observations are also listed in the analysis record's "Final status" section.
 
 ## Last actual verification
 
