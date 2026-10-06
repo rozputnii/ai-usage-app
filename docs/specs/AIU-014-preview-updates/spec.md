@@ -61,7 +61,8 @@ and dependencies, disables downgrade and launch blocking, and enables background
 updates. Windows App Installer owns downloads and binary replacement. A running tray
 instance is not forcibly terminated; normal exit permits installation. The existing
 in-app update controls will describe/delegate this OS-managed channel rather than
-claiming a custom downloader is implemented.
+claiming a custom downloader is implemented. AIU-046 specifies those controls: the app
+calls the App Installer APIs against this same feed; the feed settings are unchanged.
 
 CI signing uses a new dedicated certificate, not provider credentials or the existing
 local key. Provisioning creates that certificate only when explicitly requested, keeps

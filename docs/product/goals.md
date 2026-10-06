@@ -25,7 +25,7 @@ active_goal: G-002
 
 ## G-004 - Reliable public direct distribution
 - status: idea
-- scope: AIU-014, AIU-015, AIU-017, AIU-026
+- scope: AIU-014, AIU-015, AIU-017, AIU-026, AIU-046
 - outcome: Trusted signing where eligible, Preview for every green merge, manual exact-artifact Stable promotion, tested direct updates and best-effort compatibility detection.
 - success: Published-schema upgrade coverage, clean-machine install, no-downgrade channel switching, identical promoted artifact hash and proven production trust/identity.
 
