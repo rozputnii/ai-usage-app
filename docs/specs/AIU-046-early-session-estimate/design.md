@@ -77,12 +77,18 @@ excluded. A change in the provider's weighting or a model violation therefore
 removes stale readings without waiting 28 days. If the newest part's own pairs
 conflict, there is no estimate.
 
-**Point estimate.** `C = 100 Σ(w_last - w_first) / Σ(s_last - s_first)` over the
-pooled parts, clamped into `[L, H]`.
+**Point estimate.** `C = √(L H)`, the geometric middle of the interval. It
+minimizes the worst relative error, which is at most `√(H / L)`: about 12 % when
+settled. A ratio of summed spans was rejected because the ±1 rounding of its
+endpoints biases it toward an interval edge. In the two-tick example of the plan,
+it gives 14.3 for a true value near 10, whereas `√(L H)` gives 10.5.
 
 **Cost.** A five-hour part has about 60 readings at the five-minute polling
 cadence, so about 1,800 pairs. 28 days hold at most about 135 parts, so a full
-pass is under a million simple operations.
+pass is under a million simple operations. Bounds are computed in `double`, and
+the results are converted to `decimal`. Consecutive readings with identical
+`(s, w)` are collapsed to the first, which is the only one that can be a tick.
+The later ones give bounds that are equal or looser.
 
 ## Levels and minimum data
 
