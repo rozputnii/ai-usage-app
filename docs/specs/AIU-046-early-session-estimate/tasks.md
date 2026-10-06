@@ -213,10 +213,10 @@ schema_version: 1
 - [ ] **Step 5: Commit** with `feat(AIU-046): carry estimate bounds and range to the card`.
 
 ### T-03 - One-window cell, rough and settled footers
-- status: in-progress
+- status: done
 - depends_on: [T-02]
 - acceptance: [AC-01, AC-06]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LedgerTests.cs; commits bf3c1d6, ce050f1; Presentation suite 193/193; app project Debug x64 unpackaged build 0 warnings; independent review approved after one fix round
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Features/Ledger/CardVisuals.cs`:
@@ -280,7 +280,7 @@ schema_version: 1
 - [ ] **Step 5: Commit** with `feat(AIU-046): one five-hour window cell and estimate range footer`.
 
 ### T-04 - Records, full checks and live run
-- status: pending
+- status: in-progress
 - depends_on: [T-03]
 - acceptance: [AC-07]
 - evidence: not-run
@@ -328,11 +328,11 @@ schema_version: 1
   `.claude/worktrees/5-hour-limits-display-1e0e91`, based on `main` at `ff1d788`.
   Docs commits `e76caf0` and `6c105d3` are local only, not merged or pushed.
 - Done: spec, design, D-188, backlog and G-003 registration. T-01 done in `ed89d1b`,
-  T-02 in `4a792d2`
+  T-02 in `4a792d2`, T-03 in `bf3c1d6` and `ce050f1`
   (independent review approved; Minor findings deferred to the whole-branch review).
 - Local state: the test projects and `tools/AiUsage.ProviderConsole` are restored.
 - The design's figures come from a throwaway simulation that is not in the repo.
   T-01's tests re-establish them.
-- Exact next action: T-03, Step 1. Dispatch one implementer subagent with the T-03
+- Exact next action: T-04, Step 1. Dispatch one implementer subagent with the T-04
   block, Global Constraints, Review Focus, spec.md and design.md, then a fresh
-  reviewer before T-04.
+  reviewer, then the whole-branch review.
