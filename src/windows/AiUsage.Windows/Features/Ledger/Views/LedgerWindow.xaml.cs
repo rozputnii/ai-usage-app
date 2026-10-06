@@ -223,8 +223,15 @@ internal sealed partial class LedgerWindow : Window
     public bool IsHidden { get; private set; } = true;
     public event EventHandler? TrayVisibilityChanged;
 
-    /// <summary>A `--background` relaunch after an update: the tray icon without the window.</summary>
-    public void StartHidden() => TrayIcon.ForceCreate(enablesEfficiencyMode: false);
+    /// <summary>
+    /// A `--background` relaunch after an update: the tray icon without the window. The icon only answers clicks once the
+    /// window content has loaded (TaskbarIcon.ForceCreate alone left it inert in Sandbox), so activate and hide at once.
+    /// </summary>
+    public void StartHidden()
+    {
+        Activate();
+        AppWindow.Hide();
+    }
 
     public void ShowAndActivate()
     {
