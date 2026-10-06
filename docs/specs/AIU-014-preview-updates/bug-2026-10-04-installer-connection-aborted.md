@@ -1,9 +1,12 @@
 # Bug report: App Installer aborts while opening the Preview package
 
-**Status:** Open; cause not yet established
+**Status:** Cause identified on the owner's host: IPv6 path resets to GitHub Pages;
+mitigated by serving packages from IPv4-only GitHub release hosts (pending installed
+verification). Updated 2026-10-06.
 
 **Priority:** P2 (AIU045-D8, 2026-10-06): capture evidence on recurrence; no feed or
 hosting change until evidence exists. Raise to P1 if feed-registered installs fail to update.
+The recurrence evidence below was captured on 2026-10-06, and the owner chose the feed change.
 
 **First observed:** 2026-10-04 against the Pages-hosted package. The same code was
 reported earlier against GitHub release downloads (see History).
@@ -32,17 +35,29 @@ Since `efa9ea5`, each promoted Preview deploys one GitHub Pages site at
 `https://rozputnii.github.io/ai-usage-app/`. It holds the feed `AiUsage.appinstaller`,
 the versioned package `AiUsage.Windows_<version>_x64.msix`, the unversioned
 dependency `Microsoft.WindowsAppRuntime.2.msix`, the public CER, `release.json` and
-`index.html`. The feed's package and dependency URIs point at this site. Each deploy
-replaces the whole site, so only the current version's package is served there. The
-GitHub prerelease keeps its own copies of the same assets.
+`index.html`. Until 2026-10-06 the feed's package and dependency URIs pointed at this
+site. Each deploy replaces the whole site, so only the current version's package is
+served there. The GitHub prerelease keeps its own copies of the same assets.
+
+The 2026-10-06 fix takes effect with the next Preview published from it; the live
+`2026.10.601.0` feed still points its package and dependency at Pages. From that
+Preview on, the feed, its `Uri` attribute, the CER, `release.json` and `index.html` stay
+on Pages, while the feed's package and dependency URIs are the immutable assets of the
+same release:
+`https://github.com/rozputnii/ai-usage-app/releases/download/preview-<version>/<file>`.
+The release is made public before the Pages deploy, so these URIs resolve when the new
+feed goes live. The direct-download links in `index.html` use the same release assets,
+and the site no longer carries the package or dependency.
 
 ## History
 
 On 2026-09-25, commit `efa9ea5` attributed `0x80072EFE` to GitHub release downloads,
 which redirect to short-lived storage URLs, and moved the package and its dependency to
-the Pages site. The README still gives that reason. The 2026-10-04 failure occurred with
-the package already on Pages, so that redirect explanation does not cover it. The AIU-014
-spec design text and AC-04 evidence still describe the earlier release-asset URLs.
+the Pages site. The README gave that reason until 2026-10-06. The 2026-10-04 failure
+occurred with the package already on Pages, so that redirect explanation does not cover
+it. The AIU-014 spec design text described release-asset URLs throughout; since the
+2026-10-06 amendment it again matches the publishing code. The published feed matches
+it only from the next Preview published from that change.
 
 The Pages-hosted App Installer GUI path is unverified. The 2026-09-23 Sandbox feed run
 used release-asset URLs, and both it and the 2026-10-05 Sandbox registration used
@@ -73,11 +88,69 @@ connection was terminated by the client, network path, or hosting edge. The succ
 probes above show that the feed and package were reachable from the investigation
 environment at that time; they do not disprove an intermittent failure on the owner's
 machine or an App Installer-specific issue. No permanent feed or package defect, and no
-root cause, has been established.
+root cause, had been established before the recurrence below.
+
+## Recurrence evidence (2026-10-06)
+
+The primary captured this read-only on the owner's host after the owner reported a new
+App Installer failure for version `2026.10.601.0`, source `rozputnii.github.io`, error
+`0x80072EFE`: opening the package `AiUsage.Windows_2026.10.601.0_x64.msix` failed.
+
+- Time: 2026-10-06 11:31:15Z (12:31:15 local).
+- URL App Installer attempted:
+  `https://rozputnii.github.io/ai-usage-app/AiUsage.Windows_2026.10.601.0_x64.msix`.
+- `Microsoft-Windows-AppXDeploymentServer/Operational`: event 465 (`0x80072EFE` opening
+  the package), event 403 (failure to get a staging session for that URL), event 404
+  (deployment failed, `0x80073CF0`).
+- `Microsoft-Windows-AppxPackaging/Operational`: the reader (11:31:05Z) and the streaming
+  reader (11:31:11Z) were created successfully for `AiUsage.Dev_2026.10.601.0`; the package
+  and its manifest were readable and the stream broke about 4 seconds later.
+- Proxy: none. WinINet `ProxyEnable` 0 and no PAC; WinHTTP direct.
+- Published bytes: the Pages MSIX (31,242,176 bytes) and the release-asset MSIX have the
+  same SHA-256 (prefix `DEDDD2BEE3ACBBED`).
+- No AI Usage package was installed on the host at capture time.
+
+Connection test, 11:32-11:34Z, HTTPS GET of the Pages feed and control hosts:
+
+| Destination | Address family | Successful / attempts |
+| --- | --- | --- |
+| `rozputnii.github.io`, default address selection | mixed | 7 / 12 (5 reset during TLS, about 50 ms) |
+| Pages `185.199.108.153` | IPv4 | 8 / 8 |
+| Pages `185.199.109.153` | IPv4 | 8 / 8 |
+| Pages `185.199.110.153` | IPv4 | 8 / 8 |
+| Pages `185.199.111.153` | IPv4 | 8 / 8 |
+| Pages `2606:50c0:8000::153` | IPv6 | 3 / 8 |
+| Pages `2606:50c0:8001::153` | IPv6 | 3 / 8 |
+| `github.com`, `objects.githubusercontent.com`, `api.github.com` | IPv4 only | 8 / 8 each |
+| Google, Cloudflare, PyPI | IPv6 | 8 / 8 each |
+| Fastly | IPv6 | 7 / 8 |
+| Microsoft | IPv6 | 4 / 8 |
+
+Failures were `curl (35) Recv failure: Connection was reset`. The host's IPv6 path resets
+a share of connections to some networks, including GitHub Pages; IPv4 was clean.
+
+Release download path, measured by the primary later on 2026-10-06 on the owner's host:
+10 of 10 full MSIX downloads and 5 of 5 dependency downloads through the `github.com`
+release-download redirect succeeded. All were served by `release-assets.githubusercontent.com`
+at `185.199.109.133` over IPv4. `github.com` and `release-assets.githubusercontent.com`
+have no AAAA records.
+
+Assessment: on the owner's host, `0x80072EFE` is the client network's IPv6 path aborting
+connections to GitHub Pages, not the package, the feed content or the signing. This
+confirms the client-network-path hypothesis and refutes a Pages-edge fault over IPv4.
+
+Mitigation (owner choice, 2026-10-06): the feed stays on Pages, and its package and
+dependency URIs use the immutable GitHub release assets, whose hosts have no AAAA record
+and are reached over IPv4 only (see Hosting topology).
+
+Limits: the 2026-09-25 failure against GitHub release downloads remains unexplained; its
+host or network path may have differed. The fix is verified only when the owner's App
+Installer GUI install from the published feed succeeds.
 
 ## Next diagnostic step
 
-If the failure recurs, the owner captures on the affected machine, before retrying:
+The 2026-10-06 recurrence followed this procedure. If the failure recurs after the
+release-asset fix, the owner again captures on the affected machine, before retrying:
 
 - the exact UTC time and the package URL App Installer attempted (from the dialog);
 - the `Microsoft-Windows-AppXDeploymentServer/Operational` and

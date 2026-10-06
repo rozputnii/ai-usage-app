@@ -53,7 +53,9 @@ another version. Compare candidate ancestry against every published Preview:
 late completion of an older commit cannot supersede the current feed.
 
 Use GitHub Pages deployment artifacts for the feed, without a generated Git branch.
-The feed references immutable HTTPS release asset URLs, carries exact package identity
+The feed stays on Pages; its package and dependency URIs reference the immutable HTTPS
+GitHub release asset URLs of the same release (amended 2026-10-06, ANL-12 recurrence
+evidence; owner choice). The feed carries exact package identity
 and dependencies, disables downgrade and launch blocking, and enables background
 updates. Windows App Installer owns downloads and binary replacement. A running tray
 instance is not forcibly terminated; normal exit permits installation. The existing

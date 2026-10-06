@@ -14,6 +14,7 @@ function Invoke-Gh([string[]]$Arguments) {
     return $output
 }
 $repo = $env:GITHUB_REPOSITORY
+if ($repo -cne 'rozputnii/ai-usage-app') { throw 'Unexpected Preview repository.' }
 $all = @(Invoke-Gh @('api', '--paginate', '--slurp', "repos/$repo/releases?per_page=100") | ConvertFrom-Json | ForEach-Object { $_ } | ForEach-Object { $_ })
 $previews = @($all | Where-Object { $_.tag_name.StartsWith('preview-') })
 $version = Get-NextPreviewVersion -UtcDate ([datetime]::UtcNow) -ExistingVersions @($previews | ForEach-Object { $_.tag_name.Substring(8) })
@@ -52,29 +53,27 @@ try {
     if ($packages.Count -ne 1) { throw 'Expected one signed product package.' }
     $package = $packages[0]
     Copy-Item -LiteralPath $package.FullName -Destination $assets
-    # App Installer downloads from the site itself: GitHub release downloads redirect to short-lived storage URLs
-    # that App Installer fails to fetch (0x80072EFE). The release keeps its own immutable copy.
-    Copy-Item -LiteralPath $package.FullName -Destination $site
+    # The feed and index.html fetch packages from the release (IPv4-only hosts), not Pages: on 2026-10-06 the owner's
+    # IPv6 path to Pages reset TLS handshakes and App Installer aborted the Pages MSIX (0x80072EFE).
     $dependencyFiles = @(Get-ChildItem -LiteralPath (Join-Path $package.DirectoryName 'Dependencies/x64') -File | Where-Object { $_.Extension -in '.msix','.appx' })
     $dependencies = @()
     foreach ($file in $dependencyFiles) {
         Copy-Item -LiteralPath $file.FullName -Destination $assets
-        Copy-Item -LiteralPath $file.FullName -Destination $site
         $zip = [IO.Compression.ZipFile]::OpenRead($file.FullName)
         try {
             $reader = [IO.StreamReader]::new($zip.GetEntry('AppxManifest.xml').Open())
             try { [xml]$manifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
         } finally { $zip.Dispose() }
         $identity = $manifest.Package.Identity
-        $dependencies += @{ Name=[string]$identity.Name; Publisher=[string]$identity.Publisher; Version=[string]$identity.Version; ProcessorArchitecture=[string]$identity.ProcessorArchitecture; Uri="$SiteUrl/$($file.Name)" }
+        $dependencies += @{ Name=[string]$identity.Name; Publisher=[string]$identity.Publisher; Version=[string]$identity.Version; ProcessorArchitecture=[string]$identity.ProcessorArchitecture; Uri="https://github.com/$repo/releases/download/$tag/$($file.Name)" }
     }
-    $feed = New-PreviewFeed -Version $version -FeedUri "$SiteUrl/AiUsage.appinstaller" -PackageUri "$SiteUrl/$($package.Name)" -Dependencies $dependencies
+    $feed = New-PreviewFeed -Version $version -FeedUri "$SiteUrl/AiUsage.appinstaller" -PackageUri "https://github.com/$repo/releases/download/$tag/$($package.Name)" -Dependencies $dependencies
     [IO.File]::WriteAllText((Join-Path $site 'AiUsage.appinstaller'), $feed)
     Copy-Item -LiteralPath $cerPath -Destination $site
     $evidence = [ordered]@{ version=$version; commit=$env:GITHUB_SHA; run=$env:GITHUB_RUN_ID; sha256=(Get-FileHash $package.FullName -Algorithm SHA256).Hash; certificateThumbprint=$certificate.Thumbprint; signed='PASS'; interactiveSmoke='NOT_RUN'; trust='development-only' }
     $evidence | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $assets 'release.json') -Encoding utf8
     Copy-Item -LiteralPath (Join-Path $assets 'release.json') -Destination $site
-    $index = [IO.File]::ReadAllText("$PSScriptRoot/preview-index.html").Replace('{{PACKAGE}}', $package.Name).Replace('{{VERSION}}', $version)
+    $index = [IO.File]::ReadAllText("$PSScriptRoot/preview-index.html").Replace('{{PACKAGE}}', $package.Name).Replace('{{VERSION}}', $version).Replace('{{TAG}}', $tag)
     [IO.File]::WriteAllText((Join-Path $site 'index.html'), $index, [Text.UTF8Encoding]::new($false))
     Copy-Item -LiteralPath (Join-Path $site 'AiUsage.appinstaller') -Destination $assets
     # Never use --clobber: released bytes are immutable under this workflow.
