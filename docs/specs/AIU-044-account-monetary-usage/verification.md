@@ -162,4 +162,4 @@ AC-03 scope note (2026-10-06, AIU-045 ANL-21 #4): the on-extra-usage mark was ve
 
 Never-accepted gap (ANL-13), as of 2026-10-06:
 
-- The installed-app repeat-launch and storage-lease fault (a second process reporting LeaseUnavailable after close-to-tray; see the [UX corrections record](ux-corrections-verification.md)) was fixed with unpackaged evidence only; host package installation and packaged activation were NOT_RUN. Status: pending the owner's installed-build check (AIU-045 T-03).
+- The installed-app repeat-launch and storage-lease fault (a second process reporting LeaseUnavailable after close-to-tray; see the [UX corrections record](ux-corrections-verification.md)) was fixed with unpackaged evidence only; host package installation and packaged activation were NOT_RUN. Status: installed-app repeat launch and lease PASS 2026-10-06 (2026.10.602.0): close-to-tray, then relaunch from Start, restored the window without LeaseUnavailable (AIU-045 T-03).

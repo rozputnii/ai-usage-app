@@ -6,7 +6,7 @@ phase and remain open.
 
 | Criterion | Verdict | Evidence |
 | --- | --- | --- |
-| AC-01 | PASS (original); amended: NOT_RUN (hosted) | Main pushes eb52980 and d20178f ran validate, windows-package, then the gated preview job: runs [35895908547](https://github.com/rozputnii/ai-usage-app/actions/runs/35895908547) and [35899151315](https://github.com/rozputnii/ai-usage-app/actions/runs/35899151315). PRs, failed jobs and disabled provisioning cannot reach the job; the new guard also requires job `preview`. Amended 2026-10-06 (AIU045-D1) to owner dispatch only: local release-policy assertions cover the dispatch gate and the push rejection. A hosted push run with `preview` skipped is now recorded (2026-10-06): run 37416927644 on c26f18b, with `validate` and `windows-package` success and `preview` skipped; also runs 37417959587, 37424539753 and 37425349532. A hosted dispatch publication is not yet recorded (NOT_RUN). |
+| AC-01 | PASS (original); amended: PASS (hosted dispatch, 2026-10-06) | Main pushes eb52980 and d20178f ran validate, windows-package, then the gated preview job: runs [35895908547](https://github.com/rozputnii/ai-usage-app/actions/runs/35895908547) and [35899151315](https://github.com/rozputnii/ai-usage-app/actions/runs/35899151315). PRs, failed jobs and disabled provisioning cannot reach the job; the new guard also requires job `preview`. Amended 2026-10-06 (AIU045-D1) to owner dispatch only: local release-policy assertions cover the dispatch gate and the push rejection. A hosted push run with `preview` skipped is now recorded (2026-10-06): run 37416927644 on c26f18b, with `validate` and `windows-package` success and `preview` skipped; also runs 37417959587, 37424539753 and 37425349532. A hosted dispatch publication is recorded since 2026-10-06 (PASS; runs 37454494231 and 37475616318, see "Owner dispatches and install (2026-10-06)" below). |
 | AC-02 | PASS | Actual reservations 2026.9.2301.0, then 2026.9.2302.0, above the failed run's retained draft 2026.9.2223.0. The second run promoted the feed only after the ancestry check (`promote feed: True`). A real late older source remains exercised only by local ancestry assertions. |
 | AC-03 | PASS | Hosted SignTool: `Successfully verified`, 1 file, 0 errors, in both runs. Signer B4C73392759C80CA5D1AA4004486B6C957417609 is the dedicated CI certificate. Runner-only root trust fix d28e6be/eb52980 passed independent review. |
 | AC-04 | PASS | Non-draft prereleases with five versioned assets each. The Pages feed returns HTTP 200 `application/appinstaller`, exact identity, WinAppRuntime dependency, HTTPS release URIs, and forward-only, nonblocking and background settings. A guest observed the launch-triggered forward update. |
@@ -134,6 +134,10 @@ Deferred under ANL-20 until AIU-014 resumes or before a public channel:
   assets. The earlier deploy race hypothesis (a client holding a stale feed requests a
   package that a later Pages deploy removed) no longer applies to those feeds. Feeds up
   to `2026.10.601.0` still reference the unversioned Pages dependency URL.
+
+## Owner dispatches and install (2026-10-06)
+
+2026-10-06: owner dispatch runs 37454494231 (2026.10.601.0, App Installer GUI install failed with `0x80072EFE`) and 37475616318 (2026.10.602.0, GUI install PASS); the AC-01 dispatch half is now PASS. The 2026.10.602.0 feed's package and dependency URIs point at the immutable GitHub release assets, and the owner's App Installer GUI install through the Pages `.appinstaller` succeeded ([bug note](bug-2026-10-04-installer-connection-aborted.md)).
 
 ## App Installer package-open failure (2026-10-04)
 
