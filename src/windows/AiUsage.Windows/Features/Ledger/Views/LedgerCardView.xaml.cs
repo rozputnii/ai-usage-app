@@ -13,12 +13,18 @@ internal sealed partial class LedgerCardView : UserControl
 {
     public LedgerCardView() => InitializeComponent();
 
-    public LedgerCardView? MonetarySection
+    /// <summary>Model limits and spending of the same account, each below a divider.</summary>
+    public IReadOnlyList<LedgerCardView> Sections
     {
         set
         {
-            MonetaryHost.Content = value;
-            MonetaryDivider.Visibility = value is null ? Visibility.Collapsed : Visibility.Visible;
+            SectionHost.Children.Clear();
+            foreach (var section in value)
+            {
+                SectionHost.Children.Add(new Border { Height = 1, Background = (Brush)LedgerTheme.Find("LedgerUnderlineBrush")! });
+                SectionHost.Children.Add(section);
+            }
+            SectionHost.Visibility = value.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         }
     }
 

@@ -67,6 +67,8 @@ internal sealed record LimitCardModel(
     DayOffPreview? DayOff)
 {
     public MonetaryDetails? Monetary { get; init; }
+    /// <summary>A limit of one model within the subscription (Claude Fable or Opus, Codex additional limits); drawn as a section of the account card.</summary>
+    public bool ModelScoped { get; init; }
 }
 
 // Presentation-only native facts; separate scales prevent a mismatched limit being relabeled.

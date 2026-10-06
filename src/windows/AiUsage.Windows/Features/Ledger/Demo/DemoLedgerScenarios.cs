@@ -91,7 +91,8 @@ internal static class DemoLedgerScenarios
         };
         return snapshot with { Accounts =
         [
-            snapshot.Accounts[0] with { DisplayName = "Mixed account", Cards = [snapshot.Accounts[0].Cards[0], money] },
+            snapshot.Accounts[0] with { DisplayName = "Mixed account", Cards = [snapshot.Accounts[0].Cards[0],
+                Week("money-fable", CardState.OnTrack, 0, 0, 14, 20, At(10, 19, 9, 0), "Fable") with { ModelScoped = true }, money] },
             new("money-account", ProviderKind.Claude, "Money only", AccountHealth.Ok, BriefNow, null, null,
                 withWindows ? [snapshot.Accounts[0].Cards[0] with { CardId = "money-window" }, unknown] : [unknown])
         ] };

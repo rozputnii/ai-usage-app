@@ -64,7 +64,37 @@ public sealed class MonetaryGroupingTests
         Assert.False(only.CanEditCap);
         var rows = LedgerTrayViewModel.Project(source.Current, source.Preferences);
         Assert.Equal(2, rows.Count);
-        Assert.Equal(2, rows[0].Strips.Count);
+        Assert.Equal(3, rows[0].Strips.Count);
         Assert.Empty(rows[1].Strips);
+    }
+
+    [Fact]
+    public async Task ModelLimitIsASectionOfTheSubscriptionCardWithoutRepeatingAccountMarks()
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        source.LoadScenario(DemoLedgerScenarios.Monetary);
+        using var model = new LedgerViewModel(source, scheduler);
+        var mixed = model.Cards.Where(c => c.Account.DisplayName == "Mixed account").ToArray();
+        Assert.Equal([false, true, true], mixed.Select(c => c.IsAccountSection));
+        var fable = Assert.Single(mixed, c => c.CardId == "money-fable");
+        Assert.Equal(string.Empty, fable.HeaderName);
+        Assert.Equal("Fable", fable.Tag);
+        Assert.False(fable.CanSignOut);
+        Assert.True(fable.CanOpenHistory);
+        fable.BeginRename();
+        Assert.False(fable.IsRenaming);
+        await fable.ToggleHistoryAsync();
+        Assert.Equal(fable.CardId, model.History!.CardId);
+
+        CardMark[] accountMarks = [new(MarkKind.SyncFailed), new(MarkKind.SignInExpired)];
+        var host = new LimitCardViewModel(model, mixed[0].Model with { Marks = accountMarks, Action = CardAction.SignIn },
+            mixed[0].Account, ValueMode.Used, source.Current.LocalNow);
+        var section = new LimitCardViewModel(model, fable.Model with { Marks = [.. accountMarks, new(MarkKind.PastReset)], Action = CardAction.SignIn },
+            fable.Account, ValueMode.Used, source.Current.LocalNow);
+        Assert.Equal(2, host.Visual.Marks.Count);
+        Assert.True(host.Visual.HasAction);
+        Assert.Equal([MarkKind.PastReset], section.Visual.Marks.Select(m => m.Kind));
+        Assert.False(section.Visual.HasAction);
     }
 }

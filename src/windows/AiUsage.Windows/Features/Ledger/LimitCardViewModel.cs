@@ -82,7 +82,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
         this.owner = owner;
         Model = model;
         Account = account;
-        Visual = CardVisuals.Build(model, account, mode, now);
+        Visual = BuildVisual(mode, now);
     }
 
     public LimitCardModel Model { get; private set; }
@@ -99,7 +99,9 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
     [ObservableProperty] public partial bool IsCompact { get; set; } = true;
 
-    public bool IsAccountSection => Model.Monetary is not null && Account.Cards.Any(c => c.Monetary is null);
+    /// <summary>Spending and model limits are drawn inside the account's first other card, so one subscription is one card.</summary>
+    public bool IsAccountSection => IsSectionKind(Model) && Account.Cards.Any(c => !IsSectionKind(c));
+    private static bool IsSectionKind(LimitCardModel card) => card.Monetary is not null || card.ModelScoped;
     public string Name => Account.DisplayName;
     public string HeaderName => IsAccountSection ? string.Empty : Name;
     public string? Tag => Model.ScopeLabel;
@@ -116,9 +118,16 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     {
         Model = model;
         Account = account;
-        Visual = CardVisuals.Build(model, account, mode, now);
+        Visual = BuildVisual(mode, now);
         OnPropertyChanged(string.Empty);
     }
+
+    /// <summary>Account-wide marks and Sign in belong to the host card; a section shows only its own limit's facts.</summary>
+    private CardVisual BuildVisual(ValueMode mode, DateTimeOffset now) => CardVisuals.Build(!IsAccountSection ? Model : Model with
+    {
+        Marks = [.. Model.Marks.Where(m => m.Kind is not (MarkKind.SyncFailed or MarkKind.SignInExpired))],
+        Action = Model.Action == CardAction.SignIn ? CardAction.None : Model.Action
+    }, Account, mode, now);
 
     [RelayCommand]
     public void BeginRename()

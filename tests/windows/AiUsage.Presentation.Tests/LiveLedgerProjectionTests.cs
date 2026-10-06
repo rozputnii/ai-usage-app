@@ -83,6 +83,17 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(13, card.Marks.Single(m => m.Kind == MarkKind.SyncFailed).Since!.Value.Hour);
         Assert.Equal(Now.AddHours(3), card.FiveHour.CurrentWindowEndsAt); // Same instant.
     }
+    [Fact]
+    public void ModelScopedWeeklyLimitIsMarkedForTheSubscriptionCard()
+    {
+        var fable = Weekly(0) with { Key = new("claude", "CL-M", "Fable") };
+        var account = new AccountSnapshot(Account, "claude", true,
+            new(ProviderSessionStatus.QuotaAvailable, new QuotaSnapshot(Now, null, [], null, null, null, null)), false, null);
+        var model = LiveLedgerProjection.Account(account, "Synthetic scoped", [Data(Weekly()), Data(fable)], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.Equal([false, true], model.Cards.Select(c => c.ModelScoped));
+        Assert.Equal("Fable", model.Cards[1].ScopeLabel);
+    }
+
     private static readonly DateTimeOffset Now = new(2026, 10, 5, 12, 0, 0, TimeSpan.Zero);
     private static readonly Guid Account = Guid.Parse("00000000-0000-0000-0000-000000000039");
     private static LimitFacts Weekly(decimal? used = 40) => new(new("claude", "CL-W", "shared"), LimitKind.PercentWindow, "percent", FactValue.NotApplicable)
