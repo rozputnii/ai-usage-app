@@ -109,6 +109,27 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         catch (Exception) { Interlocked.Increment(ref lost); }
     }
 
+    /// <summary>AIU-046 update outcomes: typed facts only, never feed bodies, URIs, paths or exception text.</summary>
+    public void Update(DiagnosticEvent eventCode, UpdateFacts facts)
+    {
+        if (eventCode is not (DiagnosticEvent.UpdateCheckFailed or DiagnosticEvent.UpdateInstallStarted or
+            DiagnosticEvent.UpdateInstallFailed or DiagnosticEvent.UpdateApplied)) return;
+        var severity = eventCode switch
+        {
+            DiagnosticEvent.UpdateCheckFailed => DiagnosticSeverity.Warning,
+            DiagnosticEvent.UpdateInstallFailed => DiagnosticSeverity.Error,
+            _ => DiagnosticSeverity.Information
+        };
+        Event(eventCode, severity, context: new
+        {
+            errorCode = facts.ErrorCode is { } code ? $"0x{code:X8}" : null,
+            trigger = facts.Automatic switch { true => "automatic", false => "manual", null => null },
+            fromVersion = facts.From?.ToString(),
+            toVersion = facts.To?.ToString(),
+            consecutive = facts.Consecutive
+        });
+    }
+
     internal void Event(DiagnosticEvent id, DiagnosticSeverity severity, string? outcome = null, double? duration = null,
         SafeException? exception = null, object? context = null)
     {
@@ -430,3 +451,6 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         }
     }
 }
+
+/// <summary>The only values an update record carries; versions are parsed, codes are numbers.</summary>
+public sealed record UpdateFacts(int? ErrorCode = null, bool? Automatic = null, Version? From = null, Version? To = null, int? Consecutive = null);
