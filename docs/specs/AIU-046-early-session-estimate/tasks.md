@@ -64,7 +64,7 @@ schema_version: 1
 - status: done
 - depends_on: []
 - acceptance: [AC-02, AC-03, AC-04, AC-05]
-- evidence: commit ed89d1b; SessionEstimateTests 11/11, Infrastructure suite 882/882, Presentation suite 189/189; measure-backend sessions/four-pairs median 75.95 ms (19.0 ms per pair); independent task review approved
+- evidence: tests/windows/AiUsage.Infrastructure.Tests/SessionEstimateTests.cs; commit ed89d1b; SessionEstimateTests 11/11, Infrastructure suite 882/882, Presentation suite 189/189; measure-backend sessions/four-pairs median 75.95 ms (19.0 ms per pair); independent task review approved
 
 **Files:**
 - Modify: `src/windows/AiUsage.Core/Budget/SessionEstimator.cs` (replace `SessionSample`, `SessionEstimate`, `Estimate`, `Figures`; keep `Percent`, `Cover`, `LastPlanChange`, `SessionPair`, `SessionFigures`)
