@@ -44,11 +44,18 @@ public sealed partial class AuditWindows
         session.Key(VirtualKeyShort.ESCAPE);
         Assert.DoesNotContain(session.Window.FindAllDescendants(), e => e.Properties.Name.ValueOrDefault == "Save" && !e.Properties.IsOffscreen.ValueOrDefault);
         Assert.Empty(JsonNode.Parse(File.ReadAllText(Path.Combine(session.Root, "budget", "configuration.v1.json")))!["Caps"]!.AsArray());
-        Assert.True(Visible(session, "Close settings"));
+        // The settings panel is still open: its header was scrolled out of view by the diagnostic preview above,
+        // so bring "Close settings" into view (a closed, collapsed panel has no such element) before requiring it visible.
+        void RequireSettingsOpen()
+        {
+            session.Show(session.Find(e => e.Properties.Name.ValueOrDefault == "Close settings"));
+            Assert.True(Visible(session, "Close settings"));
+        }
+        RequireSettingsOpen();
         Assert.Contains(session.Window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal));
         session.Focus(session.ById(id)); session.Key(VirtualKeyShort.ESCAPE);
         Assert.DoesNotContain(session.Window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal));
-        Assert.True(Visible(session, "Close settings"));
+        RequireSettingsOpen();
         session.Key(VirtualKeyShort.ESCAPE); Assert.False(Visible(session, "Close settings"));
         session.Click("Add account"); session.Capture("LIFE-04-resized-provider-menu");
         session.Click("Show signed-out accounts"); session.Key(VirtualKeyShort.ESCAPE);
