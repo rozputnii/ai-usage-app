@@ -400,8 +400,9 @@ public sealed class LedgerCardTests
     {
         var left = Assert.Single(Case("h2", ValueMode.Left).Cells);
         Assert.Equal("60 % left", left.Tip[1]);
-        Assert.Equal(60, left.Parts.Single(p => p.Paint == new Paint("OkM")).Weight);
-        Assert.Equal(new Paint(Paint.Transparent), left.Parts.Single(p => p.Weight == 40).Paint);
+        // D-186: the unfilled track sits right of the solid fill in both modes.
+        Assert.Equal([60.0, 40.0], left.Parts.Select(p => p.Weight));
+        Assert.Equal([new Paint("OkM"), new Paint(Paint.Transparent)], left.Parts.Select(p => p.Paint));
 
         var next = Assert.Single(Variant("a5", NoEstimate).Cells);
         Assert.Equal(["Next 5h window · starts on first use", "Window count: collecting data"], next.Tip);
@@ -428,7 +429,7 @@ public sealed class LedgerCardTests
         var settled = Variant("h3", c => DemoLedgerScenarios.FiveHour("h3", CardState.OnTrack, 44, 50, 82.4m, 30,
             DemoLedgerScenarios.At(10, 14, 17, 35), DemoLedgerScenarios.At(10, 19, 9, 0), ws: 10, low: 9.5m, high: 10.5m));
         Assert.Equal("50 % used · ≈ 5 × 5h left", settled.Footer);
-        Assert.Equal("One 5h window ≈ 10 % of 7d (10–11 %) · from 3 windows", settled.FooterTip[0]);
+        Assert.Equal("One 5h window ≈ 10 % of 7d (9–11 %) · from 3 windows", settled.FooterTip[0]);
 
         var single = Variant("h3", c => c with { FiveHour = c.FiveHour! with { Windows = 1 } });
         Assert.EndsWith("· rough · from 1 window", single.FooterTip[0], StringComparison.Ordinal);

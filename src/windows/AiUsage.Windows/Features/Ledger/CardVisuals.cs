@@ -484,7 +484,8 @@ internal static class CardVisuals
     private static BarRing Ring(double left, double width, Tone tone, bool mirror) =>
         mirror ? new BarRing(100 - left - width, width, tone) : new BarRing(left, width, tone);
 
-    private static int Rank(Part part, bool left) => part is Part.Gray or Part.CritRest or Part.Track ? (left ? 0 : 4) : (left ? part == Part.Allow : part != Part.Allow) ? 1 : 2;
+    // The one-window track stays right of the solid fill in both modes (D-186).
+    private static int Rank(Part part, bool left) => part == Part.Track ? 4 : part is Part.Gray or Part.CritRest ? (left ? 0 : 4) : (left ? part == Part.Allow : part != Part.Allow) ? 1 : 2;
 
     private static StripCell Cell(double weight, IEnumerable<(Part Part, double Weight)> parts, (string M, string P) tone, bool left, bool off, bool label, IReadOnlyList<string> tip)
     {
@@ -660,9 +661,14 @@ internal static class CardVisuals
                 else if (five.WindowsLeftInPeriod is { } n && card.State != CardState.UsedUp)
                     windows = " · ≈ " + n + (five.WindowsLeftMax > n ? "–" + five.WindowsLeftMax : string.Empty) + " × 5h left";
                 var share = "One 5h window ≈ " + LedgerFormat.Round(ws) + " % of " + LedgerFormat.PeriodLabel(card.Period);
-                share += five is { WindowShareLow: { } low, WindowShareHigh: { } high }
-                    ? " (" + LedgerFormat.Round(low) + "–" + LedgerFormat.Round(high) + " %)" + (five.Rough ? " · rough" : string.Empty) + " · from " + five.Windows + (five.Windows == 1 ? " window" : " windows")
-                    : " (estimate)";
+                if (five is { WindowShareLow: { } low, WindowShareHigh: { } high })
+                {
+                    // Whole numbers rounded outward keep the shown bounds guaranteed.
+                    share += " (" + Math.Floor(low) + "–" + Math.Ceiling(high) + " %)" + (five.Rough ? " · rough" : string.Empty);
+                    share += " · from " + five.Windows + (five.Windows == 1 ? " window" : " windows");
+                }
+                else
+                    share += " (estimate)";
                 footerTip = [share, "≈ " + Math.Floor(100 / ws) + " windows per " + (card.Period.Kind == PeriodKind.CalendarMonth ? "month" : "week")];
             }
             else
