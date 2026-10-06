@@ -231,6 +231,15 @@ public sealed partial class LedgerSmoke
         Window? window = null;
         bool passed = false;
         string prefix = demo ? "ledger-demo" : "ledger-live-empty";
+        // A cached UIA element for the main window can turn invalid while the same HWND stays alive:
+        // its properties throw 0x80040201 and its searches return nothing. Resolve the window afresh for each query.
+        Window? Current() => OwnedWindow(automation, app.ProcessId);
+        Window Main()
+        {
+            Window? current = null;
+            Assert.True(Wait(() => (current = Current()) is not null), "Ledger window is not available");
+            return current!;
+        }
         try
         {
             Assert.True(Wait(() =>
@@ -250,7 +259,7 @@ public sealed partial class LedgerSmoke
             Button Button(string name)
             {
                 Button? button = null;
-                Assert.True(Wait(() => (button = window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is { IsEnabled: true }), "Missing or disabled button: " + name);
+                Assert.True(Wait(() => (button = Current()?.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is { IsEnabled: true }), "Missing or disabled button: " + name);
                 return button!;
             }
             Assert.NotNull(Button("Settings"));
@@ -260,14 +269,15 @@ public sealed partial class LedgerSmoke
                 AutomationElement? history = null;
                 Assert.True(Wait(() =>
                 {
-                    var card = window.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"));
+                    var current = Current();
+                    var card = current?.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"));
                     if (card is null) return false;
                     card.Focus();
-                    history = window.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History, Claude", StringComparison.Ordinal));
+                    history = current!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History, Claude", StringComparison.Ordinal));
                     return history is not null;
                 }));
                 history!.AsButton().Invoke();
-                Assert.True(Wait(() => window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("History", StringComparison.Ordinal))), "History did not open");
+                Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("History", StringComparison.Ordinal)) == true), "History did not open");
                 Keyboard.Press(VirtualKeyShort.ESCAPE);
                 Button("Add account").Invoke();
                 AutomationElement? signIn = null;
@@ -280,27 +290,31 @@ public sealed partial class LedgerSmoke
                     return signIn is not null;
                 }));
                 signIn!.AsButton().Invoke();
-                Assert.True(Wait(() => window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude Pro 2", StringComparison.Ordinal))), "A second demo account did not appear");
+                Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude Pro 2", StringComparison.Ordinal)) == true), "A second demo account did not appear");
             }
             else
             {
                 Assert.True(Wait(() => Directory.Exists(Path.Combine(state, "preferences"))), "Live maintenance did not initialize isolated state");
                 Assert.NotNull(Button("Sign in to Codex"));
-                Assert.DoesNotContain(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "").Contains("needs recovery", StringComparison.OrdinalIgnoreCase));
+                // Live startup still replaces elements here; a scan that loses an element (COMException) is repeated, and only a complete scan counts.
+                bool? recovery = null;
+                Assert.True(Wait(() => (recovery = Main().FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("needs recovery", StringComparison.OrdinalIgnoreCase))) is not null), "No complete window scan");
+                Assert.False(recovery, "Live-empty startup must not show recovery");
             }
             Button("Settings").Invoke();
-            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.Button))) is not null));
+            Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.Button))) is not null));
             Button("Delete stored data").Invoke();
             Assert.NotNull(Button("Cancel deleting stored data"));
             Button("Cancel deleting stored data").Invoke();
             Button("Preview diagnostics").Invoke();
             Thread.Sleep(300);
-            using (var screenshot = window.Capture()) screenshot.Save(Path.Combine(evidence!, prefix + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+            using (var screenshot = Main().Capture()) screenshot.Save(Path.Combine(evidence!, prefix + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             Button("Close settings").Invoke();
             if (demo)
             {
-                var handle = window.Properties.NativeWindowHandle.Value;
-                window.TitleBar!.CloseButton!.Invoke();
+                var main = Main();
+                var handle = main.Properties.NativeWindowHandle.Value;
+                main.TitleBar!.CloseButton!.Invoke();
                 Assert.True(Wait(() => !IsWindowVisible(handle)), "Close should hide the main window");
                 var desktop = automation.GetDesktop();
                 var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
@@ -352,7 +366,7 @@ public sealed partial class LedgerSmoke
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Selecting the tray account should restore the main window");
                 Assert.True(Wait(() => (automation.FocusedElement()?.Properties.AutomationId.ValueOrDefault ?? "").StartsWith("claude-week-", StringComparison.Ordinal)), "Tray account selection should focus that account's card");
             }
-            Focus(window);
+            Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "Exit did not drain and terminate the launched process");
             Assert.Equal(0, process.ExitCode);
@@ -364,7 +378,7 @@ public sealed partial class LedgerSmoke
             if (!process.HasExited)
             {
                 if (window is not null)
-                    try { DesktopTestEnvironment.RequireUnlockedDesktop(); using var screenshot = window.Capture(); screenshot.Save(Path.Combine(evidence!, prefix + "-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
+                    try { DesktopTestEnvironment.RequireUnlockedDesktop(); using var screenshot = (Current() ?? window).Capture(); screenshot.Save(Path.Combine(evidence!, prefix + "-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
                     catch (Exception) { }
                 process.Kill(); process.WaitForExit(5000);
             }
