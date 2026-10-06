@@ -140,8 +140,9 @@ development prerelease and deploy `https://rozputnii.github.io/ai-usage-app/AiUs
 The feed stays on that site, but its package and Windows App SDK dependency URIs point
 at the immutable assets of the same GitHub release (amended 2026-10-06, ANL-12): on the
 owner's machine the IPv6 path to GitHub Pages reset TLS connections and App Installer
-aborted the Pages download (0x80072EFE), while the IPv4-only release hosts worked every
-time. The install page's direct-download links use the same release assets; the site no
+aborted the Pages download (0x80072EFE), while every measured release download through
+`github.com` and `release-assets.githubusercontent.com` (no AAAA records, so IPv4 only)
+succeeded. The change applies from the next published Preview. The install page's direct-download links use the same release assets; the site no
 longer carries package copies.
 Draft releases reserve versions before building; a failure consumes its version. The
 release queue retains up to 100 pending jobs. Only a candidate containing every prior

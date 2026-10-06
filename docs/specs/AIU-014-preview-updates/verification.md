@@ -129,9 +129,11 @@ Deferred under ANL-20 until AIU-014 resumes or before a public channel:
 
 - On 2026-10-05 the repository held 106 Preview releases, while D-164 keeps the latest 50.
 - GitHub reports every release `immutable: false` (see Limits).
-- The Windows App Runtime dependency URL on the Pages site is unversioned, and each
-  Pages deploy replaces the whole site. Deploy race hypothesis, unverified: a client
-  that fetched the feed just before a deploy could request a package the deploy removed.
+- Since the 2026-10-06 ANL-12 change, the Pages site no longer serves the package or
+  the dependency; feeds published from that change take both from the per-tag release
+  assets. The earlier deploy race hypothesis (a client holding a stale feed requests a
+  package that a later Pages deploy removed) no longer applies to those feeds. Feeds up
+  to `2026.10.601.0` still reference the unversioned Pages dependency URL.
 
 ## App Installer package-open failure (2026-10-04)
 

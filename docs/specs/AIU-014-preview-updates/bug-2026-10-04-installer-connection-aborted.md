@@ -39,9 +39,11 @@ dependency `Microsoft.WindowsAppRuntime.2.msix`, the public CER, `release.json` 
 site. Each deploy replaces the whole site, so only the current version's package is
 served there. The GitHub prerelease keeps its own copies of the same assets.
 
-Since the 2026-10-06 fix, the feed, its `Uri` attribute, the CER, `release.json` and
-`index.html` stay on Pages, while the feed's package and dependency URIs are the
-immutable assets of the same release:
+The 2026-10-06 fix takes effect with the next Preview published from it; the live
+`2026.10.601.0` feed still points its package and dependency at Pages. From that
+Preview on, the feed, its `Uri` attribute, the CER, `release.json` and `index.html` stay
+on Pages, while the feed's package and dependency URIs are the immutable assets of the
+same release:
 `https://github.com/rozputnii/ai-usage-app/releases/download/preview-<version>/<file>`.
 The release is made public before the Pages deploy, so these URIs resolve when the new
 feed goes live. The direct-download links in `index.html` use the same release assets,
@@ -54,7 +56,8 @@ which redirect to short-lived storage URLs, and moved the package and its depend
 the Pages site. The README gave that reason until 2026-10-06. The 2026-10-04 failure
 occurred with the package already on Pages, so that redirect explanation does not cover
 it. The AIU-014 spec design text described release-asset URLs throughout; since the
-2026-10-06 amendment it again matches the published feed.
+2026-10-06 amendment it again matches the publishing code. The published feed matches
+it only from the next Preview published from that change.
 
 The Pages-hosted App Installer GUI path is unverified. The 2026-09-23 Sandbox feed run
 used release-asset URLs, and both it and the 2026-10-05 Sandbox registration used
@@ -125,6 +128,12 @@ Connection test, 11:32-11:34Z, HTTPS GET of the Pages feed and control hosts:
 
 Failures were `curl (35) Recv failure: Connection was reset`. The host's IPv6 path resets
 a share of connections to some networks, including GitHub Pages; IPv4 was clean.
+
+Release download path, measured by the primary later on 2026-10-06 on the owner's host:
+10 of 10 full MSIX downloads and 5 of 5 dependency downloads through the `github.com`
+release-download redirect succeeded. All were served by `release-assets.githubusercontent.com`
+at `185.199.109.133` over IPv4. `github.com` and `release-assets.githubusercontent.com`
+have no AAAA records.
 
 Assessment: on the owner's host, `0x80072EFE` is the client network's IPv6 path aborting
 connections to GitHub Pages, not the package, the feed content or the signing. This
