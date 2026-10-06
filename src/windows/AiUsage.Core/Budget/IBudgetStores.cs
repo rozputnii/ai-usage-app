@@ -2,7 +2,7 @@ using AiUsage.Core.Usage;
 
 namespace AiUsage.Core.Budget;
 
-public sealed record ReadingObservation(ReadingSeriesKey Series, Quantity Value, DateTimeOffset FetchedAt)
+public sealed record ReadingObservation(ReadingSeriesKey Series, Quantity Value, DateTimeOffset FetchedAt, decimal RoundingUnit = 1)
 {
     public string? PlanType { get; init; }
     public SnapshotSource Source { get; init; }
@@ -11,7 +11,6 @@ public sealed record ReadingObservation(ReadingSeriesKey Series, Quantity Value,
     public DateTimeOffset? ResetAt { get; init; }
     public ResetPrecision? ResetPrecision { get; init; }
     public DateTimeOffset? PeriodStartedAt { get; init; }
-    public decimal RoundingUnit { get; init; } = 1;
     public bool IsBalance { get; init; }
 }
 

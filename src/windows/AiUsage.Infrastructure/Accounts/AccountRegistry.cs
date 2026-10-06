@@ -5,9 +5,8 @@ using AiUsage.Infrastructure.Providers;
 
 namespace AiUsage.Infrastructure.Accounts;
 
-internal sealed record AccountRecord(Guid Id, string Provider, Guid StorageId, ProviderIdentity Identity)
+internal sealed record AccountRecord(Guid Id, string Provider, Guid StorageId, ProviderIdentity Identity, bool Connected = true)
 {
-    public bool Connected { get; init; } = true;
     public bool Disconnecting { get; init; }
     public bool LegacyStorage { get; init; }
     public override string ToString() => "AccountRecord (redacted)";
