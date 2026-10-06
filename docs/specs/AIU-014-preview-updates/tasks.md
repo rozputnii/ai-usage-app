@@ -68,6 +68,6 @@ runs 35895908547 and 35899151315 published 2026.9.2301.0 and 2026.9.2302.0 and a
 the Pages feed. Windows Sandbox installed through the feed and was updated by Windows to
 the second version with synthetic preferences preserved. Draft 2026.9.2223.0 stays a
 consumed reservation. There is no host trust or host install. Each main push publishes a
-Preview. Remaining AIU-014 scope is outside this phase: official signing, Stable, channel
+Preview (until 2026-10-06; Previews now publish only through an owner dispatch, AIU045-D1). Remaining AIU-014 scope is outside this phase: official signing, Stable, channel
 switching and public distribution. Owner decision 2026-09-24: personal tool, remaining scope deferred (see
 AIU-014-public-signing). Next action: none until the owner reopens public distribution.
