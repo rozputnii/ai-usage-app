@@ -30,12 +30,21 @@ public sealed partial class LedgerSmoke
         Window? window = null;
         var passed = false;
         var stage = "launch";
+        // A cached UIA element for the main window can turn invalid while the same HWND stays alive:
+        // its properties throw 0x80040201 and its searches return nothing. Resolve the window afresh for each query.
+        Window? Current() => OwnedWindow(automation, app.ProcessId);
+        Window Main()
+        {
+            Window? current = null;
+            Assert.True(Wait(() => (current = Current()) is not null), "Ledger window is not available");
+            return current!;
+        }
         try
         {
             Assert.True(Wait(() => (window = OwnedWindow(automation, app.ProcessId)) is not null));
             Focus(window!);
             stage = "select scenario";
-            window!.FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
+            Main().FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
             AutomationElement? scenario = null;
             Assert.True(Wait(() =>
             {
@@ -47,41 +56,42 @@ public sealed partial class LedgerSmoke
             scenario!.AsMenuItem().Invoke();
             stage = "nested content";
             AutomationElement? money = null;
-            Assert.True(Wait(() => (money = window.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))) is not null));
-            var parent = window.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;
+            Assert.True(Wait(() => (money = Current()?.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))) is not null));
+            var parent = Main().FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;
             Assert.NotNull(parent.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")));
             Assert.DoesNotContain(money!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)), b =>
                 (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Sign out", StringComparison.Ordinal));
             money.Focus();
             stage = "history";
             Keyboard.Press(VirtualKeyShort.RETURN);
-            Assert.True(Wait(() => window.FindAllDescendants().Any(e =>
-                (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Mixed account history,", StringComparison.Ordinal))));
-            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-history.png"), System.Drawing.Imaging.ImageFormat.Png);
+            Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e =>
+                (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Mixed account history,", StringComparison.Ordinal)) == true));
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-history.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
-            money = window.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))!;
+            money = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))!;
             stage = "cap";
             money.Focus(); Keyboard.Press(VirtualKeyShort.KEY_C);
             Assert.True(Wait(() => money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).Any(e => !e.IsOffscreen)));
-            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
+            parent = Main().FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;
             parent.Focus(); Keyboard.Press(VirtualKeyShort.F2);
             stage = "rename";
             TextBox? rename = null;
-            Assert.True(Wait(() => (rename = window.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox()) is not null));
+            Assert.True(Wait(() => (rename = Current()?.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox()) is not null));
             rename!.Text = "Renamed account";
             Keyboard.Press(VirtualKeyShort.RETURN);
-            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Renamed account")) is not null));
-            var only = window.FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
+            Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Renamed account")) is not null));
+            var only = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
             stage = "money only";
             only.Focus();
             Assert.True(Wait(() => only.FindFirstDescendant(cf => cf.ByName("Sign out Money only")) is not null));
-            Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "12.50 EUR");
-            Assert.Contains(window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "200.00 EUR (provider)");
-            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "money-account.png"), System.Drawing.Imaging.ImageFormat.Png);
+            Assert.Contains(Main().FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "12.50 EUR");
+            Assert.Contains(Main().FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "200.00 EUR (provider)");
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-account.png"), System.Drawing.Imaging.ImageFormat.Png);
             void SelectScenario(string name)
             {
-                window.FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
+                Main().FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
                 AutomationElement? item = null;
                 Assert.True(Wait(() =>
                 {
@@ -94,20 +104,21 @@ public sealed partial class LedgerSmoke
             }
             stage = "money only gains windows";
             SelectScenario("Account spending with new windows");
-            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByAutomationId("money-window"))?
+            Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByAutomationId("money-window"))?
                 .FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is not null));
             stage = "money only loses windows";
             SelectScenario("Account spending");
-            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByAutomationId("money-window")) is null &&
-                window.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is not null));
-            only = window.FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
+            Assert.True(Wait(() => Current() is { } current && current.FindFirstDescendant(cf => cf.ByAutomationId("money-window")) is null &&
+                current.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is not null));
+            only = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
             only.Focus();
             Assert.True(Wait(() => only.FindFirstDescendant(cf => cf.ByName("Sign out Money only")) is not null));
             only.FindFirstDescendant(cf => cf.ByName("Sign out Money only"))!.AsButton().Invoke();
             stage = "sign out";
-            Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is null));
-            Assert.NotNull(window.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")));
-            Focus(window);
+            Assert.True(Wait(() => Current() is { } current && current.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is null &&
+                current.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")) is not null));
+            Assert.NotNull(Main().FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")));
+            Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000));
             Assert.Equal(0, process.ExitCode);
@@ -118,9 +129,12 @@ public sealed partial class LedgerSmoke
             File.WriteAllText(Path.Combine(evidence!, "money-smoke.json"), JsonSerializer.Serialize(new { passed, stage, exited = process.HasExited }));
             if (!process.HasExited)
             {
-                if (window is not null)
-                    try { using var capture = window.Capture(); capture.Save(Path.Combine(evidence!, "money-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
-                    catch (System.Runtime.InteropServices.COMException) { }
+                try
+                {
+                    if ((Current() ?? window) is { } failed)
+                        using (var capture = failed.Capture()) capture.Save(Path.Combine(evidence!, "money-failure.png"), System.Drawing.Imaging.ImageFormat.Png);
+                }
+                catch (System.Runtime.InteropServices.COMException) { }
                 process.Kill(); process.WaitForExit(5000);
             }
         }
