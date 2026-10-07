@@ -85,8 +85,7 @@ public sealed partial class AuditWindows
         using var session = new Session(Path.Combine(Required("AIU_AUDIT_PAGE_DIRECTORY"), "overview.json"));
         session.Click("Settings");
         session.Capture("controls-settings-top");
-        foreach (var name in new[] { "Density: comfortable", "Density: compact", "Always on top, off", "Always on top, on",
-                     "Show signed-out accounts, off", "Show signed-out accounts, on" })
+        foreach (var name in new[] { "Density: comfortable", "Density: compact", "Always on top, off", "Always on top, on" })
             session.Click(name);
         foreach (var day in new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" })
         {
@@ -100,12 +99,12 @@ public sealed partial class AuditWindows
         foreach (var (button, receipt) in new[] { ("Preview diagnostics", "PreviewDiagnostics"), ("Open logs", "Support:OpenLogs"),
                      ("Open data folder", "Support:OpenDataFolder"), ("Export recovery summary", "Support:ExportRecovery") })
         {
-            session.Click(button);
+            session.Menu(button);
             Assert.True(Session.Wait(() => session.Receipts.Contains(receipt, StringComparison.Ordinal)), receipt);
         }
         Assert.True(File.Exists(Path.Combine(session.Root, "recovery-diagnostics.txt")));
         session.Capture("controls-settings-diagnostics");
-        session.Click("Delete stored data"); session.Capture("controls-delete-confirmation");
+        session.Menu("Delete stored data"); session.Capture("controls-delete-confirmation");
         session.Click("Cancel deleting stored data");
         Assert.DoesNotContain("DeleteSyntheticData", session.Receipts, StringComparison.Ordinal);
         session.Click("Close settings");
@@ -147,7 +146,7 @@ public sealed partial class AuditWindows
         session.Click("Sign in");
         Assert.True(Session.Wait(() => session.Receipts.Contains("Connect:claude:" + accountId, StringComparison.Ordinal)));
         Assert.True(Session.Wait(() => session.ById(moneyId).Properties.Name.Value.Contains("SYNTHETIC renamed account", StringComparison.Ordinal)));
-        session.Click("Settings"); session.Click("Delete stored data"); session.Click("Confirm deleting stored data");
+        session.Click("Settings"); session.Menu("Delete stored data"); session.Click("Confirm deleting stored data");
         Assert.True(Session.Wait(() => session.Receipts.Contains("DeleteSyntheticData", StringComparison.Ordinal)));
         session.Click("Close settings");
         Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Add an account"));
@@ -463,6 +462,12 @@ public sealed partial class AuditWindows
         public AutomationElement ById(string id) => Find(e => e.Properties.AutomationId.ValueOrDefault == id);
         public void Click(string name) => Click(Find(e => e.Properties.Name.ValueOrDefault == name &&
             e.Properties.ControlType.ValueOrDefault is ControlType.Button or ControlType.CheckBox));
+        /// <summary>Opens the settings footer menu (D-193) and clicks one of its items.</summary>
+        public void Menu(string item)
+        {
+            Click("More settings");
+            Click(Find(e => e.Properties.Name.ValueOrDefault == item && e.Properties.ControlType.ValueOrDefault == ControlType.MenuItem));
+        }
         public void Click(AutomationElement element)
         {
             DesktopTestEnvironment.RequireOwnedForeground(app.ProcessId);

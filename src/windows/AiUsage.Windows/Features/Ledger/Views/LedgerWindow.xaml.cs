@@ -185,7 +185,7 @@ internal sealed partial class LedgerWindow : Window
             presenter.IsAlwaysOnTop = ViewModel.Preferences.AlwaysOnTop;
     }
 
-    /// <summary>The settings sheet slides in from the right edge and back out, narrowing and widening the cards (D-192).</summary>
+    /// <summary>The settings sheet slides in from the right edge and back out, narrowing and widening the cards (D-193).</summary>
     private void SlideSettings()
     {
         var open = ViewModel.IsSettingsOpen;

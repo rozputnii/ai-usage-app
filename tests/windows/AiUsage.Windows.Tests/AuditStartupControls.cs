@@ -51,10 +51,10 @@ public sealed partial class AuditWindows
         var retryButton = session.Find(e => e.Properties.Name.ValueOrDefault == "Retry recovery" && e.Properties.ControlType.ValueOrDefault == ControlType.Button);
         var restoreButton = session.Find(e => e.Properties.Name.ValueOrDefault == "Restore legacy preferences" && e.Properties.ControlType.ValueOrDefault == ControlType.Button);
         Assert.Equal(retry, retryButton.IsEnabled); Assert.Equal(restore, restoreButton.IsEnabled);
-        session.Click("Preview diagnostics");
+        session.Menu("Preview diagnostics");
         Assert.Contains("PreviewDiagnostics", session.Receipts, StringComparison.Ordinal);
         Assert.NotNull(session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("provider transport disabled", StringComparison.Ordinal)));
-        session.Click("Export recovery summary");
+        session.Menu("Export recovery summary");
         Assert.True(Session.Wait(() => File.Exists(Path.Combine(session.Root, "recovery-diagnostics.txt"))));
         Assert.Contains("SYNTHETIC AUDIT", File.ReadAllText(Path.Combine(session.Root, "recovery-diagnostics.txt")), StringComparison.Ordinal);
         session.Capture("recovery-restrictions-" + retry + "-" + restore);

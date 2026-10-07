@@ -175,7 +175,7 @@
       <TextBlock Grid.ColumnSpan="2" Text="Opening local data…" Margin="16,10" Style="{StaticResource LedgerBodyText}" Visibility="{x:Bind Show(ViewModel.IsStarting), Mode=OneWay}" />
       <ScrollViewer x:Name="CardScroller" Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                     Visibility="{x:Bind Hide(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
-        <!-- S1 (D-192): one column of full-width cards; inline history follows its card. -->
+        <!-- S1 (D-193): one column of full-width cards; inline history follows its card. -->
         <StackPanel x:Name="CardGrid" Spacing="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
                     XYFocusKeyboardNavigation="Enabled" />
       </ScrollViewer>
@@ -209,7 +209,7 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- S5 (D-192): the host's width slides open and shut, so the sheet enters from the right edge and the cards narrow. -->
+      <!-- S5 (D-193): the host's width slides open and shut, so the sheet enters from the right edge and the cards narrow. -->
       <Grid x:Name="SettingsHost" Grid.Row="1" Grid.Column="1" Width="0" Visibility="Collapsed">
         <views:LedgerSettingsView x:Name="SettingsPanel" Width="320" HorizontalAlignment="Left" ViewModel="{x:Bind ViewModel.Settings}" />
       </Grid>

@@ -62,7 +62,7 @@ public sealed partial class AuditWindows
         File.WriteAllText(target, "SYNTHETIC corrupt preferences");
         using (var restore = Session.FromFixture(fixture, "maintenance-restore", root))
         {
-            RequireRecovery(restore, "Local data needs recovery"); restore.Click("Settings"); restore.Click("Preview diagnostics");
+            RequireRecovery(restore, "Local data needs recovery"); restore.Click("Settings"); restore.Menu("Preview diagnostics");
             var preview = restore.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Legacy preferences checkpoint: True", StringComparison.Ordinal));
             restore.Show(preview);
             restore.Capture("REC-04-production-restore-preview");
@@ -84,7 +84,7 @@ public sealed partial class AuditWindows
         Assert.False(newer.Find(e => e.Properties.Name.ValueOrDefault == "Restore legacy preferences").IsEnabled);
         newer.Show(newer.Find(e => e.Properties.Name.ValueOrDefault == "Retry recovery"));
         newer.Capture("REC-04-production-newer-schema-disabled-controls");
-        newer.Click("Export recovery summary");
+        newer.Menu("Export recovery summary");
         var export = Path.Combine(root, "recovery-diagnostics.txt"); Assert.True(Session.Wait(() => File.Exists(export)));
         var text = File.ReadAllText(export); Assert.Contains("Condition: NewerSchema", text, StringComparison.Ordinal);
         Assert.DoesNotContain(root, text, StringComparison.Ordinal); Assert.DoesNotContain("opaque/provider", text, StringComparison.Ordinal);
@@ -121,12 +121,12 @@ public sealed partial class AuditWindows
         else
         {
             using var original = new Session(input, stateDirectory: root); originalId = original.ProcessId;
-            RequireFirstRunReady(original); original.Click("Settings"); original.Click("Delete stored data");
+            RequireFirstRunReady(original); original.Click("Settings"); original.Menu("Delete stored data");
             original.Click("Cancel deleting stored data");
             Assert.Equal("SYNTHETIC opaque provider sentinel", File.ReadAllText(provider));
             Assert.True(File.Exists(logSentinel));
             Assert.False(File.Exists(Path.Combine(root, "delete-local-data.v1.json")));
-            original.Click("Delete stored data"); original.Capture("REC-05-production-delete-confirmation");
+            original.Menu("Delete stored data"); original.Capture("REC-05-production-delete-confirmation");
             original.Click("Confirm deleting stored data"); original.AssertExited();
         }
         int restartedId = 0;

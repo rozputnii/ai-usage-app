@@ -73,7 +73,7 @@ internal sealed partial class CapRow : ObservableObject
 }
 
 /// <summary>
-/// The settings sheet (spec S5, D-192): work days with undo, personal caps, view, updates, and a footer with the refresh
+/// The settings sheet (spec S5, D-193): work days with undo, personal caps, view, updates, and a footer with the refresh
 /// interval or a status problem, the rare support actions and Delete stored data. Explanations are tooltips.
 /// </summary>
 internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILedgerSource source) : ObservableObject

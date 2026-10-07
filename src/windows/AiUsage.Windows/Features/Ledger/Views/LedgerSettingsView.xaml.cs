@@ -8,7 +8,7 @@ using Windows.UI.Text;
 
 namespace AiUsage.Features.Ledger.Views;
 
-/// <summary>The settings sheet (S5, D-192). Arming Delete stored data moves focus to Cancel (R-12); disarming returns it to ⋯.</summary>
+/// <summary>The settings sheet (S5, D-193). Arming Delete stored data moves focus to Cancel (R-12); disarming returns it to ⋯.</summary>
 internal sealed partial class LedgerSettingsView : UserControl
 {
     public LedgerSettingsView() => InitializeComponent();

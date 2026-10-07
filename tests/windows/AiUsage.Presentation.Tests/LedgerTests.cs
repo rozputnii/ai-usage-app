@@ -501,7 +501,7 @@ public sealed class LedgerInteractionTests
         var (window, _, _, _) = Start();
         Assert.Equal("Version 2026.10.604.0", window.Settings.UpdateVersionText);
         Assert.Matches(@"^Up to date · checked \d\d:\d\d$", window.Settings.UpdatesText);
-        Assert.False(window.Settings.IsUpdateNotable); // up to date stays a tooltip (D-192)
+        Assert.False(window.Settings.IsUpdateNotable); // up to date stays a tooltip (D-193)
         Assert.True(window.Settings.CanCheckUpdates);
         Assert.False(window.Settings.CanInstallUpdate);
         Assert.True(window.Settings.IsUpdateAlways);

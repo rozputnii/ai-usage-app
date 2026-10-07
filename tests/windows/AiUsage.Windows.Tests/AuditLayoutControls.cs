@@ -34,7 +34,7 @@ public sealed partial class AuditWindows
         Assert.True(session.Window.BoundingRectangle.Width < initial.Width - 40);
         Assert.True(session.Window.BoundingRectangle.Height < initial.Height - 40);
         session.Capture("LIFE-04-resized-settings-history");
-        session.Click("Preview diagnostics");
+        session.Menu("Preview diagnostics");
         var preview = session.Find(e => e.Properties.Name.ValueOrDefault == "SYNTHETIC AUDIT · provider transport disabled · isolated temporary storage");
         session.Show(preview); session.Capture("LIFE-04-resized-diagnostic-preview");
         Assert.Equal(1, session.Receipts.Split('\n').Count(l => l.Trim() == "PreviewDiagnostics"));

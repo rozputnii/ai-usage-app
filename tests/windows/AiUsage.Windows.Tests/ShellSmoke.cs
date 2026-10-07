@@ -34,9 +34,10 @@ public sealed partial class ShellSmoke
             Assert.True(WaitUntil(() => (window = FindRecoveryWindow(automation, process.Id)) is not null, TimeSpan.FromSeconds(30)));
             WaitForDashboard(window!);
             SettingsEntry(window!)!.AsButton().Invoke();
-            Assert.NotNull(window!.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.Button))));
-            Capture(window, evidence!, "package-settings");
-            FocusForKeyboard(window, window, evidence!, "package-exit");
+            var shown = window!;
+            Assert.True(WaitUntil(() => shown.FindFirstDescendant(cf => cf.ByName("More settings").And(cf.ByControlType(ControlType.Button))) is not null, TimeSpan.FromSeconds(5)));
+            Capture(shown, evidence!, "package-settings");
+            FocusForKeyboard(shown, shown, evidence!, "package-exit");
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000)); Assert.Equal(0, process.ExitCode);
         }
@@ -53,6 +54,14 @@ public sealed partial class ShellSmoke
         window.FindFirstDescendant(cf => cf.ByAutomationId("AlwaysOnTopSwitch"))?.Patterns.Toggle.PatternOrDefault?.ToggleState.Value == ToggleState.On;
     private static AutomationElement Required(Window window, string name) =>
         window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button))) ?? throw new InvalidOperationException("Missing UI action: " + name);
+    // Support actions sit in the settings footer menu (D-193).
+    private static void Menu(Window window, string name)
+    {
+        Required(window, "More settings").AsButton().Invoke();
+        AutomationElement? item = null;
+        Assert.True(WaitUntil(() => (item = window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.MenuItem)))) is not null, TimeSpan.FromSeconds(5)), "Missing menu item: " + name);
+        item!.Patterns.Invoke.Pattern.Invoke();
+    }
     private static void Capture(Window window, string evidence, string name)
     {
         using var screenshot = window.Capture();

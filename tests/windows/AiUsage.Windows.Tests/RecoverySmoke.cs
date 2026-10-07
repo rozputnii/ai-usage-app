@@ -87,7 +87,7 @@ public sealed partial class ShellSmoke
             Session("restore", window =>
             {
                 WaitForRecovery(window, "Local data needs recovery");
-                Required(window, "Preview diagnostics").AsButton().Invoke();
+                Menu(window, "Preview diagnostics");
                 Capture(window, evidence, "restore-diagnostics");
                 Required(window, "Restore legacy preferences").AsButton().Invoke();
                 WaitForDashboard(window);
@@ -101,7 +101,7 @@ public sealed partial class ShellSmoke
                 WaitForRecovery(window, "These local data were written by a newer app");
                 Assert.False(Required(window, "Retry recovery").IsEnabled);
                 Assert.False(Required(window, "Restore legacy preferences").IsEnabled);
-                Required(window, "Export recovery summary").AsButton().Invoke();
+                Menu(window, "Export recovery summary");
                 var diagnostics = Path.Combine(root, "recovery-diagnostics.txt");
                 Assert.True(WaitUntil(() => File.Exists(diagnostics), TimeSpan.FromSeconds(5)));
                 var diagnosticText = File.ReadAllText(diagnostics);

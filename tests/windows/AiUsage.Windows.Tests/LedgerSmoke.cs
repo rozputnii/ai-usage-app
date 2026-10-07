@@ -170,8 +170,10 @@ public sealed partial class LedgerSmoke
             {
                 Assert.True(Wait(() => (window = OwnedWindow(automation, original.Id)) is not null));
                 window!.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button)))!.AsButton().Invoke();
-                Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.Button))) is not null));
-                window.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.Button)))!.AsButton().Invoke();
+                Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("More settings").And(cf.ByControlType(ControlType.Button))) is not null));
+                window.FindFirstDescendant(cf => cf.ByName("More settings").And(cf.ByControlType(ControlType.Button)))!.AsButton().Invoke();
+                Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.MenuItem))) is not null));
+                window.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.MenuItem)))!.Patterns.Invoke.Pattern.Invoke();
                 window.FindFirstDescendant(cf => cf.ByName("Confirm deleting stored data"))!.AsButton().Invoke();
             }
             Assert.True(original.WaitForExit(30000), "Deletion did not restart the original process");
@@ -262,6 +264,14 @@ public sealed partial class LedgerSmoke
                 Assert.True(Wait(() => (button = Current()?.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is { IsEnabled: true }), "Missing or disabled button: " + name);
                 return button!;
             }
+            // Support actions and Delete stored data sit in the settings footer menu (D-193).
+            void Menu(string name)
+            {
+                Button("More settings").Invoke();
+                AutomationElement? item = null;
+                Assert.True(Wait(() => (item = Current()?.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.MenuItem)))) is not null), "Missing menu item: " + name);
+                item!.Patterns.Invoke.Pattern.Invoke();
+            }
             Assert.NotNull(Button("Settings"));
             Button("Show values: left").Invoke(); Button("Show values: used").Invoke();
             if (demo)
@@ -302,11 +312,10 @@ public sealed partial class LedgerSmoke
                 Assert.False(recovery, "Live-empty startup must not show recovery");
             }
             Button("Settings").Invoke();
-            Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.Button))) is not null));
-            Button("Delete stored data").Invoke();
+            Menu("Delete stored data");
             Assert.NotNull(Button("Cancel deleting stored data"));
             Button("Cancel deleting stored data").Invoke();
-            Button("Preview diagnostics").Invoke();
+            Menu("Preview diagnostics");
             Thread.Sleep(300);
             using (var screenshot = Main().Capture()) screenshot.Save(Path.Combine(evidence!, prefix + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             Button("Close settings").Invoke();

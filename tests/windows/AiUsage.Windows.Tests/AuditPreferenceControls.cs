@@ -33,24 +33,24 @@ public sealed partial class AuditWindows
             session.Key(VirtualKeyShort.ESCAPE);
             session.Chord(VirtualKeyShort.CONTROL, (VirtualKeyShort)188);
             Assert.True(Session.Wait(() => Visible(session, "Close settings")));
+            // Used/Left lives only in the title bar (D-193); the settings sheet stays open beside it.
             var modes = session.Window.FindAllDescendants().Where(e => e.Properties.Name.ValueOrDefault == "Show values: left" &&
                 e.Properties.ControlType.ValueOrDefault == ControlType.Button).ToArray();
-            Assert.Equal(2, modes.Length);
-            session.Click("Preview diagnostics"); // Exercise settings mode controls after an actual wheel scroll.
-            session.Click(modes[1]);
+            Assert.Single(modes);
+            session.Menu("Preview diagnostics");
+            session.Click(modes[0]);
             RequirePreference(session, p => p["Preferences"]!["Mode"]!.GetValue<int>() == 1);
             Assert.Contains("left", session.ById(moneyId).Properties.Name.Value, StringComparison.Ordinal);
-            session.Click(session.Window.FindAllDescendants().Last(e => e.Properties.Name.ValueOrDefault == "Show values: used" &&
-                e.Properties.ControlType.ValueOrDefault == ControlType.Button));
+            session.Click("Show values: used");
             RequirePreference(session, p => p["Preferences"]!["Mode"]!.GetValue<int>() == 0);
-            session.Click(modes[1]);
+            session.Click(modes[0]);
             RequirePreference(session, p => p["Preferences"]!["Mode"]!.GetValue<int>() == 1);
             session.Click("Density: comfortable");
             RequirePreference(session, p => p["Preferences"]!["Density"]!.GetValue<int>() == 1);
             session.Click("Always on top, off");
             RequirePreference(session, p => p["Preferences"]!["AlwaysOnTop"]!.GetValue<bool>());
             Assert.True(Session.Wait(() => (GetWindowLongPtr(session.Window.Properties.NativeWindowHandle.Value, -20).ToInt64() & 8) != 0));
-            session.Click("Show signed-out accounts, off");
+            session.Click("Add account"); session.Click("Show signed-out accounts"); session.Key(VirtualKeyShort.ESCAPE);
             RequirePreference(session, p => p["Preferences"]!["ShowSignedOut"]!.GetValue<bool>());
             foreach (var day in new[] { "Tuesday", "Wednesday", "Thursday", "Friday" })
             {
@@ -114,10 +114,10 @@ public sealed partial class AuditWindows
         restarted.Click("Settings");
         Assert.True(Session.Wait(() => Visible(restarted, "Close settings")));
         Assert.NotNull(restarted.Find(e => e.Properties.Name.ValueOrDefault == "Always on top, on"));
-        Assert.NotNull(restarted.Find(e => e.Properties.Name.ValueOrDefault == "Show signed-out accounts, on"));
         Assert.False(restarted.Find(e => e.Properties.Name.ValueOrDefault == "Monday, work day").IsEnabled);
         Assert.True(Session.Wait(() => (GetWindowLongPtr(restarted.Window.Properties.NativeWindowHandle.Value, -20).ToInt64() & 8) != 0));
-        RequirePreference(restarted, p => p["Preferences"]!["Mode"]!.GetValue<int>() == 1 && p["Preferences"]!["Density"]!.GetValue<int>() == 1);
+        RequirePreference(restarted, p => p["Preferences"]!["Mode"]!.GetValue<int>() == 1 && p["Preferences"]!["Density"]!.GetValue<int>() == 1 &&
+            p["Preferences"]!["ShowSignedOut"]!.GetValue<bool>());
         restarted.Capture("preferences-after-restart"); restarted.Exit();
     }
 
