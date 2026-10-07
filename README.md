@@ -133,17 +133,25 @@ partial setup must be inspected, not overwritten or rotated automatically.
 
 Every push to `main` publishes (owner decision 2026-10-06, reversing AIU045-D1's
 dispatch-only rule). The run validates and packages the pushed commit; only if both jobs
-pass does it publish a distinct development prerelease and deploy
-`https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller`. The owner can republish
-the current commit with `gh workflow run validation.yml --ref main -f PublishPreview=true`.
+pass does it publish a distinct development prerelease. It then replaces the feed
+`https://github.com/rozputnii/ai-usage-app/releases/download/feed-preview/AiUsage.appinstaller`
+and deploys the install page at `https://rozputnii.github.io/ai-usage-app/`. The owner
+can republish the current commit with
+`gh workflow run validation.yml --ref main -f PublishPreview=true`.
 `AIU_PREVIEW_ENABLED` is the kill switch: unless it is `true`, no run publishes.
-The feed stays on that site, but its package and Windows App SDK dependency URIs point
-at the immutable assets of the same GitHub release (amended 2026-10-06, ANL-12): on the
-owner's machine the IPv6 path to GitHub Pages reset TLS connections and App Installer
-aborted the Pages download (0x80072EFE), while every measured release download through
-`github.com` and `release-assets.githubusercontent.com` (no AAAA records, so IPv4 only)
-succeeded. The change applies from the next published Preview. The install page's direct-download links use the same release assets; the site no
-longer carries package copies.
+
+On the owner's machine, the IPv6 path to GitHub Pages resets TLS connections, and App
+Installer failed with 0x80072EFE. Every measured download through `github.com` and
+`release-assets.githubusercontent.com` succeeded; these hosts have no AAAA records, so
+they are IPv4 only. For that reason:
+- The package and Windows App SDK dependency URIs point at the immutable assets of the
+  same GitHub release (ANL-12, 2026-10-06).
+- Since 2026-10-07 the feed itself is on `github.com` too: App Installer fetches its
+  address on install and on every update check. The moving `feed-preview` release holds
+  only that file, and it is the only asset ever replaced.
+- Pages keeps the install page, the public CER and a feed copy. Older installs follow
+  that copy's new address after their next update.
+- The install page links to the same release assets.
 Draft releases reserve versions before building; a failure consumes its version. The
 release queue retains up to 100 pending jobs. Only a candidate containing every prior
 published source can update the feed; a late older source may publish an artifact but
@@ -156,9 +164,12 @@ thumbprint, and open the `.appinstaller` link. Trust requires administrator cons
 Windows App SDK dependencies are referenced by the feed. Install through App Installer
 to register the update source; directly installing an MSIX is not equivalent.
 Windows checks on launch and every eight hours in the background without blocking
-launch or forcing restart. Exit from the tray menu to allow an update; closing the
-window just hides it. The in-app Updates page currently reports externally managed
-updates; it does not implement a separate downloader or Stable channel switch.
+launch or forcing restart.
+
+The in-app Updates section (AIU-046) also checks the same feed. You can switch it to
+Off, On launch or Always (every 5 minutes). It installs with **Install and restart**, or
+automatically while the window is closed to the tray, and Windows relaunches the app.
+There is no separate downloader or Stable channel switch.
 
 Unpackaged development runs use separate data and do not update through this channel.
 Nothing copies provider credentials into the installed app. The test certificate

@@ -173,7 +173,7 @@ internal sealed class UpdateCoordinator(IPackageUpdates package, IUpdateHost hos
             return;
         }
         checkFailures = 0;
-        if (result.Available && before.State == UpdateState.InstallFailed)
+        if (result.Available && before.State == UpdateState.InstallFailed && suspended)
         {
             // Keep the failure and its code visible; Retry stays the only way to install again.
             Publish(before with { CheckedAt = time.GetUtcNow() });
@@ -204,7 +204,8 @@ internal sealed class UpdateCoordinator(IPackageUpdates package, IUpdateHost hos
             try { code = await package.InstallAsync("--updated-from=" + version + (host.WindowHidden ? " --background" : string.Empty), stop.Token); }
             catch (Exception error) when (error is not OperationCanceledException) { code = error.HResult; }
             // A failed or returning install suspends automatic installs in this process; only the button tries again.
-            suspended = true;
+            // Network failures (WinINet/WinHTTP 12000-12199, such as 0x80072EFE) are retried by the next automatic check.
+            if (code is not { } network || !IsNetworkFailure(network)) suspended = true;
             host.ResumeRefresh();
             if (code is not { } failure)
             {
@@ -217,6 +218,8 @@ internal sealed class UpdateCoordinator(IPackageUpdates package, IUpdateHost hos
         }
         finally { installing = false; }
     }
+
+    private static bool IsNetworkFailure(int code) => (code & unchecked((int)0xFFFF0000)) == unchecked((int)0x80070000) && (code & 0xFFFF) is >= 12000 and < 12200;
 
     private void Publish(UpdateStatus status)
     {

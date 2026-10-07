@@ -19,6 +19,10 @@ $all = @(Invoke-Gh @('api', '--paginate', '--slurp', "repos/$repo/releases?per_p
 $previews = @($all | Where-Object { $_.tag_name.StartsWith('preview-') })
 $version = Get-NextPreviewVersion -UtcDate ([datetime]::UtcNow) -ExistingVersions @($previews | ForEach-Object { $_.tag_name.Substring(8) })
 $tag = "preview-$version"
+# The feed address is on github.com too (owner decision 2026-10-07): App Installer re-fetches it on install and on every
+# update check, and the owner's IPv6 path to Pages reset those requests (0x80072EFE). The moving `feed-preview` release
+# holds only this file; its tag deliberately does not start with `preview-`, so version reservation ignores it.
+$feedUri = "https://github.com/$repo/releases/download/feed-preview/AiUsage.appinstaller"
 $work = Join-Path $env:RUNNER_TEMP "aiu-preview-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
 $site = Join-Path $work 'site'
 $assets = Join-Path $work 'assets'
@@ -67,7 +71,7 @@ try {
         $identity = $manifest.Package.Identity
         $dependencies += @{ Name=[string]$identity.Name; Publisher=[string]$identity.Publisher; Version=[string]$identity.Version; ProcessorArchitecture=[string]$identity.ProcessorArchitecture; Uri="https://github.com/$repo/releases/download/$tag/$($file.Name)" }
     }
-    $feed = New-PreviewFeed -Version $version -FeedUri "$SiteUrl/AiUsage.appinstaller" -PackageUri "https://github.com/$repo/releases/download/$tag/$($package.Name)" -Dependencies $dependencies
+    $feed = New-PreviewFeed -Version $version -FeedUri $feedUri -PackageUri "https://github.com/$repo/releases/download/$tag/$($package.Name)" -Dependencies $dependencies
     [IO.File]::WriteAllText((Join-Path $site 'AiUsage.appinstaller'), $feed)
     Copy-Item -LiteralPath $cerPath -Destination $site
     $evidence = [ordered]@{ version=$version; commit=$env:GITHUB_SHA; run=$env:GITHUB_RUN_ID; sha256=(Get-FileHash $package.FullName -Algorithm SHA256).Hash; certificateThumbprint=$certificate.Thumbprint; signed='PASS'; interactiveSmoke='NOT_RUN'; trust='development-only' }
@@ -76,7 +80,7 @@ try {
     $index = [IO.File]::ReadAllText("$PSScriptRoot/preview-index.html").Replace('{{PACKAGE}}', $package.Name).Replace('{{VERSION}}', $version).Replace('{{TAG}}', $tag)
     [IO.File]::WriteAllText((Join-Path $site 'index.html'), $index, [Text.UTF8Encoding]::new($false))
     Copy-Item -LiteralPath (Join-Path $site 'AiUsage.appinstaller') -Destination $assets
-    # Never use --clobber: released bytes are immutable under this workflow.
+    # Never replace versioned assets: released bytes are immutable under this workflow.
     foreach ($file in Get-ChildItem -LiteralPath $assets -File) {
         $null = Invoke-Gh @('release','upload',$tag,$file.FullName,'--repo',$repo)
     }
@@ -84,6 +88,14 @@ try {
     # Include every published source: an older commit's later retry must not become
     # eligible merely because its preceding non-promoted build has a larger version.
     $promote = Test-PreviewPromotion -Candidate $env:GITHUB_SHA -PublishedCommits @($previews | Where-Object { !$_.draft } | ForEach-Object { $_.target_commitish })
+    if ($promote) {
+        & gh release view feed-preview --repo $repo --json tagName *> $null
+        if ($LASTEXITCODE -ne 0) {
+            $null = Invoke-Gh @('release','create','feed-preview','--repo',$repo,'--target',$env:GITHUB_SHA,'--title','Development Preview feed','--notes',"Moving App Installer feed for development Previews. Install instructions: $SiteUrl/",'--prerelease','--latest=false')
+        }
+        # The only replaced asset: the feed points at the immutable versioned release published above.
+        $null = Invoke-Gh @('release','upload','feed-preview',(Join-Path $site 'AiUsage.appinstaller'),'--repo',$repo,'--clobber')
+    }
     "site=$site" >> $env:GITHUB_OUTPUT
     "promote=$($promote.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
     "version=$version" >> $env:GITHUB_OUTPUT

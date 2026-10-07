@@ -55,10 +55,21 @@ Equal ($publish.Extent.Text -match 'TrustedPeople|CurrentUser\\Root|Import-Certi
 $finally = @($publish.FindAll({ param($node) $node -is [Management.Automation.Language.TryStatementAst] -and $node.Finally }, $true))
 Equal (@($finally | Where-Object { $_.Body.Extent.Text -match 'Add-PreviewRunnerTrust' -and $_.Finally.Extent.Text -match 'Remove-PreviewRunnerTrust' }).Count) 1
 # ANL-12 (2026-10-06): package and dependency URIs use the owned repository's immutable release
-# assets (IPv4-only hosts); the feed address stays on Pages; the release is public before Pages deploys.
+# assets (IPv4-only hosts); the release is public before Pages deploys.
+# 2026-10-07 owner decision: the feed address moves off Pages (its IPv6 path reset App Installer with
+# 0x80072EFE) to the moving `feed-preview` release on github.com, the only asset ever replaced.
 $publishText = $publish.Extent.Text
 Equal ($publishText -match '(?m)^\$repo = \$env:GITHUB_REPOSITORY\r?\nif \(\$repo -cne ''rozputnii/ai-usage-app''\) \{ throw ') $true
-Equal ($publishText -match '-FeedUri "\$SiteUrl/AiUsage\.appinstaller"') $true
+Equal ($publishText -match '(?m)^\$feedUri = "https://github\.com/\$repo/releases/download/feed-preview/AiUsage\.appinstaller"\r?$') $true
+Equal ($publishText -match '-FeedUri \$feedUri ') $true
+Equal ($publishText -match '-FeedUri "\$SiteUrl') $false
+Equal ([regex]::Matches($publishText, '--clobber').Count) 1
+Equal ($publishText -match "'release','upload','feed-preview',[^\r\n]*'--clobber'") $true
+Equal ('feed-preview'.StartsWith('preview-')) $false
+$feedUpload = $publishText.IndexOf("'release','upload','feed-preview'")
+Equal ($feedUpload -gt $publishText.IndexOf("'release','edit',`$tag")) $true
+$promoteBlock = $publishText.IndexOf('if ($promote) {')
+Equal ($promoteBlock -gt $publishText.IndexOf('$promote = Test-PreviewPromotion') -and $promoteBlock -lt $feedUpload) $true
 Equal ($publishText -match '-PackageUri "https://github\.com/\$repo/releases/download/\$tag/\$\(\$package\.Name\)"') $true
 Equal ($publishText -match 'Uri="https://github\.com/\$repo/releases/download/\$tag/\$\(\$file\.Name\)" \}') $true
 Equal ($publishText -match '(?:-PackageUri |Uri=)"\$SiteUrl/\$\(\$(?:package|file)\.Name\)"') $false
@@ -69,7 +80,8 @@ $releaseLinks = 'https://github\.com/rozputnii/ai-usage-app/releases/download/\{
 Equal ($indexPage -match "href=""$($releaseLinks)\{\{PACKAGE\}\}""") $true
 Equal ($indexPage -match "href=""$($releaseLinks)Microsoft\.WindowsAppRuntime\.2\.msix""") $true
 Equal ($indexPage -match "href=""(?!$releaseLinks)[^""]*(?:\.msix|\{\{PACKAGE\}\})""") $false
-Equal ($indexPage -match 'href="AiUsage\.appinstaller"' -and $indexPage -match 'href="AiUsage\.Development\.cer"') $true
+Equal ($indexPage -match 'href="https://github\.com/rozputnii/ai-usage-app/releases/download/feed-preview/AiUsage\.appinstaller"' -and $indexPage -match 'href="AiUsage\.Development\.cer"') $true
+Equal ($indexPage -match 'href="AiUsage\.appinstaller"') $false
 $madePublic =$publishText.IndexOf("'release','edit',`$tag,'--repo',`$repo,'--draft=false'")
 Equal ($madePublic -gt 0 -and $madePublic -lt $publishText.IndexOf('"site=$site" >> $env:GITHUB_OUTPUT')) $true
 $head = git rev-parse HEAD

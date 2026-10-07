@@ -188,6 +188,21 @@ public sealed class UpdateCoordinatorTests
     }
 
     [Fact]
+    public void NetworkInstallFailureIsRetriedOnTheNextCheck()
+    {
+        var (coordinator, package, host, log, scheduler) = Create(UpdateMode.Always);
+        host.WindowHidden = true;
+        package.Result = new(true, null);
+        package.InstallResult = Offline;
+        coordinator.Start();
+        scheduler.Run(Minute);
+        Assert.Equal(new UpdateStatus(UpdateState.InstallFailed, Current, host.Status!.CheckedAt, Offline), host.Status);
+        scheduler.Run(Interval);
+        Assert.Equal(2, package.Installs);
+        Assert.Equal([(Offline, 1)], log.InstallFailures);
+    }
+
+    [Fact]
     public async Task DrainTimeoutReturnsToAvailableWithoutInstalling()
     {
         var (coordinator, package, host, log, scheduler) = Create(UpdateMode.Off);

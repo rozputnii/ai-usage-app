@@ -64,3 +64,23 @@ At `33760d4`:
 - `git diff --check`: clean
 - Debug and Release builds: 0 warnings
 - Release `--demo` startup smoke: window shown, Updates section rendered
+
+## Feed host change (2026-10-07)
+
+Installing Preview 2026.10.605.0 on the owner's host failed with 0x80072EFE. App
+Installer re-fetches the feed address, which was still on GitHub Pages, and the
+owner's IPv6 path to Pages failed in 6 of 10 attempts. IPv4 succeeded in 10 of 10.
+
+Owner decision: publish the feed through the `feed-preview` GitHub release.
+
+Checks:
+- Release policy tests: 64 assertions PASS under Windows PowerShell 5.1.
+- `NetworkInstallFailureIsRetriedOnTheNextCheck`: RED→GREEN. Presentation suite 233/233.
+- Windows Sandbox: `Add-AppxPackage -AppInstallerFile` with the github.com-served copy
+  `preview-2026.10.605.0/AiUsage.appinstaller` (redirect, `application/octet-stream`)
+  installed 2026.10.605.0: PASS.
+
+Not run:
+- A feed whose own `Uri` is the `feed-preview` address: NOT_RUN until the first Preview
+  published with this change.
+- The owner's host install from that address: NOT_RUN.
