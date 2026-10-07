@@ -703,7 +703,11 @@ public sealed class LedgerInteractionTests
         Assert.Equal("sign in, then paste the code here", window.StripText);
         Assert.Empty(window.StripCode);
         Assert.True(window.StripAcceptsCode);
+        window.SubmitSignInCode();
+        Assert.Equal("code not accepted", window.CodeError);
+        Assert.True(window.StripBusy);
         window.SignInCode = "pasted-code";
+        Assert.Empty(window.CodeError);
         window.SubmitSignInCode();
         Assert.Empty(window.CodeError);
         Assert.False(window.StripBusy);
@@ -712,12 +716,24 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
-    public async Task CancelledSignInOffersTryAgain()
+    public async Task CancellingSignInHidesTheStripAtOnce()
     {
-        var (window, _, _, _) = Start();
+        var (window, _, scheduler, _) = Start();
         await window.SignInAsync(ProviderKind.Antigravity);
         await window.StripActionAsync();
-        Assert.Equal("Antigravity", window.StripTitle);
+        Assert.False(window.HasStrip);
+        await window.SignInAsync(ProviderKind.Antigravity);
+        Assert.True(window.HasStrip);
+        Assert.True(window.StripBusy);
+        scheduler.Run(TimeSpan.FromSeconds(3));
+        Assert.StartsWith("added", window.StripText);
+    }
+
+    [Fact]
+    public async Task CancelledSignInOffersTryAgain()
+    {
+        var (window, _, _, _) = Start(DemoLedgerScenarios.SignIn);
+        Assert.Equal("Codex", window.StripTitle);
         Assert.Equal("cancelled", window.StripText);
         Assert.Equal("Try again", window.StripAction);
         Assert.True(window.StripActionIsPrimary);
@@ -727,11 +743,9 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
-    public async Task CancelledSignInHidesItselfAfterAWhile()
+    public void CancelledSignInHidesItselfAfterAWhile()
     {
-        var (window, _, scheduler, _) = Start();
-        await window.SignInAsync(ProviderKind.Antigravity);
-        await window.StripActionAsync();
+        var (window, _, scheduler, _) = Start(DemoLedgerScenarios.SignIn);
         scheduler.Run(TimeSpan.FromSeconds(7));
         Assert.True(window.HasStrip);
         scheduler.Run(TimeSpan.FromSeconds(8));
@@ -741,12 +755,10 @@ public sealed class LedgerInteractionTests
     [Fact]
     public async Task FinishedStripCanBeClosedAndANewSignInShowsItAgain()
     {
-        var (window, _, _, _) = Start();
-        await window.SignInAsync(ProviderKind.Antigravity);
-        await window.StripActionAsync();
+        var (window, _, _, _) = Start(DemoLedgerScenarios.SignIn);
         window.DismissStrip();
         Assert.False(window.HasStrip);
-        await window.SignInAsync(ProviderKind.Codex);
+        await window.SignInAsync(ProviderKind.Antigravity);
         Assert.True(window.HasStrip);
         Assert.True(window.StripBusy);
         window.DismissStrip();

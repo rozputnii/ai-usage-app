@@ -133,7 +133,7 @@ public sealed class LiveLedgerSourceTests
         finally { store.HoldRead?.TrySetResult(); await source.StopAsync(); }
     }
     [Fact]
-    public async Task RetryKeepsTheSharedStripCancelCommandAvailableWhileLoginIsPending()
+    public async Task StripCancelStaysAvailableWhileLoginIsPendingAndHidesTheStrip()
     {
         var accounts = new Accounts { HoldLogin = true };
         using var source = Source(accounts, new Store(), new Clock());
@@ -141,20 +141,18 @@ public sealed class LiveLedgerSourceTests
         using var window = new LedgerViewModel(source, new ManualScheduler());
         try
         {
-            var initial = window.SignInCommand.ExecuteAsync(ProviderKind.Claude);
-            await source.WaitForIdleAsync();
-            await window.StripActionCommand.ExecuteAsync(null);
-            await initial;
-            Assert.Equal("Try again", window.StripAction);
-            var retry = window.StripActionCommand.ExecuteAsync(null);
-            await source.WaitForIdleAsync();
-            Assert.Equal("Cancel", window.StripAction);
-            Assert.False(retry.IsCompleted);
-            Assert.True(window.StripActionCommand.CanExecute(null));
-            await window.StripActionCommand.ExecuteAsync(null);
-            await retry;
-            Assert.Equal(2, accounts.CancelledLogins);
-            Assert.Equal("Try again", window.StripAction);
+            for (var attempt = 1; attempt <= 2; attempt++)
+            {
+                var signIn = window.SignInCommand.ExecuteAsync(ProviderKind.Claude);
+                await source.WaitForIdleAsync();
+                Assert.Equal("Cancel", window.StripAction);
+                Assert.False(signIn.IsCompleted);
+                Assert.True(window.StripActionCommand.CanExecute(null));
+                await window.StripActionCommand.ExecuteAsync(null);
+                await signIn;
+                Assert.Equal(attempt, accounts.CancelledLogins);
+                Assert.False(window.HasStrip);
+            }
             Assert.Empty(source.Current.Accounts);
         }
         finally { await source.StopAsync(); }

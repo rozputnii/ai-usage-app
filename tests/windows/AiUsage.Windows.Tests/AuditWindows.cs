@@ -182,14 +182,14 @@ public sealed partial class AuditWindows
         session.Click("Cancel");
         Assert.True(Session.Wait(() => session.Receipts.Contains("CancelConnect", StringComparison.Ordinal)));
         session.Capture("auth-" + failure.ToString(CultureInfo.InvariantCulture) + "-cancelled");
-        session.Click("Try again");
+        session.Click("Sign in to Claude");
         session.Click("Cancel");
         Assert.True(Session.Wait(() => session.Receipts.Split('\n').Count(line => line.StartsWith("CancelConnect", StringComparison.Ordinal)) == 2));
-        session.Click("Try again");
+        session.Click("Sign in to Claude");
         session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Sign-in code"), "invalid-synthetic-code");
         session.Click("Submit code");
         Assert.True(Session.Wait(() => session.Receipts.Contains("SubmitCode", StringComparison.Ordinal)));
-        Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Code not accepted"));
+        Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "code not accepted"));
         session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Sign-in code"), "synthetic-code");
         session.Click("Submit code");
         Assert.True(Session.Wait(() => session.Receipts.Contains("SubmitCode:Accepted", StringComparison.Ordinal)), "The fake provider must accept the exact current synthetic code");

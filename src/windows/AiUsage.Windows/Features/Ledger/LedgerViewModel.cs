@@ -82,6 +82,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string SignInCode { get; set; } = string.Empty;
     [ObservableProperty] public partial string CodeError { get; private set; } = string.Empty;
     private Guid? codeAttempt;
+    private Guid? userCancelledAttempt;
     [ObservableProperty] public partial bool HasUndo { get; private set; }
     [ObservableProperty] public partial string UndoText { get; private set; } = string.Empty;
     [ObservableProperty] public partial LedgerHistoryViewModel? History { get; private set; }
@@ -188,6 +189,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     private void UpdateStrip(SignInStripModel? strip)
     {
         CancelStripHide();
+        // A cancel the user asked for needs no confirmation or retry offer; the strip just goes away.
+        if (strip is { Phase: SignInPhase.Cancelled, AttemptId: { } attempt } && attempt == userCancelledAttempt)
+            hiddenStrip = strip;
         if (strip is null || ReferenceEquals(strip, hiddenStrip) || strip == hiddenStrip)
         {
             HasStrip = false;
@@ -357,7 +361,14 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     {
         var code = SignInCode;
         SignInCode = string.Empty;
-        CodeError = codeAttempt is { } attempt && source.TrySubmitSignInCode(attempt, code) ? string.Empty : "Code not accepted";
+        CodeError = codeAttempt is { } attempt && source.TrySubmitSignInCode(attempt, code) ? string.Empty : "code not accepted";
+    }
+
+    // The error takes the place of the hint, so typing a new code brings the hint back.
+    partial void OnSignInCodeChanged(string value)
+    {
+        if (value.Length > 0)
+            CodeError = string.Empty;
     }
 
     // Retry waits for provider completion; the same button must remain available to cancel it.
@@ -365,11 +376,17 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [RelayCommand(AllowConcurrentExecutions = true)]
     public Task StripActionAsync() => source.Current.SignInStrip switch
     {
-        { Phase: SignInPhase.Waiting } => source.CancelSignInAsync(CancellationToken.None),
+        { Phase: SignInPhase.Waiting } strip => CancelSignInAsync(strip),
         { Phase: SignInPhase.Cancelled or SignInPhase.Failed, ReconnectAccountId: { } id } => ReconnectAsync(id),
         { Phase: SignInPhase.Cancelled or SignInPhase.Failed } strip => SignInAsync(strip.Provider),
         _ => Task.CompletedTask,
     };
+
+    private Task CancelSignInAsync(SignInStripModel strip)
+    {
+        userCancelledAttempt = strip.AttemptId;
+        return source.CancelSignInAsync(CancellationToken.None);
+    }
 
     public async Task SignOutAsync(string accountId)
     {
