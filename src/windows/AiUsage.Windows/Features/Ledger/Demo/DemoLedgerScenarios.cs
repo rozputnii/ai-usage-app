@@ -332,6 +332,7 @@ internal static class DemoLedgerScenarios
             ("A7", ProviderKind.Claude, "Claude Max", W5("a7", CardState.OnTrack, 44, 50, 82.4m, 30, freshness: Freshness.Stale(At(10, 14, 12, 18))), AccountHealth.SyncFailedStale),
             ("A8", ProviderKind.Claude, "Claude Pro", W5("a8", CardState.FiveHourFull, 30, 36, 54, 100, At(10, 14, 16, 5),
                 marks: [new CardMark(MarkKind.OnExtraUsage, At(10, 14, 13, 5), At(10, 14, 16, 5), 2.00m, "USD", 2)]), AccountHealth.Ok),
+            ("A9", ProviderKind.Claude, "Claude Max", W5("a9", CardState.FiveHourLow, 30, 35, 54, 90, At(10, 14, 16, 20)), AccountHealth.Ok),
             ("B1", ProviderKind.Antigravity, "Antigravity AI Plus", D7("b1", CardState.OnTrack, 0, 0, 14, reset: At(10, 21, 14, 0)), AccountHealth.Ok),
             ("B2", ProviderKind.Antigravity, "Antigravity AI Plus", D7("b2", CardState.OnTrack, 30, 34, 44), AccountHealth.Ok),
             ("B3", ProviderKind.Antigravity, "Antigravity AI Plus", D7("b3", CardState.TodayUsed, 30, 44, 44), AccountHealth.Ok),

@@ -239,10 +239,11 @@ pill, a tone and the drawing rules of section 6.3. Tones: Ok, Attention, Critica
 | TodayLow | today low | Attention | A2 |
 | TodayShort | today short | Attention | B5 |
 | CapClose | cap close | Attention | C4, D4 |
-| FiveHourFull | 5h full | Attention | A4, A8 |
-| TodayUsed | today used | Critical | B3, C2, D2, G2 |
+| FiveHourLow | 5h low | Attention | A9 |
+| FiveHourFull | 5h full | Critical | A4, A8 |
+| TodayUsed | today used | Attention | B3, C2, D2, G2 |
 | OverToday | over today | Critical | A3, B4, C3, D3, O6 |
-| CapReached | cap reached | Critical | C5, D5 |
+| CapReached | cap reached | Attention | C5, D5 |
 | OverCap | over cap | Critical | C6, D6 |
 | UsedUp | 7d used up / month used up | Critical | A6, O4, R4 |
 | DayOff | day off | Neutral | O1 to O3 |
@@ -268,6 +269,10 @@ contract; the AIU-035 engine is their computation):
 - **Rush**: the last work day before a provider-replenished reset with no custom cap, never
   for money or credit pools. `TodayEnd = EffectiveLimit`; `FitBeforeReset` is set for
   five-hour cards.
+- **Five-hour window** (D-192): a current window with a known future end and `>= 100 %`
+  used is `FiveHourFull` unless the card is used up, not ready, on a day off or unknown.
+  Above 85 % used (under 15 % left) it is `FiveHourLow` when the card would otherwise be
+  on track, rush or an attention state; critical and neutral states stay.
 - **On extra usage**: an `OnExtraUsage` mark on the Claude 5h + 7d card while a window is
   full and extra-usage spend rose since; `Amount` is the spend since `Since`, in the extra
   usage pool's currency, and `Until` is when the window frees.
@@ -319,7 +324,7 @@ targets. Scenarios:
 | Scenario | Moment | Content |
 | --- | --- | --- |
 | `brief` (default) | Wed 14 Oct 2026 14:20, Europe/London | The S1 scenario: four accounts, nine cards (design-brief section 4 as amended) |
-| `states` | Wed 14 Oct 2026 14:20 | Every Provider States card A1 to A8, B1 to B5, C1 to C6, D1 to D6, G1 to G5, H1, H2, H5 to H10, O1 to O6, R1 to R8, one account per case named with its case ID |
+| `states` | Wed 14 Oct 2026 14:20 | Every Provider States card A1 to A9, B1 to B5, C1 to C6, D1 to D6, G1 to G5, H1, H2, H5 to H10, O1 to O6, R1 to R8, one account per case named with its case ID |
 | `last-work-day` | Fri 30 Oct 2026 16:10 | S10b: rush, extra usage, capped pools without rush, sign-in expired |
 | `day-off` | Sat 17 Oct 2026 11:20 | S12; Work today turns it into S13 and the S10c/S10d trays |
 | `first-run` | Wed 14 Oct 2026 14:20 | S6: no accounts |

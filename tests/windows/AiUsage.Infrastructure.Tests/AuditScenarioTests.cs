@@ -67,10 +67,10 @@ public sealed partial class AuditScenarioTests
             yield return new("P-" + provider + "-unknown", provider, Week(provider, null), null, CardState.ValueUnknown, null, null, CardLayout.Note);
             foreach (var shortValue in new decimal?[] { 0, 35, 99.9m, 100, null, -0.1m, 100.1m })
                 yield return new("W-" + provider + "-" + (shortValue is null ? "null" : N(shortValue).Replace('.', '_')), provider,
-                    Week(provider, 45, shortValue, true), 40, shortValue == 100 ? CardState.FiveHourFull : CardState.OnTrack,
+                    Week(provider, 45, shortValue, true), 40, shortValue == 100 ? CardState.FiveHourFull : shortValue is > 85 and < 100 ? CardState.FiveHourLow : CardState.OnTrack,
                     45, 60, shortValue is < 0 or > 100 or null ? CardLayout.Period : CardLayout.FiveHourAndPeriod, Estimate: true);
-            yield return new("W-" + provider + "-unknown-reset", provider, Week(provider, 45, 100, true, shortReset: false), 40,
-                CardState.OnTrack, 45, 60, CardLayout.FiveHourAndPeriod);
+            yield return new("W-" + provider + "-unknown-reset", provider, Week(provider, 45, 100, true, shortReset: false), 40, // No known reset: warn, never claim full.
+                CardState.FiveHourLow, 45, 60, CardLayout.FiveHourAndPeriod);
             yield return new("W-" + provider + "-both-full", provider, Week(provider, 100, 100, true), 40, CardState.UsedUp, 100, 60, CardLayout.FiveHourAndPeriod);
             yield return new("W-" + provider + "-day-full", provider, Week(provider, 60, 35, true), 40, CardState.TodayUsed, 60, 60, CardLayout.FiveHourAndPeriod);
             foreach (var used in new[] { 85m, 90m, 95m }) yield return new("W-" + provider + "-estimate-" + N(used), provider,
@@ -184,7 +184,7 @@ public sealed partial class AuditScenarioTests
             foreach (var used in new[] { 69.9m, 70, 70.1m, 89.9m, 90, 90.1m })
             {
                 yield return new("PREC-04-paired-" + provider + "-" + N(used), provider, Week(provider, 45, used, true),
-                    40, CardState.OnTrack, 45, 60, CardLayout.FiveHourAndPeriod);
+                    40, used > 85 ? CardState.FiveHourLow : CardState.OnTrack, 45, 60, CardLayout.FiveHourAndPeriod);
                 var single = JsonSerializer.SerializeToNode(JsonSerializer.Deserialize<object>(Week(provider, 45, used, true)))!.AsObject();
                 if (provider == "claude") single.Remove("seven_day");
                 else if (provider == "codex") { single["rate_limit"]!.AsObject().Remove("secondary_window"); single.Remove("credits"); }

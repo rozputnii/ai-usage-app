@@ -63,7 +63,7 @@ public sealed partial class AuditWindows
     }
 
     // Values match the production contract enum; expectations are exported as names, not recomputed states.
-    private enum AuditCardState { OnTrack, TodayLow, TodayShort, CapClose, FiveHourFull, TodayUsed, OverToday,
+    private enum AuditCardState { OnTrack, TodayLow, TodayShort, CapClose, FiveHourLow, FiveHourFull, TodayUsed, OverToday,
         CapReached, OverCap, UsedUp, DayOff, Rush, NotReady, ValueUnknown, PeriodUnknown, NotIncluded, LimitUnknown,
         NoCap, SignedOut, NoDisplayedLimits }
 }

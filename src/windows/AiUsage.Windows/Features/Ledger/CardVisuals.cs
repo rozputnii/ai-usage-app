@@ -207,8 +207,9 @@ internal static class CardVisuals
         return card.State switch
         {
             CardState.OnTrack or CardState.Rush => Tone.Ok,
-            CardState.TodayLow or CardState.TodayShort or CardState.CapClose or CardState.FiveHourFull => Tone.Attention,
-            CardState.TodayUsed or CardState.OverToday or CardState.CapReached or CardState.OverCap or CardState.UsedUp => Tone.Critical,
+            // D-192: reaching a limit is attention; only exceeding or exhausting one is critical.
+            CardState.TodayLow or CardState.TodayShort or CardState.CapClose or CardState.FiveHourLow or CardState.TodayUsed or CardState.CapReached => Tone.Attention,
+            CardState.OverToday or CardState.OverCap or CardState.UsedUp or CardState.FiveHourFull => Tone.Critical,
             _ => Tone.Neutral,
         };
     }
@@ -223,6 +224,7 @@ internal static class CardVisuals
         CardState.TodayLow => "today low",
         CardState.TodayShort => "today short",
         CardState.CapClose => "cap close",
+        CardState.FiveHourLow => "5h low",
         CardState.FiveHourFull => "5h full",
         CardState.TodayUsed => "today used",
         CardState.OverToday => "over today",
@@ -289,6 +291,8 @@ internal static class CardVisuals
                 return ["Today short", f.UsualShare is { } usual ? period + " limit leaves " + Fm(share).Replace(" %", string.Empty, StringComparison.Ordinal) + " of usual " + Fm(usual) : period + " limit cuts today’s share"];
             case CardState.CapClose:
                 return ["Cap close", f.UsualShare is { } usualCap ? "Cap leaves " + Fm(share) + " of usual " + Fm(usualCap) + " today" : "The cap cuts today’s share"];
+            case CardState.FiveHourLow:
+                return ["5h window almost full", card.FiveHour?.CurrentWindowEndsAt is { } next ? "Next window opens " + LedgerFormat.Clock(next) : "Less than 15 % of this window left"];
             case CardState.FiveHourFull:
                 return ["5h window full", card.FiveHour?.CurrentWindowEndsAt is { } end ? "Next window opens " + LedgerFormat.Clock(end) : "Waiting for the next window"];
             case CardState.TodayUsed: return ["Today used", "Today’s allowance is used up · not over"];
