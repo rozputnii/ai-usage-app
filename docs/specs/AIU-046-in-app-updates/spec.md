@@ -66,7 +66,9 @@ The manual **Check for updates** command works in every mode.
   the next scheduled check retries.
 - Install failure: the process stays alive, restart registration is removed, refresh
   resumes, and the status offers **Retry**. Automatic installs stop for that process, so a
-  failing update is not retried every 5 minutes. An install call that returns without
+  failing update is not retried every 5 minutes. Network-class failures (WinINet/WinHTTP
+  12000-12199, such as 0x80072EFE) are the exception: the next automatic check retries
+  them (owner decision 2026-10-07). An install call that returns without
   Windows closing the app is handled the same way and shows the "didn't apply" status.
 - While an install drains, refresh, per-account refresh, sign-in and sign-out start no
   new provider work; an in-progress sign-in counts as provider work to wait for.

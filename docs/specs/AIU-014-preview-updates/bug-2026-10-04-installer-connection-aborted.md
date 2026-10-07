@@ -5,6 +5,18 @@ owner's App Installer GUI install of 2026.10.602.0 succeeded. Cause identified o
 owner's host: the IPv6 path resets connections to GitHub Pages. That underlying IPv6
 network issue remains the owner's network matter.
 
+**Recurrence 2026-10-07:** installing Preview 2026.10.605.0 from a downloaded
+`.appinstaller` failed with 0x80072EFE again (AppXDeploymentServer events 404 and 651).
+App Installer re-fetches the feed's own `Uri`, which was still on Pages.
+
+On the host, Pages over IPv4 succeeded 10 of 10 times; over IPv6, 6 of 10 attempts
+failed. The release hosts have no AAAA records. A Windows Sandbox installed from a feed
+served through `github.com` release assets (HTTP 200 after a redirect,
+`application/octet-stream`).
+
+Owner decision: the feed moves to the `feed-preview` release on `github.com`. The app
+also retries network-class (WinINet 12000-12199) install failures on its next check.
+
 **Priority:** P2 (AIU045-D8, 2026-10-06): capture evidence on recurrence; no feed or
 hosting change until evidence exists. Raise to P1 if feed-registered installs fail to update.
 The recurrence evidence below was captured on 2026-10-06, and the owner chose the feed change.
