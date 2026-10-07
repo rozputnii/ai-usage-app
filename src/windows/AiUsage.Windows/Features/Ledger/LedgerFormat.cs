@@ -117,7 +117,7 @@ internal static class LedgerFormat
         UpdateState.UpToDate => "Up to date" + (status.CheckedAt is { } at ? " · checked " + at.ToLocalTime().ToString("HH:mm", En) : string.Empty),
         UpdateState.Available => "New version available",
         UpdateState.Ready => "Update ready",
-        UpdateState.Installing => "Installing…",
+        UpdateState.Installing => "Downloading and installing · the app will restart",
         UpdateState.CheckFailed => "Check failed · " + (status.ErrorCode is { } code ? "0x" + code.ToString("X8", En) : "will retry"),
         UpdateState.InstallFailed => "Install failed" + (status.ErrorCode is { } code ? " · 0x" + code.ToString("X8", En) : string.Empty),
         UpdateState.NotApplied => "Automatic update didn't apply · install manually",

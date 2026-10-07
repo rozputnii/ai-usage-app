@@ -185,7 +185,7 @@ internal sealed partial class LedgerTrayWindow : Window
             }
         }
 
-        var container = new ContentControl
+        var container = new LedgerClickRow
         {
             Content = grid, Background = LedgerTheme.Solid("Transparent"),
             BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1),

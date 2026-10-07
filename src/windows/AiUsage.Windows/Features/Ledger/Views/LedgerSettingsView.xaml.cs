@@ -23,11 +23,14 @@ internal sealed partial class LedgerSettingsView : UserControl
             field = value;
             field.PropertyChanged += OnChanged;
             Bindings.Update();
+            UpdateInstallDots();
         }
     } = null!;
 
     private void OnChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(LedgerSettingsViewModel.IsInstallingUpdate))
+            UpdateInstallDots();
         if (e.PropertyName != nameof(LedgerSettingsViewModel.IsDeleteArmed))
             return;
         if (ViewModel.IsDeleteArmed)
@@ -44,6 +47,16 @@ internal sealed partial class LedgerSettingsView : UserControl
     private void OnUpdatesOnLaunch(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.OnLaunch);
     private void OnUpdatesAlways(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.Always);
 
+    // Without animations the dots stay a static ellipsis.
+    private void UpdateInstallDots()
+    {
+        if (ViewModel.IsInstallingUpdate && LedgerTheme.AnimationsEnabled)
+            Composition.ApplicationDiagnostics.RunAnimation(InstallDotsMotion.Begin);
+        else
+            InstallDotsMotion.Stop();
+    }
+
+    private bool Not(bool value) => !value;
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
     private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
     public static Visibility Present(bool value) => value ? Visibility.Visible : Visibility.Collapsed;

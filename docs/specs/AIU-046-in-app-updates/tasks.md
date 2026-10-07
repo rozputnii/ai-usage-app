@@ -40,7 +40,8 @@ approval_basis).
   previous available state.
 - Status copy (exact): `Updates unavailable in development build`, `Updates unavailable
   without an update feed`, `Not checked yet`, `Checking…`, `Up to date · checked HH:mm`,
-  `New version available`, `Update ready`, `Installing…`, `Check failed · will retry`,
+  `New version available`, `Update ready`, `Downloading and installing · the app will restart`
+  (was `Installing…` before 2026-10-07), `Check failed · will retry`,
   `Check failed · 0xXXXXXXXX`, `Install failed · 0xXXXXXXXX`,
   `Automatic update didn't apply · install manually`. Version line: `Version 2026.10.604.0`.
   Buttons: `Check for updates`, `Install and restart` (`Retry` after an install failure).

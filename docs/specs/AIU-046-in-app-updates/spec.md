@@ -84,7 +84,10 @@ The manual **Check for updates** command works in every mode.
 The Updates section shows the current version (`Version 2026.10.604.0`), the status
 ("Up to date · checked 17:50", "New version available", "Update ready", failure
 states), **Check for updates**, **Install and restart** when applicable, and an
-`Off · On launch · Always` selector styled like Density. The hard-coded summary in
+`Off · On launch · Always` selector styled like Density. While installing, the install
+button stays in place, dimmed and disabled, reading `Installing` with animated dots, and
+the status reads "Downloading and installing · the app will restart" (owner choice,
+2026-10-07). The hard-coded summary in
 `LiveLedgerSource` is removed. `CheckUpdateAvailabilityAsync` returns no target version,
 so the available-version text does not name one.
 

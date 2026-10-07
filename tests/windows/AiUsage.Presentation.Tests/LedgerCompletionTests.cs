@@ -148,6 +148,31 @@ public sealed class LedgerCompletionTests
     }
 
     [Fact]
+    public void EveryClickableControlUsesTheLedgerHandCursorTypesAndStyles()
+    {
+        var windows = Path.Combine(Repository.Root(), "src/windows/AiUsage.Windows");
+        var failures = new List<string>();
+        foreach (var path in Directory.EnumerateFiles(windows, "*.xaml", SearchOption.AllDirectories).Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")))
+        {
+            var doc = XDocument.Load(path);
+            foreach (var element in doc.Descendants())
+            {
+                var name = element.Name.LocalName;
+                if (name is "Button" or "CheckBox" or "ToggleSwitch" or "HyperlinkButton" or "ToggleButton")
+                    failures.Add($"{Path.GetFileName(path)}: plain {name}");
+                if (name is "LedgerButton" or "LedgerCheckBox" && element.Attribute("Style") is null)
+                    failures.Add($"{Path.GetFileName(path)}: {name} '{(string?)element.Attribute("Content")}' has no Ledger style");
+            }
+        }
+        foreach (var path in Directory.EnumerateFiles(windows, "*.cs", SearchOption.AllDirectories).Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")))
+            foreach (var plain in new[] { "new Button", "new CheckBox" })
+                if (File.ReadAllText(path).Contains(plain, StringComparison.Ordinal))
+                    failures.Add($"{Path.GetFileName(path)}: {plain}");
+        Assert.Empty(failures);
+        Assert.Contains("new LedgerClickRow", File.ReadAllText(Path.Combine(windows, "Controls/Ledger/LedgerTrayWindow.cs")), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TextAndStateMarksMeetContrastOnTheirSurfaces()
     {
         var doc = XDocument.Load(Path.Combine(Repository.Root(), "src/windows/AiUsage.Windows/Themes/Ledger/Tokens.xaml"));

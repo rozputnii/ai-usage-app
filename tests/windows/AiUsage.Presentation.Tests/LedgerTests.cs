@@ -510,6 +510,24 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
+    public void InstallButtonStaysVisibleAndBusyWhileInstalling()
+    {
+        var (window, source, _, _) = Start();
+        var installing = source.Current with { Summaries = source.Current.Summaries with { Updates = new(UpdateState.Installing, "2026.10.604.0") } };
+        window.Settings.Rebuild(installing, source.Preferences);
+        Assert.True(window.Settings.CanInstallUpdate);
+        Assert.True(window.Settings.IsInstallingUpdate);
+        Assert.Equal("Installing", window.Settings.InstallUpdateText);
+        Assert.Equal("Downloading and installing · the app will restart", window.Settings.UpdatesText);
+        Assert.False(window.Settings.CanCheckUpdates);
+
+        var ready = installing with { Summaries = installing.Summaries with { Updates = new(UpdateState.Ready, "2026.10.604.0") } };
+        window.Settings.Rebuild(ready, source.Preferences);
+        Assert.False(window.Settings.IsInstallingUpdate);
+        Assert.Equal("Install and restart", window.Settings.InstallUpdateText);
+    }
+
+    [Fact]
     public async Task RenameSavesOnEnterAndCancelsOnEscape()
     {
         var (window, source, _, _) = Start();

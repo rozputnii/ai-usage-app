@@ -27,7 +27,7 @@ internal sealed partial class CapEditorView : StackPanel
     private readonly TextBlock unit;
     private readonly TextBlock hint;
     private readonly TextBlock error;
-    private readonly Button remove;
+    private readonly LedgerButton remove;
 
     public static readonly DependencyProperty EditorProperty = DependencyProperty.Register(nameof(Editor), typeof(CapEditorViewModel), typeof(CapEditorView), new PropertyMetadata(null, (d, _) => ((CapEditorView)d).Attach()));
 
@@ -53,11 +53,11 @@ internal sealed partial class CapEditorView : StackPanel
         unit.VerticalAlignment = VerticalAlignment.Center;
         Grid.SetColumn(unit, 2);
         row.Children.Add(unit);
-        var save = new Button { Content = "Save", Style = (Style)LedgerTheme.Find("LedgerPrimaryButton")! };
+        var save = new LedgerButton { Content = "Save", Style = (Style)LedgerTheme.Find("LedgerPrimaryButton")! };
         save.Click += (_, _) => _ = Editor?.SaveAsync();
         Grid.SetColumn(save, 4);
         row.Children.Add(save);
-        remove = new Button { Content = "Remove", Style = (Style)LedgerTheme.Find("LedgerLinkButton")! };
+        remove = new LedgerButton { Content = "Remove", Style = (Style)LedgerTheme.Find("LedgerLinkButton")! };
         remove.Click += (_, _) => _ = Editor?.RemoveAsync();
         Grid.SetColumn(remove, 5);
         row.Children.Add(remove);

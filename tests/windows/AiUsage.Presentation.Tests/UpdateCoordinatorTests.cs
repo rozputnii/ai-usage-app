@@ -306,7 +306,7 @@ public sealed class UpdateCoordinatorTests
     [InlineData((int)UpdateState.Checking, null, "Checking…")]
     [InlineData((int)UpdateState.Available, null, "New version available")]
     [InlineData((int)UpdateState.Ready, null, "Update ready")]
-    [InlineData((int)UpdateState.Installing, null, "Installing…")]
+    [InlineData((int)UpdateState.Installing, null, "Downloading and installing · the app will restart")]
     [InlineData((int)UpdateState.CheckFailed, null, "Check failed · will retry")]
     [InlineData((int)UpdateState.CheckFailed, unchecked((int)0x80072EFE), "Check failed · 0x80072EFE")]
     [InlineData((int)UpdateState.InstallFailed, unchecked((int)0x80073D02), "Install failed · 0x80073D02")]

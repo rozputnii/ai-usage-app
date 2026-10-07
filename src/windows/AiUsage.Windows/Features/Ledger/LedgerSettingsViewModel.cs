@@ -90,6 +90,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     [ObservableProperty] public partial bool CanCheckUpdates { get; private set; }
     [ObservableProperty] public partial bool CanInstallUpdate { get; private set; }
     [ObservableProperty] public partial string InstallUpdateText { get; private set; } = "Install and restart";
+    [ObservableProperty] public partial bool IsInstallingUpdate { get; private set; }
     [ObservableProperty] public partial bool IsUpdateAlways { get; private set; }
     [ObservableProperty] public partial bool IsUpdateOnLaunch { get; private set; }
     [ObservableProperty] public partial bool IsUpdateOff { get; private set; }
@@ -127,8 +128,10 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         UpdatesText = LedgerFormat.UpdateText(updates);
         UpdateVersionText = updates.Version is { } version ? "Version " + version : string.Empty;
         CanCheckUpdates = updates.State is not (UpdateState.NotPackaged or UpdateState.NoFeed or UpdateState.Checking or UpdateState.Installing);
-        CanInstallUpdate = updates.State is UpdateState.Available or UpdateState.Ready or UpdateState.InstallFailed or UpdateState.NotApplied;
-        InstallUpdateText = updates.State == UpdateState.InstallFailed ? "Retry" : "Install and restart";
+        // The button stays in place while installing, so the click visibly took effect until Windows closes the app.
+        IsInstallingUpdate = updates.State == UpdateState.Installing;
+        CanInstallUpdate = updates.State is UpdateState.Available or UpdateState.Ready or UpdateState.Installing or UpdateState.InstallFailed or UpdateState.NotApplied;
+        InstallUpdateText = updates.State switch { UpdateState.Installing => "Installing", UpdateState.InstallFailed => "Retry", _ => "Install and restart" };
         IsUpdateAlways = prefs.Updates == UpdateMode.Always;
         IsUpdateOnLaunch = prefs.Updates == UpdateMode.OnLaunch;
         IsUpdateOff = prefs.Updates == UpdateMode.Off;

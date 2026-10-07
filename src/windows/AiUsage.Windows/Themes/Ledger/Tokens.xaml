@@ -46,6 +46,11 @@
   <Color x:Key="LedgerOnPrimaryColor">#1A1410</Color>
   <Color x:Key="LedgerFocusColor">#F0EEE6</Color>
   <Color x:Key="LedgerTransparentColor">#00000000</Color>
+  <!-- Button feedback washes: hover lightens, press darkens. The light primary surface needs a stronger lift to show. -->
+  <Color x:Key="LedgerHoverWashColor">#1AFFFFFF</Color>
+  <Color x:Key="LedgerPressWashColor">#42000000</Color>
+  <Color x:Key="LedgerPrimaryHoverWashColor">#A6FFFFFF</Color>
+  <Color x:Key="LedgerPrimaryPressWashColor">#21000000</Color>
   <!-- Pill backgrounds: the state's mark colour at 14 % (critical 16 %, neutral 12 %), composited over the card. -->
   <Color x:Key="LedgerOkPillColor">#247FB98F</Color>
   <Color x:Key="LedgerAttPillColor">#24D97757</Color>
@@ -82,6 +87,10 @@
   <SolidColorBrush x:Key="LedgerFocusBrush" Color="{StaticResource LedgerFocusColor}" />
   <SolidColorBrush x:Key="LedgerCellLabelBrush" Color="{StaticResource LedgerCellLabelColor}" />
   <SolidColorBrush x:Key="LedgerUnderlineBrush" Color="{StaticResource LedgerUnderlineColor}" />
+  <SolidColorBrush x:Key="LedgerHoverWashBrush" Color="{StaticResource LedgerHoverWashColor}" />
+  <SolidColorBrush x:Key="LedgerPressWashBrush" Color="{StaticResource LedgerPressWashColor}" />
+  <SolidColorBrush x:Key="LedgerPrimaryHoverWashBrush" Color="{StaticResource LedgerPrimaryHoverWashColor}" />
+  <SolidColorBrush x:Key="LedgerPrimaryPressWashBrush" Color="{StaticResource LedgerPrimaryPressWashColor}" />
   <LinearGradientBrush x:Key="LedgerCardSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Color="{StaticResource LedgerCardTopColor}" Offset="0" />
     <GradientStop Color="{StaticResource LedgerCardColor}" Offset="0.6" />
