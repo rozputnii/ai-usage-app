@@ -526,7 +526,7 @@ internal static class CardVisuals
         return Cell(1, parts, tone, left, off, false, lines);
     }
 
-    /// <summary>AIU-046 R-01: before a window count exists, today is the current 5h window over a neutral track.</summary>
+    /// <summary>AIU-048 R-01: before a window count exists, today is the current 5h window over a neutral track.</summary>
     private static StripCell OneWindowCell(FiveHourModel five, (string M, string P) tone, bool left, bool off)
     {
         var cwU = (double)five.CurrentWindowUsed;

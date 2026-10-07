@@ -3,6 +3,7 @@ using AiUsage.Adapters.Live;
 using AiUsage.Adapters.Live.Audit;
 using AiUsage.Core.Budget;
 using AiUsage.Core.Diagnostics;
+using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 using AiUsage.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
@@ -48,7 +49,7 @@ internal static class AuditLedgerRegistration
                 accountMigration: _ => Task.CompletedTask));
             services.AddSingleton(p => new LedgerProductLifetime(root, p.GetRequiredService<LiveLedgerSource>(),
                 p.GetRequiredService<StateMaintenance>(), p.GetRequiredService<ApplicationDiagnostics>(),
-                p.GetRequiredService<DispatcherQueue>(), replay.RestartArguments));
+                p.GetRequiredService<DispatcherQueue>(), p.GetRequiredService<ILedgerScheduler>(), replay.RestartArguments));
         }
         services.AddSingleton(p => new AuditLedgerLifetime(root, input, p.GetRequiredService<LiveLedgerSource>(),
             p.GetRequiredService<LocalBudgetStore>(), p.GetRequiredService<AuditAccounts>(), Receipt,

@@ -183,8 +183,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
 
     private void UpdateStrip(SignInStripModel? strip)
     {
-        stripHide?.Dispose();
-        stripHide = null;
+        CancelStripHide();
         if (strip is null || ReferenceEquals(strip, hiddenStrip) || strip == hiddenStrip)
         {
             HasStrip = false;
@@ -207,7 +206,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         {
             SignInPhase.Waiting => (Tone.Neutral, "Waiting for " + provider + " sign-in in your browser", IsFirstRun ? "nothing is read until you finish" : string.Empty, "Cancel", false),
             SignInPhase.Succeeded => (Tone.Ok, (strip.AccountName ?? provider) + " added", strip.LimitsFound is { } n ? n + (n == 1 ? " limit found" : " limits found") : string.Empty, string.Empty, false),
-            SignInPhase.Cancelled => (Tone.Attention, provider + " sign-in was cancelled in the browser", string.Empty, "Try again", true),
+            SignInPhase.Cancelled => (Tone.Attention, provider + " sign-in was cancelled", string.Empty, "Try again", true),
             _ => (Tone.Attention, provider + " sign-in failed", string.Empty, "Try again", true),
         };
         if (StripBusy && strip.UserCode is { } userCode) StripSub = "Enter this code in your browser: " + userCode;
@@ -223,15 +222,31 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             _ => "The provider could not complete sign-in",
         };
         if (strip.Phase == SignInPhase.Succeeded)
-        {
             announce(StripText);
-            stripHide = scheduler.Schedule(TimeSpan.FromSeconds(4), () =>
-            {
-                hiddenStrip = strip;
-                HasStrip = false;
-                Demo?.DismissStrip();
-            });
-        }
+        // A failure stays until closed because it explains what went wrong; success and a cancel need no action.
+        if (strip.Phase is SignInPhase.Succeeded or SignInPhase.Cancelled)
+            stripHide = scheduler.Schedule(TimeSpan.FromSeconds(strip.Phase == SignInPhase.Succeeded ? 4 : 8), () => HideStrip(strip));
+    }
+
+    [RelayCommand]
+    public void DismissStrip()
+    {
+        if (source.Current.SignInStrip is { Phase: not SignInPhase.Waiting } strip)
+            HideStrip(strip);
+    }
+
+    private void HideStrip(SignInStripModel strip)
+    {
+        CancelStripHide();
+        hiddenStrip = strip;
+        HasStrip = false;
+        Demo?.DismissStrip();
+    }
+
+    private void CancelStripHide()
+    {
+        stripHide?.Dispose();
+        stripHide = null;
     }
 
     // ---- Title row ----

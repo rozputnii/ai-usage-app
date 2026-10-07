@@ -182,6 +182,94 @@ public sealed class LiveLedgerSourceTests
         finally { await source.StopAsync(); }
     }
 
+    [Fact]
+    public async Task UpdateStatusSurvivesSnapshotRebuild()
+    {
+        var clock = new Clock();
+        var accounts = new Accounts { Current = [Account(Guid.NewGuid(), clock.Now)] };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            Assert.Equal(UpdateStatus.NotPackaged, source.Current.Summaries.Updates);
+            await source.InitializeAsync(null, Token);
+            await source.SetUpdatesAsync(new(UpdateState.UpToDate, "2026.10.604.0"));
+            await source.TickAsync(Token);
+            Assert.Equal(new UpdateStatus(UpdateState.UpToDate, "2026.10.604.0"), source.Current.Summaries.Updates);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task PauseRefreshWaitsForBusyAccounts()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var accounts = new Accounts { Current = [Account(id, clock.Now) with { Busy = true }] };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.False(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+            // A drain that timed out leaves refresh running.
+            accounts.Current = [Account(id, clock.Now)];
+            clock.Now = clock.Now.AddMinutes(10);
+            await source.TickAsync(Token);
+            Assert.Equal([id], accounts.Refreshed);
+            accounts.Refreshed.Clear();
+
+            Assert.True(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+            clock.Now = clock.Now.AddMinutes(10);
+            await source.TickAsync(Token);
+            Assert.Empty(accounts.Refreshed);
+            source.ResumeRefresh();
+            await source.TickAsync(Token);
+            Assert.Equal([id], accounts.Refreshed);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task ProviderCommandsDoNothingWhileRefreshIsPaused()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var accounts = new Accounts { Current = [Account(id, clock.Now)] };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.True(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+            await source.RefreshAsync(Token);
+            await source.RefreshAccountAsync(id.ToString("N"), Token);
+            await source.SignInAsync(ProviderKind.Copilot, Token);
+            Assert.Empty(accounts.Refreshed);
+            Assert.Null(source.Current.SignInStrip);
+            source.ResumeRefresh();
+            await source.RefreshAccountAsync(id.ToString("N"), Token);
+            Assert.Equal([id], accounts.Refreshed);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task PauseWaitsForAWaitingSignIn()
+    {
+        var clock = new Clock();
+        var accounts = new Accounts { HoldLogin = true };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            var signIn = source.SignInAsync(ProviderKind.Copilot, Token);
+            // The strip reaches the snapshot through the asynchronous rebuild; wait for it before reading Current.
+            await source.WaitForIdleAsync();
+            Assert.Equal(SignInPhase.Waiting, source.Current.SignInStrip?.Phase);
+            Assert.False(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+            await source.CancelSignInAsync(Token);
+            await signIn;
+            Assert.True(await source.PauseRefreshAsync(TimeSpan.FromMilliseconds(300), Token));
+        }
+        finally { await source.StopAsync(); }
+    }
+
     private static CancellationToken Token => TestContext.Current.CancellationToken;
     private sealed class Clock : TimeProvider
     {

@@ -1,12 +1,12 @@
 ---
-id: AIU-046
+id: AIU-048
 type: design
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 ---
 
-# AIU-046 design: interval session estimator
+# AIU-048 design: interval session estimator
 
 ## Quantity and model
 

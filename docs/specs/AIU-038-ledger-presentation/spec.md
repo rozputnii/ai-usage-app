@@ -224,7 +224,7 @@ public enum CapStatus { Applied, Unmatched, CurrencyMismatch }
 public sealed record DayOffPreview(DayOfWeek NextWorkDay, decimal ShareBefore, decimal ShareAfter);
 ```
 
-> Superseded in part by [AIU-046](../AIU-046-early-session-estimate/spec.md) (D-188): `FiveHourModel` also carries `WindowShareLow`, `WindowShareHigh`, `WindowsLeftMax`, `Rough` and `Windows`, and `WindowsLeftInPeriod` is the range minimum while rough.
+> Superseded in part by [AIU-048](../AIU-048-early-session-estimate/spec.md) (D-189): `FiveHourModel` also carries `WindowShareLow`, `WindowShareHigh`, `WindowsLeftMax`, `Rough` and `Windows`, and `WindowsLeftInPeriod` is the range minimum while rough.
 
 Contract note (2026-10-06): `CardMark` also carries `Currency`, `Exponent` and `ScopeLabel`, as implemented at `383644c..8364408` (`LedgerContract.cs`): the on-extra-usage amount keeps its pool's currency and minor-unit exponent, and `ScopeLabel` names the scope of a mark such as the five-hour past-reset mark. These members are part of this presentation contract by primary ruling under AIU-045 (ANL-21 #3, review R0). This note annotates the contract without reopening AIU-038 and changes no status.
 
@@ -376,7 +376,7 @@ period bar; footer with the primary figure (left, dotted underline, tooltip) and
   label. Without an estimate there is one strip. Other cards have one strip from `DayStart`
   to `TodayEnd`; grey is `UsualShare - (TodayEnd - DayStart)` when positive.
 
-  > Superseded in part by [AIU-046](../AIU-046-early-session-estimate/spec.md) (D-188): without an estimate, a paired card's today strip is one cell for the current five-hour window, its used part and a neutral track.
+  > Superseded in part by [AIU-048](../AIU-048-early-session-estimate/spec.md) (D-189): without an estimate, a paired card's today strip is one cell for the current five-hour window, its used part and a neutral track.
 
 - **Over.** When `Used > TodayEnd` on a work day: the strip turns critical with the over
   part marked by a 2 px ink edge, and an over label shows the percent of today's share

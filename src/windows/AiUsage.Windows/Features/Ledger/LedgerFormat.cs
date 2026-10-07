@@ -108,6 +108,22 @@ internal static class LedgerFormat
         return past ? text + " ago" : "in " + text;
     }
 
+    /// <summary>AIU-046 Settings status line. A target version is never shown: Windows does not report it.</summary>
+    public static string UpdateText(UpdateStatus status) => status.State switch
+    {
+        UpdateState.NotPackaged => "Updates unavailable in development build",
+        UpdateState.NoFeed => "Updates unavailable without an update feed",
+        UpdateState.Checking => "Checking…",
+        UpdateState.UpToDate => "Up to date" + (status.CheckedAt is { } at ? " · checked " + at.ToLocalTime().ToString("HH:mm", En) : string.Empty),
+        UpdateState.Available => "New version available",
+        UpdateState.Ready => "Update ready",
+        UpdateState.Installing => "Installing…",
+        UpdateState.CheckFailed => "Check failed · " + (status.ErrorCode is { } code ? "0x" + code.ToString("X8", En) : "will retry"),
+        UpdateState.InstallFailed => "Install failed" + (status.ErrorCode is { } code ? " · 0x" + code.ToString("X8", En) : string.Empty),
+        UpdateState.NotApplied => "Automatic update didn't apply · install manually",
+        _ => "Not checked yet",
+    };
+
     public static string Duration(TimeSpan span)
     {
         var minutes = (long)Math.Floor(span.TotalMinutes);

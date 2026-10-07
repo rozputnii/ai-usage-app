@@ -32,6 +32,29 @@ public sealed class FileDiagnosticsTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateRecordsCarryOnlyTypedFacts()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        log.Update(DiagnosticEvent.UpdateCheckFailed, new(ErrorCode: unchecked((int)0x80072EFE), Consecutive: 12));
+        log.Update(DiagnosticEvent.UpdateApplied, new(From: new(2026, 10, 602, 0), To: new(2026, 10, 604, 0)));
+        log.Update(DiagnosticEvent.UpdateInstallStarted, new(Automatic: true, From: new(2026, 10, 604, 0)));
+        log.Update(DiagnosticEvent.OperationFailure, new(ErrorCode: 1));
+        Assert.True(await log.FlushAsync());
+        var records = Directory.GetFiles(log.DirectoryPath, "application-*.jsonl").SelectMany(p => ReadShared(p).Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            .Select(line => JsonDocument.Parse(line).RootElement.Clone()).ToArray();
+        var failed = Assert.Single(records, e => e.GetProperty("eventId").GetString() == "UpdateCheckFailed");
+        Assert.Equal("Warning", failed.GetProperty("severity").GetString());
+        Assert.Equal("0x80072EFE", failed.GetProperty("context").GetProperty("errorCode").GetString());
+        Assert.Equal(12, failed.GetProperty("context").GetProperty("consecutive").GetInt32());
+        var applied = Assert.Single(records, e => e.GetProperty("eventId").GetString() == "UpdateApplied");
+        Assert.Equal("2026.10.602.0", applied.GetProperty("context").GetProperty("fromVersion").GetString());
+        Assert.Equal("2026.10.604.0", applied.GetProperty("context").GetProperty("toVersion").GetString());
+        var started = Assert.Single(records, e => e.GetProperty("eventId").GetString() == "UpdateInstallStarted");
+        Assert.Equal("automatic", started.GetProperty("context").GetProperty("trigger").GetString());
+        Assert.DoesNotContain(records, e => e.GetProperty("eventId").GetString() == "OperationFailure");
+    }
+
+    [Fact]
     public async Task TraceIsOptInAndCriticalIsImmediatelyReadable()
     {
         using var log = new FileDiagnostics(root, clock: clock);

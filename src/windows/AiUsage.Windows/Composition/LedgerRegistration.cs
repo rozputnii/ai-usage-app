@@ -32,14 +32,14 @@ internal static class LedgerRegistration
         return services;
     }
 
-    public static LedgerShell Start(IServiceProvider services, Func<Task> exitApp)
+    public static LedgerShell Start(IServiceProvider services, Func<Task> exitApp, bool background = false)
     {
         Microsoft.UI.Xaml.Application.Current.Resources.MergedDictionaries.Add(LedgerTheme.Tokens);
         var demo = services.GetService<DemoLedgerSource>();
         var scenario = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith("--scenario=", StringComparison.Ordinal))?["--scenario=".Length..];
         if (demo is not null && scenario is not null && DemoLedgerScenarios.All.Any(s => s.Id == scenario))
             demo.LoadScenario(scenario);
-        return new LedgerShell(services, demo, exitApp);
+        return new LedgerShell(services, demo, exitApp, background);
     }
 }
 
@@ -51,7 +51,7 @@ internal sealed class LedgerShell : IDisposable
     private readonly LedgerViewModel viewModel;
     private LedgerTrayWindow? popup;
 
-    public LedgerShell(IServiceProvider services, DemoLedgerSource? demo, Func<Task> exitApp)
+    public LedgerShell(IServiceProvider services, DemoLedgerSource? demo, Func<Task> exitApp, bool background = false)
     {
         this.services = services;
         LedgerWindow? created = null;
@@ -64,7 +64,15 @@ internal sealed class LedgerShell : IDisposable
             window.ShowAndActivate();
             viewModel.FocusAccount(accountId);
         };
-        window.Activate();
+        if (background) window.StartHidden();
+        else window.ShowAndActivate();
+    }
+
+    public bool WindowHidden => window.IsHidden;
+    public event EventHandler? VisibilityChanged
+    {
+        add => window.TrayVisibilityChanged += value;
+        remove => window.TrayVisibilityChanged -= value;
     }
 
     public void Show() => window.ShowAndActivate();

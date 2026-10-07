@@ -113,8 +113,7 @@
         </Button>
         <Button x:Name="SettingsButton" Style="{StaticResource LedgerTitleIconButton}" Command="{x:Bind ViewModel.ToggleSettingsCommand}" AutomationProperties.Name="Settings"
                 ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Settings (Ctrl+,)')}" Background="{x:Bind SettingsBackground(ViewModel.IsSettingsOpen), Mode=OneWay}">
-          <Path Data="M8,1.8 V3.6 M8,12.4 V14.2 M1.8,8 H3.6 M12.4,8 H14.2 M3.6,3.6 L4.9,4.9 M11.1,11.1 L12.4,12.4 M3.6,12.4 L4.9,11.1 M11.1,4.9 L12.4,3.6 M10.2,8 A2.2,2.2 0 1 1 5.8,8 A2.2,2.2 0 1 1 10.2,8 Z"
-                Stroke="{StaticResource LedgerInkBrush}" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" />
+          <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;" FontSize="16" Foreground="{StaticResource LedgerInkBrush}" />
         </Button>
       </StackPanel>
     </Grid>
@@ -123,20 +122,30 @@
     <Grid x:Name="SignInStrip" Grid.Row="1" MinHeight="34" Padding="16,4,16,4" ColumnSpacing="8" Background="{StaticResource LedgerCardBrush}"
           BorderBrush="{StaticResource LedgerLineBrush}" BorderThickness="0,0,0,1" Visibility="{x:Bind Show(ViewModel.HasStrip), Mode=OneWay}">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="8" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-      <Ellipse Width="8" Height="8" Fill="{x:Bind lc:LedgerTheme.ToneMark(ViewModel.StripTone), Mode=OneWay}" VerticalAlignment="Center" />
-      <StackPanel Grid.Column="1" Grid.ColumnSpan="2" Spacing="2" VerticalAlignment="Center">
-        <TextBlock Text="{x:Bind ViewModel.StripText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
-        <TextBlock Text="{x:Bind StripSubText(ViewModel.StripSub, ViewModel.StripBusy), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+      <!-- The dot sits on the first text line, so a description below does not pull it off centre. -->
+      <StackPanel Grid.ColumnSpan="3" Spacing="2" VerticalAlignment="Center">
+        <Grid ColumnSpacing="8">
+          <Grid.ColumnDefinitions><ColumnDefinition Width="8" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+          <Ellipse Width="8" Height="8" Margin="0,4,0,0" VerticalAlignment="Top" Fill="{x:Bind lc:LedgerTheme.ToneMark(ViewModel.StripTone), Mode=OneWay}" />
+          <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.StripText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
+        </Grid>
+        <TextBlock Margin="16,0,0,0" Text="{x:Bind StripSubText(ViewModel.StripSub, ViewModel.StripBusy), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                   Visibility="{x:Bind ShowStripSub(ViewModel.StripSub, ViewModel.StripBusy), Mode=OneWay}" />
       </StackPanel>
       <Button Grid.Column="3" Content="{x:Bind ViewModel.StripAction, Mode=OneWay}" Command="{x:Bind ViewModel.StripActionCommand}"
               Style="{x:Bind StripActionStyle(ViewModel.StripActionIsPrimary), Mode=OneWay}" Visibility="{x:Bind ShowText(ViewModel.StripAction), Mode=OneWay}" />
-      <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Spacing="4" Margin="0,6,0,2" Visibility="{x:Bind Show(ViewModel.StripAcceptsCode), Mode=OneWay}">
+      <Button Grid.Column="4" Style="{StaticResource LedgerIconButton}" Command="{x:Bind ViewModel.DismissStripCommand}" Visibility="{x:Bind Hide(ViewModel.StripBusy), Mode=OneWay}"
+              AutomationProperties.Name="Close" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Close')}">
+        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE711;" FontSize="10" Foreground="{StaticResource LedgerInk2Brush}" />
+      </Button>
+      <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="4" Spacing="4" Margin="0,6,0,2" Visibility="{x:Bind Show(ViewModel.StripAcceptsCode), Mode=OneWay}">
         <StackPanel Orientation="Horizontal" Spacing="8">
           <TextBox Width="320" Text="{x:Bind ViewModel.SignInCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PlaceholderText="Paste the code from the browser" AutomationProperties.Name="Sign-in code" />
           <Button Content="Submit code" Command="{x:Bind ViewModel.SubmitSignInCodeCommand}" />

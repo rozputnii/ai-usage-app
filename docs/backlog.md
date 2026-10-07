@@ -480,16 +480,41 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - decision-note: On 2026-10-06 the owner accepted decisions AIU045-D1..D9 in docs/specs/AIU-045-ui-audit-follow-up/analysis-2026-10-05.md (section 7). Preview publication is off (`AIU_PREVIEW_ENABLED=false`). The next bounded batch is T-01 from that record; the comprehensive audit stays paused.
 - completion-note: Fix run of 2026-10-06 complete. T-01..T-04 are done. Preview 2026.10.602.0 was published from `4ea9667` (owner dispatch, run 37475616318; the feed's package and dependency URIs now use the immutable GitHub release, which fixed the owner's `0x80072EFE` install failure of 2026.10.601.0) and was installed by the owner with the App Installer GUI; packaged startup, close-to-tray with relaunch, and Open logs passed. Sandbox batch 2 passed the corrected layout scenario (`b17937b`). Final statuses are in the analysis record, section "Final status (2026-10-06, before the owner checkpoint)", and the installed-build results are in the evidence record, section "Post-install verification 2026-10-06". The comprehensive audit continuation and the listed opt-in follow-ups (AUD-05..AUD-09, ANL-20, ANL-23, the AIU-043 device-code delay) stay separately selectable.
 
-## AIU-046 - Show five-hour windows early with an interval session estimate
+## AIU-046 - In-app update check, install and restart
+- goal: G-004
+- status: review
+- depends_on: [AIU-014]
+- trigger: owner-selection
+- outcome: The app checks its Preview feed itself, installs a found version with one button, and in automatic mode installs and relaunches while the window is hidden. Windows App Installer's own feed checks stay unchanged. The title-bar Settings button shows a gear.
+- acceptance: AC-01 through AC-08 in the specification cover the persisted Off/OnLaunch/Always mode, check timing, hidden-window automatic install, failure recovery and loop guard, unpackaged status, installed relaunch, the gear glyph and bounded logging.
+- specification: docs/specs/AIU-046-in-app-updates/spec.md
+- evidence: docs/specs/AIU-046-in-app-updates/verification.md
+- registration-note: Owner requested this on 2026-10-06 after Preview 2026.10.604.0 staged but failed to register (`0x80073D02`) because the tray app was running. The owner approved the design, written spec and plan the same day. Implemented and verified in Sandbox on 2026-10-06. Awaiting owner review and integration; the owner live update check is NOT_RUN.
+
+## AIU-047 - Usage history survives reinstall
 - goal: G-003
-- status: in-progress
+- status: done
+- depends_on: [AIU-036, AIU-039]
+- trigger: owner-selection
+- outcome: After the packaged app is uninstalled and reinstalled on the same Windows user profile, signing in to the same provider account restores that account's local reading series and the analytics derived from it at once. The series lives in an unvirtualized `%LOCALAPPDATA%\AiUsage\History` folder, and a DPAPI-protected identity map restores the account's app ID. Credentials and preferences still leave with the package.
+- acceptance: AC-01 through AC-08 in the specification cover the manifest exclusion, unpackaged isolation, the identity map, re-attach, migration of existing installs, deletion, logging and the live uninstall/reinstall check.
+- specification: docs/specs/AIU-047-history-survives-reinstall/spec.md
+- evidence: docs/specs/AIU-047-history-survives-reinstall/verification.md
+- registration-note: Owner requested this on 2026-10-07, approved the design and directed completion and integration into main the same day (D-188).
+- completion-note: Implemented and verified 2026-10-07. Local suites and the Release demo smoke pass; Windows Sandbox confirmed update relocation, survival across uninstall, reinstall and Delete stored data; independent review findings are fixed. The owner's live re-attach of a real signed-in account after reinstall is NOT_RUN.
+
+## AIU-048 - Show five-hour windows early with an interval session estimate
+- goal: G-003
+- status: done
 - depends_on: [AIU-035, AIU-038]
 - trigger: owner-selection
-- outcome: Show the current five-hour window as one today cell at once, and show the remaining five-hour window count as soon as integer-rounded readings bound it: a range while rough, one number once settled, narrowing automatically as windows accumulate. Replace the median-of-ratios readiness rule with guaranteed interval bounds (D-188).
+- outcome: Show the current five-hour window as one today cell at once, and show the remaining five-hour window count as soon as integer-rounded readings bound it: a range while rough, one number once settled, narrowing automatically as windows accumulate. Replace the median-of-ratios readiness rule with guaranteed interval bounds (D-189).
 - acceptance: AC-01 through AC-07 in the specification cover the one-window state, guaranteed bounds under both rounding modes, minimum data, narrowing, adaptation and exclusions, rough and settled display, and verification.
-- specification: docs/specs/AIU-046-early-session-estimate/spec.md
-- evidence: docs/specs/AIU-046-early-session-estimate/verification.md; suites, document validation and demo rough/settled observations pass; the live unpackaged one-window observation is BLOCKED (no connected account in the development state)
-- registration-note: The owner asked on 2026-10-06 why the Claude five-hour limit was not shown and selected this change in conversation, choosing the interval estimator, the one-window state and a range for rough estimates.
+- specification: docs/specs/AIU-048-early-session-estimate/spec.md
+- evidence: docs/specs/AIU-048-early-session-estimate/verification.md
+- registration-note: The owner asked on 2026-10-06 why the Claude five-hour limit was not shown and selected this change in conversation, choosing the interval estimator, the one-window state and a range for rough estimates. Registered as AIU-046 with D-188 and renumbered to AIU-048 and D-189 on 2026-10-07, because main had assigned those numbers to other work.
+- completion-note: Implemented and verified 2026-10-07. Infrastructure and Presentation suites, document validation, the app build and the demo rough and settled observations pass; task and whole-branch independent reviews are fixed. Under the post-deploy rule (D-190) the owner checks the live one-window state in the updated installed app; that check is NOT_RUN.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

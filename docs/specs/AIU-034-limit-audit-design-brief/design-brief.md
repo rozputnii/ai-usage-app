@@ -138,7 +138,7 @@ reset.
 | less than one session | A session figure above 0 and below 1, while the weekly window is not exhausted | "< 1 session". | 0, which is reserved for an exhausted weekly window. | 7.5; S09 |
 | no today session figure | A day off, or no remaining work day | The weekly remainder in sessions only. | A today figure. | 7.5 |
 
-> Superseded in part by [AIU-046](../AIU-046-early-session-estimate/spec.md) (D-188): "estimate not ready" now means bounds wider than the rough level `H ≤ 2 L`, and a paired card then shows the current five-hour window as one today cell.
+> Superseded in part by [AIU-048](../AIU-048-early-session-estimate/spec.md) (D-189): "estimate not ready" now means bounds wider than the rough level `H ≤ 2 L`, and a paired card then shows the current five-hour window as one today cell.
 
 ### 3.8 Caps
 

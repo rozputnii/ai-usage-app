@@ -57,6 +57,8 @@ An owner dispatch with `PublishPreview=true` can republish the current `main` co
 
 Under the same decision (2026-10-06), these checks are opt-in only: the Sandbox UI corpus, gallery and control matrices; package, upgrade and feed smoke (for manifest, packaging, update or migration changes); live-provider checks (for provider or auth changes, with authorization); and independent review on the [CONTRIBUTING](../../CONTRIBUTING.md#review-and-integration) triggers.
 
+Owner direction (2026-10-07, D-190): the owner's manual and live-provider checks happen after deployment, in the updated installed app on the owner's computer. Agents do not ask the owner to sign in to a development build and do not hold completion, the merge into `main` or the push for such a check. Record it NOT_RUN as a post-deploy owner check. After the update, the owner may ask an agent to check the installed version and its logs.
+
 ## Release evidence
 Public release review follows CONTRIBUTING. Release acceptance needs actual CI and applicable interactive evidence, with no unresolved material defects. Missing evidence is NOT_RUN or BLOCKED. Deferred main protection in AIU-026 does not waive release authority or protected signing/manifest operations.
 

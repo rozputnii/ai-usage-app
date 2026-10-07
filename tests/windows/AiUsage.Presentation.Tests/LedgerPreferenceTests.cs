@@ -25,6 +25,30 @@ public sealed class LedgerPreferenceTests
         Assert.DoesNotContain("Private old name", saved!);
     }
 
+    [Fact]
+    public async Task FilesWithoutUpdateModeLoadAsAlwaysAndModePersists()
+    {
+        string? saved = """{"Version":1,"Preferences":{"Mode":0,"Density":0,"ShowSignedOut":false,"AlwaysOnTop":false},"Labels":{},"Order":[]}""";
+        var store = new LedgerPreferenceStore(_ => Task.FromResult<string?>(saved), (json, _) => { saved = json; return Task.CompletedTask; });
+        Assert.True(await store.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Equal(UpdateMode.Always, store.Current.Preferences.Updates);
+        Assert.Equal(CommandOutcome.Done, await store.ChangeAsync(s => s with { Preferences = s.Preferences with { Updates = UpdateMode.OnLaunch } }, TestContext.Current.CancellationToken));
+        var reopened = new LedgerPreferenceStore(_ => Task.FromResult<string?>(saved), (_, _) => Task.CompletedTask);
+        Assert.True(await reopened.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Equal(UpdateMode.OnLaunch, reopened.Current.Preferences.Updates);
+    }
+
+    [Fact]
+    public async Task UnknownUpdateModeIsRejectedWithoutOverwrite()
+    {
+        var writes = 0;
+        var original = """{"Version":1,"Preferences":{"Mode":0,"Density":0,"ShowSignedOut":false,"AlwaysOnTop":false,"Updates":7},"Labels":{},"Order":[]}""";
+        var store = new LedgerPreferenceStore(_ => Task.FromResult<string?>(original), (_, _) => { writes++; return Task.CompletedTask; });
+        Assert.False(await store.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Equal(CommandOutcome.Unavailable, await store.ChangeAsync(s => s, TestContext.Current.CancellationToken));
+        Assert.Equal(0, writes);
+    }
+
     [Theory]
     [InlineData("{broken")]
     [InlineData("{\"Version\":2}")]

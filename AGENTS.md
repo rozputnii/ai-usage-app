@@ -80,6 +80,12 @@ Use Windows Sandbox or a disposable VM only when the specific check needs
 isolation or a clean machine; follow docs/workflow/verification.md.
 Report PASS, FAIL, NOT_RUN, and BLOCKED accurately; source inspection and
 compilation do not establish live-provider or interactive Windows success.
+Owner direction (2026-10-07, D-190): the owner's manual and live-provider checks
+happen after deployment, in the updated installed app. Never ask the owner to
+sign in to a development build, and never hold completion, the merge into `main`
+or the push for such a check: record it NOT_RUN as a post-deploy owner check and
+finish once the other required checks pass. After the update the owner may ask
+an agent to check the installed version and its logs.
 
 Keep one primary agent by default. Follow CONTRIBUTING.md for required
 independent review and explicitly requested parallel work.

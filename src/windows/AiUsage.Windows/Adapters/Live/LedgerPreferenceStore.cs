@@ -63,7 +63,7 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
     }
 
     private static bool Valid(State? state) => state is { Version: 1, Preferences: not null, Labels: not null, Order: not null } &&
-        Enum.IsDefined(state.Preferences.Mode) && Enum.IsDefined(state.Preferences.Density) &&
+        Enum.IsDefined(state.Preferences.Mode) && Enum.IsDefined(state.Preferences.Density) && Enum.IsDefined(state.Preferences.Updates) &&
         state.Labels.Count <= 256 && state.Labels.All(x => Guid.TryParseExact(x.Key, "N", out var id) && id != Guid.Empty &&
             x.Value is { Length: > 0 and <= 100 } && x.Value == x.Value.Trim()) &&
         state.Order.Length <= 4096 && state.Order.All(x => x is { Length: > 0 and <= 8192 }) && state.Order.Distinct().Count() == state.Order.Length &&

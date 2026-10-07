@@ -21,6 +21,8 @@ public sealed class LedgerCompletionTests
         Assert.Empty(window.Cards);
         Assert.Equal("Codex sign-in failed", window.StripText);
         Assert.Equal("Try again", window.StripAction);
+        scheduler.Run(TimeSpan.FromMinutes(1));
+        Assert.True(window.HasStrip);
         await window.StripActionAsync();
         Assert.True(window.StripBusy);
     }

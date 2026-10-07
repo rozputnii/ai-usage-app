@@ -156,8 +156,7 @@
         <lc:CapEditorView x:Name="NoteCapEditor" Margin="50,0,0,0" Editor="{x:Bind ViewModel.CapEditor, Mode=OneWay}"
                           Visibility="{x:Bind Show(ViewModel.IsEditingCap), Mode=OneWay}" />
       </StackPanel>
-      <Border x:Name="MonetaryDivider" Height="1" Background="{StaticResource LedgerUnderlineBrush}" Visibility="Collapsed" />
-      <ContentControl x:Name="MonetaryHost" HorizontalContentAlignment="Stretch" IsTabStop="False" />
+      <StackPanel x:Name="SectionHost" Spacing="{x:Bind InnerGap(ViewModel.IsCompact), Mode=OneWay}" Visibility="Collapsed" />
     </StackPanel>
   </lc:SquircleSurface>
 </UserControl>

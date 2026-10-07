@@ -19,13 +19,13 @@ active_goal: G-002
 
 ## G-003 - Unified Windows v1
 - status: idea
-- scope: AIU-005, AIU-007, AIU-008, AIU-009, AIU-010, AIU-011, AIU-012, AIU-013, AIU-016, AIU-027, AIU-028, AIU-029, AIU-030, AIU-031, AIU-032, AIU-033, AIU-034, AIU-035, AIU-036, AIU-037, AIU-038, AIU-039, AIU-040, AIU-042, AIU-043, AIU-044, AIU-045, AIU-046
+- scope: AIU-005, AIU-007, AIU-008, AIU-009, AIU-010, AIU-011, AIU-012, AIU-013, AIU-016, AIU-027, AIU-028, AIU-029, AIU-030, AIU-031, AIU-032, AIU-033, AIU-034, AIU-035, AIU-036, AIU-037, AIU-038, AIU-039, AIU-040, AIU-042, AIU-043, AIU-044, AIU-045, AIU-047, AIU-048
 - outcome: Four providers with required contexts/groups, multiple accounts, history, notifications, diagnostics and data lifecycle.
 - success: Every completed provider has source evidence, deterministic tests and live verification. Record unavailable access as a blocker, not a completed provider. Advanced features must not displace core reliability.
 
 ## G-004 - Reliable public direct distribution
 - status: idea
-- scope: AIU-014, AIU-015, AIU-017, AIU-026
+- scope: AIU-014, AIU-015, AIU-017, AIU-026, AIU-046
 - outcome: Trusted signing where eligible, Preview for every green merge, manual exact-artifact Stable promotion, tested direct updates and best-effort compatibility detection.
 - success: Published-schema upgrade coverage, clean-machine install, no-downgrade channel switching, identical promoted artifact hash and proven production trust/identity.
 

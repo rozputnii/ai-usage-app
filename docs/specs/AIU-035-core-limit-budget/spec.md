@@ -41,7 +41,7 @@ Provider parsing, storage, UI, source credentials and live integration are exclu
   weekly instances and sources, plan-change invalidation, 28-day age and latest ten samples.
   Minimum three, positive median, MAD <= 25%, and total weekly movement >= 5 are required.
 
-  > Superseded in part by [AIU-046](../AIU-046-early-session-estimate/spec.md) (D-188): interval bounds from every reading pair within a five-hour part, intersected across parts newest first, replace the samples and these thresholds.
+  > Superseded in part by [AIU-048](../AIU-048-early-session-estimate/spec.md) (D-189): interval bounds from every reading pair within a five-hour part, intersected across parts newest first, replace the samples and these thresholds.
 
 - D-187 adds a separate would-be day-off share, provider used-up, last-work-day rush and
   count of whole five-hour intervals before reset, and Claude extra-spend detection.

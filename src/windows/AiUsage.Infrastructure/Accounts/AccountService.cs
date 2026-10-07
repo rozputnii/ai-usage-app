@@ -7,7 +7,8 @@ namespace AiUsage.Infrastructure.Accounts;
 
 /// <summary>Owns account sessions and admission; all durable identity decisions remain in Infrastructure.</summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-internal sealed class AccountService(AccountRegistry registry, ProviderSessionFactory factory, IDiagnosticSink? diagnostics = null)
+internal sealed class AccountService(AccountRegistry registry, ProviderSessionFactory factory, IDiagnosticSink? diagnostics = null,
+    AccountIdentityMap? identities = null)
     : IAccountService, IDisposable
 {
     private readonly object sync = new();
@@ -129,7 +130,11 @@ internal sealed class AccountService(AccountRegistry registry, ProviderSessionFa
                     else
                     {
                         var previous = selected ?? match;
-                        var record = new AccountRecord(previous?.Id ?? Guid.NewGuid(), active.Provider, pending.StorageId, identity);
+                        // AIU-047: after a reinstall the registry is empty, but the history root still maps this exact identity.
+                        var restored = previous is null && identities is not null
+                            ? await identities.FindAsync(active.Provider, identity, active.Cancel.Token).ConfigureAwait(false) : null;
+                        if (restored is { } restoredId && state.Accounts.Any(a => a.Id == restoredId)) restored = null;
+                        var record = new AccountRecord(previous?.Id ?? restored ?? Guid.NewGuid(), active.Provider, pending.StorageId, identity);
                         active.Cancel.Token.ThrowIfCancellationRequested();
                         uncertain = true;
                         await registry.UpdateAsync(s => s with
@@ -152,6 +157,8 @@ internal sealed class AccountService(AccountRegistry registry, ProviderSessionFa
                             entry.LastFailureAt = connected.Failure is null ? null : DateTimeOffset.UtcNow;
                         }
                         (oldSession as IDisposable)?.Dispose();
+                        if (restored is not null) diagnostics?.Signal(DiagnosticEvent.HistoryReattached);
+                        if (identities is not null) await identities.UpsertAsync([record], CancellationToken.None).ConfigureAwait(false);
                         if (previous is not null)
                             await CleanupAsync(new(previous.Provider, previous.StorageId, previous.LegacyStorage), CancellationToken.None).ConfigureAwait(false);
                         result = new(AccountOutcome.Done, record.Id, connected.Failure);

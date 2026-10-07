@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory)][string] $EvidenceDirectory,
     [Parameter(Mandatory)][string] $ExpectedVersion,
     [Parameter(Mandatory)][string] $ExpectedThumbprint,
-    [string] $FeedUri = 'https://rozputnii.github.io/ai-usage-app/AiUsage.appinstaller',
+    [string] $FeedUri = 'https://github.com/rozputnii/ai-usage-app/releases/download/feed-preview/AiUsage.appinstaller',
     [int] $UpdateTimeoutMinutes = 20
 )
 # Windows PowerShell 5.1 guest harness for the AIU-014 development Preview channel. Install

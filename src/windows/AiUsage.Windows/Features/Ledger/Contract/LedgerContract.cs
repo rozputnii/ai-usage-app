@@ -67,6 +67,8 @@ internal sealed record LimitCardModel(
     DayOffPreview? DayOff)
 {
     public MonetaryDetails? Monetary { get; init; }
+    /// <summary>A limit of one model within the subscription (Claude Fable or Opus, Codex additional limits); drawn as a section of the account card.</summary>
+    public bool ModelScoped { get; init; }
 }
 
 // Presentation-only native facts; separate scales prevent a mismatched limit being relabeled.
@@ -220,7 +222,7 @@ internal sealed record CapSettingModel(
     string? ProviderCurrency,
     TrackingModel? Tracking);
 
-internal sealed record SettingsSummaries(TimeSpan RefreshInterval, string UpdatesSummary, int FailedSyncs, IReadOnlyList<ProviderKind> FailedProviders)
+internal sealed record SettingsSummaries(TimeSpan RefreshInterval, UpdateStatus Updates, int FailedSyncs, IReadOnlyList<ProviderKind> FailedProviders)
 {
     public string? LocalStatus { get; init; }
     public LedgerRecoveryModel? Recovery { get; init; }
@@ -228,9 +230,15 @@ internal sealed record SettingsSummaries(TimeSpan RefreshInterval, string Update
     public bool IsStarting { get; init; }
 }
 internal sealed record LedgerRecoveryModel(string Message, bool CanRetry, bool CanRestorePreferences);
+/// <summary>AIU-046 in-app update state; the version is the installed package version, never a feed target.</summary>
+internal sealed record UpdateStatus(UpdateState State, string? Version, DateTimeOffset? CheckedAt = null, int? ErrorCode = null)
+{
+    public static UpdateStatus NotPackaged { get; } = new(UpdateState.NotPackaged, null);
+}
+internal enum UpdateState { NotPackaged, NoFeed, Idle, Checking, UpToDate, Available, Ready, Installing, CheckFailed, InstallFailed, NotApplied }
 internal enum LedgerSupportAction { RetryRecovery, RestorePreferences, OpenDataFolder, OpenLogs, ExportRecovery }
 
-internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop)
+internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop, UpdateMode Updates = UpdateMode.Always)
 {
     public static LedgerPreferences Default { get; } = new(ValueMode.Used, Density.Compact, false, false);
 }
@@ -238,6 +246,9 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
 internal enum ValueMode { Used, Left }
 
 internal enum Density { Compact, Comfortable }
+
+/// <summary>AIU-046: Always checks every 5 minutes, OnLaunch once per start, Off only on request.</summary>
+internal enum UpdateMode { Always, OnLaunch, Off }
 
 internal enum CommandOutcome { Done, Rejected, Unavailable }
 
@@ -268,4 +279,6 @@ internal interface ILedgerSource
     Task<HistoryModel?> GetHistoryAsync(string cardId, CancellationToken ct);
     Task<CommandOutcome> SupportAsync(LedgerSupportAction action, CancellationToken ct) => Task.FromResult(CommandOutcome.Unavailable);
     Task<string> PreviewDiagnosticsAsync(CancellationToken ct) => Task.FromResult("Diagnostics unavailable in demo mode");
+    Task CheckForUpdatesAsync(CancellationToken ct) => Task.CompletedTask;
+    Task InstallUpdateAsync(CancellationToken ct) => Task.CompletedTask;
 }

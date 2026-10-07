@@ -1,9 +1,9 @@
 ---
-id: AIU-046
+id: AIU-048
 schema_version: 1
 ---
 
-# AIU-046 Implementation Plan
+# AIU-048 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -35,8 +35,8 @@ schema_version: 1
 - Estimates never change quota facts, card states (other than the existing
   `FiveHourFull`) or notifications. Unknown is never shown as 0.
 - No new logging, dependencies, persistence or provider requests.
-- Commit on the current worktree branch after each task with `feat(AIU-046): …`,
-  `test(AIU-046): …` or `docs(AIU-046): …`, without attribution lines. Do not
+- Commit on the current worktree branch after each task with `feat(AIU-048): …`,
+  `test(AIU-048): …` or `docs(AIU-048): …`, without attribution lines. Do not
   merge or push without the owner's yes.
 
 ## Review Focus
@@ -169,7 +169,7 @@ schema_version: 1
 - [ ] **Step 5: Run the Infrastructure suite and verify it passes.** Run
   `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`.
   Expected: all pass.
-- [ ] **Step 6: Commit** with `feat(AIU-046): interval five-hour session estimator`.
+- [ ] **Step 6: Commit** with `feat(AIU-048): interval five-hour session estimator`.
 - [ ] **Step 7: Measure cost.** Run
   `dotnet run --project tools/AiUsage.ProviderConsole -c Release -- measure-backend`.
   Record the `sessions/four-pairs` median in verification.md. If it exceeds 50 ms per
@@ -210,7 +210,7 @@ schema_version: 1
   `FiveHour = new(...) { … }` initializer in `LiveLedgerProjection`.
 - [ ] **Step 4: Run the Presentation suite and verify it passes.** Same command
   without `-method`. Expected: all pass.
-- [ ] **Step 5: Commit** with `feat(AIU-046): carry estimate bounds and range to the card`.
+- [ ] **Step 5: Commit** with `feat(AIU-048): carry estimate bounds and range to the card`.
 
 ### T-03 - One-window cell, rough and settled footers
 - status: done
@@ -277,13 +277,13 @@ schema_version: 1
 - [ ] **Step 4: Run the Presentation suite and verify it passes.** Expected: all pass.
   If any other gallery-layout assertion breaks only from the new H3 row, update it
   and name it in the commit body.
-- [ ] **Step 5: Commit** with `feat(AIU-046): one five-hour window cell and estimate range footer`.
+- [ ] **Step 5: Commit** with `feat(AIU-048): one five-hour window cell and estimate range footer`.
 
 ### T-04 - Records, full checks and live run
-- status: blocked
+- status: done
 - depends_on: [T-03]
 - acceptance: [AC-07]
-- evidence: docs/specs/AIU-046-early-session-estimate/verification.md; supersession notes in AIU-034/035/038; Infrastructure 882/882, Presentation 193/193, validator tests and document validation pass, diff check clean; demo H2, H3 (rough) and A1 (settled) observed PASS; live unpackaged one-window observation BLOCKED (no connected account in the development state)
+- evidence: docs/specs/AIU-048-early-session-estimate/verification.md; supersession notes in AIU-034/035/038; Infrastructure 882/882, Presentation 193/193, validator tests and document validation pass, diff check clean; demo H2, H3 (rough) and A1 (settled) observed PASS; live one-window observation NOT_RUN as a post-deploy owner check (D-190)
 
 **Files:**
 - Modify:
@@ -291,14 +291,14 @@ schema_version: 1
   - `docs/specs/AIU-034-limit-audit-design-brief/design-brief.md` (the "estimate not ready" row);
   - `docs/specs/AIU-035-core-limit-budget/spec.md` (the session estimation bullet);
   - `docs/specs/AIU-038-ledger-presentation/spec.md` (the `FiveHourModel` block and "Without an estimate there is one strip").
-- Create: `docs/specs/AIU-046-early-session-estimate/verification.md`
+- Create: `docs/specs/AIU-048-early-session-estimate/verification.md`
 - Modify:
-  - `docs/specs/AIU-046-early-session-estimate/spec.md` and `design.md` (status `implemented`);
+  - `docs/specs/AIU-048-early-session-estimate/spec.md` and `design.md` (status `implemented`);
   - this file (task statuses);
-  - `docs/backlog.md` (AIU-046 `status: done` and `evidence`).
+  - `docs/backlog.md` (AIU-048 `status: done` and `evidence`).
 
 - [ ] **Step 1: Add one-line notes.** Directly under each superseded passage, add
-  `> Superseded in part by AIU-046 (D-188): <one clause naming the replacement>.`, with AIU-046 linked by a correct relative path to `docs/specs/AIU-046-early-session-estimate/spec.md`
+  `> Superseded in part by AIU-048 (D-189): <one clause naming the replacement>.`, with AIU-048 linked by a correct relative path to `docs/specs/AIU-048-early-session-estimate/spec.md`
   Do not rewrite the historical text.
 - [ ] **Step 2: Run all checks.**
   - `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo`
@@ -317,39 +317,29 @@ schema_version: 1
 - [ ] **Step 4: Write verification.md.** Include the commands with their results, the
   `measure-backend` figure from T-01, the live observations and the AC-by-AC status.
   Update the statuses.
-- [ ] **Step 5: Commit** with `docs(AIU-046): record verification and supersession notes`.
+- [ ] **Step 5: Commit** with `docs(AIU-048): record verification and supersession notes`.
   Then ask the owner whether to merge to `main` and push.
 
 ## Handoff
 
 - 2026-10-06. Owner approved the spec, the design and this plan in conversation, and
   chose subagent-driven execution in a new primary session.
-- Branch `users/5-hour-limits-display-1e0e91` in worktree
-  `.claude/worktrees/5-hour-limits-display-1e0e91`, based on `main` at `ff1d788`.
-  All branch commits are local only, not merged or pushed.
-- Done: spec, design, D-188, backlog and G-003 registration. T-01 done in `ed89d1b`,
-  T-02 in `4a792d2`, T-03 in `bf3c1d6` and `ce050f1`
-  (independent review approved; Minor findings deferred to the whole-branch review).
-  T-04 recorded the supersession notes, the checks and the observations in
-  [verification.md](verification.md), and is blocked on AC-07's live clause.
-- Local state: the test projects, `tools/AiUsage.ProviderConsole`,
-  `tools/AiUsage.ProjectValidation` and the app project are restored. The unpackaged
-  development state now holds an empty initialised store with no account.
-- Blocker: AC-07's live clause is BLOCKED. No account is connected in the unpackaged
-  development state, and signing in needs the owner. T-04 stays `blocked`, AIU-046
-  stays `in-progress` and the spec and design stay `implementing` until the owner
-  observes the live run or waives the clause.
+- 2026-10-07. Renumbered from AIU-046 and D-188 to AIU-048 and D-189, because `main`
+  had assigned those numbers to other work; commits before the merge carry `AIU-046`.
+- Branch `users/5-hour-limits-display-1e0e91`, based on `main` at `ff1d788`, with
+  `main` at `55eb2db` merged in on 2026-10-07.
+- Done: T-01 in `ed89d1b`, T-02 in `4a792d2`, T-03 in `bf3c1d6` and `ce050f1`, T-04
+  in `71568ed` and `3ad65d9`, each with an independent task review. The whole-branch
+  review (convergence-review) found no Critical issue; one fix wave
+  (`c125f3b`..`2616e99`) and a scoped re-review closed its findings. Results are in
+  [verification.md](verification.md).
+- Under D-190 the live one-window check is a post-deploy owner check in the updated
+  installed app, so it does not block completion or integration.
 - The design's figures come from a throwaway simulation that is not in the repo.
   T-01's tests re-establish them.
-- Whole-branch review of `ff1d788..3ad65d9` (convergence-review): ready with fixes,
-  no Critical. One fix wave (`c125f3b`..`2616e99`) restored the `Cover` gap test,
-  recorded the owner approval in the spec, clamped the tick allowance, kept the
-  window line in the one-window tray tip and rounded the upper share bound up; a
-  scoped re-review found all five addressed. Results are in verification.md.
 - Open owner questions from the review: a rush or over-today card without an
   estimate draws today's allowance nowhere and shows the red over label beside a
   neutral 5h cell; the bounds are guaranteed only while `C` is constant across the
   pooled windows.
-- Exact next action: the owner either connects Claude in the unpackaged development
-  build, so that the live one-window state can be observed for AC-07, or waives the
-  live clause. Then ask the owner whether to merge to `main` and push.
+- Exact next action: after the Preview update, the owner checks the live one-window
+  state; an agent may check the installed version and its logs on request.

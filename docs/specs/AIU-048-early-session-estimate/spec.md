@@ -1,10 +1,10 @@
 ---
-id: AIU-046
+id: AIU-048
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: Owner direction, 2026-10-06, in conversation. The owner asked to show the five-hour window at once and to show a rough window count as early as possible, refining it automatically. The owner chose the interval estimator (approach B), the one-window state and a range for rough estimates (option a). Recorded as D-188. The owner approved this written specification, the design and the plan on 2026-10-06, as recorded in tasks.md Handoff.
+approval_basis: Owner direction, 2026-10-06, in conversation. The owner asked to show the five-hour window at once and to show a rough window count as early as possible, refining it automatically. The owner chose the interval estimator (approach B), the one-window state and a range for rough estimates (option a). Recorded as D-189. The owner approved this written specification, the design and the plan on 2026-10-06, as recorded in tasks.md Handoff.
 ---
 
 # Early five-hour session estimate
@@ -78,7 +78,7 @@ The algorithm and its bounds are in [design.md](design.md).
   quota facts, card states other than the existing five-hour full state, or
   notifications (D-122). An unknown count is not shown as 0. A used-up weekly limit
   still shows no today strip and no 5h cells (D-187).
-- **R-07 Records.** D-188 records the owner decision. Short notes mark the
+- **R-07 Records.** D-189 records the owner decision. Short notes mark the
   superseded parts of AIU-034 research section 7 and design-brief "estimate not
   ready", AIU-035's thresholds and AIU-038's `FiveHourModel` contract and "Without
   an estimate there is one strip".

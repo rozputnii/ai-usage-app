@@ -40,6 +40,9 @@ internal sealed partial class LedgerSettingsView : UserControl
     private void OnLeft(object sender, RoutedEventArgs e) => _ = ViewModel.SetValueModeAsync(ValueMode.Left);
     private void OnCompact(object sender, RoutedEventArgs e) => _ = ViewModel.SetDensityAsync(Density.Compact);
     private void OnComfortable(object sender, RoutedEventArgs e) => _ = ViewModel.SetDensityAsync(Density.Comfortable);
+    private void OnUpdatesOff(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.Off);
+    private void OnUpdatesOnLaunch(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.OnLaunch);
+    private void OnUpdatesAlways(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.Always);
 
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
     private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;

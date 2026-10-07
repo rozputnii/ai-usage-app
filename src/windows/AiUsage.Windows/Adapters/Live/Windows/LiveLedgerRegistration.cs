@@ -3,6 +3,7 @@ using AiUsage.Adapters.Live;
 using AiUsage.Core.Accounts;
 using AiUsage.Core.Budget;
 using AiUsage.Core.Diagnostics;
+using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 using AiUsage.Infrastructure.Accounts;
 using AiUsage.Infrastructure.Persistence;
@@ -16,8 +17,9 @@ internal static class LiveLedgerRegistration
     public static IServiceCollection AddLiveLedgerServices(this IServiceCollection services)
     {
         var root = ApplicationStateDirectory.Get();
-        services.AddAccountServices(root);
-        services.AddSingleton(p => new LocalBudgetStore(root, p.GetRequiredService<IDiagnosticSink>()));
+        var history = ApplicationStateDirectory.History();
+        services.AddAccountServices(root, history);
+        services.AddSingleton(p => new LocalBudgetStore(history, p.GetRequiredService<IDiagnosticSink>()));
         services.AddSingleton<IReadingSeriesStore>(p => p.GetRequiredService<LocalBudgetStore>());
         services.AddSingleton<IQuotaObservationRecorder, QuotaObservationRecorder>();
         services.AddSingleton(p =>
@@ -32,7 +34,8 @@ internal static class LiveLedgerRegistration
         });
         services.AddSingleton<ILedgerSource>(p => p.GetRequiredService<LiveLedgerSource>());
         services.AddSingleton(p => new LedgerProductLifetime(root, p.GetRequiredService<LiveLedgerSource>(),
-            p.GetRequiredService<StateMaintenance>(), p.GetRequiredService<ApplicationDiagnostics>(), p.GetRequiredService<DispatcherQueue>()));
+            p.GetRequiredService<StateMaintenance>(), p.GetRequiredService<ApplicationDiagnostics>(), p.GetRequiredService<DispatcherQueue>(),
+            p.GetRequiredService<ILedgerScheduler>(), historyRoot: history));
         return services;
     }
 

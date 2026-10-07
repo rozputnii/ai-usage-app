@@ -1090,7 +1090,7 @@ identified by duration (5 hours and 7 days) within the same pool, never by name.
   rather than rounding. Otherwise "estimate not ready", and nothing is shown. A zero `C` is
   therefore never shown and never divides (S01, S03).
 
-> Superseded in part by [AIU-046](../AIU-046-early-session-estimate/spec.md) (D-188): guaranteed interval bounds from every reading pair within a five-hour window, with rough and settled levels, replace the sample, median and confidence rule.
+> Superseded in part by [AIU-048](../AIU-048-early-session-estimate/spec.md) (D-189): guaranteed interval bounds from every reading pair within a five-hour window, with rough and settled levels, replace the sample, median and confidence rule.
 
 ### 7.3 Exclusions and invalidation
 
@@ -1137,7 +1137,7 @@ Its ratio is not a stable `C`. So:
   session" below 1, and 0 when the weekly window is exhausted. Always labelled an estimate
   (R-07, R-15). Hidden, not zero, while not ready.
 
-> Superseded in part by [AIU-046](../AIU-046-early-session-estimate/spec.md) (D-188): a rough estimate shows the remainder as a range "≈ a–b × 5h left" and a settled one as "≈ k × 5h left", and a paired card without an estimate shows the current window as one today cell.
+> Superseded in part by [AIU-048](../AIU-048-early-session-estimate/spec.md) (D-189): a rough estimate shows the remainder as a range "≈ a–b × 5h left" and a settled one as "≈ k × 5h left", and a paired card without an estimate shows the current window as one today cell.
 
 ### 7.6 Observations kept locally
 

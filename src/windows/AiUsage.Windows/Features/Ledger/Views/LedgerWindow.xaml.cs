@@ -178,7 +178,7 @@ internal sealed partial class LedgerWindow : Window
         // A retained series may move between the grid and an account section as windows appear/disappear.
         // Detach hosts even on views that are about to leave the grid.
         foreach (var view in views.Values)
-            view.MonetarySection = null;
+            view.Sections = [];
         foreach (var card in ViewModel.Cards)
         {
             if (!views.TryGetValue(card, out var view))
@@ -188,15 +188,14 @@ internal sealed partial class LedgerWindow : Window
         {
             var view = views[card];
             var first = ViewModel.Cards.First(c => c.Account.AccountId == card.Account.AccountId && !c.IsAccountSection);
-            var spending = ReferenceEquals(first, card)
-                ? ViewModel.Cards.FirstOrDefault(c => c.Account.AccountId == card.Account.AccountId && c.IsAccountSection) : null;
-            if (spending is not null)
-            {
-                CardGrid.Children.Remove(views[spending]);
-                view.MonetarySection = views[spending];
-            }
+            // Model limits come before spending.
+            var sections = ReferenceEquals(first, card)
+                ? ViewModel.Cards.Where(c => c.Account.AccountId == card.Account.AccountId && c.IsAccountSection).OrderBy(c => c.Model.Monetary is not null).ToArray() : [];
+            foreach (var section in sections)
+                CardGrid.Children.Remove(views[section]);
+            view.Sections = [.. sections.Select(s => views[s])];
             wanted.Add(view);
-            if (card.IsHistoryOpen || spending?.IsHistoryOpen == true)
+            if (card.IsHistoryOpen || sections.Any(s => s.IsHistoryOpen))
                 openIndex = wanted.Count - 1;
         }
         foreach (var gone in views.Keys.Except(ViewModel.Cards).ToArray())
@@ -220,10 +219,25 @@ internal sealed partial class LedgerWindow : Window
         view.Focus(FocusState.Keyboard);
     }
 
+    /// <summary>True while the window is closed to the tray or not yet shown; AIU-046 installs updates only then.</summary>
+    public bool IsHidden { get; private set; } = true;
+    public event EventHandler? TrayVisibilityChanged;
+
+    /// <summary>
+    /// A `--background` relaunch after an update: the tray icon without the window. The icon only answers clicks once the
+    /// window content has loaded (TaskbarIcon.ForceCreate alone left it inert in Sandbox), so activate and hide at once.
+    /// </summary>
+    public void StartHidden()
+    {
+        Activate();
+        AppWindow.Hide();
+    }
+
     public void ShowAndActivate()
     {
         AppWindow.Show();
         AiUsage.Composition.ApplicationDiagnostics.Current?.WindowVisibility(false);
+        SetHidden(false);
         if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter)
             presenter.Restore();
         Activate();
@@ -303,6 +317,14 @@ internal sealed partial class LedgerWindow : Window
         args.Cancel = true;
         AppWindow.Hide();
         Composition.ApplicationDiagnostics.Current?.WindowVisibility(true);
+        SetHidden(true);
+    }
+
+    private void SetHidden(bool hidden)
+    {
+        if (IsHidden == hidden) return;
+        IsHidden = hidden;
+        TrayVisibilityChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void CloseForExit()
@@ -319,6 +341,7 @@ internal sealed partial class LedgerWindow : Window
     private Visibility ShowText(string? value) => Show(!string.IsNullOrEmpty(value));
     private Visibility ShowProgress(bool busy) => Show(busy && LedgerTheme.AnimationsEnabled);
     private string StripSubText(string sub, bool busy) => busy && !LedgerTheme.AnimationsEnabled ? (sub.Length > 0 ? sub + " · waiting" : "waiting") : sub;
+    private Visibility ShowStripSub(string sub, bool busy) => ShowText(StripSubText(sub, busy));
     private Style StripActionStyle(bool primary) => (Style)LedgerTheme.Find(primary ? "LedgerPrimaryButton" : "LedgerLinkButton")!;
     private Style WorkTodayStyle(bool on) => (Style)LedgerTheme.Find(on ? "LedgerSegmentOnButton" : "LedgerOutlineButton")!;
     private string WorkTodayName(bool on) => on ? "Work today, on until midnight" : "Work today, off";

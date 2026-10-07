@@ -62,7 +62,10 @@ internal static class LiveLedgerProjection
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;
             var card = Card(data, cap, now, zone, configuration.WorkDays.ToHashSet(), workToday, stale) with
-            { Freshness = new(stale, Local(readingAt, zone)), ScopeLabel = Label(facts, session.Quota) };
+            {
+                Freshness = new(stale, Local(readingAt, zone)), ScopeLabel = Label(facts, session.Quota),
+                ModelScoped = facts.Key.Family is "CL-M" or "CX-A"
+            };
             var shortData = normalized.FirstOrDefault(s => IsPair(s.Facts, facts, session.Quota));
             var shortExpired = shortData?.Facts.Reset?.At is { } shortEnd && shortEnd <= now;
             if (!shortExpired && shortData is not null && shortData.Facts.UsedPercent is { } shortUsed)

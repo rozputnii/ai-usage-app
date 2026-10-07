@@ -33,7 +33,7 @@ import is needed for this task. Preserve existing data and use synthetic test st
 - AC-03: Retain AiUsage.Dev / CN=AI Usage Development identity. Use a separate
   development-only CI certificate, supplied through GitHub Actions encrypted secrets.
   Never export the existing local signing key. Verify signing before publication.
-- AC-04: Publish immutable versioned GitHub prerelease assets and a GitHub Pages
+- AC-04: Publish immutable versioned GitHub prerelease assets and a GitHub-hosted
   App Installer feed. Installation associates Windows with the feed; nonblocking
   launch checks and background checks fetch forward updates without forced restart.
 - AC-05: A tester explicitly trusts the public development CER once. Explain initial
@@ -53,15 +53,23 @@ an existing release asset. Changed bytes always need a fresh version; retries re
 another version. Compare candidate ancestry against every published Preview:
 late completion of an older commit cannot supersede the current feed.
 
-Use GitHub Pages deployment artifacts for the feed, without a generated Git branch.
-The feed stays on Pages; its package and dependency URIs reference the immutable HTTPS
-GitHub release asset URLs of the same release (amended 2026-10-06, ANL-12 recurrence
-evidence; owner choice). The feed carries exact package identity
+Use GitHub Pages deployment artifacts for the install page, the public CER and a feed
+copy, without a generated Git branch. The feed's package and dependency URIs reference
+the immutable HTTPS GitHub release asset URLs of the same release (amended 2026-10-06,
+ANL-12 recurrence evidence; owner choice).
+
+Owner decision 2026-10-07: the feed address itself moves to the moving `feed-preview`
+GitHub release (`https://github.com/rozputnii/ai-usage-app/releases/download/feed-preview/AiUsage.appinstaller`).
+App Installer fetches that address on install and on every update check, and the
+owner's IPv6 path to Pages kept failing with 0x80072EFE. That release holds only the
+feed. It is the one asset replaced on each promotion, and only after the versioned
+release is public. The feed carries exact package identity
 and dependencies, disables downgrade and launch blocking, and enables background
 updates. Windows App Installer owns downloads and binary replacement. A running tray
 instance is not forcibly terminated; normal exit permits installation. The existing
 in-app update controls will describe/delegate this OS-managed channel rather than
-claiming a custom downloader is implemented.
+claiming a custom downloader is implemented. AIU-046 specifies those controls: the app
+calls the App Installer APIs against this same feed; the feed settings are unchanged.
 
 CI signing uses a new dedicated certificate, not provider credentials or the existing
 local key. Provisioning creates that certificate only when explicitly requested, keeps

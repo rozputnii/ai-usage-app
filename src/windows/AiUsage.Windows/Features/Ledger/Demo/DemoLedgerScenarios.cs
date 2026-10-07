@@ -91,7 +91,8 @@ internal static class DemoLedgerScenarios
         };
         return snapshot with { Accounts =
         [
-            snapshot.Accounts[0] with { DisplayName = "Mixed account", Cards = [snapshot.Accounts[0].Cards[0], money] },
+            snapshot.Accounts[0] with { DisplayName = "Mixed account", Cards = [snapshot.Accounts[0].Cards[0],
+                Week("money-fable", CardState.OnTrack, 0, 0, 14, 20, At(10, 19, 9, 0), "Fable") with { ModelScoped = true }, money] },
             new("money-account", ProviderKind.Claude, "Money only", AccountHealth.Ok, BriefNow, null, null,
                 withWindows ? [snapshot.Accounts[0].Cards[0] with { CardId = "money-window" }, unknown] : [unknown])
         ] };
@@ -157,14 +158,14 @@ internal static class DemoLedgerScenarios
     private static IReadOnlyList<ProviderOption> Providers(IEnumerable<AccountModel> accounts) =>
         [.. Enum.GetValues<ProviderKind>().Select(p => new ProviderOption(p, accounts.Any(a => a.Provider == p && a.Health != AccountHealth.SignedOut), false))];
 
-    private static SettingsSummaries Summaries(IEnumerable<AccountModel> accounts)
+    private static SettingsSummaries Summaries(IEnumerable<AccountModel> accounts, DateTimeOffset now)
     {
         var failed = accounts.Where(a => a.Health is AccountHealth.SyncFailedFresh or AccountHealth.SyncFailedStale or AccountHealth.ProviderError).Select(a => a.Provider).ToArray();
-        return new SettingsSummaries(TimeSpan.FromMinutes(5), "Stable · up to date", failed.Length, failed);
+        return new SettingsSummaries(TimeSpan.FromMinutes(5), new UpdateStatus(UpdateState.UpToDate, "2026.10.604.0", now), failed.Length, failed);
     }
 
     public static LedgerSnapshot Snapshot(DateTimeOffset now, DayModel day, IReadOnlyList<AccountModel> accounts, IReadOnlyList<CapSettingModel>? caps = null) =>
-        new(now, day, accounts, Providers(accounts), null, new BudgetSettingsModel(BudgetSettingsModel.MondayToFriday, caps ?? CapsOf(accounts)), Summaries(accounts));
+        new(now, day, accounts, Providers(accounts), null, new BudgetSettingsModel(BudgetSettingsModel.MondayToFriday, caps ?? CapsOf(accounts)), Summaries(accounts, now));
 
     public static LedgerSnapshot Empty(DateTimeOffset now) => Snapshot(now, new DayModel(DayKind.WorkDay, false, null), []);
 
