@@ -17,7 +17,9 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
     private readonly Action<string>? boundary;
     private readonly Func<string, bool>? validatePreferences;
     private readonly Func<CancellationToken, Task>? accountMigration;
-    private int TargetLayout => accountMigration is null ? 1 : 2;
+    private readonly Func<CancellationToken, Task>? historyMigration;
+    // Layout 2 adopts per-account grants; layout 3 (AIU-047) keeps reading history in a separate history root.
+    private int TargetLayout => accountMigration is null ? 1 : historyMigration is null ? 2 : 3;
     private readonly SemaphoreSlim gate = new(1, 1);
     private FileStream? lease;
     private bool disposed;
@@ -28,8 +30,12 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
     private string CheckpointPath => Path.Combine(root, "maintenance", "checkpoint.v1.bin");
 
     public StateMaintenance(string ownedDirectory, Func<string, bool>? validatePreferences = null, IDiagnosticSink? diagnostics = null,
-        Func<CancellationToken, Task>? accountMigration = null) : this(ownedDirectory, (Action<string>?)null)
-    { this.validatePreferences = validatePreferences; this.diagnostics = diagnostics; this.accountMigration = accountMigration; }
+        Func<CancellationToken, Task>? accountMigration = null, Func<CancellationToken, Task>? historyMigration = null)
+        : this(ownedDirectory, (Action<string>?)null)
+    {
+        this.validatePreferences = validatePreferences; this.diagnostics = diagnostics;
+        this.accountMigration = accountMigration; this.historyMigration = historyMigration;
+    }
     internal StateMaintenance(string ownedDirectory, Action<string>? boundary)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ownedDirectory);
@@ -56,6 +62,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
                     // Block older writers before adopting references; the root lease remains held.
                     await Task.Run(CommitLayout, token).ConfigureAwait(false);
                     await accountMigration(token).ConfigureAwait(false);
+                    if (historyMigration is not null) await historyMigration(token).ConfigureAwait(false);
                     report = report with { LayoutVersion = TargetLayout };
                 }
                 catch (ProviderException)
@@ -108,7 +115,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
                 diagnostics?.Signal(DiagnosticEvent.RecoveryCompleted);
                 return new(MaintenanceCondition.Ready, 1, summary);
             }
-            if (layout is 1 or 2)
+            if (layout >= 1)
             {
                 ValidatePreferences(Read(TargetPath, 256 * 1024) ?? throw new IOException("Committed preferences missing."));
                 return new(MaintenanceCondition.Ready, layout, null);
@@ -140,7 +147,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or CryptographicException or JsonException or ProviderException)
         {
             diagnostics?.Failure(lease is null ? DiagnosticEvent.LeaseUnavailable : DiagnosticEvent.PersistenceFailure, error);
-            if (lease is not null && layout is 0 or 1 or 2 && summary is null)
+            if (lease is not null && layout is not null && summary is null)
             {
                 try { summary = Summary(ReadCheckpoint()); }
                 catch (Exception backupError) when (backupError is IOException or UnauthorizedAccessException or CryptographicException or JsonException or ProviderException) { }

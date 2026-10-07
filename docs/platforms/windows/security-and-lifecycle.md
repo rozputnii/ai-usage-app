@@ -96,6 +96,27 @@ cleanup reports failure while retaining that recovery file. Whole-store cleanup 
 recognized active, staged and quarantined files, retaining the operation lock. The owner
 explicitly deferred product delete/reset button wiring on 2026-10-02.
 
+## AIU-047 history root outside the package
+
+Packaged runs keep the `budget` namespace and the identity map `accounts.identities` in
+`%LOCALAPPDATA%\AiUsage\History`, which the manifest excludes from file-system write
+virtualization (`unvirtualizedResources`). This is the one deliberate exception to "uninstall
+removes all app-owned state": uninstall leaves the history root so a reinstall on the same
+Windows profile re-attaches it. Delete local data removes the history store and identity map
+under the same owned-name, reparse-point and resumable-intent rules as the state root;
+unknown entries there are preserved. Unpackaged, demo and audit runs keep both in their own
+state root.
+
+The identity map is DPAPI CurrentUser (entropy `AiUsage.AccountIdentities.v1`), uses the
+registry's revision-checked replacement protocol, and holds only provider, provider-verified
+identity and app account ID: no credential, label or storage ID. A sign-in whose verified
+identity matches no registry account reuses the mapped ID; nothing else re-attaches series.
+An unreadable map is set aside and rebuilt from the registry at the next startup; a map
+failure never blocks sign-in. Startup moves an existing state-root `budget` to the history
+root once by a same-volume rename, keeps both copies when both exist, and commits layout 3 so
+older builds refuse the state. Other Windows users and reinstalled Windows cannot decrypt
+the map, and same-user processes can read or change the history root as they can LocalState.
+
 ## AIU-037 provider quota format 2
 
 The three protected provider states and the separate Codex quota cache now have a

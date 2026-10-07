@@ -13,17 +13,22 @@ namespace AiUsage.Infrastructure.Accounts;
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public static class AccountServiceRegistration
 {
-    public static IServiceCollection AddAccountServices(this IServiceCollection services, string ownedRoot)
+    /// <param name="historyRoot">AIU-047 root for reading history and the identity map; defaults to <paramref name="ownedRoot"/>.</param>
+    public static IServiceCollection AddAccountServices(this IServiceCollection services, string ownedRoot, string? historyRoot = null)
     {
+        historyRoot ??= ownedRoot;
         ArgumentNullException.ThrowIfNull(services);
         services.AddClaudeIntegration().AddCodexIntegration().AddCopilotIntegration().AddAntigravityIntegration();
         services.AddSingleton(p => new AccountRegistry(ownedRoot, diagnostics: p.GetService<IDiagnosticSink>()));
         services.AddSingleton(p => new ProviderSessionFactory(p, ownedRoot));
+        services.AddSingleton(p => new AccountIdentityMap(historyRoot, p.GetService<IDiagnosticSink>()));
         services.AddSingleton<AccountService>();
         services.AddSingleton<IAccountService>(p => p.GetRequiredService<AccountService>());
         services.AddSingleton<AccountMigration>();
         services.AddSingleton(p => new StateMaintenance(ownedRoot, diagnostics: p.GetService<IDiagnosticSink>(),
-            accountMigration: p.GetRequiredService<AccountMigration>().RunAsync));
+            accountMigration: p.GetRequiredService<AccountMigration>().RunAsync,
+            historyMigration: new HistoryRelocation(ownedRoot, historyRoot, p.GetRequiredService<AccountRegistry>(),
+                p.GetRequiredService<AccountIdentityMap>(), p.GetService<IDiagnosticSink>()).RunAsync));
         return services;
     }
 }

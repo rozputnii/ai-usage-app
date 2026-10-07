@@ -15,6 +15,7 @@ namespace AiUsage.Composition;
 internal sealed class LedgerProductLifetime : IUpdateHost, IDisposable
 {
     private readonly string root;
+    private readonly string historyRoot;
     private readonly LiveLedgerSource source;
     private readonly StateMaintenance maintenance;
     private readonly ApplicationDiagnostics diagnostics;
@@ -31,9 +32,10 @@ internal sealed class LedgerProductLifetime : IUpdateHost, IDisposable
     private bool updateHoldsGate;
 
     public LedgerProductLifetime(string root, LiveLedgerSource source, StateMaintenance maintenance,
-        ApplicationDiagnostics diagnostics, DispatcherQueue queue, ILedgerScheduler scheduler, string restartArguments = "")
+        ApplicationDiagnostics diagnostics, DispatcherQueue queue, ILedgerScheduler scheduler, string restartArguments = "",
+        string? historyRoot = null)
     {
-        this.root = root; this.source = source; this.maintenance = maintenance; this.diagnostics = diagnostics; this.scheduler = scheduler;
+        this.root = root; this.historyRoot = historyRoot ?? root; this.source = source; this.maintenance = maintenance; this.diagnostics = diagnostics; this.scheduler = scheduler;
         this.restartArguments = restartArguments;
         timer = queue.CreateTimer(); timer.Interval = TimeSpan.FromMinutes(1); timer.Tick += Tick;
         source.DeleteData = DeleteAsync;
@@ -143,7 +145,7 @@ internal sealed class LedgerProductLifetime : IUpdateHost, IDisposable
             await source.StopAsync();
             maintenance.Dispose(); // Releases the product lease; the deletion coordinator reacquires it exclusively.
             await diagnostics.StopForDeletionAsync();
-            await new OwnedDataDeletion(root).RunAsync(confirmed: true, token);
+            await new OwnedDataDeletion(root, historyRoot).RunAsync(confirmed: true, token);
             // The native restart API handles both packaged and unpackaged activation. Success terminates this process.
             await Task.Run(() => AppInstance.Restart(restartArguments), CancellationToken.None);
             await source.SetRecoveryAsync(new("Stored data was deleted. Close and reopen AI Usage to start again.", false, false));

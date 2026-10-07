@@ -1,4 +1,5 @@
 using System.Text;
+using AiUsage.Infrastructure.Accounts;
 using AiUsage.Infrastructure.Diagnostics;
 using AiUsage.Infrastructure.Providers;
 
@@ -13,6 +14,7 @@ public sealed class OwnedDataDeletion
     private const string IntentName = "delete-local-data.v1.json";
     private const string Intent = "{\"version\":1,\"operation\":\"delete-local-data\"}";
     private readonly string root;
+    private readonly string history;
     private readonly Action<string>? boundary;
     private static readonly string[] ProviderNames = ["claude.state", "codex.grant", "codex.quota.json", "copilot.state", "antigravity.state"];
     private static readonly string[] ProviderFiles = ProviderNames.SelectMany(name => name switch
@@ -22,9 +24,11 @@ public sealed class OwnedDataDeletion
         _ => new[] { name, name + ".pending", name + ".v1.bak", name + ".v1.bak.new", name + ".v2.new", name + ".lock" }
     }).ToArray();
 
-    public OwnedDataDeletion(string ownedRoot) : this(ownedRoot, null) { }
-    internal OwnedDataDeletion(string ownedRoot, Action<string>? boundary)
-    { root = Path.GetFullPath(ownedRoot); this.boundary = boundary; }
+    /// <param name="historyRoot">AIU-047 history root outside the package; defaults to the state root.</param>
+    public OwnedDataDeletion(string ownedRoot, string? historyRoot = null) : this(ownedRoot, historyRoot, null) { }
+    internal OwnedDataDeletion(string ownedRoot, Action<string>? boundary) : this(ownedRoot, null, boundary) { }
+    internal OwnedDataDeletion(string ownedRoot, string? historyRoot, Action<string>? boundary)
+    { root = Path.GetFullPath(ownedRoot); history = Path.GetFullPath(historyRoot ?? ownedRoot); this.boundary = boundary; }
 
     public bool Pending
     {
@@ -66,6 +70,12 @@ public sealed class OwnedDataDeletion
             boundary?.Invoke("provider-data");
             using var budget = new LocalBudgetStore(root);
             await budget.DeleteAllAsync(CancellationToken.None).ConfigureAwait(false);
+            if (!string.Equals(history, root, StringComparison.OrdinalIgnoreCase))
+            {
+                using var historyBudget = new LocalBudgetStore(history);
+                await historyBudget.DeleteAllAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+            foreach (var path in IdentityFiles()) Delete(path);
             boundary?.Invoke("budget-data");
             foreach (var path in metadata) Delete(path);
             DiagnosticFiles.DeleteOwned(root);
@@ -96,6 +106,14 @@ public sealed class OwnedDataDeletion
                 result.Add(entry);
             }
         return result.ToArray();
+    }
+
+    private string[] IdentityFiles()
+    {
+        ProviderStatePaths.CheckDirectory(history);
+        if (!Directory.Exists(history)) return [];
+        return Directory.GetFiles(history).Where(path => Path.GetFileName(path) is var name &&
+            (AccountIdentityFiles.Owned.Contains(name, StringComparer.Ordinal) || AccountIdentityFiles.IsQuarantine(name))).ToArray();
     }
 
     private string[] MetadataFiles()
