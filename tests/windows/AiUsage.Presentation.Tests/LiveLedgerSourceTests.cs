@@ -371,6 +371,43 @@ public sealed class LiveLedgerSourceTests
     }
 
     [Fact]
+    public async Task HiddenSectionsPersistAcrossRestartAndThePrimaryCannotBeHidden()
+    {
+        var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
+        LimitFacts Pool(string family, string name) => new(new("copilot", family, name), LimitKind.CountablePool, "requests",
+            FactValue.Finite(new CountQuantity(300, "requests"))) { Used = new CountQuantity(10, "requests") };
+        var account = new AccountSnapshot(id, "copilot", true, new(ProviderSessionStatus.QuotaAvailable,
+            new QuotaSnapshot(clock.Now, null, [], null, null, null, null)
+            { Limits = new(clock.Now, null, SnapshotSource.ProviderApi, "test", [Pool("GH-P", "premium"), Pool("GH-C", "chat"), Pool("GH-I", "completions")]) },
+            FromCache: true), false, null);
+        var accounts = new Accounts { Current = [account] };
+        string? saved = null;
+        LiveLedgerSource Create() => new(accounts, store, store, store,
+            new LedgerPreferenceStore(_ => Task.FromResult(saved), (value, _) => { saved = value; return Task.CompletedTask; }),
+            action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
+
+        string chat;
+        using (var source = Create())
+        {
+            await source.InitializeAsync(null, Token);
+            var cards = source.Current.Accounts[0].Cards;
+            Assert.Equal("Premium requests", AccountCard.Primary(source.Current.Accounts[0])!.ScopeLabel);
+            chat = cards.Single(c => c.ScopeLabel == "Chat").CardId;
+            Assert.Equal(CommandOutcome.Rejected, await source.SetCardHiddenAsync(cards[0].CardId, true, Token));
+            Assert.Equal(CommandOutcome.Rejected, await source.SetCardHiddenAsync("missing", true, Token));
+            Assert.Equal(CommandOutcome.Done, await source.SetCardHiddenAsync(chat, true, Token));
+            Assert.True(source.Current.Accounts[0].Cards.Single(c => c.CardId == chat).Hidden);
+            await source.StopAsync();
+        }
+        using var restarted = Create();
+        await restarted.InitializeAsync(null, Token);
+        Assert.Equal([chat], restarted.Current.Accounts[0].Cards.Where(c => c.Hidden).Select(c => c.CardId));
+        Assert.Equal(CommandOutcome.Done, await restarted.SetCardHiddenAsync(chat, false, Token));
+        Assert.DoesNotContain(restarted.Current.Accounts[0].Cards, c => c.Hidden);
+        await restarted.StopAsync();
+    }
+
+    [Fact]
     public async Task CachedStartupAndClockChangesDoNotCaptureAndTwoAccountsRemainSeparate()
     {
         var clock = new Clock(); var store = new Store();

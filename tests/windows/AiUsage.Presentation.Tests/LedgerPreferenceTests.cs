@@ -53,6 +53,8 @@ public sealed class LedgerPreferenceTests
     [InlineData("{broken")]
     [InlineData("{\"Version\":2}")]
     [InlineData("{\"Version\":1,\"Labels\":{\"claude\":\"Old\"}}")]
+    [InlineData("{\"Version\":1,\"Preferences\":{\"Mode\":0,\"Density\":0,\"ShowSignedOut\":false,\"AlwaysOnTop\":false},\"Labels\":{},\"Order\":[],\"Hidden\":null}")]
+    [InlineData("{\"Version\":1,\"Preferences\":{\"Mode\":0,\"Density\":0,\"ShowSignedOut\":false,\"AlwaysOnTop\":false},\"Labels\":{},\"Order\":[],\"Hidden\":[\"a\",\"a\"]}")]
     public async Task InvalidOrNewerFileIsNeverOverwritten(string original)
     {
         var writes = 0;

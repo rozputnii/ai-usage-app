@@ -35,6 +35,18 @@
           </Grid>
           <TextBlock Text="{x:Bind ViewModel.Tag, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center"
                    Visibility="{x:Bind Show(ViewModel.HasTag), Mode=OneWay}" />
+          <!-- D-191: hidden sections are counted on the account card; the dot keeps their most urgent colour. -->
+          <Button Style="{StaticResource LedgerFooterButton}" Command="{x:Bind ViewModel.ShowHiddenCommand}" VerticalAlignment="Center"
+                  Visibility="{x:Bind Show(ViewModel.HasHidden), Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.HiddenName, Mode=OneWay}"
+                  ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.HiddenTip), Mode=OneWay}">
+            <Grid>
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Ellipse Width="6" Height="6" Fill="{x:Bind PillDot(ViewModel.HiddenTone), Mode=OneWay}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Bind ViewModel.HiddenText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" />
+              </StackPanel>
+              <Line X1="0" X2="1" Stretch="Fill" VerticalAlignment="Bottom" Stroke="{StaticResource LedgerUnderlineBrush}" StrokeThickness="1" StrokeDashArray="1,2" Margin="0,0,0,-2" />
+            </Grid>
+          </Button>
           <ItemsControl ItemsSource="{x:Bind ViewModel.Visual.Marks, Mode=OneWay}" VerticalAlignment="Center" IsTabStop="False">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
@@ -48,6 +60,11 @@
         </ItemsControl>
         </lc:ShrinkFirstPanel>
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
+          <Button Style="{StaticResource LedgerQuietIconButton}" PointerEntered="OnIconPointerEntered" PointerExited="OnIconPointerExited"
+                  Command="{x:Bind ViewModel.HideCommand}" Visibility="{x:Bind Show(ViewModel.CanHide), Mode=OneWay}"
+                  AutomationProperties.Name="{x:Bind ViewModel.HideName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Hide')}">
+            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xED1A;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
+          </Button>
           <Button x:Name="HistoryButton" Style="{StaticResource LedgerQuietIconButton}" PointerEntered="OnIconPointerEntered" PointerExited="OnIconPointerExited"
                   Command="{x:Bind ViewModel.ToggleHistoryCommand}" Visibility="{x:Bind Show(ViewModel.CanOpenHistory), Mode=OneWay}"
                   AutomationProperties.Name="{x:Bind ViewModel.HistoryName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('History (Enter)')}"

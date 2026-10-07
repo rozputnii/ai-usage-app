@@ -248,6 +248,16 @@ internal sealed partial class ShrinkFirstPanel : Panel
 {
     public double Spacing { get; set; } = 8;
 
+    // A child shown later (the hidden-limits count) must take part in the next measure pass.
+    public ShrinkFirstPanel() => Loaded += (_, _) =>
+    {
+        foreach (var child in Children)
+            if (watched.Add(child))
+                child.RegisterPropertyChangedCallback(VisibilityProperty, (_, _) => InvalidateMeasure());
+    };
+
+    private readonly HashSet<UIElement> watched = [];
+
     protected override Size MeasureOverride(Size availableSize)
     {
         var others = 0.0;

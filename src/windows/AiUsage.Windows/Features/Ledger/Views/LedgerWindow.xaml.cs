@@ -144,6 +144,9 @@ internal sealed partial class LedgerWindow : Window
                         LedgerMotion.FadeIn(historyPanel, 250);
                     });
                 break;
+            case nameof(LedgerViewModel.SectionLayout):
+                RebuildGrid();
+                break;
             case nameof(LedgerViewModel.IsSettingsOpen):
                 DispatcherQueue.TryEnqueue(() => { RebuildGrid(); if (ViewModel.IsSettingsOpen) LedgerMotion.FadeIn(SettingsPanel, 250); });
                 break;
@@ -196,15 +199,15 @@ internal sealed partial class LedgerWindow : Window
             if (!views.TryGetValue(card, out var view))
                 views[card] = view = new LedgerCardView { ViewModel = card };
         }
+        // One account is one card (D-191): its primary limit hosts every shown section; hidden sections are left out.
         foreach (var card in ViewModel.Cards.Where(c => !c.IsAccountSection))
         {
             var view = views[card];
-            var first = ViewModel.Cards.First(c => c.Account.AccountId == card.Account.AccountId && !c.IsAccountSection);
-            // Model limits come before spending.
-            var sections = ReferenceEquals(first, card)
-                ? ViewModel.Cards.Where(c => c.Account.AccountId == card.Account.AccountId && c.IsAccountSection).OrderBy(c => c.Model.Monetary is not null).ToArray() : [];
+            var sections = ViewModel.Cards.Where(c => c.Account.AccountId == card.Account.AccountId && c.IsAccountSection)
+                .OrderBy(c => AccountCard.SectionRank(c.Model)).ToArray();
             foreach (var section in sections)
                 CardGrid.Children.Remove(views[section]);
+            sections = [.. sections.Where(s => !s.IsHiddenSection)];
             view.Sections = [.. sections.Select(s => views[s])];
             wanted.Add(view);
             if (card.IsHistoryOpen || sections.Any(s => s.IsHistoryOpen))
