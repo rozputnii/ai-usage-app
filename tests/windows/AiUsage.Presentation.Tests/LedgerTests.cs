@@ -641,7 +641,7 @@ public sealed class LedgerInteractionTests
         var (window, _, _, _) = Start();
         await window.SignInAsync(ProviderKind.Antigravity);
         await window.StripActionAsync();
-        Assert.Equal("Antigravity sign-in was cancelled in the browser", window.StripText);
+        Assert.Equal("Antigravity sign-in was cancelled", window.StripText);
         Assert.Equal("Try again", window.StripAction);
         Assert.True(window.StripActionIsPrimary);
         Assert.False(window.StripBusy);
@@ -650,10 +650,37 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
+    public async Task CancelledSignInHidesItselfAfterAWhile()
+    {
+        var (window, _, scheduler, _) = Start();
+        await window.SignInAsync(ProviderKind.Antigravity);
+        await window.StripActionAsync();
+        scheduler.Run(TimeSpan.FromSeconds(7));
+        Assert.True(window.HasStrip);
+        scheduler.Run(TimeSpan.FromSeconds(8));
+        Assert.False(window.HasStrip);
+    }
+
+    [Fact]
+    public async Task FinishedStripCanBeClosedAndANewSignInShowsItAgain()
+    {
+        var (window, _, _, _) = Start();
+        await window.SignInAsync(ProviderKind.Antigravity);
+        await window.StripActionAsync();
+        window.DismissStrip();
+        Assert.False(window.HasStrip);
+        await window.SignInAsync(ProviderKind.Codex);
+        Assert.True(window.HasStrip);
+        Assert.True(window.StripBusy);
+        window.DismissStrip();
+        Assert.True(window.HasStrip);
+    }
+
+    [Fact]
     public async Task ExpiredSignInIsRestoredInline()
     {
         var (window, _, scheduler, _) = Start(DemoLedgerScenarios.SignIn);
-        Assert.Equal("Codex sign-in was cancelled in the browser", window.StripText);
+        Assert.Equal("Codex sign-in was cancelled", window.StripText);
         var week = Card(window, "claude-week");
         Assert.Equal("sign-in expired", week.Visual.Marks.Single().Text);
         Assert.Equal("1 h old", week.Visual.Pill);

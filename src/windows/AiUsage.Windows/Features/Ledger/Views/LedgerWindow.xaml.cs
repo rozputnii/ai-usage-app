@@ -341,6 +341,7 @@ internal sealed partial class LedgerWindow : Window
     private Visibility ShowText(string? value) => Show(!string.IsNullOrEmpty(value));
     private Visibility ShowProgress(bool busy) => Show(busy && LedgerTheme.AnimationsEnabled);
     private string StripSubText(string sub, bool busy) => busy && !LedgerTheme.AnimationsEnabled ? (sub.Length > 0 ? sub + " · waiting" : "waiting") : sub;
+    private Visibility ShowStripSub(string sub, bool busy) => ShowText(StripSubText(sub, busy));
     private Style StripActionStyle(bool primary) => (Style)LedgerTheme.Find(primary ? "LedgerPrimaryButton" : "LedgerLinkButton")!;
     private Style WorkTodayStyle(bool on) => (Style)LedgerTheme.Find(on ? "LedgerSegmentOnButton" : "LedgerOutlineButton")!;
     private string WorkTodayName(bool on) => on ? "Work today, on until midnight" : "Work today, off";
