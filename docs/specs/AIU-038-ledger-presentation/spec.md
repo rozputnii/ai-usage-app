@@ -338,10 +338,10 @@ A demo-only "Demo" flyout in the title row switches scenarios; product builds ne
 
 | ID | Surface | Behavior |
 | --- | --- | --- |
-| S1, S2 | Main window, brief scenario, Used and Left, Compact | Two-column card grid; nine cards fit 760 × 600 without scrolling; the order is the user's; Alt+↑/↓ reorders |
+| S1, S2 | Main window, brief scenario, Used and Left, Compact | One column of full-width cards (D-193; originally a two-column grid where nine cards fit 760 × 600); the order is the user's; Alt+↑/↓ reorders |
 | S3 | Inline rename, cap editing, undo, focus | F2 renames in place (Enter saves, Esc cancels); C or a click on the cap footer opens the cap editor in place of the footer; empty + Enter removes with undo; focused or hovered cards show History and Sign out |
-| S4 | Inline history | Enter on a card expands history under it across both columns; local readings only; at least 35 days; gaps drawn dashed as "no readings", never zero; reset ticks; baseline line; ← → move the focused day; Esc closes |
-| S5 | Settings panel | Ctrl+, or the gear opens a 400 px panel beside the cards (cards reflow to one column); sections Budget (work days with undo), Personal caps (applied, unmatched, currency mismatch), Appearance (Show values, Density, Show signed-out accounts, Always on top), Monitoring & notifications, Data & privacy (Delete stored data with Confirm · Cancel in place), Updates, System status last; Esc closes |
+| S4 | Inline history | Enter on a card expands history right under it (D-193; originally across both columns); local readings only; at least 35 days; gaps drawn dashed as "no readings", never zero; reset ticks; baseline line; ← → move the focused day; Esc closes |
+| S5 | Settings panel | Ctrl+, or the gear slides a floating 320 px sheet in from the right, narrowing the cards; small labels Work days (with undo), Caps (applied, unmatched, currency mismatch; notes as tooltips), View (Density, Always on top), Updates; a footer with the refresh interval or a status problem and a ⋯ menu for diagnostics, logs, data folder, recovery export and Delete stored data (Confirm · Cancel in place); Esc closes. Amended by D-193; originally a 400 px panel with Appearance, Monitoring, Data and privacy and System status sections |
 | S6 | First run | Providers listed with one-click Sign in; no bars or zero values |
 | S7 | Sign-in strip and provider menu | + or Ctrl+N opens a light-dismiss provider menu (added providers disabled, Show signed-out accounts); progress in a 34 px strip under the title row with Cancel; cards stay usable |
 | S8 | Sign-in success | The new account is appended with a 2 s outline; the strip says "added" with the limit count and hides after 4 s |
@@ -421,7 +421,7 @@ Native chrome is retained. Contrast-theme behaviour is outside the amended scope
 | --- | --- | --- |
 | bg.page | #1F1E1D | window, title row |
 | bg.card / card.top | #262624 / #2A2927 | card, vertical gradient top to 60 % |
-| bg.panel / bg.hist | #232220 / #211F1D | settings panel, history block |
+| bg.panel / bg.hist | #2F2D2A (D-193, was #232220) / #211F1D | settings sheet, history block |
 | bg.input / bg.tip | #1A1918 / #151413 | text box; tooltip, menu, undo bar |
 | line / line.card / line.ctl | #2E2D2A / #33322F / #55534E | dividers, card border, outline buttons |
 | ink / ink2 / ink3 | #F0EEE6 / #B7B3A8 / #9D998E | text levels |

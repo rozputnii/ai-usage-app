@@ -536,6 +536,18 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: The owner reported on 2026-10-07 that a Copilot Business sign-in showed three limit cards for one account, asked for design variants first and chose design A with hide variant H2.
 - completion-note: Implemented and verified 2026-10-07 in the demo app and the regression suites. The owner checks the live Copilot account in the updated installed app after deployment (D-190); that check is NOT_RUN.
 
+## AIU-051 - Single-column cards and a minimal sliding settings sheet
+- goal: G-003
+- status: done
+- depends_on: [AIU-038, AIU-050]
+- trigger: owner-selection
+- outcome: Cards always stack in one full-width column; settings is a lighter floating sheet that slides in from the right and narrows the cards, with small labels, tooltips instead of paragraphs and rare actions in a ⋯ menu (D-193).
+- acceptance: AC-01 through AC-05 in the specification cover the single column, the sliding sheet and its edge, the minimal content and menu, the footer and update status, and verification.
+- specification: docs/specs/AIU-051-single-column-settings-sheet/spec.md
+- evidence: docs/specs/AIU-051-single-column-settings-sheet/verification.md
+- registration-note: The owner asked on 2026-10-07 for vertical-only cards, a settings panel that slides in from the right with a clearer edge, and as little text as possible; chose full-width cards, the maximal reduction and design B of three.
+- completion-note: Implemented and verified 2026-10-07 in the demo app, the regression suites and the local Ledger smokes. The owner checks the installed app after deployment (D-190); that check is NOT_RUN.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
