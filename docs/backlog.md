@@ -515,6 +515,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: The owner asked on 2026-10-06 why the Claude five-hour limit was not shown and selected this change in conversation, choosing the interval estimator, the one-window state and a range for rough estimates. Registered as AIU-046 with D-188 and renumbered to AIU-048 and D-189 on 2026-10-07, because main had assigned those numbers to other work.
 - completion-note: Implemented and verified 2026-10-07. Infrastructure and Presentation suites, document validation, the app build and the demo rough and settled observations pass; task and whole-branch independent reviews are fixed. Under the post-deploy rule (D-190) the owner checks the live one-window state in the updated installed app; that check is NOT_RUN.
 
+## AIU-049 - Measured five-hour window cost history and estimate accuracy
+- goal: G-003
+- status: idea
+- depends_on: [AIU-048]
+- trigger: owner-selection
+- outcome: Record, for every completed five-hour window, how much of the weekly limit it actually consumed, using the AIU-048 per-window interval bounds from the stored readings. Show it as an additional per-day chart in the card's inline history, in the same style as the existing per-day use history (local days, gaps kept as gaps, reset ticks). Each day is labelled with the measured capacity, for example "9×5h in 7d", and below it an accuracy line, for example "accuracy 92 %". This tests the AIU-048 assumption that one window costs a constant share of the weekly limit, for example whether a provider weights windows by time of day.
+- open-questions: The definition of the accuracy percentage. Recommended: the share of measured windows whose own bounds agree with the pooled estimate, which directly measures how often the constant-cost assumption holds; the alternative is the relative tightness of the bounds. Whether the per-window figures are derived on demand from the stored reading series, which needs no new persistence, or kept as their own records.
+- registration-note: Owner proposed this on 2026-10-07 after the AIU-048 review noted that its bounds are guaranteed only while the window cost stays constant. Not selected for implementation yet.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
