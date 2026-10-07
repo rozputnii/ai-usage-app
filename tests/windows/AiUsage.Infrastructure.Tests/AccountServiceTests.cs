@@ -184,19 +184,22 @@ public sealed class AccountServiceTests : IDisposable
     public async Task ReinstalledStateReattachesTheSameIdentityToItsPreviousAccountId()
     {
         var history = Path.Combine(root, "history");
-        AccountService Installed(string state) => new(new AccountRegistry(state), new ProviderSessionFactory(services, state),
-            identities: new AccountIdentityMap(history));
+        var sink = new HistoryPersistenceTests.RecordingSink();
+        AccountService Installed(string state) => new(new AccountRegistry(state), new ProviderSessionFactory(services, state), sink,
+            new AccountIdentityMap(history));
         Guid original;
         using (var first = Installed(Path.Combine(root, "install-1")))
         {
             await first.InitializeAsync(Token);
             original = (await Connect(first, "first")).AccountId!.Value;
+            Assert.DoesNotContain(AiUsage.Core.Diagnostics.DiagnosticEvent.HistoryReattached, sink.Events);
             await first.StopAsync();
         }
         using var reinstalled = Installed(Path.Combine(root, "install-2"));
         await reinstalled.InitializeAsync(Token);
         Assert.Empty(reinstalled.Current);
         Assert.Equal(original, (await Connect(reinstalled, "first")).AccountId);
+        Assert.Single(sink.Events, e => e == AiUsage.Core.Diagnostics.DiagnosticEvent.HistoryReattached);
         var other = await Connect(reinstalled, "second");
         Assert.Equal(AccountOutcome.Done, other.Outcome);
         Assert.NotEqual(original, other.AccountId);

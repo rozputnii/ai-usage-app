@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text.Json;
 using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Persistence;
 using AiUsage.Infrastructure.Accounts;
@@ -14,6 +16,7 @@ public sealed class HistoryPersistenceTests : IDisposable
     private string State => Path.Combine(temp, "state");
     private string History => Path.Combine(temp, "history");
     private static CancellationToken Token => TestContext.Current.CancellationToken;
+    private static readonly byte[] Entropy = "AiUsage.AccountIdentities.v1"u8.ToArray();
 
     private static AccountRecord Account(string subject, string? context = null, string provider = "claude") =>
         new(Guid.NewGuid(), provider, Guid.NewGuid(), new ProviderIdentity(subject, context));
@@ -45,14 +48,34 @@ public sealed class HistoryPersistenceTests : IDisposable
     }
 
     [Fact]
-    public async Task IdentityMapIsProtectedAndHoldsNoStorageReference()
+    public async Task IdentityMapIsProtectedAndHoldsOnlyProviderIdentityAndAccountId()
     {
-        var account = Account("synthetic-subject-value");
+        var account = Account("synthetic-subject-value", "synthetic-context");
         await new AccountIdentityMap(History).UpsertAsync([account], Token);
         var bytes = await File.ReadAllBytesAsync(Path.Combine(History, "accounts.identities"), Token);
-        var text = System.Text.Encoding.UTF8.GetString(bytes);
-        Assert.DoesNotContain("synthetic-subject-value", text, StringComparison.Ordinal);
-        Assert.DoesNotContain(account.StorageId.ToString("N"), text, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("synthetic-subject-value", System.Text.Encoding.UTF8.GetString(bytes), StringComparison.Ordinal);
+        var json = System.Text.Encoding.UTF8.GetString(ProtectedData.Unprotect(bytes, Entropy, DataProtectionScope.CurrentUser));
+        using var document = JsonDocument.Parse(json);
+        var entry = Assert.Single(document.RootElement.GetProperty("Accounts").EnumerateArray());
+        Assert.Equal(["Provider", "Identity", "AccountId"], entry.EnumerateObject().Select(p => p.Name));
+        Assert.DoesNotContain(account.StorageId.ToString(), json, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
+    [InlineData(2, 1)]
+    [InlineData(1, 257)]
+    public async Task UnsupportedVersionOrOversizedMapIsSetAside(int version, int entries)
+    {
+        var accounts = string.Join(",", Enumerable.Range(0, entries).Select(i =>
+            $"{{\"Provider\":\"claude\",\"Identity\":{{\"Subject\":\"s{i}\",\"Context\":null}},\"AccountId\":\"{Guid.NewGuid()}\"}}"));
+        var json = $"{{\"Version\":{version},\"Revision\":\"{Guid.NewGuid()}\",\"ParentRevision\":null,\"Accounts\":[{accounts}]}}";
+        Directory.CreateDirectory(History);
+        await File.WriteAllBytesAsync(Path.Combine(History, "accounts.identities"),
+            ProtectedData.Protect(System.Text.Encoding.UTF8.GetBytes(json), Entropy, DataProtectionScope.CurrentUser), Token);
+        var sink = new RecordingSink();
+        Assert.Null(await new AccountIdentityMap(History, sink).FindAsync("claude", new ProviderIdentity("s0"), Token));
+        Assert.Single(Directory.GetFiles(History, "accounts.identities.quarantine-*"));
+        Assert.Contains(DiagnosticEvent.BudgetStoreRecovered, sink.Events);
     }
 
     [Fact]
@@ -97,6 +120,17 @@ public sealed class HistoryPersistenceTests : IDisposable
         Assert.Equal("older", File.ReadAllText(Path.Combine(State, "budget", "configuration.v1.json")));
         Assert.Equal("surviving", File.ReadAllText(Path.Combine(History, "budget", "configuration.v1.json")));
         Assert.Contains(DiagnosticEvent.HistoryLeftInPlace, sink.Events);
+    }
+
+    [Fact]
+    public async Task LockOnlyStateStoreIsNothingToMove()
+    {
+        Put(State, "budget/budget.lock", "");
+        Put(History, "budget/configuration.v1.json", "surviving");
+        var sink = new RecordingSink();
+        await new HistoryRelocation(State, History, new AccountRegistry(State), new AccountIdentityMap(History), sink).RunAsync(Token);
+        Assert.Empty(sink.Events);
+        Assert.Equal("surviving", File.ReadAllText(Path.Combine(History, "budget", "configuration.v1.json")));
     }
 
     [Fact]
@@ -160,6 +194,16 @@ public sealed class HistoryPersistenceTests : IDisposable
     }
 
     [Fact]
+    public async Task DeletionWithSeparateHistoryDoesNotRecreateTheRelocatedStore()
+    {
+        Put(State, "accounts.state");
+        Put(History, "budget/configuration.v1.json");
+        await new OwnedDataDeletion(State, History).RunAsync(true, Token);
+        Assert.False(Directory.Exists(Path.Combine(State, "budget")));
+        Assert.False(File.Exists(Path.Combine(History, "budget", "configuration.v1.json")));
+    }
+
+    [Fact]
     public async Task InterruptedDeletionFinishesHistoryOnNextRun()
     {
         Put(History, "budget/configuration.v1.json");
@@ -178,7 +222,7 @@ public sealed class HistoryPersistenceTests : IDisposable
         catch (IOException) { }
     }
 
-    private sealed class RecordingSink : IDiagnosticSink
+    internal sealed class RecordingSink : IDiagnosticSink
     {
         public List<DiagnosticEvent> Events { get; } = [];
         public void Record(DiagnosticEvent eventCode, DiagnosticCategory category) => Events.Add(eventCode);

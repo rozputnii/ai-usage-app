@@ -1,7 +1,7 @@
 ---
 id: AIU-047
 type: design
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
 ---
@@ -30,9 +30,10 @@ scope_version: 1
   `(Provider, Identity)` in the map before `Guid.NewGuid()`. Upsert the map after the
   registry update succeeds; a map failure is logged and does not change the sign-in
   result.
-- `StateMaintenance` runs the history relocation and the registry-to-map upsert after the
-  account migration, while it still holds the root lease, and commits layout 3 after
-  both succeed. A failure maps to Interrupted, like the account migration today.
+- `StateMaintenance` commits layout 3 first, as it does for layout 2, so older builds are
+  fenced out before any data moves. It then runs the account migration, the history
+  relocation and the registry-to-map upsert while it still holds the root lease. A failure
+  maps to Interrupted and the next start repeats the idempotent steps.
 - `OwnedDataDeletion` takes the history root as a second owned root. When both roots are
   the same (unpackaged) the history step is a no-op beyond the existing budget deletion.
 

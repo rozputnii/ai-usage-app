@@ -1,10 +1,10 @@
 ---
 id: AIU-047
 type: feature
-status: draft
+status: implementing
 goal: G-003
 scope_version: 1
-approval_basis: Owner design conversation on 2026-10-07. The owner named the scenario (uninstall followed by a fresh install loses the accumulated account-window analytics), selected approach A (an unvirtualized history folder under the user's LocalAppData plus a stable account ID restored from a protected identity map) and approved each design section (storage location, re-attach, migration, deletion and logging, verification). This written specification awaits owner review.
+approval_basis: Owner design conversation on 2026-10-07. The owner named the scenario (uninstall followed by a fresh install loses the accumulated account-window analytics), selected approach A (an unvirtualized history folder under the user's LocalAppData plus a stable account ID restored from a protected identity map) and approved each design section (storage location, re-attach, migration, deletion and logging, verification). On 2026-10-07 the owner approved the written specification and directed completion through review and integration into main without further approval steps (D-188).
 ---
 
 # Usage history survives reinstall
@@ -100,12 +100,13 @@ reading store opens:
 
 ### Logging
 
-- Migration: one record per outcome (moved, both present and left in place, nothing to
-  move is silent, failed) using the existing migration events.
-- Identity map read or write failure: `PersistenceFailure`, with no identity, account ID
-  or path text.
-- A sign-in re-attached through the identity map: one Information record without
-  identity data.
+- Migration: `HistoryRelocated` (Information) when the store moves, `HistoryLeftInPlace`
+  (Warning) when both copies exist; nothing to move is silent; a failed move is the
+  existing maintenance `PersistenceFailure`.
+- Identity map read or write failure: `PersistenceFailure`; a set-aside unreadable map:
+  `BudgetStoreRecovered`. No identity, account ID or path text.
+- A sign-in re-attached through the identity map: one `HistoryReattached` Information
+  record without identity data.
 
 ## Acceptance criteria
 
@@ -132,7 +133,7 @@ reading store opens:
 - AC-08: Live packaged check: after readings are recorded, uninstall leaves
   `%LOCALAPPDATA%\AiUsage\History`; after reinstall and sign-in to the same account,
   the account shows its previous history immediately. Delete local data afterwards
-  removes the history folder's contents.
+  removes the history folder's store files and identity map (operation locks may remain).
 
 ## Boundaries
 

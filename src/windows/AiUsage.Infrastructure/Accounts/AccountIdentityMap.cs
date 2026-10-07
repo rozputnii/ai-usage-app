@@ -19,11 +19,6 @@ internal sealed record AccountIdentityState
     public override string ToString() => "AccountIdentityState (redacted)";
 }
 
-/// <summary>
-/// AIU-047: provider-verified identity to app account ID, kept beside the reading series in the
-/// history root so a reinstalled package re-attaches history. Holds no credential or storage reference.
-/// Failures never block sign-in or startup: an unreadable map is set aside and rebuilt from the registry.
-/// </summary>
 /// <summary>Exact identity-map file names, for owned-data deletion.</summary>
 internal static class AccountIdentityFiles
 {
@@ -33,6 +28,11 @@ internal static class AccountIdentityFiles
         name.StartsWith(Name + ".quarantine-", StringComparison.Ordinal) && Guid.TryParseExact(name[(Name.Length + 12)..], "N", out _);
 }
 
+/// <summary>
+/// AIU-047: provider-verified identity to app account ID, kept beside the reading series in the
+/// history root so a reinstalled package re-attaches history. Holds no credential or storage reference.
+/// Failures never block sign-in or startup: an unreadable map is set aside and rebuilt from the registry.
+/// </summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 internal sealed class AccountIdentityMap(string historyDirectory, IDiagnosticSink? diagnostics = null)
 {
@@ -65,7 +65,11 @@ internal sealed class AccountIdentityMap(string historyDirectory, IDiagnosticSin
         var next = (current ?? new()) with { Accounts = entries };
         if (current is not null && next.Accounts.SequenceEqual(current.Accounts)) return;
         try { await lease.SaveAsync(next, current?.Revision, token).ConfigureAwait(false); }
-        catch (ProviderException) { /* The lease already recorded the persistence failure. */ }
+        catch (ProviderException error)
+        {
+            // The lease records I/O, access and protection failures; a rejected generation is recorded here.
+            if (error.Kind != ProviderFailureKind.StorageUnavailable) diagnostics?.Record(DiagnosticEvent.PersistenceFailure, DiagnosticCategory.InvalidData);
+        }
     }
 
     private async Task<ProviderStateLease<AccountIdentityState>?> AcquireAsync(CancellationToken token)

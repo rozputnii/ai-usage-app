@@ -192,7 +192,7 @@ public sealed partial class LedgerSmoke
             Assert.False(File.Exists(Path.Combine(root, "delete-local-data.v1.json")));
             Assert.Equal("owner export", File.ReadAllText(Path.Combine(root, "preserved-export.txt")));
             using (var layout = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "layout.v1.json"))))
-                Assert.Equal(2, layout.RootElement.GetProperty("Layout").GetInt32());
+                Assert.Equal(3, layout.RootElement.GetProperty("Layout").GetInt32());
             Directory.CreateDirectory(evidence!);
             using (var capture = window!.Capture()) capture.Save(Path.Combine(evidence!, $"delete-{pending}.png"), System.Drawing.Imaging.ImageFormat.Png);
             Focus(window!);

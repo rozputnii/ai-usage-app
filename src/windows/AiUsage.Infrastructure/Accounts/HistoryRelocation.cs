@@ -26,7 +26,8 @@ internal sealed class HistoryRelocation(string stateRoot, string historyRoot, Ac
     private void Relocate(string source, string target)
     {
         Check(source); Check(target);
-        if (!Directory.Exists(source)) return;
+        // A store left with only its operation lock (for example after Delete stored data) holds nothing to move.
+        if (!Directory.Exists(source) || Directory.EnumerateFileSystemEntries(source).All(e => Path.GetFileName(e) == "budget.lock")) return;
         if (Directory.Exists(target))
         {
             // History that survived a reinstall wins; the older copy stays for manual recovery.

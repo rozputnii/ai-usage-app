@@ -68,9 +68,15 @@ public sealed class OwnedDataDeletion
             var providerPaths = providerDirectories.SelectMany(d => OwnedFiles(d, ProviderFiles)).ToArray();
             foreach (var path in providerPaths.Where(p => !p.EndsWith(".lock", StringComparison.Ordinal))) Delete(path);
             boundary?.Invoke("provider-data");
-            using var budget = new LocalBudgetStore(root);
-            await budget.DeleteAllAsync(CancellationToken.None).ConfigureAwait(false);
-            if (!string.Equals(history, root, StringComparison.OrdinalIgnoreCase))
+            var separateHistory = !string.Equals(history, root, StringComparison.OrdinalIgnoreCase);
+            // With a separate history root, never recreate the relocated state-root store just to empty it.
+            ProviderStatePaths.CheckDirectory(Path.Combine(root, "budget"));
+            if (!separateHistory || Directory.Exists(Path.Combine(root, "budget")))
+            {
+                using var budget = new LocalBudgetStore(root);
+                await budget.DeleteAllAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+            if (separateHistory)
             {
                 using var historyBudget = new LocalBudgetStore(history);
                 await historyBudget.DeleteAllAsync(CancellationToken.None).ConfigureAwait(false);
