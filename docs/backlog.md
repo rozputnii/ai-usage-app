@@ -493,13 +493,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-047 - Usage history survives reinstall
 - goal: G-003
-- status: idea
+- status: done
 - depends_on: [AIU-036, AIU-039]
 - trigger: owner-selection
 - outcome: After the packaged app is uninstalled and reinstalled on the same Windows user profile, signing in to the same provider account restores that account's local reading series and the analytics derived from it at once. The series lives in an unvirtualized `%LOCALAPPDATA%\AiUsage\History` folder, and a DPAPI-protected identity map restores the account's app ID. Credentials and preferences still leave with the package.
 - acceptance: AC-01 through AC-08 in the specification cover the manifest exclusion, unpackaged isolation, the identity map, re-attach, migration of existing installs, deletion, logging and the live uninstall/reinstall check.
 - specification: docs/specs/AIU-047-history-survives-reinstall/spec.md
-- registration-note: Owner requested this on 2026-10-07 and approved the design sections the same day. The written specification awaits owner review; implementation is not started.
+- evidence: docs/specs/AIU-047-history-survives-reinstall/verification.md
+- registration-note: Owner requested this on 2026-10-07, approved the design and directed completion and integration into main the same day (D-188).
+- completion-note: Implemented and verified 2026-10-07. Local suites and the Release demo smoke pass; Windows Sandbox confirmed update relocation, survival across uninstall, reinstall and Delete stored data; independent review findings are fixed. The owner's live re-attach of a real signed-in account after reinstall is NOT_RUN.
 
 ## Deferred clarifications, not forgotten
 

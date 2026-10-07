@@ -1,7 +1,7 @@
 ---
 id: AIU-047
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner design conversation on 2026-10-07. The owner named the scenario (uninstall followed by a fresh install loses the accumulated account-window analytics), selected approach A (an unvirtualized history folder under the user's LocalAppData plus a stable account ID restored from a protected identity map) and approved each design section (storage location, re-attach, migration, deletion and logging, verification). On 2026-10-07 the owner approved the written specification and directed completion through review and integration into main without further approval steps (D-188).
