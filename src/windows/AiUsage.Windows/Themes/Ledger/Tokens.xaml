@@ -10,7 +10,7 @@
   <Color x:Key="LedgerCardColor">#262624</Color>
   <Color x:Key="LedgerCardTopColor">#2A2927</Color>
   <Color x:Key="LedgerCardFreshTopColor">#2F2D2A</Color>
-  <Color x:Key="LedgerPanelColor">#232220</Color>
+  <Color x:Key="LedgerPanelColor">#2F2D2A</Color>
   <Color x:Key="LedgerHistColor">#211F1D</Color>
   <Color x:Key="LedgerInputColor">#1A1918</Color>
   <Color x:Key="LedgerTipColor">#151413</Color>

@@ -18,220 +18,197 @@
       </ObjectAnimationUsingKeyFrames>
     </Storyboard>
   </UserControl.Resources>
-  <!-- S5: the inline settings panel beside the cards; System status stays last (D-180). -->
-  <Border Background="{StaticResource LedgerPanelBrush}" BorderBrush="{StaticResource LedgerLineCardBrush}" BorderThickness="1,0,0,0">
-    <ScrollViewer HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsTabStop="False">
-      <StackPanel Padding="16,14,16,18" Spacing="16" AutomationProperties.Name="Settings" AutomationProperties.LandmarkType="Custom">
-        <Grid ColumnSpacing="8">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-          </Grid.ColumnDefinitions>
-          <TextBlock Text="Settings" Style="{StaticResource LedgerCardNameText}" VerticalAlignment="Center" />
-          <TextBlock Grid.Column="1" Text="Esc closes" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
-          <lc:LedgerButton Grid.Column="2" Style="{StaticResource LedgerIconButton}" Background="{StaticResource LedgerLineBrush}" Command="{x:Bind ViewModel.Owner.ToggleSettingsCommand}"
-                  AutomationProperties.Name="Close settings">
-            <Path Data="M2.5,2.5 L9.5,9.5 M9.5,2.5 L2.5,9.5" Stroke="{StaticResource LedgerInkBrush}" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" />
-          </lc:LedgerButton>
-        </Grid>
+  <!--
+    S5 (D-192): a floating sheet, lighter than the page and the cards, inset from the window edges. Tiny labels name the
+    groups; explanations are tooltips. Rare support actions and Delete stored data sit in the footer's ⋯ menu.
+  -->
+  <Grid Padding="0,8,8,8">
+    <lc:SquircleSurface Radius="14" Fill="{StaticResource LedgerPanelBrush}" Stroke="{StaticResource LedgerLineWindowBrush}">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ScrollViewer HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" IsTabStop="False">
+          <StackPanel Padding="14,8,8,12" Spacing="14" AutomationProperties.Name="Settings" AutomationProperties.LandmarkType="Custom">
+            <StackPanel Spacing="6" Margin="0,0,6,0" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
+              <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" Content="Retry" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RetryRecovery}"
+                        IsEnabled="{x:Bind ViewModel.CanRetryRecovery, Mode=OneWay}" AutomationProperties.Name="Retry recovery" />
+                <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" Content="Restore preferences" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RestorePreferences}"
+                        IsEnabled="{x:Bind ViewModel.CanRestorePreferences, Mode=OneWay}" AutomationProperties.Name="Restore legacy preferences"
+                        ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Old appearance preferences only; sign-ins and quota history cannot be restored')}" />
+              </StackPanel>
+            </StackPanel>
 
-        <StackPanel Spacing="8" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
-          <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
-          <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" HorizontalAlignment="Left" Content="Retry recovery" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RetryRecovery}" IsEnabled="{x:Bind ViewModel.CanRetryRecovery, Mode=OneWay}" />
-          <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" HorizontalAlignment="Left" Content="Restore legacy preferences" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.RestorePreferences}" IsEnabled="{x:Bind ViewModel.CanRestorePreferences, Mode=OneWay}" />
-          <TextBlock Text="The checkpoint contains old appearance preferences only. It cannot restore sign-ins or quota history." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-        </StackPanel>
+            <StackPanel Spacing="6">
+              <Grid>
+                <TextBlock Text="Work days" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.WorkDaysNote)}" />
+                <lc:LedgerButton Style="{StaticResource LedgerIconButton}" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Owner.ToggleSettingsCommand}"
+                        AutomationProperties.Name="Close settings" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Close (Esc)')}">
+                  <Path Data="M2.5,2.5 L9.5,9.5 M9.5,2.5 L2.5,9.5" Stroke="{StaticResource LedgerInk2Brush}" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" />
+                </lc:LedgerButton>
+              </Grid>
+              <ItemsControl ItemsSource="{x:Bind ViewModel.WorkDays}" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" IsTabStop="False" AutomationProperties.Name="Work days">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="ledger:WorkDayToggle">
+                    <lc:LedgerButton Content="{x:Bind Label}" Width="34" Padding="0,3,0,3" Command="{x:Bind ToggleCommand}" Style="{StaticResource LedgerButtonBase}"
+                            Background="{x:Bind views:LedgerSettingsView.DayBackground(IsOn), Mode=OneWay}" BorderBrush="{x:Bind views:LedgerSettingsView.DayBorder(IsOn), Mode=OneWay}"
+                            BorderThickness="1" Foreground="{x:Bind views:LedgerSettingsView.DayForeground(IsOn), Mode=OneWay}"
+                            FontWeight="{x:Bind views:LedgerSettingsView.DayWeight(IsOn), Mode=OneWay}"
+                            FontFamily="{x:Bind views:LedgerSettingsView.DayFont(IsOn), Mode=OneWay}"
+                            AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
 
-        <StackPanel Spacing="8">
-          <TextBlock Text="BUDGET" Style="{StaticResource LedgerSectionText}" />
-          <TextBlock Text="Work days" Style="{StaticResource LedgerStrongText}" />
-          <ItemsControl ItemsSource="{x:Bind ViewModel.WorkDays}" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" IsTabStop="False" AutomationProperties.Name="Work days">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="ledger:WorkDayToggle">
-                <lc:LedgerButton Content="{x:Bind Label}" Width="44" Padding="0,3,0,3" Command="{x:Bind ToggleCommand}" Style="{StaticResource LedgerButtonBase}"
-                        Background="{x:Bind views:LedgerSettingsView.DayBackground(IsOn), Mode=OneWay}" BorderBrush="{x:Bind views:LedgerSettingsView.DayBorder(IsOn), Mode=OneWay}"
-                        BorderThickness="1" Foreground="{x:Bind views:LedgerSettingsView.DayForeground(IsOn), Mode=OneWay}"
-                        FontWeight="{x:Bind views:LedgerSettingsView.DayWeight(IsOn), Mode=OneWay}"
-                        FontFamily="{x:Bind views:LedgerSettingsView.DayFont(IsOn), Mode=OneWay}"
-                        AutomationProperties.Name="{x:Bind AccessibleName, Mode=OneWay}" />
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-          <TextBlock Text="{x:Bind ViewModel.WorkDaysNote}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-        </StackPanel>
+            <StackPanel Spacing="4" Margin="0,0,6,0" Visibility="{x:Bind Show(ViewModel.HasCaps), Mode=OneWay}">
+              <TextBlock Text="Caps" Style="{StaticResource LedgerCaptionText}" HorizontalAlignment="Left" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.CapsNote)}" />
+              <ItemsControl ItemsSource="{x:Bind ViewModel.Caps}" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" IsTabStop="False">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="2" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="ledger:CapRow">
+                    <StackPanel AutomationProperties.Name="{x:Bind AccessibleName}">
+                      <Grid ColumnSpacing="6" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(Note)}">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*" />
+                          <ColumnDefinition Width="Auto" />
+                          <ColumnDefinition Width="Auto" />
+                          <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind Label}" Style="{StaticResource LedgerBodyText}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <FontIcon Grid.Column="1" FontFamily="Segoe Fluent Icons" Glyph="&#xE7BA;" FontSize="12" Foreground="{StaticResource LedgerAttTextBrush}"
+                                  Visibility="{x:Bind views:LedgerSettingsView.Present(IsWarning)}" />
+                        <TextBlock Grid.Column="2" Text="{x:Bind AmountText}" Style="{StaticResource LedgerStrongText}" VerticalAlignment="Center"
+                                   Foreground="{x:Bind views:LedgerSettingsView.AmountBrush(IsApplied)}" />
+                        <lc:LedgerButton Grid.Column="3" Style="{StaticResource LedgerIconButton}" Command="{x:Bind ActCommand}" IsEnabled="{x:Bind CanAct}"
+                                AutomationProperties.Name="{x:Bind ActionText}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ActionText)}">
+                          <FontIcon FontFamily="Segoe Fluent Icons" Glyph="{x:Bind views:LedgerSettingsView.ActionGlyph(ActionText)}" FontSize="12" Foreground="{StaticResource LedgerInk2Brush}" />
+                        </lc:LedgerButton>
+                      </Grid>
+                      <lc:CapEditorView Editor="{x:Bind Editor, Mode=OneWay}" Margin="0,4,0,4"
+                                        Visibility="{x:Bind views:LedgerSettingsView.Present(IsEditing), Mode=OneWay}" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
 
-        <StackPanel Spacing="6">
-          <TextBlock Text="PERSONAL CAPS" Style="{StaticResource LedgerSectionText}" />
-          <ItemsControl ItemsSource="{x:Bind ViewModel.Caps}" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" IsTabStop="False">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate><StackPanel Spacing="6" /></ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="ledger:CapRow">
-                <StackPanel Spacing="2" AutomationProperties.Name="{x:Bind AccessibleName}">
-                  <Grid ColumnSpacing="10">
-                    <Grid.ColumnDefinitions>
-                      <ColumnDefinition Width="*" />
-                      <ColumnDefinition Width="Auto" />
-                      <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{x:Bind Label}" Style="{StaticResource LedgerBodyText}" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Grid.Column="1" Text="{x:Bind AmountText}" Style="{StaticResource LedgerStrongText}"
-                               Foreground="{x:Bind views:LedgerSettingsView.AmountBrush(IsApplied)}" />
-                    <lc:LedgerButton Grid.Column="2" Content="{x:Bind ActionText}" Style="{StaticResource LedgerLinkButton}" Command="{x:Bind ActCommand}" IsEnabled="{x:Bind CanAct}"
-                            AutomationProperties.Name="{x:Bind ActionText}" />
-                  </Grid>
-                  <TextBlock Text="{x:Bind Note}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap"
-                             Foreground="{x:Bind views:LedgerSettingsView.NoteBrush(IsWarning)}" />
-                  <lc:CapEditorView Editor="{x:Bind Editor, Mode=OneWay}" Margin="0,4,0,0"
-                                    Visibility="{x:Bind views:LedgerSettingsView.Present(IsEditing), Mode=OneWay}" />
+            <StackPanel Spacing="6" Margin="0,0,6,0">
+              <TextBlock Text="View" Style="{StaticResource LedgerCaptionText}" />
+              <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Compact" Style="{StaticResource LedgerSegmentButton}" Click="OnCompact" Background="{x:Bind Segment(ViewModel.IsCompact, x:True), Mode=OneWay}"
+                            Foreground="{x:Bind SegmentText(ViewModel.IsCompact, x:True), Mode=OneWay}" AutomationProperties.Name="Density: compact" />
+                    <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Comfortable" Style="{StaticResource LedgerSegmentButton}" Click="OnComfortable" Background="{x:Bind Segment(ViewModel.IsCompact, x:False), Mode=OneWay}"
+                            Foreground="{x:Bind SegmentText(ViewModel.IsCompact, x:False), Mode=OneWay}" AutomationProperties.Name="Density: comfortable" />
+                  </StackPanel>
+                </Border>
+                <lc:LedgerButton Grid.Column="1" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Style="{StaticResource LedgerFooterButton}" HorizontalAlignment="Right" Command="{x:Bind ViewModel.ToggleAlwaysOnTopCommand}"
+                        AutomationProperties.Name="{x:Bind SwitchName('Always on top', ViewModel.AlwaysOnTop), Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Always on top')}">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE718;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" VerticalAlignment="Center" />
+                    <Grid Width="32" Height="18">
+                      <lc:SquircleSurface Radius="9" Stroke="{x:Bind SwitchTrack(ViewModel.AlwaysOnTop), Mode=OneWay}" Fill="{x:Bind SwitchFill(ViewModel.AlwaysOnTop), Mode=OneWay}" />
+                      <Ellipse Width="10" Height="10" Margin="4,0,4,0" Fill="{x:Bind SwitchKnob(ViewModel.AlwaysOnTop), Mode=OneWay}"
+                               HorizontalAlignment="{x:Bind KnobSide(ViewModel.AlwaysOnTop), Mode=OneWay}" />
+                    </Grid>
+                  </StackPanel>
+                </lc:LedgerButton>
+              </Grid>
+            </StackPanel>
+
+            <StackPanel Spacing="6" Margin="0,0,6,0">
+              <Grid ColumnSpacing="8">
+                <TextBlock Text="Updates" Style="{StaticResource LedgerCaptionText}" />
+                <TextBlock Text="{x:Bind ViewModel.UpdateVersionText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" HorizontalAlignment="Right"
+                           ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.UpdatesText), Mode=OneWay}" />
+              </Grid>
+              <Grid ColumnSpacing="8">
+                <Border HorizontalAlignment="Left" Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <lc:LedgerButton Content="Off" Style="{StaticResource LedgerSegmentButton}" Click="OnUpdatesOff" Background="{x:Bind Segment(ViewModel.IsUpdateOff, x:True), Mode=OneWay}"
+                            Foreground="{x:Bind SegmentText(ViewModel.IsUpdateOff, x:True), Mode=OneWay}" AutomationProperties.Name="Automatic updates: off"
+                            ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('No automatic update checks')}" />
+                    <lc:LedgerButton Content="On launch" Style="{StaticResource LedgerSegmentButton}" Click="OnUpdatesOnLaunch" Background="{x:Bind Segment(ViewModel.IsUpdateOnLaunch, x:True), Mode=OneWay}"
+                            Foreground="{x:Bind SegmentText(ViewModel.IsUpdateOnLaunch, x:True), Mode=OneWay}" AutomationProperties.Name="Automatic updates: on launch"
+                            ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Check once after the app starts')}" />
+                    <lc:LedgerButton Content="Always" Style="{StaticResource LedgerSegmentButton}" Click="OnUpdatesAlways" Background="{x:Bind Segment(ViewModel.IsUpdateAlways, x:True), Mode=OneWay}"
+                            Foreground="{x:Bind SegmentText(ViewModel.IsUpdateAlways, x:True), Mode=OneWay}" AutomationProperties.Name="Automatic updates: always"
+                            ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Check every 5 minutes')}" />
+                  </StackPanel>
+                </Border>
+                <lc:LedgerButton Style="{StaticResource LedgerIconButton}" HorizontalAlignment="Right" Command="{x:Bind ViewModel.CheckForUpdatesCommand}"
+                        Visibility="{x:Bind Show(ViewModel.CanCheckUpdates), Mode=OneWay}" AutomationProperties.Name="Check for updates" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Check for updates')}">
+                  <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE72C;" FontSize="13" Foreground="{StaticResource LedgerInk2Brush}" />
+                </lc:LedgerButton>
+              </Grid>
+              <TextBlock Text="{x:Bind ViewModel.UpdatesText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" Visibility="{x:Bind Show(ViewModel.IsUpdateNotable), Mode=OneWay}" />
+              <!-- While installing, the button stays, dims and counts dots until Windows closes the app. -->
+              <lc:LedgerButton Style="{StaticResource LedgerPrimaryButton}" HorizontalAlignment="Left" Command="{x:Bind ViewModel.InstallUpdateCommand}"
+                      IsEnabled="{x:Bind Not(ViewModel.IsInstallingUpdate), Mode=OneWay}" Visibility="{x:Bind Show(ViewModel.CanInstallUpdate), Mode=OneWay}"
+                      AutomationProperties.Name="{x:Bind ViewModel.InstallUpdateText, Mode=OneWay}">
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="{x:Bind ViewModel.InstallUpdateText, Mode=OneWay}" />
+                  <TextBlock x:Name="InstallDots" Text="…" Width="12" Visibility="{x:Bind Show(ViewModel.IsInstallingUpdate), Mode=OneWay}" />
                 </StackPanel>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-          <TextBlock Text="No personal caps set." Style="{StaticResource LedgerCaptionText}" Visibility="{x:Bind Hide(ViewModel.HasCaps), Mode=OneWay}" />
-          <TextBlock Text="{x:Bind ViewModel.CapsNote}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-        </StackPanel>
+              </lc:LedgerButton>
+            </StackPanel>
 
-        <StackPanel Spacing="8">
-          <TextBlock Text="APPEARANCE" Style="{StaticResource LedgerSectionText}" />
-          <Grid>
-            <TextBlock Text="Show values" Style="{StaticResource LedgerBodyText}" VerticalAlignment="Center" />
-            <Border HorizontalAlignment="Right" Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
-              <StackPanel Orientation="Horizontal" Spacing="2">
-                <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Used" Style="{StaticResource LedgerSegmentButton}" Click="OnUsed" Background="{x:Bind Segment(ViewModel.IsLeft, x:False), Mode=OneWay}"
-                        Foreground="{x:Bind SegmentText(ViewModel.IsLeft, x:False), Mode=OneWay}" AutomationProperties.Name="Show values: used" />
-                <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Left" Style="{StaticResource LedgerSegmentButton}" Click="OnLeft" Background="{x:Bind Segment(ViewModel.IsLeft, x:True), Mode=OneWay}"
-                        Foreground="{x:Bind SegmentText(ViewModel.IsLeft, x:True), Mode=OneWay}" AutomationProperties.Name="Show values: left" />
-              </StackPanel>
-            </Border>
-          </Grid>
-          <Grid>
-            <TextBlock Text="Density" Style="{StaticResource LedgerBodyText}" VerticalAlignment="Center" />
-            <Border HorizontalAlignment="Right" Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
-              <StackPanel Orientation="Horizontal" Spacing="2">
-                <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Compact" Style="{StaticResource LedgerSegmentButton}" Click="OnCompact" Background="{x:Bind Segment(ViewModel.IsCompact, x:True), Mode=OneWay}"
-                        Foreground="{x:Bind SegmentText(ViewModel.IsCompact, x:True), Mode=OneWay}" AutomationProperties.Name="Density: compact" />
-                <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Content="Comfortable" Style="{StaticResource LedgerSegmentButton}" Click="OnComfortable" Background="{x:Bind Segment(ViewModel.IsCompact, x:False), Mode=OneWay}"
-                        Foreground="{x:Bind SegmentText(ViewModel.IsCompact, x:False), Mode=OneWay}" AutomationProperties.Name="Density: comfortable" />
-              </StackPanel>
-            </Border>
-          </Grid>
-          <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Style="{StaticResource LedgerFooterButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{x:Bind ViewModel.ToggleShowSignedOutCommand}"
-                  AutomationProperties.Name="{x:Bind SwitchName('Show signed-out accounts', ViewModel.ShowSignedOut), Mode=OneWay}">
-            <Grid ColumnSpacing="8">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-              </Grid.ColumnDefinitions>
-              <TextBlock Text="Show signed-out accounts" Style="{StaticResource LedgerBodyText}" />
-              <TextBlock Grid.Column="1" Text="{x:Bind OnOff(ViewModel.ShowSignedOut), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" />
-              <Grid Grid.Column="2" Width="32" Height="18">
-                <lc:SquircleSurface Radius="9" Stroke="{x:Bind SwitchTrack(ViewModel.ShowSignedOut), Mode=OneWay}" Fill="{x:Bind SwitchFill(ViewModel.ShowSignedOut), Mode=OneWay}" />
-                <Ellipse Width="10" Height="10" Margin="4,0,4,0" Fill="{x:Bind SwitchKnob(ViewModel.ShowSignedOut), Mode=OneWay}"
-                         HorizontalAlignment="{x:Bind KnobSide(ViewModel.ShowSignedOut), Mode=OneWay}" />
-              </Grid>
-            </Grid>
-          </lc:LedgerButton>
-          <lc:LedgerButton IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" Style="{StaticResource LedgerFooterButton}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Command="{x:Bind ViewModel.ToggleAlwaysOnTopCommand}"
-                  AutomationProperties.Name="{x:Bind SwitchName('Always on top', ViewModel.AlwaysOnTop), Mode=OneWay}">
-            <Grid ColumnSpacing="8">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-              </Grid.ColumnDefinitions>
-              <TextBlock Text="Always on top" Style="{StaticResource LedgerBodyText}" />
-              <TextBlock Grid.Column="1" Text="{x:Bind OnOff(ViewModel.AlwaysOnTop), Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" />
-              <Grid Grid.Column="2" Width="32" Height="18">
-                <lc:SquircleSurface Radius="9" Stroke="{x:Bind SwitchTrack(ViewModel.AlwaysOnTop), Mode=OneWay}" Fill="{x:Bind SwitchFill(ViewModel.AlwaysOnTop), Mode=OneWay}" />
-                <Ellipse Width="10" Height="10" Margin="4,0,4,0" Fill="{x:Bind SwitchKnob(ViewModel.AlwaysOnTop), Mode=OneWay}"
-                         HorizontalAlignment="{x:Bind KnobSide(ViewModel.AlwaysOnTop), Mode=OneWay}" />
-              </Grid>
-            </Grid>
-          </lc:LedgerButton>
-        </StackPanel>
+            <TextBlock Text="{x:Bind ViewModel.SupportStatus, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" Margin="0,0,6,0"
+                       Visibility="{x:Bind ShowText(ViewModel.SupportStatus), Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.DiagnosticText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" IsTextSelectionEnabled="True" Margin="0,0,6,0"
+                       Visibility="{x:Bind ShowText(ViewModel.DiagnosticText), Mode=OneWay}" />
+          </StackPanel>
+        </ScrollViewer>
 
-        <Grid ColumnSpacing="8">
-          <TextBlock Text="MONITORING &amp; NOTIFICATIONS" Style="{StaticResource LedgerSectionText}" />
-          <TextBlock Text="{x:Bind ViewModel.MonitoringText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" HorizontalAlignment="Right" />
-        </Grid>
-
-        <StackPanel Spacing="8">
-          <TextBlock Text="DATA &amp; PRIVACY" Style="{StaticResource LedgerSectionText}" />
-          <TextBlock Text="History saved by older versions is kept separately because its account cannot be verified. New readings belong to each signed-in account; older caps remain unassigned." Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-          <Grid ColumnSpacing="8">
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="*" />
-              <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Delete stored data" Style="{StaticResource LedgerBodyText}" VerticalAlignment="Center" />
-            <lc:LedgerButton x:Name="DeleteButton" Grid.Column="1" Content="Delete…" Style="{StaticResource LedgerOutlineButton}" Command="{x:Bind ViewModel.ArmDeleteCommand}"
-                    Visibility="{x:Bind Hide(ViewModel.IsDeleteArmed), Mode=OneWay}" AutomationProperties.Name="Delete stored data" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Visibility="{x:Bind Show(ViewModel.IsDeleteArmed), Mode=OneWay}">
-              <lc:LedgerButton x:Name="ConfirmButton" Content="Confirm" Style="{StaticResource LedgerDangerButton}" Command="{x:Bind ViewModel.ConfirmDeleteCommand}"
+        <!-- Footer: the refresh interval (or a status problem) and the ⋯ menu; arming Delete shows Confirm · Cancel here. -->
+        <StackPanel Grid.Row="1" Padding="14,6,8,8" Spacing="6" BorderBrush="{StaticResource LedgerLineWindowBrush}" BorderThickness="0,1,0,0">
+          <StackPanel Spacing="6" Visibility="{x:Bind Show(ViewModel.IsDeleteArmed), Mode=OneWay}">
+            <TextBlock Text="{x:Bind ViewModel.DeleteNote}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerCritTextBrush}" TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <lc:LedgerButton x:Name="ConfirmButton" Content="Delete" Style="{StaticResource LedgerDangerButton}" Command="{x:Bind ViewModel.ConfirmDeleteCommand}"
                       AutomationProperties.Name="Confirm deleting stored data" />
-              <TextBlock Text="·" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
               <lc:LedgerButton x:Name="CancelButton" Content="Cancel" Style="{StaticResource LedgerOutlineButton}" Command="{x:Bind ViewModel.CancelDeleteCommand}"
                       AutomationProperties.Name="Cancel deleting stored data" />
             </StackPanel>
-          </Grid>
-          <TextBlock Text="{x:Bind ViewModel.DeleteNote}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerCritTextBrush}" TextWrapping="Wrap"
-                     Visibility="{x:Bind Show(ViewModel.IsDeleteArmed), Mode=OneWay}" />
-        </StackPanel>
-
-        <StackPanel Spacing="8">
-          <Grid ColumnSpacing="8">
-            <TextBlock Text="UPDATES" Style="{StaticResource LedgerSectionText}" />
-            <TextBlock Text="{x:Bind ViewModel.UpdateVersionText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" HorizontalAlignment="Right" />
-          </Grid>
-          <TextBlock Text="{x:Bind ViewModel.UpdatesText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <lc:LedgerButton Content="Check for updates" Style="{StaticResource LedgerOutlineButton}" Command="{x:Bind ViewModel.CheckForUpdatesCommand}"
-                    Visibility="{x:Bind Show(ViewModel.CanCheckUpdates), Mode=OneWay}" />
-            <!-- While installing, the button stays, dims and counts dots until Windows closes the app. -->
-            <lc:LedgerButton Style="{StaticResource LedgerPrimaryButton}" Command="{x:Bind ViewModel.InstallUpdateCommand}"
-                    IsEnabled="{x:Bind Not(ViewModel.IsInstallingUpdate), Mode=OneWay}" Visibility="{x:Bind Show(ViewModel.CanInstallUpdate), Mode=OneWay}"
-                    AutomationProperties.Name="{x:Bind ViewModel.InstallUpdateText, Mode=OneWay}">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{x:Bind ViewModel.InstallUpdateText, Mode=OneWay}" />
-                <TextBlock x:Name="InstallDots" Text="…" Width="12" Visibility="{x:Bind Show(ViewModel.IsInstallingUpdate), Mode=OneWay}" />
-              </StackPanel>
-            </lc:LedgerButton>
           </StackPanel>
-          <Grid>
-            <TextBlock Text="Automatic updates" Style="{StaticResource LedgerBodyText}" VerticalAlignment="Center" />
-            <Border HorizontalAlignment="Right" Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
-              <StackPanel Orientation="Horizontal" Spacing="2">
-                <lc:LedgerButton Content="Off" Style="{StaticResource LedgerSegmentButton}" Click="OnUpdatesOff" Background="{x:Bind Segment(ViewModel.IsUpdateOff, x:True), Mode=OneWay}"
-                        Foreground="{x:Bind SegmentText(ViewModel.IsUpdateOff, x:True), Mode=OneWay}" AutomationProperties.Name="Automatic updates: off" />
-                <lc:LedgerButton Content="On launch" Style="{StaticResource LedgerSegmentButton}" Click="OnUpdatesOnLaunch" Background="{x:Bind Segment(ViewModel.IsUpdateOnLaunch, x:True), Mode=OneWay}"
-                        Foreground="{x:Bind SegmentText(ViewModel.IsUpdateOnLaunch, x:True), Mode=OneWay}" AutomationProperties.Name="Automatic updates: on launch" />
-                <lc:LedgerButton Content="Always" Style="{StaticResource LedgerSegmentButton}" Click="OnUpdatesAlways" Background="{x:Bind Segment(ViewModel.IsUpdateAlways, x:True), Mode=OneWay}"
-                        Foreground="{x:Bind SegmentText(ViewModel.IsUpdateAlways, x:True), Mode=OneWay}" AutomationProperties.Name="Automatic updates: always" />
-              </StackPanel>
-            </Border>
+          <Grid ColumnSpacing="8">
+            <TextBlock Text="{x:Bind ViewModel.MonitoringText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center"
+                       Visibility="{x:Bind Hide(ViewModel.HasSystemStatus), Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Refresh interval')}" />
+            <TextBlock Text="{x:Bind ViewModel.SystemStatusText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" Foreground="{StaticResource LedgerAttTextBrush}"
+                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,32,0" Visibility="{x:Bind Show(ViewModel.HasSystemStatus), Mode=OneWay}"
+                       ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.SystemStatusText), Mode=OneWay}" />
+            <lc:LedgerButton x:Name="MoreButton" Style="{StaticResource LedgerIconButton}" HorizontalAlignment="Right" AutomationProperties.Name="More settings"
+                    ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Diagnostics, logs and data')}">
+              <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE712;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
+              <lc:LedgerButton.Flyout>
+                <MenuFlyout Placement="TopEdgeAlignedRight">
+                  <MenuFlyoutItem Text="Preview diagnostics" Command="{x:Bind ViewModel.PreviewDiagnosticsCommand}" />
+                  <MenuFlyoutItem Text="Open logs" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.OpenLogs}" />
+                  <MenuFlyoutItem Text="Open data folder" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.OpenDataFolder}" />
+                  <MenuFlyoutItem Text="Export recovery summary" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.ExportRecovery}" />
+                  <MenuFlyoutSeparator />
+                  <MenuFlyoutItem Text="Delete stored data…" Command="{x:Bind ViewModel.ArmDeleteCommand}" AutomationProperties.Name="Delete stored data"
+                                  ToolTipService.ToolTip="History saved by older versions is kept separately and deleted too" />
+                </MenuFlyout>
+              </lc:LedgerButton.Flyout>
+            </lc:LedgerButton>
           </Grid>
         </StackPanel>
-        <Grid ColumnSpacing="8">
-          <TextBlock Text="SYSTEM STATUS" Style="{StaticResource LedgerSectionText}" />
-        </Grid>
-        <TextBlock Text="{x:Bind ViewModel.SystemStatusText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-
-        <StackPanel Spacing="6">
-          <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" Content="Preview diagnostics" Command="{x:Bind ViewModel.PreviewDiagnosticsCommand}" />
-          <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" Content="Open logs" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.OpenLogs}" />
-          <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" Content="Open data folder" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.OpenDataFolder}" />
-          <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" Content="Export recovery summary" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.ExportRecovery}" />
-          <TextBlock Text="{x:Bind ViewModel.SupportStatus, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" />
-          <TextBlock Text="{x:Bind ViewModel.DiagnosticText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
-        </StackPanel>
-      </StackPanel>
-    </ScrollViewer>
-  </Border>
+      </Grid>
+    </lc:SquircleSurface>
+  </Grid>
 </UserControl>

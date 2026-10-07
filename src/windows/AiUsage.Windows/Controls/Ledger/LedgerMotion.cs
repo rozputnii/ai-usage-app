@@ -23,7 +23,24 @@ internal static class LedgerMotion
         element.Loaded += Loaded;
     }
 
-    private static void Animate(FrameworkElement target, string property, double from, double to, int milliseconds)
+    /// <summary>
+    /// Grows or shrinks a side panel's width; the end width is set first, so an interrupted slide lands on it. Done runs
+    /// when the slide ends (at once without animations); the returned storyboard lets a new slide stop this one.
+    /// </summary>
+    public static Storyboard? SlideWidth(FrameworkElement element, double from, double to, Action done)
+    {
+        element.Width = to;
+        if (!LedgerTheme.AnimationsEnabled || Math.Abs(to - from) < .1)
+        {
+            done();
+            return null;
+        }
+        var storyboard = Animate(element, "Width", from, to, 200);
+        storyboard.Completed += (_, _) => done();
+        return storyboard;
+    }
+
+    private static Storyboard Animate(FrameworkElement target, string property, double from, double to, int milliseconds)
     {
         var animation = new DoubleAnimation
         {
@@ -37,5 +54,6 @@ internal static class LedgerMotion
         storyboard.Children.Add(animation);
         storyboard.Completed += (_, _) => storyboard.Stop();
         Composition.ApplicationDiagnostics.RunAnimation(storyboard.Begin);
+        return storyboard;
     }
 }

@@ -175,8 +175,9 @@
       <TextBlock Grid.ColumnSpan="2" Text="Opening local data…" Margin="16,10" Style="{StaticResource LedgerBodyText}" Visibility="{x:Bind Show(ViewModel.IsStarting), Mode=OneWay}" />
       <ScrollViewer x:Name="CardScroller" Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                     Visibility="{x:Bind Hide(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
-        <lc:CardGridPanel x:Name="CardGrid" Gap="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
-                          Columns="{x:Bind GridColumns(ViewModel.IsSettingsOpen), Mode=OneWay}" XYFocusKeyboardNavigation="Enabled" />
+        <!-- S1 (D-192): one column of full-width cards; inline history follows its card. -->
+        <StackPanel x:Name="CardGrid" Spacing="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
+                    XYFocusKeyboardNavigation="Enabled" />
       </ScrollViewer>
 
       <ScrollViewer Grid.Row="1" Visibility="{x:Bind Show(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
@@ -208,8 +209,10 @@
         </StackPanel>
       </ScrollViewer>
 
-      <views:LedgerSettingsView x:Name="SettingsPanel" Grid.Row="1" Grid.Column="1" Width="400" ViewModel="{x:Bind ViewModel.Settings}"
-                                Visibility="{x:Bind Show(ViewModel.IsSettingsOpen), Mode=OneWay}" />
+      <!-- S5 (D-192): the host's width slides open and shut, so the sheet enters from the right edge and the cards narrow. -->
+      <Grid x:Name="SettingsHost" Grid.Row="1" Grid.Column="1" Width="0" Visibility="Collapsed">
+        <views:LedgerSettingsView x:Name="SettingsPanel" Width="320" HorizontalAlignment="Left" ViewModel="{x:Bind ViewModel.Settings}" />
+      </Grid>
 
       <lc:SquircleSurface x:Name="UndoBar" Grid.Row="1" Radius="9" Fill="{StaticResource LedgerTipBrush}" Stroke="{StaticResource LedgerLineWindowBrush}" Height="36"
                           Padding="14,0,8,0" ColumnSpacing="12" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16"

@@ -61,103 +61,6 @@ internal sealed partial class LedgerFooterPanel : Panel
     }
 }
 
-/// <summary>
-/// The card grid (S1): cards fill rows of one or two equal columns in order; an element marked FullRow (inline history)
-/// starts its own row across all columns. Row height is the tallest card of the row.
-/// </summary>
-internal sealed partial class CardGridPanel : Panel
-{
-    public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register(nameof(Columns), typeof(int), typeof(CardGridPanel), new PropertyMetadata(2, Invalidate));
-    public static readonly DependencyProperty GapProperty = DependencyProperty.Register(nameof(Gap), typeof(double), typeof(CardGridPanel), new PropertyMetadata(8.0, Invalidate));
-    public static readonly DependencyProperty PaddingProperty = DependencyProperty.Register(nameof(Padding), typeof(Thickness), typeof(CardGridPanel), new PropertyMetadata(new Thickness(12), Invalidate));
-    public static readonly DependencyProperty FullRowProperty = DependencyProperty.RegisterAttached("FullRow", typeof(bool), typeof(CardGridPanel), new PropertyMetadata(false));
-
-    public int Columns { get => (int)GetValue(ColumnsProperty); set => SetValue(ColumnsProperty, value); }
-    public double Gap { get => (double)GetValue(GapProperty); set => SetValue(GapProperty, value); }
-    public Thickness Padding { get => (Thickness)GetValue(PaddingProperty); set => SetValue(PaddingProperty, value); }
-
-    public static bool GetFullRow(DependencyObject element) => (bool)element.GetValue(FullRowProperty);
-    public static void SetFullRow(DependencyObject element, bool value) => element.SetValue(FullRowProperty, value);
-
-    private static void Invalidate(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((CardGridPanel)d).InvalidateMeasure();
-
-    private IEnumerable<List<UIElement>> Rows()
-    {
-        var columns = Math.Max(1, Columns);
-        var row = new List<UIElement>();
-        foreach (var child in Children)
-        {
-            if (child.Visibility == Visibility.Collapsed)
-                continue;
-            if (GetFullRow(child))
-            {
-                if (row.Count > 0)
-                    yield return row;
-                yield return [child];
-                row = [];
-                continue;
-            }
-            row.Add(child);
-            if (row.Count == columns)
-            {
-                yield return row;
-                row = [];
-            }
-        }
-        if (row.Count > 0)
-            yield return row;
-    }
-
-    private double ColumnWidth(double width) => Math.Max(0, (width - Padding.Left - Padding.Right - Gap * (Math.Max(1, Columns) - 1)) / Math.Max(1, Columns));
-
-    protected override Size MeasureOverride(Size availableSize)
-    {
-        var width = double.IsInfinity(availableSize.Width) ? 760 : availableSize.Width;
-        var column = ColumnWidth(width);
-        var full = width - Padding.Left - Padding.Right;
-        var height = Padding.Top;
-        var first = true;
-        foreach (var row in Rows())
-        {
-            if (!first)
-                height += Gap;
-            first = false;
-            var rowHeight = 0.0;
-            foreach (var child in row)
-            {
-                child.Measure(new Size(GetFullRow(child) ? full : column, double.PositiveInfinity));
-                rowHeight = Math.Max(rowHeight, child.DesiredSize.Height);
-            }
-            height += rowHeight;
-        }
-        return new Size(width, height + Padding.Bottom);
-    }
-
-    protected override Size ArrangeOverride(Size finalSize)
-    {
-        var column = ColumnWidth(finalSize.Width);
-        var full = finalSize.Width - Padding.Left - Padding.Right;
-        var y = Padding.Top;
-        var first = true;
-        foreach (var row in Rows())
-        {
-            if (!first)
-                y += Gap;
-            first = false;
-            var rowHeight = row.Max(c => c.DesiredSize.Height);
-            var x = Padding.Left;
-            foreach (var child in row)
-            {
-                var w = GetFullRow(child) ? full : column;
-                child.Arrange(new Rect(x, y, w, rowHeight));
-                x += w + Gap;
-            }
-            y += rowHeight;
-        }
-        return finalSize;
-    }
-}
-
 /// <summary>Inline history under a card (S4): header, chart, legend. ← → move the focused day; Esc closes (window).</summary>
 internal sealed partial class HistoryPanel : ContentControl
 {
@@ -196,7 +99,6 @@ internal sealed partial class HistoryPanel : ContentControl
         var surface = new SquircleSurface { Radius = 20, Fill = LedgerTheme.Solid("Hist"), Stroke = LedgerTheme.Solid("LineCard"), Padding = new Thickness(15, 13, 15, 12) };
         surface.Children.Add(stack);
         Content = surface;
-        CardGridPanel.SetFullRow(this, true);
         KeyDown += OnKeyDown;
     }
 

@@ -8,7 +8,7 @@ using Windows.UI.Text;
 
 namespace AiUsage.Features.Ledger.Views;
 
-/// <summary>The inline settings panel (S5). Arming Delete stored data moves focus to Cancel (R-12).</summary>
+/// <summary>The settings sheet (S5, D-192). Arming Delete stored data moves focus to Cancel (R-12); disarming returns it to ⋯.</summary>
 internal sealed partial class LedgerSettingsView : UserControl
 {
     public LedgerSettingsView() => InitializeComponent();
@@ -36,11 +36,9 @@ internal sealed partial class LedgerSettingsView : UserControl
         if (ViewModel.IsDeleteArmed)
             DispatcherQueue.TryEnqueue(() => CancelButton.Focus(FocusState.Keyboard));
         else
-            DispatcherQueue.TryEnqueue(() => DeleteButton.Focus(FocusState.Programmatic));
+            DispatcherQueue.TryEnqueue(() => MoreButton.Focus(FocusState.Programmatic));
     }
 
-    private void OnUsed(object sender, RoutedEventArgs e) => _ = ViewModel.SetValueModeAsync(ValueMode.Used);
-    private void OnLeft(object sender, RoutedEventArgs e) => _ = ViewModel.SetValueModeAsync(ValueMode.Left);
     private void OnCompact(object sender, RoutedEventArgs e) => _ = ViewModel.SetDensityAsync(Density.Compact);
     private void OnComfortable(object sender, RoutedEventArgs e) => _ = ViewModel.SetDensityAsync(Density.Comfortable);
     private void OnUpdatesOff(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.Off);
@@ -59,11 +57,11 @@ internal sealed partial class LedgerSettingsView : UserControl
     private bool Not(bool value) => !value;
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
     private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
+    private Visibility ShowText(string value) => Show(value.Length > 0);
     public static Visibility Present(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
     private Brush Segment(bool state, bool match) => LedgerTheme.Solid(state == match ? "ControlOn" : "Transparent");
     private Brush SegmentText(bool state, bool match) => LedgerTheme.Solid(state == match ? "Ink" : "Ink3");
-    private string OnOff(bool on) => on ? "On" : "Off";
     private string SwitchName(string label, bool on) => label + ", " + (on ? "on" : "off");
     private Brush SwitchTrack(bool on) => LedgerTheme.Solid(on ? "OkP" : "NeutralP");
     private Brush SwitchFill(bool on) => LedgerTheme.Solid(on ? "OkP" : "Transparent");
@@ -76,5 +74,6 @@ internal sealed partial class LedgerSettingsView : UserControl
     public static FontWeight DayWeight(bool on) => on ? FontWeights.SemiBold : FontWeights.Normal;
     public static FontFamily DayFont(bool on) => (FontFamily)LedgerTheme.Find(on ? "LedgerSansSemiboldFont" : "LedgerSansFont")!;
     public static Brush AmountBrush(bool applied) => LedgerTheme.Solid(applied ? "Ink" : "Ink2");
-    public static Brush NoteBrush(bool warning) => LedgerTheme.Solid(warning ? "AttText" : "Ink3");
+    // Edit (pencil) for a cap that still matches a limit, Remove (bin) for an unmatched one.
+    public static string ActionGlyph(string action) => action == "Remove" ? "" : "";
 }

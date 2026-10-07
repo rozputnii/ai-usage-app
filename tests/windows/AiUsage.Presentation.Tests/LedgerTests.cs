@@ -501,6 +501,7 @@ public sealed class LedgerInteractionTests
         var (window, _, _, _) = Start();
         Assert.Equal("Version 2026.10.604.0", window.Settings.UpdateVersionText);
         Assert.Matches(@"^Up to date · checked \d\d:\d\d$", window.Settings.UpdatesText);
+        Assert.False(window.Settings.IsUpdateNotable); // up to date stays a tooltip (D-192)
         Assert.True(window.Settings.CanCheckUpdates);
         Assert.False(window.Settings.CanInstallUpdate);
         Assert.True(window.Settings.IsUpdateAlways);
@@ -519,6 +520,7 @@ public sealed class LedgerInteractionTests
         Assert.True(window.Settings.IsInstallingUpdate);
         Assert.Equal("Installing", window.Settings.InstallUpdateText);
         Assert.Equal("Downloading and installing · the app will restart", window.Settings.UpdatesText);
+        Assert.True(window.Settings.IsUpdateNotable);
         Assert.False(window.Settings.CanCheckUpdates);
 
         var ready = installing with { Summaries = installing.Summaries with { Updates = new(UpdateState.Ready, "2026.10.604.0") } };
@@ -880,7 +882,18 @@ public sealed class LedgerInteractionTests
         Assert.Equal("€250.00", caps[3].AmountText);
         Assert.False(caps[3].CanAct);
         Assert.Equal("1 sync failed · Antigravity", window.Settings.SystemStatusText);
+        Assert.True(window.Settings.HasSystemStatus);
         Assert.Equal("every 5 min", window.Settings.MonitoringText);
+    }
+
+    [Fact]
+    public void SettingsFooterShowsTheIntervalWhileAllSynced()
+    {
+        var (window, source, _, _) = Start();
+        var synced = source.Current with { Summaries = source.Current.Summaries with { FailedSyncs = 0, FailedProviders = [] } };
+        window.Settings.Rebuild(synced, source.Preferences);
+        Assert.Equal(string.Empty, window.Settings.SystemStatusText);
+        Assert.False(window.Settings.HasSystemStatus);
     }
 
     [Fact]

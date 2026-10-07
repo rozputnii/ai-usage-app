@@ -33,6 +33,7 @@ internal sealed partial class LedgerWindow : Window
     private readonly Action showTray;
     private bool finalClose;
     private Storyboard? stripWave;
+    private Storyboard? settingsSlide;
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? copyReset;
 
     public LedgerWindow(LedgerViewModel viewModel, Func<Task> exit, Action showTray)
@@ -72,6 +73,8 @@ internal sealed partial class LedgerWindow : Window
         ViewModel.PropertyChanged += OnViewModelChanged;
         ViewModel.FocusCardRequested += (_, cardId) => DispatcherQueue.TryEnqueue(() => FocusCard(cardId));
         RebuildGrid();
+        if (ViewModel.IsSettingsOpen)
+            SlideSettings();
         ApplyPreferences();
         UpdateTrayGlyph();
         UpdateStripWave();
@@ -148,7 +151,7 @@ internal sealed partial class LedgerWindow : Window
                 RebuildGrid();
                 break;
             case nameof(LedgerViewModel.IsSettingsOpen):
-                DispatcherQueue.TryEnqueue(() => { RebuildGrid(); if (ViewModel.IsSettingsOpen) LedgerMotion.FadeIn(SettingsPanel, 250); });
+                DispatcherQueue.TryEnqueue(SlideSettings);
                 break;
             case nameof(LedgerViewModel.HasStrip):
                 if (ViewModel.HasStrip) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(SignInStrip, 150));
@@ -182,13 +185,26 @@ internal sealed partial class LedgerWindow : Window
             presenter.IsAlwaysOnTop = ViewModel.Preferences.AlwaysOnTop;
     }
 
+    /// <summary>The settings sheet slides in from the right edge and back out, narrowing and widening the cards (D-192).</summary>
+    private void SlideSettings()
+    {
+        var open = ViewModel.IsSettingsOpen;
+        var from = SettingsHost.Visibility == Visibility.Visible ? SettingsHost.ActualWidth : 0;
+        settingsSlide?.Stop();
+        SettingsHost.Visibility = Visibility.Visible;
+        settingsSlide = LedgerMotion.SlideWidth(SettingsHost, from, open ? SettingsPanel.Width : 0, () =>
+        {
+            if (!ViewModel.IsSettingsOpen)
+                SettingsHost.Visibility = Visibility.Collapsed;
+        });
+    }
+
     private void OnCardsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RebuildGrid();
 
-    /// <summary>Card views follow the view-model order; history goes after the row that holds its card.</summary>
+    /// <summary>Card views follow the view-model order; history goes right after its card.</summary>
     private void RebuildGrid()
     {
         var wanted = new List<UIElement>();
-        var columns = Math.Max(1, CardGrid.Columns);
         var openIndex = -1;
         // A retained series may move between the grid and an account section as windows appear/disappear.
         // Detach hosts even on views that are about to leave the grid.
@@ -217,7 +233,7 @@ internal sealed partial class LedgerWindow : Window
             views.Remove(gone);
         historyPanel.History = ViewModel.History;
         if (ViewModel.History is not null && openIndex >= 0)
-            wanted.Insert(Math.Min(wanted.Count, (openIndex / columns + 1) * columns), historyPanel);
+            wanted.Insert(openIndex + 1, historyPanel);
         if (CardGrid.Children.SequenceEqual(wanted))
             return;
         CardGrid.Children.Clear();
@@ -424,6 +440,5 @@ internal sealed partial class LedgerWindow : Window
     private Brush SettingsBackground(bool open) => LedgerTheme.Solid(open ? "ControlOn" : "Transparent");
     private double GridGap(bool compact) => compact ? 8 : 12;
     private Thickness BodyPadding(bool compact, bool undo) => new(compact ? 12 : 14, compact ? 12 : 14, compact ? 12 : 14, undo ? 66 : compact ? 12 : 14);
-    private int GridColumns(bool settingsOpen) => settingsOpen ? 1 : 2;
     private string UndoName(string text) => "Undo: " + text;
 }

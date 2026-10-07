@@ -72,7 +72,10 @@ internal sealed partial class CapRow : ObservableObject
     }
 }
 
-/// <summary>The inline settings panel (spec S5): work days with undo, personal caps, appearance, data and status rows.</summary>
+/// <summary>
+/// The settings sheet (spec S5, D-192): work days with undo, personal caps, view, updates, and a footer with the refresh
+/// interval or a status problem, the rare support actions and Delete stored data. Explanations are tooltips.
+/// </summary>
 internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILedgerSource source) : ObservableObject
 {
     private LedgerSnapshot? snapshot;
@@ -80,12 +83,12 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     public LedgerViewModel Owner { get; } = owner;
     public ObservableCollection<WorkDayToggle> WorkDays { get; } = [];
     public ObservableCollection<CapRow> Caps { get; } = [];
-    [ObservableProperty] public partial bool IsLeft { get; private set; }
     [ObservableProperty] public partial bool IsCompact { get; private set; }
-    [ObservableProperty] public partial bool ShowSignedOut { get; private set; }
     [ObservableProperty] public partial bool AlwaysOnTop { get; private set; }
     [ObservableProperty] public partial string MonitoringText { get; private set; } = string.Empty;
     [ObservableProperty] public partial string UpdatesText { get; private set; } = string.Empty;
+    /// <summary>The update status needs attention or action; otherwise it is only a tooltip.</summary>
+    [ObservableProperty] public partial bool IsUpdateNotable { get; private set; }
     [ObservableProperty] public partial string UpdateVersionText { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool CanCheckUpdates { get; private set; }
     [ObservableProperty] public partial bool CanInstallUpdate { get; private set; }
@@ -94,7 +97,9 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     [ObservableProperty] public partial bool IsUpdateAlways { get; private set; }
     [ObservableProperty] public partial bool IsUpdateOnLaunch { get; private set; }
     [ObservableProperty] public partial bool IsUpdateOff { get; private set; }
+    /// <summary>A local-data or sync problem, empty while all is well; it replaces the refresh interval in the footer.</summary>
     [ObservableProperty] public partial string SystemStatusText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial bool HasSystemStatus { get; private set; }
     [ObservableProperty] public partial bool IsDeleteArmed { get; private set; }
     [ObservableProperty] public partial bool HasCaps { get; private set; }
     [ObservableProperty] public partial string RecoveryText { get; private set; } = string.Empty;
@@ -107,7 +112,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     public string WorkDaysNote =>
         "Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight. Changes apply from the next local midnight.";
     public string CapsNote => "A cap is yours, never the provider’s limit. The lower of cap and provider limit applies. Caps are set in the pool’s own unit or currency.";
-    public string DeleteNote => "Deletes sign-ins, names, preferences, caps, history and logs on this PC, including retained history from older versions. Enter confirms, Esc cancels.";
+    public string DeleteNote => "Deletes sign-ins, names, preferences, caps, history and logs on this PC.";
 
     internal LimitCardModel? CapCard(string capTargetId) => snapshot?.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CapTargetId == capTargetId);
     internal bool HasCard(string capTargetId) => CapCard(capTargetId) is not null;
@@ -119,13 +124,13 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         RecoveryText = current.Summaries.Recovery?.Message ?? string.Empty;
         CanRetryRecovery = current.Summaries.Recovery?.CanRetry ?? false;
         CanRestorePreferences = current.Summaries.Recovery?.CanRestorePreferences ?? false;
-        IsLeft = prefs.Mode == ValueMode.Left;
         IsCompact = prefs.Density == Density.Compact;
-        ShowSignedOut = prefs.ShowSignedOut;
         AlwaysOnTop = prefs.AlwaysOnTop;
         MonitoringText = "every " + LedgerFormat.Duration(current.Summaries.RefreshInterval);
         var updates = current.Summaries.Updates;
         UpdatesText = LedgerFormat.UpdateText(updates);
+        IsUpdateNotable = updates.State is UpdateState.Available or UpdateState.Ready or UpdateState.Installing or UpdateState.CheckFailed
+            or UpdateState.InstallFailed or UpdateState.NotApplied;
         UpdateVersionText = updates.Version is { } version ? "Version " + version : string.Empty;
         CanCheckUpdates = updates.State is not (UpdateState.NotPackaged or UpdateState.NoFeed or UpdateState.Checking or UpdateState.Installing);
         // The button stays in place while installing, so the click visibly took effect until Windows closes the app.
@@ -136,8 +141,9 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         IsUpdateOnLaunch = prefs.Updates == UpdateMode.OnLaunch;
         IsUpdateOff = prefs.Updates == UpdateMode.Off;
         SystemStatusText = current.Summaries.Recovery?.Message ?? (current.Summaries.IsStarting ? "Opening local data…" : current.Summaries.LocalStatus) ?? (current.Summaries.FailedSyncs == 0
-            ? "all accounts synced"
+            ? string.Empty
             : current.Summaries.FailedSyncs + (current.Summaries.FailedSyncs == 1 ? " sync failed · " : " syncs failed · ") + string.Join(", ", current.Summaries.FailedProviders.Select(LedgerFormat.ProviderName)));
+        HasSystemStatus = SystemStatusText.Length > 0;
 
         DayOfWeek[] order = [DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday];
         if (WorkDays.Count == 0)
@@ -195,12 +201,6 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
 
     [RelayCommand]
     public Task InstallUpdateAsync() => source.InstallUpdateAsync(CancellationToken.None);
-
-    [RelayCommand]
-    public Task SetValueModeAsync(ValueMode mode) => source.SetPreferencesAsync(source.Preferences with { Mode = mode }, CancellationToken.None);
-
-    [RelayCommand]
-    public Task ToggleShowSignedOutAsync() => source.SetPreferencesAsync(source.Preferences with { ShowSignedOut = !source.Preferences.ShowSignedOut }, CancellationToken.None);
 
     [RelayCommand]
     public Task ToggleAlwaysOnTopAsync() => source.SetPreferencesAsync(source.Preferences with { AlwaysOnTop = !source.Preferences.AlwaysOnTop }, CancellationToken.None);
