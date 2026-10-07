@@ -408,8 +408,11 @@ internal sealed partial class LedgerWindow : Window
     private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
     private Visibility ShowText(string? value) => Show(!string.IsNullOrEmpty(value));
     private Brush StripDot(Tone tone, bool busy) => busy ? LedgerTheme.Solid("WaitM") : LedgerTheme.ToneMark(tone);
-    // Without animation the still dot cannot show that the app is waiting, so the line says it.
-    private string StripDetail(string text, bool busy) => busy && !LedgerTheme.AnimationsEnabled ? (text.Length > 0 ? text + " · waiting" : "waiting") : text;
+    // A rejected code replaces the hint, keeping the strip one line. Without animation the still dot cannot show that the
+    // app is waiting, so the line says it.
+    private string StripDetail(string text, bool busy, string error) =>
+        error.Length > 0 ? error : busy && !LedgerTheme.AnimationsEnabled ? (text.Length > 0 ? text + " · waiting" : "waiting") : text;
+    private Brush StripDetailBrush(string error) => error.Length > 0 ? LedgerTheme.ToneText(Tone.Attention) : LedgerTheme.Solid("Ink3");
     private Style StripActionStyle(bool primary) => (Style)LedgerTheme.Find(primary ? "LedgerPrimaryButton" : "LedgerLinkButton")!;
     private Style WorkTodayStyle(bool on) => (Style)LedgerTheme.Find(on ? "LedgerSegmentOnButton" : "LedgerOutlineButton")!;
     private string WorkTodayName(bool on) => on ? "Work today, on until midnight" : "Work today, off";
