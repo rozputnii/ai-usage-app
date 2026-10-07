@@ -48,6 +48,25 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(100, shortWindow.UsedPercent); // Retain the provider fact without inventing a replacement.
     }
 
+    [Theory]
+    [InlineData(30, 85, "OnTrack")]
+    [InlineData(30, 86, "FiveHourLow")]
+    [InlineData(30, 100, "FiveHourFull")]
+    [InlineData(40, 86, "FiveHourLow")]
+    [InlineData(50, 86, "OverToday")]
+    [InlineData(50, 100, "FiveHourFull")]
+    public void FiveHourWindowWarnsBelowFifteenPercentLeftAndIsCriticalWhenFull(int weeklyUsed, int shortUsed, string expected)
+    {
+        var weekly = Weekly(weeklyUsed);
+        var shortWindow = weekly with { Key = new("claude", "CL-S", "short"), UsedPercent = shortUsed,
+            Duration = TimeSpan.FromHours(5), Reset = new(Now.AddHours(3), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var account = new AccountSnapshot(Account, "claude", true,
+            new(ProviderSessionStatus.QuotaAvailable, new QuotaSnapshot(Now, null, [], null, null, null, null)), false, null);
+        var model = LiveLedgerProjection.Account(account, "SYNTHETIC short window", [Data(weekly), Data(shortWindow)],
+            BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.Equal(expected, Assert.Single(model.Cards).State.ToString());
+    }
+
     [Fact]
     public void SuccessfulEmptyQuotaUsesTheSupportedNoDisplayedLimitsState()
     {

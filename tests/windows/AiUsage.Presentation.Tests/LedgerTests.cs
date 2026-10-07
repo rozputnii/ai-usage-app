@@ -241,12 +241,13 @@ public sealed class LedgerCardTests
     [InlineData("a1", null, "Ok")]
     [InlineData("a2", "today low", "Attention")]
     [InlineData("a3", "over today", "Critical")]
-    [InlineData("a4", "5h full", "Attention")]
+    [InlineData("a4", "5h full", "Critical")]
+    [InlineData("a9", "5h low", "Attention")]
     [InlineData("a6", "7d used up", "Critical")]
-    [InlineData("b3", "today used", "Critical")]
+    [InlineData("b3", "today used", "Attention")]
     [InlineData("b5", "today short", "Attention")]
     [InlineData("c4", "cap close", "Attention")]
-    [InlineData("c5", "cap reached", "Critical")]
+    [InlineData("c5", "cap reached", "Attention")]
     [InlineData("c6", "over cap", "Critical")]
     [InlineData("d6", "over cap", "Critical")]
     [InlineData("g4", "not included", "Neutral")]
@@ -276,7 +277,7 @@ public sealed class LedgerCardTests
         var states = StateGallery.Accounts.SelectMany(a => a.Cards).Select(c => c.State).ToHashSet();
         foreach (var state in Enum.GetValues<CardState>().Where(s => s != CardState.NoCap))
             Assert.Contains(state, states);
-        Assert.Equal(54, StateGallery.Accounts.Count);
+        Assert.Equal(55, StateGallery.Accounts.Count);
     }
 
     [Fact]
@@ -974,7 +975,7 @@ public sealed class LedgerInteractionTests
         Assert.Equal(9, window.Demo!.Scenarios.Count);
         window.ToggleSettings();
         window.LoadScenario(DemoLedgerScenarios.States);
-        Assert.Equal(53, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
+        Assert.Equal(54, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
         Assert.All(window.Cards, c => Assert.False(c.IsNew));
         window.LoadScenario(DemoLedgerScenarios.FirstRun);
         Assert.True(window.IsFirstRun);

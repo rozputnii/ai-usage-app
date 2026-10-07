@@ -119,6 +119,7 @@ internal enum CardState
     TodayLow,
     TodayShort,
     CapClose,
+    FiveHourLow,
     FiveHourFull,
     TodayUsed,
     OverToday,

@@ -88,7 +88,11 @@ internal static class LiveLedgerProjection
                         Windows = estimate.Windows
                     },
                     State = shortUsed >= 100 && shortData.Facts.Reset?.At > now && card.State is not (CardState.UsedUp or CardState.NotReady or CardState.DayOff or CardState.ValueUnknown)
-                        ? CardState.FiveHourFull : card.State
+                        ? CardState.FiveHourFull
+                        // D-192: under 15 % of the window left warns unless the day is already critical or neutral.
+                        : shortUsed > 85 && card.State is CardState.OnTrack or CardState.Rush or CardState.TodayLow or CardState.TodayShort
+                            or CardState.CapClose or CardState.TodayUsed or CardState.CapReached
+                            ? CardState.FiveHourLow : card.State
                 };
             }
             var marks = card.Marks.ToList();
