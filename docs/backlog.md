@@ -491,6 +491,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - evidence: docs/specs/AIU-046-in-app-updates/verification.md
 - registration-note: Owner requested this on 2026-10-06 after Preview 2026.10.604.0 staged but failed to register (`0x80073D02`) because the tray app was running. The owner approved the design, written spec and plan the same day. Implemented and verified in Sandbox on 2026-10-06. Awaiting owner review and integration; the owner live update check is NOT_RUN.
 
+## AIU-047 - Usage history survives reinstall
+- goal: G-003
+- status: idea
+- depends_on: [AIU-036, AIU-039]
+- trigger: owner-selection
+- outcome: After the packaged app is uninstalled and reinstalled on the same Windows user profile, signing in to the same provider account restores that account's local reading series and the analytics derived from it at once. The series lives in an unvirtualized `%LOCALAPPDATA%\AiUsage\History` folder, and a DPAPI-protected identity map restores the account's app ID. Credentials and preferences still leave with the package.
+- acceptance: AC-01 through AC-08 in the specification cover the manifest exclusion, unpackaged isolation, the identity map, re-attach, migration of existing installs, deletion, logging and the live uninstall/reinstall check.
+- specification: docs/specs/AIU-047-history-survives-reinstall/spec.md
+- registration-note: Owner requested this on 2026-10-07 and approved the design sections the same day. The written specification awaits owner review; implementation is not started.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
