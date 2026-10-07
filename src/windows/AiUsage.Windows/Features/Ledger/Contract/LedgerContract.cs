@@ -69,6 +69,22 @@ internal sealed record LimitCardModel(
     public MonetaryDetails? Monetary { get; init; }
     /// <summary>A limit of one model within the subscription (Claude Fable or Opus, Codex additional limits); drawn as a section of the account card.</summary>
     public bool ModelScoped { get; init; }
+    /// <summary>The owner hid this section of the account card (D-191); its facts, tray strip and status stay.</summary>
+    public bool Hidden { get; init; }
+}
+
+/// <summary>D-191: one card per account. The primary limit heads it; every other limit is a section below it.</summary>
+internal static class AccountCard
+{
+    /// <summary>The first shown card, preferring a subscription window over model, spending and note-only limits.</summary>
+    public static LimitCardModel? Primary(AccountModel account)
+    {
+        var shown = account.Cards.Where(c => !c.Hidden).ToArray();
+        return (shown.Length > 0 ? shown : account.Cards).OrderBy(c => (c.Monetary is not null || c.ModelScoped ? 2 : 0) + (c.Layout == CardLayout.Note ? 1 : 0)).FirstOrDefault();
+    }
+
+    /// <summary>Section order below the primary: limits with bars, then spending, then note-only limits.</summary>
+    public static int SectionRank(LimitCardModel card) => card.Layout == CardLayout.Note ? 2 : card.Monetary is not null ? 1 : 0;
 }
 
 // Presentation-only native facts; separate scales prevent a mismatched limit being relabeled.
@@ -268,6 +284,8 @@ internal interface ILedgerSource
     Task<CommandOutcome> RemoveUnmatchedCapAsync(string capId, CancellationToken ct);
     Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct);
     Task MoveCardAsync(string cardId, int offset, CancellationToken ct);
+    /// <summary>Hides or shows a section of its account card; the primary limit cannot be hidden.</summary>
+    Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct);
     Task SignInAsync(ProviderKind provider, CancellationToken ct);
     Task ReconnectAsync(string accountId, CancellationToken ct);
     Task RefreshAccountAsync(string accountId, CancellationToken ct);

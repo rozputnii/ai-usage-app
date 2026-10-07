@@ -67,6 +67,7 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
         state.Labels.Count <= 256 && state.Labels.All(x => Guid.TryParseExact(x.Key, "N", out var id) && id != Guid.Empty &&
             x.Value is { Length: > 0 and <= 100 } && x.Value == x.Value.Trim()) &&
         state.Order.Length <= 4096 && state.Order.All(x => x is { Length: > 0 and <= 8192 }) && state.Order.Distinct().Count() == state.Order.Length &&
+        state.Hidden is { Length: <= 4096 } && state.Hidden.All(x => x is { Length: > 0 and <= 8192 }) && state.Hidden.Distinct().Count() == state.Hidden.Length &&
         (state.PendingWorkDays is null ? state.WorkDaysEffectiveOn is null :
             state.WorkDaysEffectiveOn is not null && state.PendingWorkDays.Length is > 0 and <= 7 &&
             state.PendingWorkDays.All(Enum.IsDefined) && state.PendingWorkDays.Distinct().Count() == state.PendingWorkDays.Length);
@@ -94,6 +95,7 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
         public LedgerPreferences Preferences { get; set; } = LedgerPreferences.Default;
         public Dictionary<string, string> Labels { get; set; } = [];
         public string[] Order { get; set; } = [];
+        public string[] Hidden { get; set; } = [];
         public DateOnly? WorkToday { get; set; }
         public DayOfWeek[]? PendingWorkDays { get; set; }
         public DateOnly? WorkDaysEffectiveOn { get; set; }

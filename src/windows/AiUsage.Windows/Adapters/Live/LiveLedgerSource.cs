@@ -234,7 +234,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             foreach (var limit in data) nextLimits.Add(LiveLedgerProjection.CardId(limit.Series), limit);
             var name = preferences.Current.Labels.GetValueOrDefault(id) ?? DefaultName(account, snapshots);
             var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday);
-            model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId)).ToArray(),
+            model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId))
+                    .Select(c => preferences.Current.Hidden.Contains(c.CardId) ? c with { Hidden = true } : c).ToArray(),
                 NextRetryAt = NextRetry(account) is { } retry ? TimeZoneInfo.ConvertTime(retry, zone) : null };
             models.Add(model);
         }
@@ -319,6 +320,12 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         if (cards is null || index < 0 || target < 0 || target >= cards.Count) return Task.FromResult(CommandOutcome.Rejected);
         (cards[index], cards[(int)target]) = (cards[(int)target], cards[index]);
         return preferences.ChangeAsync(s => s with { Order = cards.Concat(s.Order.Except(cards)).ToArray() }, token);
+    }, ct);
+    public Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct) => ChangeAsync(token =>
+    {
+        var account = Current.Accounts.FirstOrDefault(a => a.Cards.Any(c => c.CardId == cardId));
+        if (account is null || hidden && AccountCard.Primary(account)?.CardId == cardId) return Task.FromResult(CommandOutcome.Rejected);
+        return preferences.ChangeAsync(s => s with { Hidden = hidden ? [.. s.Hidden.Append(cardId).Distinct()] : [.. s.Hidden.Where(id => id != cardId)] }, token);
     }, ct);
 
     public Task<CommandOutcome> SetCapAsync(string capTargetId, decimal? amount, CancellationToken ct) => ChangeAsync(async token =>

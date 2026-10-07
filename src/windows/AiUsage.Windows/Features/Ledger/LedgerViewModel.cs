@@ -63,6 +63,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial bool CanUseAccounts { get; private set; }
     [ObservableProperty] public partial bool IsStarting { get; private set; }
     [ObservableProperty] public partial bool IsDayOff { get; private set; }
+    /// <summary>Which cards are sections and which are hidden; the window regroups when it changes without a card list change.</summary>
+    [ObservableProperty] public partial string SectionLayout { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool WorkTodayOn { get; private set; }
     [ObservableProperty] public partial string DayText { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool IsLeft { get; private set; }
@@ -149,6 +151,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         foreach (var gone in cardsById.Keys.Except(ordered.Select(c => c.CardId)).ToArray())
             cardsById.Remove(gone);
         Sync(Cards, ordered);
+        SectionLayout = string.Join("|", ordered.Where(c => c.IsAccountSection).Select(c => c.CardId + (c.IsHiddenSection ? "-" : "+")));
         if (History is { } history && !cardsById.ContainsKey(history.CardId))
             CloseHistory();
 
@@ -430,6 +433,19 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         await source.MoveCardAsync(cardId, offset, CancellationToken.None);
         if (Cards.Any(card => card.CardId == cardId))
             FocusCardRequested?.Invoke(this, cardId);
+    }
+
+    public async Task SetHiddenAsync(string cardId, bool hidden)
+    {
+        if (hidden && historyCardId == cardId)
+            CloseHistory();
+        var account = Cards.FirstOrDefault(c => c.CardId == cardId)?.Account;
+        if (await source.SetCardHiddenAsync(cardId, hidden, CancellationToken.None) != CommandOutcome.Done)
+            return;
+        // Keyboard focus stays on the account card instead of falling to the next one.
+        var target = hidden ? account is null ? null : AccountCard.Primary(account)?.CardId : cardId;
+        if (target is not null)
+            FocusCardRequested?.Invoke(this, target);
     }
 
     public async Task ToggleHistoryAsync(LimitCardViewModel card)

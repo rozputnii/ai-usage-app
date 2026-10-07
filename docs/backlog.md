@@ -524,6 +524,18 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - open-questions: The definition of the accuracy percentage. Recommended: the share of measured windows whose own bounds agree with the pooled estimate, which directly measures how often the constant-cost assumption holds; the alternative is the relative tightness of the bounds. Whether the per-window figures are derived on demand from the stored reading series, which needs no new persistence, or kept as their own records.
 - registration-note: Owner proposed this on 2026-10-07 after the AIU-048 review noted that its bounds are guaranteed only while the window cost stays constant. Not selected for implementation yet.
 
+## AIU-050 - One card per account with hideable limit sections
+- goal: G-003
+- status: done
+- depends_on: [AIU-039, AIU-045]
+- trigger: owner-selection
+- outcome: Every account is one card. Its primary limit heads it and every other limit is a section, as model limits and spending already were; the owner can hide any section and show it again from the "N hidden" mark on the card (D-191).
+- acceptance: AC-01 through AC-05 in the specification cover one card per account, hiding and showing, live persistence, preference-file compatibility and verification.
+- specification: docs/specs/AIU-050-one-card-per-account/spec.md
+- evidence: docs/specs/AIU-050-one-card-per-account/verification.md
+- registration-note: The owner reported on 2026-10-07 that a Copilot Business sign-in showed three limit cards for one account, asked for design variants first and chose design A with hide variant H2.
+- completion-note: Implemented and verified 2026-10-07 in the demo app and the regression suites. The owner checks the live Copilot account in the updated installed app after deployment (D-190); that check is NOT_RUN.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

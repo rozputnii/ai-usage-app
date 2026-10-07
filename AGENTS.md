@@ -15,6 +15,10 @@ increasing complexity beyond the approved design.
 For substantial work, briefly state the intended result and acceptance checks.
 Complete authorized implementation, relevant verification, and integrated
 review without repeated approval for routine internal steps.
+Owner direction (2026-10-07): when a change visibly alters the UI (layout,
+card structure, controls, copy placement), first propose 2-3 short design
+variants with a recommendation and wait for the owner's choice before
+implementing. Bug fixes that restore already approved UI need no variants.
 
 Write all authored prompts and specifications in English, regardless of the
 language used in user conversations or agent sessions. This includes task,

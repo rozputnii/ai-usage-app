@@ -181,6 +181,16 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         return Task.CompletedTask;
     }
 
+    public Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct)
+    {
+        var account = Current.Accounts.FirstOrDefault(a => a.Cards.Any(c => c.CardId == cardId));
+        if (account is null || hidden && AccountCard.Primary(account)?.CardId == cardId)
+            return Task.FromResult(CommandOutcome.Rejected);
+        var changed = account with { Cards = [.. account.Cards.Select(c => c.CardId == cardId ? c with { Hidden = hidden } : c)] };
+        Publish(Current with { Accounts = [.. Current.Accounts.Select(a => a.AccountId == account.AccountId ? changed : a)] });
+        return Task.FromResult(CommandOutcome.Done);
+    }
+
     public Task SignInAsync(ProviderKind provider, CancellationToken ct) => BeginSignIn(provider, null);
 
     public Task ReconnectAsync(string accountId, CancellationToken ct)

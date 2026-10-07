@@ -99,9 +99,18 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
     [ObservableProperty] public partial bool IsCompact { get; set; } = true;
 
-    /// <summary>Spending and model limits are drawn inside the account's first other card, so one subscription is one card.</summary>
-    public bool IsAccountSection => IsSectionKind(Model) && Account.Cards.Any(c => !IsSectionKind(c));
-    private static bool IsSectionKind(LimitCardModel card) => card.Monetary is not null || card.ModelScoped;
+    /// <summary>Every limit other than the account's primary one is drawn inside the primary card, so one account is one card (D-191).</summary>
+    public bool IsAccountSection => AccountCard.Primary(Account)?.CardId != CardId;
+    /// <summary>A section the owner hid; the window leaves it out and the primary card counts it.</summary>
+    public bool IsHiddenSection => IsAccountSection && Model.Hidden;
+    public bool CanHide => IsAccountSection;
+    public string HideName => "Hide " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
+    [ObservableProperty] public partial int HiddenCount { get; private set; }
+    [ObservableProperty] public partial Tone HiddenTone { get; private set; }
+    public bool HasHidden => HiddenCount > 0;
+    public string HiddenText => HiddenCount + " hidden";
+    public string HiddenName => "Show " + HiddenCount + " hidden " + (HiddenCount == 1 ? "limit" : "limits");
+    public string HiddenTip => "Hidden: " + string.Join(", ", HiddenCards().Select(c => c.ScopeLabel ?? LedgerFormat.PeriodWords(c.Period)));
     public string Name => Account.DisplayName;
     public string HeaderName => IsAccountSection ? string.Empty : Name;
     public string? Tag => Model.ScopeLabel;
@@ -123,11 +132,21 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     }
 
     /// <summary>Account-wide marks and Sign in belong to the host card; a section shows only its own limit's facts.</summary>
-    private CardVisual BuildVisual(ValueMode mode, DateTimeOffset now) => CardVisuals.Build(!IsAccountSection ? Model : Model with
+    private CardVisual BuildVisual(ValueMode mode, DateTimeOffset now)
     {
-        Marks = [.. Model.Marks.Where(m => m.Kind is not (MarkKind.SyncFailed or MarkKind.SignInExpired))],
-        Action = Model.Action == CardAction.SignIn ? CardAction.None : Model.Action
-    }, Account, mode, now);
+        var hidden = HiddenCards().ToArray();
+        HiddenCount = hidden.Length;
+        // The dot keeps the most urgent hidden state in sight.
+        var tones = hidden.Select(c => CardVisuals.Build(c, Account, mode, now).Tone).ToArray();
+        HiddenTone = tones.Contains(Tone.Critical) ? Tone.Critical : tones.Contains(Tone.Attention) ? Tone.Attention : Tone.Neutral;
+        return CardVisuals.Build(!IsAccountSection ? Model : Model with
+        {
+            Marks = [.. Model.Marks.Where(m => m.Kind is not (MarkKind.SyncFailed or MarkKind.SignInExpired))],
+            Action = Model.Action == CardAction.SignIn ? CardAction.None : Model.Action
+        }, Account, mode, now);
+    }
+
+    private IEnumerable<LimitCardModel> HiddenCards() => IsAccountSection ? [] : Account.Cards.Where(c => c.Hidden && c.CardId != CardId);
 
     [RelayCommand]
     public void BeginRename()
@@ -179,8 +198,18 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public Task ToggleHistoryAsync() => owner.ToggleHistoryAsync(this);
 
     [RelayCommand]
-    public Task MoveUpAsync() => IsAccountSection ? Task.CompletedTask : owner.MoveAsync(CardId, -1);
+    public Task HideAsync() => CanHide ? owner.SetHiddenAsync(CardId, true) : Task.CompletedTask;
 
     [RelayCommand]
-    public Task MoveDownAsync() => IsAccountSection ? Task.CompletedTask : owner.MoveAsync(CardId, 1);
+    public async Task ShowHiddenAsync()
+    {
+        foreach (var card in HiddenCards().ToArray())
+            await owner.SetHiddenAsync(card.CardId, false);
+    }
+
+    [RelayCommand]
+    public Task MoveUpAsync() => owner.MoveAsync(CardId, -1);
+
+    [RelayCommand]
+    public Task MoveDownAsync() => owner.MoveAsync(CardId, 1);
 }
