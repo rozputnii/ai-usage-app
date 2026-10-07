@@ -69,8 +69,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial bool IsCompact { get; private set; } = true;
     [ObservableProperty] public partial bool IsSettingsOpen { get; private set; }
     [ObservableProperty] public partial bool HasStrip { get; private set; }
+    [ObservableProperty] public partial string StripTitle { get; private set; } = string.Empty;
     [ObservableProperty] public partial string StripText { get; private set; } = string.Empty;
-    [ObservableProperty] public partial string StripSub { get; private set; } = string.Empty;
+    [ObservableProperty] public partial string StripCode { get; private set; } = string.Empty;
     [ObservableProperty] public partial Tone StripTone { get; private set; }
     [ObservableProperty] public partial string StripAction { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool StripActionIsPrimary { get; private set; }
@@ -202,27 +203,28 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             CodeError = string.Empty;
             codeAttempt = strip.AttemptId;
         }
-        (StripTone, StripText, StripSub, StripAction, StripActionIsPrimary) = strip.Phase switch
+        // One short line: the provider (or the added account), then what happens next. A device code speaks for itself.
+        StripTitle = strip.Phase == SignInPhase.Succeeded ? strip.AccountName ?? provider : provider;
+        StripCode = StripBusy ? strip.UserCode ?? string.Empty : string.Empty;
+        (StripTone, StripText, StripAction, StripActionIsPrimary) = strip.Phase switch
         {
-            SignInPhase.Waiting => (Tone.Neutral, "Waiting for " + provider + " sign-in in your browser", IsFirstRun ? "nothing is read until you finish" : string.Empty, "Cancel", false),
-            SignInPhase.Succeeded => (Tone.Ok, (strip.AccountName ?? provider) + " added", strip.LimitsFound is { } n ? n + (n == 1 ? " limit found" : " limits found") : string.Empty, string.Empty, false),
-            SignInPhase.Cancelled => (Tone.Attention, provider + " sign-in was cancelled", string.Empty, "Try again", true),
-            _ => (Tone.Attention, provider + " sign-in failed", string.Empty, "Try again", true),
-        };
-        if (StripBusy && strip.UserCode is { } userCode) StripSub = "Enter this code in your browser: " + userCode;
-        if (strip.Phase == SignInPhase.Failed) StripSub = strip.Failure switch
-        {
-            SignInFailure.Duplicate => "This account is already connected",
-            SignInFailure.WrongAccount => "Choose the account you are reconnecting",
-            SignInFailure.Storage => "Local storage needs recovery before sign-in can continue",
-            SignInFailure.AccessDenied => "Authorization was denied",
-            SignInFailure.Expired => "The sign-in attempt expired",
-            SignInFailure.Browser => "The browser sign-in could not start",
-            SignInFailure.Registration => "Provider registration is not configured on this PC",
-            _ => "The provider could not complete sign-in",
+            SignInPhase.Waiting => (Tone.Neutral, StripCode.Length > 0 ? string.Empty : StripAcceptsCode ? "sign in, then paste the code here" : "finish in the browser", "Cancel", false),
+            SignInPhase.Succeeded => (Tone.Ok, strip.LimitsFound is { } n ? "added · " + n + (n == 1 ? " limit" : " limits") : "added", string.Empty, false),
+            SignInPhase.Cancelled => (Tone.Attention, "cancelled", "Try again", true),
+            _ => (Tone.Attention, strip.Failure switch
+            {
+                SignInFailure.Duplicate => "already connected",
+                SignInFailure.WrongAccount => "wrong account",
+                SignInFailure.Storage => "storage needs recovery",
+                SignInFailure.AccessDenied => "access denied",
+                SignInFailure.Expired => "expired",
+                SignInFailure.Browser => "browser sign-in couldn't start",
+                SignInFailure.Registration => "not configured on this PC",
+                _ => "sign-in failed",
+            }, "Try again", true),
         };
         if (strip.Phase == SignInPhase.Succeeded)
-            announce(StripText);
+            announce(StripTitle + " " + StripText);
         // A failure stays until closed because it explains what went wrong; success and a cancel need no action.
         if (strip.Phase is SignInPhase.Succeeded or SignInPhase.Cancelled)
             stripHide = scheduler.Schedule(TimeSpan.FromSeconds(strip.Phase == SignInPhase.Succeeded ? 4 : 8), () => HideStrip(strip));
@@ -337,7 +339,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             return;
         }
         hiddenStrip = null;
-        announce("Waiting for " + LedgerFormat.ProviderName(provider) + " sign-in in your browser");
+        announce(LedgerFormat.ProviderName(provider) + " sign-in started");
         await source.SignInAsync(provider, CancellationToken.None);
     }
 
@@ -352,7 +354,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     {
         var code = SignInCode;
         SignInCode = string.Empty;
-        CodeError = codeAttempt is { } attempt && source.TrySubmitSignInCode(attempt, code) ? string.Empty : "Code was not accepted; check the current sign-in attempt";
+        CodeError = codeAttempt is { } attempt && source.TrySubmitSignInCode(attempt, code) ? string.Empty : "Code not accepted";
     }
 
     // Retry waits for provider completion; the same button must remain available to cancel it.
