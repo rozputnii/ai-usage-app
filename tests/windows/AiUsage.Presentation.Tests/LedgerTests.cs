@@ -671,20 +671,44 @@ public sealed class LedgerInteractionTests
         await window.SignInAsync(ProviderKind.Codex);
         Assert.True(window.HasStrip);
         Assert.True(window.StripBusy);
-        Assert.Equal("Waiting for Codex sign-in in your browser", window.StripText);
-        Assert.Equal("nothing is read until you finish", window.StripSub);
+        Assert.Equal("Codex", window.StripTitle);
+        Assert.Equal("WDJB-MJHT", window.StripCode);
+        Assert.Empty(window.StripText);
         Assert.Equal("Cancel", window.StripAction);
         Assert.Equal("Waiting…", window.Providers.Single(p => p.Provider == ProviderKind.Codex).ButtonText);
         scheduler.Run(TimeSpan.FromSeconds(3));
         Assert.False(window.IsFirstRun);
-        Assert.Equal("Codex Pro added", window.StripText);
-        Assert.Equal("2 limits found", window.StripSub);
+        Assert.Equal("Codex Pro", window.StripTitle);
+        Assert.Equal("added · 2 limits", window.StripText);
         Assert.All(window.Cards, c => Assert.True(c.IsNew));
-        Assert.Contains("Codex Pro added", spoken);
+        Assert.Contains("Codex Pro added · 2 limits", spoken);
         scheduler.Run(TimeSpan.FromSeconds(4));
         Assert.All(window.Cards, c => Assert.False(c.IsNew));
         Assert.False(window.HasStrip);
         Assert.Equal("added", window.Providers.Single(p => p.Provider == ProviderKind.Codex).MenuRight);
+    }
+
+    [Fact]
+    public async Task SignInStripNamesOnlyTheNextStep()
+    {
+        var (window, _, _, _) = Start(DemoLedgerScenarios.FirstRun);
+        await window.SignInAsync(ProviderKind.Antigravity);
+        Assert.Equal("finish in the browser", window.StripText);
+        Assert.Empty(window.StripCode);
+        Assert.False(window.StripAcceptsCode);
+        await window.StripActionAsync();
+
+        await window.SignInAsync(ProviderKind.Claude);
+        Assert.Equal("Claude", window.StripTitle);
+        Assert.Equal("sign in, then paste the code here", window.StripText);
+        Assert.Empty(window.StripCode);
+        Assert.True(window.StripAcceptsCode);
+        window.SignInCode = "pasted-code";
+        window.SubmitSignInCode();
+        Assert.Empty(window.CodeError);
+        Assert.False(window.StripBusy);
+        Assert.StartsWith("added", window.StripText);
+        Assert.Empty(window.StripCode);
     }
 
     [Fact]
@@ -693,7 +717,8 @@ public sealed class LedgerInteractionTests
         var (window, _, _, _) = Start();
         await window.SignInAsync(ProviderKind.Antigravity);
         await window.StripActionAsync();
-        Assert.Equal("Antigravity sign-in was cancelled", window.StripText);
+        Assert.Equal("Antigravity", window.StripTitle);
+        Assert.Equal("cancelled", window.StripText);
         Assert.Equal("Try again", window.StripAction);
         Assert.True(window.StripActionIsPrimary);
         Assert.False(window.StripBusy);
@@ -732,7 +757,8 @@ public sealed class LedgerInteractionTests
     public async Task ExpiredSignInIsRestoredInline()
     {
         var (window, _, scheduler, _) = Start(DemoLedgerScenarios.SignIn);
-        Assert.Equal("Codex sign-in was cancelled", window.StripText);
+        Assert.Equal("Codex", window.StripTitle);
+        Assert.Equal("cancelled", window.StripText);
         var week = Card(window, "claude-week");
         Assert.Equal("sign-in expired", week.Visual.Marks.Single().Text);
         Assert.Equal("1 h old", week.Visual.Pill);

@@ -39,6 +39,8 @@
   <Color x:Key="LedgerCritDColor">#6E2E25</Color>
   <Color x:Key="LedgerCritTextColor">#F78570</Color>
   <Color x:Key="LedgerNeutralMColor">#B7B3A8</Color>
+  <!-- A sign-in waiting on the user: amber, distinct from success green and the clay of a failure or cancel. -->
+  <Color x:Key="LedgerWaitMColor">#E8B04B</Color>
   <Color x:Key="LedgerNeutralPColor">#6C6963</Color>
   <Color x:Key="LedgerPrimaryColor">#E8E4DA</Color>
   <Color x:Key="LedgerOnPrimaryColor">#1A1410</Color>

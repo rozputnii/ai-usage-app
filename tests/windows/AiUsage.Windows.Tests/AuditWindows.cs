@@ -189,7 +189,7 @@ public sealed partial class AuditWindows
         session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Sign-in code"), "invalid-synthetic-code");
         session.Click("Submit code");
         Assert.True(Session.Wait(() => session.Receipts.Contains("SubmitCode", StringComparison.Ordinal)));
-        Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Code was not accepted; check the current sign-in attempt"));
+        Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Code not accepted"));
         session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Sign-in code"), "synthetic-code");
         session.Click("Submit code");
         Assert.True(Session.Wait(() => session.Receipts.Contains("SubmitCode:Accepted", StringComparison.Ordinal)), "The fake provider must accept the exact current synthetic code");
@@ -200,15 +200,15 @@ public sealed partial class AuditWindows
             Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == "Try again"));
             var reason = failure switch
             {
-                0 => "This account is already connected", 1 => "Choose the account you are reconnecting",
-                2 => "Local storage needs recovery before sign-in can continue", 3 => "Authorization was denied",
-                4 => "The sign-in attempt expired", 5 => "The browser sign-in could not start",
-                6 => "Provider registration is not configured on this PC", _ => "The provider could not complete sign-in"
+                0 => "already connected", 1 => "wrong account",
+                2 => "storage needs recovery", 3 => "access denied",
+                4 => "expired", 5 => "browser sign-in couldn't start",
+                6 => "not configured on this PC", _ => "sign-in failed"
             };
             Assert.NotNull(session.Find(e => e.Properties.Name.ValueOrDefault == reason));
             Assert.DoesNotContain(session.Window.FindAllDescendants(), e => (e.Properties.AutomationId.ValueOrDefault ?? "").StartsWith("00000000000000000000000000006501:", StringComparison.Ordinal));
         }
-        else Assert.NotNull(session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").EndsWith(" added", StringComparison.Ordinal)));
+        else Assert.NotNull(session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("added", StringComparison.Ordinal)));
         session.Exit();
     }
 

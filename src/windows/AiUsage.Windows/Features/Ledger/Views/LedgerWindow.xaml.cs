@@ -11,6 +11,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics;
 using Windows.System;
 
@@ -30,6 +32,8 @@ internal sealed partial class LedgerWindow : Window
     private readonly Func<Task> exit;
     private readonly Action showTray;
     private bool finalClose;
+    private Storyboard? stripWave;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? copyReset;
 
     public LedgerWindow(LedgerViewModel viewModel, Func<Task> exit, Action showTray)
     {
@@ -70,6 +74,7 @@ internal sealed partial class LedgerWindow : Window
         RebuildGrid();
         ApplyPreferences();
         UpdateTrayGlyph();
+        UpdateStripWave();
     }
 
     public LedgerViewModel ViewModel { get; }
@@ -144,6 +149,13 @@ internal sealed partial class LedgerWindow : Window
                 break;
             case nameof(LedgerViewModel.HasStrip):
                 if (ViewModel.HasStrip) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(SignInStrip, 150));
+                UpdateStripWave();
+                break;
+            case nameof(LedgerViewModel.StripBusy):
+                UpdateStripWave();
+                break;
+            case nameof(LedgerViewModel.StripCode):
+                ResetCopyIcon();
                 break;
             case nameof(LedgerViewModel.HasUndo):
                 if (ViewModel.HasUndo) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(UndoBar, 150));
@@ -289,6 +301,62 @@ internal sealed partial class LedgerWindow : Window
         menu.ShowAt(DemoButton);
     }
 
+    // ---- Sign-in strip ----
+
+    /// <summary>The waiting wave runs only while a visible sign-in waits on the user.</summary>
+    private void UpdateStripWave()
+    {
+        var run = ViewModel.HasStrip && ViewModel.StripBusy && LedgerTheme.AnimationsEnabled;
+        if (run == (stripWave is not null))
+            return;
+        if (stripWave is { } wave)
+        {
+            wave.Stop();
+            stripWave = null;
+            return;
+        }
+        stripWave = new Storyboard { RepeatBehavior = RepeatBehavior.Forever };
+        foreach (var (target, property, from, to) in new (DependencyObject, string, double, double)[]
+        {
+            (StripWaveScale, "ScaleX", 1, 3.7), (StripWaveScale, "ScaleY", 1, 3.7), (StripWave, "Opacity", 0.7, 0),
+        })
+        {
+            var animation = new DoubleAnimation
+            {
+                From = from, To = to, Duration = TimeSpan.FromMilliseconds(1600),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
+            };
+            Storyboard.SetTarget(animation, target);
+            Storyboard.SetTargetProperty(animation, property);
+            stripWave.Children.Add(animation);
+        }
+        Composition.ApplicationDiagnostics.RunAnimation(stripWave.Begin);
+    }
+
+    private void OnCopyCodeClick(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.StripCode.Length == 0)
+            return;
+        var package = new DataPackage();
+        package.SetText(ViewModel.StripCode);
+        Clipboard.SetContent(package);
+        CopyCodeIcon.Glyph = "\uE73E";
+        Announce("Code copied");
+        copyReset?.Stop();
+        copyReset = DispatcherQueue.CreateTimer();
+        copyReset.Interval = TimeSpan.FromSeconds(1.5);
+        copyReset.IsRepeating = false;
+        copyReset.Tick += (_, _) => ResetCopyIcon();
+        copyReset.Start();
+    }
+
+    private void ResetCopyIcon()
+    {
+        copyReset?.Stop();
+        copyReset = null;
+        CopyCodeIcon.Glyph = "\uE8C8";
+    }
+
     private void OnUndoFocus(object sender, RoutedEventArgs e) => ViewModel.HoldUndo(true);
 
     private void OnUndoBlur(object sender, RoutedEventArgs e) => ViewModel.HoldUndo(false);
@@ -339,9 +407,9 @@ internal sealed partial class LedgerWindow : Window
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
     private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
     private Visibility ShowText(string? value) => Show(!string.IsNullOrEmpty(value));
-    private Visibility ShowProgress(bool busy) => Show(busy && LedgerTheme.AnimationsEnabled);
-    private string StripSubText(string sub, bool busy) => busy && !LedgerTheme.AnimationsEnabled ? (sub.Length > 0 ? sub + " · waiting" : "waiting") : sub;
-    private Visibility ShowStripSub(string sub, bool busy) => ShowText(StripSubText(sub, busy));
+    private Brush StripDot(Tone tone, bool busy) => busy ? LedgerTheme.Solid("WaitM") : LedgerTheme.ToneMark(tone);
+    // Without animation the still dot cannot show that the app is waiting, so the line says it.
+    private string StripDetail(string text, bool busy) => busy && !LedgerTheme.AnimationsEnabled ? (text.Length > 0 ? text + " · waiting" : "waiting") : text;
     private Style StripActionStyle(bool primary) => (Style)LedgerTheme.Find(primary ? "LedgerPrimaryButton" : "LedgerLinkButton")!;
     private Style WorkTodayStyle(bool on) => (Style)LedgerTheme.Find(on ? "LedgerSegmentOnButton" : "LedgerOutlineButton")!;
     private string WorkTodayName(bool on) => on ? "Work today, on until midnight" : "Work today, off";

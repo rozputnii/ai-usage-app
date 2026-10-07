@@ -190,7 +190,14 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
     }
 
     public Task RefreshAccountAsync(string accountId, CancellationToken ct) => RefreshAsync(ct);
-    public bool TrySubmitSignInCode(Guid attemptId, string code) => false;
+    public bool TrySubmitSignInCode(Guid attemptId, string code)
+    {
+        if (Current.SignInStrip is not { Phase: SignInPhase.Waiting, AcceptsManualCode: true } strip || strip.AttemptId != attemptId || string.IsNullOrWhiteSpace(code))
+            return false;
+        pendingSignIn?.Dispose();
+        CompleteSignIn(strip.Provider, strip.ReconnectAccountId);
+        return true;
+    }
 
     private Task BeginSignIn(ProviderKind provider, string? reconnect)
     {
@@ -198,7 +205,13 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         pendingSignIn?.Dispose();
         Publish(Current with
         {
-            SignInStrip = new SignInStripModel(SignInPhase.Waiting, provider, null, null) { AttemptId = Guid.NewGuid(), ReconnectAccountId = reconnect },
+            // Each demo provider shows its real sign-in shape: a device code, a pasted code, or the browser alone.
+            SignInStrip = new SignInStripModel(SignInPhase.Waiting, provider, null, null)
+            {
+                AttemptId = Guid.NewGuid(), ReconnectAccountId = reconnect,
+                UserCode = provider is ProviderKind.Codex or ProviderKind.Copilot ? "WDJB-MJHT" : null,
+                AcceptsManualCode = provider == ProviderKind.Claude,
+            },
             Providers = [.. Current.Providers.Select(p => p with { SigningIn = p.Provider == provider })],
         });
         pendingSignIn = scheduler.Schedule(TimeSpan.FromSeconds(3), () => CompleteSignIn(provider, reconnect));
