@@ -130,10 +130,17 @@ public sealed class LedgerCardTests
     }
 
     [Fact]
-    public void ExtraUsageIsDrawnOnTheProviderScaleWithTheCapTick()
+    public void CapIsTheFullBarAndATickMarksItOnceExceeded()
     {
         var visual = Brief("claude-extra");
-        Assert.Equal(60, visual.CapTick!.Value, 3);
+        Assert.Null(visual.CapTick);
+        Assert.DoesNotContain(visual.Segments, s => s.Paint.Fill == "CardTop");
+        Assert.DoesNotContain(visual.BarTip, line => line.StartsWith("Hatched", StringComparison.Ordinal));
+        Assert.StartsWith("$218.00 of $300.00 used", visual.BarTip[1], StringComparison.Ordinal);
+        var (card, account) = Find(BriefScenario, "claude-extra");
+        var over = CardVisuals.Build(card with { State = CardState.OverCap, Figures = card.Figures with { Used = 320 } }, account, ValueMode.Used, BriefScenario.LocalNow);
+        Assert.Equal(93.75, over.CapTick!.Value, 3);
+        Assert.Contains("Past the tick: over custom cap $300.00", over.BarTip);
         Assert.Equal("+$2.00", visual.OverLabel);
         Assert.Equal(Tone.Critical, visual.Tone);
         Assert.Equal("≈ $218.00 of $300.00 cap", visual.Footer);
@@ -341,7 +348,24 @@ public sealed class LedgerCardTests
         Assert.True(Case("r4").HasPeriodBar);
         Assert.True(Case("r6").HasPeriodBar);
         Assert.Contains(Case("r6").Cells[0].Parts, p => p.Paint.Fill == "Grey" || p.Weight > 0);
-        Assert.NotNull(Case("r6").CapTick);
+        Assert.Null(Case("r6").CapTick);
+    }
+
+    [Fact]
+    public void FiveHourDividersFollowTheCapScale()
+    {
+        var (card, account) = Find(BriefScenario, "claude-week");
+        CardVisual Build(LimitCardModel model, ValueMode mode = ValueMode.Used) => CardVisuals.Build(model, account, mode, BriefScenario.LocalNow);
+        // One 12 % window, 72 % used of the current one: windows start at 38.36 % and the next ones every 12 %.
+        Assert.Equal(new[] { 50.36, 62.36, 74.36, 86.36, 98.36 }, Build(card).Dividers.Select(d => Math.Round(d, 2)));
+        var capped = card with { Cap = new CapModel(90, true, CapStatus.Applied), CapTargetId = card.CardId, Figures = card.Figures with { EffectiveLimit = 90 } };
+        var visual = Build(capped);
+        Assert.Equal(new[] { 50.36, 62.36, 74.36, 86.36 }.Select(k => Math.Round(k / 90 * 100, 2)), visual.Dividers.Select(d => Math.Round(d, 2)));
+        Assert.Null(visual.CapTick);
+        Assert.Equal("47 % of 90 % cap · ≈ 4 × 5h left", visual.Footer);
+        Assert.Equal(["Custom cap 90 % · binds", "Provider limit 100 % · 53 % left"], visual.FooterTip.Take(2));
+        Assert.StartsWith("47 % of 90 % used", visual.BarTip[1], StringComparison.Ordinal);
+        Assert.Equal("43 % left to cap · ≈ 4 × 5h left", Build(capped, ValueMode.Left).Footer);
     }
 
     [Fact]

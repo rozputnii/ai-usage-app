@@ -145,8 +145,6 @@ internal static class CardVisuals
             bar.Add(Seg(hi, Math.Max(0, capP - hi), new Paint("Prev"), left));
         else
             bar.Add(Seg(0, u0p, new Paint("Prev"), left));
-        if (capP < 100)
-            bar.Add(Seg(Math.Max(capP, hi), 100 - Math.Max(capP, hi), new Paint("CardTop", "Rail"), left));
         bar.Add(Seg(u0p, lo - u0p, PaintOf(used > t && !off ? Part.UsedCrit : Part.Used, keys, left, off), left));
         if (tp > up)
             bar.Add(Seg(up, tp - up, PaintOf(Part.Allow, keys, left, off), left));
@@ -157,9 +155,9 @@ internal static class CardVisuals
         {
             var ws = (double)card.FiveHour!.WindowShare!.Value;
             var start = card.FiveHour.CurrentWindowStarted ? used - (double)card.FiveHour.CurrentWindowUsed * ws / 100 : used;
-            for (var k = start + ws; k < 99.5 && ws > 0; k += ws)
+            for (var k = start + ws; k < (double)displayMax - 0.5 && ws > 0; k += ws)
                 if (k > used + 0.5)
-                    dividers.Add(left ? 100 - k : k);
+                    dividers.Add(left ? 100 - Pc(k) : Pc(k));
         }
         if (usedUp)
         {
@@ -192,7 +190,7 @@ internal static class CardVisuals
             (left ? Fm(top - displayUsed) + " of " + Fm(top) + " left" : Fm(displayUsed) + " of " + Fm(top) + " used") + " · " + todayLine,
         };
         if (capP < 100 && cap is { } capAmount)
-            barTip.Add(displayUsed > capAmount ? "Past the tick: over custom cap " + Fm(capAmount) : "Hatched: above custom cap " + Fm(capAmount));
+            barTip.Add("Past the tick: over custom cap " + Fm(capAmount));
 
         var today = cells.Count == 0 ? string.Empty : TodaySummary(card, cells, left);
         var name = Name(card, account, StateWords(card, account, pill, marks, now), today + " " + LedgerFormat.PeriodWords(card.Period) + " " + footerText + ".", (resetTip.Count > 0 ? resetTip[0] : null));
@@ -437,6 +435,9 @@ internal static class CardVisuals
     {
         var f = card.Figures;
         var used = f.Used ?? 0;
+        // D-NEW: an applied cap is the whole bar, as if the provider's limit were the cap.
+        if (AppliedCap(card) is { } cap)
+            return cap;
         if (card.Scale.Kind == ScaleKind.Percent)
             return f.EffectiveLimit ?? 100;
         var baseMax = f.ProviderLimit is { Kind: LimitValueKind.Known, Amount: { } limit } ? limit : card.Cap?.Amount ?? f.EffectiveLimit ?? used;
@@ -630,12 +631,17 @@ internal static class CardVisuals
     {
         var f = card.Figures;
         var estimate = f.Tracking is not null;
+        var windows = string.Empty;
+        IReadOnlyList<string> percentTip = [];
+        if (card.Scale.Kind == ScaleKind.Percent)
+            (windows, percentTip) = PercentFooterOf(card, rush);
         if (cap is { } c)
         {
             var capValue = c;
+            // D-NEW: a percent cap keeps its five-hour count, which the projection counts against the cap.
             var text = (estimate ? "≈ " : string.Empty) + (left
                 ? used <= capValue ? fm(capValue - used) + " left to cap" : fm(used - capValue) + " over cap"
-                : fm(used) + " of " + fm(capValue) + " cap");
+                : fm(used) + " of " + fm(capValue) + " cap") + windows;
             var tip = new List<string>();
             if (estimate)
                 tip.Add("Custom cap " + fm(capValue) + (f.Tracking!.TrackedSince is { } since ? " · tracked since " + LedgerFormat.DayMonth(since) : string.Empty) + " (estimate)" + (f.Tracking.Incomplete ? " · incomplete" : string.Empty));
@@ -649,7 +655,9 @@ internal static class CardVisuals
                 tip.Add("Provider: unlimited");
             else
                 tip.Add("Provider limit unknown");
-            return (text, tip, estimate);
+            if (windows.Length > 0)
+                tip.AddRange(percentTip);
+            return (text, tip, estimate || windows.Contains('≈', StringComparison.Ordinal));
         }
         if (card.Scale.Kind != ScaleKind.Percent)
         {
@@ -661,6 +669,13 @@ internal static class CardVisuals
                 tip.Add("Custom cap " + fm(kept.Amount) + " · above the provider limit, not applied");
             return (text, tip, estimate);
         }
+        return ((left ? fm(max - used) + " left" : fm(used) + " used") + windows, percentTip, estimate || windows.Contains('≈', StringComparison.Ordinal));
+    }
+
+    /// <summary>The five-hour count after a percent footer and the footer tooltip that explains it.</summary>
+    private static (string Windows, IReadOnlyList<string> Tip) PercentFooterOf(LimitCardModel card, bool rush)
+    {
+        var f = card.Figures;
         var windows = string.Empty;
         IReadOnlyList<string> footerTip;
         if (card.Layout == CardLayout.FiveHourAndPeriod && card.FiveHour is { } five)
@@ -687,7 +702,7 @@ internal static class CardVisuals
         }
         else
             footerTip = f.UsualShare is { } usual ? ["Usual daily share ≈ " + LedgerFormat.Value(card.Scale, usual) + " of " + LedgerFormat.PeriodLabel(card.Period)] : ["Daily share from the work days"];
-        return ((left ? fm(max - used) + " left" : fm(used) + " used") + windows, footerTip, estimate || windows.Contains('≈', StringComparison.Ordinal));
+        return (windows, footerTip);
     }
 
     private static string BarName(LimitCardModel card, string period) => card.Scale.Kind switch
