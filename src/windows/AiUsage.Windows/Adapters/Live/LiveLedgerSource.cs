@@ -2,6 +2,7 @@ using AiUsage.Core.Accounts;
 using AiUsage.Core.Budget;
 using AiUsage.Core.Diagnostics;
 using AiUsage.Core.Usage;
+using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 
 namespace AiUsage.Adapters.Live;
@@ -234,9 +235,10 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             data = [.. LiveLedgerProjection.AccountLimits(data)];
             foreach (var limit in data) nextLimits.Add(LiveLedgerProjection.CardId(limit.Series), limit);
             var name = preferences.Current.Labels.GetValueOrDefault(id) ?? DefaultName(account, snapshots);
-            var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday);
+            var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday, preferences.Current.Today);
             model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId))
-                    .Select(c => preferences.Current.Hidden.Contains(c.CardId) ? c with { Hidden = true } : c).ToArray(),
+                    .Select(c => preferences.Current.Hidden.Contains(c.CardId) ? c with { Hidden = true } : c)
+                    .Select(c => CreditDollars.Apply(c, preferences.Current.Units.GetValueOrDefault(c.CardId))).ToArray(),
                 NextRetryAt = NextRetry(account) is { } retry ? TimeZoneInfo.ConvertTime(retry, zone) : null };
             models.Add(model);
         }
@@ -247,9 +249,11 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             var card = models.SelectMany(a => a.Cards).FirstOrDefault(c => c.CardId == id);
             var name = models.FirstOrDefault(a => a.AccountId == cap.Series.AccountTarget)?.DisplayName ?? "Unassigned legacy account";
             var facts = limits.GetValueOrDefault(id)?.Facts;
+            // A credit pool lists its cap in the unit its card shows (D-199).
+            var shown = card is { Units: not null, Cap: not null } ? card : null;
             return new CapSettingModel(id, card?.CapTargetId, name, card?.ScopeLabel,
-                (cap.Cap.Amount is MoneyQuantity money ? new(ScaleKind.Money, null, money.Currency, money.Exponent) : ScaleModel.Count(((CountQuantity)cap.Cap.Amount).Unit)),
-                LiveLedgerProjection.Amount(cap.Cap.Amount) ?? 0, card?.Cap?.Status ?? CapStatus.Unmatched,
+                shown?.Scale ?? (cap.Cap.Amount is MoneyQuantity money ? new(ScaleKind.Money, null, money.Currency, money.Exponent) : ScaleModel.Count(((CountQuantity)cap.Cap.Amount).Unit)),
+                shown?.Cap!.Amount ?? LiveLedgerProjection.Amount(cap.Cap.Amount) ?? 0, card?.Cap?.Status ?? CapStatus.Unmatched,
                 card?.Cap?.Binding ?? false, card?.Figures.ProviderLimit ?? AiUsage.Features.Ledger.Contract.LimitValue.Unknown,
                 facts?.Kind == LimitKind.MonetaryPool ? facts.Unit : null, card?.Figures.Tracking);
         }).ToArray();
@@ -343,14 +347,16 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         Quantity? quantity = null;
         if (amount is { } value)
         {
-            if (card.Scale.Kind == ScaleKind.Money && card.Scale is { Currency: { } currency, Exponent: >= 0 and <= 18 })
+            // D-199: a cap entered in dollars is kept in whole credits of the provider's unit.
+            if (card.Units is { Usd: true, Rate: var rate }) quantity = new CountQuantity(CreditDollars.CapCredits(value, rate), limit.Facts.Unit);
+            else if (card.Scale.Kind == ScaleKind.Money && card.Scale is { Currency: { } currency, Exponent: >= 0 and <= 18 })
             {
                 decimal minor = value;
                 for (int i = 0; i < card.Scale.Exponent; i++) minor = checked(minor * 10);
                 if (minor != decimal.Truncate(minor) || minor > long.MaxValue) return CommandOutcome.Rejected;
                 quantity = new MoneyQuantity((long)minor, card.Scale.Exponent, currency);
             }
-            else if (card.Scale is { Kind: ScaleKind.Count, UnitName: { } unit } && value == decimal.Truncate(value)) quantity = new CountQuantity(value, unit);
+            else if (card.Scale.Kind == ScaleKind.Count && value == decimal.Truncate(value)) quantity = new CountQuantity(value, limit.Facts.Unit);
             else return CommandOutcome.Rejected;
         }
         var caps = configuration.Caps.Where(c => c.Series != limit.Series).ToList();
@@ -367,10 +373,41 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await budgets.SaveConfigurationAsync(next, token); configuration = next;
         return CommandOutcome.Done;
     }, ct);
+    public Task<CommandOutcome> SetUnitsAsync(string cardId, bool usd, decimal rate, CancellationToken ct) => ChangeAsync(token =>
+        CreditDollars.ValidRate(rate) && Current.Accounts.SelectMany(a => a.Cards).Any(c => c.CardId == cardId && c.Units is not null)
+            ? preferences.ChangeAsync(s => s with { Units = new(s.Units) { [cardId] = new(usd, rate) } }, token)
+            : Task.FromResult(CommandOutcome.Rejected), ct);
+    public Task<CommandOutcome> SetTodayUsedAsync(string cardId, decimal? amount, CancellationToken ct) => ChangeAsync(token =>
+    {
+        var card = Current.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CardId == cardId);
+        if (card?.TodayUse is null || !limits.TryGetValue(cardId, out var limit) || amount < 0) return Task.FromResult(CommandOutcome.Rejected);
+        var now = time.GetUtcNow();
+        var date = WorkCalendar.Date(now, zone);
+        TodayEntry? entry = null;
+        if (amount is { } value)
+        {
+            // The owner's figure is in the shown unit and may not exceed the period's use so far.
+            if (value > card.Figures.Used || LiveLedgerProjection.Basis(limit, now, zone) is not { } basis ||
+                LiveLedgerProjection.Amount(basis.Used) is not { } used) return Task.FromResult(CommandOutcome.Rejected);
+            var native = card.Units is { Usd: true, Rate: var rate } ? Math.Min(CreditDollars.TodayCredits(value, rate), used) : value;
+            if (native > used || LiveLedgerProjection.FromAmount(used - native, basis.Used) is null) return Task.FromResult(CommandOutcome.Rejected);
+            entry = new(cardId, date, basis.Instance, used - native);
+        }
+        // Entries outside the 35-day history leave when a new one is saved.
+        return preferences.ChangeAsync(s => s with
+        {
+            Today = [.. s.Today.Where(e => e.Date >= date.AddDays(-34) && !(e.Card == cardId && e.Date == date)), .. entry is null ? [] : new[] { entry }]
+        }, token);
+    }, ct);
     public async Task<HistoryModel?> GetHistoryAsync(string cardId, CancellationToken ct)
     {
         await gate.WaitAsync(ct);
-        try { return !stopped && limits.TryGetValue(cardId, out var limit) ? LiveLedgerProjection.History(limit, time.GetUtcNow(), zone) : null; }
+        try
+        {
+            if (stopped || !limits.TryGetValue(cardId, out var limit)) return null;
+            var history = LiveLedgerProjection.History(limit, time.GetUtcNow(), zone, preferences.Current.Today);
+            return preferences.Current.Units.GetValueOrDefault(cardId) is { Usd: true, Rate: var rate } ? CreditDollars.ToDollars(history, rate) : history;
+        }
         finally { gate.Release(); }
     }
 

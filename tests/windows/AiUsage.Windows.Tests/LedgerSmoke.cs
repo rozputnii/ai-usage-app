@@ -416,7 +416,7 @@ public sealed partial class LedgerSmoke
         return false;
     }
 
-    /// <summary>Cards are not tab stops (D-NEW); their keys work from any control inside, here the History button.</summary>
+    /// <summary>Cards are not tab stops (D-200); their keys work from any control inside, here the History button.</summary>
     private static void FocusIn(AutomationElement card) => card.FindAllDescendants(cf => cf.ByControlType(ControlType.Button))
         .First(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)).Focus();
 

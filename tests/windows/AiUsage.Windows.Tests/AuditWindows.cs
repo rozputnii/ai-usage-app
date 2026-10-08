@@ -556,7 +556,7 @@ public sealed partial class AuditWindows
             Show(element); element.Focus();
             Assert.True(Wait(() => element.Properties.HasKeyboardFocus.ValueOrDefault));
         }
-        /// <summary>Cards are not tab stops (D-NEW); their keys work from any control inside, here the History button.</summary>
+        /// <summary>Cards are not tab stops (D-200); their keys work from any control inside, here the History button.</summary>
         public void FocusCard(AutomationElement card) => Focus(card.FindAllDescendants().First(e => e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
             (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)));
         public void Type(AutomationElement element, string value)

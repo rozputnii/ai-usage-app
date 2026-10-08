@@ -123,8 +123,8 @@ public sealed class LiveLedgerProjectionTests
         return new(facts, key, [new(key, new CountQuantity(baseline, facts.Unit), new DateTimeOffset(Now.Date, TimeSpan.Zero), new DateTimeOffset(Now.Date, TimeSpan.Zero), "one", null, SnapshotSource.ProviderApi),
             new(key, facts.Used ?? new CountQuantity(facts.UsedPercent ?? 0, facts.Unit), Now, Now, "one", null, SnapshotSource.ProviderApi)]);
     }
-    private static LimitCardModel Card(LedgerLimit data, PersonalCap? cap = null, DateTimeOffset? now = null, DateOnly? workToday = null) =>
-        LiveLedgerProjection.Card(data, cap, now ?? Now, TimeZoneInfo.Utc, BudgetSettingsModel.MondayToFriday, workToday, false);
+    private static LimitCardModel Card(LedgerLimit data, PersonalCap? cap = null, DateTimeOffset? now = null, DateOnly? workToday = null, IReadOnlyList<TodayEntry>? today = null) =>
+        LiveLedgerProjection.Card(data, cap, now ?? Now, TimeZoneInfo.Utc, BudgetSettingsModel.MondayToFriday, workToday, false, today);
 
     [Fact]
     public void CodexSubscriptionWindowsDoNotDisplayACreditBalanceCard()
@@ -383,5 +383,82 @@ public sealed class LiveLedgerProjectionTests
         Assert.Null(card.FiveHour!.WindowShare);
         Assert.False(card.FiveHour.Rough);
         Assert.Null(card.FiveHour.WindowsLeftMax);
+    }
+
+    private static readonly DateTimeOffset TrackedFrom = new(2026, 10, 5, 10, 43, 0, TimeSpan.Zero);
+    private static LedgerLimit Credits(params (decimal Used, DateTimeOffset At)[] later)
+    {
+        var used = later.Length > 0 ? later[^1].Used : 3240;
+        var facts = new LimitFacts(new("copilot", "GH-P", "premium"), LimitKind.CountablePool, "requests", FactValue.Finite(new CountQuantity(17500, "requests")))
+        { Used = new CountQuantity(used, "requests"), IsMonthly = true, Reset = new(Now.AddDays(20), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var key = new ReadingSeriesKey(Account.ToString("N"), facts.Key);
+        ReadingRun Run(decimal value, DateTimeOffset at) => new(key, new CountQuantity(value, "requests"), at, at, "one", null, SnapshotSource.ProviderApi);
+        return new(facts, key, [Run(3120, TrackedFrom), Run(3240, Now), .. later.Select(x => Run(x.Used, x.At))]);
+    }
+    private static TodayEntry Entry(LedgerLimit data, decimal dayStart = 2340) =>
+        new(LiveLedgerProjection.CardId(data.Series), new DateOnly(2026, 10, 5), "one", dayStart);
+
+    [Fact]
+    public void GhPoolIsShownInCreditsAndCarriesUnitsAndToday()
+    {
+        var card = Card(Credits());
+        Assert.Equal(ScaleModel.Count("credits"), card.Scale);
+        Assert.Equal(new UnitModel(false, 0.01m), card.Units);
+        Assert.Equal(new TodayUseModel(120, TrackedFrom, false), card.TodayUse);
+        var percent = Card(Data(Weekly()));
+        Assert.Null(percent.Units);
+        Assert.Null(percent.TodayUse);
+    }
+
+    [Fact]
+    public void DollarsFollowTheRateAndCapsStayInCredits()
+    {
+        var card = Card(Credits(), new PersonalCap(new CountQuantity(10000, "requests"), Now));
+        var usd = CreditDollars.Apply(card, new(true, 0.01m));
+        Assert.Equal(ScaleModel.Money("USD", 2), usd.Scale);
+        Assert.Equal(32.40m, usd.Figures.Used);
+        Assert.Equal(AiUsage.Features.Ledger.Contract.LimitValue.Known(175.00m), usd.Figures.ProviderLimit);
+        Assert.Equal(100.00m, usd.Cap!.Amount);
+        Assert.Equal(1.20m, usd.TodayUse!.Tracked);
+        Assert.Equal(400.00m, CreditDollars.Apply(card, new(true, 0.04m)).Cap!.Amount);
+        var credits = CreditDollars.Apply(card, new(false, 0.04m));
+        Assert.Equal(ScaleModel.Count("credits"), credits.Scale);
+        Assert.Equal(0.04m, credits.Units!.Rate);
+        Assert.Equal(10000m, credits.Cap!.Amount);
+        var percent = Card(Data(Weekly()));
+        Assert.Same(percent, CreditDollars.Apply(percent, new(true, 0.01m)));
+    }
+
+    [Fact]
+    public void StoredTodayValueReplacesTheDayStart()
+    {
+        var data = Credits();
+        var card = Card(data, today: [Entry(data)]);
+        Assert.Equal(2340, card.Figures.DayStart);
+        Assert.Equal(900, card.Figures.Used - card.Figures.DayStart);
+        Assert.Equal(new TodayUseModel(120, TrackedFrom, true), card.TodayUse);
+        var later = Credits((3300, Now.AddMinutes(10)));
+        var next = Card(later, now: Now.AddMinutes(10), today: [Entry(later)]);
+        Assert.Equal(960, next.Figures.Used - next.Figures.DayStart);
+        Assert.Equal(180, next.TodayUse!.Tracked);
+    }
+
+    [Fact]
+    public void TodayValueIsIgnoredAfterAPeriodRestartOrOnTheNextDay()
+    {
+        var data = Credits();
+        Assert.Equal(3120, Card(data, today: [Entry(data) with { Instance = "old" }]).Figures.DayStart);
+        Assert.Equal(3120, Card(data, today: [Entry(data) with { Date = new DateOnly(2026, 10, 4) }]).Figures.DayStart);
+        Assert.False(Card(data, today: [Entry(data) with { Instance = "old" }]).TodayUse!.Manual);
+    }
+
+    [Fact]
+    public void HistoryTodayBarUsesTheStoredDayStart()
+    {
+        var data = Credits();
+        Assert.Equal(120, LiveLedgerProjection.History(data, Now, TimeZoneInfo.Utc).Days[^1].Used);
+        var history = LiveLedgerProjection.History(data, Now, TimeZoneInfo.Utc, [Entry(data)]);
+        Assert.Equal(900, history.Days[^1].Used);
+        Assert.Equal(9.00m, CreditDollars.ToDollars(history, 0.01m).Days[^1].Used);
     }
 }

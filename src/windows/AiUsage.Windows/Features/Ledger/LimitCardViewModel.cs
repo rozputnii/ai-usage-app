@@ -12,30 +12,43 @@ internal interface ILedgerScheduler
     IDisposable Schedule(TimeSpan delay, Action action);
 }
 
-/// <summary>Inline amount editor for a personal cap (spec S3, S5): Enter saves, Esc cancels, empty + Enter removes.</summary>
+/// <summary>Inline amount editor for a personal cap (spec S3, S5): Enter saves, Esc cancels, empty + Enter removes.
+/// The limit settings popover reuses it for today's use (D-199) with its own label and copy.</summary>
 internal sealed partial class CapEditorViewModel : ObservableObject
 {
     private readonly LimitValue providerLimit;
     private readonly Func<decimal?, Task<bool>> commit;
     private readonly Action close;
+    private readonly string limitNote;
+    private readonly string emptyError;
+    private readonly string failure;
 
-    public CapEditorViewModel(ScaleModel scale, LimitValue providerLimit, decimal? current, string period, Func<decimal?, Task<bool>> commit, Action close)
+    public CapEditorViewModel(ScaleModel scale, LimitValue providerLimit, decimal? current, string period, Func<decimal?, Task<bool>> commit, Action close,
+        string label = "cap", string? hint = null, bool? hasValue = null, string limitNote = "the provider limit", string removeText = "Remove",
+        string emptyError = "Enter a cap", string failure = "The cap was not saved")
     {
         Scale = scale;
         this.providerLimit = providerLimit;
-        HasCap = current is not null;
+        HasCap = hasValue ?? current is not null;
         Text = current is { } amount ? LedgerFormat.EditText(scale, amount) : string.Empty;
         UnitText = LedgerFormat.Unit(scale);
-        Hint = HasCap
+        Label = label;
+        RemoveText = removeText;
+        Hint = hint ?? (HasCap
             ? "per " + period + " · Enter saves · Esc cancels · empty + Enter removes"
-            : "per " + period + " · the cap is yours, not the provider’s limit";
+            : "per " + period + " · the cap is yours, not the provider’s limit");
         this.commit = commit;
         this.close = close;
+        this.limitNote = limitNote;
+        this.emptyError = emptyError;
+        this.failure = failure;
     }
 
     public ScaleModel Scale { get; }
     public bool HasCap { get; }
     public string UnitText { get; }
+    public string Label { get; }
+    public string RemoveText { get; }
     public string Hint { get; }
     [ObservableProperty] public partial string Text { get; set; }
     [ObservableProperty] public partial string? Error { get; set; }
@@ -64,21 +77,21 @@ internal sealed partial class CapEditorViewModel : ObservableObject
             }
             if (!providerLimit.AllowsCap(parsed))
             {
-                Error = "Enter at most " + LedgerFormat.Value(Scale, providerLimit.Amount!.Value) + " · the provider limit";
+                Error = "Enter at most " + LedgerFormat.Value(Scale, providerLimit.Amount!.Value) + " · " + limitNote;
                 return;
             }
             amount = parsed;
         }
         else if (!HasCap)
         {
-            Error = "Enter a cap";
+            Error = emptyError;
             return;
         }
         Error = null;
         if (await commit(amount))
             close();
         else
-            Error = "The cap was not saved";
+            Error = failure;
     }
 
     [RelayCommand]
@@ -136,6 +149,12 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public string? Tag => Model.ScopeLabel;
     public bool HasTag => !string.IsNullOrEmpty(Model.ScopeLabel);
     public bool CanEditCap => Model.CapTargetId is not null;
+    /// <summary>D-199: the limit has a cap, today's use or units to set in its popover.</summary>
+    public bool HasSettings => CanEditCap || Model.TodayUse is not null || Model.Units is not null;
+    public string SettingsName => "Limit settings, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
+    [ObservableProperty] public partial LimitSettingsViewModel? Settings { get; private set; }
+    /// <summary>Raised when an editor in the popover saves or cancels, so the view can hide it.</summary>
+    public event EventHandler? SettingsClosed;
     public bool CanSignOut => !IsAccountSection && Account.Health != AccountHealth.SignedOut;
     public bool CanOpenHistory => Model.Layout != CardLayout.Note || Model.Monetary is not null;
     public bool IsStale => Model.Freshness.IsStale;
@@ -201,6 +220,23 @@ internal sealed partial class LimitCardViewModel : ObservableObject
             amount => owner.SetCapAsync(target, amount, before, Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty)),
             () => CapEditor = null);
     }
+
+    /// <summary>Builds the popover from the current model; called when it opens and after a unit change.</summary>
+    public void OpenSettings()
+    {
+        if (!HasSettings)
+            return;
+        var target = Model.CapTargetId;
+        var before = Model.Cap?.Status == CapStatus.CurrencyMismatch ? null : Model.Cap?.Amount;
+        var label = Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty);
+        Settings = new LimitSettingsViewModel(Model,
+            amount => target is null ? Task.FromResult(false) : owner.SetCapAsync(target, amount, before, label),
+            amount => owner.SetTodayUsedAsync(CardId, amount),
+            (usd, rate) => owner.SetUnitsAsync(CardId, usd, rate),
+            OpenSettings, () => SettingsClosed?.Invoke(this, EventArgs.Empty));
+    }
+
+    public void CloseSettings() => Settings = null;
 
     [RelayCommand]
     public async Task ActionAsync()

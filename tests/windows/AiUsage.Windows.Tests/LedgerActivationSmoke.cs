@@ -45,6 +45,55 @@ public sealed partial class LedgerSmoke
         finally { if (!process.HasExited) { process.Kill(); process.WaitForExit(5000); } }
     }
 
+    /// <summary>D-199: the Copilot Business popover shows credits in dollars and stores today's use, driven through UI Automation patterns.</summary>
+    [Fact]
+    public void WorkBudgetPopoverShowsCreditsInDollarsAndSetsToday()
+    {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
+        var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
+        var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
+        Assert.False(string.IsNullOrWhiteSpace(exe));
+        Assert.False(string.IsNullOrWhiteSpace(evidence));
+        var start = new ProcessStartInfo(exe!, "--demo --scenario=work-budget") { UseShellExecute = false };
+        start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Path.Combine(Path.GetTempPath(), "aiu-credits-" + Guid.NewGuid().ToString("N"));
+        using var app = Application.Launch(start);
+        using var process = Process.GetProcessById(app.ProcessId);
+        using var automation = new UIA3Automation();
+        _ = process.Handle;
+        try
+        {
+            Assert.True(Wait(() => OwnedWindow(automation, app.ProcessId) is not null));
+            var window = OwnedWindow(automation, app.ProcessId)!;
+            Focus(window);
+            Directory.CreateDirectory(evidence!);
+            void Capture(string name) { DesktopTestEnvironment.RequireUnlockedDesktop(); using var image = window.Capture(); image.Save(Path.Combine(evidence!, name), System.Drawing.Imaging.ImageFormat.Png); }
+            // A WinUI flyout can be its own popup window, so names are looked up in the window and then on the desktop.
+            AutomationElement? Named(string name) => window.FindFirstDescendant(cf => cf.ByName(name)) ?? automation.GetDesktop().FindFirstDescendant(cf => cf.ByName(name));
+            bool Shows(string text) => window.FindAllDescendants().Concat(automation.GetDesktop().FindAllChildren())
+                .Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains(text, StringComparison.Ordinal));
+            void Open() { Named("Limit settings, Copilot Business Premium requests")!.AsButton().Invoke(); Assert.True(Wait(() => Named("Show as US dollars") is not null)); }
+
+            Assert.True(Wait(() => Shows("3,240 of 17,500 used")));
+            Assert.Null(Named("Limit settings, Codex subscription 7 day"));
+            Open();
+            Capture("credits-popover.png");
+            Named("Show as US dollars")!.AsButton().Invoke();
+            Assert.True(Wait(() => Shows("$32.40 of $175.00 used")));
+            Assert.True(Wait(() => Named("Today’s use in USD") is not null));
+            var today = Named("Today’s use in USD")!;
+            Assert.Equal("1.20", today.Patterns.Value.Pattern.Value.Value);
+            today.Patterns.Value.Pattern.SetValue("9.00");
+            Capture("credits-usd-popover.png");
+            Named("Save")!.AsButton().Invoke();
+            Assert.True(Wait(() => Named("Show as US dollars") is null));
+            Open();
+            Assert.True(Wait(() => Named("Today’s use in USD")?.Patterns.Value.Pattern.Value.Value == "9.00"));
+            Assert.True(Shows("set by you"));
+            Capture("credits-today-set.png");
+        }
+        finally { if (!process.HasExited) { process.Kill(); process.WaitForExit(5000); } }
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

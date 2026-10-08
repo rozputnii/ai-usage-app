@@ -63,6 +63,53 @@
                   AutomationProperties.Name="{x:Bind ViewModel.HideName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Hide')}">
             <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xED1A;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
           </lc:LedgerButton>
+          <!-- D-199: units, today's use and the cap of this limit. -->
+          <lc:LedgerButton x:Name="SettingsButton" Style="{StaticResource LedgerQuietIconButton}" PointerEntered="OnIconPointerEntered" PointerExited="OnIconPointerExited"
+                  Visibility="{x:Bind Show(ViewModel.HasSettings), Mode=OneWay}"
+                  AutomationProperties.Name="{x:Bind ViewModel.SettingsName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Limit settings')}">
+            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE9E9;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
+            <lc:LedgerButton.Flyout>
+              <Flyout x:Name="SettingsFlyout" Placement="BottomEdgeAlignedRight" FlyoutPresenterStyle="{StaticResource LedgerFlyoutPresenter}"
+                      Opening="OnSettingsOpening" Closed="OnSettingsClosed">
+                <StackPanel Width="320" Spacing="12">
+                  <StackPanel Spacing="5" Visibility="{x:Bind Show(ViewModel.Settings.HasUnits), Mode=OneWay, FallbackValue=Collapsed}">
+                    <Grid ColumnSpacing="8">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="72" />
+                      </Grid.ColumnDefinitions>
+                      <TextBlock Text="show as" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
+                      <Border Grid.Column="1" Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2">
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                          <lc:LedgerButton Content="credits" Style="{StaticResource LedgerSegmentButton}" Command="{x:Bind ViewModel.Settings.ShowCreditsCommand, Mode=OneWay}"
+                                  Background="{x:Bind Segment(ViewModel.Settings.IsUsd, x:False), Mode=OneWay}" Foreground="{x:Bind SegmentText(ViewModel.Settings.IsUsd, x:False), Mode=OneWay}"
+                                  AutomationProperties.Name="Show as credits" />
+                          <lc:LedgerButton Content="USD" Style="{StaticResource LedgerSegmentButton}" Command="{x:Bind ViewModel.Settings.ShowUsdCommand, Mode=OneWay}"
+                                  Background="{x:Bind Segment(ViewModel.Settings.IsUsd, x:True), Mode=OneWay}" Foreground="{x:Bind SegmentText(ViewModel.Settings.IsUsd, x:True), Mode=OneWay}"
+                                  AutomationProperties.Name="Show as US dollars" />
+                        </StackPanel>
+                      </Border>
+                      <TextBlock Grid.Column="3" Text="1 credit = $" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
+                      <TextBox Grid.Column="4" Style="{StaticResource LedgerAmountBox}" Text="{x:Bind ViewModel.Settings.RateText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=''}"
+                               BeforeTextChanging="OnRateBeforeChanging" KeyDown="OnRateKeyDown" AutomationProperties.Name="US dollars per credit"
+                               ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Enter saves · GitHub charges $0.01 per AI credit')}">
+                        <TextBox.Resources><x:Double x:Key="TextControlThemeMinHeight">24</x:Double></TextBox.Resources>
+                      </TextBox>
+                    </Grid>
+                    <TextBlock Text="{x:Bind ViewModel.Settings.RateError, Mode=OneWay, FallbackValue=''}" Style="{StaticResource LedgerCaptionText}" Foreground="{StaticResource LedgerCritTextBrush}"
+                               TextWrapping="Wrap" Visibility="{x:Bind ShowText(ViewModel.Settings.RateError), Mode=OneWay, FallbackValue=Collapsed}" />
+                  </StackPanel>
+                  <lc:CapEditorView AutoFocus="False" Editor="{x:Bind ViewModel.Settings.Today, Mode=OneWay}"
+                                    Visibility="{x:Bind ShowEditor(ViewModel.Settings.Today), Mode=OneWay, FallbackValue=Collapsed}" />
+                  <lc:CapEditorView AutoFocus="False" Editor="{x:Bind ViewModel.Settings.Cap, Mode=OneWay}"
+                                    Visibility="{x:Bind ShowEditor(ViewModel.Settings.Cap), Mode=OneWay, FallbackValue=Collapsed}" />
+                </StackPanel>
+              </Flyout>
+            </lc:LedgerButton.Flyout>
+          </lc:LedgerButton>
           <lc:LedgerButton x:Name="HistoryButton" Style="{StaticResource LedgerQuietIconButton}" PointerEntered="OnIconPointerEntered" PointerExited="OnIconPointerExited"
                   Command="{x:Bind ViewModel.ToggleHistoryCommand}" Visibility="{x:Bind Show(ViewModel.CanOpenHistory), Mode=OneWay}"
                   AutomationProperties.Name="{x:Bind ViewModel.HistoryName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('History')}"

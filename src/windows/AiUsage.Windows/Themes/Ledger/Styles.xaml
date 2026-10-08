@@ -41,6 +41,16 @@
     <Setter Property="BorderBrush" Value="{StaticResource LedgerLineWindowBrush}" />
   </Style>
 
+  <Style x:Key="LedgerFlyoutPresenter" TargetType="FlyoutPresenter">
+    <Setter Property="RequestedTheme" Value="Dark" />
+    <Setter Property="HighContrastAdjustment" Value="None" />
+    <Setter Property="Background" Value="{StaticResource LedgerTipBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LedgerLineWindowBrush}" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="14,12,14,12" />
+    <Setter Property="MaxWidth" Value="400" />
+  </Style>
+
   <Style TargetType="MenuFlyoutItem">
     <Setter Property="HighContrastAdjustment" Value="None" />
     <Setter Property="FontFamily" Value="{StaticResource LedgerSansFont}" />

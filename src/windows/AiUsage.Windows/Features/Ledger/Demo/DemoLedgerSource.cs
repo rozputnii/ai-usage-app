@@ -10,6 +10,8 @@ namespace AiUsage.Features.Ledger.Demo;
 internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSource
 {
     private readonly Dictionary<string, LimitCardModel> originals = [];
+    private readonly Dictionary<string, LimitCardModel> natives = [];
+    private readonly Dictionary<string, (decimal? DayStart, decimal? TodayEnd)> todayBases = [];
     private readonly Dictionary<string, IReadOnlyList<LimitCardModel>> signedOutCards = [];
     private IDisposable? pendingSignIn;
     private bool workToday;
@@ -26,6 +28,8 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         workToday = false;
         ScenarioId = id;
         originals.Clear();
+        natives.Clear();
+        todayBases.Clear();
         signedOutCards.Clear();
         Publish(DemoLedgerScenarios.Build(id));
     }
@@ -91,8 +95,16 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         var card = account.Cards.First(c => c.CapTargetId == capTargetId);
         if (amount is { } requested && !card.Figures.ProviderLimit.AllowsCap(requested))
             return Task.FromResult(CommandOutcome.Rejected);
-        var original = originals.GetValueOrDefault(capTargetId, card);
-        var updated = amount is { } value ? WithCap(original, card, value) : WithoutCap(original, card);
+        // D-199: a credit pool keeps its cap in credits; one entered in dollars is converted first.
+        var native = natives.GetValueOrDefault(card.CardId) ?? (card.Units is not null ? card : null);
+        var original = native ?? originals.GetValueOrDefault(capTargetId, card);
+        var credits = native?.Units is { Usd: true, Rate: var rate } && amount is { } dollars ? CreditDollars.CapCredits(dollars, rate) : amount;
+        var updated = credits is { } value ? WithCap(original, native ?? card, value) : WithoutCap(original, native ?? card);
+        if (native is not null)
+        {
+            natives[card.CardId] = updated;
+            updated = CreditDollars.Apply(updated, null);
+        }
         if (updated.Monetary is { } money && updated.Scale.Exponent is >= 0 and <= 18)
         {
             decimal scale = 1;
@@ -157,6 +169,52 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
             return Task.FromResult(CommandOutcome.Rejected);
         Publish(Current with { Budget = Current.Budget with { Caps = [.. Current.Budget.Caps.Where(c => c.CapId != capId)] } });
         return Task.FromResult(CommandOutcome.Done);
+    }
+
+    public Task<CommandOutcome> SetTodayUsedAsync(string cardId, decimal? amount, CancellationToken ct)
+    {
+        var card = Current.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CardId == cardId);
+        if (card?.TodayUse is null || card.Figures.Used is not { } shown || amount < 0 || amount > shown ||
+            amount is { } typed && card.Scale.Kind == ScaleKind.Money && decimal.Round(typed, card.Scale.Exponent ?? 2) != typed)
+            return Task.FromResult(CommandOutcome.Rejected);
+        var native = natives.GetValueOrDefault(cardId, card);
+        if (!todayBases.TryGetValue(cardId, out var day))
+            todayBases[cardId] = day = (native.Figures.DayStart, native.Figures.TodayEnd);
+        var used = native.Figures.Used ?? 0;
+        // The demo has no budget engine: today's share keeps its width and moves with the day start.
+        var start = amount is { } value ? used - (native.Units is { Usd: true, Rate: var rate } ? Math.Min(CreditDollars.TodayCredits(value, rate), used) : value) : day.DayStart;
+        var updated = native with
+        {
+            Figures = native.Figures with { DayStart = start, TodayEnd = start + (day.TodayEnd - day.DayStart) },
+            TodayUse = native.TodayUse! with { Manual = amount is not null },
+        };
+        Replace(updated);
+        return Task.FromResult(CommandOutcome.Done);
+    }
+
+    public Task<CommandOutcome> SetUnitsAsync(string cardId, bool usd, decimal rate, CancellationToken ct)
+    {
+        var card = Current.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CardId == cardId);
+        if (card?.Units is null || !CreditDollars.ValidRate(rate))
+            return Task.FromResult(CommandOutcome.Rejected);
+        Replace(natives.GetValueOrDefault(cardId, card) with { Units = new(usd, rate) });
+        return Task.FromResult(CommandOutcome.Done);
+    }
+
+    /// <summary>Publishes a card from its native figures; a credit pool keeps them and shows its chosen unit (D-199).</summary>
+    private void Replace(LimitCardModel native)
+    {
+        if (native.Units is not null)
+            natives[native.CardId] = native;
+        var shown = CreditDollars.Apply(native, null);
+        Publish(Current with
+        {
+            Accounts = [.. Current.Accounts.Select(a => a with { Cards = [.. a.Cards.Select(c => c.CardId == shown.CardId ? shown : c)] })],
+            Budget = Current.Budget with
+            {
+                Caps = [.. Current.Budget.Caps.Select(c => c.CapTargetId == shown.CapTargetId && shown.Cap is { } cap ? c with { Scale = shown.Scale, Amount = cap.Amount, ProviderLimit = shown.Figures.ProviderLimit } : c)]
+            },
+        });
     }
 
     public Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct)
@@ -312,6 +370,8 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         pendingSignIn?.Dispose();
         pendingSignIn = null;
         originals.Clear();
+        natives.Clear();
+        todayBases.Clear();
         signedOutCards.Clear();
         workToday = false;
         ScenarioId = DemoLedgerScenarios.FirstRun;

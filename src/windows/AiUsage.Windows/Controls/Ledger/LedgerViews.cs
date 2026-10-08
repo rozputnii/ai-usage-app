@@ -24,6 +24,7 @@ internal static class LedgerViews
 internal sealed partial class CapEditorView : StackPanel
 {
     private readonly TextBox input;
+    private readonly TextBlock label;
     private readonly TextBlock unit;
     private readonly TextBlock hint;
     private readonly TextBlock error;
@@ -41,7 +42,7 @@ internal sealed partial class CapEditorView : StackPanel
         // before the gap that right-aligns Save and Remove.
         row.ColumnDefinitions[1].MinWidth = 64;
         row.ColumnDefinitions[1].MaxWidth = 140;
-        var label = Text("cap", "Ink3");
+        label = Text("cap", "Ink3");
         label.VerticalAlignment = VerticalAlignment.Center;
         row.Children.Add(label);
         input = new TextBox { Style = (Style)LedgerTheme.Find("LedgerAmountBox")! };
@@ -80,6 +81,9 @@ internal sealed partial class CapEditorView : StackPanel
 
     public CapEditorViewModel? Editor { get => (CapEditorViewModel?)GetValue(EditorProperty); set => SetValue(EditorProperty, value); }
 
+    /// <summary>An inline editor takes focus when it opens; the editors of the limit settings popover do not.</summary>
+    public bool AutoFocus { get; set; } = true;
+
     public void FocusInput()
     {
         input.Focus(FocusState.Programmatic);
@@ -97,13 +101,17 @@ internal sealed partial class CapEditorView : StackPanel
             return;
         attached.PropertyChanged += OnEditorChanged;
         input.Text = attached.Text;
+        label.Text = attached.Label;
         unit.Text = attached.UnitText;
+        remove.Content = attached.RemoveText;
         hint.Text = attached.Hint;
         remove.Visibility = attached.HasCap ? Visibility.Visible : Visibility.Collapsed;
-        AutomationProperties.SetName(input, "Cap amount in " + attached.UnitText);
+        AutomationProperties.SetName(input, (attached.Label == "cap" ? "Cap amount" : "Today’s use") + " in " + attached.UnitText);
         AutomationProperties.SetHelpText(input, attached.Hint);
         ShowError();
         var target = attached;
+        if (!AutoFocus)
+            return;
         DispatcherQueue.TryEnqueue(() =>
         {
             if (ReferenceEquals(Editor, target) && Visibility == Visibility.Visible)

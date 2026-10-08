@@ -63,11 +63,19 @@ internal static class DemoLedgerScenarios
             null, AssumedMonth, null, "work-month", CardAction.None, null)
         {
             Monetary = new(new(2966, 2, "USD"), new(200000, 2, "USD"), LimitValueKind.Known, null, true,
-                "Monthly work budget · provider period unknown · calendar month assumed", null)
+                "Monthly work budget · provider period unknown · calendar month assumed", null),
+            // D-199: the app started at 11:05, so nothing used earlier today is counted yet.
+            TodayUse = new(0, At(10, 14, 11, 5), false),
+        };
+        // D-199: the Copilot Business AI-credit pool, tracked since 10:43 today.
+        var credits = Requests("copilot-business-premium", "Premium requests", CardState.OnTrack, 3120, 3240, 4217, 17500, 795, 14260) with
+        {
+            Scale = ScaleModel.Count("credits"), Units = new(false, UnitModel.DefaultRate), TodayUse = new(120, At(10, 14, 10, 43), false),
         };
         var codex = snapshot.Accounts.First(a => a.Provider == ProviderKind.Codex);
         return snapshot with { Accounts = [new("work-account", ProviderKind.Claude, "Claude Work", AccountHealth.Ok,
-            BriefNow, null, null, [money]), codex with { DisplayName = "Codex subscription", Cards = [codex.Cards[0]] }] };
+            BriefNow, null, null, [money]), codex with { DisplayName = "Codex subscription", Cards = [codex.Cards[0]] },
+            new("copilot-business", ProviderKind.Copilot, "Copilot Business", AccountHealth.Ok, BriefNow, null, null, [credits])] };
     }
     private static LedgerSnapshot MonetarySnapshot(bool withWindows = false)
     {

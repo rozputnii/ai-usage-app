@@ -527,6 +527,11 @@ internal static class CardVisuals
             lines.Add(used > t ? "More than a work day’s share · the next work days shrink evenly" : "No colours on a day off · Work today colours it");
         if (rush)
             lines.Add("Whole remainder · nothing carries past " + ResetPlain(card.Reset));
+        // D-199: say where today's figure comes from when it is not a full tracked day.
+        if (card.TodayUse is { Manual: true })
+            lines.Add("Set by you");
+        else if (card.TodayUse?.TrackedSince is { } since)
+            lines.Add("Tracked since " + LedgerFormat.Clock(since));
         return Cell(1, parts, tone, left, off, false, lines);
     }
 

@@ -444,18 +444,34 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     /// <summary>Sets or removes a cap; removing one offers undo that restores the previous amount.</summary>
     public async Task<bool> SetCapAsync(string capTargetId, decimal? amount, decimal? before, string label)
     {
+        UnitModel? UnitsNow() => Cards.FirstOrDefault(c => c.Model.CapTargetId == capTargetId)?.Model.Units;
+        var units = UnitsNow();
         var outcome = await source.SetCapAsync(capTargetId, amount, CancellationToken.None);
         if (outcome != CommandOutcome.Done)
             return false;
         if (amount is null && before is { } previous)
         {
-            OfferUndo("Cap removed · " + label.Trim(), () => source.SetCapAsync(capTargetId, previous, CancellationToken.None));
+            // The removed amount is in the unit shown at removal; a credit pool may be shown otherwise by the time of undo (D-199).
+            OfferUndo("Cap removed · " + label.Trim(), () => source.SetCapAsync(capTargetId, CreditDollars.Convert(previous, units, UnitsNow()), CancellationToken.None));
             announce("Cap removed");
         }
         else
             announce("Cap saved");
         return true;
     }
+
+    /// <summary>D-199: the owner's figure for today's use; null returns to the tracked figure.</summary>
+    public async Task<bool> SetTodayUsedAsync(string cardId, decimal? amount)
+    {
+        if (await source.SetTodayUsedAsync(cardId, amount, CancellationToken.None) != CommandOutcome.Done)
+            return false;
+        announce(amount is null ? "Today’s use is tracked again" : "Today’s use saved");
+        return true;
+    }
+
+    /// <summary>D-199: shows a credit pool natively or in US dollars.</summary>
+    public async Task<bool> SetUnitsAsync(string cardId, bool usd, decimal rate) =>
+        await source.SetUnitsAsync(cardId, usd, rate, CancellationToken.None) == CommandOutcome.Done;
 
     public async Task MoveAsync(string cardId, int offset)
     {

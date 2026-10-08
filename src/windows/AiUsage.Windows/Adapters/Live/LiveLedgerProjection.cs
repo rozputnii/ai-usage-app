@@ -16,6 +16,10 @@ internal sealed record LedgerLimit(LimitFacts Facts, ReadingSeriesKey Series, IR
     public MonetaryScope MonetaryScope { get; init; }
     public bool UsesWorkBudget { get; init; }
 }
+/// <summary>The used amount and period instance a card budgets with now (D-199).</summary>
+internal sealed record TodayBasis(Quantity Used, string Instance);
+/// <summary>The owner's day start for one card on one local date, in the native amount of that period instance; kept in the window preferences (D-199).</summary>
+internal sealed record TodayEntry(string Card, DateOnly Date, string Instance, decimal DayStart);
 
 /// <summary>Core facts and calculations projected once into display units. No transport or persistence.</summary>
 internal static class LiveLedgerProjection
@@ -39,7 +43,7 @@ internal static class LiveLedgerProjection
     };
 
     public static AccountModel Account(AccountSnapshot account, string name, IReadOnlyList<LedgerLimit> limits,
-        BudgetConfiguration configuration, DateTimeOffset now, TimeZoneInfo zone, DateOnly? workToday)
+        BudgetConfiguration configuration, DateTimeOffset now, TimeZoneInfo zone, DateOnly? workToday, IReadOnlyList<TodayEntry>? entries = null)
     {
         var id = account.AccountId.ToString("N");
         var session = account.Session;
@@ -61,7 +65,7 @@ internal static class LiveLedgerProjection
             // Only a known shared pool may consume its short window into the period card.
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;
-            var card = Card(data, cap, now, zone, configuration.WorkDays.ToHashSet(), workToday, stale) with
+            var card = Card(data, cap, now, zone, configuration.WorkDays.ToHashSet(), workToday, stale, entries) with
             {
                 Freshness = new(stale, Local(readingAt, zone)), ScopeLabel = Label(facts, session.Quota),
                 ModelScoped = facts.Key.Family is "CL-M" or "CX-A"
@@ -129,8 +133,12 @@ internal static class LiveLedgerProjection
     private static DateTimeOffset? Local(DateTimeOffset? instant, TimeZoneInfo zone) =>
         instant is { } value ? TimeZoneInfo.ConvertTime(value, zone) : null;
 
-    public static LimitCardModel Card(LedgerLimit data, PersonalCap? cap, DateTimeOffset now, TimeZoneInfo zone,
-        IReadOnlySet<DayOfWeek> workDays, DateOnly? workToday, bool stale)
+    /// <summary>The used amount and period instance a card budgets with now; the source stores the owner's day start against them (D-199).</summary>
+    public static TodayBasis? Basis(LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone) =>
+        Readings(data, now, zone) is { Used: { } used, Instance: { } instance } ? new(used, instance) : null;
+
+    private static (PeriodBounds? Period, Quantity? Used, IReadOnlyList<ReadingRun> Runs, TrackingModel? Tracking, string? Instance) Readings(
+        LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone)
     {
         var facts = data.Facts;
         var period = ResolvePeriod(data, now, zone);
@@ -145,11 +153,43 @@ internal static class LiveLedgerProjection
             runs = tracked.Runs;
             tracking = new(tracked.TrackedSince is { } since ? WorkCalendar.Date(since, zone) : null, tracked.Incomplete);
         }
-        var instance = runs.LastOrDefault(r => r.FirstSeen <= now)?.PeriodInstance;
-        var dayStart = instance is null ? null : ReadingCalculations.DayStart(runs, data.Series, instance, now, zone).Value;
+        return (period, used, runs, tracking, runs.LastOrDefault(r => r.FirstSeen <= now)?.PeriodInstance);
+    }
+
+    /// <summary>The quantity of an amount in the shape of another; money needs a whole number of minor units.</summary>
+    public static Quantity? FromAmount(decimal amount, Quantity shape)
+    {
+        try
+        {
+            return shape switch
+            {
+                CountQuantity count => count with { Value = amount },
+                MoneyQuantity { Exponent: >= 0 and <= 18 } money when amount * Power(money.Exponent.Value) is var minor && minor == decimal.Truncate(minor) &&
+                    minor is >= long.MinValue and <= long.MaxValue => money with { MinorUnits = (long)minor },
+                _ => null
+            };
+        }
+        catch (OverflowException) { return null; }
+    }
+
+    public static LimitCardModel Card(LedgerLimit data, PersonalCap? cap, DateTimeOffset now, TimeZoneInfo zone,
+        IReadOnlySet<DayOfWeek> workDays, DateOnly? workToday, bool stale, IReadOnlyList<TodayEntry>? entries = null)
+    {
+        var facts = data.Facts;
+        var (period, used, runs, tracking, instance) = Readings(data, now, zone);
+        var automatic = instance is null ? null : ReadingCalculations.DayStart(runs, data.Series, instance, now, zone);
+        var dayStart = automatic?.Value;
+        // D-199: the owner's day start replaces the tracked one only on its date and within the same period instance.
+        var entry = facts.Kind == LimitKind.PercentWindow || used is null ? null : entries?.FirstOrDefault(e =>
+            e.Card == CardId(data.Series) && e.Date == WorkCalendar.Date(now, zone) && e.Instance == instance);
+        if (entry is not null && FromAmount(entry.DayStart, used!) is { } corrected) dayStart = corrected;
+        else entry = null;
         var result = BudgetEngine.Calculate(new(facts, cap, period, used, dayStart, now, zone)
         { WorkDays = workDays, WorkToday = workToday, IsStale = stale });
         var scale = Scale(result.Scale ?? used ?? facts.Limit.Value ?? facts.Remaining, facts);
+        // D-199: the owner identifies the Copilot premium pool as AI credits; stored readings and caps keep the provider unit.
+        var credits = facts.Key is { Provider: "copilot", Family: "GH-P" } && scale.Kind == ScaleKind.Count;
+        if (credits) scale = ScaleModel.Count("credits");
         var provider = ProviderLimit(facts);
         var off = !workDays.Contains(WorkCalendar.Date(now, zone).DayOfWeek);
         var extraDay = off && workToday == WorkCalendar.Date(now, zone);
@@ -177,7 +217,14 @@ internal static class LiveLedgerProjection
             scale is { Kind: ScaleKind.Money, Currency: not null, Exponent: >= 0 and <= 18 })
             ? CardId(data.Series) : null;
         var card = new LimitCardModel(CardId(data.Series), Label(facts, null), layout, scale, Period(facts, period), state, new(stale, null), marks,
-            figures, null, reset, capModel, target, state is CardState.NoCap or CardState.LimitUnknown && target is not null ? CardAction.SetCap : CardAction.None, null);
+            figures, null, reset, capModel, target, state is CardState.NoCap or CardState.LimitUnknown && target is not null ? CardAction.SetCap : CardAction.None, null)
+        {
+            Units = credits ? new(false, UnitModel.DefaultRate) : null,
+            TodayUse = facts.Kind != LimitKind.PercentWindow && result.DayStart is not null && used is not null
+                ? new(Rounded(Amount(QuantityMath.Subtract(used, automatic?.Value)), scale),
+                    automatic?.Origin == DayStartOrigin.Since ? Local(automatic.Since, zone) : null, entry is not null)
+                : null,
+        };
         return facts.Key.Family == "CL-X" ? MonetaryCard(card, data, cap, period) : card;
     }
 
@@ -209,7 +256,7 @@ internal static class LiveLedgerProjection
             State = facts.Enabled == false ? CardState.NotIncluded : CardState.PeriodUnknown,
             Figures = LimitFigures.UsedOnly(Amount(facts.Used)) with { ProviderLimit = ProviderLimit(facts) },
             Cap = card.Cap is { } retained ? retained with { Binding = false, Status = card.Cap.Status == CapStatus.CurrencyMismatch ? CapStatus.CurrencyMismatch : CapStatus.Inactive } : null,
-            CapTargetId = null, Action = CardAction.None
+            CapTargetId = null, Action = CardAction.None, TodayUse = null
         };
     }
 
@@ -272,8 +319,9 @@ internal static class LiveLedgerProjection
         "GH-C" => "Chat", "GH-I" => "Completions", _ => quota?.Groups.FirstOrDefault(g => g.Id == Group(facts, quota))?.Name ?? facts.Key.NativeDiscriminator
     };
 
-    public static HistoryModel History(LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone)
+    public static HistoryModel History(LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone, IReadOnlyList<TodayEntry>? entries = null)
     {
+        var id = CardId(data.Series);
         var today = WorkCalendar.Date(now, zone);
         var days = new List<HistoryDay>();
         var resets = new HashSet<DateOnly>();
@@ -292,8 +340,10 @@ internal static class LiveLedgerProjection
             foreach (var group in runs.GroupBy(r => r.PeriodInstance))
             {
                 var last = group.MaxBy(r => r.FirstSeen)!;
-                var baseline = ReadingCalculations.DayStart(allRuns, data.Series, group.Key, at, zone);
-                var difference = QuantityMath.Subtract(last.Value, baseline.Value);
+                var baseline = ReadingCalculations.DayStart(allRuns, data.Series, group.Key, at, zone).Value;
+                if (data.Facts.Kind != LimitKind.PercentWindow && entries?.FirstOrDefault(e => e.Card == id && e.Date == date && e.Instance == group.Key) is { } entry &&
+                    FromAmount(entry.DayStart, last.Value) is { } corrected) baseline = corrected;
+                var difference = QuantityMath.Subtract(last.Value, baseline);
                 if (Amount(difference) is { } amount) total = (total ?? 0) + Math.Max(0, amount);
                 if (group.Any(r => r.PeriodStartedAt >= start && r.PeriodStartedAt < end)) resets.Add(date);
             }

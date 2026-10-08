@@ -568,4 +568,139 @@ public sealed class LiveLedgerSourceTests
         clock.Now = clock.Now.AddHours(1); await source.TickAsync(Token);
         Assert.Equal(before, accounts.Refreshed.Count);
     }
+
+    // ---- D-199: units and today's use ----
+
+    private static readonly DateTimeOffset TrackedFrom = new(2026, 10, 5, 10, 43, 0, TimeSpan.Zero);
+    private static readonly LimitKey Premium = new("copilot", "GH-P", "premium");
+    private static readonly LimitKey Chat = new("copilot", "GH-C", "chat");
+    private static ReadingRun Run(Guid id, LimitKey key, Quantity value, DateTimeOffset at) =>
+        new(new(id.ToString("N"), key), value, at, at, "one", null, SnapshotSource.ProviderApi);
+    private static AccountSnapshot Snapshot(Guid id, string provider, DateTimeOffset at, params LimitFacts[] limits) =>
+        new(id, provider, true, new(ProviderSessionStatus.QuotaAvailable,
+            new QuotaSnapshot(at, null, [], null, null, null, null) { Limits = new(at, null, SnapshotSource.ProviderApi, "test", limits) }, FromCache: true), false, null);
+    private static (AccountSnapshot Account, ReadingRun[] Runs) CopilotCredits(Guid id, DateTimeOffset now)
+    {
+        LimitFacts Pool(LimitKey key, decimal limit, decimal used) => new(key, LimitKind.CountablePool, "requests", FactValue.Finite(new CountQuantity(limit, "requests")))
+        { Used = new CountQuantity(used, "requests"), IsMonthly = true, Reset = new(now.AddDays(20), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        return (Snapshot(id, "copilot", now, Pool(Premium, 17500, 3240), Pool(Chat, 300, 10)),
+            [Run(id, Premium, new CountQuantity(3120, "requests"), TrackedFrom), Run(id, Premium, new CountQuantity(3240, "requests"), now),
+             Run(id, Chat, new CountQuantity(5, "requests"), TrackedFrom), Run(id, Chat, new CountQuantity(10, "requests"), now)]);
+    }
+    private static LimitCardModel CardOf(LiveLedgerSource source, string cardId) => source.Current.Accounts.SelectMany(a => a.Cards).Single(c => c.CardId == cardId);
+    private static decimal? TodayOf(LimitCardModel card) => card.Figures.Used - card.Figures.DayStart;
+
+    [Fact]
+    public async Task UnitsSwitchCardsCapsAndHistoryAndPersist()
+    {
+        var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
+        var (account, runs) = CopilotCredits(id, clock.Now);
+        store.Runs = runs;
+        var accounts = new Accounts { Current = [account] };
+        string? saved = null;
+        LiveLedgerSource Create() => new(accounts, store, store, store,
+            new LedgerPreferenceStore(_ => Task.FromResult(saved), (value, _) => { saved = value; return Task.CompletedTask; }),
+            action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
+        string premium;
+        using (var source = Create())
+        {
+            await source.InitializeAsync(null, Token);
+            premium = source.Current.Accounts[0].Cards.Single(c => c.ScopeLabel == "Premium requests").CardId;
+            var chat = source.Current.Accounts[0].Cards.Single(c => c.ScopeLabel == "Chat").CardId;
+            Assert.Equal(ScaleModel.Count("credits"), CardOf(source, premium).Scale);
+            Assert.Equal(CommandOutcome.Done, await source.SetUnitsAsync(premium, true, 0.01m, Token));
+            Assert.Equal(ScaleModel.Money("USD", 2), CardOf(source, premium).Scale);
+            Assert.Equal(32.40m, CardOf(source, premium).Figures.Used);
+            Assert.Equal(1.20m, (await source.GetHistoryAsync(premium, Token))!.Days[^1].Used);
+            Assert.Equal(CommandOutcome.Rejected, await source.SetUnitsAsync(premium, true, 0m, Token));
+            Assert.Equal(CommandOutcome.Rejected, await source.SetUnitsAsync(chat, true, 0.01m, Token));
+            Assert.Equal(CommandOutcome.Rejected, await source.SetUnitsAsync("missing", true, 0.01m, Token));
+            await source.StopAsync();
+        }
+        using var restarted = Create();
+        await restarted.InitializeAsync(null, Token);
+        Assert.Equal(32.40m, CardOf(restarted, premium).Figures.Used);
+        await restarted.StopAsync();
+    }
+
+    [Fact]
+    public async Task DollarCapIsStoredInWholeCreditsWithTheProviderUnit()
+    {
+        var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
+        var (account, runs) = CopilotCredits(id, clock.Now);
+        store.Runs = runs;
+        using var source = Source(new Accounts { Current = [account] }, store, clock);
+        await source.InitializeAsync(null, Token);
+        var premium = source.Current.Accounts[0].Cards.Single(c => c.ScopeLabel == "Premium requests");
+        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(premium.CapTargetId!, 6000, Token));
+        Assert.Equal(new CountQuantity(6000, "requests"), Assert.Single(store.Configuration.Caps).Cap.Amount);
+        Assert.Equal(CommandOutcome.Done, await source.SetUnitsAsync(premium.CardId, true, 0.01m, Token));
+        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(premium.CapTargetId!, 50.00m, Token));
+        Assert.Equal(new CountQuantity(5000, "requests"), Assert.Single(store.Configuration.Caps).Cap.Amount);
+        Assert.Equal(CommandOutcome.Rejected, await source.SetCapAsync(premium.CapTargetId!, 175.01m, Token));
+        var row = Assert.Single(source.Current.Budget.Caps);
+        Assert.Equal((ScaleModel.Money("USD", 2), 50.00m), (row.Scale, row.Amount));
+        Assert.Equal(CommandOutcome.Done, await source.SetUnitsAsync(premium.CardId, false, 0.01m, Token));
+        row = Assert.Single(source.Current.Budget.Caps);
+        Assert.Equal((ScaleModel.Count("credits"), 5000m), (row.Scale, row.Amount));
+        await source.StopAsync();
+    }
+
+    [Fact]
+    public async Task DollarAmountsRoundToCreditsWithinTheLimits()
+    {
+        var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
+        var (account, runs) = CopilotCredits(id, clock.Now);
+        store.Runs = runs;
+        using var source = Source(new Accounts { Current = [account] }, store, clock);
+        await source.InitializeAsync(null, Token);
+        var premium = source.Current.Accounts[0].Cards.Single(c => c.ScopeLabel == "Premium requests");
+        Assert.Equal(CommandOutcome.Done, await source.SetUnitsAsync(premium.CardId, true, 0.04m, Token));
+        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(premium.CapTargetId!, 1.01m, Token));
+        Assert.Equal(new CountQuantity(25, "requests"), Assert.Single(store.Configuration.Caps).Cap.Amount);
+        Assert.Equal(1.00m, CardOf(source, premium.CardId).Cap!.Amount);
+        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(premium.CapTargetId!, null, Token));
+        Assert.Equal(CommandOutcome.Done, await source.SetTodayUsedAsync(premium.CardId, 129.60m, Token));
+        Assert.Equal(129.60m, TodayOf(CardOf(source, premium.CardId)));
+        await source.StopAsync();
+    }
+
+    [Fact]
+    public async Task TodayValueValidationRejectsInvalidAmounts()
+    {
+        var clock = new Clock(); var store = new Store(); var copilot = Guid.NewGuid(); var claude = Guid.NewGuid(); var weekly = Guid.NewGuid();
+        var (account, runs) = CopilotCredits(copilot, clock.Now);
+        var spendKey = new LimitKey("claude", "CL-X", "extra-usage");
+        var spend = new LimitFacts(spendKey, LimitKind.MonetaryPool, "USD", FactValue.Finite(new MoneyQuantity(50000, 2, "USD")))
+        { Used = new MoneyQuantity(1250, 2, "USD"), AllowsCalendarFallback = true, Enabled = true };
+        var weekKey = new LimitKey("claude", "CL-W", "shared");
+        var week = new LimitFacts(weekKey, LimitKind.PercentWindow, "percent", FactValue.NotApplicable)
+        { UsedPercent = 40, Duration = TimeSpan.FromDays(7), Reset = new(clock.Now.AddDays(4), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        store.Runs = [.. runs, Run(claude, spendKey, new MoneyQuantity(1000, 2, "USD"), TrackedFrom), Run(claude, spendKey, new MoneyQuantity(1250, 2, "USD"), clock.Now),
+            Run(weekly, weekKey, new CountQuantity(30, "percent"), TrackedFrom), Run(weekly, weekKey, new CountQuantity(40, "percent"), clock.Now)];
+        string? saved = """{"Version":1,"Today":[{"Card":"x","Date":"2026-08-31","Instance":"i","DayStart":1},{"Card":"y","Date":"2026-09-01","Instance":"i","DayStart":1}]}""";
+        using var source = new LiveLedgerSource(new Accounts { Current = [account, Snapshot(claude, "claude", clock.Now, spend), Snapshot(weekly, "claude", clock.Now, week)] },
+            store, store, store, new LedgerPreferenceStore(_ => Task.FromResult<string?>(saved), (value, _) => { saved = value; return Task.CompletedTask; }),
+            action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
+        await source.InitializeAsync(null, Token);
+        var premium = source.Current.Accounts[0].Cards.Single(c => c.ScopeLabel == "Premium requests").CardId;
+        Assert.Equal(CommandOutcome.Done, await source.SetTodayUsedAsync(premium, 900, Token));
+        Assert.Equal(900, TodayOf(CardOf(source, premium)));
+        Assert.True(CardOf(source, premium).TodayUse!.Manual);
+        Assert.DoesNotContain("2026-08-31", saved!);
+        Assert.Contains("2026-09-01", saved!);
+        Assert.Equal(CommandOutcome.Rejected, await source.SetTodayUsedAsync(premium, -1, Token));
+        Assert.Equal(CommandOutcome.Rejected, await source.SetTodayUsedAsync(premium, 3241, Token));
+        Assert.Equal(CommandOutcome.Done, await source.SetTodayUsedAsync(premium, null, Token));
+        Assert.Equal(120, TodayOf(CardOf(source, premium)));
+        Assert.False(CardOf(source, premium).TodayUse!.Manual);
+        var money = source.Current.Accounts[1].Cards.Single().CardId;
+        Assert.NotNull(CardOf(source, money).TodayUse);
+        Assert.Equal(CommandOutcome.Rejected, await source.SetTodayUsedAsync(money, 1.005m, Token));
+        Assert.Equal(CommandOutcome.Done, await source.SetTodayUsedAsync(money, 5.00m, Token));
+        Assert.Equal(5.00m, TodayOf(CardOf(source, money)));
+        var percent = source.Current.Accounts[2].Cards.Single().CardId;
+        Assert.Equal(CommandOutcome.Rejected, await source.SetTodayUsedAsync(percent, 5, Token));
+        await source.StopAsync();
+    }
 }
