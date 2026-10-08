@@ -109,6 +109,39 @@ public sealed class TrayMiniatureTests
     }
 
     [Fact]
+    public void RowsCarryTheProviderAndANamedTip()
+    {
+        var rows = Brief();
+        Assert.Equal([ProviderKind.Claude, ProviderKind.Codex, ProviderKind.Copilot, ProviderKind.Antigravity], rows.Select(r => r.Provider));
+        // R-07: a healthy row's tooltip is the display name alone; an error row adds its status lines after it.
+        Assert.Equal(["Claude Pro"], rows[0].Tip);
+        Assert.Equal(["Codex Pro"], rows[1].Tip);
+        Assert.Equal("Antigravity AI Plus", rows[3].Tip[0]);
+        Assert.Equal(rows[3].NameTip, rows[3].Tip.Skip(1));
+        Assert.StartsWith("Sync failed", rows[3].Tip[1], StringComparison.Ordinal);
+        Assert.StartsWith("Showing the reading from", rows[3].Tip[2], StringComparison.Ordinal);
+
+        var expired = Rows(DemoLedgerScenarios.Build(DemoLedgerScenarios.LastWorkDay))[3];
+        Assert.Equal(["Antigravity AI Plus", "Sign-in expired", "Sign in again in the window to refresh"], expired.Tip);
+    }
+
+    [Fact]
+    public async Task SameProviderRowsAreToldApartByTheirTooltip()
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        source.LoadScenario(DemoLedgerScenarios.Brief);
+        using var tray = new LedgerTrayViewModel(source);
+        await source.SignInAsync(ProviderKind.Copilot, Token);
+        scheduler.Run(TimeSpan.FromSeconds(3));
+
+        var copilot = tray.Rows.Where(r => r.Provider == ProviderKind.Copilot).ToArray();
+        Assert.Equal(2, copilot.Length);
+        Assert.NotEqual(copilot[0].Tip[0], copilot[1].Tip[0]);
+        Assert.Equal(["Copilot Free", "Copilot Free 2"], copilot.Select(r => r.Tip[0]));
+    }
+
+    [Fact]
     public void OneWindowLimitShowsTodayAndTheWindowAsARing()
     {
         var rows = Rows(DemoLedgerScenarios.Build(DemoLedgerScenarios.States));

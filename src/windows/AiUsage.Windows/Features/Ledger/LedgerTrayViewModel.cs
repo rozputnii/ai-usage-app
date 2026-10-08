@@ -14,12 +14,14 @@ internal sealed record TrayStrip(string CardId, TrayStripKind Kind, IReadOnlyLis
 /// <summary>The five-hour ring (AIU-055 R-04): the share of the current window used, or left in Left mode, from 0 to 1.</summary>
 internal sealed record TrayRing(double Fraction, Tone Tone, IReadOnlyList<string> Tip);
 
+/// <summary>One tray row. <paramref name="Provider"/> picks the mark that replaces the name (R-07). <paramref name="Tip"/> is the
+/// mark's tooltip: the display name, then on an error the status lines of <paramref name="NameTip"/>.</summary>
 internal sealed record TrayRow(string AccountId, string Name, bool IsError, IReadOnlyList<string> NameTip,
-    TrayStrip? Strip, TrayRing? Ring, string AccessibleName);
+    TrayStrip? Strip, TrayRing? Ring, string AccessibleName, ProviderKind Provider, IReadOnlyList<string> Tip);
 
 /// <summary>
-/// The tray flyout as a miniature of the window (D-187, AIU-055 R-02 to R-06): per account its name, its main limit's one
-/// today cell in the value mode and, for a limit with a five-hour window, a ring. No pills, captions, period bars or buttons.
+/// The tray flyout as a miniature of the window (D-187, AIU-055 R-02 to R-07): per account its provider mark, its main limit's
+/// one today cell in the value mode and, for a limit with a five-hour window, a ring. No pills, captions, period bars or buttons.
 /// </summary>
 internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposable
 {
@@ -69,7 +71,8 @@ internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposabl
             };
             var health = error ? ", " + nameTip[0].ToLowerInvariant() + (account.LastReadingAt is { } at ? ", reading " + LedgerFormat.AgeWords(at, snapshot.LocalNow) : string.Empty) : string.Empty;
             var spoken = account.DisplayName + health + ". " + strip?.AccessibleName;
-            rows.Add(new TrayRow(account.AccountId, account.DisplayName, error, nameTip, strip, main is null ? null : Ring(main, prefs.Mode), spoken.Trim()));
+            rows.Add(new TrayRow(account.AccountId, account.DisplayName, error, nameTip, strip, main is null ? null : Ring(main, prefs.Mode), spoken.Trim(),
+                account.Provider, [account.DisplayName, .. error ? nameTip : []]));
         }
         return rows;
     }

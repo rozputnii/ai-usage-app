@@ -15,15 +15,16 @@ using Path = Microsoft.UI.Xaml.Shapes.Path;
 namespace AiUsage.Controls.Ledger;
 
 /// <summary>
-/// The tray flyout as a miniature of the window (D-187, AIU-055 R-02 to R-06): 360 wide, a title row, then per account its
-/// name, its main limit's 14 px today bar and a five-hour ring, padded like a card in the current density. No pills,
-/// captions, period bars or buttons. A pointer-only surface (D-204): nothing in it is a tab stop or shows a focus frame,
-/// and opening it focuses nothing. A click on a row opens the window at that account, Esc closes when the window receives
-/// it, and the flyout closes on deactivation.
+/// The tray flyout as a miniature of the window (D-187, AIU-055 R-02 to R-08): 260 wide, a title row, then per account a
+/// 16 px provider mark in place of its name, its main limit's 14 px today bar and a five-hour ring, padded like a card in the
+/// current density. The mark's tooltip names the account. No pills, captions, period bars or buttons. A pointer-only surface
+/// (D-204): nothing in it is a tab stop or shows a focus frame, and opening it focuses nothing. A click on a row opens the
+/// window at that account, Esc closes when the window receives it, and the flyout closes on deactivation.
 /// </summary>
 internal sealed partial class LedgerTrayWindow : Window
 {
-    private const int PopupWidth = 360;
+    private const int PopupWidth = 260;
+    private const double MarkSize = 16;
     private const double BarHeight = 14, BarRadius = 6;
     private readonly LedgerTrayViewModel tray;
     private readonly Action<string> openAccount;
@@ -98,7 +99,7 @@ internal sealed partial class LedgerTrayWindow : Window
         rows.Children.Clear();
         if (tray.IsEmpty)
         {
-            rows.Children.Add(new TextBlock { Text = tray.EmptyText, Margin = new Thickness(14, 12, 14, 12), FontSize = 12, Foreground = LedgerTheme.Solid("Ink3") });
+            rows.Children.Add(new TextBlock { Text = tray.EmptyText, Margin = new Thickness(14, 12, 14, 12), FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = LedgerTheme.Solid("Ink3") });
             return;
         }
         foreach (var row in tray.Rows)
@@ -108,41 +109,17 @@ internal sealed partial class LedgerTrayWindow : Window
     private FrameworkElement Row(TrayRow row)
     {
         var grid = new Grid { ColumnSpacing = 10, Padding = RowPadding };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(MarkSize) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         // The ring column is reserved in every row, so the bars line up (R-04); the rush and extra-usage marks follow it.
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(RingGeometry.Size) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
 
-        var name = new Grid { ColumnSpacing = 5, VerticalAlignment = VerticalAlignment.Center };
-        name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        name.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        if (row.IsError)
-            name.Children.Add(new Path
-            {
-                Data = (Geometry)Microsoft.UI.Xaml.Markup.XamlBindingHelper.ConvertValue(typeof(Geometry), "M6,1.2 L11.2,10.4 H0.8 Z M6,4.6 V7.4 M6,8.9 V9"),
-                Stroke = LedgerTheme.Solid("CritText"),
-                StrokeThickness = 1.3,
-                StrokeLineJoin = PenLineJoin.Round,
-                StrokeStartLineCap = PenLineCap.Round,
-                StrokeEndLineCap = PenLineCap.Round,
-                Width = 12,
-                Height = 12,
-            });
-        var nameText = new TextBlock
-        {
-            Text = row.Name,
-            FontFamily = (FontFamily)LedgerTheme.Find("LedgerSerifFont")!,
-            FontSize = 14,
-            LineHeight = 18,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            Foreground = LedgerTheme.Solid(row.IsError ? "CritText" : "Ink"),
-        };
-        Grid.SetColumn(nameText, 1);
-        name.Children.Add(nameText);
-        ToolTipService.SetToolTip(name, LedgerTheme.Tip(row.NameTip));
-        grid.Children.Add(name);
+        // R-07: the provider mark replaces the name and the warning triangle; on an error it takes the critical text colour.
+        var providerMark = ProviderMark.Create(row.Provider, LedgerTheme.Solid(row.IsError ? "CritText" : "Ink"), MarkSize);
+        providerMark.VerticalAlignment = VerticalAlignment.Center;
+        ToolTipService.SetToolTip(providerMark, LedgerTheme.Tip(row.Tip));
+        grid.Children.Add(providerMark);
 
         if (row.Strip is { } strip)
         {
@@ -182,7 +159,7 @@ internal sealed partial class LedgerTrayWindow : Window
             IsTabStop = false, UseSystemFocusVisuals = false,
         };
         container.Tapped += (_, _) => Open(row.AccountId);
-        ToolTipService.SetToolTip(container, LedgerTheme.Tip(row.NameTip));
+        ToolTipService.SetToolTip(container, LedgerTheme.Tip(row.Tip));
         AutomationProperties.SetName(container, row.AccessibleName);
         return container;
     }

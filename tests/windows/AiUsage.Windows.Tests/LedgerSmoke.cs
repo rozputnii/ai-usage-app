@@ -380,12 +380,19 @@ public sealed partial class LedgerSmoke
                 Assert.True(row is not null, string.Join("; ", trayAttempts));
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 DesktopTestEnvironment.RequireUnlockedDesktop();
-                using (var capture = trayWindow!.Capture()) capture.Save(Path.Combine(evidence!, comfortable ? "tray-comfortable.png" : "tray.png"), System.Drawing.Imaging.ImageFormat.Png);
+                // AIU-055 R-08: the flyout is 260 logical px wide (the popup is placed at (int)(260 * scale) physical px).
+                var trayHandle = trayWindow!.Properties.NativeWindowHandle.Value;
+                var trayScale = GetDpiForWindow(trayHandle) / 96.0;
+                var trayWidth = (int)(260 * trayScale);
+                Assert.True(Math.Abs(trayWindow.BoundingRectangle.Width - trayWidth) <= 2, $"Tray flyout should be 260 px wide ({trayWidth} physical px), was {trayWindow.BoundingRectangle.Width}");
+                using (var capture = trayWindow.Capture()) capture.Save(Path.Combine(evidence!, comfortable ? "tray-icons-comfortable.png" : "tray-icons.png"), System.Drawing.Imaging.ImageFormat.Png);
                 // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
                 // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
                 var focusable = trayWindow.FindAllDescendants().Where(e => e.Properties.FrameworkId.ValueOrDefault == "XAML" && e.Properties.IsKeyboardFocusable.ValueOrDefault)
                     .Select(e => $"{e.Properties.FrameworkId.ValueOrDefault}/{e.Properties.ControlType.ValueOrDefault}/{e.Properties.Name.ValueOrDefault}").ToArray();
                 Assert.True(focusable.Length == 0, "Tray flyout elements must not be keyboard-focusable: " + string.Join("; ", focusable));
+                // AIU-055 R-07: a provider mark replaces the account name, so no element of the flyout shows it as text.
+                Assert.DoesNotContain(trayWindow.FindAllDescendants(), e => e.Properties.Name.ValueOrDefault == "Claude Pro 2");
                 row!.Click();
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Selecting the tray account should restore the main window");
                 bool InCard(AutomationElement? element)
@@ -459,4 +466,7 @@ public sealed partial class LedgerSmoke
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr window);
 }
