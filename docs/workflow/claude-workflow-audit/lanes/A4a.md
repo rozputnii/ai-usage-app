@@ -162,7 +162,7 @@ Other totals (fact):
 - **Impact:**
   - Quality: high risk. Mixed commits, edits overwritten; 17 "modified since read" warnings, partly from this.
   - Speed: medium.
-- **Proposed direction:** This is now partly addressed by worktree use and D-196 (AIU-NEW numbering). Make it explicit:
+- **Proposed direction:** This is now partly addressed by worktree use and D-196 (`AIU-NEW` numbering). Make it explicit:
   - A session that finds foreign uncommitted changes or a running build moves itself to a worktree instead of asking.
   - The launcher (F1) defaults to a worktree when another session is active.
 - **KEEP:** The agent's habit of inspecting git state and concurrent work before acting.

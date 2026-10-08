@@ -2,7 +2,9 @@
 
 Status: Stage 1 analysis, 2026-10-08. Read-only toward the repository; no rule, tool,
 setting, test or code was changed. Base: `origin/main` at `4f32185` (fetched again before
-writing; unchanged). Lane reports: [lanes/](lanes/). Prompt: [stage-1-prompt.md](stage-1-prompt.md).
+writing; unchanged). Lane reports: `lanes/<lane-id>.md`, for example
+[A1](lanes/A1.md) and [B1](lanes/B1.md); lane A4 was split into A4a, A4b and A4c by
+transcript range. Prompt: [stage-1-prompt.md](stage-1-prompt.md). Status: [status.md](status.md).
 Labels: **fact** (observed in repo, history, transcripts or primary docs), **inference**
 (the architect's judgement), **external-claim** (stated by a third party, not tested here).
 
