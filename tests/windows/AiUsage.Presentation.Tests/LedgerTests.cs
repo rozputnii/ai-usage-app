@@ -603,13 +603,13 @@ public sealed class LedgerInteractionTests
         var credits = Card(window, "codex-credits");
         credits.BeginCapEdit();
         var editor = credits.CapEditor!;
-        Assert.Equal("17,000", editor.Text);
+        Assert.Equal("17000", editor.Text);
         Assert.Equal("credits", editor.UnitText);
         editor.Text = "12.5";
         await editor.SaveAsync();
         Assert.Equal("Enter a whole number", editor.Error);
         Assert.NotNull(credits.CapEditor);
-        editor.Text = "18,000";
+        editor.Text = "18000";
         await editor.SaveAsync();
         Assert.Null(credits.CapEditor);
         Assert.Equal(18000m, Card(window, "codex-credits").Model.Cap!.Amount);
@@ -629,6 +629,34 @@ public sealed class LedgerInteractionTests
         Assert.Equal(18000m, Card(window, "codex-credits").Model.Cap!.Amount);
         Assert.Equal(CardState.OnTrack, Card(window, "codex-credits").Model.State);
         scheduler.Run(TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
+    public void CapEditorAcceptsOnlyDigitsWithinTheProviderLimit()
+    {
+        static CapEditorViewModel Editor(ScaleModel scale, LimitValue limit, decimal? current = null) =>
+            new(scale, limit, current, "month", _ => Task.FromResult(true), () => { });
+        var requests = Editor(ScaleModel.Count("requests"), LimitValue.Known(17500));
+        Assert.True(requests.Accepts(string.Empty));
+        Assert.True(requests.Accepts("17500"));
+        Assert.False(requests.Accepts("17501"));
+        Assert.False(requests.Accepts("-1"));
+        Assert.False(requests.Accepts("1a"));
+        Assert.False(requests.Accepts("1.5"));
+        Assert.False(requests.Accepts("1,000"));
+        var money = Editor(ScaleModel.Money("USD", 2), LimitValue.Known(500));
+        Assert.True(money.Accepts("12."));
+        Assert.True(money.Accepts("500.00"));
+        Assert.False(money.Accepts("500.01"));
+        Assert.False(money.Accepts("1.234"));
+        Assert.False(money.Accepts("$5"));
+        Assert.True(Editor(ScaleModel.Count("credits"), LimitValue.Unknown).Accepts("99999999"));
+        // A cap kept above the limit opens unchanged and can only be lowered.
+        var kept = Editor(ScaleModel.Count("requests"), LimitValue.Known(17500), 170000);
+        Assert.Equal("170000", kept.Text);
+        Assert.True(kept.Accepts("170000"));
+        Assert.True(kept.Accepts("17000"));
+        Assert.False(kept.Accepts("1700000"));
     }
 
     [Fact]

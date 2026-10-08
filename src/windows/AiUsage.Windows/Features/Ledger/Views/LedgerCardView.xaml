@@ -31,7 +31,10 @@
                    Visibility="{x:Bind Hide(ViewModel.IsRenaming), Mode=OneWay}" />
           <TextBox x:Name="RenameBox" Text="{x:Bind ViewModel.RenameText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource LedgerNameBox}"
                  Visibility="{x:Bind Show(ViewModel.IsRenaming), Mode=OneWay}" KeyDown="OnRenameKeyDown" MinWidth="150"
-                 AutomationProperties.Name="Account name" />
+                 AutomationProperties.Name="Account name">
+            <!-- The template's border keeps a 32 px theme minimum that the 26 px box would clip at the bottom. -->
+            <TextBox.Resources><x:Double x:Key="TextControlThemeMinHeight">26</x:Double></TextBox.Resources>
+          </TextBox>
           </Grid>
           <TextBlock Text="{x:Bind ViewModel.Tag, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center"
                    Visibility="{x:Bind Show(ViewModel.HasTag), Mode=OneWay}" />

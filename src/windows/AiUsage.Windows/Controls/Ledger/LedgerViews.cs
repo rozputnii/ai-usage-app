@@ -35,12 +35,19 @@ internal sealed partial class CapEditorView : StackPanel
     {
         Spacing = 5;
         var row = new Grid { ColumnSpacing = 8 };
-        foreach (var width in new[] { GridLength.Auto, new GridLength(90), GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto })
+        foreach (var width in new[] { GridLength.Auto, new GridLength(1000, GridUnitType.Star), GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto })
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = width });
+        // The amount box takes the free width up to 140 px, in a card and in the narrower settings sheet,
+        // before the gap that right-aligns Save and Remove.
+        row.ColumnDefinitions[1].MinWidth = 64;
+        row.ColumnDefinitions[1].MaxWidth = 140;
         var label = Text("cap", "Ink3");
         label.VerticalAlignment = VerticalAlignment.Center;
         row.Children.Add(label);
         input = new TextBox { Style = (Style)LedgerTheme.Find("LedgerAmountBox")! };
+        // The template's border keeps a 32 px theme minimum that the 24 px box would clip at the bottom.
+        input.Resources["TextControlThemeMinHeight"] = 24d;
+        input.BeforeTextChanging += (_, e) => e.Cancel = Editor is { } editor && !editor.Accepts(e.NewText);
         input.TextChanged += (_, _) =>
         {
             if (Editor is { } editor && editor.Text != input.Text)

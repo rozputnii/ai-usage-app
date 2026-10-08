@@ -73,10 +73,9 @@ public sealed partial class LedgerSmoke
             money.Focus(); Keyboard.Press(VirtualKeyShort.KEY_C);
             Assert.True(Wait(() => money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).Any(e => !e.IsOffscreen)));
             var amount = money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).First(e => !e.IsOffscreen).AsTextBox();
-            amount.Focus(); Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A); Keyboard.Type("600");
-            Assert.True(Wait(() => amount.Text == "600"));
-            Keyboard.Press(VirtualKeyShort.RETURN);
-            Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Enter at most $500.00 · the provider limit")) is not null));
+            // Only digits and two decimals are typed, and never above the $500.00 provider limit.
+            amount.Focus(); Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A); Keyboard.Type("6005-x.25");
+            Assert.True(Wait(() => amount.Text == "60.25"), "Cap input kept " + amount.Text);
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             parent = Main().FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;
@@ -85,6 +84,7 @@ public sealed partial class LedgerSmoke
             TextBox? rename = null;
             Assert.True(Wait(() => (rename = Current()?.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox()) is not null));
             rename!.Text = "Renamed account";
+            DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-rename.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.RETURN);
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Renamed account")) is not null));
             var only = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;

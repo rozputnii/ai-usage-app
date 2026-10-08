@@ -2,13 +2,13 @@
 
 Evidence for [the specification](spec.md). Host: the owner's Windows 11 Pro 10.0.26200
 desktop at 125 % scale, .NET 10, branch `users/window-system-buttons-min-size-39c0a1` from
-`main` at `05ee609` and merged with `main` at `e346a4e`. Times are local, 2026-10-08.
+`main` at `05ee609` and merged with `main` at `ab7298d`. Times are local, 2026-10-08.
 
 ## Commands
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Presentation suite | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 264/264 on the merged tree |
+| Presentation suite | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS, 265/265 on the merged tree |
 | Infrastructure suite | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS, 902/902 on the merged tree |
 | App build (README) | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS, 0 warnings, 0 errors |
 | Windows test publish | `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true` | PASS |

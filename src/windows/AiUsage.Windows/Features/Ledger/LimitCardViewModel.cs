@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
 using AiUsage.Features.Ledger.Contract;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -37,6 +39,17 @@ internal sealed partial class CapEditorViewModel : ObservableObject
     public string Hint { get; }
     [ObservableProperty] public partial string Text { get; set; }
     [ObservableProperty] public partial string? Error { get; set; }
+
+    /// <summary>Typing filter: digits (and the money scale's decimals) never above a known provider limit.
+    /// The current text is always accepted, so a cap kept above the limit opens unchanged and can only be lowered.</summary>
+    public bool Accepts(string text)
+    {
+        var decimals = Scale.Kind == ScaleKind.Money ? Math.Clamp(Scale.Exponent ?? 2, 0, 18) : 0;
+        var pattern = decimals > 0 ? @"\A[0-9]+(?:\.[0-9]{0," + decimals + @"})?\z" : @"\A[0-9]+\z";
+        return text.Length == 0 || text == Text ||
+            Regex.IsMatch(text, pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)) &&
+            decimal.TryParse(text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value) && providerLimit.AllowsCap(value);
+    }
 
     [RelayCommand]
     public async Task SaveAsync()
@@ -128,7 +141,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public bool IsStale => Model.Freshness.IsStale;
     public string SignOutName => "Sign out " + Account.DisplayName;
     public string HistoryName => "History, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
-    public string CapEditorName => "Cap for " + Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty) + (Model.Cap is { } cap ? ", " + LedgerFormat.EditText(Model.Scale, cap.Amount) : ", none");
+    public string CapEditorName => "Cap for " + Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty) + (Model.Cap is { } cap ? ", " + LedgerFormat.Value(Model.Scale, cap.Amount) : ", none");
 
     public void Update(LimitCardModel model, AccountModel account, ValueMode mode, DateTimeOffset now)
     {

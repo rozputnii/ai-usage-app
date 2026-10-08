@@ -186,8 +186,8 @@ internal static class LedgerFormat
         return true;
     }
 
-    /// <summary>The editable form of an amount: digits with separators, no currency symbol.</summary>
+    /// <summary>The editable form of an amount: digits and a decimal point only, which the cap editor accepts as typed.</summary>
     public static string EditText(ScaleModel scale, decimal amount) => scale.Kind == ScaleKind.Money
-        ? Round(amount, Math.Clamp(scale.Exponent ?? 2, 0, 18)).ToString("#,0." + new string('0', Math.Clamp(scale.Exponent ?? 2, 0, 18)), En).TrimEnd('.')
-        : Round(amount).ToString("#,0", En);
+        ? Round(amount, Math.Clamp(scale.Exponent ?? 2, 0, 18)).ToString("0." + new string('0', Math.Clamp(scale.Exponent ?? 2, 0, 18)), En).TrimEnd('.')
+        : Round(amount).ToString("0", En);
 }
