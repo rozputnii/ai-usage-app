@@ -16,6 +16,13 @@ internal static class CreditDollars
     /// <summary>Today's use entered in dollars becomes the nearest whole credit.</summary>
     public static decimal TodayCredits(decimal dollars, decimal rate) => decimal.Round(dollars / rate, 0, MidpointRounding.AwayFromZero);
 
+    /// <summary>A cap shown under one unit choice, expressed under another (for undo after a unit or rate change).</summary>
+    public static decimal Convert(decimal amount, UnitModel? from, UnitModel? to)
+    {
+        var credits = from is { Usd: true } ? CapCredits(amount, from.Rate) : amount;
+        return to is { Usd: true } ? Dollars(credits, to.Rate) : credits;
+    }
+
     /// <summary>Applies the owner's stored choice to a convertible card; every other card is returned unchanged.</summary>
     public static LimitCardModel Apply(LimitCardModel card, UnitModel? stored)
     {

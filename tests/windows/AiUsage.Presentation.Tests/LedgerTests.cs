@@ -1235,4 +1235,27 @@ public sealed class LimitSettingsTests
         Assert.NotNull(spending.Settings.Today);
         Assert.NotNull(spending.Settings.Cap);
     }
+
+    [Fact]
+    public async Task UndoRestoresARemovedCapInTheUnitShownNow()
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        source.LoadScenario(DemoLedgerScenarios.WorkBudget);
+        var window = new LedgerViewModel(source, scheduler, _ => { }, null);
+        var card = window.Cards.Single(c => c.CardId == "copilot-business-premium");
+        card.OpenSettings();
+        await card.Settings!.ShowUsdCommand.ExecuteAsync(null);
+        card.Settings!.Cap!.Text = "100.00";
+        await card.Settings.Cap.SaveAsync();
+        card.OpenSettings();
+        await card.Settings!.Cap!.RemoveAsync();
+        Assert.Null(card.Model.Cap);
+        Assert.True(window.HasUndo);
+        card.OpenSettings();
+        await card.Settings!.ShowCreditsCommand.ExecuteAsync(null);
+        await window.UndoAsync();
+        Assert.Equal(10000m, card.Model.Cap!.Amount);
+        scheduler.Run(TimeSpan.FromSeconds(10));
+    }
 }
