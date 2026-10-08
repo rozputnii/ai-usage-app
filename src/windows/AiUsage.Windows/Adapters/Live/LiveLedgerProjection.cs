@@ -213,8 +213,7 @@ internal static class LiveLedgerProjection
             known.Precision == ResetPrecision.Date ? DateOnly.FromDateTime(known.At.Date) : null, ResetProvenance.Provider,
             period?.StartOrigin == ValueOrigin.Assumed ? WorkCalendar.Date(period.Start, zone) : null)
             : period is null ? null : new ResetModel(period.End, null, ResetProvenance.Assumed, WorkCalendar.Date(period.Start, zone));
-        // D-NEW: a percent window of at least a day takes a percent cap; a five-hour window never does.
-        var target = (facts.Kind == LimitKind.PercentWindow ? facts.IsMonthly || facts.Duration >= TimeSpan.FromDays(1)
+        var target = (facts.Kind == LimitKind.PercentWindow ? EffectiveLimit.TakesPercentCap(facts)
             : scale is { Kind: ScaleKind.Count, UnitName: not (null or "unknown") } ||
               scale is { Kind: ScaleKind.Money, Currency: not null, Exponent: >= 0 and <= 18 })
             ? CardId(data.Series) : null;

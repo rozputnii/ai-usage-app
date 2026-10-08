@@ -553,6 +553,28 @@ public sealed class LiveLedgerSourceTests
     }
 
     [Fact]
+    public async Task PercentCapOnAFiveHourWindowIsNotAppliedAndCanBeRemoved()
+    {
+        var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
+        var shortKey = new LimitKey("codex", "CX-P", "primary");
+        var window = new LimitFacts(shortKey, LimitKind.PercentWindow, "percent", FactValue.NotApplicable)
+        { UsedPercent = 50, Duration = TimeSpan.FromHours(5), Reset = new(clock.Now.AddHours(3), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        store.Runs = [Run(id, shortKey, new CountQuantity(50, "percent"), clock.Now)];
+        store.Configuration = store.Configuration with { Caps = [new(new(id.ToString("N"), shortKey), new(new CountQuantity(90, "percent"), clock.Now))] };
+        using var source = Source(new Accounts { Current = [Snapshot(id, "codex", clock.Now, window)] }, store, clock);
+        await source.InitializeAsync(null, Token);
+        var card = source.Current.Accounts[0].Cards[0];
+        Assert.Null(card.CapTargetId);
+        Assert.Equal(CapStatus.CurrencyMismatch, card.Cap!.Status);
+        Assert.NotEqual(CardState.CapReached, card.State);
+        var listed = Assert.Single(source.Current.Budget.Caps);
+        Assert.Equal(CapStatus.Unmatched, listed.Status);
+        Assert.Equal(CommandOutcome.Done, await source.RemoveUnmatchedCapAsync(listed.CapId, Token));
+        Assert.Empty(store.Configuration.Caps);
+        await source.StopAsync();
+    }
+
+    [Fact]
     public async Task CaptureFailureIsVisibleWithoutClaimingSavedHistory()
     {
         var clock = new Clock(); var store = new Store { FailCapture = true };

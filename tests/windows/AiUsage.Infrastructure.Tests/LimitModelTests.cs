@@ -45,6 +45,13 @@ public sealed class LimitModelTests
         Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, true), Cap(new CountQuantity(101, "percent")));
         Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, true), Cap(new MoneyQuantity(90, 2, "USD")));
         Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, false), EffectiveLimit.Resolve(window, null));
+        // Only a window of at least a day takes one; a five-hour or unknown-length window rejects it.
+        var ninety = new PersonalCap(new CountQuantity(90, "percent"), DateTimeOffset.MinValue);
+        Assert.True(EffectiveLimit.Resolve(window with { Duration = TimeSpan.FromHours(5) }, ninety).CapRejected);
+        Assert.Equal(new CountQuantity(100, "percent"), EffectiveLimit.Resolve(window with { Duration = TimeSpan.FromHours(5) }, ninety).Value);
+        Assert.True(EffectiveLimit.Resolve(window with { Duration = null }, ninety).CapRejected);
+        Assert.Equal(LimitBinding.PersonalCap, EffectiveLimit.Resolve(window with { Duration = null, IsMonthly = true }, ninety).Binding);
+        Assert.False(EffectiveLimit.TakesPercentCap(window with { Duration = TimeSpan.FromHours(5) }));
         // A percent cap never applies to a count pool.
         Assert.True(EffectiveLimit.Resolve(Pool(LimitValue.Finite(new CountQuantity(50, "requests"))), new(new CountQuantity(20, "percent"), DateTimeOffset.MinValue)).CapRejected);
     }
