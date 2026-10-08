@@ -522,7 +522,7 @@ public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account,
   review, integrate, report.
 
 ### T-08 - Refresh interval preference, schedule and staleness
-- status: pending
+- status: done
 - depends_on: [T-05, T-06]
 - ownership: refresh-schedule
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs, src/windows/AiUsage.Windows/Adapters/Live/LedgerPreferenceStore.cs, src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerSource.cs, src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerProjection.cs, src/windows/AiUsage.Windows/Features/Ledger/Demo/DemoLedgerSource.cs, tests/windows/AiUsage.Presentation.Tests/LiveLedgerSourceTests.cs, tests/windows/AiUsage.Presentation.Tests/LedgerPreferenceTests.cs, tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs]
@@ -531,7 +531,7 @@ public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account,
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-08, AC-09, AC-10]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 999a188 (merged a208817, bae967f); Presentation 316/316, Infrastructure 915/915, Release build 0 warnings, demo startup smoke PASS, opus review approve with 3 deferred minors
 
 **Model:** opus. **Requirements:** R-11 (stored value), R-12, R-13 (app part), R-14.
 **Consumes:** `ReadingContinuity` (T-06) and the `AccountOrder` code in the same files (T-05).
@@ -545,7 +545,7 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
 // LiveLedgerProjection.Account(…, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null); History(…, TimeSpan? tolerance = null)
 ```
 
-- [ ] Tests in `LiveLedgerSourceTests` (`Clock`, `Accounts`, `Source` helpers):
+- [x] Tests in `LiveLedgerSourceTests` (`Clock`, `Accounts`, `Source` helpers):
   - `RefreshIntervalDrivesTheScheduleWithTickSlack`: with `RefreshMinutes = 1`, the refresh delegate returns a snapshot
     fetched at `clock.Now + 2 s`; ticks at +1, +2 and +3 min each refresh once. With `RefreshMinutes = 5`, a tick at
     +4 min does not refresh and one at +5 min does.
@@ -554,13 +554,13 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
   - `BackoffWinsOverAShortInterval`: interval 1 and a failing account (as in `RetryBackoffIsAccountScopedAndStopPreventsFurtherTicks`):
     the account fails at the +1 min tick; ticks at +2 to +10 min do not retry it, and +11 min does (a 10 min backoff).
   - `SummaryReportsTheConfiguredInterval`: `RefreshMinutes = 10` gives `Current.Summaries.RefreshInterval == 10 min`.
-- [ ] Test `StaleFollowsTheTolerance` (`LiveLedgerProjectionTests`): a failed sync whose reading is 40 min old is
+- [x] Test `StaleFollowsTheTolerance` (`LiveLedgerProjectionTests`): a failed sync whose reading is 40 min old is
   `SyncFailedFresh` with tolerance 90 min and `SyncFailedStale` with the default; at 100 min with tolerance 90 it is
   `SyncFailedStale`.
-- [ ] Test `RefreshMinutesIsValidatedAndDefaultsToFive` (`LedgerPreferenceTests`): `RefreshMinutes` 0 and 61 are
+- [x] Test `RefreshMinutesIsValidatedAndDefaultsToFive` (`LedgerPreferenceTests`): `RefreshMinutes` 0 and 61 are
   invalid. Old JSON without the field loads 5, through `LedgerPreferenceJson`, as in `PersistedRecordOmittedPropertyTests`.
   Run all of them and expect failures.
-- [ ] Implement:
+- [x] Implement:
   - `Valid()` checks the `RefreshMinutes` range.
   - `LiveLedgerSource` reads `TimeSpan.FromMinutes(preferences.Current.Preferences.RefreshMinutes)` for the due test
     (minus 30 s), the success spacing in `NextRetry` and `Summaries`. It passes `ReadingContinuity.Tolerance(interval)`
@@ -569,7 +569,7 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
     `DayStart`, `Track` and `ExtraUsageEvidence.Calculate`.
   - `DemoLedgerSource.SetPreferencesAsync` publishes `Summaries.RefreshInterval` from `RefreshMinutes`.
   - Review the refresh diagnostics per the spec.
-- [ ] Run Presentation and Infrastructure (the Audit* scenarios call `Account` and must stay green). Commit
+- [x] Run Presentation and Infrastructure (the Audit* scenarios call `Account` and must stay green). Commit
   `feat(AIU-055): refresh interval preference drives the schedule and staleness (T-08)`; review, integrate, report.
 
 ### T-09 - Drag a card by its grip

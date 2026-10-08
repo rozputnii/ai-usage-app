@@ -43,12 +43,13 @@ internal static class LiveLedgerProjection
     };
 
     public static AccountModel Account(AccountSnapshot account, string name, IReadOnlyList<LedgerLimit> limits,
-        BudgetConfiguration configuration, DateTimeOffset now, TimeZoneInfo zone, DateOnly? workToday, IReadOnlyList<TodayEntry>? entries = null)
+        BudgetConfiguration configuration, DateTimeOffset now, TimeZoneInfo zone, DateOnly? workToday, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null)
     {
         var id = account.AccountId.ToString("N");
         var session = account.Session;
         var readingAt = session.Quota?.FetchedAt;
-        var stale = readingAt is null || now - readingAt > TimeSpan.FromMinutes(15);
+        // AIU-055 R-13: a reading stays current within the continuity tolerance of the refresh interval.
+        var stale = readingAt is null || now - readingAt > (tolerance ?? ReadingContinuity.Floor);
         var health = !account.Connected ? AccountHealth.SignedOut : session.Status == ProviderSessionStatus.ReauthenticationRequired
             ? AccountHealth.SignInExpired : session.Status == ProviderSessionStatus.RecoveryRequired ? AccountHealth.ProviderError
             : session.Failure is not null ? stale ? AccountHealth.SyncFailedStale : AccountHealth.SyncFailedFresh
@@ -65,7 +66,7 @@ internal static class LiveLedgerProjection
             // Only a known shared pool may consume its short window into the period card.
             if (facts.Duration == TimeSpan.FromHours(5) && normalized.Any(w => IsPair(facts, w.Facts, session.Quota))) continue;
             var cap = configuration.Caps.FirstOrDefault(c => c.Series == data.Series)?.Cap;
-            var card = Card(data, cap, now, zone, configuration.WorkDays.ToHashSet(), workToday, stale, entries) with
+            var card = Card(data, cap, now, zone, configuration.WorkDays.ToHashSet(), workToday, stale, entries, tolerance) with
             {
                 Freshness = new(stale, Local(readingAt, zone)), ScopeLabel = Label(facts, session.Quota),
                 ModelScoped = facts.Key.Family is "CL-M" or "CX-A"
@@ -111,7 +112,7 @@ internal static class LiveLedgerProjection
                 foreach (var window in new[] { data, shortData }.OfType<LedgerLimit>().Where(x => x.Facts.Duration is not null &&
                     x.Facts.UsedPercent == 100 && x.Facts.Reset?.At > now))
                 {
-                    var evidence = ExtraUsageEvidence.Calculate(window.Runs, window.Series, window.Facts.Duration!.Value, spend.Runs, spend.Series, now);
+                    var evidence = ExtraUsageEvidence.Calculate(window.Runs, window.Series, window.Facts.Duration!.Value, spend.Runs, spend.Series, now, tolerance);
                     if (evidence.OnExtraUsage != true) continue;
                     marks.Add(new(MarkKind.OnExtraUsage, Local(evidence.FullSince, zone), Local(window.Facts.Reset?.At, zone), Amount: Amount(evidence.SpendSinceFull),
                         Currency: evidence.SpendSinceFull?.Currency, Exponent: evidence.SpendSinceFull?.Exponent));
@@ -138,7 +139,7 @@ internal static class LiveLedgerProjection
         Readings(data, now, zone) is { Used: { } used, Instance: { } instance } ? new(used, instance) : null;
 
     private static (PeriodBounds? Period, Quantity? Used, IReadOnlyList<ReadingRun> Runs, TrackingModel? Tracking, string? Instance) Readings(
-        LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone)
+        LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone, TimeSpan? tolerance = null)
     {
         var facts = data.Facts;
         var period = ResolvePeriod(data, now, zone);
@@ -148,7 +149,7 @@ internal static class LiveLedgerProjection
         // A balance or cumulative spend without a provider period needs locally tracked consumption.
         if (period is not null && (facts.Used is null && facts.Remaining is not null || !data.UsesWorkBudget && facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
         {
-            var tracked = ReadingCalculations.Track(runs, data.Series, period, now, facts.Used is null, 1);
+            var tracked = ReadingCalculations.Track(runs, data.Series, period, now, facts.Used is null, 1, tolerance);
             used = tracked.Used;
             runs = tracked.Runs;
             tracking = new(tracked.TrackedSince is { } since ? WorkCalendar.Date(since, zone) : null, tracked.Incomplete);
@@ -173,11 +174,11 @@ internal static class LiveLedgerProjection
     }
 
     public static LimitCardModel Card(LedgerLimit data, PersonalCap? cap, DateTimeOffset now, TimeZoneInfo zone,
-        IReadOnlySet<DayOfWeek> workDays, DateOnly? workToday, bool stale, IReadOnlyList<TodayEntry>? entries = null)
+        IReadOnlySet<DayOfWeek> workDays, DateOnly? workToday, bool stale, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null)
     {
         var facts = data.Facts;
-        var (period, used, runs, tracking, instance) = Readings(data, now, zone);
-        var automatic = instance is null ? null : ReadingCalculations.DayStart(runs, data.Series, instance, now, zone);
+        var (period, used, runs, tracking, instance) = Readings(data, now, zone, tolerance);
+        var automatic = instance is null ? null : ReadingCalculations.DayStart(runs, data.Series, instance, now, zone, tolerance);
         var dayStart = automatic?.Value;
         // D-199: the owner's day start replaces the tracked one only on its date and within the same period instance.
         var entry = facts.Kind == LimitKind.PercentWindow || used is null ? null : entries?.FirstOrDefault(e =>
@@ -320,7 +321,7 @@ internal static class LiveLedgerProjection
         "GH-C" => "Chat", "GH-I" => "Completions", _ => quota?.Groups.FirstOrDefault(g => g.Id == Group(facts, quota))?.Name ?? facts.Key.NativeDiscriminator
     };
 
-    public static HistoryModel History(LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone, IReadOnlyList<TodayEntry>? entries = null)
+    public static HistoryModel History(LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null)
     {
         var id = CardId(data.Series);
         var today = WorkCalendar.Date(now, zone);
@@ -335,13 +336,13 @@ internal static class LiveLedgerProjection
             var allRuns = BudgetRuns(data, period);
             if (period is not null &&
                 (data.Facts.Used is null && data.Facts.Remaining is not null || !data.UsesWorkBudget && data.Facts.Kind != LimitKind.PercentWindow && period.EndOrigin == ValueOrigin.Assumed))
-                allRuns = ReadingCalculations.Track(allRuns, data.Series, period, at, data.Facts.Used is null, 1).Runs;
+                allRuns = ReadingCalculations.Track(allRuns, data.Series, period, at, data.Facts.Used is null, 1, tolerance).Runs;
             var runs = allRuns.Where(r => r.FirstSeen <= at && r.LastConfirmed >= start).ToArray();
             decimal? total = null;
             foreach (var group in runs.GroupBy(r => r.PeriodInstance))
             {
                 var last = group.MaxBy(r => r.FirstSeen)!;
-                var baseline = ReadingCalculations.DayStart(allRuns, data.Series, group.Key, at, zone).Value;
+                var baseline = ReadingCalculations.DayStart(allRuns, data.Series, group.Key, at, zone, tolerance).Value;
                 if (data.Facts.Kind != LimitKind.PercentWindow && entries?.FirstOrDefault(e => e.Card == id && e.Date == date && e.Instance == group.Key) is { } entry &&
                     FromAmount(entry.DayStart, last.Value) is { } corrected) baseline = corrected;
                 var difference = QuantityMath.Subtract(last.Value, baseline);

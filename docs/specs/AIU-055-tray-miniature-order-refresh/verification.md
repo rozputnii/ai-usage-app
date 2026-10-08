@@ -34,5 +34,10 @@ reported results, recorded after the controller confirmed each commit on `origin
 | T-02 demo startup smoke | `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` under the desktop lock | PASS 2/2 |
 | T-02 mark renders | each path as SVG rendered by `msedge --headless --screenshot` at 16 and 64 px; WPF `Geometry.Parse` of all four strings | Four distinct, recognisable marks (Claude spark, OpenAI knot, Copilot helmet, Antigravity arch); thinnest walls 1.60 (Copilot) and 1.90 (Codex) units; all parse within 0..24. In-app WinUI rendering is covered by T-10 |
 | T-02 independent review | `aiu-reviewer` (opus), then a scoped re-review | Approve; two Minor findings (Copilot walls under 1.5 units, an overstated note) fixed in `13fb1a7` |
+| T-08 Presentation suite | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS 316/316 after the merge (baseline 302/302; 10 new tests failed against an interface-only stub first) |
+| T-08 Infrastructure suite | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS 915/915 (baseline 915/915) |
+| T-08 Release and Debug app builds | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` (and `-c Debug`) | PASS, 0 warnings, 0 errors; `git diff --check` clean |
+| T-08 demo startup smoke | `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` under the desktop lock | PASS (demo and live-empty) before review and on merged `a208817` |
+| T-08 independent review | `aiu-reviewer` (opus) | Approve; AC-08 stored value, AC-09 and AC-10 app part met; no thread-safety issue. Minor, deferred to the final review: no test pins the tolerance passed by `GetHistoryAsync`; the "over 15 min" tooltip copy is imprecise above a 15 min tolerance; the demo accepts `RefreshMinutes` outside 1..60 |
 
-Integrated commits: T-06 `dbb0b8c`; T-05 `88b13fb`; T-03 `8ce42df`, `f20091a`; T-02 `804945f`, `13fb1a7`.
+Integrated commits: T-06 `dbb0b8c`; T-05 `88b13fb`; T-03 `8ce42df`, `f20091a`; T-02 `804945f`, `13fb1a7`; T-08 `999a188`.
