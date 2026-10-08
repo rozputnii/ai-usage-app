@@ -620,7 +620,7 @@ internal static class ReorderMath
   `feat(AIU-055): drag a card by its grip to reorder subscriptions (T-09)`; review, integrate, report.
 
 ### T-10 - Provider icons and the narrow tray
-- status: pending
+- status: done
 - depends_on: [T-02, T-07]
 - ownership: tray-icons
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/LedgerTrayViewModel.cs, src/windows/AiUsage.Windows/Controls/Ledger/LedgerTrayWindow.cs, tests/windows/AiUsage.Presentation.Tests/TrayMiniatureTests.cs, tests/windows/AiUsage.Windows.Tests/LedgerSmoke.cs]
@@ -629,28 +629,28 @@ internal static class ReorderMath
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-04, AC-05]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 29f0fb3, 4f2b8a1 and 918b1cd (merged c85e6ca); Ledger launch smoke PASS 3/3 twice (tray-lookup fix red first), Presentation 330/330, Release build 0 warnings, opus review approve after a width fix
 
 **Model:** sonnet. **Requirements:** R-07, R-08. **Consumes:** `ProviderMark.Create` (T-02) and `TrayRow` (T-07).
 
 **Interfaces — Produces:** `TrayRow` gains `ProviderKind Provider` and `IReadOnlyList<string> Tip`, where
 `Tip = [Name, ..(IsError ? NameTip : [])]`.
 
-- [ ] Tests in `TrayMiniatureTests`:
+- [x] Tests in `TrayMiniatureTests`:
   - `RowsCarryTheProviderAndANamedTip`: Brief rows have providers `Claude, Codex, Copilot, Antigravity`. The Claude tip
     is `["Claude Pro"]`; the Antigravity tip starts `Antigravity AI Plus` and continues with its sync-failed lines.
   - `SameProviderRowsAreToldApartByTheirTooltip`: after the demo sign-in of a second Copilot account
     (`DemoLedgerSource` adds `… 2`), the two Copilot rows' `Tip[0]` differ.
 
   Run them and expect failures.
-- [ ] Implement:
+- [x] Implement:
   - **Projection:** fill `Provider` and `Tip`.
   - **Window:** replace the name column and warning triangle with `ProviderMark.Create(row.Provider,
     LedgerTheme.Solid(row.IsError ? "CritText" : "Ink"), 16)` in a 16 px column. The tooltip `row.Tip` goes on the mark
     and on the row. `PopupWidth = 260`.
-- [ ] Extend the Ledger launch smoke: save `tray-icons.png`; the row found by its `Claude Pro` automation name still opens
+- [x] Extend the Ledger launch smoke: save `tray-icons.png`; the row found by its `Claude Pro` automation name still opens
   the window. Open the PNG: four marks, 260 px, aligned bars and rings.
-- [ ] Run Presentation and the smoke: PASS. Commit `feat(AIU-055): provider icons replace names in a 260 px tray (T-10)`;
+- [x] Run Presentation and the smoke: PASS. Commit `feat(AIU-055): provider icons replace names in a 260 px tray (T-10)`;
   review, integrate, report.
 
 ### T-11 - Refresh stepper in Settings
