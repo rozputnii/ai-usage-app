@@ -572,6 +572,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: The owner asked on 2026-10-08 for a by-hand today figure for Claude and Copilot business spending missed while the app was off, and for a per-provider Copilot credit-to-dollar setting with converted caps, then chose design B of three (a popover on each limit).
 - completion-note: Implemented and verified 2026-10-08 in the regression suites, the demo app and a new desktop smoke; a whole-branch review found no critical or important issue and its undo finding is fixed. The owner checks live Copilot Business and Claude spending in the updated installed app after deployment (D-190); that check is NOT_RUN.
 
+## AIU-NEW - Percent caps and the cap as the full bar
+- goal: G-003
+- status: in-progress
+- depends_on: [AIU-035, AIU-038, AIU-053]
+- trigger: owner-selection
+- outcome: Weekly and monthly percent windows accept an optional personal cap in percent, which the budget uses as the limit, and every applied cap is the full width of its period bar, as if it were the provider's limit (D-NEW).
+- acceptance: AC-01 through AC-06 in the specification cover the Core cap rules, the five-hour count against the cap, cap targets and storage, the bar geometry and wording, the demo popover and verification.
+- specification: docs/specs/AIU-NEW-percent-cap-and-cap-bar/spec.md
+- registration-note: The owner asked on 2026-10-08 for a percent cap on percent-only subscription windows, for example 90 % of the weekly limit kept as a reserve, and for every cap to fill the whole bar, then chose variant A of three.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
