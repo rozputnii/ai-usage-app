@@ -128,6 +128,29 @@
                   </StackPanel>
                 </lc:LedgerButton>
               </Grid>
+              <!-- AIU-055 R-11: [−] N min [+], 1 to 60 whole minutes, each change saved at once; the box takes digits and saves on Enter or when focus leaves it. -->
+              <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Refresh" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
+                <ContentControl Grid.Column="1" IsTabStop="False" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}">
+                  <StackPanel Orientation="Horizontal" Spacing="4" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.RefreshTip), Mode=OneWay}">
+                    <lc:LedgerButton Style="{StaticResource LedgerIconButton}" Command="{x:Bind ViewModel.DecreaseRefreshCommand}" AutomationProperties.Name="Shorter refresh interval">
+                      <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE738;" FontSize="12" Foreground="{StaticResource LedgerInk2Brush}" />
+                    </lc:LedgerButton>
+                    <TextBox x:Name="RefreshBox" Style="{StaticResource LedgerAmountBox}" Width="36" TextAlignment="Center" Text="{x:Bind ViewModel.RefreshText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             BeforeTextChanging="OnRefreshBeforeChanging" KeyDown="OnRefreshKeyDown" LostFocus="OnRefreshLostFocus" AutomationProperties.Name="Refresh interval in minutes">
+                      <TextBox.Resources><x:Double x:Key="TextControlThemeMinHeight">24</x:Double></TextBox.Resources>
+                    </TextBox>
+                    <TextBlock Text="min" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
+                    <lc:LedgerButton Style="{StaticResource LedgerIconButton}" Command="{x:Bind ViewModel.IncreaseRefreshCommand}" AutomationProperties.Name="Longer refresh interval">
+                      <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE710;" FontSize="12" Foreground="{StaticResource LedgerInk2Brush}" />
+                    </lc:LedgerButton>
+                  </StackPanel>
+                </ContentControl>
+              </Grid>
             </StackPanel>
 
             <StackPanel Spacing="6" Margin="0,0,6,0">
@@ -174,7 +197,7 @@
           </StackPanel>
         </ScrollViewer>
 
-        <!-- Footer: the refresh interval (or a status problem) and the ⋯ menu; arming Delete shows Confirm · Cancel here. -->
+        <!-- Footer: a status problem, if any, and the ⋯ menu; arming Delete shows Confirm · Cancel here. -->
         <StackPanel Grid.Row="1" Padding="14,6,8,8" Spacing="6" BorderBrush="{StaticResource LedgerLineWindowBrush}" BorderThickness="0,1,0,0">
           <StackPanel Spacing="6" Visibility="{x:Bind Show(ViewModel.IsDeleteArmed), Mode=OneWay}">
             <TextBlock Text="{x:Bind ViewModel.DeleteNote}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerCritTextBrush}" TextWrapping="Wrap" />
@@ -186,8 +209,6 @@
             </StackPanel>
           </StackPanel>
           <Grid ColumnSpacing="8">
-            <TextBlock Text="{x:Bind ViewModel.MonitoringText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center"
-                       Visibility="{x:Bind Hide(ViewModel.HasSystemStatus), Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Refresh interval')}" />
             <TextBlock Text="{x:Bind ViewModel.SystemStatusText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" Foreground="{StaticResource LedgerAttTextBrush}"
                        TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,32,0" Visibility="{x:Bind Show(ViewModel.HasSystemStatus), Mode=OneWay}"
                        ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.SystemStatusText), Mode=OneWay}" />
