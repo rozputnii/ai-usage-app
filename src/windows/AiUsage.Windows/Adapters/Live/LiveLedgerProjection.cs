@@ -159,8 +159,9 @@ internal static class LiveLedgerProjection
         var marks = new List<CardMark>();
         if (facts.Reset?.At <= now) marks.Add(new(MarkKind.PastReset, Local(facts.Reset.At, zone)));
         if (extraDay && state == CardState.OnTrack) marks.Add(new(MarkKind.ExtraDay));
-        var capModel = cap is null ? null : new CapModel(Amount(cap.Amount) ?? 0, result.Binding == LimitBinding.PersonalCap,
-            result.CapRejected ? CapStatus.CurrencyMismatch : CapStatus.Applied);
+        var capAmount = Amount(cap?.Amount) ?? 0;
+        var capModel = cap is null ? null : new CapModel(capAmount, result.Binding == LimitBinding.PersonalCap,
+            result.CapRejected ? CapStatus.CurrencyMismatch : provider.AllowsCap(capAmount) ? CapStatus.Applied : CapStatus.AboveLimit);
         decimal? Display(decimal? amount) => DisplayAmount(amount, result.Scale ?? used, scale);
         var figures = new LimitFigures(Display(result.Used) ?? Rounded(Amount(used), scale), Display(result.DayStart),
             result.DayStart is { } start && share is { } today ? Display(start + today) : null, Display(result.Baseline), provider,

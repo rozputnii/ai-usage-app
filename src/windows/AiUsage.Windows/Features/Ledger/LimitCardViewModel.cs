@@ -13,12 +13,14 @@ internal interface ILedgerScheduler
 /// <summary>Inline amount editor for a personal cap (spec S3, S5): Enter saves, Esc cancels, empty + Enter removes.</summary>
 internal sealed partial class CapEditorViewModel : ObservableObject
 {
+    private readonly LimitValue providerLimit;
     private readonly Func<decimal?, Task<bool>> commit;
     private readonly Action close;
 
-    public CapEditorViewModel(ScaleModel scale, decimal? current, string period, Func<decimal?, Task<bool>> commit, Action close)
+    public CapEditorViewModel(ScaleModel scale, LimitValue providerLimit, decimal? current, string period, Func<decimal?, Task<bool>> commit, Action close)
     {
         Scale = scale;
+        this.providerLimit = providerLimit;
         HasCap = current is not null;
         Text = current is { } amount ? LedgerFormat.EditText(scale, amount) : string.Empty;
         UnitText = LedgerFormat.Unit(scale);
@@ -45,6 +47,11 @@ internal sealed partial class CapEditorViewModel : ObservableObject
             if (!LedgerFormat.TryParseAmount(Text, Scale, out var parsed))
             {
                 Error = Scale.Kind == ScaleKind.Money ? "Enter an amount with at most " + (Scale.Exponent ?? 2) + " decimals" : "Enter a whole number";
+                return;
+            }
+            if (!providerLimit.AllowsCap(parsed))
+            {
+                Error = "Enter at most " + LedgerFormat.Value(Scale, providerLimit.Amount!.Value) + " · the provider limit";
                 return;
             }
             amount = parsed;
@@ -177,7 +184,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
             return;
         var target = Model.CapTargetId!;
         var before = Model.Cap?.Status == CapStatus.CurrencyMismatch ? null : Model.Cap?.Amount;
-        CapEditor = new CapEditorViewModel(Model.Scale, before, LedgerFormat.PeriodWords(Model.Period),
+        CapEditor = new CapEditorViewModel(Model.Scale, Model.Figures.ProviderLimit, before, LedgerFormat.PeriodWords(Model.Period),
             amount => owner.SetCapAsync(target, amount, before, Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty)),
             () => CapEditor = null);
     }

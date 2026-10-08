@@ -652,6 +652,8 @@ internal static class CardVisuals
             var tip = new List<string> { "Provider limit " + fm(max) + " " + LedgerFormat.Unit(card.Scale) };
             if (f.ProviderRemaining is { } remaining)
                 tip.Add("Provider remaining " + LedgerFormat.Value(card.Scale, remaining));
+            if (card.Cap is { Status: CapStatus.AboveLimit } kept)
+                tip.Add("Custom cap " + fm(kept.Amount) + " · above the provider limit, not applied");
             return (text, tip, estimate);
         }
         var windows = string.Empty;

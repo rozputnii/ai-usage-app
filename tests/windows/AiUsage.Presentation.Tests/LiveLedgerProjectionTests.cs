@@ -250,6 +250,20 @@ public sealed class LiveLedgerProjectionTests
     }
 
     [Fact]
+    public void CapAboveTheProviderLimitIsKeptButNotApplied()
+    {
+        var facts = Weekly() with { Key = new("copilot", "GH-P", "premium"), Kind = LimitKind.CountablePool, Unit = "requests",
+            UsedPercent = null, Used = new CountQuantity(20, "requests"), Limit = FactValue.Finite(new CountQuantity(1000, "requests")) };
+        Assert.Equal(CapStatus.Applied, Card(Data(facts, 20), new PersonalCap(new CountQuantity(1000, "requests"), Now)).Cap!.Status);
+        var card = Card(Data(facts, 20), new PersonalCap(new CountQuantity(10000, "requests"), Now));
+        Assert.Equal(new CapModel(10000, false, CapStatus.AboveLimit), card.Cap);
+        var account = new AccountModel("a", ProviderKind.Copilot, "Copilot", AccountHealth.Ok, null, null, null, [card]);
+        var visual = CardVisuals.Build(card, account, ValueMode.Used, Now);
+        Assert.Equal("20 of 1,000 used", visual.Footer);
+        Assert.Contains("Custom cap 10,000 · above the provider limit, not applied", visual.FooterTip);
+    }
+
+    [Fact]
     public void LastWorkDayRushRequiresProviderReplenishmentAndNoCap()
     {
         var thursday = Now.AddDays(3);

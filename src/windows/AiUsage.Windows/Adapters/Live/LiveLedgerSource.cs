@@ -333,7 +333,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         if (!configurationWritable) return CommandOutcome.Unavailable;
         if (!limits.TryGetValue(capTargetId, out var limit) || limit.Facts.Kind == LimitKind.PercentWindow || amount < 0) return CommandOutcome.Rejected;
         var card = Current.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CapTargetId == capTargetId);
-        if (card is null) return CommandOutcome.Rejected;
+        if (card is null || amount is { } requested && !card.Figures.ProviderLimit.AllowsCap(requested)) return CommandOutcome.Rejected;
         Quantity? quantity = null;
         if (amount is { } value)
         {
