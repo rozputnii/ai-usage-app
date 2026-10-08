@@ -1087,7 +1087,7 @@ public sealed class LedgerInteractionTests
     }
 }
 
-/// <summary>D-NEW: the limit settings popover.</summary>
+/// <summary>D-199: the limit settings popover.</summary>
 public sealed class LimitSettingsTests
 {
     private static readonly DateTimeOffset TrackedFrom = new(2026, 10, 14, 10, 43, 0, TimeSpan.FromHours(1));

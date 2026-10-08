@@ -68,7 +68,7 @@
                   AutomationProperties.Name="{x:Bind ViewModel.HideName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Hide')}">
             <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xED1A;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
           </lc:LedgerButton>
-          <!-- D-NEW: units, today's use and the cap of this limit. -->
+          <!-- D-199: units, today's use and the cap of this limit. -->
           <lc:LedgerButton x:Name="SettingsButton" Style="{StaticResource LedgerQuietIconButton}" PointerEntered="OnIconPointerEntered" PointerExited="OnIconPointerExited"
                   Visibility="{x:Bind Show(ViewModel.HasSettings), Mode=OneWay}"
                   AutomationProperties.Name="{x:Bind ViewModel.SettingsName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Limit settings')}">

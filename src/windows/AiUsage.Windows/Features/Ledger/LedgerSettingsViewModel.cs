@@ -111,7 +111,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     [ObservableProperty] public partial string SupportStatus { get; private set; } = string.Empty;
 
     public string WorkDaysNote =>
-        "Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight. Changes apply from the next local midnight.";
+        "Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight.";
     public string CapsNote => "A cap is yours, never the provider’s limit, and cannot exceed it. Caps are set in the pool’s own unit or currency.";
     public string DeleteNote => "Deletes sign-ins, names, preferences, caps, history and logs on this PC.";
 

@@ -71,9 +71,9 @@ internal sealed record LimitCardModel(
     public bool ModelScoped { get; init; }
     /// <summary>The owner hid this section of the account card (D-191); its facts, tray strip and status stay.</summary>
     public bool Hidden { get; init; }
-    /// <summary>A credit pool the owner may show in US dollars (D-NEW); null for every other limit.</summary>
+    /// <summary>A credit pool the owner may show in US dollars (D-199); null for every other limit.</summary>
     public UnitModel? Units { get; init; }
-    /// <summary>A money or credit pool with a daily budget whose today's use the owner may set (D-NEW).</summary>
+    /// <summary>A money or credit pool with a daily budget whose today's use the owner may set (D-199).</summary>
     public TodayUseModel? TodayUse { get; init; }
 }
 
@@ -301,9 +301,9 @@ internal interface ILedgerSource
     Task<CommandOutcome> RenameAccountAsync(string accountId, string name, CancellationToken ct);
     Task<CommandOutcome> SetCapAsync(string capTargetId, decimal? amount, CancellationToken ct);
     Task<CommandOutcome> RemoveUnmatchedCapAsync(string capId, CancellationToken ct);
-    /// <summary>D-NEW: the owner's figure for today's use in the card's shown unit; null returns to the tracked figure.</summary>
+    /// <summary>D-199: the owner's figure for today's use in the card's shown unit; null returns to the tracked figure.</summary>
     Task<CommandOutcome> SetTodayUsedAsync(string cardId, decimal? amount, CancellationToken ct);
-    /// <summary>D-NEW: shows a credit pool natively or in US dollars at the rate per credit.</summary>
+    /// <summary>D-199: shows a credit pool natively or in US dollars at the rate per credit.</summary>
     Task<CommandOutcome> SetUnitsAsync(string cardId, bool usd, decimal rate, CancellationToken ct);
     Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct);
     Task MoveCardAsync(string cardId, int offset, CancellationToken ct);

@@ -1,9 +1,9 @@
 ---
-id: AIU-NEW
+id: AIU-053
 schema_version: 1
 ---
 
-# AIU-NEW Implementation Plan
+# AIU-053 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -40,8 +40,8 @@ schema_version: 1
   failure `Today’s use was not saved`; tooltip lines `Set by you` and `Tracked since HH:mm`.
 - Preference lists are bounded at 4096 entries and keys at 8192 characters, as `Hidden` is.
 - No new dependencies, logging events, provider requests or budget-store format changes.
-- Commit on the worktree branch after each task as `feat(AIU-NEW): …`, `test(AIU-NEW): …`
-  or `docs(AIU-NEW): …`, without attribution lines.
+- Commit on the worktree branch after each task as `feat(AIU-053): …`, `test(AIU-053): …`
+  or `docs(AIU-053): …`, without attribution lines.
 
 ## Review Focus
 
@@ -110,7 +110,7 @@ length 1..8192, `DayStart >= 0`, `(Card, Date)` distinct.
 Run: `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release -- -noLogo`
 Expected: PASS, no regressions.
 
-- [ ] **Step 5: Commit** `feat(AIU-NEW): preference fields for limit units and today's values`
+- [ ] **Step 5: Commit** `feat(AIU-053): preference fields for limit units and today's values`
 
 ### T-02 - Projection: credits unit, today correction and dollar conversion
 - status: done
@@ -173,7 +173,7 @@ entry per date and group instance.
 
 - [ ] **Step 4: Run the Presentation suite** — Expected: PASS.
 
-- [ ] **Step 5: Commit** `feat(AIU-NEW): project credits, today's day start and dollar conversion`
+- [ ] **Step 5: Commit** `feat(AIU-053): project credits, today's day start and dollar conversion`
 
 ### T-03 - Live source commands, caps and history in the chosen unit
 - status: done
@@ -222,7 +222,7 @@ replacing the same date and dropping old entries. `GetHistoryAsync`: pass `Today
 
 - [ ] **Step 4: Run the Presentation suite** — Expected: PASS.
 
-- [ ] **Step 5: Commit** `feat(AIU-NEW): source commands for limit units and today's use`
+- [ ] **Step 5: Commit** `feat(AIU-053): source commands for limit units and today's use`
 
 ### T-04 - Limit settings popover and today tooltip
 - status: done
@@ -283,7 +283,7 @@ with `AutoFocus="False"`. `Cancel` in a popover editor hides the flyout.
 Run: `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`
 Expected: PASS, 0 warnings.
 
-- [ ] **Step 5: Commit** `feat(AIU-NEW): limit settings popover with units, today and cap`
+- [ ] **Step 5: Commit** `feat(AIU-053): limit settings popover with units, today and cap`
 
 ### T-05 - Demo work-budget scenario and demo commands
 - status: done
@@ -311,19 +311,19 @@ Expected: PASS, 0 warnings.
   same amount for a today value.
 
 - [ ] **Step 4: Run the Presentation suite; run the demo app** (`AiUsage.exe --demo`), open the work-budget
-  scenario and drive the popover through UI Automation; save screenshots under `.ai-usage-local/AIU-NEW/`.
+  scenario and drive the popover through UI Automation; save screenshots under `.ai-usage-local/AIU-053/`.
 
-- [ ] **Step 5: Commit** `feat(AIU-NEW): demo Copilot Business credits and popover commands`
+- [ ] **Step 5: Commit** `feat(AIU-053): demo Copilot Business credits and popover commands`
 
 ### T-06 - Records, full checks and merge
 - status: done
 - depends_on: [T-05]
 - acceptance: [AC-06]
-- evidence: docs/specs/AIU-NEW-today-use-and-credit-dollars/verification.md; Presentation 290/290, Infrastructure 902/902, validator tests 85/85, document validation and diff check pass, app build 0 warnings, desktop smokes 4/4; whole-branch review fixed one finding; live owner checks NOT_RUN post-deploy (D-190)
+- evidence: docs/specs/AIU-053-today-use-and-credit-dollars/verification.md; Presentation 290/290, Infrastructure 902/902, validator tests 85/85, document validation and diff check pass, app build 0 warnings, desktop smokes 4/4; whole-branch review fixed one finding; live owner checks NOT_RUN post-deploy (D-190)
 
 - [ ] **Step 1:** Write `verification.md` (commands, acceptance table, NOT_RUN post-deploy owner checks) and the
   backlog completion note; set the spec status to `implemented`.
 - [ ] **Step 2:** Run Infrastructure and Presentation suites, validator tests, document validation, the app build
   and `git diff --check`; record results.
-- [ ] **Step 3:** Fetch and merge `origin/main`, replace `AIU-NEW`/`D-NEW` with the next free numbers, run
+- [ ] **Step 3:** Fetch and merge `origin/main`, replace `AIU-053`/`D-199` with the next free numbers, run
   validation with `--final`, commit, merge into `main`, push and verify with `git fetch`.

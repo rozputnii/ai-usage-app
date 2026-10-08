@@ -45,7 +45,7 @@ public sealed partial class LedgerSmoke
         finally { if (!process.HasExited) { process.Kill(); process.WaitForExit(5000); } }
     }
 
-    /// <summary>D-NEW: the Copilot Business popover shows credits in dollars and stores today's use, driven through UI Automation patterns.</summary>
+    /// <summary>D-199: the Copilot Business popover shows credits in dollars and stores today's use, driven through UI Automation patterns.</summary>
     [Fact]
     public void WorkBudgetPopoverShowsCreditsInDollarsAndSetsToday()
     {

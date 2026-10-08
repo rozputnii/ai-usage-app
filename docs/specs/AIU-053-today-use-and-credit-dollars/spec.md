@@ -1,10 +1,10 @@
 ---
-id: AIU-NEW
+id: AIU-053
 type: feature
 status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: Owner direction, 2026-10-08, in conversation. The owner asked to enter today's money or credit use by hand when the app missed it (it was off or the account was just connected), and to show Copilot credits either natively or in US dollars at an editable rate, with the cap and its maximum converted both ways, as a per-limit setting rather than a global one. The owner chose design B of three (a settings popover on each limit) and accepted the stated assumptions. Recorded as D-NEW.
+approval_basis: Owner direction, 2026-10-08, in conversation. The owner asked to enter today's money or credit use by hand when the app missed it (it was off or the account was just connected), and to show Copilot credits either natively or in US dollars at an editable rate, with the cap and its maximum converted both ways, as a per-limit setting rather than a global one. The owner chose design B of three (a settings popover on each limit) and accepted the stated assumptions. Recorded as D-199.
 ---
 
 # Today's use by hand and Copilot credits in dollars

@@ -13,7 +13,7 @@ internal interface ILedgerScheduler
 }
 
 /// <summary>Inline amount editor for a personal cap (spec S3, S5): Enter saves, Esc cancels, empty + Enter removes.
-/// The limit settings popover reuses it for today's use (D-NEW) with its own label and copy.</summary>
+/// The limit settings popover reuses it for today's use (D-199) with its own label and copy.</summary>
 internal sealed partial class CapEditorViewModel : ObservableObject
 {
     private readonly LimitValue providerLimit;
@@ -149,7 +149,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public string? Tag => Model.ScopeLabel;
     public bool HasTag => !string.IsNullOrEmpty(Model.ScopeLabel);
     public bool CanEditCap => Model.CapTargetId is not null;
-    /// <summary>D-NEW: the limit has a cap, today's use or units to set in its popover.</summary>
+    /// <summary>D-199: the limit has a cap, today's use or units to set in its popover.</summary>
     public bool HasSettings => CanEditCap || Model.TodayUse is not null || Model.Units is not null;
     public string SettingsName => "Limit settings, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
     [ObservableProperty] public partial LimitSettingsViewModel? Settings { get; private set; }

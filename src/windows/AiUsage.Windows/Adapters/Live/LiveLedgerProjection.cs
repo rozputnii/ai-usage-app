@@ -16,9 +16,9 @@ internal sealed record LedgerLimit(LimitFacts Facts, ReadingSeriesKey Series, IR
     public MonetaryScope MonetaryScope { get; init; }
     public bool UsesWorkBudget { get; init; }
 }
-/// <summary>The used amount and period instance a card budgets with now (D-NEW).</summary>
+/// <summary>The used amount and period instance a card budgets with now (D-199).</summary>
 internal sealed record TodayBasis(Quantity Used, string Instance);
-/// <summary>The owner's day start for one card on one local date, in the native amount of that period instance; kept in the window preferences (D-NEW).</summary>
+/// <summary>The owner's day start for one card on one local date, in the native amount of that period instance; kept in the window preferences (D-199).</summary>
 internal sealed record TodayEntry(string Card, DateOnly Date, string Instance, decimal DayStart);
 
 /// <summary>Core facts and calculations projected once into display units. No transport or persistence.</summary>
@@ -133,7 +133,7 @@ internal static class LiveLedgerProjection
     private static DateTimeOffset? Local(DateTimeOffset? instant, TimeZoneInfo zone) =>
         instant is { } value ? TimeZoneInfo.ConvertTime(value, zone) : null;
 
-    /// <summary>The used amount and period instance a card budgets with now; the source stores the owner's day start against them (D-NEW).</summary>
+    /// <summary>The used amount and period instance a card budgets with now; the source stores the owner's day start against them (D-199).</summary>
     public static TodayBasis? Basis(LedgerLimit data, DateTimeOffset now, TimeZoneInfo zone) =>
         Readings(data, now, zone) is { Used: { } used, Instance: { } instance } ? new(used, instance) : null;
 
@@ -179,7 +179,7 @@ internal static class LiveLedgerProjection
         var (period, used, runs, tracking, instance) = Readings(data, now, zone);
         var automatic = instance is null ? null : ReadingCalculations.DayStart(runs, data.Series, instance, now, zone);
         var dayStart = automatic?.Value;
-        // D-NEW: the owner's day start replaces the tracked one only on its date and within the same period instance.
+        // D-199: the owner's day start replaces the tracked one only on its date and within the same period instance.
         var entry = facts.Kind == LimitKind.PercentWindow || used is null ? null : entries?.FirstOrDefault(e =>
             e.Card == CardId(data.Series) && e.Date == WorkCalendar.Date(now, zone) && e.Instance == instance);
         if (entry is not null && FromAmount(entry.DayStart, used!) is { } corrected) dayStart = corrected;
@@ -187,7 +187,7 @@ internal static class LiveLedgerProjection
         var result = BudgetEngine.Calculate(new(facts, cap, period, used, dayStart, now, zone)
         { WorkDays = workDays, WorkToday = workToday, IsStale = stale });
         var scale = Scale(result.Scale ?? used ?? facts.Limit.Value ?? facts.Remaining, facts);
-        // D-NEW: the owner identifies the Copilot premium pool as AI credits; stored readings and caps keep the provider unit.
+        // D-199: the owner identifies the Copilot premium pool as AI credits; stored readings and caps keep the provider unit.
         var credits = facts.Key is { Provider: "copilot", Family: "GH-P" } && scale.Kind == ScaleKind.Count;
         if (credits) scale = ScaleModel.Count("credits");
         var provider = ProviderLimit(facts);

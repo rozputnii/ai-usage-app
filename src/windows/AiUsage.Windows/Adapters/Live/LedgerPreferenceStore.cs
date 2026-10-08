@@ -100,11 +100,12 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
         public Dictionary<string, string> Labels { get; set; } = [];
         public string[] Order { get; set; } = [];
         public string[] Hidden { get; set; } = [];
-        /// <summary>D-NEW: per-card unit choice of a credit pool.</summary>
+        /// <summary>D-199: per-card unit choice of a credit pool.</summary>
         public Dictionary<string, UnitModel> Units { get; set; } = [];
-        /// <summary>D-NEW: the owner's day starts, one per card and local date.</summary>
+        /// <summary>D-199: the owner's day starts, one per card and local date.</summary>
         public TodayEntry[] Today { get; set; } = [];
         public DateOnly? WorkToday { get; set; }
+        // Written only by earlier versions that deferred work-day changes to the next midnight; applied once (D-198).
         public DayOfWeek[]? PendingWorkDays { get; set; }
         public DateOnly? WorkDaysEffectiveOn { get; set; }
         [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }

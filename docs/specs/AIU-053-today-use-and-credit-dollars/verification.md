@@ -1,4 +1,4 @@
-# AIU-NEW verification
+# AIU-053 verification
 
 Evidence for [the specification](spec.md). Host: the owner's Windows 11 Pro 10.0.26200
 desktop, .NET 10, branch `users/manual-spend-currency-conversion-2ee5a2` from `main` at
@@ -29,6 +29,7 @@ desktop, .NET 10, branch `users/manual-spend-currency-conversion-2ee5a2` from `m
 | Document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS, valid with no diagnostics |
 | Diff check | `git diff --check` | PASS |
 | MSIX package build | CI on push | NOT_RUN locally; CI builds the unsigned package |
+| Merged tree | The same suites, validator tests, `--final` document validation, app build and diff check after merging `main` at `d8b5efa` (D-198) | PASS: Presentation 292/292, Infrastructure 902/902, validator tests 85/85, `--final` valid, 0 warnings |
 
 ## Acceptance
 
@@ -38,7 +39,7 @@ desktop, .NET 10, branch `users/manual-spend-currency-conversion-2ee5a2` from `m
 | AC-02 Caps in credits | PASS | `LiveLedgerSourceTests.DollarCapIsStoredInWholeCreditsWithTheProviderUnit` (a $50.00 cap is stored as 5,000 "requests", $175.01 is rejected, Settings › Caps shows $50.00 and 5,000 credits after switching back), `UnitsSwitchCardsCapsAndHistoryAndPersist` (history in dollars, the choice survives a restart), `DollarAmountsRoundToCreditsWithinTheLimits` ($1.01 at 0.04 is 25 credits, shown as $1.00) and `LimitSettingsTests.UndoRestoresARemovedCapInTheUnitShownNow`. |
 | AC-03 Today's use | PASS | `LiveLedgerProjectionTests.StoredTodayValueReplacesTheDayStart` (900, then 960 after a reading of 3,300), `TodayValueIsIgnoredAfterAPeriodRestartOrOnTheNextDay`, `HistoryTodayBarUsesTheStoredDayStart`; `LiveLedgerSourceTests.TodayValueValidationRejectsInvalidAmounts` (−1 and 3,241 rejected, empty resets to 120, $1.005 rejected for Claude spending, a percent window rejected). |
 | AC-04 Preference file | PASS | `LedgerPreferenceTests.NewFieldsPersistAndOldFilesLoad` and seven new `InvalidOrNewerFileIsNeverOverwritten` cases; the existing extension-data test keeps unknown fields for older builds. Entries older than 35 days are dropped when a new one is saved (`TodayValueValidationRejectsInvalidAmounts`). |
-| AC-05 Popover | PASS | `LimitSettingsTests` (six view-model tests and `DemoPopoverSwitchesUnitsAndSetsToday`); the UI smoke opened the Copilot Business popover through UI Automation, switched to USD ("$32.40 of $175.00 used"), saved $9.00 for today and reopened it with "set by you"; the percent Codex card has no settings button. Screenshots are in the git-ignored `.ai-usage-local/AIU-NEW/` folder of the worktree. |
+| AC-05 Popover | PASS | `LimitSettingsTests` (six view-model tests and `DemoPopoverSwitchesUnitsAndSetsToday`); the UI smoke opened the Copilot Business popover through UI Automation, switched to USD ("$32.40 of $175.00 used"), saved $9.00 for today and reopened it with "set by you"; the percent Codex card has no settings button. Screenshots are in the git-ignored `.ai-usage-local/AIU-053/` folder of the worktree. |
 | AC-06 Checks | PASS | Commands above. |
 | Live Copilot Business and Claude spending in the installed app | NOT_RUN (post-deploy owner check, D-190) | Needs the owner's signed-in accounts. |
 

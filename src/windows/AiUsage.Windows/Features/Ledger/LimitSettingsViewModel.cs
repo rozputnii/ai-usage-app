@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AiUsage.Features.Ledger;
 
-/// <summary>D-NEW: the settings popover of one limit. Built from the card's current model; the card rebuilds it after a unit change.</summary>
+/// <summary>D-199: the settings popover of one limit. Built from the card's current model; the card rebuilds it after a unit change.</summary>
 internal sealed partial class LimitSettingsViewModel : ObservableObject
 {
     private const string RateMessage = "Enter a rate above 0, at most 1000, with up to 6 decimals";

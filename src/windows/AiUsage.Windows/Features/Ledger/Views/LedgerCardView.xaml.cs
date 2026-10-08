@@ -72,7 +72,7 @@ internal sealed partial class LedgerCardView : UserControl
         }
     }
 
-    // D-NEW: the limit settings popover is rebuilt from the card each time it opens.
+    // D-199: the limit settings popover is rebuilt from the card each time it opens.
     private void OnSettingsOpening(object? sender, object e) => ViewModel.OpenSettings();
 
     private void OnSettingsClosed(object? sender, object e) => ViewModel.CloseSettings();
