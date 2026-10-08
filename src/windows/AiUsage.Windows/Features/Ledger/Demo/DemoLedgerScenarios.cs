@@ -362,7 +362,7 @@ internal static class DemoLedgerScenarios
             ("G2", ProviderKind.Copilot, "Copilot Free", Requests("g2", "chat", CardState.TodayUsed, 11, 14, 14, 50, 3, 36), AccountHealth.Ok),
             ("G3", ProviderKind.Copilot, "Copilot Pro", Requests("g3", "chat · unlimited", CardState.OnTrack, 120, 126, 134, 300, 14, null, cap: 300, unlimited: true), AccountHealth.Ok),
             ("G4", ProviderKind.Copilot, "Copilot Free", Note("g4", "premium", CardState.NotIncluded, ScaleModel.Count("requests"), PeriodModel.Month(true), CopilotReset, 0, limit: LimitValue.Zero), AccountHealth.Ok),
-            ("G5", ProviderKind.Copilot, "Copilot Business", Note("g5", "premium", CardState.LimitUnknown, ScaleModel.Count("requests"), PeriodModel.Month(true), CopilotReset, 340, CardAction.SetCap, capTarget: "g5"), AccountHealth.Ok),
+            ("G5", ProviderKind.Copilot, "Copilot Business", Note("g5", "premium", CardState.LimitUnknown, ScaleModel.Count("requests"), PeriodModel.Month(true), CopilotReset, 340, capTarget: "g5"), AccountHealth.Ok),
             ("H1", ProviderKind.Antigravity, "Antigravity AI Plus", PeriodUnknownCard("h1", "group 2", 19, At(10, 19, 4, 0)), AccountHealth.Ok),
             ("H2", ProviderKind.Codex, "Codex Pro", Week("h2", CardState.OnTrack, 30, 33, 48, 18, At(10, 16, 9, 30), fiveHour: new FiveHourModel(null, 40, true, At(10, 14, 17, 10), null, null)), AccountHealth.Ok),
             ("H3", ProviderKind.Claude, "Claude Max", FiveHour("h3", CardState.OnTrack, 44, 50, 82.4m, 30, win, mon9, ws: 10, low: 7, high: 13, rough: true), AccountHealth.Ok),

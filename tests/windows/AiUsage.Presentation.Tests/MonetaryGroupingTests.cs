@@ -33,9 +33,9 @@ public sealed class MonetaryGroupingTests
 
         var mismatch = new LimitCardViewModel(window, money.Model with { Cap = new(200, false, CapStatus.CurrencyMismatch) },
             money.Account, ValueMode.Used, source.Current.LocalNow);
-        mismatch.BeginCapEdit();
-        Assert.Equal(string.Empty, mismatch.CapEditor!.Text);
-        Assert.False(mismatch.CapEditor.HasCap);
+        mismatch.OpenSettings();
+        Assert.Equal(string.Empty, mismatch.Settings!.Cap!.Text);
+        Assert.False(mismatch.Settings.Cap.HasCap);
     }
 
     [Fact]
@@ -53,10 +53,9 @@ public sealed class MonetaryGroupingTests
         await money.ToggleHistoryAsync();
         Assert.Equal(money.CardId, model.History!.CardId);
         Assert.Equal("Mixed account", model.History.Title);
-        money.BeginCapEdit();
-        Assert.NotNull(money.CapEditor);
-        money.CapEditor!.Text = "250";
-        await money.CapEditor.SaveAsync();
+        money.OpenSettings();
+        money.Settings!.Cap!.Text = "250";
+        await money.Settings.Cap.SaveAsync();
         Assert.Equal("250.00 USD", LedgerFormat.NativeMoney(money.Model.Monetary!.PersonalCap));
         var only = Assert.Single(model.Cards, c => c.CardId == "money-only");
         Assert.True(only.CanSignOut);

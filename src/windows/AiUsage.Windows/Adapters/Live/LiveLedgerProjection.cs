@@ -218,7 +218,7 @@ internal static class LiveLedgerProjection
               scale is { Kind: ScaleKind.Money, Currency: not null, Exponent: >= 0 and <= 18 })
             ? CardId(data.Series) : null;
         var card = new LimitCardModel(CardId(data.Series), Label(facts, null), layout, scale, Period(facts, period), state, new(stale, null), marks,
-            figures, null, reset, capModel, target, state is CardState.NoCap or CardState.LimitUnknown && target is not null ? CardAction.SetCap : CardAction.None, null)
+            figures, null, reset, capModel, target, CardAction.None, null)
         {
             Units = credits ? new(false, UnitModel.DefaultRate) : null,
             TodayUse = facts.Kind != LimitKind.PercentWindow && result.DayStart is not null && used is not null

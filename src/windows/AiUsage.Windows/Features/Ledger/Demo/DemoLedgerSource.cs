@@ -158,7 +158,7 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
             Layout = CardLayout.Note,
             State = original.State == CardState.LimitUnknown ? CardState.LimitUnknown : CardState.NoCap,
             Cap = null,
-            Action = CardAction.SetCap,
+            Action = CardAction.None,
             Figures = current.Figures with { DayStart = null, TodayEnd = null, EffectiveLimit = null },
         };
     }

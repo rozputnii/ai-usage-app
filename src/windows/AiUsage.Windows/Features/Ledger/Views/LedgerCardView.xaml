@@ -70,7 +70,7 @@
             <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE9E9;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
             <lc:LedgerButton.Flyout>
               <Flyout x:Name="SettingsFlyout" Placement="BottomEdgeAlignedRight" FlyoutPresenterStyle="{StaticResource LedgerFlyoutPresenter}"
-                      Opening="OnSettingsOpening" Closed="OnSettingsClosed">
+                      Opening="OnSettingsOpening" Opened="OnSettingsOpened" Closed="OnSettingsClosed">
                 <StackPanel Width="320" Spacing="12">
                   <StackPanel Spacing="5" Visibility="{x:Bind Show(ViewModel.Settings.HasUnits), Mode=OneWay, FallbackValue=Collapsed}">
                     <Grid ColumnSpacing="8">
@@ -104,7 +104,7 @@
                   </StackPanel>
                   <lc:CapEditorView AutoFocus="False" Editor="{x:Bind ViewModel.Settings.Today, Mode=OneWay}"
                                     Visibility="{x:Bind ShowEditor(ViewModel.Settings.Today), Mode=OneWay, FallbackValue=Collapsed}" />
-                  <lc:CapEditorView AutoFocus="False" Editor="{x:Bind ViewModel.Settings.Cap, Mode=OneWay}"
+                  <lc:CapEditorView x:Name="SettingsCapEditor" AutoFocus="False" Editor="{x:Bind ViewModel.Settings.Cap, Mode=OneWay}"
                                     Visibility="{x:Bind ShowEditor(ViewModel.Settings.Cap), Mode=OneWay, FallbackValue=Collapsed}" />
                 </StackPanel>
               </Flyout>
@@ -134,9 +134,9 @@
       <TextBlock Text="Enter saves · Esc cancels · the name is yours, the provider is unchanged" Style="{StaticResource LedgerCaptionText}" Margin="0,-4,0,0" TextWrapping="Wrap"
                  Visibility="{x:Bind Show(ViewModel.IsRenaming), Mode=OneWay}" />
 
-      <!-- Bars: today row, period row, footer or cap editor. -->
+      <!-- Bars: today row, period row, footer. -->
       <Grid x:Name="Bars" ColumnSpacing="10" Visibility="{x:Bind BarsVisibility(ViewModel.Visual.NoteLines.Count), Mode=OneWay}"
-            XYFocusKeyboardNavigation="Enabled" TabFocusNavigation="{x:Bind BarTabNavigation(ViewModel.IsEditingCap), Mode=OneWay}">
+            XYFocusKeyboardNavigation="Enabled" TabFocusNavigation="Once">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="40" />
           <ColumnDefinition Width="*" />
@@ -173,15 +173,12 @@
                         AutomationProperties.Name="{x:Bind lc:LedgerViews.Spoken(ViewModel.Visual.BarTip), Mode=OneWay}">
           <lc:PeriodBar Visual="{x:Bind ViewModel.Visual, Mode=OneWay}" Opacity="{x:Bind ViewModel.Visual.Opacity, Mode=OneWay}" />
         </ContentControl>
-        <lc:LedgerFooterPanel Grid.Row="4" Grid.Column="1" Margin="0,4,0,0" Visibility="{x:Bind Hide(ViewModel.IsEditingCap), Mode=OneWay}">
-          <lc:LedgerButton Style="{StaticResource LedgerFooterButton}" Click="OnFooterClick" IsTabStop="True" HorizontalAlignment="Left"
-                  ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.FooterTip), Mode=OneWay}"
-                  AutomationProperties.Name="{x:Bind FooterName(ViewModel.Visual.Footer, ViewModel.Visual.FooterTip, ViewModel.CanEditCap), Mode=OneWay}">
-            <Grid>
-              <TextBlock Text="{x:Bind ViewModel.Visual.Footer, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerInk2Brush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-              <Line X1="0" X2="1" Stretch="Fill" VerticalAlignment="Bottom" Stroke="{StaticResource LedgerUnderlineBrush}" StrokeThickness="1" StrokeDashArray="1,2" Margin="0,0,0,-2" />
-            </Grid>
-          </lc:LedgerButton>
+        <lc:LedgerFooterPanel Grid.Row="4" Grid.Column="1" Margin="0,4,0,0">
+          <ContentControl IsTabStop="True" UseSystemFocusVisuals="True" FocusVisualPrimaryBrush="{StaticResource LedgerFocusBrush}" VerticalAlignment="Center" HorizontalAlignment="Left"
+                          ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.FooterTip), Mode=OneWay}"
+                          AutomationProperties.Name="{x:Bind FooterName(ViewModel.Visual.Footer, ViewModel.Visual.FooterTip), Mode=OneWay}">
+            <TextBlock Text="{x:Bind ViewModel.Visual.Footer, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" Foreground="{StaticResource LedgerInk2Brush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+          </ContentControl>
           <ContentControl Grid.Column="1" IsTabStop="True" UseSystemFocusVisuals="True" FocusVisualPrimaryBrush="{StaticResource LedgerFocusBrush}" VerticalAlignment="Center"
                           ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.Visual.ResetTip), Mode=OneWay}"
                           AutomationProperties.Name="{x:Bind lc:LedgerViews.Spoken(ViewModel.Visual.ResetTip), Mode=OneWay}">
@@ -190,9 +187,6 @@
           <lc:LedgerButton Grid.Column="2" Style="{StaticResource LedgerOutlineButton}" Content="{x:Bind ViewModel.Visual.ActionText, Mode=OneWay}" Command="{x:Bind ViewModel.ActionCommand}"
                   Visibility="{x:Bind Show(ViewModel.Visual.HasAction), Mode=OneWay}" />
         </lc:LedgerFooterPanel>
-        <Grid Grid.Row="4" Grid.Column="1" Margin="0,6,0,0" Visibility="{x:Bind Show(ViewModel.IsEditingCap), Mode=OneWay}">
-          <lc:CapEditorView x:Name="BarCapEditor" Editor="{x:Bind ViewModel.CapEditor, Mode=OneWay}" />
-        </Grid>
       </Grid>
 
       <!-- Note cards: fact lines without a bar or budget. -->
@@ -214,9 +208,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
         <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" HorizontalAlignment="Right" Content="{x:Bind ViewModel.Visual.ActionText, Mode=OneWay}" Command="{x:Bind ViewModel.ActionCommand}"
-                Visibility="{x:Bind ShowNoteAction(ViewModel.Visual.HasAction, ViewModel.IsEditingCap), Mode=OneWay}" />
-        <lc:CapEditorView x:Name="NoteCapEditor" Margin="50,0,0,0" Editor="{x:Bind ViewModel.CapEditor, Mode=OneWay}"
-                          Visibility="{x:Bind Show(ViewModel.IsEditingCap), Mode=OneWay}" />
+                Visibility="{x:Bind Show(ViewModel.Visual.HasAction), Mode=OneWay}" />
       </StackPanel>
       <StackPanel x:Name="SectionHost" Spacing="{x:Bind InnerGap(ViewModel.IsCompact), Mode=OneWay}" Visibility="Collapsed" />
     </StackPanel>

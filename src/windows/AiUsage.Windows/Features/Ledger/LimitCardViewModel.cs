@@ -124,10 +124,6 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [ObservableProperty] public partial CardVisual Visual { get; private set; }
     [ObservableProperty] public partial bool IsRenaming { get; private set; }
     [ObservableProperty] public partial string RenameText { get; set; } = string.Empty;
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsEditingCap))]
-    public partial CapEditorViewModel? CapEditor { get; private set; }
-    public bool IsEditingCap => CapEditor is not null;
     [ObservableProperty] public partial bool IsNew { get; set; }
     [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
     [ObservableProperty] public partial bool IsCompact { get; set; } = true;
@@ -160,7 +156,6 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public bool IsStale => Model.Freshness.IsStale;
     public string SignOutName => "Sign out " + Account.DisplayName;
     public string HistoryName => "History, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
-    public string CapEditorName => "Cap for " + Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty) + (Model.Cap is { } cap ? ", " + LedgerFormat.Value(Model.Scale, cap.Amount) : ", none");
 
     public void Update(LimitCardModel model, AccountModel account, ValueMode mode, DateTimeOffset now)
     {
@@ -209,18 +204,6 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [RelayCommand]
     public void CancelRename() => IsRenaming = false;
 
-    [RelayCommand]
-    public void BeginCapEdit()
-    {
-        if (!CanEditCap)
-            return;
-        var target = Model.CapTargetId!;
-        var before = Model.Cap?.Status == CapStatus.CurrencyMismatch ? null : Model.Cap?.Amount;
-        CapEditor = new CapEditorViewModel(Model.Scale, Model.Figures.ProviderLimit, before, LedgerFormat.PeriodWords(Model.Period),
-            amount => owner.SetCapAsync(target, amount, before, Account.DisplayName + " " + (Model.ScopeLabel ?? string.Empty)),
-            () => CapEditor = null);
-    }
-
     /// <summary>Builds the popover from the current model; called when it opens and after a unit change.</summary>
     public void OpenSettings()
     {
@@ -243,8 +226,6 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     {
         if (Model.Action == CardAction.SignIn && !IsAccountSection)
             await owner.ReconnectAsync(Account.AccountId);
-        else if (Model.Action == CardAction.SetCap)
-            BeginCapEdit();
     }
 
     [RelayCommand]

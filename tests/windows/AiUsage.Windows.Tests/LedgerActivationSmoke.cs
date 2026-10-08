@@ -75,8 +75,12 @@ public sealed partial class LedgerSmoke
 
             Assert.True(Wait(() => Shows("3,240 of 17,500 used")));
             // D-202: a weekly percent window takes a percent cap, and the bar then spans the cap.
-            Named("Limit settings, Codex subscription 7 day")!.AsButton().Invoke();
-            Assert.True(Wait(() => Named("Cap amount in %") is not null));
+            // D-NEW: the card has no cap editor or cap caption of its own; C opens the limit settings at the cap field.
+            Assert.DoesNotContain(window.FindAllDescendants(), e => e.Properties.ControlType.ValueOrDefault == FlaUI.Core.Definitions.ControlType.Button &&
+                ((e.Properties.Name.ValueOrDefault ?? "").Contains("edit the cap", StringComparison.Ordinal) || e.Properties.Name.ValueOrDefault == "Set cap"));
+            Named("Limit settings, Codex subscription 7 day")!.Focus();
+            Keyboard.Type(VirtualKeyShort.KEY_C);
+            Assert.True(Wait(() => Named("Cap amount in %")?.Properties.HasKeyboardFocus.ValueOrDefault == true));
             Named("Cap amount in %")!.Patterns.Value.Pattern.SetValue("90");
             Capture("percent-cap-popover.png");
             Named("Save")!.AsButton().Invoke();

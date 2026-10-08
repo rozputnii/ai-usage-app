@@ -142,7 +142,7 @@ public sealed class MonetaryUsageTests
         Assert.Equal("EUR", mismatch.Monetary!.PersonalCap!.Currency);
         var noLimit = Assert.Single(Project(Data(Facts with { Limit = FactLimit.ExplicitNull })).Cards);
         Assert.Null(noLimit.Figures.EffectiveLimit);
-        Assert.Equal(CardAction.SetCap, noLimit.Action);
+        Assert.Equal(CardAction.None, noLimit.Action);
         var zero = Assert.Single(Project(Data(Facts with { Used = new MoneyQuantity(0, 2, "USD") }, MonetaryScope.Unknown)).Cards);
         Assert.Equal(0m, zero.Figures.Used);
         Assert.Equal(500m, zero.Figures.EffectiveLimit);

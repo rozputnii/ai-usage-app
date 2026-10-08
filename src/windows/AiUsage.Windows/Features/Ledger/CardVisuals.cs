@@ -77,7 +77,7 @@ internal static class CardVisuals
         var marks = card.Marks.Select(mark => MarkOf(mark, card, account, now)).ToArray();
         var period = LedgerFormat.PeriodLabel(card.Period);
         var (resetText, resetTip) = ResetOf(card, now);
-        var action = card.Action switch { CardAction.SignIn => "Sign in", CardAction.SetCap => "Set cap", _ => null };
+        var action = card.Action switch { CardAction.SignIn => "Sign in", _ => null };
         var opacity = card.Freshness.IsStale ? 0.7 : 1;
 
         if (card.Layout == CardLayout.Note)
@@ -296,7 +296,7 @@ internal static class CardVisuals
             case CardState.TodayUsed: return ["Today used", "Today’s allowance is used up · not over"];
             case CardState.OverToday: return ["Over today", "Today’s allowance is exceeded"];
             case CardState.CapReached:
-                return ["Custom cap reached", Beyond(card, Fm) + " · raise cap in settings"];
+                return ["Custom cap reached", Beyond(card, Fm) + " · raise the cap in limit settings"];
             case CardState.OverCap:
                 return ["Over custom cap", Fm(f.Used - card.Cap?.Amount) + " over " + Fm(card.Cap?.Amount) + " · " + Beyond(card, Fm).ToLowerInvariant()];
             case CardState.UsedUp:
@@ -317,8 +317,8 @@ internal static class CardVisuals
             case CardState.ValueUnknown: return ["Value unknown", "Provider did not send used"];
             case CardState.PeriodUnknown: return ["Period unknown", "Window length not sent · no daily budget"];
             case CardState.NotIncluded: return ["Not included", "This plan has no " + (card.ScopeLabel ?? "such") + " " + LedgerFormat.Unit(card.Scale)];
-            case CardState.LimitUnknown: return ["Limit unknown", "Provider sends no limit · set a cap for a daily budget"];
-            case CardState.NoCap: return ["No cap", "Set a cap for a daily budget"];
+            case CardState.LimitUnknown: return ["Limit unknown", "Provider sends no limit · a cap in limit settings gives a daily budget"];
+            case CardState.NoCap: return ["No cap", "A cap in limit settings gives a daily budget"];
             case CardState.SignedOut: return ["Signed out", "History, name and caps kept"];
             default: return [];
         }

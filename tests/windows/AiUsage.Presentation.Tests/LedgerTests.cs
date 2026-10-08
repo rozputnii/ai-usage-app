@@ -383,7 +383,7 @@ public sealed class LedgerCardTests
         Assert.Equal("past reset", Assert.Single(Case("h5").Marks).Text);
         Assert.Equal("reset 14:00", Case("h5").ResetText);
         Assert.Equal("Sign in", Case("h8").ActionText);
-        Assert.Equal("Set cap", Case("g5").ActionText);
+        Assert.Null(Case("g5").ActionText);
     }
 
     [Fact]
@@ -625,22 +625,21 @@ public sealed class LedgerInteractionTests
     {
         var (window, source, scheduler, _) = Start();
         var credits = Card(window, "codex-credits");
-        credits.BeginCapEdit();
-        var editor = credits.CapEditor!;
+        credits.OpenSettings();
+        var editor = credits.Settings!.Cap!;
         Assert.Equal("17000", editor.Text);
         Assert.Equal("credits", editor.UnitText);
         editor.Text = "12.5";
         await editor.SaveAsync();
         Assert.Equal("Enter a whole number", editor.Error);
-        Assert.NotNull(credits.CapEditor);
         editor.Text = "18000";
         await editor.SaveAsync();
-        Assert.Null(credits.CapEditor);
+        Assert.Null(editor.Error);
         Assert.Equal(18000m, Card(window, "codex-credits").Model.Cap!.Amount);
 
-        credits.BeginCapEdit();
-        credits.CapEditor!.Text = string.Empty;
-        await credits.CapEditor.SaveAsync();
+        credits.OpenSettings();
+        credits.Settings!.Cap!.Text = string.Empty;
+        await credits.Settings.Cap.SaveAsync();
         var removed = Card(window, "codex-credits");
         Assert.Equal(CardState.NoCap, removed.Model.State);
         Assert.Equal([new NoteLine(string.Empty, "balance 10,160 credits (provider)", "no budget")], removed.Visual.NoteLines);
@@ -688,29 +687,32 @@ public sealed class LedgerInteractionTests
     {
         var (window, _, _, _) = Start();
         var extra = Card(window, "claude-extra");
-        extra.BeginCapEdit();
-        extra.CapEditor!.Text = "500.01";
-        await extra.CapEditor.SaveAsync();
-        Assert.Equal("Enter at most $500.00 · the provider limit", extra.CapEditor.Error);
+        extra.OpenSettings();
+        var editor = extra.Settings!.Cap!;
+        editor.Text = "500.01";
+        await editor.SaveAsync();
+        Assert.Equal("Enter at most $500.00 · the provider limit", editor.Error);
         Assert.Equal(300m, Card(window, "claude-extra").Model.Cap!.Amount);
-        extra.CapEditor.Text = "500";
-        await extra.CapEditor.SaveAsync();
-        Assert.Null(extra.CapEditor);
+        editor.Text = "500";
+        await editor.SaveAsync();
+        Assert.Null(editor.Error);
         Assert.Equal(500m, Card(window, "claude-extra").Model.Cap!.Amount);
     }
 
     [Fact]
-    public async Task SetCapOnALimitUnknownPoolGivesItABudget()
+    public async Task CapOnALimitUnknownPoolIsSetInItsSettings()
     {
         var (window, _, _, _) = Start(DemoLedgerScenarios.States);
         var g5 = Card(window, "g5");
-        Assert.Equal("Set cap", g5.Visual.ActionText);
-        await g5.ActionAsync();
-        Assert.Equal(string.Empty, g5.CapEditor!.Text);
-        await g5.CapEditor.SaveAsync();
-        Assert.Equal("Enter a cap", g5.CapEditor!.Error);
-        g5.CapEditor.Text = "500";
-        await g5.CapEditor.SaveAsync();
+        Assert.Null(g5.Visual.ActionText);
+        Assert.True(g5.HasSettings);
+        g5.OpenSettings();
+        var editor = g5.Settings!.Cap!;
+        Assert.Equal(string.Empty, editor.Text);
+        await editor.SaveAsync();
+        Assert.Equal("Enter a cap", editor.Error);
+        editor.Text = "500";
+        await editor.SaveAsync();
         var capped = Card(window, "g5").Model;
         Assert.Equal(CardLayout.Pool, capped.Layout);
         Assert.Equal(500m, capped.Cap!.Amount);
@@ -964,9 +966,6 @@ public sealed class LedgerInteractionTests
         var (window, _, _, _) = Start();
         window.ToggleSettings();
         await Card(window, "claude-week").ToggleHistoryAsync();
-        Card(window, "claude-extra").BeginCapEdit();
-        Assert.True(window.Escape());
-        Assert.Null(Card(window, "claude-extra").CapEditor);
         Assert.True(window.Escape());
         Assert.Null(window.History);
         Assert.True(window.Escape());
@@ -1107,7 +1106,6 @@ public sealed class LedgerInteractionTests
         Assert.StartsWith("Claude Pro extra usage, over today.", Card(window, "claude-extra").Visual.AccessibleName, StringComparison.Ordinal);
         Assert.Equal("Sign out Claude Pro", Card(window, "claude-week").SignOutName);
         Assert.Equal("History, Claude Pro 7 day", Card(window, "claude-week").HistoryName);
-        Assert.Equal("Cap for Codex Pro credits, 17,000", Card(window, "codex-credits").CapEditorName);
     }
 }
 

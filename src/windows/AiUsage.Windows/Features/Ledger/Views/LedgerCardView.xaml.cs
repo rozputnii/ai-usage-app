@@ -8,7 +8,7 @@ using Windows.System;
 namespace AiUsage.Features.Ledger.Views;
 
 /// <summary>One limit card (spec 6.2). The card is not a tab stop itself (D-200); from any control inside it F2 renames,
-/// C edits the cap, Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.</summary>
+/// C opens the limit settings with the cap field focused (the card has no cap editor of its own), Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.</summary>
 internal sealed partial class LedgerCardView : UserControl
 {
     public LedgerCardView() => InitializeComponent();
@@ -59,18 +59,11 @@ internal sealed partial class LedgerCardView : UserControl
                 RenameBox.Focus(FocusState.Programmatic);
                 RenameBox.SelectAll();
             });
-        // Deferred: the bindings hide the rename box and the cap editor after this handler.
+        // Deferred: the bindings hide the rename box after this handler.
         else if (e.PropertyName == nameof(LimitCardViewModel.IsRenaming) && !ViewModel.IsRenaming && RenameBox.FocusState != FocusState.Unfocused)
             DispatcherQueue.TryEnqueue(FocusFirst);
         else if (e.PropertyName == nameof(LimitCardViewModel.IsHistoryOpen) && !HistoryButton.IsPointerOver)
             QuietIcon(HistoryButton);
-        else if (e.PropertyName == nameof(LimitCardViewModel.CapEditor))
-        {
-            if (ViewModel.CapEditor is not null)
-                DispatcherQueue.TryEnqueue(() => (ViewModel.Visual.NoteLines.Count > 0 ? NoteCapEditor : BarCapEditor).FocusInput());
-            else
-                DispatcherQueue.TryEnqueue(FocusFirst);
-        }
     }
 
     /// <summary>
@@ -85,6 +78,22 @@ internal sealed partial class LedgerCardView : UserControl
 
     // D-199: the limit settings popover is rebuilt from the card each time it opens.
     private void OnSettingsOpening(object? sender, object e) => ViewModel.OpenSettings();
+
+    private bool focusCapOnOpen;
+
+    /// <summary>C opens the popover at its cap field; the sliders icon opens it without moving focus into a field.</summary>
+    private void OpenCapSettings()
+    {
+        focusCapOnOpen = true;
+        SettingsFlyout.ShowAt(SettingsButton);
+    }
+
+    private void OnSettingsOpened(object? sender, object e)
+    {
+        if (focusCapOnOpen)
+            SettingsCapEditor.FocusInput();
+        focusCapOnOpen = false;
+    }
 
     private void OnSettingsClosed(object? sender, object e) => ViewModel.CloseSettings();
 
@@ -114,7 +123,7 @@ internal sealed partial class LedgerCardView : UserControl
                 break;
             case VirtualKey.C when ViewModel.CanEditCap && !alt:
                 e.Handled = true;
-                ViewModel.BeginCapEdit();
+                OpenCapSettings();
                 break;
             case VirtualKey.Up when alt:
                 e.Handled = true;
@@ -162,12 +171,6 @@ internal sealed partial class LedgerCardView : UserControl
         }
     }
 
-    private void OnFooterClick(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.CanEditCap)
-            ViewModel.BeginCapEdit();
-    }
-
     private void OnIconPointerEntered(object sender, PointerRoutedEventArgs e) => ((UIElement)sender).Opacity = 1;
 
     private void OnIconPointerExited(object sender, PointerRoutedEventArgs e) => QuietIcon((UIElement)sender);
@@ -188,10 +191,6 @@ internal sealed partial class LedgerCardView : UserControl
     private Visibility BarsVisibility(int noteLines) => Show(noteLines == 0);
     private Visibility NoteVisibility(int noteLines) => Show(noteLines > 0);
     private Visibility TodayLabelVisibility(bool hasStrip, bool hasNote) => Show(hasStrip || hasNote);
-    private Visibility FooterVisibility(CapEditorViewModel? editor) => Show(editor is null);
-    private Visibility EditorVisibility(CapEditorViewModel? editor) => Show(editor is not null);
-    private KeyboardNavigationMode BarTabNavigation(bool editing) => editing ? KeyboardNavigationMode.Local : KeyboardNavigationMode.Once;
-    private Visibility ShowNoteAction(bool hasAction, bool editing) => Show(hasAction && !editing);
     private Visibility ShowCompactOver(bool hasOver, bool compact) => Show(compact && hasOver);
     private Visibility ShowComfortableOver(bool hasOver, bool compact) => Show(!compact && hasOver);
 
@@ -212,6 +211,5 @@ internal sealed partial class LedgerCardView : UserControl
     private double StripGap(bool compact, bool hasStrip) => hasStrip ? (compact ? 3 : 8) : 0;
     private Thickness BarMargin(bool compact) => compact ? new Thickness(0, -2, 0, -2) : new Thickness(0);
 
-    private string FooterName(string footer, IReadOnlyList<string> tip, bool canEditCap) =>
-        LedgerViews.Spoken([footer, .. tip]) + (canEditCap ? ". Press to edit the cap" : string.Empty);
+    private string FooterName(string footer, IReadOnlyList<string> tip) => LedgerViews.Spoken([footer, .. tip]);
 }

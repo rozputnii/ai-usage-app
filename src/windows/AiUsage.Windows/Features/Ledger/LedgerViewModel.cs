@@ -335,11 +335,6 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             }
         foreach (var card in Cards)
         {
-            if (card.CapEditor is not null)
-            {
-                card.CapEditor.Cancel();
-                return true;
-            }
             if (card.IsRenaming)
             {
                 card.CancelRename();

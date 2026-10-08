@@ -81,7 +81,7 @@ public sealed partial class AuditWindows
             Assert.True(Session.Wait(() => session.ById(moneyId).Properties.Name.Value.StartsWith("SYNTHETIC persistent", StringComparison.Ordinal)));
             card = session.ById(moneyId);
             session.Click(card.FindAllDescendants().Single(e => e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
-                (e.Properties.Name.ValueOrDefault ?? "").Contains("Press to edit the cap", StringComparison.Ordinal)));
+                (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Limit settings,", StringComparison.Ordinal)));
             session.Type(CapInput(session), "240.00"); session.Key(VirtualKeyShort.ESCAPE);
             Assert.Empty(JsonNode.Parse(File.ReadAllText(Path.Combine(root, "budget", "configuration.v1.json")))!["Caps"]!.AsArray());
             session.FocusCard(session.ById(moneyId)); session.Key(VirtualKeyShort.KEY_C);

@@ -163,7 +163,7 @@ internal sealed record CardMark(MarkKind Kind, DateTimeOffset? Since = null, Dat
 
 internal enum MarkKind { OnExtraUsage, ExtraDay, SyncFailed, SignInExpired, PastReset }
 
-internal enum CardAction { None, SignIn, SetCap }
+internal enum CardAction { None, SignIn }
 
 /// <summary>Values in the card's scale. Unknown is null, never zero.</summary>
 internal sealed record LimitFigures(
