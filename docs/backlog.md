@@ -548,6 +548,18 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: The owner asked on 2026-10-07 for vertical-only cards, a settings panel that slides in from the right with a clearer edge, and as little text as possible; chose full-width cards, the maximal reduction and design B of three.
 - completion-note: Implemented and verified 2026-10-07 in the demo app, the regression suites and the local Ledger smokes. The owner checks the installed app after deployment (D-190); that check is NOT_RUN.
 
+## AIU-052 - Refresh status button and minimum window size
+- goal: G-003
+- status: done
+- depends_on: [AIU-038, AIU-051]
+- trigger: owner-selection
+- outcome: A refresh icon after the window title replaces the clock, turns red while an account is not refreshed in time and shows reading times in its tooltip; the window's minimum width keeps the title controls clear of the caption buttons and its minimum height fits one limit (D-194).
+- acceptance: AC-01 through AC-04 in the specification cover the status projection, the demo icon, the squeezed window and verification.
+- specification: docs/specs/AIU-052-refresh-status-minimum-window/spec.md
+- evidence: docs/specs/AIU-052-refresh-status-minimum-window/verification.md
+- registration-note: The owner reported on 2026-10-08 that the caption buttons covered the title controls in a narrow window, asked for the smallest safe minimum size with one limit always visible, then asked to replace the clock with a refresh status button and chose design B of three.
+- completion-note: Implemented and verified 2026-10-08 in the demo app, the regression suites and the local window-size and Ledger smokes. The owner checks the installed app after deployment (D-190); that check is NOT_RUN.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
