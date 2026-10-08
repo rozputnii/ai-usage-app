@@ -61,6 +61,8 @@ internal sealed partial class LedgerWindow : Window
         DayGroup.SizeChanged += (_, _) => UpdateTitleBarRegions();
         CardGrid.SizeChanged += (_, _) => UpdateMinimumSize();
         Body.SizeChanged += (_, e) => SettingsPanel.Height = e.NewSize.Height;
+        // D-205: a click anywhere outside an open rename box saves that name; buttons and the box handle their own releases.
+        Root.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnRootPointerReleased), handledEventsToo: true);
         AppWindow.Closing += OnClosing;
 
         AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape() || HideFocusFrame());
@@ -300,6 +302,12 @@ internal sealed partial class LedgerWindow : Window
         CardGrid.Children.Clear();
         foreach (var element in wanted)
             CardGrid.Children.Add(element);
+    }
+
+    private void OnRootPointerReleased(object sender, PointerRoutedEventArgs e)
+    {
+        foreach (var view in views.Values.ToArray())
+            view.CommitRenameOutside(e.OriginalSource as DependencyObject);
     }
 
     private void FocusCard(string cardId)

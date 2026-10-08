@@ -8,7 +8,8 @@ using Windows.System;
 namespace AiUsage.Features.Ledger.Views;
 
 /// <summary>One limit card (spec 6.2). The card is not a tab stop itself (D-200); from any control inside it F2 renames,
-/// C opens the limit settings with the cap field focused (the card has no cap editor of its own), Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.</summary>
+/// C opens the limit settings with the cap field focused (the card has no cap editor of its own), Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.
+/// A click on the account name also renames (D-205); Enter, a click elsewhere or focus leaving the box saves, Esc cancels.</summary>
 internal sealed partial class LedgerCardView : UserControl
 {
     public LedgerCardView() => InitializeComponent();
@@ -59,9 +60,14 @@ internal sealed partial class LedgerCardView : UserControl
                 RenameBox.Focus(FocusState.Programmatic);
                 RenameBox.SelectAll();
             });
-        // Deferred: the bindings hide the rename box after this handler.
-        else if (e.PropertyName == nameof(LimitCardViewModel.IsRenaming) && !ViewModel.IsRenaming && RenameBox.FocusState != FocusState.Unfocused)
-            DispatcherQueue.TryEnqueue(FocusFirst);
+        else if (e.PropertyName == nameof(LimitCardViewModel.IsRenaming))
+        {
+            if (renameTip is not null)
+                ToolTipService.SetToolTip(NameRow, renameTip);
+            // Deferred: the bindings hide the rename box after this handler.
+            if (RenameBox.FocusState != FocusState.Unfocused)
+                DispatcherQueue.TryEnqueue(FocusFirst);
+        }
         else if (e.PropertyName == nameof(LimitCardViewModel.IsHistoryOpen) && !HistoryButton.IsPointerOver)
             QuietIcon(HistoryButton);
     }
@@ -171,6 +177,48 @@ internal sealed partial class LedgerCardView : UserControl
         }
     }
 
+    private ToolTip? renameTip;
+
+    private void OnNameTapped(object sender, TappedRoutedEventArgs e)
+    {
+        e.Handled = true;
+        // The name gives way to the box; its hover look goes with it, and its tooltip, which could still open over the box,
+        // returns when the rename ends.
+        NameUnderline.Opacity = 0;
+        renameTip ??= ToolTipService.GetToolTip(NameRow) as ToolTip;
+        ToolTipService.SetToolTip(NameRow, null);
+        ViewModel.BeginRename();
+    }
+
+    // The dotted underline spans the name only; stretched, it would fill the room the header gives the name.
+    private void OnNameSizeChanged(object sender, SizeChangedEventArgs e) => NameUnderline.X2 = e.NewSize.Width;
+
+    private void OnNamePointerEntered(object sender, PointerRoutedEventArgs e) => NameUnderline.Opacity = 1;
+
+    private void OnNamePointerExited(object sender, PointerRoutedEventArgs e) => NameUnderline.Opacity = 0;
+
+    // Focus leaving the box saves, except into the box's own context menu. After Enter or Esc the hidden box loses focus
+    // too; the commit then finds the rename already closed.
+    private void OnRenameLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (RenameBox.ContextFlyout is not { IsOpen: true })
+            _ = ViewModel.CommitRenameAsync();
+    }
+
+    /// <summary>
+    /// The window passes every pointer release here: one outside the open rename box saves the name. On release rather than
+    /// press, the hidden box cannot move another card's name from under the pointer before that click lands.
+    /// </summary>
+    public void CommitRenameOutside(DependencyObject? released)
+    {
+        if (!ViewModel.IsRenaming)
+            return;
+        for (var element = released; element is not null; element = VisualTreeHelper.GetParent(element))
+            if (ReferenceEquals(element, RenameBox))
+                return;
+        _ = ViewModel.CommitRenameAsync();
+    }
+
     private void OnIconPointerEntered(object sender, PointerRoutedEventArgs e) => ((UIElement)sender).Opacity = 1;
 
     private void OnIconPointerExited(object sender, PointerRoutedEventArgs e) => QuietIcon((UIElement)sender);
@@ -187,7 +235,8 @@ internal sealed partial class LedgerCardView : UserControl
     // ---- x:Bind helpers ----
 
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
-    private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
+    // Sections have no name of their own.
+    private Visibility NameVisibility(bool renaming, bool section) => Show(!renaming && !section);
     private Visibility BarsVisibility(int noteLines) => Show(noteLines == 0);
     private Visibility NoteVisibility(int noteLines) => Show(noteLines > 0);
     private Visibility TodayLabelVisibility(bool hasStrip, bool hasNote) => Show(hasStrip || hasNote);
