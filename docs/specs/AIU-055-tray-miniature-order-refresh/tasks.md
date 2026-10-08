@@ -356,7 +356,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
   `feat(AIU-055): rename an account by clicking its name (T-04)`; review, integrate, report.
 
 ### T-05 - Account order in preferences, sources and keyboard
-- status: pending
+- status: done
 - depends_on: []
 - ownership: account-order
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs, src/windows/AiUsage.Windows/Adapters/Live/LedgerPreferenceStore.cs, src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerSource.cs, src/windows/AiUsage.Windows/Features/Ledger/Demo/DemoLedgerSource.cs, src/windows/AiUsage.Windows/Features/Ledger/LedgerViewModel.cs, src/windows/AiUsage.Windows/Features/Ledger/LimitCardViewModel.cs, tests/windows/AiUsage.Presentation.Tests/LiveLedgerSourceTests.cs, tests/windows/AiUsage.Presentation.Tests/LedgerPreferenceTests.cs, tests/windows/AiUsage.Presentation.Tests/LedgerCompletionTests.cs, tests/windows/AiUsage.Presentation.Tests/AccountOrderTests.cs]
@@ -365,7 +365,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-07]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 88b13fb (merged 387e0df); Presentation 302/302, Infrastructure 915/915, Release build 0 warnings, demo startup smoke PASS, opus review approve with 3 deferred minors
 
 **Model:** opus. **Requirement:** R-10 (all but the drag, which is T-09).
 
@@ -381,26 +381,26 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
 // LimitCardViewModel: MoveUpAsync/MoveDownAsync move the account for a host card and the section for an account section.
 ```
 
-- [ ] Test `AccountOrderMovesPersistsAndSurvivesRestart` (`LiveLedgerSourceTests`). Use accounts `a, b, c` (`Account(Guid, at)`)
+- [x] Test `AccountOrderMovesPersistsAndSurvivesRestart` (`LiveLedgerSourceTests`). Use accounts `a, b, c` (`Account(Guid, at)`)
   and the saved-preferences pattern of `MonetaryCapsStayMatchedAndSeparateAcrossRenameAndSourceRestart`.
   - `MoveAccountAsync(c, a)` returns Done, and `Current.Accounts` IDs are `[c, a, b]`.
   - `MoveAccountAsync(a, null)` gives `[c, b, a]`.
   - After a restart the order is still `[c, b, a]`; a new account `d` gives `[c, b, a, d]`.
   - An unknown id, `MoveAccountAsync(a, a)` and an unknown `before` each return Rejected.
-- [ ] Test `AccountOrderIsValidated` (`LedgerPreferenceTests`) with `LedgerPreferenceStore.IsValidJson`:
+- [x] Test `AccountOrderIsValidated` (`LedgerPreferenceTests`) with `LedgerPreferenceStore.IsValidJson`:
   - `AccountOrder` `["x"]`, a duplicate and 257 entries are each false;
   - a version-1 JSON without `AccountOrder` is true and loads `[]`.
-- [ ] Tests in `AccountOrderTests`, on the demo app with `LedgerViewModel`, as in the `Start()` pattern of `LedgerTests`:
+- [x] Tests in `AccountOrderTests`, on the demo app with `LedgerViewModel`, as in the `Start()` pattern of `LedgerTests`:
   - `KeyboardMovesTheAccountAndSectionsStayInside`:
     - after `MoveDownAsync()` on `claude-week`, the account order of `window.Cards` is `acct-codex, acct-claude, acct-copilot, acct-antigravity`;
     - `MoveUpAsync()` on `claude-extra` still reorders only within `acct-claude`;
     - `LedgerTrayViewModel.Project(source.Current, source.Preferences)` rows follow the same account order.
   - `MoveToLastAndBack`: `MoveAccountAsync("acct-claude", null)` puts Claude last, and `MoveAccountAsync("acct-claude", "acct-codex")`
     puts it first.
-- [ ] Update `LedgerCompletionTests.ReorderingReturnsFocusToTheMovedCardAfterTheOrderChanges` to expect
+- [x] Update `LedgerCompletionTests.ReorderingReturnsFocusToTheMovedCardAfterTheOrderChanges` to expect
   `[("claude-week", 2), ("claude-week", 0)]`, because the Claude account moves past Codex's two cards. Run Presentation
   and expect the new tests to fail.
-- [ ] Implement:
+- [x] Implement:
   - **Live source:** `Valid()` checks `AccountOrder`. `BuildAsync` orders `models` by index in `AccountOrder` (unlisted →
     `int.MaxValue`, stable). `MoveAccountAsync` validates IDs against `accounts.Current`, rebuilds the full order from
     `Current.Accounts`, removes the account, inserts it before `before` (or appends) and saves through
@@ -409,7 +409,7 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
   - **View models:** `LedgerViewModel.MoveAccountByAsync` uses the visible account order: up → before the previous
     visible account; down → before the account two places on, or null when that leaves the end. `LimitCardViewModel`
     routes by `IsAccountSection`.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-055): saved subscription order, Alt+arrows move the account (T-05)`;
+- [x] Run Presentation: PASS. Commit `feat(AIU-055): saved subscription order, Alt+arrows move the account (T-05)`;
   review, integrate, report.
 
 ### T-06 - Core continuity tolerance
