@@ -90,6 +90,10 @@ sign in to a development build, and never hold completion, the merge into `main`
 or the push for such a check: record it NOT_RUN as a post-deploy owner check and
 finish once the other required checks pass. After the update the owner may ask
 an agent to check the installed version and its logs.
+Owner direction (2026-10-08): every final reply that follows commits states the
+push status explicitly, so the owner never has to ask. After verifying with
+`git fetch` that the commits are in `origin/main`, say "Pushed to `main`" with the
+commit hash or hashes; otherwise say what is not pushed yet and why.
 
 Keep one primary agent by default. Follow CONTRIBUTING.md for required
 independent review and explicitly requested parallel work.
