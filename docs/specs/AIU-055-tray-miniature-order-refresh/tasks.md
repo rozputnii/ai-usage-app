@@ -275,7 +275,7 @@ internal static class ProviderMark { public static FrameworkElement Create(Provi
   PNGs), integrate, report.
 
 ### T-03 - Five-hour ring control
-- status: pending
+- status: done
 - depends_on: []
 - ownership: five-hour-ring
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/RingGeometry.cs, src/windows/AiUsage.Windows/Controls/Ledger/FiveHourRing.cs, tests/windows/AiUsage.Presentation.Tests/FiveHourRingTests.cs]
@@ -284,7 +284,7 @@ internal static class ProviderMark { public static FrameworkElement Create(Provi
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-03]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 8ce42df and f20091a (merged fcafc33); Presentation 305/305, Release build 0 warnings, demo startup smoke PASS, opus review approve
 
 **Model:** sonnet. **Requirement:** R-04 (drawing only; T-07 supplies the values).
 
@@ -304,13 +304,13 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
 }
 ```
 
-- [ ] Test `ArcEndsFollowTheClock`, tolerance `1e-9`:
+- [x] Test `ArcEndsFollowTheClock`, tolerance `1e-9`:
   - `ArcEnd(0) == (8, 1)`, `ArcEnd(0.25) == (15, 8)`, `ArcEnd(0.5) == (8, 15)` and `ArcEnd(0.75) == (1, 8)`;
   - `IsLargeArc(0.5) == false` and `IsLargeArc(0.51) == true`;
   - `Clamp(1.4) == 1`, `Clamp(-0.2) == 0` and `Clamp(double.NaN) == 0`.
 
   Run it and expect a compile failure.
-- [ ] Implement `RingGeometry`. Implement `FiveHourRing`:
+- [x] Implement `RingGeometry`. Implement `FiveHourRing`:
   - a rail `Ellipse` (stroke `Rail`, 2 px, 14 × 14 at 1, 1);
   - for `0.001 < f < 0.999`, a `Path` with a `PathFigure` starting at (8, 1) and one `ArcSegment` to `ArcEnd(f)`:
     `Size (7, 7)`, `SweepDirection.Clockwise`, `IsLargeArc` from the geometry;
@@ -318,7 +318,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
   - stroke 2 and round start and end caps.
 
   Rebuild on either property change.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-055): five-hour ring control (T-03)`; review, integrate, report.
+- [x] Run Presentation: PASS. Commit `feat(AIU-055): five-hour ring control (T-03)`; review, integrate, report.
 
 ### T-04 - Rename by clicking the name
 - status: pending
