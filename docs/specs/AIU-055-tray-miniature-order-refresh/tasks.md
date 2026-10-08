@@ -455,7 +455,7 @@ public static class ReadingContinuity
   `feat(AIU-055): continuity tolerance scales with the refresh interval (T-06)`; review, integrate, report.
 
 ### T-07 - Tray rows: main limit, one today bar, ring and density
-- status: pending
+- status: done
 - depends_on: [T-01, T-03]
 - ownership: tray-today
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/LedgerTrayViewModel.cs, src/windows/AiUsage.Windows/Controls/Ledger/LedgerTrayWindow.cs, src/windows/AiUsage.Windows/Features/Ledger/CardVisuals.cs, tests/windows/AiUsage.Presentation.Tests/LedgerTests.cs, tests/windows/AiUsage.Presentation.Tests/AccountCardTests.cs, tests/windows/AiUsage.Presentation.Tests/MonetaryGroupingTests.cs, tests/windows/AiUsage.Presentation.Tests/TrayMiniatureTests.cs, tests/windows/AiUsage.Windows.Tests/LedgerSmoke.cs]
@@ -464,7 +464,7 @@ public static class ReadingContinuity
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-02, AC-03, AC-04]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at d94b7b8 and 10ed014 (merged 2d8e87e); Presentation 322/322, Infrastructure 915/915, Release build 0 warnings, Ledger launch smoke PASS 3/3 (Compact, Comfortable, live-empty), opus review approve
 
 **Model:** opus. **Requirements:** R-02 to R-06. **Consumes:** `FiveHourRing`, `RingGeometry` (T-03).
 
@@ -478,7 +478,7 @@ internal sealed record TrayRow(string AccountId, string Name, bool IsError, IRea
 public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account, ValueMode mode, DateTimeOffset now);
 ```
 
-- [ ] Tests in `TrayMiniatureTests`, on the demo Brief scenario, `DemoLedgerScenarios.BriefNow`:
+- [x] Tests in `TrayMiniatureTests`, on the demo Brief scenario, `DemoLedgerScenarios.BriefNow`:
   - `EachRowShowsTheMainLimitOnly`: rows `Claude Pro, Codex Pro, Copilot Free, Antigravity AI Plus`, with strip card IDs
     `claude-week, codex-week, copilot-completions, antigravity-g1`. Codex is `SolidCritical`, and Antigravity is
     `IsError` with opacity `0.7`.
@@ -497,10 +497,10 @@ public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account,
   - `EmptyTrayAndNoteOnlyPrimaryRow`: an empty source gives `IsEmpty` and the empty text. An account whose only card is
     `Note` gives a row with `Strip == null` and `Ring == null`.
   - `DensityFollowsPreferences`: `IsCompact` flips after `SetPreferencesAsync(… Density = Comfortable)`.
-- [ ] Move the tray assertions of `LedgerTests` (`TrayShowsTheOneWindowCell`, `TrayIsAMiniatureOfTheWindow`) into
+- [x] Move the tray assertions of `LedgerTests` (`TrayShowsTheOneWindowCell`, `TrayIsAMiniatureOfTheWindow`) into
   `TrayMiniatureTests` under the new shape, keeping the day-off, rush, extra-usage and open-account checks. Adjust
   `AccountCardTests` and `MonetaryGroupingTests` to `Strip`. Run them and expect failures.
-- [ ] Implement:
+- [x] Implement:
   - **`Project`:** one row per shown account; its strip comes from `AccountCard.Primary(account)` unless that card is
     `Note`. `Kind` rules as now, but `Cells` is `[TodayOnlyCell(…)]`.
   - **`TodayOnlyCell`:** the cell `Build` draws for the same card laid out as `CardLayout.Period` without `FiveHour`, so
@@ -515,10 +515,10 @@ public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account,
     - padding from `IsCompact` per Global Constraints.
 
     Keep the name column and the 360 px width (T-10 replaces them).
-- [ ] Extend the Ledger launch smoke: capture `tray.png` after opening. Run it in both densities by switching
+- [x] Extend the Ledger launch smoke: capture `tray.png` after opening. Run it in both densities by switching
   Comfortable in settings first in one run; it saves `tray-comfortable.png`. Open both PNGs and check 14 px bars and the
   ring.
-- [ ] Run Presentation and the smoke: PASS. Commit `feat(AIU-055): tray shows the main limit's today bar and a five-hour ring (T-07)`;
+- [x] Run Presentation and the smoke: PASS. Commit `feat(AIU-055): tray shows the main limit's today bar and a five-hour ring (T-07)`;
   review, integrate, report.
 
 ### T-08 - Refresh interval preference, schedule and staleness
