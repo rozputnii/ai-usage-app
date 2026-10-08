@@ -573,7 +573,7 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
   `feat(AIU-055): refresh interval preference drives the schedule and staleness (T-08)`; review, integrate, report.
 
 ### T-09 - Drag a card by its grip
-- status: pending
+- status: done
 - depends_on: [T-04, T-05]
 - ownership: drag-order
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerCardView.xaml, src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerCardView.xaml.cs, src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerWindow.xaml, src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerWindow.xaml.cs, src/windows/AiUsage.Windows/Features/Ledger/LedgerViewModel.cs, src/windows/AiUsage.Windows/Features/Ledger/LimitCardViewModel.cs, src/windows/AiUsage.Windows/Features/Ledger/ReorderMath.cs, tests/windows/AiUsage.Presentation.Tests/ReorderMathTests.cs, tests/windows/AiUsage.Windows.Tests/CardEditingSmoke.cs]
@@ -582,7 +582,7 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-07]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 7114ed7 and c1e844c (merged e0b090a); CardEditingSmoke PASS 2/2 (drag red first), Presentation 328/328, Release build 0 warnings, opus review approve; post-merge Ledger launch smoke FAIL 2/3 from the owner's tray icon, smoke fix assigned to T-10
 
 **Model:** opus. **Requirement:** R-10 (drag). **Consumes:** `LedgerViewModel.MoveAccountAsync(accountId, beforeAccountId)` (T-05).
 
@@ -596,16 +596,16 @@ internal static class ReorderMath
 // LimitCardViewModel: [ObservableProperty] bool CanReorder  (set by LedgerViewModel: host card and more than one visible account)
 ```
 
-- [ ] Tests `ReorderMathTests`:
+- [x] Tests `ReorderMathTests`:
   - midpoints `[50, 150, 250]`: pointer 10 → 0, 100 → 1, 300 → 3;
   - `BeforeId(["a","b","c","d"], "b", 0) == "a"`, `(…, 1) == "c"` and `(…, 3) == null`.
 
   Run them and expect a compile failure.
-- [ ] Smoke `CardEditingSmoke.DraggingTheGripReordersAccounts`, in the demo app: hover `Claude Pro`, press on its grip
+- [x] Smoke `CardEditingSmoke.DraggingTheGripReordersAccounts`, in the demo app: hover `Claude Pro`, press on its grip
   (automation name `Reorder Claude Pro`) and drag it below `Codex Pro` with `Mouse.Down`, stepwise `Mouse.MoveTo` and
   `Mouse.Up`. The card name order then starts `Codex Pro, Claude Pro`. A second drag released after Esc changes
   nothing. Save `drag.png` mid-drag. Run it under the lock and expect FAIL.
-- [ ] Implement:
+- [x] Implement:
   - **Grip:** a first `Auto` header column with a grip glyph (a Segoe Fluent Icons dot gripper; check the glyph renders)
     in `LedgerQuietIconButton` look. It is visible only while the card is hovered and `CanReorder`, with the tooltip
     `Drag to reorder · Alt+↑/↓`.
@@ -616,7 +616,7 @@ internal static class ReorderMath
       ignoring the history panel;
     - on release calls `MoveAccountAsync(id, ReorderMath.BeforeId(…))` unless the order is unchanged;
     - cancels on Esc or `PointerCaptureLost`.
-- [ ] Run Presentation and the two `CardEditingSmoke` smokes: PASS; open `drag.png`. Commit
+- [x] Run Presentation and the two `CardEditingSmoke` smokes: PASS; open `drag.png`. Commit
   `feat(AIU-055): drag a card by its grip to reorder subscriptions (T-09)`; review, integrate, report.
 
 ### T-10 - Provider icons and the narrow tray
