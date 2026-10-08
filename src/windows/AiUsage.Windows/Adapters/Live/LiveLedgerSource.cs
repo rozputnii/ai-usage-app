@@ -220,7 +220,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         var snapshots = accounts.Current;
         var models = new List<AccountModel>();
         var nextLimits = new Dictionary<string, LedgerLimit>();
-        foreach (var account in snapshots)
+        foreach (var account in snapshots.OrderBy(a => AccountIndex(a.AccountId.ToString("N"))))
         {
             var id = account.AccountId.ToString("N");
             var data = new List<LedgerLimit>();
@@ -278,6 +278,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     }
 
     private int Order(string id) { var index = Array.IndexOf(preferences.Current.Order, id); return index < 0 ? int.MaxValue : index; }
+    // R-10: accounts the owner has not placed follow in registry order (OrderBy is stable).
+    private int AccountIndex(string id) { var index = Array.IndexOf(preferences.Current.AccountOrder, id); return index < 0 ? int.MaxValue : index; }
     private static string DefaultName(AccountSnapshot account, IReadOnlyList<AccountSnapshot> all)
     {
         var provider = LiveLedgerProjection.Provider(account.Provider).ToString();
@@ -338,6 +340,11 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         (cards[index], cards[(int)target]) = (cards[(int)target], cards[index]);
         return preferences.ChangeAsync(s => s with { Order = cards.Concat(s.Order.Except(cards)).ToArray() }, token);
     }, ct);
+    // The full order of the registered accounts is saved, so signed-out accounts keep their place and removed ones leave it.
+    public Task<CommandOutcome> MoveAccountAsync(string accountId, string? beforeAccountId, CancellationToken ct) => ChangeAsync(token =>
+        AccountCard.Move([.. accounts.Current.Select(a => a.AccountId.ToString("N")).OrderBy(AccountIndex)], accountId, beforeAccountId) is { } order
+            ? preferences.ChangeAsync(s => s with { AccountOrder = order }, token)
+            : Task.FromResult(CommandOutcome.Rejected), ct);
     public Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct) => ChangeAsync(token =>
     {
         var account = Current.Accounts.FirstOrDefault(a => a.Cards.Any(c => c.CardId == cardId));

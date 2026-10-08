@@ -371,6 +371,46 @@ public sealed class LiveLedgerSourceTests
     }
 
     [Fact]
+    public async Task AccountOrderMovesPersistsAndSurvivesRestart()
+    {
+        var clock = new Clock(); var store = new Store();
+        Guid a = Guid.NewGuid(), b = Guid.NewGuid(), c = Guid.NewGuid(), d = Guid.NewGuid();
+        var accounts = new Accounts { Current = [Account(a, clock.Now), Account(b, clock.Now), Account(c, clock.Now)] };
+        string? saved = null;
+        LiveLedgerSource Create() => new(accounts, store, store, store,
+            new LedgerPreferenceStore(_ => Task.FromResult(saved), (value, _) => { saved = value; return Task.CompletedTask; }),
+            action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
+        static string N(Guid id) => id.ToString("N");
+        static string[] Ids(LiveLedgerSource source) => [.. source.Current.Accounts.Select(x => x.AccountId)];
+
+        using (var source = Create())
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal([N(a), N(b), N(c)], Ids(source));
+            Assert.Equal(CommandOutcome.Done, await source.MoveAccountAsync(N(c), N(a), Token));
+            Assert.Equal([N(c), N(a), N(b)], Ids(source));
+            Assert.Equal(CommandOutcome.Done, await source.MoveAccountAsync(N(a), null, Token));
+            Assert.Equal([N(c), N(b), N(a)], Ids(source));
+            Assert.Equal(CommandOutcome.Rejected, await source.MoveAccountAsync(N(Guid.NewGuid()), null, Token));
+            Assert.Equal(CommandOutcome.Rejected, await source.MoveAccountAsync(N(a), N(a), Token));
+            Assert.Equal(CommandOutcome.Rejected, await source.MoveAccountAsync(N(a), N(Guid.NewGuid()), Token));
+            Assert.Equal([N(c), N(b), N(a)], Ids(source));
+            await source.StopAsync();
+        }
+        using var restarted = Create();
+        try
+        {
+            await restarted.InitializeAsync(null, Token);
+            Assert.Equal([N(c), N(b), N(a)], Ids(restarted));
+            Assert.Equal([N(c), N(b), N(a)], LedgerTrayViewModel.Project(restarted.Current, restarted.Preferences).Select(r => r.AccountId));
+            accounts.Current = [.. accounts.Current, Account(d, clock.Now)];
+            accounts.Emit(); await restarted.WaitForIdleAsync();
+            Assert.Equal([N(c), N(b), N(a), N(d)], Ids(restarted));
+        }
+        finally { await restarted.StopAsync(); }
+    }
+
+    [Fact]
     public async Task HiddenSectionsPersistAcrossRestartAndThePrimaryCannotBeHidden()
     {
         var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
