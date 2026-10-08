@@ -321,7 +321,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
 - [x] Run Presentation: PASS. Commit `feat(AIU-055): five-hour ring control (T-03)`; review, integrate, report.
 
 ### T-04 - Rename by clicking the name
-- status: pending
+- status: done
 - depends_on: []
 - ownership: click-rename
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerCardView.xaml, src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerCardView.xaml.cs, src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerWindow.xaml.cs, tests/windows/AiUsage.Windows.Tests/CardEditingSmoke.cs]
@@ -330,11 +330,11 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-06]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 6231cbe and c6bd591 (merged bbd9869); ClickingTheNameRenamesTheAccount smoke FAIL then PASS, Ledger launch smoke PASS 3/3, Presentation 322/322, Release build 0 warnings, opus review approve
 
 **Model:** opus. **Requirement:** R-09.
 
-- [ ] Smoke `CardEditingSmoke.ClickingTheNameRenamesTheAccount`, in the demo app, with helpers reused from the existing
+- [x] Smoke `CardEditingSmoke.ClickingTheNameRenamesTheAccount`, in the demo app, with helpers reused from the existing
   smokes:
   1. Click the `Claude Pro` name text, type `Claude Work` and press Enter. A text `Claude Work` appears.
   2. Click it again, type `Claude Home`, then click an empty area of the `Codex Pro` card body. `Claude Home` is shown.
@@ -343,16 +343,16 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
   4. Save `rename.png`.
 
   Run it under the lock and expect FAIL.
-- [ ] In `LedgerCardView.xaml`:
+- [x] In `LedgerCardView.xaml`:
   - Wrap the name `TextBlock` in a `lc:LedgerClickRow` (`IsTabStop="False"`) whose `Tapped` calls `ViewModel.BeginRename()`.
   - Inside it, a dotted underline (`Line`, `LedgerUnderlineBrush`, `StrokeDashArray="1,2"`, `Margin="0,0,0,-2"`, as the
     hidden mark) is visible only while the pointer is over the name.
   - Set `ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Rename')}"`.
   - Hide it while renaming, as the name is now. Sections keep `BeginRename`'s early return.
-- [ ] Handle `RenameBox.LostFocus` with `_ = ViewModel.CommitRenameAsync()`.
-- [ ] In `LedgerWindow.xaml.cs`, a root `PointerPressed` handler (`AddHandler(…, handledEventsToo: true)`) commits any
+- [x] Handle `RenameBox.LostFocus` with `_ = ViewModel.CommitRenameAsync()`.
+- [x] In `LedgerWindow.xaml.cs`, a root `PointerPressed` handler (`AddHandler(…, handledEventsToo: true)`) commits any
   card with `IsRenaming` when the press is outside its `RenameBox`.
-- [ ] Rerun the smoke and the Ledger launch smoke: PASS; open `rename.png`. Presentation stays green. Commit
+- [x] Rerun the smoke and the Ledger launch smoke: PASS; open `rename.png`. Presentation stays green. Commit
   `feat(AIU-055): rename an account by clicking its name (T-04)`; review, integrate, report.
 
 ### T-05 - Account order in preferences, sources and keyboard
