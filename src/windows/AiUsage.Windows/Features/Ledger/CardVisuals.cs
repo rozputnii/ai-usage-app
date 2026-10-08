@@ -129,7 +129,7 @@ internal static class CardVisuals
             ? FiveHourCells(card, keys, left, off, rush, used, u0, t)
             : card is { Layout: CardLayout.FiveHourAndPeriod, FiveHour: { } one }
                 ? [OneWindowCell(one, keys, left, off)]
-                : [TodayCell(card, keys, left, off, rush, displayUsed, displayStart, displayEnd, period, Fm)];
+                : [TodayCell(card, left)];
         if (left)
             cells = [.. Enumerable.Reverse(cells)];
 
@@ -499,8 +499,22 @@ internal static class CardVisuals
         return new StripCell(weight, ordered, label, off, tip);
     }
 
-    private static StripCell TodayCell(LimitCardModel card, (string M, string P) tone, bool left, bool off, bool rush, decimal used, decimal u0, decimal t, string period, Func<decimal, string> fm)
+    /// <summary>
+    /// AIU-055 R-03: the one today cell the tray draws for every layout, which is the cell <see cref="Build"/> draws for the
+    /// same limit laid out as a period limit. The caller draws a used-up limit as a solid strip instead.
+    /// </summary>
+    public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account, ValueMode mode, DateTimeOffset now) => TodayCell(card, mode == ValueMode.Left);
+
+    private static StripCell TodayCell(LimitCardModel card, bool left)
     {
+        var used = card.Figures.Used ?? 0;
+        var u0 = card.Figures.DayStart ?? used;
+        var t = card.Figures.TodayEnd ?? used;
+        var tone = Keys(ToneOf(card));
+        var off = card.State == CardState.DayOff;
+        var rush = card.State == CardState.Rush;
+        var period = LedgerFormat.PeriodLabel(card.Period);
+        string Fm(decimal v) => LedgerFormat.Value(card.Scale, v);
         var share = t - u0;
         var today = used - u0;
         var gray = rush ? 0 : Math.Max(0, (card.Figures.UsualShare ?? 0) - share);
@@ -510,17 +524,17 @@ internal static class CardVisuals
         {
             parts = [(Part.UsedCrit, (double)share), (Part.Over, (double)(used - t)), (Part.Gray, (double)gray)];
             if (off)
-                lines.Add(fm(today) + " used · a work day would allow " + fm(share));
+                lines.Add(Fm(today) + " used · a work day would allow " + Fm(share));
             else
             {
-                lines.Add(left ? "Nothing left today" : fm(today) + " used of " + fm(share) + " allowed");
-                lines.Add(fm(used - t) + " over today’s allowance");
+                lines.Add(left ? "Nothing left today" : Fm(today) + " used of " + Fm(share) + " allowed");
+                lines.Add(Fm(used - t) + " over today’s allowance");
             }
         }
         else
         {
             parts = [(Part.Used, (double)today), (Part.Allow, (double)(t - used)), (Part.Gray, (double)gray)];
-            lines.Add(left ? fm(t - used) + " of " + fm(share) + " left" : fm(today) + " of " + fm(share) + " used");
+            lines.Add(left ? Fm(t - used) + " of " + Fm(share) + " left" : Fm(today) + " of " + Fm(share) + " used");
         }
         if (gray > 0)
             lines.Add("Grey: " + (card.Cap is { Binding: true, Status: CapStatus.Applied } ? "cap cuts today’s share" : period + " limit cuts today’s share"));

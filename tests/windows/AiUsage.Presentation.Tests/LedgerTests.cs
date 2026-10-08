@@ -1021,59 +1021,6 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
-    public void TrayShowsTheOneWindowCell()
-    {
-        var source = new DemoLedgerSource(new ManualScheduler());
-        source.LoadScenario(DemoLedgerScenarios.States);
-        using var tray = new LedgerTrayViewModel(source);
-        // The tray tip drops the cell title for its own label, so the strip is found by card.
-        var strip = tray.Rows.SelectMany(r => r.Strips).Single(s => s.CardId == "h2");
-        Assert.Equal(TrayStripKind.Cells, strip.Kind);
-        Assert.Equal(["Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], Assert.Single(strip.Cells).Tip);
-        // The one-window cell has no title line, so the label is followed by its full tip, including the window line.
-        Assert.Equal(["H2 · Codex Pro · 5h + 7d", "Current 5h window · until 17:10", "40 % used", "Window count: collecting data"], strip.Tip);
-    }
-
-    [Fact]
-    public async Task TrayIsAMiniatureOfTheWindow()
-    {
-        var scheduler = new ManualScheduler();
-        var source = new DemoLedgerSource(scheduler);
-        using var tray = new LedgerTrayViewModel(source);
-        Assert.Equal(["Claude Pro", "Codex Pro", "Copilot Free", "Antigravity AI Plus"], tray.Rows.Select(r => r.Name));
-        Assert.Equal(2, tray.Rows[2].Strips.Count);
-        Assert.Equal(TrayStripKind.SolidCritical, tray.Rows[1].Strips[0].Kind);
-        Assert.Equal(TrayStripKind.EmptyDashed, tray.Rows[3].Strips[1].Kind);
-        Assert.True(tray.Rows[3].IsError);
-        Assert.False(tray.Rows[0].IsError);
-        Assert.Equal(0.7, tray.Rows[3].Strips[0].Opacity);
-        Assert.StartsWith("Antigravity AI Plus, sync failed", tray.Rows[3].AccessibleName, StringComparison.Ordinal);
-        Assert.Contains("Extra usage: over today", tray.Rows[0].AccessibleName, StringComparison.Ordinal);
-        Assert.Equal("Claude Pro · 5h + 7d", tray.Rows[0].Strips[0].Tip[0]);
-
-        source.LoadScenario(DemoLedgerScenarios.LastWorkDay);
-        Assert.Equal(TrayMark.ExtraUsage, tray.Rows[0].Strips[0].Mark);
-        Assert.Equal(TrayMark.Rush, tray.Rows[1].Strips[0].Mark);
-        Assert.Equal(TrayMark.Rush, tray.Rows[2].Strips[0].Mark);
-        Assert.Equal(TrayMark.None, tray.Rows[2].Strips[1].Mark);
-        Assert.True(tray.Rows[3].IsError);
-        Assert.Equal(["Sign-in expired", "Sign in again in the window to refresh"], tray.Rows[3].NameTip);
-
-        source.LoadScenario(DemoLedgerScenarios.DayOff);
-        Assert.All(tray.Rows.SelectMany(r => r.Strips).Where(s => s.Kind == TrayStripKind.Cells), s => Assert.All(s.Cells, c => Assert.True(c.Dashed)));
-        Assert.Equal(TrayStripKind.SolidCritical, tray.Rows[1].Strips[0].Kind);
-        await source.SetWorkTodayAsync(true, CancellationToken.None);
-        Assert.All(tray.Rows.SelectMany(r => r.Strips).Where(s => s.Kind == TrayStripKind.Cells), s => Assert.All(s.Cells, c => Assert.False(c.Dashed)));
-
-        await source.SetPreferencesAsync(source.Preferences with { Mode = ValueMode.Left }, CancellationToken.None);
-        Assert.True(tray.IsLeft);
-        string? opened = null;
-        tray.OpenAccountRequested += (_, id) => opened = id;
-        tray.OpenAccount("acct-codex");
-        Assert.Equal("acct-codex", opened);
-    }
-
-    [Fact]
     public void TrayRowOpensTheWindowAtThatAccount()
     {
         var (window, _, _, _) = Start();

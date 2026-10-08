@@ -216,10 +216,12 @@ public sealed partial class LedgerSmoke
         }
     }
 
+    // AIU-055 R-06: the comfortable run switches density in settings first, so its tray capture shows Comfortable.
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void LedgerLaunchSettingsHistoryAndExit(bool demo)
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void LedgerLaunchSettingsHistoryAndExit(bool demo, bool comfortable)
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();
         var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
@@ -236,7 +238,7 @@ public sealed partial class LedgerSmoke
         _ = process.Handle;
         Window? window = null;
         bool passed = false;
-        string prefix = demo ? "ledger-demo" : "ledger-live-empty";
+        string prefix = (demo ? "ledger-demo" : "ledger-live-empty") + (comfortable ? "-comfortable" : string.Empty);
         // A cached UIA element for the main window can turn invalid while the same HWND stays alive:
         // its properties throw 0x80040201 and its searches return nothing. Resolve the window afresh for each query.
         Window? Current() => OwnedWindow(automation, app.ProcessId);
@@ -315,6 +317,8 @@ public sealed partial class LedgerSmoke
                 Assert.False(recovery, "Live-empty startup must not show recovery");
             }
             Button("Settings").Invoke();
+            if (comfortable)
+                Button("Density: comfortable").Invoke();
             Menu("Delete stored data");
             Assert.NotNull(Button("Cancel deleting stored data"));
             Button("Cancel deleting stored data").Invoke();
@@ -376,7 +380,7 @@ public sealed partial class LedgerSmoke
                 Assert.True(row is not null, string.Join("; ", trayAttempts));
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 DesktopTestEnvironment.RequireUnlockedDesktop();
-                using (var capture = trayWindow!.Capture()) capture.Save(Path.Combine(evidence!, "tray.png"), System.Drawing.Imaging.ImageFormat.Png);
+                using (var capture = trayWindow!.Capture()) capture.Save(Path.Combine(evidence!, comfortable ? "tray-comfortable.png" : "tray.png"), System.Drawing.Imaging.ImageFormat.Png);
                 // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
                 // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
                 var focusable = trayWindow.FindAllDescendants().Where(e => e.Properties.FrameworkId.ValueOrDefault == "XAML" && e.Properties.IsKeyboardFocusable.ValueOrDefault)

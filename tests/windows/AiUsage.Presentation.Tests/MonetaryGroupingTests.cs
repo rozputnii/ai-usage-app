@@ -63,8 +63,9 @@ public sealed class MonetaryGroupingTests
         Assert.False(only.CanEditCap);
         var rows = LedgerTrayViewModel.Project(source.Current, source.Preferences);
         Assert.Equal(2, rows.Count);
-        Assert.Equal(3, rows[0].Strips.Count);
-        Assert.Empty(rows[1].Strips);
+        // The tray shows the main limit only: no spending or model limit, and no bar for a note-only account.
+        Assert.Equal("claude-week", rows[0].Strip!.CardId);
+        Assert.Null(rows[1].Strip);
     }
 
     [Fact]
