@@ -31,15 +31,16 @@
   <Color x:Key="LedgerOkMColor">#7FB98F</Color>
   <Color x:Key="LedgerOkPColor">#5E8A6B</Color>
   <Color x:Key="LedgerOkTextColor">#7FB98F</Color>
-  <Color x:Key="LedgerAttMColor">#D97757</Color>
-  <Color x:Key="LedgerAttPColor">#A35C44</Color>
-  <Color x:Key="LedgerAttTextColor">#E78E6E</Color>
+  <!-- D-201: a true orange (hue ~28°); the reference clay #D97757 sat 7° from critical red and read as red. -->
+  <Color x:Key="LedgerAttMColor">#E58A3C</Color>
+  <Color x:Key="LedgerAttPColor">#A8652E</Color>
+  <Color x:Key="LedgerAttTextColor">#F0A060</Color>
   <Color x:Key="LedgerCritMColor">#E5604A</Color>
   <Color x:Key="LedgerCritPColor">#B04A3A</Color>
   <Color x:Key="LedgerCritDColor">#6E2E25</Color>
   <Color x:Key="LedgerCritTextColor">#F78570</Color>
   <Color x:Key="LedgerNeutralMColor">#B7B3A8</Color>
-  <!-- A sign-in waiting on the user: amber, distinct from success green and the clay of a failure or cancel. -->
+  <!-- A sign-in waiting on the user: amber, distinct from success green and the orange of a failure or cancel. -->
   <Color x:Key="LedgerWaitMColor">#E8B04B</Color>
   <Color x:Key="LedgerNeutralPColor">#6C6963</Color>
   <Color x:Key="LedgerPrimaryColor">#E8E4DA</Color>
@@ -53,7 +54,7 @@
   <Color x:Key="LedgerPrimaryPressWashColor">#21000000</Color>
   <!-- Pill backgrounds: the state's mark colour at 14 % (critical 16 %, neutral 12 %), composited over the card. -->
   <Color x:Key="LedgerOkPillColor">#247FB98F</Color>
-  <Color x:Key="LedgerAttPillColor">#24D97757</Color>
+  <Color x:Key="LedgerAttPillColor">#24E58A3C</Color>
   <Color x:Key="LedgerCritPillColor">#29E5604A</Color>
   <Color x:Key="LedgerNeutralPillColor">#1FB7B3A8</Color>
   <Color x:Key="LedgerCellLabelColor">#9E1A1410</Color>
