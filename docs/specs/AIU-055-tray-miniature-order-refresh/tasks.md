@@ -232,7 +232,7 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
 - [ ] Commit `fix(AIU-055): tray flyout has no tab stops or focus frames (T-01)`, then review, integrate and report.
 
 ### T-02 - Provider marks
-- status: pending
+- status: done
 - depends_on: []
 - ownership: provider-marks
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/ProviderMarkData.cs, src/windows/AiUsage.Windows/Controls/Ledger/ProviderMark.cs, tests/windows/AiUsage.Presentation.Tests/ProviderMarkTests.cs]
@@ -241,7 +241,7 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-05]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 804945f and 13fb1a7 (merged 6f6eebd); Presentation 306/306, Release build 0 warnings, demo startup smoke PASS, mark renders checked, opus review approve
 
 **Model:** opus (drawing judgment). **Requirement:** R-07.
 
@@ -251,12 +251,12 @@ internal static class ProviderMarkData { public static string PathData(ProviderK
 internal static class ProviderMark { public static FrameworkElement Create(ProviderKind provider, Brush brush, double size = 16); }
 ```
 
-- [ ] Test `EveryProviderHasADistinctMark` (in `ProviderMarkTests`). For each `Enum.GetValues<ProviderKind>()`:
+- [x] Test `EveryProviderHasADistinctMark` (in `ProviderMarkTests`). For each `Enum.GetValues<ProviderKind>()`:
   - the path data is non-empty and matches `^(F[01] )?M[MmLlHhVvCcSsQqTtAaZz0-9 ,.\-]+$`;
   - the four strings are distinct.
 
   Run it and expect a compile failure.
-- [ ] Author `PathData`: simplified, recognisable single-colour silhouettes of each provider's mark, written by hand.
+- [x] Author `PathData`: simplified, recognisable single-colour silhouettes of each provider's mark, written by hand.
   - **Claude:** the radial spark.
   - **Codex:** the OpenAI knot simplified to rounded interlocking petals.
   - **Copilot:** the pilot helmet with two goggles.
@@ -264,14 +264,14 @@ internal static class ProviderMark { public static FrameworkElement Create(Provi
 
   A research subagent may look at public references; the repository receives no downloaded file. Each mark must read
   at 16 px: no detail below 1.5 px in the 24-unit box.
-- [ ] Implement `Create` as a `Viewbox` of `size` containing a 24 × 24 `Path` with `Fill = brush`. Parse the data with
+- [x] Implement `Create` as a `Viewbox` of `size` containing a 24 × 24 `Path` with `Fill = brush`. Parse the data with
   `XamlBindingHelper.ConvertValue(typeof(Geometry), data)`, as `LedgerTrayWindow` does.
-- [ ] Render check:
+- [x] Render check:
   - Write each path into `.ai-usage-local/AIU-055/T-02/<provider>.svg`: a 24 × 24 view box, white fill on `#1F1E1B`, at
     16 px and at 64 px.
   - Render each to PNG with `msedge --headless --screenshot=<png> --window-size=200,120 <svg>`.
   - Open the PNGs and revise until each mark is recognisable at 16 px.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-055): monochrome provider marks (T-02)`; review (give the reviewer the
+- [x] Run Presentation: PASS. Commit `feat(AIU-055): monochrome provider marks (T-02)`; review (give the reviewer the
   PNGs), integrate, report.
 
 ### T-03 - Five-hour ring control
