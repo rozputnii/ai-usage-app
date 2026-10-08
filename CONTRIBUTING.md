@@ -54,7 +54,7 @@ force-push, rewrite published history, or bypass protection. If the remote has d
 integrate it normally; if that is not possible or the target is ambiguous, stop and report.
 Do not reset, stash, stage or discard unrelated work automatically.
 
-Owner direction (2026-10-08, D-NEW): the owner often runs tasks in parallel worktrees,
+Owner direction (2026-10-08, D-196): the owner often runs tasks in parallel worktrees,
 so numbers for new items are assigned only when the work merges into `main`. Until then
 a new backlog item and its specification folder use `AIU-NEW` (`AIU-NEW-2` for a second
 one) and a new decision uses `D-NEW` (`D-NEW-2`, ...). Right before merging: fetch fresh
