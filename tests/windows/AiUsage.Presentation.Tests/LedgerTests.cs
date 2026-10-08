@@ -999,11 +999,11 @@ public sealed class LedgerInteractionTests
         Assert.False(caps[3].CanAct);
         Assert.Equal("1 sync failed · Antigravity", window.Settings.SystemStatusText);
         Assert.True(window.Settings.HasSystemStatus);
-        Assert.Equal("every 5 min", window.Settings.MonitoringText);
+        Assert.Equal(5, window.Settings.RefreshMinutes);
     }
 
     [Fact]
-    public void SettingsFooterShowsTheIntervalWhileAllSynced()
+    public void SettingsFooterShowsNoStatusWhileAllSynced()
     {
         var (window, source, _, _) = Start();
         var synced = source.Current with { Summaries = source.Current.Summaries with { FailedSyncs = 0, FailedProviders = [] } };

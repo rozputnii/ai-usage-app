@@ -3,7 +3,9 @@ using AiUsage.Features.Ledger.Contract;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Windows.System;
 using Windows.UI.Text;
 
 namespace AiUsage.Features.Ledger.Views;
@@ -45,6 +47,19 @@ internal sealed partial class LedgerSettingsView : UserControl
     private void OnUpdatesOnLaunch(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.OnLaunch);
     private void OnUpdatesAlways(object sender, RoutedEventArgs e) => _ = ViewModel.SetUpdateModeAsync(UpdateMode.Always);
 
+    // R-11: digits only, saved on Enter or when focus leaves the box; a value outside 1 to 60 returns the box to the saved one.
+    private void OnRefreshBeforeChanging(TextBox sender, TextBoxBeforeTextChangingEventArgs e) => e.Cancel = !ViewModel.AcceptsRefreshText(e.NewText);
+
+    private void OnRefreshKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != VirtualKey.Enter)
+            return;
+        e.Handled = true;
+        _ = ViewModel.CommitRefreshTextAsync(RefreshBox.Text);
+    }
+
+    private void OnRefreshLostFocus(object sender, RoutedEventArgs e) => _ = ViewModel.CommitRefreshTextAsync(RefreshBox.Text);
+
     // Without animations the dots stay a static ellipsis.
     private void UpdateInstallDots()
     {
@@ -56,7 +71,6 @@ internal sealed partial class LedgerSettingsView : UserControl
 
     private bool Not(bool value) => !value;
     private Visibility Show(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
-    private Visibility Hide(bool value) => value ? Visibility.Collapsed : Visibility.Visible;
     private Visibility ShowText(string value) => Show(value.Length > 0);
     public static Visibility Present(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 
