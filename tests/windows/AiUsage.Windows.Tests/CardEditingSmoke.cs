@@ -142,11 +142,14 @@ public sealed partial class CardEditingSmoke
             grip = PointAtGrip(app, "claude-week", "Reorder Claude Pro");
             Mouse.Down(MouseButton.Left);
             held = true;
-            codex =app.Card("codex-week").BoundingRectangle;
+            codex = app.Card("codex-week").BoundingRectangle;
+            var claudeTop = app.Card("claude-week").BoundingRectangle.Top;
             var above = new System.Drawing.Point(grip.X, codex.Top + codex.Height / 2 - 20);
             MoveInSteps(grip, above);
-            Thread.Sleep(300);
+            // The card is lifted and follows the pointer before Esc puts it back.
+            Assert.True(Wait(() => app.Card("claude-week").BoundingRectangle.Top < claudeTop - 20), "The second drag did not lift Claude Pro");
             Keyboard.Press(VirtualKeyShort.ESCAPE);
+            Assert.True(Wait(() => app.Card("claude-week").BoundingRectangle.Top == claudeTop), "Esc did not put Claude Pro back");
             MoveInSteps(above, new System.Drawing.Point(above.X, above.Y - 10), 3);
             Mouse.Up(MouseButton.Left);
             held = false;

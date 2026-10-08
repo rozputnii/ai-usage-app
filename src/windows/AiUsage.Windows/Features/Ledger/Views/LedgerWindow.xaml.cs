@@ -43,6 +43,8 @@ internal sealed partial class LedgerWindow : Window
     private LedgerCardView? dragged;
     private Windows.Foundation.Point dragFrom;
     private bool dragging;
+    /// <summary>Released over a new place: the card waits there until the grid shows the saved order.</summary>
+    private bool dropping;
 
     public LedgerWindow(LedgerViewModel viewModel, Func<Task> exit, Action showTray)
     {
@@ -69,7 +71,8 @@ internal sealed partial class LedgerWindow : Window
         Root.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnRootPointerReleased), handledEventsToo: true);
         CardGrid.PointerMoved += OnDragMoved;
         CardGrid.PointerReleased += OnDragReleased;
-        CardGrid.PointerCaptureLost += (_, _) => CancelDrag();
+        // The release that drops a card ends the capture too; only a capture lost mid-drag cancels.
+        CardGrid.PointerCaptureLost += (_, _) => { if (!dropping) CancelDrag(); };
         AppWindow.Closing += OnClosing;
 
         AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => CancelDrag() || ViewModel.Escape() || HideFocusFrame());
@@ -335,7 +338,7 @@ internal sealed partial class LedgerWindow : Window
 
     private void OnDragMoved(object sender, PointerRoutedEventArgs e)
     {
-        if (dragged is null)
+        if (dragged is null || dropping)
             return;
         var at = e.GetCurrentPoint(DragLayer).Position;
         if (!dragging)
@@ -366,13 +369,25 @@ internal sealed partial class LedgerWindow : Window
 
     private void OnDragReleased(object sender, PointerRoutedEventArgs e)
     {
-        if (dragged is null)
+        if (dragged is not { } view || dropping)
             return;
-        var accountId = dragged.ViewModel.Account.AccountId;
-        var drop = dragging ? DropAt(e.GetCurrentPoint(DragLayer).Position.Y) : null;
-        CancelDrag();
-        if (drop is { } place)
-            _ = ViewModel.MoveAccountAsync(accountId, place.Before);
+        if ((dragging ? DropAt(e.GetCurrentPoint(DragLayer).Position.Y) : null) is not { } place)
+        {
+            CancelDrag();
+            return;
+        }
+        // The card stays where it was dropped while the order is saved; the rebuilt grid ends the drag (RebuildGrid).
+        dropping = true;
+        InsertionLine.Visibility = Visibility.Collapsed;
+        _ = DropAsync(view, place.Before);
+    }
+
+    private async Task DropAsync(LedgerCardView view, string? beforeAccountId)
+    {
+        await ViewModel.MoveAccountAsync(view.ViewModel.Account.AccountId, beforeAccountId);
+        // A move that changed nothing on screen puts the card back.
+        if (ReferenceEquals(dragged, view))
+            CancelDrag();
     }
 
     /// <summary>Puts the dragged card back in its place; true when a grip was pressed. Esc and a lost capture cancel this way.</summary>
@@ -382,6 +397,7 @@ internal sealed partial class LedgerWindow : Window
             return false;
         dragged = null;
         dragging = false;
+        dropping = false;
         foreach (var card in CardGrid.Children.OfType<LedgerCardView>())
             card.ClearValue(UIElement.IsHitTestVisibleProperty);
         view.ClearValue(Canvas.ZIndexProperty);
