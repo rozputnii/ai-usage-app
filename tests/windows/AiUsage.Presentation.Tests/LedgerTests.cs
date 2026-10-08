@@ -1131,8 +1131,31 @@ public sealed class LimitSettingsTests
         var scheduler = new ManualScheduler();
         var source = new DemoLedgerSource(scheduler);
         var window = new LedgerViewModel(source, scheduler, _ => { }, null);
-        Assert.False(window.Cards.Single(c => c.CardId == "claude-week").HasSettings);
+        Assert.True(window.Cards.Single(c => c.CardId == "claude-week").HasSettings);
         Assert.True(window.Cards.Single(c => c.CardId == "codex-credits").HasSettings);
+    }
+
+    [Fact]
+    public async Task WeeklyPercentWindowTakesACapInItsPopover()
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        var window = new LedgerViewModel(source, scheduler, _ => { }, null);
+        LimitCardViewModel Week() => window.Cards.Single(c => c.CardId == "claude-week");
+        Week().OpenSettings();
+        var cap = Week().Settings!.Cap!;
+        Assert.Null(Week().Settings!.Today);
+        Assert.Equal("%", cap.UnitText);
+        Assert.EndsWith(" · at most 100 %", cap.Hint, StringComparison.Ordinal);
+        Assert.False(cap.Accepts("101"));
+        Assert.False(cap.Accepts("90.5"));
+        Assert.True(cap.Accepts("90"));
+        cap.Text = "90";
+        await cap.SaveAsync();
+        Assert.Null(cap.Error);
+        Assert.Equal(90, Week().Model.Cap!.Amount);
+        Assert.StartsWith("47 % of 90 % cap", Week().Visual.Footer, StringComparison.Ordinal);
+        Assert.Null(Week().Visual.CapTick);
     }
 
     [Fact]

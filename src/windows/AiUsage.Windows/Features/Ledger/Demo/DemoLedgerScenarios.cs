@@ -125,13 +125,13 @@ internal static class DemoLedgerScenarios
             {
                 WindowShareLow = low, WindowShareHigh = high, WindowsLeftMax = rough ? Left(low) : null, Rough = rough, Windows = low is null ? 0 : 3
             },
-            Reset(reset), null, null, action, dayOff);
+            Reset(reset), null, id, action, dayOff);
     }
 
     public static LimitCardModel Week(string id, CardState state, decimal u0, decimal u, decimal t, decimal? usual, DateTimeOffset reset, string? scope = null,
         Freshness? freshness = null, IReadOnlyList<CardMark>? marks = null, DayOffPreview? dayOff = null, FiveHourModel? fiveHour = null) =>
         new(id, scope, fiveHour is null ? CardLayout.Period : CardLayout.FiveHourAndPeriod, ScaleModel.Percent, PeriodModel.Week, state, freshness ?? Freshness.Fresh(), marks ?? [],
-            new LimitFigures(u, u0, t, usual, LimitValue.Known(100), 100, null, null, null), fiveHour, Reset(reset), null, null, CardAction.None, dayOff);
+            new LimitFigures(u, u0, t, usual, LimitValue.Known(100), 100, null, null, null), fiveHour, Reset(reset), null, id, CardAction.None, dayOff);
 
     public static LimitCardModel Credits(string id, CardState state, decimal u0, decimal u, decimal t, decimal cap, decimal usual, decimal balance,
         DateOnly trackedSince, IReadOnlyList<CardMark>? marks = null) =>
