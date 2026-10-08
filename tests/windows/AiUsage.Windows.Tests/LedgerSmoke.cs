@@ -63,7 +63,8 @@ public sealed partial class LedgerSmoke
                 (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Sign out", StringComparison.Ordinal));
             FocusIn(money);
             stage = "history";
-            Keyboard.Press(VirtualKeyShort.RETURN);
+            // A button clicks on key release, so type the key instead of only pressing it.
+            Keyboard.Type(VirtualKeyShort.RETURN);
             Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e =>
                 (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Mixed account history,", StringComparison.Ordinal)) == true));
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-history.png"), System.Drawing.Imaging.ImageFormat.Png);
