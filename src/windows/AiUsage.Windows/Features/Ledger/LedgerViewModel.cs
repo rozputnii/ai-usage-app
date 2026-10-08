@@ -457,6 +457,19 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    /// <summary>D-NEW: the owner's figure for today's use; null returns to the tracked figure.</summary>
+    public async Task<bool> SetTodayUsedAsync(string cardId, decimal? amount)
+    {
+        if (await source.SetTodayUsedAsync(cardId, amount, CancellationToken.None) != CommandOutcome.Done)
+            return false;
+        announce(amount is null ? "Today’s use is tracked again" : "Today’s use saved");
+        return true;
+    }
+
+    /// <summary>D-NEW: shows a credit pool natively or in US dollars.</summary>
+    public async Task<bool> SetUnitsAsync(string cardId, bool usd, decimal rate) =>
+        await source.SetUnitsAsync(cardId, usd, rate, CancellationToken.None) == CommandOutcome.Done;
+
     public async Task MoveAsync(string cardId, int offset)
     {
         await source.MoveCardAsync(cardId, offset, CancellationToken.None);

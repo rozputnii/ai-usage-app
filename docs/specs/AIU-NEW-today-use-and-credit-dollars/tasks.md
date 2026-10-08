@@ -225,10 +225,10 @@ replacing the same date and dropping old entries. `GetHistoryAsync`: pass `Today
 - [ ] **Step 5: Commit** `feat(AIU-NEW): source commands for limit units and today's use`
 
 ### T-04 - Limit settings popover and today tooltip
-- status: pending
+- status: done
 - depends_on: [T-03]
 - acceptance: [AC-05]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LedgerTests.cs (LimitSettingsTests); six tests red (compile) then green, one test sequence corrected; Presentation suite 288/288; app Debug x64 unpackaged build 0 warnings, 0 errors
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Features/Ledger/LimitCardViewModel.cs` (`CapEditorViewModel` options; card settings state)

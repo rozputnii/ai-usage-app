@@ -40,9 +40,13 @@ internal sealed partial class LedgerCardView : UserControl
             if (ReferenceEquals(field, value))
                 return;
             if (field is not null)
+            {
                 field.PropertyChanged -= OnViewModelChanged;
+                field.SettingsClosed -= OnSettingsDone;
+            }
             field = value;
             field.PropertyChanged += OnViewModelChanged;
+            field.SettingsClosed += OnSettingsDone;
             Bindings.Update();
         }
     } = null!;
@@ -66,6 +70,24 @@ internal sealed partial class LedgerCardView : UserControl
             else
                 Focus(FocusState.Programmatic);
         }
+    }
+
+    // D-NEW: the limit settings popover is rebuilt from the card each time it opens.
+    private void OnSettingsOpening(object? sender, object e) => ViewModel.OpenSettings();
+
+    private void OnSettingsClosed(object? sender, object e) => ViewModel.CloseSettings();
+
+    private void OnSettingsDone(object? sender, EventArgs e) => SettingsFlyout.Hide();
+
+    private void OnRateBeforeChanging(TextBox sender, TextBoxBeforeTextChangingEventArgs e) =>
+        e.Cancel = ViewModel.Settings is { } settings && !settings.AcceptsRate(e.NewText);
+
+    private void OnRateKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != VirtualKey.Enter || ViewModel.Settings is not { } settings)
+            return;
+        e.Handled = true;
+        _ = settings.SaveRateCommand.ExecuteAsync(null);
     }
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e)
@@ -170,6 +192,10 @@ internal sealed partial class LedgerCardView : UserControl
     private Brush SurfaceStroke(bool fresh, bool section) => LedgerTheme.Solid(section ? "Transparent" : fresh ? "OkP" : "LineCard");
     private Brush NameBrush(bool stale) => LedgerTheme.Solid(stale ? "Ink2" : "Ink");
     private Brush HistoryBackground(bool open) => LedgerTheme.Solid(open ? "ControlOn" : "Transparent");
+    private Brush Segment(bool usd, bool match) => LedgerTheme.Solid(usd == match ? "ControlOn" : "Transparent");
+    private Brush SegmentText(bool usd, bool match) => LedgerTheme.Solid(usd == match ? "Ink" : "Ink3");
+    private Visibility ShowText(string? text) => Show(!string.IsNullOrEmpty(text));
+    private Visibility ShowEditor(CapEditorViewModel? editor) => Show(editor is not null);
     private Brush PillBackground(Tone tone) => LedgerTheme.TonePill(tone);
     private Brush PillDot(Tone tone) => LedgerTheme.ToneMark(tone);
     private Brush PillText(Tone tone) => LedgerTheme.ToneText(tone);

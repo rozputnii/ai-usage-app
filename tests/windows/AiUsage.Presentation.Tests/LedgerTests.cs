@@ -1086,3 +1086,108 @@ public sealed class LedgerInteractionTests
         Assert.Equal("Cap for Codex Pro credits, 17,000", Card(window, "codex-credits").CapEditorName);
     }
 }
+
+/// <summary>D-NEW: the limit settings popover.</summary>
+public sealed class LimitSettingsTests
+{
+    private static readonly DateTimeOffset TrackedFrom = new(2026, 10, 14, 10, 43, 0, TimeSpan.FromHours(1));
+    private static readonly AccountModel Business = new("acct-business", ProviderKind.Copilot, "Copilot Business", AccountHealth.Ok, null, null, null, []);
+
+    private static LimitCardModel Credits(bool manual = false) =>
+        DemoLedgerScenarios.Requests("premium", "Premium requests", CardState.OnTrack, 3120, 3240, 3600, 17500, 500, 14260) with
+        { Scale = ScaleModel.Count("credits"), Units = new(false, 0.01m), TodayUse = new(120, TrackedFrom, manual) };
+
+    private static LimitSettingsViewModel Settings(LimitCardModel card, Func<decimal?, Task<bool>>? setToday = null,
+        Func<bool, decimal, Task<bool>>? setUnits = null, Action? rebuild = null) =>
+        new(card, _ => Task.FromResult(true), setToday ?? (_ => Task.FromResult(true)), setUnits ?? ((_, _) => Task.FromResult(true)), rebuild ?? (() => { }), () => { });
+
+    [Fact]
+    public void SettingsAppearOnlyForLimitsWithASetting()
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        var window = new LedgerViewModel(source, scheduler, _ => { }, null);
+        Assert.False(window.Cards.Single(c => c.CardId == "claude-week").HasSettings);
+        Assert.True(window.Cards.Single(c => c.CardId == "codex-credits").HasSettings);
+    }
+
+    [Fact]
+    public async Task TodayEditorUsesThePeriodUseAsItsLimit()
+    {
+        decimal? saved = null;
+        var settings = Settings(Credits(), amount => { saved = amount; return Task.FromResult(true); });
+        Assert.Equal("today", settings.Today!.Label);
+        Assert.Equal("120", settings.Today.Text);
+        settings.Today.Text = "3241";
+        await settings.Today.SaveAsync();
+        Assert.Equal("Enter at most 3,240 · this period’s use", settings.Today.Error);
+        settings.Today.Text = string.Empty;
+        await settings.Today.SaveAsync();
+        Assert.Equal("Enter today’s use", settings.Today.Error);
+        settings.Today.Text = "900";
+        await settings.Today.SaveAsync();
+        Assert.Equal(900, saved);
+    }
+
+    [Fact]
+    public void ResetAppearsOnlyForAManualValue()
+    {
+        var tracked = Settings(Credits()).Today!;
+        Assert.False(tracked.HasCap);
+        Assert.DoesNotContain("set by you", tracked.Hint);
+        Assert.Contains("tracked 120 since 10:43", tracked.Hint);
+        var manual = Settings(Credits(manual: true)).Today!;
+        Assert.True(manual.HasCap);
+        Assert.Equal("Reset", manual.RemoveText);
+        Assert.Contains("set by you", manual.Hint);
+    }
+
+    [Fact]
+    public async Task RateInputAcceptsOnlyValidRates()
+    {
+        (bool Usd, decimal Rate)? applied = null;
+        var rebuilt = 0;
+        var settings = Settings(Credits(), setUnits: (usd, rate) => { applied = (usd, rate); return Task.FromResult(true); }, rebuild: () => rebuilt++);
+        Assert.True(settings.HasUnits);
+        Assert.False(settings.IsUsd);
+        Assert.Equal("0.01", settings.RateText);
+        Assert.True(settings.AcceptsRate("0.0123"));
+        Assert.False(settings.AcceptsRate("1.1234567"));
+        Assert.False(settings.AcceptsRate("-1"));
+        settings.RateText = "0";
+        await settings.SaveRateCommand.ExecuteAsync(null);
+        Assert.Equal("Enter a rate above 0, at most 1000, with up to 6 decimals", settings.RateError);
+        Assert.Null(applied);
+        await settings.ShowUsdCommand.ExecuteAsync(null);
+        Assert.Null(applied);
+        settings.RateText = "0.01";
+        await settings.ShowUsdCommand.ExecuteAsync(null);
+        Assert.Equal((true, 0.01m), applied);
+        Assert.Equal(1, rebuilt);
+        settings.RateText = "0.04";
+        await settings.SaveRateCommand.ExecuteAsync(null);
+        Assert.Equal((false, 0.04m), applied);
+        Assert.Null(settings.RateError);
+    }
+
+    [Fact]
+    public void CapRowShowsTheLargestCapInTheShownUnit()
+    {
+        Assert.Contains("at most 17,500", Settings(Credits()).Cap!.Hint);
+        var dollars = Settings(CreditDollars.Apply(Credits(), new(true, 0.01m)));
+        Assert.Equal(ScaleKind.Money, dollars.Cap!.Scale.Kind);
+        Assert.Contains("at most $175.00", dollars.Cap.Hint);
+        Assert.Contains("tracked $1.20", dollars.Today!.Hint);
+        Assert.False(Settings(Credits() with { Units = null }).HasUnits);
+    }
+
+    [Fact]
+    public void TodayTipNamesAManualOrLateTrackedDay()
+    {
+        var now = TrackedFrom.AddHours(2);
+        Assert.Contains("Set by you", CardVisuals.Build(Credits(manual: true), Business, ValueMode.Used, now).Cells[0].Tip);
+        var tracked = CardVisuals.Build(Credits(), Business, ValueMode.Used, now).Cells[0].Tip;
+        Assert.Contains("Tracked since 10:43", tracked);
+        Assert.DoesNotContain("Set by you", tracked);
+    }
+}
