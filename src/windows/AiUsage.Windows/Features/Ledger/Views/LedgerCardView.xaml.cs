@@ -55,11 +55,18 @@ internal sealed partial class LedgerCardView : UserControl
     private void OnViewModelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(LimitCardViewModel.IsRenaming) && ViewModel.IsRenaming)
+        {
+            // The name gives way to the box; its hover look goes with it, and its tooltip, which could still open over the
+            // box, returns when the rename ends.
+            NameUnderline.Opacity = 0;
+            renameTip ??= ToolTipService.GetToolTip(NameRow) as ToolTip;
+            ToolTipService.SetToolTip(NameRow, null);
             DispatcherQueue.TryEnqueue(() =>
             {
                 RenameBox.Focus(FocusState.Programmatic);
                 RenameBox.SelectAll();
             });
+        }
         else if (e.PropertyName == nameof(LimitCardViewModel.IsRenaming))
         {
             if (renameTip is not null)
@@ -182,11 +189,6 @@ internal sealed partial class LedgerCardView : UserControl
     private void OnNameTapped(object sender, TappedRoutedEventArgs e)
     {
         e.Handled = true;
-        // The name gives way to the box; its hover look goes with it, and its tooltip, which could still open over the box,
-        // returns when the rename ends.
-        NameUnderline.Opacity = 0;
-        renameTip ??= ToolTipService.GetToolTip(NameRow) as ToolTip;
-        ToolTipService.SetToolTip(NameRow, null);
         ViewModel.BeginRename();
     }
 

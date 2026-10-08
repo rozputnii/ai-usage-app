@@ -77,8 +77,16 @@ public sealed partial class CardEditingSmoke
             Name("claude-week", "Claude Work");
             Assert.True(Wait(NoBox), "Enter left the rename box open");
 
-            stage = "click outside saves";
+            stage = "focus leaving saves";
             Name("claude-week", "Claude Work").Click();
+            Box("claude-week");
+            Keyboard.Type("Claude Tab");
+            Keyboard.Press(VirtualKeyShort.TAB);
+            Name("claude-week", "Claude Tab");
+            Assert.True(Wait(NoBox), "Tab left the rename box open");
+
+            stage = "click outside saves";
+            Name("claude-week", "Claude Tab").Click();
             Box("claude-week");
             Keyboard.Type("Claude Home");
             var codex = Card("codex-week").BoundingRectangle;
