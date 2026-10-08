@@ -15,17 +15,20 @@ using Path = Microsoft.UI.Xaml.Shapes.Path;
 namespace AiUsage.Controls.Ledger;
 
 /// <summary>
-/// The tray flyout as a miniature of the window (D-187, S10): 360 wide, a title row, then per account its name and one
-/// 8 px today strip per limit. No pills, captions, period bars or buttons. A pointer-only surface (D-204): nothing in it
-/// is a tab stop or shows a focus frame, and opening it focuses nothing. A click on a row opens the window at that
-/// account, Esc closes when the window receives it, and the flyout closes on deactivation.
+/// The tray flyout as a miniature of the window (D-187, AIU-055 R-02 to R-06): 360 wide, a title row, then per account its
+/// name, its main limit's 14 px today bar and a five-hour ring, padded like a card in the current density. No pills,
+/// captions, period bars or buttons. A pointer-only surface (D-204): nothing in it is a tab stop or shows a focus frame,
+/// and opening it focuses nothing. A click on a row opens the window at that account, Esc closes when the window receives
+/// it, and the flyout closes on deactivation.
 /// </summary>
 internal sealed partial class LedgerTrayWindow : Window
 {
     private const int PopupWidth = 360;
+    private const double BarHeight = 14, BarRadius = 6;
     private readonly LedgerTrayViewModel tray;
     private readonly Action<string> openAccount;
     private readonly StackPanel rows = new();
+    private readonly Border header;
     private readonly Grid root;
     private bool closing;
 
@@ -43,7 +46,7 @@ internal sealed partial class LedgerTrayWindow : Window
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = LedgerTheme.Solid("Ink"),
         };
-        var header = new Border { Padding = new Thickness(14, 10, 14, 10), BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1), Child = title };
+        header = new Border { BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1), Child = title };
         var stack = new StackPanel();
         stack.Children.Add(header);
         stack.Children.Add(rows);
@@ -86,8 +89,12 @@ internal sealed partial class LedgerTrayWindow : Window
         Rebuild();
     }
 
+    /// <summary>R-06: the card's padding in the current density.</summary>
+    private Thickness RowPadding => tray.IsCompact ? new Thickness(12, 8, 12, 8) : new Thickness(15, 13, 15, 12);
+
     private void Rebuild()
     {
+        header.Padding = RowPadding;
         rows.Children.Clear();
         if (tray.IsEmpty)
         {
@@ -100,12 +107,12 @@ internal sealed partial class LedgerTrayWindow : Window
 
     private FrameworkElement Row(TrayRow row)
     {
-        var grid = new Grid { ColumnSpacing = 10, RowSpacing = 5, Padding = new Thickness(14, 9, 14, 9) };
+        var grid = new Grid { ColumnSpacing = 10, Padding = RowPadding };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        // The ring column is reserved in every row, so the bars line up (R-04); the rush and extra-usage marks follow it.
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(RingGeometry.Size) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
-        for (var i = 0; i < Math.Max(1, row.Strips.Count); i++)
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         var name = new Grid { ColumnSpacing = 5, VerticalAlignment = VerticalAlignment.Center };
         name.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -135,18 +142,15 @@ internal sealed partial class LedgerTrayWindow : Window
         Grid.SetColumn(nameText, 1);
         name.Children.Add(nameText);
         ToolTipService.SetToolTip(name, LedgerTheme.Tip(row.NameTip));
-        Grid.SetRowSpan(name, Math.Max(1, row.Strips.Count));
         grid.Children.Add(name);
 
-        for (var i = 0; i < row.Strips.Count; i++)
+        if (row.Strip is { } strip)
         {
-            var strip = row.Strips[i];
             var body = StripBody(strip);
             body.VerticalAlignment = VerticalAlignment.Center;
             body.Opacity = strip.Opacity;
             ToolTipService.SetToolTip(body, LedgerTheme.Tip(strip.Tip));
             AutomationProperties.SetName(body, strip.AccessibleName);
-            Grid.SetRow(body, i);
             Grid.SetColumn(body, 1);
             grid.Children.Add(body);
             if (strip.Mark != TrayMark.None)
@@ -157,10 +161,16 @@ internal sealed partial class LedgerTrayWindow : Window
                 mark.VerticalAlignment = VerticalAlignment.Center;
                 ToolTipService.SetToolTip(mark, LedgerTheme.Tip(strip.MarkTip));
                 AutomationProperties.SetName(mark, strip.Mark == TrayMark.Rush ? "rush" : "on extra usage");
-                Grid.SetRow(mark, i);
-                Grid.SetColumn(mark, 2);
+                Grid.SetColumn(mark, 3);
                 grid.Children.Add(mark);
             }
+        }
+        if (row.Ring is { } five)
+        {
+            var ring = new FiveHourRing { Fraction = five.Fraction, ArcBrush = LedgerTheme.ToneMark(five.Tone), VerticalAlignment = VerticalAlignment.Center };
+            ToolTipService.SetToolTip(ring, LedgerTheme.Tip(five.Tip));
+            Grid.SetColumn(ring, 2);
+            grid.Children.Add(ring);
         }
 
         var container = new LedgerClickRow
@@ -178,11 +188,12 @@ internal sealed partial class LedgerTrayWindow : Window
 
     private static Geometry Geometry(string data) => (Geometry)Microsoft.UI.Xaml.Markup.XamlBindingHelper.ConvertValue(typeof(Geometry), data);
 
+    /// <summary>R-05: the window's today strip paints at 14 px with radius 6, and the empty and used-up bodies at the same size.</summary>
     private static FrameworkElement StripBody(TrayStrip strip) => strip.Kind switch
     {
-        TrayStripKind.EmptyDashed => new Rectangle { Height = 8, RadiusX = 4, RadiusY = 4, Stroke = LedgerTheme.Solid("NeutralP"), StrokeThickness = 1, StrokeDashArray = [2, 2] },
-        TrayStripKind.SolidCritical => new Border { Height = 8, CornerRadius = new CornerRadius(4), Background = LedgerTheme.Solid("CritM") },
-        _ => new TodayStrip { CellHeight = 8, FocusableCells = false, Cells = strip.Cells },
+        TrayStripKind.EmptyDashed => new Rectangle { Height = BarHeight, RadiusX = BarRadius, RadiusY = BarRadius, Stroke = LedgerTheme.Solid("NeutralP"), StrokeThickness = 1, StrokeDashArray = [2, 2] },
+        TrayStripKind.SolidCritical => new Border { Height = BarHeight, CornerRadius = new CornerRadius(BarRadius), Background = LedgerTheme.Solid("CritM") },
+        _ => new TodayStrip { CellHeight = BarHeight, FocusableCells = false, Cells = strip.Cells },
     };
 
     private void Open(string accountId)

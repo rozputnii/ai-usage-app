@@ -24,7 +24,8 @@ public sealed class AccountCardTests
         Assert.False(primary.CanHide);
         Assert.False(chat.CanSignOut);
         Assert.True(chat.CanHide);
-        var strips = LedgerTrayViewModel.Project(source.Current, source.Preferences).Sum(r => r.Strips.Count);
+        string?[] TrayStrips() => [.. LedgerTrayViewModel.Project(source.Current, source.Preferences).Select(r => r.Strip?.CardId)];
+        var strips = TrayStrips();
 
         await chat.HideAsync();
         Assert.True(chat.IsHiddenSection);
@@ -32,8 +33,8 @@ public sealed class AccountCardTests
         Assert.Equal("1 hidden", primary.HiddenText);
         Assert.Equal("Hidden: " + chat.Tag, primary.HiddenTip);
         Assert.Contains(chat.CardId + "-", model.SectionLayout);
-        // Hiding changes only the window; the tray keeps the limit.
-        Assert.Equal(strips, LedgerTrayViewModel.Project(source.Current, source.Preferences).Sum(r => r.Strips.Count));
+        // Hiding a section changes only the window; the tray keeps showing the main limit.
+        Assert.Equal(strips, TrayStrips());
 
         await primary.ShowHiddenAsync();
         Assert.False(chat.IsHiddenSection);
