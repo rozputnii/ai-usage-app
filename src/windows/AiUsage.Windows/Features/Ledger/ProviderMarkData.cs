@@ -4,8 +4,9 @@ namespace AiUsage.Features.Ledger;
 
 /// <summary>
 /// Simplified monochrome provider marks (R-07), drawn by hand for this app as XAML path data in a 24 × 24 box and filled
-/// in one colour. No stroke or gap is thinner than 1.5 units, so each mark still reads at 16 px. Claude's "F1" uses the
-/// nonzero rule so its rays merge into the hub; the others use the default even-odd rule, so inner shapes cut holes.
+/// in one colour. Rays, walls and holes are at least 1.5 units wide, so each mark still reads at 16 px; only the gaps
+/// between Claude's rays narrow into its solid core. Claude's "F1" uses the nonzero rule so its rays merge into the
+/// hub; the others use the default even-odd rule, so inner shapes cut holes.
 /// </summary>
 internal static class ProviderMarkData
 {
@@ -45,14 +46,14 @@ internal static class ProviderMarkData
         "M12,2.2 C16.5,2.2 20.6,4.2 20.8,8.5 V12.4 C22.8,12.4 23.4,13.2 23.4,14.6 V17 C23.4,18.6 22.4,19.2 21,19.6 " +
         "C19.2,21 17,21.8 15.8,21.8 H8.2 C7,21.8 4.8,21 3,19.6 C1.6,19.2 0.6,18.6 0.6,17 V14.6 " +
         "C0.6,13.2 1.2,12.4 3.2,12.4 V8.5 C3.4,4.2 7.5,2.2 12,2.2 Z " +
-        "M7.3,5.2 H8.7 A2.4,2.4 0 0 1 11.1,7.6 V8.8 A2.4,2.4 0 0 1 8.7,11.2 H7.3 A2.4,2.4 0 0 1 4.9,8.8 V7.6 " +
-        "A2.4,2.4 0 0 1 7.3,5.2 Z " +
-        "M15.3,5.2 H16.7 A2.4,2.4 0 0 1 19.1,7.6 V8.8 A2.4,2.4 0 0 1 16.7,11.2 H15.3 A2.4,2.4 0 0 1 12.9,8.8 V7.6 " +
-        "A2.4,2.4 0 0 1 15.3,5.2 Z " +
+        "M7.5,5.3 H8.7 A2.4,2.4 0 0 1 11.1,7.7 V8.8 A2.4,2.4 0 0 1 8.7,11.2 H7.5 A2.4,2.4 0 0 1 5.1,8.8 V7.7 " +
+        "A2.4,2.4 0 0 1 7.5,5.3 Z " +
+        "M15.3,5.3 H16.5 A2.4,2.4 0 0 1 18.9,7.7 V8.8 A2.4,2.4 0 0 1 16.5,11.2 H15.3 A2.4,2.4 0 0 1 12.9,8.8 V7.7 " +
+        "A2.4,2.4 0 0 1 15.3,5.3 Z " +
         "M4.8,14.4 C4.8,13.4 5.6,12.8 6.8,12.8 H10 C11,12.8 11.2,12.3 12,12.3 C12.8,12.3 13,12.8 14,12.8 H17.2 " +
-        "C18.4,12.8 19.2,13.4 19.2,14.4 V17.4 C19.2,19 17.8,20.2 16,20.2 H8 C6.2,20.2 4.8,19 4.8,17.4 Z " +
-        "M8.4,15.3 A1,1 0 0 1 10.4,15.3 V17.3 A1,1 0 0 1 8.4,17.3 Z " +
-        "M13.6,15.3 A1,1 0 0 1 15.6,15.3 V17.3 A1,1 0 0 1 13.6,17.3 Z";
+        "C18.4,12.8 19.2,13.4 19.2,14.4 V17.3 C19.2,18.9 17.8,20 16,20 H8 C6.2,20 4.8,18.9 4.8,17.3 Z " +
+        "M8.4,15.4 A1,1 0 0 1 10.4,15.4 V17.4 A1,1 0 0 1 8.4,17.4 Z " +
+        "M13.6,15.4 A1,1 0 0 1 15.6,15.4 V17.4 A1,1 0 0 1 13.6,17.4 Z";
 
     /// <summary>The arch: a bell-shaped "A" without a crossbar, flaring to two rounded feet.</summary>
     private const string Antigravity =
