@@ -334,6 +334,7 @@ public sealed partial class LedgerSmoke
                     .FindAllDescendants(cf => cf.ByName("AI Usage").And(cf.ByControlType(ControlType.Button)))
                     .Where(icon => !icon.IsOffscreen).ToArray() ?? [];
                 AutomationElement? row = null;
+                AutomationElement? trayWindow = null;
                 var trayAttempts = new List<string>();
                 bool OpenOwnedTray(AutomationElement icon)
                 {
@@ -343,10 +344,11 @@ public sealed partial class LedgerSmoke
                     // process before inspecting accounts; another AI Usage instance may be running.
                     if (Wait(() =>
                     {
-                        row = desktop.FindAllChildren().Where(w => w.Properties.NativeWindowHandle.ValueOrDefault != handle &&
+                        trayWindow = desktop.FindAllChildren().FirstOrDefault(w => w.Properties.NativeWindowHandle.ValueOrDefault != handle &&
                             IsWindowVisible(w.Properties.NativeWindowHandle.ValueOrDefault) &&
-                            GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId)
-                            .SelectMany(w => w.FindAllDescendants()).FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal));
+                            GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId &&
+                            w.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal)));
+                        row = trayWindow?.FindAllDescendants().FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal));
                         return row is not null;
                     }, TimeSpan.FromSeconds(5))) return true;
                     Keyboard.Press(VirtualKeyShort.ESCAPE);
@@ -372,9 +374,15 @@ public sealed partial class LedgerSmoke
                     }
                 }
                 Assert.True(row is not null, string.Join("; ", trayAttempts));
-                row!.Focus();
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
-                Keyboard.Press(VirtualKeyShort.RETURN);
+                DesktopTestEnvironment.RequireUnlockedDesktop();
+                using (var capture = trayWindow!.Capture()) capture.Save(Path.Combine(evidence!, "tray.png"), System.Drawing.Imaging.ImageFormat.Png);
+                // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
+                // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
+                var focusable = trayWindow.FindAllDescendants().Where(e => e.Properties.FrameworkId.ValueOrDefault == "XAML" && e.Properties.IsKeyboardFocusable.ValueOrDefault)
+                    .Select(e => $"{e.Properties.FrameworkId.ValueOrDefault}/{e.Properties.ControlType.ValueOrDefault}/{e.Properties.Name.ValueOrDefault}").ToArray();
+                Assert.True(focusable.Length == 0, "Tray flyout elements must not be keyboard-focusable: " + string.Join("; ", focusable));
+                row!.Click();
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Selecting the tray account should restore the main window");
                 bool InCard(AutomationElement? element)
                 {

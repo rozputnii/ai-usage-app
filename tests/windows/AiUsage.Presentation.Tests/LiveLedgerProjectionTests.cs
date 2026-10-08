@@ -304,6 +304,82 @@ public sealed class LiveLedgerProjectionTests
         Assert.Contains(model.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed && m.Since == Now);
     }
 
+    // ---- AIU-055 R-13: the continuity tolerance of the refresh interval ----
+
+    [Fact]
+    public void StaleFollowsTheTolerance()
+    {
+        AccountModel Project(int minutesOld, TimeSpan? tolerance)
+        {
+            var fetched = Now.AddMinutes(-minutesOld);
+            var quota = new QuotaSnapshot(fetched, null, [], null, null, null, null) { Limits = new(fetched, null, SnapshotSource.ProviderApi, "test", [Weekly()]) };
+            var snapshot = new AccountSnapshot(Account, "claude", true,
+                new(ProviderSessionStatus.QuotaAvailable, quota, Failure: ProviderFailureKind.RateLimited), false, Now);
+            return LiveLedgerProjection.Account(snapshot, "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null, tolerance: tolerance);
+        }
+        var ninety = TimeSpan.FromMinutes(90);
+        Assert.Equal(AccountHealth.SyncFailedFresh, Project(40, ninety).Health);
+        Assert.False(Project(40, ninety).Cards[0].Freshness.IsStale);
+        Assert.Equal(AccountHealth.SyncFailedStale, Project(40, null).Health);
+        Assert.Equal(AccountHealth.SyncFailedStale, Project(100, ninety).Health);
+        Assert.True(Project(100, ninety).Cards[0].Freshness.IsStale);
+    }
+
+    [Fact]
+    public void DayStartCarriesAcrossMidnightWithinTheTolerance()
+    {
+        // The last reading before midnight was confirmed 40 minutes before it, with another value than the first after.
+        var credits = Credits();
+        var midnight = new DateTimeOffset(Now.Date, TimeSpan.Zero);
+        var evening = new ReadingRun(credits.Series, new CountQuantity(3000, "requests"), midnight.AddMinutes(-60), midnight.AddMinutes(-40), "one", null, SnapshotSource.ProviderApi);
+        var data = credits with { Runs = [evening, .. credits.Runs] };
+        var ninety = TimeSpan.FromMinutes(90);
+        LimitCardModel Project(TimeSpan? tolerance) =>
+            LiveLedgerProjection.Card(data, null, Now, TimeZoneInfo.Utc, BudgetSettingsModel.MondayToFriday, null, false, tolerance: tolerance);
+        Assert.Equal(new TodayUseModel(120, TrackedFrom, false), Project(null).TodayUse);
+        Assert.Equal(3000, Project(ninety).Figures.DayStart);
+        Assert.Equal(new TodayUseModel(240, null, false), Project(ninety).TodayUse);
+        Assert.Equal(120, LiveLedgerProjection.History(data, Now, TimeZoneInfo.Utc).Days[^1].Used);
+        Assert.Equal(240, LiveLedgerProjection.History(data, Now, TimeZoneInfo.Utc, tolerance: ninety).Days[^1].Used);
+    }
+
+    [Fact]
+    public void TrackingFlagsAGapOnlyBeyondTheTolerance()
+    {
+        var facts = new LimitFacts(new("copilot", "GH-P", "premium"), LimitKind.CountablePool, "requests", FactValue.Finite(new CountQuantity(1000, "requests")))
+        { Remaining = new CountQuantity(600, "requests"), IsMonthly = true, Reset = new(Now.AddDays(20), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        var key = new ReadingSeriesKey(Account.ToString("N"), facts.Key);
+        ReadingRun Run(decimal left, DateTimeOffset at) => new(key, new CountQuantity(left, "requests"), at, at, "one", null, SnapshotSource.ProviderApi);
+        // The balance rose after an hour without readings, so the use in between is unknown.
+        var data = new LedgerLimit(facts, key, [Run(500, Now.AddMinutes(-60)), Run(600, Now)]);
+        Assert.True(Card(data).Figures.Tracking!.Incomplete);
+        Assert.False(LiveLedgerProjection.Card(data, null, Now, TimeZoneInfo.Utc, BudgetSettingsModel.MondayToFriday, null, false,
+            tolerance: TimeSpan.FromMinutes(90)).Figures.Tracking!.Incomplete);
+    }
+
+    [Fact]
+    public void ExtraUsageAcceptsReadingsWithinTheTolerance()
+    {
+        var facts = Weekly(100);
+        var key = new ReadingSeriesKey(Account.ToString("N"), facts.Key);
+        var fill = Now.AddHours(-2);
+        var read = Now.AddMinutes(-40);
+        var below = new ReadingRun(key, new CountQuantity(90, "percent"), fill.AddHours(-1), fill.AddHours(-1), "week", null, SnapshotSource.ProviderApi) { ResetAt = facts.Reset!.At };
+        var full = below with { Value = new CountQuantity(100, "percent"), FirstSeen = fill, LastConfirmed = read };
+        var spend = new LimitFacts(new("claude", "CL-X", "extra"), LimitKind.MonetaryPool, "USD", FactValue.Unknown)
+            { Used = new MoneyQuantity(1275, 2, "USD"), AllowsCalendarFallback = true };
+        var spendKey = new ReadingSeriesKey(Account.ToString("N"), spend.Key);
+        var start = new ReadingRun(spendKey, new MoneyQuantity(1000, 2, "USD"), fill, fill, "month", null, SnapshotSource.ProviderApi);
+        var end = start with { Value = new MoneyQuantity(1275, 2, "USD"), FirstSeen = read, LastConfirmed = read };
+        var quota = new QuotaSnapshot(read, null, [], null, null, null, null) { Limits = new(read, null, SnapshotSource.ProviderApi, "test", [facts, spend]) };
+        var account = new AccountSnapshot(Account, "claude", true, new(ProviderSessionStatus.QuotaAvailable, quota), false, null);
+        IReadOnlyList<CardMark> Marks(TimeSpan? tolerance) => LiveLedgerProjection.Account(account, "Work",
+            [new(facts, key, [below, full]), new(spend, spendKey, [start, end]) { MonetaryScope = MonetaryScope.Account }],
+            BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null, tolerance: tolerance).Cards[0].Marks;
+        Assert.Contains(Marks(TimeSpan.FromMinutes(90)), m => m.Kind == MarkKind.OnExtraUsage);
+        Assert.DoesNotContain(Marks(null), m => m.Kind == MarkKind.OnExtraUsage);
+    }
+
     [Fact]
     public void ObservedExtraUsageIsProjectedOnlyWithSpendCoverageAtFill()
     {

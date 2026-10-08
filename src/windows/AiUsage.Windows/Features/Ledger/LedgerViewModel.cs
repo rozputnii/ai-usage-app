@@ -475,6 +475,27 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             FocusCardRequested?.Invoke(this, cardId);
     }
 
+    /// <summary>R-10: places an account before another one, or last; keyboard focus follows the account card.</summary>
+    public async Task MoveAccountAsync(string accountId, string? beforeAccountId)
+    {
+        if (await source.MoveAccountAsync(accountId, beforeAccountId, CancellationToken.None) != CommandOutcome.Done)
+            return;
+        if (source.Current.Accounts.FirstOrDefault(a => a.AccountId == accountId) is { } account &&
+            AccountCard.Primary(account)?.CardId is { } cardId && Cards.Any(card => card.CardId == cardId))
+            FocusCardRequested?.Invoke(this, cardId);
+    }
+
+    /// <summary>Alt+↑/↓ on an account card: one place among the shown accounts; hidden signed-out accounts keep their place.</summary>
+    public Task MoveAccountByAsync(string accountId, int offset)
+    {
+        var shown = Cards.Select(c => c.Account.AccountId).Distinct().ToList();
+        var index = shown.IndexOf(accountId);
+        var target = index + offset;
+        if (index < 0 || offset == 0 || target < 0 || target >= shown.Count)
+            return Task.CompletedTask;
+        return MoveAccountAsync(accountId, offset < 0 ? shown[target] : target + 1 < shown.Count ? shown[target + 1] : null);
+    }
+
     public async Task SetHiddenAsync(string cardId, bool hidden)
     {
         if (hidden && historyCardId == cardId)

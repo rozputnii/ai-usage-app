@@ -99,6 +99,17 @@ internal static class AccountCard
 
     /// <summary>Section order below the primary: limits with bars, then spending, then note-only limits.</summary>
     public static int SectionRank(LimitCardModel card) => card.Layout == CardLayout.Note ? 2 : card.Monetary is not null ? 1 : 0;
+
+    /// <summary>AIU-055 R-10: the account order after placing one account before another, or last when before is null;
+    /// null when either account is unknown or both are the same.</summary>
+    public static string[]? Move(IReadOnlyList<string> order, string accountId, string? beforeAccountId)
+    {
+        if (!order.Contains(accountId) || accountId == beforeAccountId || beforeAccountId is not null && !order.Contains(beforeAccountId))
+            return null;
+        var next = order.Where(id => id != accountId).ToList();
+        next.Insert(beforeAccountId is null ? next.Count : next.IndexOf(beforeAccountId), accountId);
+        return [.. next];
+    }
 }
 
 // Presentation-only native facts; separate scales prevent a mismatched limit being relabeled.
@@ -273,8 +284,11 @@ internal sealed record UpdateStatus(UpdateState State, string? Version, DateTime
 internal enum UpdateState { NotPackaged, NoFeed, Idle, Checking, UpToDate, Available, Ready, Installing, CheckFailed, InstallFailed, NotApplied }
 internal enum LedgerSupportAction { RetryRecovery, RestorePreferences, OpenDataFolder, OpenLogs, ExportRecovery }
 
-internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop, UpdateMode Updates = UpdateMode.Always)
+/// <param name="RefreshMinutes">AIU-055 R-11: the automatic refresh interval in whole minutes.</param>
+internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop, UpdateMode Updates = UpdateMode.Always,
+    int RefreshMinutes = 5)
 {
+    public const int MinRefreshMinutes = 1, MaxRefreshMinutes = 60;
     public static LedgerPreferences Default { get; } = new(ValueMode.Used, Density.Compact, false, false);
 }
 
@@ -307,6 +321,9 @@ internal interface ILedgerSource
     Task<CommandOutcome> SetUnitsAsync(string cardId, bool usd, decimal rate, CancellationToken ct);
     Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct);
     Task MoveCardAsync(string cardId, int offset, CancellationToken ct);
+    /// <summary>AIU-055 R-10: places an account before another one, or last when before is null; the order is the owner's
+    /// and applies to the window and the tray.</summary>
+    Task<CommandOutcome> MoveAccountAsync(string accountId, string? beforeAccountId, CancellationToken ct);
     /// <summary>Hides or shows a section of its account card; the primary limit cannot be hidden.</summary>
     Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct);
     Task SignInAsync(ProviderKind provider, CancellationToken ct);

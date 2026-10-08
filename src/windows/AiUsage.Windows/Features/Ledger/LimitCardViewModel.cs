@@ -244,9 +244,12 @@ internal sealed partial class LimitCardViewModel : ObservableObject
             await owner.SetHiddenAsync(card.CardId, false);
     }
 
+    /// <summary>A section moves within its account; the account card moves the whole account (AIU-055 R-10).</summary>
     [RelayCommand]
-    public Task MoveUpAsync() => owner.MoveAsync(CardId, -1);
+    public Task MoveUpAsync() => Move(-1);
 
     [RelayCommand]
-    public Task MoveDownAsync() => owner.MoveAsync(CardId, 1);
+    public Task MoveDownAsync() => Move(1);
+
+    private Task Move(int offset) => IsAccountSection ? owner.MoveAsync(CardId, offset) : owner.MoveAccountByAsync(Account.AccountId, offset);
 }

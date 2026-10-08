@@ -33,21 +33,12 @@ public sealed partial class AuditWindows
         session.TrayIconClick(false);
         var popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray");
         session.CaptureSurface(popup, "tray-miniature-" + hidden + "-" + inFlight);
-        var rows = popup.FindAllDescendants().Where(e => e.Properties.IsKeyboardFocusable.ValueOrDefault &&
-            (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal)).ToArray();
-        Assert.NotEmpty(rows);
-        var focusedRow = rows.Single(e => e.Properties.HasKeyboardFocus.ValueOrDefault);
-        session.Key(VirtualKeyShort.DOWN);
-        Assert.True(Session.Wait(() => !focusedRow.Properties.HasKeyboardFocus.ValueOrDefault && rows.Any(e =>
-            e.Properties.HasKeyboardFocus.ValueOrDefault && (e.Properties.Name.ValueOrDefault ?? "").Contains("Codex", StringComparison.Ordinal))));
-        session.Key(VirtualKeyShort.UP);
-        Assert.True(Session.Wait(() => focusedRow.Properties.HasKeyboardFocus.ValueOrDefault));
-        session.Key(VirtualKeyShort.RIGHT);
-        Assert.True(Session.Wait(() => !focusedRow.Properties.HasKeyboardFocus.ValueOrDefault && focusedRow.FindAllDescendants().Any(e =>
-            e.Properties.IsKeyboardFocusable.ValueOrDefault && e.Properties.HasKeyboardFocus.ValueOrDefault)));
-        session.Key(VirtualKeyShort.LEFT);
-        Assert.False(focusedRow.Properties.HasKeyboardFocus.ValueOrDefault); // One strip clamps at its first position.
-        session.Key(VirtualKeyShort.RETURN);
+        // The flyout is a pointer-only miniature (D-204): no element of its content is a tab stop or holds focus.
+        var elements = popup.FindAllDescendants();
+        Assert.Contains(elements, e => (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal));
+        Assert.DoesNotContain(elements, e => e.Properties.IsKeyboardFocusable.ValueOrDefault || e.Properties.HasKeyboardFocus.ValueOrDefault);
+        // A click on a row, not Enter, selects the account and opens the main window.
+        session.Click(elements.First(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude", StringComparison.Ordinal)));
         Assert.True(Session.Wait(() => session.IsVisible)); session.RequireForeground();
         session.HideToTray(); session.TrayIconClick(false);
         popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray" && session.SurfaceIsVisible(e));
@@ -55,8 +46,7 @@ public sealed partial class AuditWindows
         Assert.True(Session.Wait(() => !session.SurfaceIsVisible(popup)));
         session.TrayIconClick(false);
         popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray" && session.SurfaceIsVisible(e));
-        var firstRow = popup.FindAllDescendants().First(e => e.Properties.IsKeyboardFocusable.ValueOrDefault &&
-            (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude", StringComparison.Ordinal));
+        var firstRow = popup.FindAllDescendants().First(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude", StringComparison.Ordinal));
         session.Click(firstRow);
         Assert.True(Session.Wait(() => session.IsVisible)); session.RequireForeground();
         Assert.Contains(session.Window.FindAllDescendants(), e => e.Properties.HasKeyboardFocus.ValueOrDefault &&

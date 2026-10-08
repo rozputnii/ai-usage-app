@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AiUsage.Adapters.Live;
 using AiUsage.Features.Ledger.Contract;
 using Xunit;
@@ -53,6 +54,50 @@ public sealed class LedgerPreferenceTests
         Assert.True(await reopened.LoadAsync(null, TestContext.Current.CancellationToken));
         Assert.Equal(new UnitModel(true, 0.04m), reopened.Current.Units["card"]);
         Assert.Equal([entry], reopened.Current.Today);
+    }
+
+    [Fact]
+    public async Task AccountOrderIsValidated()
+    {
+        static string Json(string order) => """{"Version":1,"AccountOrder":""" + order + "}";
+        static string Ids(int count) => "[" + string.Join(",", Enumerable.Range(0, count).Select(_ => "\"" + Guid.NewGuid().ToString("N") + "\"")) + "]";
+        var id = Guid.NewGuid().ToString("N");
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json("""["x"]""")));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json($"""["{id}","{id}"]""")));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json(Ids(257))));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json("""["00000000000000000000000000000000"]""")));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json("null")));
+        Assert.True(LedgerPreferenceStore.IsValidJson(Json(Ids(256))));
+
+        var old = """{"Version":1,"Preferences":{"Mode":0,"Density":0,"ShowSignedOut":false,"AlwaysOnTop":false},"Labels":{},"Order":[]}""";
+        Assert.True(LedgerPreferenceStore.IsValidJson(old));
+        var store = new LedgerPreferenceStore(_ => Task.FromResult<string?>(old), (_, _) => Task.CompletedTask);
+        Assert.True(await store.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Empty(store.Current.AccountOrder);
+    }
+
+    [Fact]
+    public async Task RefreshMinutesIsValidatedAndDefaultsToFive()
+    {
+        static string Json(string refresh) => """{"Version":1,"Preferences":{"Mode":0,"Density":0,"ShowSignedOut":false,"AlwaysOnTop":false""" + refresh + "}}";
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json(""","RefreshMinutes":0""")));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json(""","RefreshMinutes":61""")));
+        Assert.True(LedgerPreferenceStore.IsValidJson(Json(""","RefreshMinutes":1""")));
+        Assert.True(LedgerPreferenceStore.IsValidJson(Json(""","RefreshMinutes":60""")));
+        Assert.Equal((1, 60), (LedgerPreferences.MinRefreshMinutes, LedgerPreferences.MaxRefreshMinutes));
+        Assert.Equal(5, LedgerPreferences.Default.RefreshMinutes);
+
+        // An older file without the field loads the default through the production JSON context.
+        string? saved = Json("");
+        Assert.Equal(5, JsonSerializer.Deserialize(saved, LedgerPreferenceJson.Default.State)!.Preferences.RefreshMinutes);
+        var store = new LedgerPreferenceStore(_ => Task.FromResult<string?>(saved), (json, _) => { saved = json; return Task.CompletedTask; });
+        Assert.True(await store.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Equal(5, store.Current.Preferences.RefreshMinutes);
+        Assert.Equal(CommandOutcome.Rejected, await store.ChangeAsync(s => s with { Preferences = s.Preferences with { RefreshMinutes = 61 } }, TestContext.Current.CancellationToken));
+        Assert.Equal(CommandOutcome.Done, await store.ChangeAsync(s => s with { Preferences = s.Preferences with { RefreshMinutes = 1 } }, TestContext.Current.CancellationToken));
+        var reopened = new LedgerPreferenceStore(_ => Task.FromResult<string?>(saved), (_, _) => Task.CompletedTask);
+        Assert.True(await reopened.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Equal(1, reopened.Current.Preferences.RefreshMinutes);
     }
 
     [Fact]

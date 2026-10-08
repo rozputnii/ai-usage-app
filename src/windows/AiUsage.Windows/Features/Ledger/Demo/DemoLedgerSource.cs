@@ -36,7 +36,8 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
 
     private void Publish(LedgerSnapshot snapshot)
     {
-        Current = snapshot;
+        // AIU-055 R-14: the settings summary shows the chosen refresh interval in every scenario.
+        Current = snapshot with { Summaries = snapshot.Summaries with { RefreshInterval = TimeSpan.FromMinutes(Preferences.RefreshMinutes) } };
         foreach (var card in snapshot.Accounts.SelectMany(a => a.Cards).Where(c => c.CapTargetId is not null))
             originals.TryAdd(card.CapTargetId!, card);
         Changed?.Invoke(this, EventArgs.Empty);
@@ -241,6 +242,14 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         return Task.CompletedTask;
     }
 
+    public Task<CommandOutcome> MoveAccountAsync(string accountId, string? beforeAccountId, CancellationToken ct)
+    {
+        if (AccountCard.Move([.. Current.Accounts.Select(a => a.AccountId)], accountId, beforeAccountId) is not { } order)
+            return Task.FromResult(CommandOutcome.Rejected);
+        Publish(Current with { Accounts = [.. Current.Accounts.OrderBy(a => Array.IndexOf(order, a.AccountId))] });
+        return Task.FromResult(CommandOutcome.Done);
+    }
+
     public Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct)
     {
         var account = Current.Accounts.FirstOrDefault(a => a.Cards.Any(c => c.CardId == cardId));
@@ -382,7 +391,7 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
     public Task SetPreferencesAsync(LedgerPreferences preferences, CancellationToken ct)
     {
         Preferences = preferences;
-        Changed?.Invoke(this, EventArgs.Empty);
+        Publish(Current);
         return Task.CompletedTask;
     }
 

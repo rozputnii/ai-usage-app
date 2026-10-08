@@ -65,9 +65,12 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
 
     private static bool Valid(State? state) => state is { Version: 1, Preferences: not null, Labels: not null, Order: not null } &&
         Enum.IsDefined(state.Preferences.Mode) && Enum.IsDefined(state.Preferences.Density) && Enum.IsDefined(state.Preferences.Updates) &&
+        state.Preferences.RefreshMinutes is >= LedgerPreferences.MinRefreshMinutes and <= LedgerPreferences.MaxRefreshMinutes &&
         state.Labels.Count <= 256 && state.Labels.All(x => Guid.TryParseExact(x.Key, "N", out var id) && id != Guid.Empty &&
             x.Value is { Length: > 0 and <= 100 } && x.Value == x.Value.Trim()) &&
         state.Order.Length <= 4096 && state.Order.All(x => x is { Length: > 0 and <= 8192 }) && state.Order.Distinct().Count() == state.Order.Length &&
+        state.AccountOrder is { Length: <= 256 } && state.AccountOrder.All(x => Guid.TryParseExact(x, "N", out var id) && id != Guid.Empty) &&
+            state.AccountOrder.Distinct().Count() == state.AccountOrder.Length &&
         state.Hidden is { Length: <= 4096 } && state.Hidden.All(x => x is { Length: > 0 and <= 8192 }) && state.Hidden.Distinct().Count() == state.Hidden.Length &&
         state.Units is { Count: <= 4096 } && state.Units.All(x => x.Key is { Length: > 0 and <= 8192 } && x.Value is not null && CreditDollars.ValidRate(x.Value.Rate)) &&
         state.Today is { Length: <= 4096 } && state.Today.All(x => x is { Card.Length: > 0 and <= 8192, Instance.Length: > 0 and <= 8192, DayStart: >= 0 }) &&
@@ -99,6 +102,8 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
         public LedgerPreferences Preferences { get; set; } = LedgerPreferences.Default;
         public Dictionary<string, string> Labels { get; set; } = [];
         public string[] Order { get; set; } = [];
+        /// <summary>AIU-055 R-10: the owner's account order; unlisted accounts follow in registry order.</summary>
+        public string[] AccountOrder { get; set; } = [];
         public string[] Hidden { get; set; } = [];
         /// <summary>D-199: per-card unit choice of a credit pool.</summary>
         public Dictionary<string, UnitModel> Units { get; set; } = [];

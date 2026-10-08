@@ -197,7 +197,7 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
 ---
 
 ### T-01 - Tray flyout without tab stops or focus frames
-- status: pending
+- status: done
 - depends_on: []
 - ownership: tray-focus
 - writes: [src/windows/AiUsage.Windows/Controls/Ledger/LedgerTrayWindow.cs, tests/windows/AiUsage.Windows.Tests/LedgerSmoke.cs, tests/windows/AiUsage.Windows.Tests/AuditTrayControls.cs]
@@ -206,18 +206,18 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-01]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at dc9664f and 88828c8 (merged 0c2157b); Ledger launch smoke PASS with the no-focusable assertion, Presentation 316/316, Release build 0 warnings, opus review approve; AuditTrayControls compiled, run NOT_RUN (Sandbox opt-in)
 
 **Model:** sonnet. **Requirement:** R-01.
 
-- [ ] In `LedgerSmoke.LedgerLaunchSettingsHistoryAndExit`, change the tray part:
+- [x] In `LedgerSmoke.LedgerLaunchSettingsHistoryAndExit`, change the tray part:
   - Before choosing a row, capture the flyout window to `tray.png`.
   - Assert `Assert.DoesNotContain(trayWindow.FindAllDescendants(), e => e.Properties.IsKeyboardFocusable.ValueOrDefault)`.
   - Replace `row!.Focus(); … Keyboard.Press(VirtualKeyShort.RETURN)` with `row!.Click()`.
   - Keep the two existing waits: the window restores, and focus lands in a `claude-week-` card.
-- [ ] Publish the UI suite and run `-method "*LedgerLaunchSettingsHistoryAndExit*"` under the lock. Expect a FAIL on the
+- [x] Publish the UI suite and run `-method "*LedgerLaunchSettingsHistoryAndExit*"` under the lock. Expect a FAIL on the
   focusable assertion.
-- [ ] In `LedgerTrayWindow`:
+- [x] In `LedgerTrayWindow`:
   - `LedgerClickRow` rows get `IsTabStop = false` and `UseSystemFocusVisuals = false`, without the focus-visual brushes or
     thicknesses.
   - Each strip body is added directly, carrying its tooltip and `AutomationProperties.Name`, with no `ContentControl`
@@ -225,14 +225,14 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
   - Remove `XYFocusKeyboardNavigation`, `rowStops`, `FocusFirstRow` and its two calls, the arrow-key branch and both
     Enter handlers.
   - Keep `root.KeyDown` for Esc only.
-- [ ] Rerun the smoke: PASS. Open `tray.png`: no frame. Click-away still hides the flyout (manual check with the demo
+- [x] Rerun the smoke: PASS. Open `tray.png`: no frame. Click-away still hides the flyout (manual check with the demo
   build). Record whether Esc still closes the flyout.
-- [ ] Update `AuditTrayControls` (a Sandbox-only audit) to the click-based selection and the no-focusable assertion.
+- [x] Update `AuditTrayControls` (a Sandbox-only audit) to the click-based selection and the no-focusable assertion.
   Build it with `dotnet build tests/windows/AiUsage.Windows.Tests -c Release`; the run is NOT_RUN (Sandbox opt-in).
-- [ ] Commit `fix(AIU-055): tray flyout has no tab stops or focus frames (T-01)`, then review, integrate and report.
+- [x] Commit `fix(AIU-055): tray flyout has no tab stops or focus frames (T-01)`, then review, integrate and report.
 
 ### T-02 - Provider marks
-- status: pending
+- status: done
 - depends_on: []
 - ownership: provider-marks
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/ProviderMarkData.cs, src/windows/AiUsage.Windows/Controls/Ledger/ProviderMark.cs, tests/windows/AiUsage.Presentation.Tests/ProviderMarkTests.cs]
@@ -241,7 +241,7 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-05]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 804945f and 13fb1a7 (merged 6f6eebd); Presentation 306/306, Release build 0 warnings, demo startup smoke PASS, mark renders checked, opus review approve
 
 **Model:** opus (drawing judgment). **Requirement:** R-07.
 
@@ -251,12 +251,12 @@ internal static class ProviderMarkData { public static string PathData(ProviderK
 internal static class ProviderMark { public static FrameworkElement Create(ProviderKind provider, Brush brush, double size = 16); }
 ```
 
-- [ ] Test `EveryProviderHasADistinctMark` (in `ProviderMarkTests`). For each `Enum.GetValues<ProviderKind>()`:
+- [x] Test `EveryProviderHasADistinctMark` (in `ProviderMarkTests`). For each `Enum.GetValues<ProviderKind>()`:
   - the path data is non-empty and matches `^(F[01] )?M[MmLlHhVvCcSsQqTtAaZz0-9 ,.\-]+$`;
   - the four strings are distinct.
 
   Run it and expect a compile failure.
-- [ ] Author `PathData`: simplified, recognisable single-colour silhouettes of each provider's mark, written by hand.
+- [x] Author `PathData`: simplified, recognisable single-colour silhouettes of each provider's mark, written by hand.
   - **Claude:** the radial spark.
   - **Codex:** the OpenAI knot simplified to rounded interlocking petals.
   - **Copilot:** the pilot helmet with two goggles.
@@ -264,18 +264,18 @@ internal static class ProviderMark { public static FrameworkElement Create(Provi
 
   A research subagent may look at public references; the repository receives no downloaded file. Each mark must read
   at 16 px: no detail below 1.5 px in the 24-unit box.
-- [ ] Implement `Create` as a `Viewbox` of `size` containing a 24 × 24 `Path` with `Fill = brush`. Parse the data with
+- [x] Implement `Create` as a `Viewbox` of `size` containing a 24 × 24 `Path` with `Fill = brush`. Parse the data with
   `XamlBindingHelper.ConvertValue(typeof(Geometry), data)`, as `LedgerTrayWindow` does.
-- [ ] Render check:
+- [x] Render check:
   - Write each path into `.ai-usage-local/AIU-055/T-02/<provider>.svg`: a 24 × 24 view box, white fill on `#1F1E1B`, at
     16 px and at 64 px.
   - Render each to PNG with `msedge --headless --screenshot=<png> --window-size=200,120 <svg>`.
   - Open the PNGs and revise until each mark is recognisable at 16 px.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-055): monochrome provider marks (T-02)`; review (give the reviewer the
+- [x] Run Presentation: PASS. Commit `feat(AIU-055): monochrome provider marks (T-02)`; review (give the reviewer the
   PNGs), integrate, report.
 
 ### T-03 - Five-hour ring control
-- status: pending
+- status: done
 - depends_on: []
 - ownership: five-hour-ring
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/RingGeometry.cs, src/windows/AiUsage.Windows/Controls/Ledger/FiveHourRing.cs, tests/windows/AiUsage.Presentation.Tests/FiveHourRingTests.cs]
@@ -284,7 +284,7 @@ internal static class ProviderMark { public static FrameworkElement Create(Provi
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-03]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 8ce42df and f20091a (merged fcafc33); Presentation 305/305, Release build 0 warnings, demo startup smoke PASS, opus review approve
 
 **Model:** sonnet. **Requirement:** R-04 (drawing only; T-07 supplies the values).
 
@@ -304,13 +304,13 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
 }
 ```
 
-- [ ] Test `ArcEndsFollowTheClock`, tolerance `1e-9`:
+- [x] Test `ArcEndsFollowTheClock`, tolerance `1e-9`:
   - `ArcEnd(0) == (8, 1)`, `ArcEnd(0.25) == (15, 8)`, `ArcEnd(0.5) == (8, 15)` and `ArcEnd(0.75) == (1, 8)`;
   - `IsLargeArc(0.5) == false` and `IsLargeArc(0.51) == true`;
   - `Clamp(1.4) == 1`, `Clamp(-0.2) == 0` and `Clamp(double.NaN) == 0`.
 
   Run it and expect a compile failure.
-- [ ] Implement `RingGeometry`. Implement `FiveHourRing`:
+- [x] Implement `RingGeometry`. Implement `FiveHourRing`:
   - a rail `Ellipse` (stroke `Rail`, 2 px, 14 × 14 at 1, 1);
   - for `0.001 < f < 0.999`, a `Path` with a `PathFigure` starting at (8, 1) and one `ArcSegment` to `ArcEnd(f)`:
     `Size (7, 7)`, `SweepDirection.Clockwise`, `IsLargeArc` from the geometry;
@@ -318,7 +318,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
   - stroke 2 and round start and end caps.
 
   Rebuild on either property change.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-055): five-hour ring control (T-03)`; review, integrate, report.
+- [x] Run Presentation: PASS. Commit `feat(AIU-055): five-hour ring control (T-03)`; review, integrate, report.
 
 ### T-04 - Rename by clicking the name
 - status: pending
@@ -356,7 +356,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
   `feat(AIU-055): rename an account by clicking its name (T-04)`; review, integrate, report.
 
 ### T-05 - Account order in preferences, sources and keyboard
-- status: pending
+- status: done
 - depends_on: []
 - ownership: account-order
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs, src/windows/AiUsage.Windows/Adapters/Live/LedgerPreferenceStore.cs, src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerSource.cs, src/windows/AiUsage.Windows/Features/Ledger/Demo/DemoLedgerSource.cs, src/windows/AiUsage.Windows/Features/Ledger/LedgerViewModel.cs, src/windows/AiUsage.Windows/Features/Ledger/LimitCardViewModel.cs, tests/windows/AiUsage.Presentation.Tests/LiveLedgerSourceTests.cs, tests/windows/AiUsage.Presentation.Tests/LedgerPreferenceTests.cs, tests/windows/AiUsage.Presentation.Tests/LedgerCompletionTests.cs, tests/windows/AiUsage.Presentation.Tests/AccountOrderTests.cs]
@@ -365,7 +365,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-07]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 88b13fb (merged 387e0df); Presentation 302/302, Infrastructure 915/915, Release build 0 warnings, demo startup smoke PASS, opus review approve with 3 deferred minors
 
 **Model:** opus. **Requirement:** R-10 (all but the drag, which is T-09).
 
@@ -381,26 +381,26 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
 // LimitCardViewModel: MoveUpAsync/MoveDownAsync move the account for a host card and the section for an account section.
 ```
 
-- [ ] Test `AccountOrderMovesPersistsAndSurvivesRestart` (`LiveLedgerSourceTests`). Use accounts `a, b, c` (`Account(Guid, at)`)
+- [x] Test `AccountOrderMovesPersistsAndSurvivesRestart` (`LiveLedgerSourceTests`). Use accounts `a, b, c` (`Account(Guid, at)`)
   and the saved-preferences pattern of `MonetaryCapsStayMatchedAndSeparateAcrossRenameAndSourceRestart`.
   - `MoveAccountAsync(c, a)` returns Done, and `Current.Accounts` IDs are `[c, a, b]`.
   - `MoveAccountAsync(a, null)` gives `[c, b, a]`.
   - After a restart the order is still `[c, b, a]`; a new account `d` gives `[c, b, a, d]`.
   - An unknown id, `MoveAccountAsync(a, a)` and an unknown `before` each return Rejected.
-- [ ] Test `AccountOrderIsValidated` (`LedgerPreferenceTests`) with `LedgerPreferenceStore.IsValidJson`:
+- [x] Test `AccountOrderIsValidated` (`LedgerPreferenceTests`) with `LedgerPreferenceStore.IsValidJson`:
   - `AccountOrder` `["x"]`, a duplicate and 257 entries are each false;
   - a version-1 JSON without `AccountOrder` is true and loads `[]`.
-- [ ] Tests in `AccountOrderTests`, on the demo app with `LedgerViewModel`, as in the `Start()` pattern of `LedgerTests`:
+- [x] Tests in `AccountOrderTests`, on the demo app with `LedgerViewModel`, as in the `Start()` pattern of `LedgerTests`:
   - `KeyboardMovesTheAccountAndSectionsStayInside`:
     - after `MoveDownAsync()` on `claude-week`, the account order of `window.Cards` is `acct-codex, acct-claude, acct-copilot, acct-antigravity`;
     - `MoveUpAsync()` on `claude-extra` still reorders only within `acct-claude`;
     - `LedgerTrayViewModel.Project(source.Current, source.Preferences)` rows follow the same account order.
   - `MoveToLastAndBack`: `MoveAccountAsync("acct-claude", null)` puts Claude last, and `MoveAccountAsync("acct-claude", "acct-codex")`
     puts it first.
-- [ ] Update `LedgerCompletionTests.ReorderingReturnsFocusToTheMovedCardAfterTheOrderChanges` to expect
+- [x] Update `LedgerCompletionTests.ReorderingReturnsFocusToTheMovedCardAfterTheOrderChanges` to expect
   `[("claude-week", 2), ("claude-week", 0)]`, because the Claude account moves past Codex's two cards. Run Presentation
   and expect the new tests to fail.
-- [ ] Implement:
+- [x] Implement:
   - **Live source:** `Valid()` checks `AccountOrder`. `BuildAsync` orders `models` by index in `AccountOrder` (unlisted →
     `int.MaxValue`, stable). `MoveAccountAsync` validates IDs against `accounts.Current`, rebuilds the full order from
     `Current.Accounts`, removes the account, inserts it before `before` (or appends) and saves through
@@ -409,11 +409,11 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
   - **View models:** `LedgerViewModel.MoveAccountByAsync` uses the visible account order: up → before the previous
     visible account; down → before the account two places on, or null when that leaves the end. `LimitCardViewModel`
     routes by `IsAccountSection`.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-055): saved subscription order, Alt+arrows move the account (T-05)`;
+- [x] Run Presentation: PASS. Commit `feat(AIU-055): saved subscription order, Alt+arrows move the account (T-05)`;
   review, integrate, report.
 
 ### T-06 - Core continuity tolerance
-- status: pending
+- status: done
 - depends_on: []
 - ownership: reading-continuity
 - writes: [src/windows/AiUsage.Core/Budget/ReadingContinuity.cs, src/windows/AiUsage.Core/Budget/ReadingCalculations.cs, src/windows/AiUsage.Core/Budget/ExtraUsageEvidence.cs, tests/windows/AiUsage.Infrastructure.Tests/ReadingContinuityTests.cs]
@@ -422,7 +422,7 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-10]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at dbb0b8c; Infrastructure 915/915, Presentation 297/297, Release build 0 warnings, demo startup smoke PASS, opus review approve
 
 **Model:** sonnet. **Requirement:** R-13 (Core part).
 
@@ -437,7 +437,7 @@ public static class ReadingContinuity
 // ReadingCalculations.DayStart, ReadingCalculations.Track, ExtraUsageEvidence.Calculate
 ```
 
-- [ ] Tests in `ReadingContinuityTests`. Build fixtures like `ReadingBudgetTests`, `ReadingBoundaryTests` and the existing
+- [x] Tests in `ReadingContinuityTests`. Build fixtures like `ReadingBudgetTests`, `ReadingBoundaryTests` and the existing
   extra-usage tests.
   - `ToleranceIsThreeIntervalsWithAFifteenMinuteFloor`: 1 → 15, 5 → 15, 6 → 18, 30 → 90 and 60 → 180 min; 0 throws.
   - `DayStartCarriesWithinTheTolerance`: the last reading before midnight, confirmed 40 min before it with a different
@@ -449,9 +449,9 @@ public static class ReadingContinuity
     with tolerance 90 and `(null, null, null)` with the default.
 
   Run them and expect a compile failure.
-- [ ] Implement by replacing the four `TimeSpan.FromMinutes(15)` uses with `tolerance ?? ReadingContinuity.Floor`. Keep
+- [x] Implement by replacing the four `TimeSpan.FromMinutes(15)` uses with `tolerance ?? ReadingContinuity.Floor`. Keep
   `LocalBudgetStore`'s merge rule as it is.
-- [ ] Run Infrastructure: PASS, with every existing test unchanged. Commit
+- [x] Run Infrastructure: PASS, with every existing test unchanged. Commit
   `feat(AIU-055): continuity tolerance scales with the refresh interval (T-06)`; review, integrate, report.
 
 ### T-07 - Tray rows: main limit, one today bar, ring and density
@@ -522,7 +522,7 @@ public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account,
   review, integrate, report.
 
 ### T-08 - Refresh interval preference, schedule and staleness
-- status: pending
+- status: done
 - depends_on: [T-05, T-06]
 - ownership: refresh-schedule
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs, src/windows/AiUsage.Windows/Adapters/Live/LedgerPreferenceStore.cs, src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerSource.cs, src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerProjection.cs, src/windows/AiUsage.Windows/Features/Ledger/Demo/DemoLedgerSource.cs, tests/windows/AiUsage.Presentation.Tests/LiveLedgerSourceTests.cs, tests/windows/AiUsage.Presentation.Tests/LedgerPreferenceTests.cs, tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs]
@@ -531,7 +531,7 @@ public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account,
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-08, AC-09, AC-10]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 999a188 (merged a208817, bae967f); Presentation 316/316, Infrastructure 915/915, Release build 0 warnings, demo startup smoke PASS, opus review approve with 3 deferred minors
 
 **Model:** opus. **Requirements:** R-11 (stored value), R-12, R-13 (app part), R-14.
 **Consumes:** `ReadingContinuity` (T-06) and the `AccountOrder` code in the same files (T-05).
@@ -545,7 +545,7 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
 // LiveLedgerProjection.Account(…, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null); History(…, TimeSpan? tolerance = null)
 ```
 
-- [ ] Tests in `LiveLedgerSourceTests` (`Clock`, `Accounts`, `Source` helpers):
+- [x] Tests in `LiveLedgerSourceTests` (`Clock`, `Accounts`, `Source` helpers):
   - `RefreshIntervalDrivesTheScheduleWithTickSlack`: with `RefreshMinutes = 1`, the refresh delegate returns a snapshot
     fetched at `clock.Now + 2 s`; ticks at +1, +2 and +3 min each refresh once. With `RefreshMinutes = 5`, a tick at
     +4 min does not refresh and one at +5 min does.
@@ -554,13 +554,13 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
   - `BackoffWinsOverAShortInterval`: interval 1 and a failing account (as in `RetryBackoffIsAccountScopedAndStopPreventsFurtherTicks`):
     the account fails at the +1 min tick; ticks at +2 to +10 min do not retry it, and +11 min does (a 10 min backoff).
   - `SummaryReportsTheConfiguredInterval`: `RefreshMinutes = 10` gives `Current.Summaries.RefreshInterval == 10 min`.
-- [ ] Test `StaleFollowsTheTolerance` (`LiveLedgerProjectionTests`): a failed sync whose reading is 40 min old is
+- [x] Test `StaleFollowsTheTolerance` (`LiveLedgerProjectionTests`): a failed sync whose reading is 40 min old is
   `SyncFailedFresh` with tolerance 90 min and `SyncFailedStale` with the default; at 100 min with tolerance 90 it is
   `SyncFailedStale`.
-- [ ] Test `RefreshMinutesIsValidatedAndDefaultsToFive` (`LedgerPreferenceTests`): `RefreshMinutes` 0 and 61 are
+- [x] Test `RefreshMinutesIsValidatedAndDefaultsToFive` (`LedgerPreferenceTests`): `RefreshMinutes` 0 and 61 are
   invalid. Old JSON without the field loads 5, through `LedgerPreferenceJson`, as in `PersistedRecordOmittedPropertyTests`.
   Run all of them and expect failures.
-- [ ] Implement:
+- [x] Implement:
   - `Valid()` checks the `RefreshMinutes` range.
   - `LiveLedgerSource` reads `TimeSpan.FromMinutes(preferences.Current.Preferences.RefreshMinutes)` for the due test
     (minus 30 s), the success spacing in `NextRetry` and `Summaries`. It passes `ReadingContinuity.Tolerance(interval)`
@@ -569,7 +569,7 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
     `DayStart`, `Track` and `ExtraUsageEvidence.Calculate`.
   - `DemoLedgerSource.SetPreferencesAsync` publishes `Summaries.RefreshInterval` from `RefreshMinutes`.
   - Review the refresh diagnostics per the spec.
-- [ ] Run Presentation and Infrastructure (the Audit* scenarios call `Account` and must stay green). Commit
+- [x] Run Presentation and Infrastructure (the Audit* scenarios call `Account` and must stay green). Commit
   `feat(AIU-055): refresh interval preference drives the schedule and staleness (T-08)`; review, integrate, report.
 
 ### T-09 - Drag a card by its grip
