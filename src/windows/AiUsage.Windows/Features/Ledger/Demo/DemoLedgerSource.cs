@@ -36,7 +36,8 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
 
     private void Publish(LedgerSnapshot snapshot)
     {
-        Current = snapshot;
+        // AIU-055 R-14: the settings summary shows the chosen refresh interval in every scenario.
+        Current = snapshot with { Summaries = snapshot.Summaries with { RefreshInterval = TimeSpan.FromMinutes(Preferences.RefreshMinutes) } };
         foreach (var card in snapshot.Accounts.SelectMany(a => a.Cards).Where(c => c.CapTargetId is not null))
             originals.TryAdd(card.CapTargetId!, card);
         Changed?.Invoke(this, EventArgs.Empty);
@@ -390,7 +391,7 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
     public Task SetPreferencesAsync(LedgerPreferences preferences, CancellationToken ct)
     {
         Preferences = preferences;
-        Changed?.Invoke(this, EventArgs.Empty);
+        Publish(Current);
         return Task.CompletedTask;
     }
 

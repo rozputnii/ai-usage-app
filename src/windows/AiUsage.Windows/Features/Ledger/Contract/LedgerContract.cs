@@ -284,8 +284,11 @@ internal sealed record UpdateStatus(UpdateState State, string? Version, DateTime
 internal enum UpdateState { NotPackaged, NoFeed, Idle, Checking, UpToDate, Available, Ready, Installing, CheckFailed, InstallFailed, NotApplied }
 internal enum LedgerSupportAction { RetryRecovery, RestorePreferences, OpenDataFolder, OpenLogs, ExportRecovery }
 
-internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop, UpdateMode Updates = UpdateMode.Always)
+/// <param name="RefreshMinutes">AIU-055 R-11: the automatic refresh interval in whole minutes.</param>
+internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop, UpdateMode Updates = UpdateMode.Always,
+    int RefreshMinutes = 5)
 {
+    public const int MinRefreshMinutes = 1, MaxRefreshMinutes = 60;
     public static LedgerPreferences Default { get; } = new(ValueMode.Used, Density.Compact, false, false);
 }
 

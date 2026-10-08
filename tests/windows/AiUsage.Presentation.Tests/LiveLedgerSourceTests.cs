@@ -658,6 +658,128 @@ public sealed class LiveLedgerSourceTests
         Assert.Equal(before, accounts.Refreshed.Count);
     }
 
+    // ---- AIU-055 R-12 to R-14: the refresh interval ----
+
+    [Fact]
+    public async Task RefreshIntervalDrivesTheScheduleWithTickSlack()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid(); var start = clock.Now;
+        var accounts = new Accounts { Current = [Account(id, clock.Now)] };
+        // A fetch finishes a moment after the tick that started it.
+        accounts.Refresh = refreshed => { accounts.Current = [Account(refreshed, clock.Now.AddSeconds(2))]; return new(AccountOutcome.Done, refreshed); };
+        using var source = Source(accounts, new Store(), clock);
+        async Task TickAt(TimeSpan after) { clock.Now = start + after; await source.TickAsync(Token); }
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 1 }, Token);
+            for (var minute = 1; minute <= 3; minute++)
+            {
+                await TickAt(TimeSpan.FromMinutes(minute));
+                Assert.Equal(minute, accounts.Refreshed.Count);
+            }
+            // A tick that runs a second early still refreshes.
+            await TickAt(TimeSpan.FromMinutes(4) - TimeSpan.FromSeconds(1));
+            Assert.Equal(4, accounts.Refreshed.Count);
+
+            await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 5 }, Token);
+            await TickAt(TimeSpan.FromMinutes(8) - TimeSpan.FromSeconds(1));
+            Assert.Equal(4, accounts.Refreshed.Count);
+            await TickAt(TimeSpan.FromMinutes(9) - TimeSpan.FromSeconds(1));
+            Assert.Equal(5, accounts.Refreshed.Count);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task ChangedIntervalAppliesAtTheNextTick()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var accounts = new Accounts { Current = [Account(id, clock.Now)] };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal(5, source.Preferences.RefreshMinutes);
+            clock.Now = clock.Now.AddMinutes(2); await source.TickAsync(Token);
+            Assert.Empty(accounts.Refreshed);
+            await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 2 }, Token);
+            await source.TickAsync(Token);
+            Assert.Equal([id], accounts.Refreshed);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task BackoffWinsOverAShortInterval()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid(); var start = clock.Now;
+        var accounts = new Accounts { Current = [Account(id, clock.Now)] };
+        accounts.Refresh = failing =>
+        {
+            accounts.Current = [.. accounts.Current.Select(a => a with { Session = a.Session with { Failure = ProviderFailureKind.RateLimited }, LastFailureAt = clock.Now })];
+            return new(AccountOutcome.Failed, failing);
+        };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 1 }, Token);
+            clock.Now = start.AddMinutes(1); await source.TickAsync(Token);
+            Assert.Equal([id], accounts.Refreshed);
+            for (var minute = 2; minute <= 10; minute++)
+            {
+                clock.Now = start.AddMinutes(minute); await source.TickAsync(Token);
+                Assert.Single(accounts.Refreshed);
+            }
+            clock.Now = start.AddMinutes(11); await source.TickAsync(Token);
+            Assert.Equal([id, id], accounts.Refreshed);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task SummaryReportsTheConfiguredInterval()
+    {
+        var clock = new Clock();
+        using var source = Source(new Accounts { Current = [Account(Guid.NewGuid(), clock.Now)] }, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal(TimeSpan.FromMinutes(5), source.Current.Summaries.RefreshInterval);
+            await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 10 }, Token);
+            Assert.Equal(TimeSpan.FromMinutes(10), source.Current.Summaries.RefreshInterval);
+        }
+        finally { await source.StopAsync(); }
+
+        // R-14: the demo source reports the interval too, also after it loads another scenario.
+        var demo = new AiUsage.Features.Ledger.Demo.DemoLedgerSource(new ManualScheduler());
+        Assert.Equal(TimeSpan.FromMinutes(5), demo.Current.Summaries.RefreshInterval);
+        await demo.SetPreferencesAsync(demo.Preferences with { RefreshMinutes = 10 }, Token);
+        Assert.Equal(TimeSpan.FromMinutes(10), demo.Current.Summaries.RefreshInterval);
+        demo.LoadScenario(demo.ScenarioId);
+        Assert.Equal(TimeSpan.FromMinutes(10), demo.Current.Summaries.RefreshInterval);
+    }
+
+    [Fact]
+    public async Task StalenessFollowsTheConfiguredInterval()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        // The last reading is 40 minutes old and the latest refresh failed.
+        var account = Account(id, clock.Now.AddMinutes(-40));
+        var failed = account with { Session = account.Session with { Failure = ProviderFailureKind.RateLimited }, LastFailureAt = clock.Now };
+        using var source = Source(new Accounts { Current = [failed] }, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal(AccountHealth.SyncFailedStale, source.Current.Accounts[0].Health);
+            await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 30 }, Token);
+            Assert.Equal(AccountHealth.SyncFailedFresh, source.Current.Accounts[0].Health);
+            Assert.False(source.Current.Accounts[0].Cards[0].Freshness.IsStale);
+        }
+        finally { await source.StopAsync(); }
+    }
+
     // ---- D-199: units and today's use ----
 
     private static readonly DateTimeOffset TrackedFrom = new(2026, 10, 5, 10, 43, 0, TimeSpan.Zero);

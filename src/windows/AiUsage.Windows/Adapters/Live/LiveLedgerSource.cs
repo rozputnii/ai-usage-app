@@ -10,7 +10,9 @@ namespace AiUsage.Adapters.Live;
 /// <summary>Serializes local commands and observation capture; publishes complete snapshots through the UI dispatcher.</summary>
 internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
 {
-    internal static readonly TimeSpan RefreshInterval = TimeSpan.FromMinutes(5);
+    internal static readonly TimeSpan DefaultRefreshInterval = TimeSpan.FromMinutes(5);
+    // AIU-055 R-12: refreshes are checked by a one-minute tick, so an account is due this much before a full interval.
+    private static readonly TimeSpan TickSlack = TimeSpan.FromSeconds(30);
     private readonly IAccountService accounts;
     private readonly IReadingSeriesStore readings;
     private readonly IBudgetConfigurationStore budgets;
@@ -53,12 +55,13 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         this.preferences = preferences; this.dispatch = dispatch; this.openBrowser = openBrowser;
         this.time = time ?? TimeProvider.System; this.zone = zone ?? TimeZoneInfo.Local; this.diagnostics = diagnostics;
         Current = new(this.time.GetUtcNow(), new(DayKind.WorkDay, false, null), [], Options([]), null,
-            new(BudgetSettingsModel.MondayToFriday, []), new(RefreshInterval, UpdateStatus.NotPackaged, 0, []) { IsStarting = true });
+            new(BudgetSettingsModel.MondayToFriday, []), new(DefaultRefreshInterval, UpdateStatus.NotPackaged, 0, []) { IsStarting = true });
         accounts.Changed += AccountsChanged;
     }
 
     public LedgerSnapshot Current { get; private set; }
     public LedgerPreferences Preferences => preferences.Current.Preferences;
+    private TimeSpan RefreshInterval => TimeSpan.FromMinutes(Preferences.RefreshMinutes);
     public event EventHandler? Changed;
     // Set by the desktop lifetime. Deletion owns stopping/draining and restarting the product.
     public Func<CancellationToken, Task<CommandOutcome>>? DeleteData { get; set; }
@@ -218,6 +221,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             }
         }
         var snapshots = accounts.Current;
+        var interval = RefreshInterval;
+        var tolerance = ReadingContinuity.Tolerance(interval);
         var models = new List<AccountModel>();
         var nextLimits = new Dictionary<string, LedgerLimit>();
         foreach (var account in snapshots.OrderBy(a => AccountIndex(a.AccountId.ToString("N"))))
@@ -235,7 +240,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             data = [.. LiveLedgerProjection.AccountLimits(data)];
             foreach (var limit in data) nextLimits.Add(LiveLedgerProjection.CardId(limit.Series), limit);
             var name = preferences.Current.Labels.GetValueOrDefault(id) ?? DefaultName(account, snapshots);
-            var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday, preferences.Current.Today);
+            var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday, preferences.Current.Today, tolerance);
             model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId))
                     .Select(c => preferences.Current.Hidden.Contains(c.CardId) ? c with { Hidden = true } : c)
                     .Select(c => CreditDollars.Apply(c, preferences.Current.Units.GetValueOrDefault(c.CardId))).ToArray(),
@@ -272,7 +277,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await PublishAsync(new(TimeZoneInfo.ConvertTime(now, zone), new(off ? DayKind.DayOff : DayKind.WorkDay, workToday,
             workToday ? WorkCalendar.Midnight(date.AddDays(1), zone) : null), models, Options(snapshots), currentStrip,
             new(configuration.WorkDays.ToHashSet(), caps),
-            new(RefreshInterval, updates, failed.Length, failed.Select(a => a.Provider).Distinct().ToArray())
+            new(interval, updates, failed.Length, failed.Select(a => a.Provider).Distinct().ToArray())
             { LocalStatus = lostCaptures.Count > 0 ? "History has missing readings because local capture failed" : localStatus,
                 Recovery = recovery, DiagnosticsAvailable = DiagnosticsPreview is not null }));
     }
@@ -419,7 +424,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         try
         {
             if (stopped || !limits.TryGetValue(cardId, out var limit)) return null;
-            var history = LiveLedgerProjection.History(limit, time.GetUtcNow(), zone, preferences.Current.Today);
+            var history = LiveLedgerProjection.History(limit, time.GetUtcNow(), zone, preferences.Current.Today, ReadingContinuity.Tolerance(RefreshInterval));
             return preferences.Current.Units.GetValueOrDefault(cardId) is { Usd: true, Rate: var rate } ? CreditDollars.ToDollars(history, rate) : history;
         }
         finally { gate.Release(); }
@@ -513,11 +518,12 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await Task.Yield();
         QueueRebuild(); await WaitForIdleAsync();
         var now = time.GetUtcNow();
+        var interval = RefreshInterval;
         var due = accounts.Current.Where(a => a.Connected && !a.Busy &&
             a.Session.Status is not (ProviderSessionStatus.ReauthenticationRequired or ProviderSessionStatus.RecoveryRequired) &&
             a.Session.Failure is not (ProviderFailureKind.AccountMismatch or ProviderFailureKind.RegistrationUnavailable or ProviderFailureKind.ProjectUnavailable or ProviderFailureKind.InternalError) &&
             (NextRetry(a) is not { } retry || retry <= now) &&
-            (a.Session.Quota is null || a.Session.Failure is not null || now - a.Session.Quota.FetchedAt >= RefreshInterval)).ToArray();
+            (a.Session.Quota is null || a.Session.Failure is not null || now - a.Session.Quota.FetchedAt >= interval - TickSlack)).ToArray();
         var results = await Task.WhenAll(due.Select(a => accounts.RefreshAsync(a.AccountId, token)));
         lock (sync)
             for (int i = 0; i < results.Length; i++)
@@ -525,10 +531,12 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
                     attempts[due[i].AccountId] = (now, results[i].Outcome == AccountOutcome.Done ? 0 : Math.Min(3, attempts.GetValueOrDefault(due[i].AccountId).Failures + 1));
         QueueRebuild(); await WaitForIdleAsync();
     }
+    // A failure backs off 10, 20, then 30 minutes. After a success the next attempt is due one interval later, less the
+    // tick slack: the attempt time is read before the fetch, and the next tick may read the clock a moment early.
     private DateTimeOffset? NextRetry(AccountSnapshot account)
     {
-        lock (sync) return attempts.TryGetValue(account.AccountId, out var attempt) ? attempt.At +
-            TimeSpan.FromMinutes(account.Session.Failure is not null ? Math.Min(30, 5 << attempt.Failures) : 5) : null;
+        lock (sync) return attempts.TryGetValue(account.AccountId, out var attempt) ? attempt.At + (account.Session.Failure is not null
+            ? TimeSpan.FromMinutes(Math.Min(30, 5 << attempt.Failures)) : RefreshInterval - TickSlack) : null;
     }
 
     public Task StopAsync() { lock (sync) return stopping ??= StopCoreAsync(); }
