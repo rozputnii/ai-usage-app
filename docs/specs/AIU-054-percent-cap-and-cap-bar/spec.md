@@ -1,10 +1,10 @@
 ---
-id: AIU-NEW
+id: AIU-054
 type: feature
-status: approved
+status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: Owner direction, 2026-10-08, in conversation. The owner asked for an optional personal cap in percent on percent-only subscription windows (for example 90 % of the weekly limit, to keep a reserve), and for every applied cap to be the full width of its period bar, as if the provider's limit were the cap. The owner chose variant A of three and accepted the stated assumptions. Recorded as D-NEW.
+approval_basis: Owner direction, 2026-10-08, in conversation. The owner asked for an optional personal cap in percent on percent-only subscription windows (for example 90 % of the weekly limit, to keep a reserve), and for every applied cap to be the full width of its period bar, as if the provider's limit were the cap. The owner chose variant A of three and accepted the stated assumptions. Recorded as D-202.
 ---
 
 # Percent caps and the cap as the full bar

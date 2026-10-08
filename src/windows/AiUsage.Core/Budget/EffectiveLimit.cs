@@ -5,7 +5,7 @@ namespace AiUsage.Core.Budget;
 public enum LimitBinding { None, Provider, PersonalCap }
 public sealed record EffectiveLimit(Quantity? Value, LimitBinding Binding, bool CapRejected)
 {
-    /// <summary>D-NEW: a percent window of at least a day, or a monthly one, takes a percent cap; a five-hour window never does.</summary>
+    /// <summary>D-202: a percent window of at least a day, or a monthly one, takes a percent cap; a five-hour window never does.</summary>
     public static bool TakesPercentCap(LimitFacts facts) =>
         facts.Kind == LimitKind.PercentWindow && (facts.IsMonthly || facts.Duration >= TimeSpan.FromDays(1));
 
@@ -14,7 +14,7 @@ public sealed record EffectiveLimit(Quantity? Value, LimitBinding Binding, bool 
         ArgumentNullException.ThrowIfNull(facts);
         if (facts.Kind == LimitKind.PercentWindow)
         {
-            // D-NEW: a whole-window cap in percent of the provider's window, at most 100.
+            // D-202: a whole-window cap in percent of the provider's window, at most 100.
             var full = new CountQuantity(100, "percent");
             if (cap is null) return new(full, LimitBinding.Provider, false);
             if (!TakesPercentCap(facts) || cap.Amount is not CountQuantity { Unit: "percent", Value: >= 0 and <= 100 } percent)

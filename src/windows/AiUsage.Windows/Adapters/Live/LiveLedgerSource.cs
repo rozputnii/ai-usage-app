@@ -259,7 +259,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
                     var count => ScaleModel.Count(((CountQuantity)count).Unit)
                 },
                 shown?.Cap!.Amount ?? LiveLedgerProjection.Amount(cap.Cap.Amount) ?? 0,
-                // D-NEW: a percent cap left on a window that no longer takes one can only be removed.
+                // D-202: a percent cap left on a window that no longer takes one can only be removed.
                 card?.Cap is null || facts?.Kind == LimitKind.PercentWindow && card.CapTargetId is null ? CapStatus.Unmatched : card.Cap.Status,
                 card?.Cap?.Binding ?? false, card?.Figures.ProviderLimit ?? AiUsage.Features.Ledger.Contract.LimitValue.Unknown,
                 facts?.Kind == LimitKind.MonetaryPool ? facts.Unit : null, card?.Figures.Tracking);

@@ -74,7 +74,7 @@ public sealed partial class LedgerSmoke
             void Open() { Named("Limit settings, Copilot Business Premium requests")!.AsButton().Invoke(); Assert.True(Wait(() => Named("Show as US dollars") is not null)); }
 
             Assert.True(Wait(() => Shows("3,240 of 17,500 used")));
-            // D-NEW: a weekly percent window takes a percent cap, and the bar then spans the cap.
+            // D-202: a weekly percent window takes a percent cap, and the bar then spans the cap.
             Named("Limit settings, Codex subscription 7 day")!.AsButton().Invoke();
             Assert.True(Wait(() => Named("Cap amount in %") is not null));
             Named("Cap amount in %")!.Patterns.Value.Pattern.SetValue("90");

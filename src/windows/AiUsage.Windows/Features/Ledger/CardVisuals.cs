@@ -435,7 +435,7 @@ internal static class CardVisuals
     {
         var f = card.Figures;
         var used = f.Used ?? 0;
-        // D-NEW: an applied cap is the whole bar, as if the provider's limit were the cap.
+        // D-202: an applied cap is the whole bar, as if the provider's limit were the cap.
         if (AppliedCap(card) is { } cap)
             return cap;
         if (card.Scale.Kind == ScaleKind.Percent)
@@ -638,7 +638,7 @@ internal static class CardVisuals
         if (cap is { } c)
         {
             var capValue = c;
-            // D-NEW: a percent cap keeps its five-hour count, which the projection counts against the cap.
+            // D-202: a percent cap keeps its five-hour count, which the projection counts against the cap.
             var text = (estimate ? "≈ " : string.Empty) + (left
                 ? used <= capValue ? fm(capValue - used) + " left to cap" : fm(used - capValue) + " over cap"
                 : fm(used) + " of " + fm(capValue) + " cap") + windows;

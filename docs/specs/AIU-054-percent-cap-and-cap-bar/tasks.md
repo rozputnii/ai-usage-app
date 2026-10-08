@@ -1,9 +1,9 @@
 ---
-id: AIU-NEW
+id: AIU-054
 schema_version: 1
 ---
 
-# AIU-NEW Implementation Plan
+# AIU-054 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -31,7 +31,7 @@ schema_version: 1
 - Only an applied cap (`CapStatus.Applied`) sets the bar's width; `AboveLimit`, `Inactive`,
   `CurrencyMismatch` and `Unmatched` leave it on the provider limit.
 - No budget-store format change, no new dependency, no new logging event.
-- Commit after each task as `feat(AIU-NEW): …` / `test(AIU-NEW): …` / `docs(AIU-NEW): …`, without attribution lines.
+- Commit after each task as `feat(AIU-054): …` / `test(AIU-054): …` / `docs(AIU-054): …`, without attribution lines.
 
 ## Review Focus
 
@@ -49,10 +49,10 @@ schema_version: 1
 ---
 
 ### T-01 - Core: percent cap and five-hour count against the limit
-- status: in-progress
+- status: done
 - depends_on: []
 - acceptance: [AC-01, AC-02]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Infrastructure.Tests/LimitModelTests.cs; PercentCapRules, PercentCapIsTheBudgetLimit and WindowsLeftCountAgainstTheCap red then green; Infrastructure suite 905/905
 
 **Files:** `src/windows/AiUsage.Core/Budget/EffectiveLimit.cs`, `src/windows/AiUsage.Core/Budget/SessionEstimator.cs`;
 tests `tests/windows/AiUsage.Infrastructure.Tests/LimitModelTests.cs`, `BudgetEngineTests.cs`, `SessionEstimateTests.cs`.
@@ -75,10 +75,10 @@ tests `tests/windows/AiUsage.Infrastructure.Tests/LimitModelTests.cs`, `BudgetEn
 - [ ] Run Infrastructure tests; all pass. Commit.
 
 ### T-02 - Projection and source: percent cap targets and storage
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: [AC-03]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LiveLedgerSourceTests.cs; PercentCapIsStoredWholeAndListedInPercent and WeeklyPercentWindowTakesACapAndBudgetsAgainstIt red then green; Presentation suite 294/294
 
 **Files:** `src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerProjection.cs`, `LiveLedgerSource.cs`;
 tests `tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs`, `LiveLedgerSourceTests.cs`.
@@ -97,10 +97,10 @@ tests `tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs`, `
 - [ ] Run Presentation tests; all pass. Commit.
 
 ### T-03 - Visuals: the cap is the full bar
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: [AC-04]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LedgerTests.cs; CapIsTheFullBarAndATickMarksItOnceExceeded and FiveHourDividersFollowTheCapScale red then green; Presentation suite 295/295
 
 **Files:** `src/windows/AiUsage.Windows/Features/Ledger/CardVisuals.cs`; tests `tests/windows/AiUsage.Presentation.Tests/LedgerTests.cs`.
 
@@ -117,10 +117,10 @@ tests `tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs`, `
 - [ ] Run Presentation tests; all pass. Commit.
 
 ### T-04 - Demo and desktop smoke
-- status: pending
+- status: done
 - depends_on: [T-03]
 - acceptance: [AC-05]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Windows.Tests/LedgerActivationSmoke.cs; WorkBudget UI smoke 2/2 and LedgerLaunch smoke 2/2; Presentation suite 296/296
 
 **Files:** `src/windows/AiUsage.Windows/Features/Ledger/Demo/DemoLedgerScenarios.cs`, `DemoLedgerSource.cs`;
 `tests/windows/AiUsage.Windows.Tests/LedgerActivationSmoke.cs`.
@@ -132,10 +132,10 @@ tests `tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs`, `
 - [ ] Run Presentation tests, the Release build and the smoke. Commit.
 
 ### T-05 - Verification, review and merge
-- status: pending
+- status: done
 - depends_on: [T-01, T-02, T-03, T-04]
 - acceptance: [AC-06]
-- evidence: not-run
+- evidence: docs/specs/AIU-054-percent-cap-and-cap-bar/verification.md
 
 - [ ] Record results in `verification.md`; one fresh whole-branch review; fix findings.
 - [ ] Merge fresh `main`, assign numbers (D-196), run validation `--final`, merge into `main`, push.
