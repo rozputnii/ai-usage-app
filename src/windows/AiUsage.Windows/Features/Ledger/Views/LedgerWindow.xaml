@@ -176,9 +176,15 @@
       <TextBlock Text="Opening local data…" Margin="16,10" Style="{StaticResource LedgerBodyText}" Visibility="{x:Bind Show(ViewModel.IsStarting), Mode=OneWay}" />
       <ScrollViewer x:Name="CardScroller" Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                     Visibility="{x:Bind Hide(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
-        <!-- S1 (D-193): one column of full-width cards; inline history follows its card. -->
-        <StackPanel x:Name="CardGrid" Spacing="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
-                    XYFocusKeyboardNavigation="Enabled" />
+        <Grid>
+          <!-- S1 (D-193): one column of full-width cards; inline history follows its card. -->
+          <StackPanel x:Name="CardGrid" Spacing="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
+                      XYFocusKeyboardNavigation="Enabled" />
+          <!-- D-205: while a card is dragged by its grip, a line marks the gap it would drop into. -->
+          <Canvas x:Name="DragLayer" IsHitTestVisible="False">
+            <Rectangle x:Name="InsertionLine" Height="2" RadiusX="1" RadiusY="1" Fill="{StaticResource LedgerFocusBrush}" Visibility="Collapsed" />
+          </Canvas>
+        </Grid>
       </ScrollViewer>
 
       <ScrollViewer x:Name="FirstRunScroller" Grid.Row="1" Visibility="{x:Bind Show(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">

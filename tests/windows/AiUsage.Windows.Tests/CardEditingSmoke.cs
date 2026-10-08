@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Text.Json;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
@@ -18,129 +19,265 @@ public sealed partial class CardEditingSmoke
     public void ClickingTheNameRenamesTheAccount()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();
-        var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
-        var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
-        Assert.False(string.IsNullOrWhiteSpace(exe)); Assert.False(string.IsNullOrWhiteSpace(evidence));
-        Directory.CreateDirectory(evidence!);
-        var start = new ProcessStartInfo(exe!, "--demo") { UseShellExecute = false };
-        start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Path.Combine(Path.GetTempPath(), "aiu-rename-smoke-" + Guid.NewGuid().ToString("N"));
-        using var app = Application.Launch(start);
-        using var process = Process.GetProcessById(app.ProcessId);
-        _ = process.Handle;
-        using var automation = new UIA3Automation();
+        var evidence = EvidenceDirectory();
+        using var app = new DemoApp("aiu-rename-smoke-");
         var passed = false;
         var stage = "launch";
-        // A cached UIA element can turn invalid when a snapshot replaces it; resolve the window afresh for each query.
-        Window Main()
+        try
+        {
+            Focus(app.Main());
+            stage = "hover";
+            // The hovered name shows the dotted underline and the Rename tooltip (Codex: the Refresh tooltip covers Claude at launch).
+            Hover(app.Name("codex-week", "Codex Pro").GetClickablePoint());
+            Thread.Sleep(1500);
+            Save(app, evidence, "rename-hover.png");
+
+            stage = "click, type, Enter";
+            app.Name("claude-week", "Claude Pro").Click();
+            Assert.Equal("Claude Pro", app.Box("claude-week").Text);
+            Keyboard.Type("Claude Work");
+            Keyboard.Press(VirtualKeyShort.RETURN);
+            app.Name("claude-week", "Claude Work");
+            Assert.True(Wait(app.NoBox), "Enter left the rename box open");
+
+            stage = "focus leaving saves";
+            app.Name("claude-week", "Claude Work").Click();
+            app.Box("claude-week");
+            Keyboard.Type("Claude Tab");
+            Keyboard.Press(VirtualKeyShort.TAB);
+            app.Name("claude-week", "Claude Tab");
+            Assert.True(Wait(app.NoBox), "Tab left the rename box open");
+
+            stage = "click outside saves";
+            app.Name("claude-week", "Claude Tab").Click();
+            app.Box("claude-week");
+            Keyboard.Type("Claude Home");
+            var codex = app.Card("codex-week").BoundingRectangle;
+            // The card's top padding, clear of the name, the icons and the pill.
+            var empty = new System.Drawing.Point(codex.Left + codex.Width / 2, codex.Top + 4);
+            DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, empty);
+            Mouse.Click(empty);
+            app.Name("claude-week", "Claude Home");
+            Assert.True(Wait(app.NoBox), "A click outside left the rename box open");
+
+            stage = "another name saves the first";
+            app.Name("claude-week", "Claude Home").Click();
+            app.Box("claude-week");
+            Keyboard.Type("First");
+            app.Name("codex-week", "Codex Pro").Click();
+            app.Name("claude-week", "First");
+            Assert.Equal("Codex Pro", app.Box("codex-week").Text);
+            Assert.Null(app.Card("claude-week").FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))));
+
+            stage = "context menu keeps the rename";
+            // Focus moves into the box's own menu; that is not leaving the box.
+            app.Box("codex-week").RightClick();
+            Thread.Sleep(800);
+            Keyboard.Press(VirtualKeyShort.ESCAPE);
+            Assert.Equal("Codex Pro", app.Box("codex-week").Text);
+
+            stage = "Esc cancels";
+            Keyboard.Press(VirtualKeyShort.ESCAPE);
+            Assert.True(Wait(app.NoBox), "Esc left the rename box open");
+            app.Name("codex-week", "Codex Pro");
+            Save(app, evidence, "rename.png");
+
+            stage = "exit";
+            app.Exit();
+            passed = true;
+        }
+        finally
+        {
+            app.Finish(evidence, "rename", passed, stage);
+        }
+    }
+
+    /// <summary>R-10: dragging a card's grip moves the account; an open rename is saved first, and Esc cancels a drag.</summary>
+    [Fact]
+    public void DraggingTheGripReordersAccounts()
+    {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
+        var evidence = EvidenceDirectory();
+        using var app = new DemoApp("aiu-drag-smoke-");
+        var passed = false;
+        var stage = "launch";
+        var held = false;
+        // The account names in the order the cards show them: tree order, since a card scrolled out of view has no bounds.
+        string[] Order()
+        {
+            string[] names = ["Claude Pro", "Codex Pro", "Codex Work", "Copilot Free", "Antigravity AI Plus"];
+            return [.. app.Main().FindAllDescendants(cf => cf.ByControlType(ControlType.Text))
+                .Select(text => text.Properties.Name.ValueOrDefault).OfType<string>().Where(names.Contains)];
+        }
+        try
+        {
+            Focus(app.Main());
+            Assert.True(Wait(() => Order() is ["Claude Pro", "Codex Pro", ..]), "Unexpected demo order: " + string.Join(", ", Order()));
+
+            stage = "a drag saves the open rename";
+            app.Name("codex-week", "Codex Pro").Click();
+            app.Box("codex-week");
+            Keyboard.Type("Codex Work");
+            var grip = PointAtGrip(app, "claude-week", "Reorder Claude Pro");
+            Mouse.Down(MouseButton.Left);
+            held = true;
+            // A few pixels start the drag.
+            var started = new System.Drawing.Point(grip.X, grip.Y + 10);
+            MoveInSteps(grip, started, 3);
+            app.Name("codex-week", "Codex Work");
+            Assert.True(Wait(app.NoBox), "The drag left the rename box open");
+
+            stage = "drag below Codex";
+            // Past the middle of the Codex card, read again now that its rename hint is gone.
+            var codex = app.Card("codex-week").BoundingRectangle;
+            var below = new System.Drawing.Point(grip.X, codex.Top + codex.Height / 2 + 20);
+            MoveInSteps(started, below);
+            Thread.Sleep(300);
+            Save(app, evidence, "drag.png");
+            Mouse.Up(MouseButton.Left);
+            held = false;
+            Assert.True(Wait(() => Order() is ["Codex Work", "Claude Pro", ..]), "The drop did not move Claude Pro below Codex: " + string.Join(", ", Order()));
+
+            stage = "Esc cancels a drag";
+            grip = PointAtGrip(app, "claude-week", "Reorder Claude Pro");
+            Mouse.Down(MouseButton.Left);
+            held = true;
+            codex =app.Card("codex-week").BoundingRectangle;
+            var above = new System.Drawing.Point(grip.X, codex.Top + codex.Height / 2 - 20);
+            MoveInSteps(grip, above);
+            Thread.Sleep(300);
+            Keyboard.Press(VirtualKeyShort.ESCAPE);
+            MoveInSteps(above, new System.Drawing.Point(above.X, above.Y - 10), 3);
+            Mouse.Up(MouseButton.Left);
+            held = false;
+            Thread.Sleep(1000);
+            Assert.True(Order() is ["Codex Work", "Claude Pro", ..], "A drag released after Esc changed the order: " + string.Join(", ", Order()));
+            Save(app, evidence, "drag-cancelled.png");
+
+            stage = "exit";
+            app.Exit();
+            passed = true;
+        }
+        finally
+        {
+            // A failed run must not leave the button held for the desktop.
+            if (held)
+                Mouse.Up(MouseButton.Left);
+            app.Finish(evidence, "drag", passed, stage);
+        }
+    }
+
+    private static string EvidenceDirectory()
+    {
+        var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
+        Assert.False(string.IsNullOrWhiteSpace(evidence));
+        Directory.CreateDirectory(evidence!);
+        return evidence!;
+    }
+
+    private static void Save(DemoApp app, string evidence, string file)
+    {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
+        using var capture = app.Main().Capture();
+        capture.Save(Path.Combine(evidence, file), ImageFormat.Png);
+    }
+
+    /// <summary>Points at the card so its grip shows, then onto the grip; returns the grip's point.</summary>
+    private static System.Drawing.Point PointAtGrip(DemoApp app, string cardId, string gripName)
+    {
+        var card = app.Card(cardId).BoundingRectangle;
+        Hover(new System.Drawing.Point(card.Left + card.Width / 2, card.Top + 4));
+        AutomationElement? grip = null;
+        Assert.True(Wait(() => (grip = app.Card(cardId).FindFirstDescendant(cf => cf.ByName(gripName))) is not null), "Missing " + gripName);
+        var bounds = grip!.BoundingRectangle;
+        var point = new System.Drawing.Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
+        DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, point);
+        Hover(point);
+        return point;
+    }
+
+    /// <summary>The demo app with isolated state. A published snapshot can replace a cached UIA element, so each query resolves afresh.</summary>
+    private sealed class DemoApp : IDisposable
+    {
+        private readonly Application app;
+        private readonly Process process;
+        private readonly UIA3Automation automation = new();
+
+        public DemoApp(string statePrefix)
+        {
+            var exe = Environment.GetEnvironmentVariable("AIU_SMOKE_EXE");
+            Assert.False(string.IsNullOrWhiteSpace(exe));
+            var start = new ProcessStartInfo(exe!, "--demo") { UseShellExecute = false };
+            start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Path.Combine(Path.GetTempPath(), statePrefix + Guid.NewGuid().ToString("N"));
+            app = Application.Launch(start);
+            process = Process.GetProcessById(app.ProcessId);
+            _ = process.Handle;
+        }
+
+        public int ProcessId => app.ProcessId;
+
+        public Window Main()
         {
             Window? current = null;
             Assert.True(Wait(() => (current = OwnedWindow(automation, app.ProcessId)) is not null), "Ledger window is not available");
             return current!;
         }
-        AutomationElement Card(string id)
+
+        public AutomationElement Card(string id)
         {
             AutomationElement? card = null;
             Assert.True(Wait(() => (card = Main().FindFirstDescendant(cf => cf.ByAutomationId(id))) is not null), "Missing card " + id);
             return card!;
         }
-        AutomationElement Name(string cardId, string text)
+
+        public AutomationElement Name(string cardId, string text)
         {
             AutomationElement? name = null;
             Assert.True(Wait(() => (name = Card(cardId).FindFirstDescendant(cf => cf.ByName(text).And(cf.ByControlType(ControlType.Text)))) is not null),
                 $"Card {cardId} does not show the name {text}");
             return name!;
         }
-        // The open rename box, once it holds keyboard focus with its text selected.
-        TextBox Box(string cardId)
+
+        /// <summary>The open rename box, once it holds keyboard focus with its text selected.</summary>
+        public TextBox Box(string cardId)
         {
             AutomationElement? box = null;
             Assert.True(Wait(() => (box = Card(cardId).FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))) is not null &&
                 box.Properties.HasKeyboardFocus.ValueOrDefault), $"No focused rename box in {cardId}");
             return box!.AsTextBox();
         }
-        bool NoBox() => Main().FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))) is null;
-        try
+
+        public bool NoBox() => Main().FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))) is null;
+
+        public void Exit()
         {
-            Focus(Main());
-            stage = "hover";
-            // The hovered name shows the dotted underline and the Rename tooltip (Codex: the Refresh tooltip covers Claude at launch).
-            Hover(Name("codex-week", "Codex Pro").GetClickablePoint());
-            Thread.Sleep(1500);
-            DesktopTestEnvironment.RequireUnlockedDesktop();
-            using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "rename-hover.png"), System.Drawing.Imaging.ImageFormat.Png);
-
-            stage = "click, type, Enter";
-            Name("claude-week", "Claude Pro").Click();
-            Assert.Equal("Claude Pro", Box("claude-week").Text);
-            Keyboard.Type("Claude Work");
-            Keyboard.Press(VirtualKeyShort.RETURN);
-            Name("claude-week", "Claude Work");
-            Assert.True(Wait(NoBox), "Enter left the rename box open");
-
-            stage = "focus leaving saves";
-            Name("claude-week", "Claude Work").Click();
-            Box("claude-week");
-            Keyboard.Type("Claude Tab");
-            Keyboard.Press(VirtualKeyShort.TAB);
-            Name("claude-week", "Claude Tab");
-            Assert.True(Wait(NoBox), "Tab left the rename box open");
-
-            stage = "click outside saves";
-            Name("claude-week", "Claude Tab").Click();
-            Box("claude-week");
-            Keyboard.Type("Claude Home");
-            var codex = Card("codex-week").BoundingRectangle;
-            // The card's top padding, clear of the name, the icons and the pill.
-            var empty = new System.Drawing.Point(codex.Left + codex.Width / 2, codex.Top + 4);
-            DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, empty);
-            Mouse.Click(empty);
-            Name("claude-week", "Claude Home");
-            Assert.True(Wait(NoBox), "A click outside left the rename box open");
-
-            stage = "another name saves the first";
-            Name("claude-week", "Claude Home").Click();
-            Box("claude-week");
-            Keyboard.Type("First");
-            Name("codex-week", "Codex Pro").Click();
-            Name("claude-week", "First");
-            Assert.Equal("Codex Pro", Box("codex-week").Text);
-            Assert.Null(Card("claude-week").FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))));
-
-            stage = "context menu keeps the rename";
-            // Focus moves into the box's own menu; that is not leaving the box.
-            Box("codex-week").RightClick();
-            Thread.Sleep(800);
-            Keyboard.Press(VirtualKeyShort.ESCAPE);
-            Assert.Equal("Codex Pro", Box("codex-week").Text);
-
-            stage = "Esc cancels";
-            Keyboard.Press(VirtualKeyShort.ESCAPE);
-            Assert.True(Wait(NoBox), "Esc left the rename box open");
-            Name("codex-week", "Codex Pro");
-
-            DesktopTestEnvironment.RequireUnlockedDesktop();
-            using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "rename.png"), System.Drawing.Imaging.ImageFormat.Png);
-
-            stage = "exit";
             Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "Exit did not terminate the launched process");
             Assert.Equal(0, process.ExitCode);
-            passed = true;
         }
-        finally
+
+        /// <summary>Records the outcome; a run that did not exit leaves a failure capture and is stopped.</summary>
+        public void Finish(string evidence, string name, bool passed, string stage)
         {
-            File.WriteAllText(Path.Combine(evidence!, "rename-smoke.json"), JsonSerializer.Serialize(new { passed, stage, exited = process.HasExited }));
-            if (!process.HasExited)
+            File.WriteAllText(Path.Combine(evidence, name + "-smoke.json"), JsonSerializer.Serialize(new { passed, stage, exited = process.HasExited }));
+            if (process.HasExited)
+                return;
+            try
             {
-                try
-                {
-                    if (OwnedWindow(automation, app.ProcessId) is { } failed)
-                        using (var capture = failed.Capture()) capture.Save(Path.Combine(evidence!, "rename-failure.png"), System.Drawing.Imaging.ImageFormat.Png);
-                }
-                catch (System.Runtime.InteropServices.COMException) { }
-                process.Kill(); process.WaitForExit(5000);
+                if (OwnedWindow(automation, app.ProcessId) is { } failed)
+                    using (var capture = failed.Capture()) capture.Save(Path.Combine(evidence, name + "-failure.png"), ImageFormat.Png);
             }
+            catch (System.Runtime.InteropServices.COMException) { }
+            process.Kill();
+            process.WaitForExit(5000);
+        }
+
+        public void Dispose()
+        {
+            automation.Dispose();
+            process.Dispose();
+            app.Dispose();
         }
     }
 
@@ -184,6 +321,18 @@ public sealed partial class CardEditingSmoke
     {
         Input[] moves = [new(point.X - 6, point.Y), new(point.X, point.Y)];
         Assert.Equal((uint)moves.Length, SendInput((uint)moves.Length, moves, System.Runtime.InteropServices.Marshal.SizeOf<Input>()));
+        Thread.Sleep(100);
+    }
+
+    /// <summary>Moves the cursor in SendInput steps, which WinUI takes as pointer movement (FlaUI's Mouse.MoveTo is not).</summary>
+    private static void MoveInSteps(System.Drawing.Point from, System.Drawing.Point to, int steps = 12)
+    {
+        for (var i = 1; i <= steps; i++)
+        {
+            Input[] move = [new(from.X + (to.X - from.X) * i / steps, from.Y + (to.Y - from.Y) * i / steps)];
+            Assert.Equal(1u, SendInput(1, move, System.Runtime.InteropServices.Marshal.SizeOf<Input>()));
+            Thread.Sleep(20);
+        }
         Thread.Sleep(100);
     }
 

@@ -9,7 +9,8 @@ namespace AiUsage.Features.Ledger.Views;
 
 /// <summary>One limit card (spec 6.2). The card is not a tab stop itself (D-200); from any control inside it F2 renames,
 /// C opens the limit settings with the cap field focused (the card has no cap editor of its own), Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.
-/// A click on the account name also renames (D-205); Enter, a click elsewhere or focus leaving the box saves, Esc cancels.</summary>
+/// A click on the account name also renames (D-205); Enter, a click elsewhere or focus leaving the box saves, Esc cancels.
+/// The grip shown on hover drags the account card to another place (D-205); the window runs the drag.</summary>
 internal sealed partial class LedgerCardView : UserControl
 {
     public LedgerCardView() => InitializeComponent();
@@ -221,6 +222,44 @@ internal sealed partial class LedgerCardView : UserControl
         _ = ViewModel.CommitRenameAsync();
     }
 
+    /// <summary>A press on the grip; the window drags the card from there (D-205).</summary>
+    public event EventHandler<PointerRoutedEventArgs>? ReorderPressed;
+
+    private void OnGripPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(Grip).Properties.IsLeftButtonPressed)
+            return;
+        e.Handled = true;
+        ReorderPressed?.Invoke(this, e);
+    }
+
+    private ToolTip? gripTip;
+
+    /// <summary>The window drags this card: the grip's tooltip, whose hover delay would open it mid-drag, waits.</summary>
+    public void BeginReorder()
+    {
+        gripTip = ToolTipService.GetToolTip(Grip) as ToolTip;
+        ToolTipService.SetToolTip(Grip, null);
+    }
+
+    /// <summary>The drag is over: the grip hides until the pointer moves on the card again, and its tooltip returns.</summary>
+    public void EndReorder()
+    {
+        Grip.Opacity = 0;
+        ToolTipService.SetToolTip(Grip, gripTip);
+    }
+
+    // Pointer events bubble from the card's children, so the grip follows where the pointer is rather than which element
+    // raised the event: hidden off the card, quiet on it (as the card icons) and opaque on the grip itself.
+    private void OnCardPointer(object sender, PointerRoutedEventArgs e) =>
+        Grip.Opacity = !IsOver(this, e) ? 0 : IsOver(Grip, e) ? 1 : 0.45;
+
+    private static bool IsOver(FrameworkElement element, PointerRoutedEventArgs e)
+    {
+        var at = e.GetCurrentPoint(element).Position;
+        return at.X >= 0 && at.Y >= 0 && at.X < element.ActualWidth && at.Y < element.ActualHeight;
+    }
+
     private void OnIconPointerEntered(object sender, PointerRoutedEventArgs e) => ((UIElement)sender).Opacity = 1;
 
     private void OnIconPointerExited(object sender, PointerRoutedEventArgs e) => QuietIcon((UIElement)sender);
@@ -258,6 +297,8 @@ internal sealed partial class LedgerCardView : UserControl
     private Brush PillText(Tone tone) => LedgerTheme.ToneText(tone);
 
     private Thickness CardPadding(bool compact, bool section) => section ? new Thickness(0) : compact ? new Thickness(12, 8, 12, 8) : new Thickness(15, 13, 15, 12);
+    // The grip fills the card's left padding beside the header.
+    private Thickness GripMargin(bool compact) => new(compact ? -12 : -15, 0, 0, 0);
     private double InnerGap(bool compact) => compact ? 6 : 10;
     private double StripGap(bool compact, bool hasStrip) => hasStrip ? (compact ? 3 : 8) : 0;
     private Thickness BarMargin(bool compact) => compact ? new Thickness(0, -2, 0, -2) : new Thickness(0);

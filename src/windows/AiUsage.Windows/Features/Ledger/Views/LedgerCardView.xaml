@@ -8,7 +8,7 @@
     CornerRadius="20"
     AutomationProperties.Name="{x:Bind ViewModel.Visual.AccessibleName, Mode=OneWay}"
     AutomationProperties.AutomationId="{x:Bind ViewModel.CardId, Mode=OneWay}"
-    KeyDown="OnKeyDown">
+    KeyDown="OnKeyDown" PointerEntered="OnCardPointer" PointerMoved="OnCardPointer" PointerExited="OnCardPointer">
   <!-- Spec 6.2: name, scope, marks and pill; then the today row, the period row and the footer, or fact lines. -->
   <lc:SquircleSurface x:Name="Surface" Radius="20" Fill="{x:Bind SurfaceFill(ViewModel.IsNew, ViewModel.IsAccountSection), Mode=OneWay}" Stroke="{x:Bind SurfaceStroke(ViewModel.IsNew, ViewModel.IsAccountSection), Mode=OneWay}"
                       Padding="{x:Bind CardPadding(ViewModel.IsCompact, ViewModel.IsAccountSection), Mode=OneWay}">
@@ -19,6 +19,20 @@
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
+        <!-- D-205: the grip drags the account to another place. It shows on card hover in the card's left padding, so the name
+             keeps its place; quiet like the card icons, opaque while pointed at. -->
+        <lc:LedgerClickRow x:Name="Grip" IsTabStop="False" Width="12" Height="24" HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Margin="{x:Bind GripMargin(ViewModel.IsCompact), Mode=OneWay}" Opacity="0" Visibility="{x:Bind Show(ViewModel.CanReorder), Mode=OneWay}"
+                           PointerPressed="OnGripPressed" AutomationProperties.Name="{x:Bind ViewModel.ReorderName, Mode=OneWay}"
+                           ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Drag to reorder · Alt+↑/↓')}">
+          <!-- The transparent panel takes the press between the dots too. -->
+          <Grid Background="Transparent">
+            <Path Data="M2.8,7 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z M6.8,7 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z
+                        M2.8,12 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z M6.8,12 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z
+                        M2.8,17 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z M6.8,17 a1.2,1.2 0 1 0 2.4,0 a1.2,1.2 0 1 0 -2.4,0 Z"
+                  Fill="{StaticResource LedgerInk2Brush}" Width="12" Height="24" />
+          </Grid>
+        </lc:LedgerClickRow>
         <lc:ShrinkFirstPanel>
           <Grid>
           <!-- D-205: a click on the name renames the account, as F2 does; on hover it is underlined like the hidden count. -->

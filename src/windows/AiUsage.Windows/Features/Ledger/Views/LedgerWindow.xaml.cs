@@ -39,6 +39,10 @@ internal sealed partial class LedgerWindow : Window
     private Storyboard? stripWave;
     private Storyboard? settingsSlide;
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? copyReset;
+    /// <summary>The card whose grip is pressed; it lifts once the pointer has moved 4 px from where the press was.</summary>
+    private LedgerCardView? dragged;
+    private Windows.Foundation.Point dragFrom;
+    private bool dragging;
 
     public LedgerWindow(LedgerViewModel viewModel, Func<Task> exit, Action showTray)
     {
@@ -63,9 +67,12 @@ internal sealed partial class LedgerWindow : Window
         Body.SizeChanged += (_, e) => SettingsPanel.Height = e.NewSize.Height;
         // D-205: a click anywhere outside an open rename box saves that name; buttons and the box handle their own releases.
         Root.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnRootPointerReleased), handledEventsToo: true);
+        CardGrid.PointerMoved += OnDragMoved;
+        CardGrid.PointerReleased += OnDragReleased;
+        CardGrid.PointerCaptureLost += (_, _) => CancelDrag();
         AppWindow.Closing += OnClosing;
 
-        AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape() || HideFocusFrame());
+        AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => CancelDrag() || ViewModel.Escape() || HideFocusFrame());
         AddAccelerator((VirtualKey)188, VirtualKeyModifiers.Control, () => { ViewModel.ToggleSettings(); return true; });
         AddAccelerator(VirtualKey.N, VirtualKeyModifiers.Control, () =>
         {
@@ -276,7 +283,10 @@ internal sealed partial class LedgerWindow : Window
         foreach (var card in ViewModel.Cards)
         {
             if (!views.TryGetValue(card, out var view))
+            {
                 views[card] = view = new LedgerCardView { ViewModel = card };
+                view.ReorderPressed += OnReorderPressed;
+            }
         }
         // One account is one card (D-191): its primary limit hosts every shown section; hidden sections are left out.
         foreach (var card in ViewModel.Cards.Where(c => !c.IsAccountSection))
@@ -299,6 +309,8 @@ internal sealed partial class LedgerWindow : Window
             wanted.Insert(openIndex + 1, historyPanel);
         if (CardGrid.Children.SequenceEqual(wanted))
             return;
+        // The places a drag measures against are about to change.
+        CancelDrag();
         CardGrid.Children.Clear();
         foreach (var element in wanted)
             CardGrid.Children.Add(element);
@@ -308,6 +320,96 @@ internal sealed partial class LedgerWindow : Window
     {
         foreach (var view in views.Values.ToArray())
             view.CommitRenameOutside(e.OriginalSource as DependencyObject);
+    }
+
+    // ---- Drag to reorder (D-205) ----
+
+    private void OnReorderPressed(object? sender, PointerRoutedEventArgs e)
+    {
+        if (dragged is not null || sender is not LedgerCardView view || !CardGrid.CapturePointer(e.Pointer))
+            return;
+        dragged = view;
+        dragFrom = e.GetCurrentPoint(DragLayer).Position;
+        view.BeginReorder();
+    }
+
+    private void OnDragMoved(object sender, PointerRoutedEventArgs e)
+    {
+        if (dragged is null)
+            return;
+        var at = e.GetCurrentPoint(DragLayer).Position;
+        if (!dragging)
+        {
+            if (Math.Abs(at.X - dragFrom.X) < 4 && Math.Abs(at.Y - dragFrom.Y) < 4)
+                return;
+            dragging = true;
+            // An open rename is saved, not lost; its box gives up focus, so Esc reaches the window's accelerator.
+            foreach (var view in views.Values.ToArray())
+                view.CommitRenameOutside(dragged);
+            // The cards the pointer passes show no hover or tooltips; the grid keeps the captured pointer.
+            foreach (var card in CardGrid.Children.OfType<LedgerCardView>())
+                card.IsHitTestVisible = false;
+            Canvas.SetZIndex(dragged, 1);
+            dragged.Opacity = 0.92;
+            dragged.RenderTransform = new TranslateTransform();
+        }
+        ((TranslateTransform)dragged.RenderTransform).Y = at.Y - dragFrom.Y;
+        var drop = DropAt(at.Y);
+        InsertionLine.Visibility = drop is null ? Visibility.Collapsed : Visibility.Visible;
+        if (drop is { } place)
+        {
+            Canvas.SetLeft(InsertionLine, place.Line.X);
+            Canvas.SetTop(InsertionLine, place.Line.Y - InsertionLine.Height / 2);
+            InsertionLine.Width = place.Line.Width;
+        }
+    }
+
+    private void OnDragReleased(object sender, PointerRoutedEventArgs e)
+    {
+        if (dragged is null)
+            return;
+        var accountId = dragged.ViewModel.Account.AccountId;
+        var drop = dragging ? DropAt(e.GetCurrentPoint(DragLayer).Position.Y) : null;
+        CancelDrag();
+        if (drop is { } place)
+            _ = ViewModel.MoveAccountAsync(accountId, place.Before);
+    }
+
+    /// <summary>Puts the dragged card back in its place; true when a grip was pressed. Esc and a lost capture cancel this way.</summary>
+    private bool CancelDrag()
+    {
+        if (dragged is not { } view)
+            return false;
+        dragged = null;
+        dragging = false;
+        foreach (var card in CardGrid.Children.OfType<LedgerCardView>())
+            card.ClearValue(UIElement.IsHitTestVisibleProperty);
+        view.ClearValue(Canvas.ZIndexProperty);
+        view.ClearValue(UIElement.OpacityProperty);
+        view.RenderTransform = null;
+        view.EndReorder();
+        InsertionLine.Visibility = Visibility.Collapsed;
+        CardGrid.ReleasePointerCaptures();
+        return true;
+    }
+
+    /// <summary>
+    /// Where a release at this height would put the dragged account, and the gap that shows it; null when the order would
+    /// stay as it is. Only the account cards count, not the history panel between them.
+    /// </summary>
+    private (string? Before, Windows.Foundation.Rect Line)? DropAt(double y)
+    {
+        var cards = CardGrid.Children.OfType<LedgerCardView>().ToList();
+        var order = cards.Select(card => card.ViewModel.Account.AccountId).ToList();
+        var moved = dragged!.ViewModel.Account.AccountId;
+        var others = cards.Where(card => card != dragged)
+            .Select(card => card.TransformToVisual(DragLayer).TransformBounds(new Windows.Foundation.Rect(0, 0, card.ActualWidth, card.ActualHeight))).ToList();
+        var index = ReorderMath.InsertionIndex([.. others.Select(bounds => bounds.Y + bounds.Height / 2)], y);
+        if (others.Count == 0 || index == order.IndexOf(moved))
+            return null;
+        var gap = CardGrid.Spacing / 2;
+        var lineY = index < others.Count ? others[index].Top - gap : others[^1].Bottom + gap;
+        return (ReorderMath.BeforeId(order, moved, index), new Windows.Foundation.Rect(others[0].X, lineY, others[0].Width, 0));
     }
 
     private void FocusCard(string cardId)
