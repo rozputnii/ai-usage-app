@@ -31,7 +31,7 @@
   <Color x:Key="LedgerOkMColor">#7FB98F</Color>
   <Color x:Key="LedgerOkPColor">#5E8A6B</Color>
   <Color x:Key="LedgerOkTextColor">#7FB98F</Color>
-  <!-- D-NEW: a true orange (hue ~28°); the reference clay #D97757 sat 7° from critical red and read as red. -->
+  <!-- D-201: a true orange (hue ~28°); the reference clay #D97757 sat 7° from critical red and read as red. -->
   <Color x:Key="LedgerAttMColor">#E58A3C</Color>
   <Color x:Key="LedgerAttPColor">#A8652E</Color>
   <Color x:Key="LedgerAttTextColor">#F0A060</Color>
