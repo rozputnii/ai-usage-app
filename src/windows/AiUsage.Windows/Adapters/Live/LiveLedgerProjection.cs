@@ -18,6 +18,8 @@ internal sealed record LedgerLimit(LimitFacts Facts, ReadingSeriesKey Series, IR
 }
 /// <summary>The used amount and period instance a card budgets with now (D-NEW).</summary>
 internal sealed record TodayBasis(Quantity Used, string Instance);
+/// <summary>The owner's day start for one card on one local date, in the native amount of that period instance; kept in the window preferences (D-NEW).</summary>
+internal sealed record TodayEntry(string Card, DateOnly Date, string Instance, decimal DayStart);
 
 /// <summary>Core facts and calculations projected once into display units. No transport or persistence.</summary>
 internal static class LiveLedgerProjection

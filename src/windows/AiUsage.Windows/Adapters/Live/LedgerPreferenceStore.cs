@@ -111,8 +111,5 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
     }
 }
 
-/// <summary>The owner's day start for one card on one local date, in the native amount of that period instance (D-NEW).</summary>
-internal sealed record TodayEntry(string Card, DateOnly Date, string Instance, decimal DayStart);
-
 [JsonSerializable(typeof(LedgerPreferenceStore.State))]
 internal sealed partial class LedgerPreferenceJson : JsonSerializerContext;
