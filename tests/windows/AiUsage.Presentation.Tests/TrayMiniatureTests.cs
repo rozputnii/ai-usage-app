@@ -122,6 +122,19 @@ public sealed class TrayMiniatureTests
     }
 
     [Fact]
+    public void UsedUpIsOneSolidStripAndUsedOnlyAnEmptyDashedTrack()
+    {
+        var rows = Rows(DemoLedgerScenarios.Build(DemoLedgerScenarios.States));
+        TrayStrip StripOf(string cardId) => rows.Single(r => r.Strip?.CardId == cardId).Strip!;
+        // D-187: a period-unknown (h1) or used-only (h5) main limit draws an empty dashed track; a used-up one (o4) a solid red strip.
+        foreach (var (cardId, kind) in new[] { ("h1", TrayStripKind.EmptyDashed), ("h5", TrayStripKind.EmptyDashed), ("o4", TrayStripKind.SolidCritical) })
+        {
+            Assert.Equal(kind, StripOf(cardId).Kind);
+            Assert.Empty(StripOf(cardId).Cells);
+        }
+    }
+
+    [Fact]
     public void EmptyTrayAndNoteOnlyPrimaryRow()
     {
         var source = new DemoLedgerSource(new ManualScheduler());

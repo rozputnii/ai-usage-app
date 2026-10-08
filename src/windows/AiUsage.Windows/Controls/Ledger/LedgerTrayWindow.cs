@@ -167,7 +167,8 @@ internal sealed partial class LedgerTrayWindow : Window
         }
         if (row.Ring is { } five)
         {
-            var ring = new FiveHourRing { Fraction = five.Fraction, ArcBrush = LedgerTheme.ToneMark(five.Tone), VerticalAlignment = VerticalAlignment.Center };
+            // A stale reading dims the ring with the bar, as the window dims the whole card.
+            var ring = new FiveHourRing { Fraction = five.Fraction, ArcBrush = LedgerTheme.ToneMark(five.Tone), VerticalAlignment = VerticalAlignment.Center, Opacity = row.Strip?.Opacity ?? 1 };
             ToolTipService.SetToolTip(ring, LedgerTheme.Tip(five.Tip));
             Grid.SetColumn(ring, 2);
             grid.Children.Add(ring);
