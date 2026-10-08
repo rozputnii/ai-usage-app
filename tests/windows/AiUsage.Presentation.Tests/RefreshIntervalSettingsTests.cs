@@ -82,6 +82,13 @@ public sealed class RefreshIntervalSettingsTests
         settings.RefreshText = "15";
         Assert.True(await settings.CommitRefreshTextAsync("15"));
         Assert.Equal(15, source.Preferences.RefreshMinutes);
+
+        // Both ends of the range save.
+        Assert.True(await settings.CommitRefreshTextAsync("60"));
+        Assert.Equal(60, source.Preferences.RefreshMinutes);
+        Assert.True(await settings.CommitRefreshTextAsync("1"));
+        Assert.Equal(1, source.Preferences.RefreshMinutes);
+        Assert.Equal("1", settings.RefreshText);
     }
 
     [Fact]

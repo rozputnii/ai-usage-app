@@ -65,12 +65,30 @@ public sealed class RefreshIntervalSmoke
             Assert.True(Wait(() => !Button("Shorter refresh interval").IsEnabled), "− must stop at 1");
             Assert.True(Button("Longer refresh interval").IsEnabled);
             // The footer no longer carries the interval.
-            Assert.DoesNotContain(Main().FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("every ", StringComparison.Ordinal));
+            Assert.True(Wait(() => !Main().FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("every ", StringComparison.Ordinal))),
+                "The footer still shows the interval");
 
             DesktopTestEnvironment.RequireUnlockedDesktop();
             using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "settings-refresh.png"), System.Drawing.Imaging.ImageFormat.Png);
 
+            stage = "context menu keeps the typed text";
+            // Focus moves into the box's own menu; that is not leaving the box, so an emptied box is not put back to the saved value.
+            Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
+            Keyboard.Press(VirtualKeyShort.DELETE);
+            Assert.True(Wait(() => Box().Text == ""), "The box was not emptied");
+            Box().RightClick();
+            Thread.Sleep(800);
+            Keyboard.Press(VirtualKeyShort.ESCAPE);
+            Thread.Sleep(300);
+            Assert.Equal("", Box().Text);
+
+            stage = "Tab saves";
+            Keyboard.Type("2");
+            Keyboard.Press(VirtualKeyShort.TAB);
+            Assert.True(Wait(() => Box().Text == "2" && !Box().Properties.HasKeyboardFocus.ValueOrDefault && Button("Shorter refresh interval").IsEnabled), "Tab did not save 2");
+
             stage = "exit";
+            // Ctrl+Q does not reach the window while any text box (the rename box too) holds the focus; here it has left the box.
             Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "Exit did not terminate the launched process");

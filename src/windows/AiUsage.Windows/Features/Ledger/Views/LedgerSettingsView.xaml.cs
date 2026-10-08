@@ -58,7 +58,12 @@ internal sealed partial class LedgerSettingsView : UserControl
         _ = ViewModel.CommitRefreshTextAsync(RefreshBox.Text);
     }
 
-    private void OnRefreshLostFocus(object sender, RoutedEventArgs e) => _ = ViewModel.CommitRefreshTextAsync(RefreshBox.Text);
+    // Focus leaving the box saves, except into the box's own context menu: a paste after clearing the box must find it empty.
+    private void OnRefreshLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (RefreshBox.ContextFlyout is not { IsOpen: true })
+            _ = ViewModel.CommitRefreshTextAsync(RefreshBox.Text);
+    }
 
     // Without animations the dots stay a static ellipsis.
     private void UpdateInstallDots()
