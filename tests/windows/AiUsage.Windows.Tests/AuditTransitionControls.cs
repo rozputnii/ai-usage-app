@@ -20,7 +20,7 @@ public sealed partial class AuditWindows
         var moneyId = next[0]!["MoneyCardId"]!.GetValue<string>();
         using var session = new Session(path);
         var initialIds = fixture["ExpectedStates"]!.AsObject().Select(p => p.Key).ToArray();
-        var card = session.ById(moneyId); session.Focus(card);
+        var card = session.ById(moneyId); session.FocusCard(card);
         FlaUI.Core.AutomationElements.AutomationElement? historyButton = null;
         Assert.True(Session.Wait(() => (historyButton = session.ById(moneyId).FindAllDescendants().FirstOrDefault(e =>
             e.Properties.ControlType.ValueOrDefault == ControlType.Button &&

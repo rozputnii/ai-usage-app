@@ -27,7 +27,7 @@ public sealed partial class AuditWindows
         Assert.False(Visible(session, "Sign in to Claude"));
         session.ClickCaption("Restore");
         Assert.True(Session.Wait(() => Math.Abs(session.Window.BoundingRectangle.Width - initial.Width) < 5));
-        session.Focus(session.ById(id)); session.Key(VirtualKeyShort.RETURN);
+        session.FocusCard(session.ById(id)); session.Key(VirtualKeyShort.RETURN);
         var history = session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal));
         session.Click("Settings");
         session.ShrinkWithMouse(70, 80);
@@ -38,7 +38,7 @@ public sealed partial class AuditWindows
         var preview = session.Find(e => e.Properties.Name.ValueOrDefault == "SYNTHETIC AUDIT · provider transport disabled · isolated temporary storage");
         session.Show(preview); session.Capture("LIFE-04-resized-diagnostic-preview");
         Assert.Equal(1, session.Receipts.Split('\n').Count(l => l.Trim() == "PreviewDiagnostics"));
-        session.Show(session.ById(id)); session.Focus(session.ById(id)); session.Key(VirtualKeyShort.KEY_C);
+        session.Show(session.ById(id)); session.FocusCard(session.ById(id)); session.Key(VirtualKeyShort.KEY_C);
         session.Type(CapInput(session), "260.00");
         session.Capture("LIFE-04-resized-cap-editor");
         session.Key(VirtualKeyShort.ESCAPE);
@@ -53,7 +53,7 @@ public sealed partial class AuditWindows
         }
         RequireSettingsOpen();
         Assert.Contains(session.Window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal));
-        session.Focus(session.ById(id)); session.Key(VirtualKeyShort.ESCAPE);
+        session.FocusCard(session.ById(id)); session.Key(VirtualKeyShort.ESCAPE);
         Assert.DoesNotContain(session.Window.FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal));
         RequireSettingsOpen();
         session.Key(VirtualKeyShort.ESCAPE); Assert.False(Visible(session, "Close settings"));

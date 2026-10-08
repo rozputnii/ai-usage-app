@@ -34,7 +34,7 @@ internal sealed partial class LedgerSettingsView : UserControl
         if (e.PropertyName != nameof(LedgerSettingsViewModel.IsDeleteArmed))
             return;
         if (ViewModel.IsDeleteArmed)
-            DispatcherQueue.TryEnqueue(() => CancelButton.Focus(FocusState.Keyboard));
+            DispatcherQueue.TryEnqueue(() => CancelButton.Focus(FocusState.Programmatic));
         else
             DispatcherQueue.TryEnqueue(() => MoreButton.Focus(FocusState.Programmatic));
     }

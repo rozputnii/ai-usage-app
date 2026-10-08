@@ -34,7 +34,7 @@ public sealed partial class AuditWindows
             session.Click("Work today, off");
             Assert.True(Session.Wait(() => Visible(session, "Work today, on until midnight")));
         }
-        session.Focus(session.ById(id));
+        session.FocusCard(session.ById(id));
         session.Click(session.ById(id).FindAllDescendants().Single(e => e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
             (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)));
         session.Find(e => e.Properties.IsKeyboardFocusable.ValueOrDefault &&

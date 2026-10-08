@@ -69,14 +69,14 @@ public sealed partial class AuditWindows
             session.Capture("preferences-one-workday");
             session.Click("Close settings");
             var beforeRename = session.ById(moneyId).Properties.Name.Value;
-            var card = session.ById(moneyId); session.Focus(card); session.Key(VirtualKeyShort.F2);
+            var card = session.ById(moneyId); session.FocusCard(card); session.Key(VirtualKeyShort.F2);
             session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Account name"), "SYNTHETIC cancelled rename");
             session.Key(VirtualKeyShort.ESCAPE);
             Assert.Equal(beforeRename, session.ById(moneyId).Properties.Name.Value);
-            session.Focus(session.ById(moneyId)); session.Key(VirtualKeyShort.F2);
+            session.FocusCard(session.ById(moneyId)); session.Key(VirtualKeyShort.F2);
             session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Account name"), ""); session.Key(VirtualKeyShort.RETURN);
             Assert.Contains("Claude · SYNTHETIC", session.ById(moneyId).Properties.Name.Value, StringComparison.Ordinal);
-            session.Focus(session.ById(moneyId)); session.Key(VirtualKeyShort.F2);
+            session.FocusCard(session.ById(moneyId)); session.Key(VirtualKeyShort.F2);
             session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Account name"), "  SYNTHETIC persistent  "); session.Key(VirtualKeyShort.RETURN);
             Assert.True(Session.Wait(() => session.ById(moneyId).Properties.Name.Value.StartsWith("SYNTHETIC persistent", StringComparison.Ordinal)));
             card = session.ById(moneyId);
@@ -84,7 +84,7 @@ public sealed partial class AuditWindows
                 (e.Properties.Name.ValueOrDefault ?? "").Contains("Press to edit the cap", StringComparison.Ordinal)));
             session.Type(CapInput(session), "240.00"); session.Key(VirtualKeyShort.ESCAPE);
             Assert.Empty(JsonNode.Parse(File.ReadAllText(Path.Combine(root, "budget", "configuration.v1.json")))!["Caps"]!.AsArray());
-            session.Focus(session.ById(moneyId)); session.Key(VirtualKeyShort.KEY_C);
+            session.FocusCard(session.ById(moneyId)); session.Key(VirtualKeyShort.KEY_C);
             var amount = CapInput(session); session.Type(amount, "240.00");
             session.Key(VirtualKeyShort.TAB);
             Assert.True(Session.Wait(() => session.Window.FindAllDescendants().Any(e => e.Properties.Name.ValueOrDefault == "Save" && e.Properties.HasKeyboardFocus.ValueOrDefault)));
@@ -92,13 +92,13 @@ public sealed partial class AuditWindows
             Assert.True(Session.Wait(() => amount.Properties.HasKeyboardFocus.ValueOrDefault));
             session.Key(VirtualKeyShort.RETURN);
             Assert.True(Session.Wait(() => session.ById(moneyId).Properties.Name.Value.Contains("cap", StringComparison.OrdinalIgnoreCase)));
-            session.Focus(session.ById(moneyId)); session.Key(VirtualKeyShort.RETURN);
+            session.FocusCard(session.ById(moneyId)); session.Key(VirtualKeyShort.RETURN);
             Assert.NotNull(session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal)));
             card = session.ById(moneyId); session.Show(card);
             session.Click(card.FindAllDescendants().Single(e => e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
                 (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)));
             Assert.True(Session.Wait(() => !session.Window.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal))));
-            session.Focus(card); session.Key(VirtualKeyShort.RIGHT);
+            session.FocusCard(card); session.Key(VirtualKeyShort.RIGHT);
             var detail = session.Window.FindAllDescendants().Single(e => e.Properties.IsKeyboardFocusable.ValueOrDefault &&
                 e.Properties.HasKeyboardFocus.ValueOrDefault);
             session.Key(VirtualKeyShort.RIGHT);

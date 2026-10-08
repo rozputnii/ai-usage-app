@@ -63,7 +63,7 @@ internal sealed partial class LedgerWindow : Window
         Body.SizeChanged += (_, e) => SettingsPanel.Height = e.NewSize.Height;
         AppWindow.Closing += OnClosing;
 
-        AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape());
+        AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape() || HideFocusFrame());
         AddAccelerator((VirtualKey)188, VirtualKeyModifiers.Control, () => { ViewModel.ToggleSettings(); return true; });
         AddAccelerator(VirtualKey.N, VirtualKeyModifiers.Control, () =>
         {
@@ -308,7 +308,16 @@ internal sealed partial class LedgerWindow : Window
         if (view is null)
             return;
         view.StartBringIntoView();
-        view.Focus(FocusState.Keyboard);
+        view.FocusFirst();
+    }
+
+    /// <summary>Esc with nothing left to close hides the keyboard focus frame; focus stays on the same control.</summary>
+    private bool HideFocusFrame()
+    {
+        if (FocusManager.GetFocusedElement(Root.XamlRoot) is not UIElement { FocusState: FocusState.Keyboard } focused)
+            return false;
+        focused.Focus(FocusState.Pointer);
+        return true;
     }
 
     /// <summary>True while the window is closed to the tray or not yet shown; AIU-046 installs updates only then.</summary>

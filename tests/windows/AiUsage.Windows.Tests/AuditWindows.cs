@@ -113,7 +113,7 @@ public sealed partial class AuditWindows
         var moneyAccount = input["Accounts"]!.AsArray().Single(a => a!["Provider"]!.GetValue<string>() == "claude")!["AccountId"]!.GetValue<string>().Replace("-", string.Empty, StringComparison.Ordinal);
         var moneyId = input["ExpectedStates"]!.AsObject().Single(p => p.Key.StartsWith(moneyAccount + ":", StringComparison.Ordinal)).Key;
         var card = session.ById(moneyId);
-        session.Focus(card);
+        session.FocusCard(card);
         session.Click(card.FindAllDescendants().Single(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)));
         var history = session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains(" history,", StringComparison.Ordinal));
         history.Focus();
@@ -122,24 +122,24 @@ public sealed partial class AuditWindows
         Assert.True(Session.Wait(() => history.Properties.Name.Value != previous));
         session.Capture("controls-money-history");
         session.Key(VirtualKeyShort.ESCAPE);
-        card = session.ById(moneyId); session.Focus(card);
+        card = session.ById(moneyId); session.FocusCard(card);
         session.Key(VirtualKeyShort.F2);
         session.Type(session.Find(e => e.Properties.Name.ValueOrDefault == "Account name" && e.Properties.ControlType.ValueOrDefault == ControlType.Edit), "SYNTHETIC renamed account");
         session.Key(VirtualKeyShort.RETURN);
         Assert.True(Session.Wait(() => session.ById(moneyId).Properties.Name.Value.Contains("SYNTHETIC renamed account", StringComparison.Ordinal)));
-        card = session.ById(moneyId); session.Focus(card); session.Key(VirtualKeyShort.KEY_C);
+        card = session.ById(moneyId); session.FocusCard(card); session.Key(VirtualKeyShort.KEY_C);
         var amount = session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Cap amount in", StringComparison.Ordinal));
         session.Type(amount, "€250.00"); session.Click("Save");
         Assert.NotNull(session.Find(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Enter a", StringComparison.Ordinal)));
         session.Capture("controls-invalid-cap");
         session.Type(amount, "250.00"); session.Click("Save");
         Assert.True(Session.Wait(() => session.ById(moneyId).Properties.Name.Value.Contains("cap", StringComparison.OrdinalIgnoreCase)));
-        card = session.ById(moneyId); session.Focus(card); session.Key(VirtualKeyShort.KEY_C);
+        card = session.ById(moneyId); session.FocusCard(card); session.Key(VirtualKeyShort.KEY_C);
         session.Capture("controls-cap-editor"); session.Click("Remove");
         session.Key(VirtualKeyShort.F5);
         var accountId = moneyId.Split(':')[0];
         Assert.True(Session.Wait(() => session.Receipts.Contains("Refresh:" + accountId, StringComparison.Ordinal)));
-        card = session.ById(moneyId); session.Focus(card);
+        card = session.ById(moneyId); session.FocusCard(card);
         session.Click("Sign out SYNTHETIC renamed account");
         Assert.True(Session.Wait(() => session.Receipts.Contains("Disconnect:" + accountId, StringComparison.Ordinal)));
         session.Click("Add account"); session.Click("Show signed-out accounts"); session.Key(VirtualKeyShort.ESCAPE);
@@ -556,6 +556,9 @@ public sealed partial class AuditWindows
             Show(element); element.Focus();
             Assert.True(Wait(() => element.Properties.HasKeyboardFocus.ValueOrDefault));
         }
+        /// <summary>Cards are not tab stops (D-NEW); their keys work from any control inside, here the History button.</summary>
+        public void FocusCard(AutomationElement card) => Focus(card.FindAllDescendants().First(e => e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
+            (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)));
         public void Type(AutomationElement element, string value)
         {
             Click(element);

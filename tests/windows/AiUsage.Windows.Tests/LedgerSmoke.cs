@@ -61,7 +61,7 @@ public sealed partial class LedgerSmoke
             Assert.NotNull(parent.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")));
             Assert.DoesNotContain(money!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)), b =>
                 (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Sign out", StringComparison.Ordinal));
-            money.Focus();
+            FocusIn(money);
             stage = "history";
             Keyboard.Press(VirtualKeyShort.RETURN);
             Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e =>
@@ -70,7 +70,7 @@ public sealed partial class LedgerSmoke
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             money = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))!;
             stage = "cap";
-            money.Focus(); Keyboard.Press(VirtualKeyShort.KEY_C);
+            FocusIn(money); Keyboard.Press(VirtualKeyShort.KEY_C);
             Assert.True(Wait(() => money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).Any(e => !e.IsOffscreen)));
             var amount = money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).First(e => !e.IsOffscreen).AsTextBox();
             // Only digits and two decimals are typed, and never above the $500.00 provider limit.
@@ -79,7 +79,7 @@ public sealed partial class LedgerSmoke
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             parent = Main().FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;
-            parent.Focus(); Keyboard.Press(VirtualKeyShort.F2);
+            FocusIn(parent); Keyboard.Press(VirtualKeyShort.F2);
             stage = "rename";
             TextBox? rename = null;
             Assert.True(Wait(() => (rename = Current()?.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox()) is not null));
@@ -89,7 +89,6 @@ public sealed partial class LedgerSmoke
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Renamed account")) is not null));
             var only = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
             stage = "money only";
-            only.Focus();
             Assert.True(Wait(() => only.FindFirstDescendant(cf => cf.ByName("Sign out Money only")) is not null));
             Assert.Contains(Main().FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "12.50 EUR");
             Assert.Contains(Main().FindAllDescendants(), e => (e.Properties.Name.ValueOrDefault ?? "") == "200.00 EUR (provider)");
@@ -116,7 +115,6 @@ public sealed partial class LedgerSmoke
             Assert.True(Wait(() => Current() is { } current && current.FindFirstDescendant(cf => cf.ByAutomationId("money-window")) is null &&
                 current.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is not null));
             only = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-only"))!;
-            only.Focus();
             Assert.True(Wait(() => only.FindFirstDescendant(cf => cf.ByName("Sign out Money only")) is not null));
             only.FindFirstDescendant(cf => cf.ByName("Sign out Money only"))!.AsButton().Invoke();
             stage = "sign out";
@@ -287,7 +285,6 @@ public sealed partial class LedgerSmoke
                     var current = Current();
                     var card = current?.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"));
                     if (card is null) return false;
-                    card.Focus();
                     history = current!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History, Claude", StringComparison.Ordinal));
                     return history is not null;
                 }));
@@ -378,7 +375,13 @@ public sealed partial class LedgerSmoke
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 Keyboard.Press(VirtualKeyShort.RETURN);
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Selecting the tray account should restore the main window");
-                Assert.True(Wait(() => (automation.FocusedElement()?.Properties.AutomationId.ValueOrDefault ?? "").StartsWith("claude-week-", StringComparison.Ordinal)), "Tray account selection should focus that account's card");
+                bool InCard(AutomationElement? element)
+                {
+                    for (; element is not null; element = element.Parent)
+                        if ((element.Properties.AutomationId.ValueOrDefault ?? "").StartsWith("claude-week-", StringComparison.Ordinal)) return true;
+                    return false;
+                }
+                Assert.True(Wait(() => InCard(automation.FocusedElement())), "Tray account selection should focus a control in that account's card");
             }
             Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
@@ -411,6 +414,10 @@ public sealed partial class LedgerSmoke
         }
         return false;
     }
+
+    /// <summary>Cards are not tab stops (D-NEW); their keys work from any control inside, here the History button.</summary>
+    private static void FocusIn(AutomationElement card) => card.FindAllDescendants(cf => cf.ByControlType(ControlType.Button))
+        .First(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)).Focus();
 
     private static Window? OwnedWindow(UIA3Automation automation, int pid) => automation.GetDesktop().FindAllChildren().FirstOrDefault(w =>
     {

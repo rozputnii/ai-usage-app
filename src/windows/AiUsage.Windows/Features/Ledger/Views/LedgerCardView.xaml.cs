@@ -7,8 +7,8 @@ using Windows.System;
 
 namespace AiUsage.Features.Ledger.Views;
 
-/// <summary>One limit card (spec 6.2). The card is a keyboard stop with its full accessible name; Enter opens history,
-/// F2 renames, C edits the cap, Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.</summary>
+/// <summary>One limit card (spec 6.2). The card is not a tab stop itself (D-NEW); from any control inside it F2 renames,
+/// C edits the cap, Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.</summary>
 internal sealed partial class LedgerCardView : UserControl
 {
     public LedgerCardView() => InitializeComponent();
@@ -55,8 +55,9 @@ internal sealed partial class LedgerCardView : UserControl
                 RenameBox.Focus(FocusState.Programmatic);
                 RenameBox.SelectAll();
             });
+        // Deferred: the bindings hide the rename box and the cap editor after this handler.
         else if (e.PropertyName == nameof(LimitCardViewModel.IsRenaming) && !ViewModel.IsRenaming && RenameBox.FocusState != FocusState.Unfocused)
-            Focus(FocusState.Programmatic);
+            DispatcherQueue.TryEnqueue(FocusFirst);
         else if (e.PropertyName == nameof(LimitCardViewModel.IsHistoryOpen) && !HistoryButton.IsPointerOver)
             QuietIcon(HistoryButton);
         else if (e.PropertyName == nameof(LimitCardViewModel.CapEditor))
@@ -64,8 +65,18 @@ internal sealed partial class LedgerCardView : UserControl
             if (ViewModel.CapEditor is not null)
                 DispatcherQueue.TryEnqueue(() => (ViewModel.Visual.NoteLines.Count > 0 ? NoteCapEditor : BarCapEditor).FocusInput());
             else
-                Focus(FocusState.Programmatic);
+                DispatcherQueue.TryEnqueue(FocusFirst);
         }
+    }
+
+    /// <summary>
+    /// Keeps focus in the card on its first control. Programmatic focus shows the frame only when the last input was the
+    /// keyboard, so an action taken with the mouse leaves no frame behind.
+    /// </summary>
+    public void FocusFirst()
+    {
+        if (XamlRoot is not null && FocusManager.FindFirstFocusableElement(this) is UIElement first)
+            first.Focus(FocusState.Programmatic);
     }
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e)
@@ -75,10 +86,6 @@ internal sealed partial class LedgerCardView : UserControl
         var alt = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu).HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
         switch (e.Key)
         {
-            case VirtualKey.Enter when ReferenceEquals(e.OriginalSource, this) && ViewModel.CanOpenHistory:
-                e.Handled = true;
-                _ = ViewModel.ToggleHistoryAsync();
-                break;
             case VirtualKey.F2:
                 e.Handled = true;
                 ViewModel.BeginRename();

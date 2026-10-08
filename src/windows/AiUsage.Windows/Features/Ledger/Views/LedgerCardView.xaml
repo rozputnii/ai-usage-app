@@ -4,12 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ledger="using:AiUsage.Features.Ledger"
     xmlns:lc="using:AiUsage.Controls.Ledger"
-    IsTabStop="True"
-    UseSystemFocusVisuals="True"
-    FocusVisualPrimaryBrush="{StaticResource LedgerFocusBrush}"
-    FocusVisualPrimaryThickness="2"
-    FocusVisualSecondaryThickness="0"
-    FocusVisualMargin="-4"
+    IsTabStop="False"
     CornerRadius="20"
     AutomationProperties.Name="{x:Bind ViewModel.Visual.AccessibleName, Mode=OneWay}"
     AutomationProperties.AutomationId="{x:Bind ViewModel.CardId, Mode=OneWay}"
@@ -70,7 +65,7 @@
           </lc:LedgerButton>
           <lc:LedgerButton x:Name="HistoryButton" Style="{StaticResource LedgerQuietIconButton}" PointerEntered="OnIconPointerEntered" PointerExited="OnIconPointerExited"
                   Command="{x:Bind ViewModel.ToggleHistoryCommand}" Visibility="{x:Bind Show(ViewModel.CanOpenHistory), Mode=OneWay}"
-                  AutomationProperties.Name="{x:Bind ViewModel.HistoryName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('History (Enter)')}"
+                  AutomationProperties.Name="{x:Bind ViewModel.HistoryName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('History')}"
                   Background="{x:Bind HistoryBackground(ViewModel.IsHistoryOpen), Mode=OneWay}">
             <Path Data="M1,7 h2.4 v6 h-2.4 Z M5.8,3 h2.4 v10 h-2.4 Z M10.6,5 h2.4 v8 h-2.4 Z" Fill="{StaticResource LedgerInkBrush}" Width="14" Height="14" />
           </lc:LedgerButton>
