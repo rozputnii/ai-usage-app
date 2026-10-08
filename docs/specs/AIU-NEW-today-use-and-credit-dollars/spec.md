@@ -65,7 +65,7 @@ rate must be editable.
   applies, and "Tracked since HH:mm" when tracking began after midnight without one.
 - **R-08 Storage.** Units, rates and today's values are window preferences per limit,
   kept with labels, order and hidden sections, and survive restart. Today's values
-  older than 35 days are dropped on the next preference write. An older build keeps
+  older than 35 days are dropped when a today's value is next saved. An older build keeps
   the new fields through the preference file's extension data. Provider facts, reading
   series and the budget configuration format do not change, and nothing new is sent
   to a provider.
@@ -90,7 +90,7 @@ Percent windows; dollars for any other pool; an automatic rate lookup; renaming 
   percent window rejects it.
 - AC-04: A preference file without the new fields loads unchanged; an invalid rate,
   a duplicated today entry or an oversized list is rejected without being
-  overwritten; today entries older than 35 days are dropped on write.
+  overwritten; today entries older than 35 days are dropped when a new one is saved.
 - AC-05: In the demo work-budget scenario the Copilot Business card's popover switches
   units, edits the rate, today's use and the cap, and the card follows; the Claude
   spending popover shows today and cap rows only; percent windows show no icon.
