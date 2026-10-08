@@ -360,19 +360,27 @@ public sealed partial class LedgerSmoke
                 }
                 foreach (var icon in Icons(taskbar))
                     if (OpenOwnedTray(icon)) break;
+                AutomationElement? Overflow() => desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
+                void OpenOverflow()
+                {
+                    // The chevron is a SystemTrayIcon button named "Show Hidden Icons", and "Show Hidden Icons Hide" while the
+                    // overflow is open (invoking it then closes it). Another AI Usage instance, such as the installed app, can
+                    // sort before this test's icon; its failed attempt leaves the overflow open. So open it only when closed.
+                    if (Overflow() is not null) return;
+                    var chevron = taskbar?.FindAllDescendants(cf => cf.ByAutomationId("SystemTrayIcon").And(cf.ByControlType(ControlType.Button)))
+                        .FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Show Hidden Icons", StringComparison.Ordinal));
+                    Assert.True(chevron is not null, "The taskbar has no Show Hidden Icons button; " + string.Join("; ", trayAttempts));
+                    chevron!.AsButton().Invoke();
+                }
                 if (row is null)
                 {
                     for (var index = 0; ; index++)
                     {
-                        // An icon tried before can leave the overflow open, which renames its button "Show Hidden Icons Hide" and
-                        // would close it again: open the overflow only when it is closed, and find the button by name prefix.
-                        if (desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland")) is null)
-                            taskbar!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button))
-                                .First(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Show Hidden Icons", StringComparison.Ordinal)).AsButton().Invoke();
+                        OpenOverflow();
                         AutomationElement? overflow = null;
                         Assert.True(Wait(() =>
                         {
-                            overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
+                            overflow = Overflow();
                             return Icons(overflow).Length > 0;
                         }));
                         var icons = Icons(overflow);
