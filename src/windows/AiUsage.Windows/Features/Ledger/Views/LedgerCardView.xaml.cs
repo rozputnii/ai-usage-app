@@ -28,6 +28,10 @@ internal sealed partial class LedgerCardView : UserControl
         }
     }
 
+    /// <summary>The header and the primary limit without the sections below; the window's minimum height keeps it in view.</summary>
+    public double SingleLimitHeight =>
+        ActualHeight - (SectionHost.Visibility == Visibility.Visible ? SectionHost.ActualHeight + ((StackPanel)SectionHost.Parent).Spacing : 0);
+
     public LimitCardViewModel ViewModel
     {
         get;

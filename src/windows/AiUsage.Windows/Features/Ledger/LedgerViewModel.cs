@@ -58,7 +58,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     public LedgerSnapshot Snapshot => source.Current;
     public LedgerPreferences Preferences => source.Preferences;
 
-    [ObservableProperty] public partial string ClockText { get; private set; } = string.Empty;
+    [ObservableProperty] public partial bool RefreshFailed { get; private set; }
+    [ObservableProperty] public partial IReadOnlyList<string> RefreshTip { get; private set; } = [];
     [ObservableProperty] public partial bool IsFirstRun { get; private set; }
     [ObservableProperty] public partial bool CanUseAccounts { get; private set; }
     [ObservableProperty] public partial bool IsStarting { get; private set; }
@@ -114,7 +115,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         IsStarting = snapshot.Summaries.IsStarting;
         CanUseAccounts = !NeedsRecovery && !IsStarting;
         RecoveryText = snapshot.Summaries.Recovery?.Message ?? string.Empty;
-        ClockText = LedgerFormat.TitleClock(now);
+        (RefreshFailed, RefreshTip) = RefreshStatus(snapshot.Accounts);
         IsLeft = prefs.Mode == ValueMode.Left;
         IsCompact = prefs.Density == Density.Compact;
         ShowSignedOut = prefs.ShowSignedOut;
@@ -176,6 +177,34 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         }
         while (target.Count > items.Count)
             target.RemoveAt(target.Count - 1);
+    }
+
+    /// <summary>
+    /// The title-bar refresh button is red while a connected account's data could not be refreshed in time; a failed attempt
+    /// whose reading is still fresh is not. The tip gives reading times without dates: one line when they agree.
+    /// </summary>
+    public static (bool Failed, IReadOnlyList<string> Tip) RefreshStatus(IReadOnlyList<AccountModel> accounts)
+    {
+        var connected = accounts.Where(a => a.Health != AccountHealth.SignedOut).ToArray();
+        if (connected.Length == 0)
+            return (false, ["Refresh (F5)"]);
+        var failed = connected.Any(a => a.Health is AccountHealth.SyncFailedStale or AccountHealth.SignInExpired or AccountHealth.ProviderError);
+        var times = connected.Select(a => a.LastReadingAt is { } at ? LedgerFormat.Clock(at) : null).Distinct().ToArray();
+        if (!failed && times is [{ } time])
+            return (false, ["Updated " + time]);
+        return (failed, [.. connected.Select(a =>
+        {
+            var reading = a.LastReadingAt is { } at ? LedgerFormat.Clock(at) : null;
+            var problem = a.Health switch
+            {
+                AccountHealth.SyncFailedStale => a.LastSyncFailedAt is { } f ? "failed " + LedgerFormat.Clock(f) : "failed",
+                AccountHealth.SignInExpired => "sign-in expired",
+                AccountHealth.ProviderError => "provider error",
+                _ => null,
+            };
+            var state = problem is null ? reading ?? "no reading yet" : reading is null ? problem : problem + ", showing " + reading;
+            return a.DisplayName + " · " + state;
+        })]);
     }
 
     private static string Describe(ProviderKind provider) => provider switch

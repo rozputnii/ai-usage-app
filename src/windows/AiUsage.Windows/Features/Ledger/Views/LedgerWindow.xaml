@@ -43,7 +43,7 @@
       </tray:TaskbarIcon.ContextFlyout>
     </tray:TaskbarIcon>
 
-    <!-- Title row (38): name, clock, day off and Work today, then Used/Left, +, Settings. The rest drags the window. -->
+    <!-- Title row (38): name, refresh status, day off and Work today, then Used/Left, +, Settings. The rest drags the window. -->
     <Grid x:Name="TitleRow" Padding="16,0,8,0" ColumnSpacing="10" BorderBrush="{StaticResource LedgerLineBrush}" BorderThickness="0,0,0,1">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" />
@@ -53,7 +53,12 @@
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
       <TextBlock Text="AI Usage" Style="{StaticResource LedgerTitleText}" VerticalAlignment="Center" />
-      <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.ClockText, Mode=OneWay}" Visibility="{x:Bind Hide(ViewModel.WorkTodayOn), Mode=OneWay}" Style="{StaticResource LedgerClockText}" VerticalAlignment="Center" />
+      <!-- Refresh doubles as the data status: quiet until hovered, red while an account is not refreshed in time. -->
+      <lc:LedgerButton x:Name="RefreshButton" Grid.Column="1" Style="{StaticResource LedgerTitleQuietIconButton}" Margin="-4,0,0,0" VerticalAlignment="Center"
+              Command="{x:Bind ViewModel.RefreshCommand}" PointerEntered="OnRefreshPointerEntered" PointerExited="OnRefreshPointerExited"
+              AutomationProperties.Name="{x:Bind RefreshName(ViewModel.RefreshTip), Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.RefreshTip), Mode=OneWay}">
+        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE72C;" FontSize="15" Foreground="{x:Bind RefreshBrush(ViewModel.RefreshFailed), Mode=OneWay}" />
+      </lc:LedgerButton>
       <StackPanel x:Name="DayGroup" Grid.Column="2" Orientation="Horizontal" Spacing="10" Visibility="{x:Bind Show(ViewModel.IsDayOff), Mode=OneWay}">
         <TextBlock Text="{x:Bind ViewModel.DayText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
         <lc:LedgerButton x:Name="WorkTodayButton" Content="Work today" Command="{x:Bind ViewModel.ToggleWorkTodayCommand}"

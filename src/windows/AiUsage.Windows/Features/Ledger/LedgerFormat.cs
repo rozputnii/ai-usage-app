@@ -83,7 +83,6 @@ internal static class LedgerFormat
     public static string Clock(DateTimeOffset time) => time.ToString("HH:mm", En);
     public static string DayDate(DateTimeOffset time) => time.ToString("ddd d MMM", En);
     public static string DayMonth(DateOnly date) => date.ToString("d MMM", En);
-    public static string TitleClock(DateTimeOffset now) => now.ToString("ddd d MMM", En) + " · " + Clock(now);
     public static string WeekdayName(DayOfWeek day) => En.DateTimeFormat.GetDayName(day);
     public static string WeekdayShort(DayOfWeek day) => En.DateTimeFormat.GetAbbreviatedDayName(day);
 

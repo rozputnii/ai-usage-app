@@ -442,7 +442,6 @@ public sealed class LedgerCardTests
         var now = DemoLedgerScenarios.BriefNow;
         Assert.Equal("in 1 h 45 min", LedgerFormat.Relative(DemoLedgerScenarios.At(10, 14, 16, 5), now));
         Assert.Equal("20 min ago", LedgerFormat.Relative(DemoLedgerScenarios.At(10, 14, 14, 0), now));
-        Assert.Equal("Wed 14 Oct · 14:20", LedgerFormat.TitleClock(now));
         Assert.Equal("−$2.00", LedgerFormat.Value(ScaleModel.Money("USD", 2), -2m));
         Assert.Equal("€250.00", LedgerFormat.Value(ScaleModel.Money("EUR", 2), 250m));
         Assert.Equal("1,210", LedgerFormat.Value(ScaleModel.Count("requests"), 1210m));
@@ -454,6 +453,55 @@ public sealed class LedgerCardTests
         Assert.False(LedgerFormat.TryParseAmount("-3", ScaleModel.Money("USD", 2), out _));
         Assert.True(LedgerFormat.TryParseAmount("$300.50", ScaleModel.Money("USD", 2), out var money));
         Assert.Equal(300.50m, money);
+    }
+}
+
+/// <summary>The title-bar refresh button: red while an account is not refreshed in time; the tip gives reading times without dates.</summary>
+public sealed class LedgerRefreshStatusTests
+{
+    private static readonly DateTimeOffset Now = DemoLedgerScenarios.BriefNow;
+
+    private static AccountModel Account(string name, AccountHealth health, DateTimeOffset? readingAt, DateTimeOffset? failedAt = null) =>
+        new(name, ProviderKind.Claude, name, health, readingAt, failedAt, null, []);
+
+    [Fact]
+    public void OneLineWhenEveryAccountReadAtTheSameMinute()
+    {
+        var (failed, tip) = LedgerViewModel.RefreshStatus([
+            Account("Claude Pro", AccountHealth.Ok, Now.AddSeconds(-20)),
+            Account("Codex Pro", AccountHealth.SyncFailedFresh, Now.AddSeconds(-40), Now),
+            Account("Old", AccountHealth.SignedOut, Now.AddDays(-3))]);
+        Assert.False(failed);
+        Assert.Equal(["Updated 14:19"], tip);
+    }
+
+    [Fact]
+    public void FailedAccountsTurnRedAndGetTheirOwnLines()
+    {
+        var (failed, tip) = LedgerViewModel.RefreshStatus([
+            Account("Claude Pro", AccountHealth.Ok, Now.AddMinutes(-5)),
+            Account("Copilot business", AccountHealth.SyncFailedStale, Now.AddMinutes(-30), Now.AddMinutes(-2)),
+            Account("Codex Pro", AccountHealth.SignInExpired, Now.AddHours(-1)),
+            Account("Antigravity", AccountHealth.ProviderError, null)]);
+        Assert.True(failed);
+        Assert.Equal(["Claude Pro · 14:15", "Copilot business · failed 14:18, showing 13:50", "Codex Pro · sign-in expired, showing 13:20",
+            "Antigravity · provider error"], tip);
+    }
+
+    [Fact]
+    public void DifferentTimesListEveryAccountWithoutRed()
+    {
+        var (failed, tip) = LedgerViewModel.RefreshStatus([Account("Claude Pro", AccountHealth.Ok, Now.AddMinutes(-1)), Account("Codex Pro", AccountHealth.Ok, Now.AddMinutes(-4))]);
+        Assert.False(failed);
+        Assert.Equal(["Claude Pro · 14:19", "Codex Pro · 14:16"], tip);
+    }
+
+    [Fact]
+    public void NoAccountsOffersRefreshOnly()
+    {
+        var (failed, tip) = LedgerViewModel.RefreshStatus([Account("Old", AccountHealth.SignedOut, Now)]);
+        Assert.False(failed);
+        Assert.Equal(["Refresh (F5)"], tip);
     }
 }
 
@@ -478,7 +526,8 @@ public sealed class LedgerInteractionTests
         var (window, _, _, _) = Start();
         Assert.Equal(["claude-week", "claude-extra", "codex-week", "codex-credits", "copilot-completions", "copilot-chat", "copilot-premium", "antigravity-g1", "antigravity-g2"],
             window.Cards.Select(c => c.CardId));
-        Assert.Equal("Wed 14 Oct · 14:20", window.ClockText);
+        Assert.True(window.RefreshFailed);
+        Assert.Equal("Antigravity AI Plus · failed 14:15, showing 13:38", window.RefreshTip[^1]);
         Assert.False(window.IsDayOff);
         Assert.True(window.IsCompact);
         Assert.False(window.IsFirstRun);
@@ -650,7 +699,6 @@ public sealed class LedgerInteractionTests
         var (window, source, _, _) = Start(DemoLedgerScenarios.DayOff);
         Assert.True(window.IsDayOff);
         Assert.Equal("Day off", window.DayText);
-        Assert.Equal("Sat 17 Oct · 11:20", window.ClockText);
         Assert.Equal("day off", Card(window, "claude-week").Visual.Pill);
         Assert.Equal("7d used up", Card(window, "codex-week").Visual.Pill);
         var workDays = source.Current.Budget.WorkDays;

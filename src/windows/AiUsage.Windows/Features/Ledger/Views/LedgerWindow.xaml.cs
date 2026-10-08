@@ -27,11 +27,14 @@ internal sealed partial class LedgerWindow : Window
 {
     private const int DefaultWidth = 760;
     private const int DefaultHeight = 600;
+    /// <summary>The shortest body without a card (first run, recovery, starting).</summary>
+    private const double EmptyBodyMinHeight = 160;
     private readonly Dictionary<LimitCardViewModel, LedgerCardView> views = [];
     private readonly HistoryPanel historyPanel = new();
     private readonly Func<Task> exit;
     private readonly Action showTray;
     private bool finalClose;
+    private bool refreshHovered;
     private Storyboard? stripWave;
     private Storyboard? settingsSlide;
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? copyReset;
@@ -55,6 +58,7 @@ internal sealed partial class LedgerWindow : Window
         Root.SizeChanged += (_, _) => UpdateTitleBarRegions();
         TitleControls.SizeChanged += (_, _) => UpdateTitleBarRegions();
         DayGroup.SizeChanged += (_, _) => UpdateTitleBarRegions();
+        CardGrid.SizeChanged += (_, _) => UpdateMinimumSize();
         AppWindow.Closing += OnClosing;
 
         AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape());
@@ -76,6 +80,7 @@ internal sealed partial class LedgerWindow : Window
         if (ViewModel.IsSettingsOpen)
             SlideSettings();
         ApplyPreferences();
+        UpdateRefreshOpacity();
         UpdateTrayGlyph();
         UpdateStripWave();
     }
@@ -122,7 +127,7 @@ internal sealed partial class LedgerWindow : Window
         if (TitleRow.Padding != padding)
             TitleRow.Padding = padding;
         var rects = new List<RectInt32>();
-        foreach (var element in new FrameworkElement[] { TitleControls, DayGroup })
+        foreach (var element in new FrameworkElement[] { RefreshButton, TitleControls, DayGroup })
         {
             if (element.Visibility != Visibility.Visible || element.ActualWidth <= 0)
                 continue;
@@ -130,6 +135,37 @@ internal sealed partial class LedgerWindow : Window
             rects.Add(new RectInt32((int)(bounds.X * scale), (int)(bounds.Y * scale), (int)Math.Ceiling(bounds.Width * scale), (int)Math.Ceiling(bounds.Height * scale)));
         }
         InputNonClientPointerSource.GetForWindowId(AppWindow.Id).SetRegionRects(NonClientRegionKind.Passthrough, [.. rects]);
+        UpdateMinimumSize();
+    }
+
+    /// <summary>
+    /// The narrowest window keeps the title row's controls clear of the caption buttons; the shortest still shows the first
+    /// card's header and primary limit. Both follow what the title row and the first card show now.
+    /// </summary>
+    private void UpdateMinimumSize()
+    {
+        if (Root.XamlRoot is null || AppWindow.Presenter is not OverlappedPresenter presenter)
+            return;
+        var scale = Root.XamlRoot.RasterizationScale;
+        // Auto columns measure their content unconstrained, so desired widths stay natural while the window is narrow.
+        var width = TitleRow.Padding.Left + TitleRow.Padding.Right + TitleRow.ColumnSpacing * (TitleRow.ColumnDefinitions.Count - 1)
+            + TitleRow.Children.Sum(e => e.DesiredSize.Width);
+        var first = CardGrid.Children.OfType<LedgerCardView>().FirstOrDefault();
+        var body = CardScroller.Visibility == Visibility.Visible && first is { ActualHeight: > 0 }
+            ? CardGrid.Padding.Top * 2 + first.SingleLimitHeight : EmptyBodyMinHeight;
+        var height = TitleRow.ActualHeight + (SignInStrip.Visibility == Visibility.Visible ? SignInStrip.Height : 0) + body;
+        var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+        var frame = new SizeInt32(AppWindow.Size.Width - AppWindow.ClientSize.Width, AppWindow.Size.Height - AppWindow.ClientSize.Height);
+        var minWidth = Math.Min((int)Math.Ceiling(width * scale) + frame.Width, area.Width);
+        var minHeight = Math.Min((int)Math.Ceiling(height * scale) + frame.Height, area.Height);
+        if (presenter.PreferredMinimumWidth == minWidth && presenter.PreferredMinimumHeight == minHeight)
+            return;
+        presenter.PreferredMinimumWidth = minWidth;
+        presenter.PreferredMinimumHeight = minHeight;
+        // A wider title (Work today) or a sign-in strip raises the minimum; grow a window that is already smaller.
+        var size = AppWindow.Size;
+        if (presenter.State == OverlappedPresenterState.Restored && (size.Width < minWidth || size.Height < minHeight))
+            AppWindow.Resize(new SizeInt32(Math.Max(size.Width, minWidth), Math.Max(size.Height, minHeight)));
     }
 
     private void OnViewModelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -155,7 +191,11 @@ internal sealed partial class LedgerWindow : Window
                 break;
             case nameof(LedgerViewModel.HasStrip):
                 if (ViewModel.HasStrip) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(SignInStrip, 150));
+                DispatcherQueue.TryEnqueue(UpdateMinimumSize);
                 UpdateStripWave();
+                break;
+            case nameof(LedgerViewModel.RefreshFailed):
+                UpdateRefreshOpacity();
                 break;
             case nameof(LedgerViewModel.StripBusy):
                 UpdateStripWave();
@@ -281,6 +321,19 @@ internal sealed partial class LedgerWindow : Window
     }
 
     // ---- Title row ----
+
+    private void OnRefreshPointerEntered(object sender, PointerRoutedEventArgs e) { refreshHovered = true; UpdateRefreshOpacity(); }
+
+    private void OnRefreshPointerExited(object sender, PointerRoutedEventArgs e) { refreshHovered = false; UpdateRefreshOpacity(); }
+
+    /// <summary>Refresh stays quiet like the card icons, and opaque while pointed at or red.</summary>
+    private void UpdateRefreshOpacity()
+    {
+        if (refreshHovered || ViewModel.RefreshFailed)
+            RefreshButton.Opacity = 1;
+        else
+            RefreshButton.ClearValue(UIElement.OpacityProperty);
+    }
 
     private void OnUsedClick(object sender, RoutedEventArgs e) => _ = ViewModel.SetValueModeAsync(ValueMode.Used);
 
@@ -438,6 +491,8 @@ internal sealed partial class LedgerWindow : Window
     private Brush SegmentBackground(bool isLeft, bool forLeft) => LedgerTheme.Solid(isLeft == forLeft ? "ControlOn" : "Transparent");
     private Brush SegmentForeground(bool isLeft, bool forLeft) => LedgerTheme.Solid(isLeft == forLeft ? "Ink" : "Ink3");
     private Brush SettingsBackground(bool open) => LedgerTheme.Solid(open ? "ControlOn" : "Transparent");
+    private Brush RefreshBrush(bool failed) => failed ? LedgerTheme.ToneText(Tone.Critical) : LedgerTheme.Solid("Ink");
+    private string RefreshName(IReadOnlyList<string> tip) => "Refresh. " + LedgerViews.Spoken(tip);
     private double GridGap(bool compact) => compact ? 8 : 12;
     private Thickness BodyPadding(bool compact, bool undo) => new(compact ? 12 : 14, compact ? 12 : 14, compact ? 12 : 14, undo ? 66 : compact ? 12 : 14);
     private string UndoName(string text) => "Undo: " + text;
