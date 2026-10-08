@@ -52,7 +52,8 @@ public sealed class LedgerCompletionTests
         await card.MoveDownAsync();
         await card.MoveUpAsync();
 
-        Assert.Equal([("claude-week", 1), ("claude-week", 0)], focused);
+        // The Claude account moves past Codex's two cards and back (AIU-055 R-10).
+        Assert.Equal([("claude-week", 2), ("claude-week", 0)], focused);
     }
 
     [Theory]
