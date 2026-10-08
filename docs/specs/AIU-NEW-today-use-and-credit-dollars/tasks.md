@@ -316,10 +316,10 @@ Expected: PASS, 0 warnings.
 - [ ] **Step 5: Commit** `feat(AIU-NEW): demo Copilot Business credits and popover commands`
 
 ### T-06 - Records, full checks and merge
-- status: pending
+- status: done
 - depends_on: [T-05]
 - acceptance: [AC-06]
-- evidence: not-run
+- evidence: docs/specs/AIU-NEW-today-use-and-credit-dollars/verification.md; Presentation 290/290, Infrastructure 902/902, validator tests 85/85, document validation and diff check pass, app build 0 warnings, desktop smokes 4/4; whole-branch review fixed one finding; live owner checks NOT_RUN post-deploy (D-190)
 
 - [ ] **Step 1:** Write `verification.md` (commands, acceptance table, NOT_RUN post-deploy owner checks) and the
   backlog completion note; set the spec status to `implemented`.

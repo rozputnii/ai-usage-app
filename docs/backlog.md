@@ -562,13 +562,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-NEW - Today's use by hand and Copilot credits in dollars
 - goal: G-003
-- status: in-progress
+- status: done
 - depends_on: [AIU-038, AIU-044, AIU-050]
 - trigger: owner-selection
 - outcome: A settings popover on each money or credit limit lets the owner enter today's use when the app missed it, which corrects the day start for today's budget and history, and shows the Copilot premium pool in credits or in US dollars at an editable rate, with caps kept in credits and converted both ways (D-NEW).
 - acceptance: AC-01 through AC-06 in the specification cover the dollar view, caps in credits, today's value and its limits, the preference file, the demo popover and verification.
 - specification: docs/specs/AIU-NEW-today-use-and-credit-dollars/spec.md
+- evidence: docs/specs/AIU-NEW-today-use-and-credit-dollars/verification.md
 - registration-note: The owner asked on 2026-10-08 for a by-hand today figure for Claude and Copilot business spending missed while the app was off, and for a per-provider Copilot credit-to-dollar setting with converted caps, then chose design B of three (a popover on each limit).
+- completion-note: Implemented and verified 2026-10-08 in the regression suites, the demo app and a new desktop smoke; a whole-branch review found no critical or important issue and its undo finding is fixed. The owner checks live Copilot Business and Claude spending in the updated installed app after deployment (D-190); that check is NOT_RUN.
 
 ## Deferred clarifications, not forgotten
 
