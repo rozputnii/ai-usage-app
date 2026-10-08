@@ -311,7 +311,7 @@ Owner = owner turns, including slash commands. Int = `[Request interrupted by us
   - **github-copilot/7d000676:** open 88 hours. The owner later did the same integration through another agent ("check if your branch is still needed"). The agent then deleted the branches but could not delete its own working folder.
   - **custom-caps-provider-card/120a6659 (10-08):** ended after the variant proposal with no reply. The same topic continued in subscription-cap the same afternoon.
   - **5-hour-limits-display:** the worktree folder was reused for a different branch (`login-ui-redesign`) and produced a forked duplicate transcript.
-  - **Current state:** 33 worktrees are registered, 11 of them `agent-*`.
+  - **Current state:** 33 worktrees are registered, 11 of them `agent-*`. They take 8.1 GB on disk under `.claude/worktrees`, mostly per-worktree `bin`/`obj` output (inference).
 - **Label:** fact. That the owner loses track of parallel work is an inference, supported by the kanban session (10-07), where the owner said they cannot see tasks or remember where work stopped.
 - **Confidence:** medium.
 - **Impact:**
