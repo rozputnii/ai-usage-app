@@ -195,13 +195,14 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     {
         var now = time.GetUtcNow();
         var date = WorkCalendar.Date(now, zone);
-        if (preferences.Current is { PendingWorkDays: { } pending, WorkDaysEffectiveOn: { } on } && date >= on && configurationWritable)
+        // D-NEW: work days an earlier version deferred to the next midnight apply at once. Clearing them first means a
+        // failed preference save can never reapply them over a newer change.
+        if (preferences.Current.PendingWorkDays is { } pending && configurationWritable &&
+            await preferences.ChangeAsync(s => s with { PendingWorkDays = null, WorkDaysEffectiveOn = null }, token) == CommandOutcome.Done)
         {
             var next = configuration with { WorkDays = pending };
             await budgets.SaveConfigurationAsync(next, token);
             configuration = next;
-            // Retaining the pending operation after a failed preference save makes the retry idempotent.
-            await preferences.ChangeAsync(s => s with { PendingWorkDays = null, WorkDaysEffectiveOn = null }, token);
         }
         while (true)
         {
@@ -259,7 +260,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         lock (sync) currentStrip = strip;
         await PublishAsync(new(TimeZoneInfo.ConvertTime(now, zone), new(off ? DayKind.DayOff : DayKind.WorkDay, workToday,
             workToday ? WorkCalendar.Midnight(date.AddDays(1), zone) : null), models, Options(snapshots), currentStrip,
-            new((preferences.Current.PendingWorkDays ?? configuration.WorkDays).ToHashSet(), caps),
+            new(configuration.WorkDays.ToHashSet(), caps),
             new(RefreshInterval, updates, failed.Length, failed.Select(a => a.Provider).Distinct().ToArray())
             { LocalStatus = lostCaptures.Count > 0 ? "History has missing readings because local capture failed" : localStatus,
                 Recovery = recovery, DiagnosticsAvailable = DiagnosticsPreview is not null }));
@@ -308,10 +309,15 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await ChangeAsync(token => preferences.ChangeAsync(s => s with { Preferences = value }, token), ct);
     public async Task SetWorkTodayAsync(bool on, CancellationToken ct) => await ChangeAsync(token =>
         preferences.ChangeAsync(s => s with { WorkToday = on ? WorkCalendar.Date(time.GetUtcNow(), zone) : null }, token), ct);
-    public Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct) => ChangeAsync(token =>
-        days.Count is > 0 and <= 7 && days.All(Enum.IsDefined) ? preferences.ChangeAsync(s => s with
-        { PendingWorkDays = days.Order().ToArray(), WorkDaysEffectiveOn = WorkCalendar.Date(time.GetUtcNow(), zone).AddDays(1) }, token)
-        : Task.FromResult(CommandOutcome.Rejected), ct);
+    // D-NEW: a work-day change applies at once; the rebuild recalculates today's share and day kind.
+    public Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct) => ChangeAsync(async token =>
+    {
+        if (!configurationWritable) return CommandOutcome.Unavailable;
+        if (days.Count is not (> 0 and <= 7) || !days.All(Enum.IsDefined)) return CommandOutcome.Rejected;
+        var next = configuration with { WorkDays = days.Order().ToArray() };
+        await budgets.SaveConfigurationAsync(next, token); configuration = next;
+        return CommandOutcome.Done;
+    }, ct);
     public async Task MoveCardAsync(string cardId, int offset, CancellationToken ct) => await ChangeAsync(token =>
     {
         var cards = Current.Accounts.FirstOrDefault(a => a.Cards.Any(c => c.CardId == cardId))?.Cards.Select(c => c.CardId).ToList();

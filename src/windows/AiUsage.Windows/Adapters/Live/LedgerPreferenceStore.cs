@@ -97,6 +97,7 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
         public string[] Order { get; set; } = [];
         public string[] Hidden { get; set; } = [];
         public DateOnly? WorkToday { get; set; }
+        // Written only by earlier versions that deferred work-day changes to the next midnight; applied once (D-NEW).
         public DayOfWeek[]? PendingWorkDays { get; set; }
         public DateOnly? WorkDaysEffectiveOn { get; set; }
         [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }

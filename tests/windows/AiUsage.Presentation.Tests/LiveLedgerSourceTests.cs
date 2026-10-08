@@ -307,6 +307,7 @@ public sealed class LiveLedgerSourceTests
         public BudgetConfiguration Configuration = BudgetConfiguration.Default;
         public List<string> Captured { get; } = [];
         public bool FailCapture;
+        public bool FailLoad;
         public ReadingRun[] Runs = [];
         public TaskCompletionSource? HoldRead;
         public TaskCompletionSource? ReadEntered;
@@ -318,7 +319,8 @@ public sealed class LiveLedgerSourceTests
             if (HoldRead is { } hold) { ReadEntered?.TrySetResult(); await hold.Task.WaitAsync(token); }
             return new(Runs.Where(r => r.Series == series).ToArray());
         }
-        public Task<StoreRead<BudgetConfiguration>> LoadConfigurationAsync(CancellationToken token) => Task.FromResult(new StoreRead<BudgetConfiguration>(Configuration));
+        public Task<StoreRead<BudgetConfiguration>> LoadConfigurationAsync(CancellationToken token) =>
+            FailLoad ? throw new IOException() : Task.FromResult(new StoreRead<BudgetConfiguration>(Configuration));
         public Task<StoreWrite> SaveConfigurationAsync(BudgetConfiguration configuration, CancellationToken token)
         { Configuration = configuration; return Task.FromResult(new StoreWrite()); }
     }
@@ -430,22 +432,82 @@ public sealed class LiveLedgerSourceTests
     }
 
     [Fact]
-    public async Task CalendarChangesApplyAtMidnightAndPreserveCaps()
+    public async Task WorkDayChangesApplyAtOnceAndPreserveCaps()
     {
-        var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
-        var accounts = new Accounts { Current = [Account(id, clock.Now, true)] };
-        using var source = Source(accounts, store, clock);
-        await source.InitializeAsync(null, Token);
-        var target = source.Current.Accounts[0].Cards[0].CapTargetId!;
-        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(target, 500, Token));
-        Assert.Equal(CommandOutcome.Done, await source.SetWorkDaysAsync(new HashSet<DayOfWeek> { DayOfWeek.Saturday }, Token));
-        Assert.Equal(BudgetConfiguration.Default.WorkDays, store.Configuration.WorkDays);
-        clock.Now = clock.Now.AddDays(1);
-        await source.TickAsync(Token);
-        Assert.Equal([DayOfWeek.Saturday], store.Configuration.WorkDays);
-        Assert.Single(store.Configuration.Caps);
-        Assert.Equal(id.ToString("N"), store.Configuration.Caps[0].Series.AccountTarget);
-        await source.StopAsync();
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var account = Account(id, clock.Now, true);
+        var facts = account.Session.Quota!.Limits!.Limits[0];
+        var series = new ReadingSeriesKey(id.ToString("N"), facts.Key);
+        var midnight = new DateTimeOffset(clock.Now.Date, TimeSpan.Zero);
+        ReadingRun Run(decimal value, DateTimeOffset at) => new(series, new CountQuantity(value, "requests"), at, at, "month", null, SnapshotSource.ProviderApi)
+            { PeriodStartedAt = midnight.AddDays(-4), ResetAt = facts.Reset!.At };
+        var store = new Store { Runs = [Run(10, midnight), Run(20, clock.Now)] };
+        using var source = Source(new Accounts { Current = [account] }, store, clock);
+        LimitCardModel Card() => source.Current.Accounts[0].Cards[0];
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(Card().CapTargetId!, 500, Token));
+            var weekdays = Card().Figures.TodayEnd;
+            Assert.NotNull(weekdays);
+
+            var sixDays = new HashSet<DayOfWeek>(BudgetSettingsModel.MondayToFriday) { DayOfWeek.Saturday };
+            Assert.Equal(CommandOutcome.Done, await source.SetWorkDaysAsync(sixDays, Token));
+            Assert.Equal(sixDays.Order(), store.Configuration.WorkDays);
+            Assert.True(source.Current.Budget.WorkDays.SetEquals(sixDays));
+            Assert.True(Card().Figures.TodayEnd < weekdays);
+
+            // Monday 5 October stops being a work day without waiting for midnight.
+            Assert.Equal(CommandOutcome.Done, await source.SetWorkDaysAsync(new HashSet<DayOfWeek> { DayOfWeek.Saturday }, Token));
+            Assert.Equal(DayKind.DayOff, source.Current.Day.Kind);
+            Assert.Equal(CardState.DayOff, Card().State);
+            var cap = Assert.Single(store.Configuration.Caps);
+            Assert.Equal(id.ToString("N"), cap.Series.AccountTarget);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task WorkDaysDeferredByAnEarlierVersionApplyAtOnce()
+    {
+        var clock = new Clock(); var store = new Store();
+        string? saved = null;
+        LedgerPreferenceStore Preferences() => new(_ => Task.FromResult(saved), (value, _) => { saved = value; return Task.CompletedTask; });
+        using (var earlier = Preferences())
+        {
+            Assert.True(await earlier.LoadAsync(null, Token));
+            Assert.Equal(CommandOutcome.Done, await earlier.ChangeAsync(s => s with
+                { PendingWorkDays = [DayOfWeek.Saturday], WorkDaysEffectiveOn = new DateOnly(2026, 10, 6) }, Token));
+        }
+        using var source = new LiveLedgerSource(new Accounts { Current = [Account(Guid.NewGuid(), clock.Now, true)] }, store, store, store,
+            Preferences(), action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal([DayOfWeek.Saturday], store.Configuration.WorkDays);
+            Assert.True(source.Current.Budget.WorkDays.SetEquals([DayOfWeek.Saturday]));
+            Assert.Equal(DayKind.DayOff, source.Current.Day.Kind);
+            using var reopened = Preferences();
+            Assert.True(await reopened.LoadAsync(null, Token));
+            Assert.Null(reopened.Current.PendingWorkDays);
+            Assert.Null(reopened.Current.WorkDaysEffectiveOn);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task WorkDaysAreUnavailableWhileBudgetSettingsNeedRecovery()
+    {
+        var clock = new Clock(); var store = new Store { FailLoad = true };
+        using var source = Source(new Accounts { Current = [Account(Guid.NewGuid(), clock.Now, true)] }, store, clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal(CommandOutcome.Unavailable, await source.SetWorkDaysAsync(new HashSet<DayOfWeek> { DayOfWeek.Saturday }, Token));
+            Assert.Equal(BudgetConfiguration.Default.WorkDays, store.Configuration.WorkDays);
+            Assert.True(source.Current.Budget.WorkDays.SetEquals(BudgetSettingsModel.MondayToFriday));
+        }
+        finally { await source.StopAsync(); }
     }
 
     [Fact]
