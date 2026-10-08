@@ -2,23 +2,54 @@
 
 Living log for the workflow-optimization effort. Read this first in every session.
 
-- Branch: `workflow-optimization` (owner-requested long-lived branch; never merged into
-  `main` or opened as a PR without an explicit owner decision).
-- Current stage: Stage 1 — analysis and recommendations (in progress).
+- **Branch:** `workflow-optimization`, a long-lived branch the owner requested. It is never
+  merged into `main` or opened as a PR without an explicit owner decision.
+- **Current stage:** Stage 1 (analysis and recommendations) is complete and awaits owner
+  review. Stage 2 has not started.
 
 ## Done
 
-- 2026-10-08: branch created from `origin/main` at `4f32185`; Stage 1 prompt saved
-  verbatim in [stage-1-prompt.md](stage-1-prompt.md).
+- **2026-10-08 — branch and prompt.** The branch was created from `origin/main` at `4f32185`,
+  and the Stage 1 prompt was saved verbatim in [stage-1-prompt.md](stage-1-prompt.md).
+- **2026-10-08 — lanes.** 15 lanes ran in parallel as read-only subagents. A4 was split into
+  A4a, A4b and A4c by transcript range. Reports are in `lanes/`: A1, A2, A3, A4a, A4b, A4c,
+  A5, A6, B1, B2, B3, B4, B5, B6.
+  - All lanes ran as general-purpose agents, not Explore. Each had to write its report to the
+    session scratchpad, and Explore cannot write.
+  - Every lane was briefed to change nothing in the repository.
+  - The orchestrator copied each report into `lanes/` and scanned it for private data; there
+    were no hits besides local paths already present in the prompt.
+- **2026-10-08 — critics and report.** Two fresh read-only critics reviewed the draft. Every
+  finding was accepted or resolved; there were two blocking findings, both fixed. The final
+  report is [report.md](report.md), with 18 ranked recommendations and 30 owner decisions.
+- **2026-10-08 — `main` check.** `origin/main` was re-fetched before the conclusions were
+  written. It was still `4f32185`, so no merge was needed and no finding is invalidated.
+- **2026-10-08 — validation.** Document validation on the branch passes in normal mode.
+  - `--final` reports exactly two `PLACEHOLDER_ID` diagnostics, both in the verbatim prompt;
+    they are kept on purpose (see OD-30).
+  - Placeholder mentions in the lane reports were put in code spans, and that was the only
+    change made to them.
 
 ## Owner decisions taken
 
-- 2026-10-08: Stage 1 authorized with a broad multi-agent fan-out (see the prompt).
+- **2026-10-08:** Stage 1 was authorized with a broad multi-agent fan-out (see the prompt).
 
 ## Open owner decisions
 
-- None yet; listed in report.md when Stage 1 completes.
+OD-1 to OD-30 are listed in [report.md §8](report.md#8-owner-decisions-yesno). Each can be
+answered yes or no and carries a recommendation.
+
+## Notes for later stages
+
+- **Before the final merge into `main`:** apply OD-30, which wraps the prompt's two
+  placeholder mentions in code spans, or the CI `--final` step fails.
+- **At the start of every session:** run `git fetch origin` and merge `origin/main` into this
+  branch, then re-check any finding whose evidence files changed.
+- **Lane scratch data:** the parser scripts and intermediate data stay in the Stage 1
+  session's scratchpad and are not in Git. Those files contain private transcript extracts.
 
 ## Next action
 
-Dispatch lanes A1-A6 and B1-B6 in parallel and save each report under `lanes/`.
+The owner answers OD-1 to OD-30. A new session then starts Stage 2 with a prompt that cites
+the approved decision numbers. It begins with R1 + R7 + R6 phase 1 (OD-2..OD-6) as one change
+set on this branch.
