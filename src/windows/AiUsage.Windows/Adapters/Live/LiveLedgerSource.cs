@@ -195,7 +195,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     {
         var now = time.GetUtcNow();
         var date = WorkCalendar.Date(now, zone);
-        // D-NEW: work days an earlier version deferred to the next midnight apply at once. Clearing them first means a
+        // D-198: work days an earlier version deferred to the next midnight apply at once. Clearing them first means a
         // failed preference save can never reapply them over a newer change.
         if (preferences.Current.PendingWorkDays is { } pending && configurationWritable &&
             await preferences.ChangeAsync(s => s with { PendingWorkDays = null, WorkDaysEffectiveOn = null }, token) == CommandOutcome.Done)
@@ -309,7 +309,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await ChangeAsync(token => preferences.ChangeAsync(s => s with { Preferences = value }, token), ct);
     public async Task SetWorkTodayAsync(bool on, CancellationToken ct) => await ChangeAsync(token =>
         preferences.ChangeAsync(s => s with { WorkToday = on ? WorkCalendar.Date(time.GetUtcNow(), zone) : null }, token), ct);
-    // D-NEW: a work-day change applies at once; the rebuild recalculates today's share and day kind.
+    // D-198: a work-day change applies at once; the rebuild recalculates today's share and day kind.
     public Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct) => ChangeAsync(async token =>
     {
         if (!configurationWritable) return CommandOutcome.Unavailable;
