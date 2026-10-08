@@ -72,6 +72,11 @@ public sealed partial class LedgerSmoke
             stage = "cap";
             money.Focus(); Keyboard.Press(VirtualKeyShort.KEY_C);
             Assert.True(Wait(() => money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).Any(e => !e.IsOffscreen)));
+            var amount = money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).First(e => !e.IsOffscreen).AsTextBox();
+            amount.Focus(); Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A); Keyboard.Type("600");
+            Assert.True(Wait(() => amount.Text == "600"));
+            Keyboard.Press(VirtualKeyShort.RETURN);
+            Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Enter at most $500.00 · the provider limit")) is not null));
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             parent = Main().FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;

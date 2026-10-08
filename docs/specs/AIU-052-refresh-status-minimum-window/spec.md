@@ -4,7 +4,7 @@ type: feature
 status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: Owner direction, 2026-10-08, in conversation. The owner reported that the caption buttons covered the title-row controls in a narrow window and asked for the smallest minimum width that keeps them apart and a minimum height that always fits one limit. The owner chose one limit section for the height and the title row alone for the width (the settings sheet may still squeeze the cards). The owner then asked to replace the title-row clock with a refresh button that is also the data status, and chose design B of three (the button right after the window title). Recorded as D-194.
+approval_basis: Owner direction, 2026-10-08, in conversation. The owner reported that the caption buttons covered the title-row controls in a narrow window and asked for the smallest minimum width that keeps them apart and a minimum height that always fits one limit. The owner chose one limit section for the height and the title row alone for the width (the settings sheet may still squeeze the cards). The owner then asked to replace the title-row clock with a refresh button that is also the data status, and chose design B of three (the button right after the window title). Recorded as D-195.
 ---
 
 # Refresh status button and minimum window size

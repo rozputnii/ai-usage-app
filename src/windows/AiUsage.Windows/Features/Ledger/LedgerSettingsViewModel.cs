@@ -47,6 +47,7 @@ internal sealed partial class CapRow : ObservableObject
         CapStatus.Unmatched => "unmatched · this limit is no longer reported · kept, not applied",
         CapStatus.Inactive => "kept, not applied · compatible spending scope, period and enabled amounts are required",
         CapStatus.CurrencyMismatch => "currency mismatch · provider reports " + (Model.ProviderCurrency ?? "another currency") + " · cap kept, not applied",
+        CapStatus.AboveLimit => "above the provider limit " + LedgerFormat.Value(Model.Scale, Model.ProviderLimit.Amount ?? 0) + " · kept, not applied",
         _ when Model.Tracking is not null && Model.ProviderLimit.Kind == LimitValueKind.Unknown =>
             "provider sends a balance only · used is tracked" + (Model.Tracking.TrackedSince is { } since ? " since " + LedgerFormat.DayMonth(since) : string.Empty) + " (estimate)",
         _ when Model.ProviderLimit.Kind == LimitValueKind.Unlimited => "provider: unlimited · your cap binds",
@@ -67,7 +68,7 @@ internal sealed partial class CapRow : ObservableObject
             return;
         // A mismatched retained amount is not a conversion or a removable cap in this scale.
         decimal? current = Model.Status == CapStatus.CurrencyMismatch ? null : Model.Amount;
-        Editor = new CapEditorViewModel(card.Scale, current, LedgerFormat.PeriodWords(card.Period),
+        Editor = new CapEditorViewModel(card.Scale, card.Figures.ProviderLimit, current, LedgerFormat.PeriodWords(card.Period),
             amount => owner.Owner.SetCapAsync(target, amount, current, Label), () => Editor = null);
     }
 }
@@ -111,7 +112,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
 
     public string WorkDaysNote =>
         "Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight. Changes apply from the next local midnight.";
-    public string CapsNote => "A cap is yours, never the provider’s limit. The lower of cap and provider limit applies. Caps are set in the pool’s own unit or currency.";
+    public string CapsNote => "A cap is yours, never the provider’s limit, and cannot exceed it. Caps are set in the pool’s own unit or currency.";
     public string DeleteNote => "Deletes sign-ins, names, preferences, caps, history and logs on this PC.";
 
     internal LimitCardModel? CapCard(string capTargetId) => snapshot?.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CapTargetId == capTargetId);

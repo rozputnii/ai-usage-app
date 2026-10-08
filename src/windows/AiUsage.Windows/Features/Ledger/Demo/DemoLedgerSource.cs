@@ -89,6 +89,8 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         if (account is null)
             return Task.FromResult(CommandOutcome.Rejected);
         var card = account.Cards.First(c => c.CapTargetId == capTargetId);
+        if (amount is { } requested && !card.Figures.ProviderLimit.AllowsCap(requested))
+            return Task.FromResult(CommandOutcome.Rejected);
         var original = originals.GetValueOrDefault(capTargetId, card);
         var updated = amount is { } value ? WithCap(original, card, value) : WithoutCap(original, card);
         if (updated.Monetary is { } money && updated.Scale.Exponent is >= 0 and <= 18)

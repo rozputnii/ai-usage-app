@@ -94,7 +94,7 @@ status naming its limit; those brief states are not rebuilt.
   declares the approved font and licence assets as Content for unpackaged and MSIX output.
 - **Window.** 760 × 600 effective pixels by default, solid `bg.page`, dark title bar,
   custom title row of 38 px (AppWindow title bar extension, as the current window does).
-  Amended by D-194 (AIU-052): a refresh status button replaces the title-row clock, and the
+  Amended by D-195 (AIU-052): a refresh status button replaces the title-row clock, and the
   minimum size follows the title row's width and the first card's primary limit.
 - **No new NuGet package.** Hatching uses clipped stripe geometry over a solid fill:
   the WinUI repeat-gradient spike dimmed surrounding text. Squircles follow PD-038-02.

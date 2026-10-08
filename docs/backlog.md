@@ -553,7 +553,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - status: done
 - depends_on: [AIU-038, AIU-051]
 - trigger: owner-selection
-- outcome: A refresh icon after the window title replaces the clock, turns red while an account is not refreshed in time and shows reading times in its tooltip; the window's minimum width keeps the title controls clear of the caption buttons and its minimum height fits one limit (D-194).
+- outcome: A refresh icon after the window title replaces the clock, turns red while an account is not refreshed in time and shows reading times in its tooltip; the window's minimum width keeps the title controls clear of the caption buttons and its minimum height fits one limit (D-195).
 - acceptance: AC-01 through AC-04 in the specification cover the status projection, the demo icon, the squeezed window and verification.
 - specification: docs/specs/AIU-052-refresh-status-minimum-window/spec.md
 - evidence: docs/specs/AIU-052-refresh-status-minimum-window/verification.md

@@ -632,6 +632,22 @@ public sealed class LedgerInteractionTests
     }
 
     [Fact]
+    public async Task CapEditorRejectsAnAmountAboveTheProviderLimit()
+    {
+        var (window, _, _, _) = Start();
+        var extra = Card(window, "claude-extra");
+        extra.BeginCapEdit();
+        extra.CapEditor!.Text = "500.01";
+        await extra.CapEditor.SaveAsync();
+        Assert.Equal("Enter at most $500.00 · the provider limit", extra.CapEditor.Error);
+        Assert.Equal(300m, Card(window, "claude-extra").Model.Cap!.Amount);
+        extra.CapEditor.Text = "500";
+        await extra.CapEditor.SaveAsync();
+        Assert.Null(extra.CapEditor);
+        Assert.Equal(500m, Card(window, "claude-extra").Model.Cap!.Amount);
+    }
+
+    [Fact]
     public async Task SetCapOnALimitUnknownPoolGivesItABudget()
     {
         var (window, _, _, _) = Start(DemoLedgerScenarios.States);

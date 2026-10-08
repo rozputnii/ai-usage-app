@@ -172,6 +172,9 @@ internal sealed record LimitValue(LimitValueKind Kind, decimal? Amount)
     public static LimitValue Unlimited { get; } = new(LimitValueKind.Unlimited, null);
     public static LimitValue Zero { get; } = new(LimitValueKind.Zero, 0m);
     public static LimitValue Known(decimal amount) => new(LimitValueKind.Known, amount);
+
+    /// <summary>A personal cap may equal but never exceed a known provider limit.</summary>
+    public bool AllowsCap(decimal cap) => Amount is not { } limit || cap <= limit;
 }
 
 internal enum LimitValueKind { Known, Unknown, Unlimited, Zero }
@@ -204,7 +207,8 @@ internal enum ResetProvenance { Provider, Assumed }
 
 internal sealed record CapModel(decimal Amount, bool Binding, CapStatus Status);
 
-internal enum CapStatus { Applied, Unmatched, CurrencyMismatch, Inactive }
+/// <summary>AboveLimit keeps a cap saved before the provider limit fell below it (or by an older build) without applying it.</summary>
+internal enum CapStatus { Applied, Unmatched, CurrencyMismatch, Inactive, AboveLimit }
 
 /// <summary>Day-off tooltip figures: the next work day's share before and after today's use.</summary>
 internal sealed record DayOffPreview(DayOfWeek NextWorkDay, decimal ShareBefore, decimal ShareAfter);

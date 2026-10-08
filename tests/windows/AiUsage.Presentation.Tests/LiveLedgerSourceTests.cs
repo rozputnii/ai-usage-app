@@ -449,6 +449,21 @@ public sealed class LiveLedgerSourceTests
     }
 
     [Fact]
+    public async Task CapCannotExceedTheProviderLimit()
+    {
+        var clock = new Clock(); var store = new Store();
+        var accounts = new Accounts { Current = [Account(Guid.NewGuid(), clock.Now, true)] };
+        using var source = Source(accounts, store, clock);
+        await source.InitializeAsync(null, Token);
+        var target = source.Current.Accounts[0].Cards[0].CapTargetId!;
+        Assert.Equal(CommandOutcome.Rejected, await source.SetCapAsync(target, 1001, Token));
+        Assert.Empty(store.Configuration.Caps);
+        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(target, 1000, Token));
+        Assert.Equal(1000m, source.Current.Accounts[0].Cards[0].Cap!.Amount);
+        await source.StopAsync();
+    }
+
+    [Fact]
     public async Task CaptureFailureIsVisibleWithoutClaimingSavedHistory()
     {
         var clock = new Clock(); var store = new Store { FailCapture = true };
