@@ -151,6 +151,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             }
         foreach (var gone in cardsById.Keys.Except(ordered.Select(c => c.CardId)).ToArray())
             cardsById.Remove(gone);
+        var shownAccounts = ordered.Select(c => c.Account.AccountId).Distinct().Count();
+        foreach (var card in ordered)
+            card.CanReorder = !card.IsAccountSection && shownAccounts > 1;
         Sync(Cards, ordered);
         SectionLayout = string.Join("|", ordered.Where(c => c.IsAccountSection).Select(c => c.CardId + (c.IsHiddenSection ? "-" : "+")));
         if (History is { } history && !cardsById.ContainsKey(history.CardId))

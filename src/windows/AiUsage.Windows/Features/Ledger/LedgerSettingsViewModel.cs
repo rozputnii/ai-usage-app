@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using AiUsage.Features.Ledger.Contract;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -74,8 +75,8 @@ internal sealed partial class CapRow : ObservableObject
 }
 
 /// <summary>
-/// The settings sheet (spec S5, D-193): work days with undo, personal caps, view, updates, and a footer with the refresh
-/// interval or a status problem, the rare support actions and Delete stored data. Explanations are tooltips.
+/// The settings sheet (spec S5, D-193): work days with undo, personal caps, view (with the refresh interval), updates, and a
+/// footer with a status problem, the rare support actions and Delete stored data. Explanations are tooltips.
 /// </summary>
 internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILedgerSource source) : ObservableObject
 {
@@ -86,7 +87,13 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     public ObservableCollection<CapRow> Caps { get; } = [];
     [ObservableProperty] public partial bool IsCompact { get; private set; }
     [ObservableProperty] public partial bool AlwaysOnTop { get; private set; }
-    [ObservableProperty] public partial string MonitoringText { get; private set; } = string.Empty;
+    /// <summary>AIU-055 R-11: the saved refresh interval in whole minutes, 1 to 60; the buttons stop at the ends.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RefreshTip))]
+    [NotifyCanExecuteChangedFor(nameof(DecreaseRefreshCommand), nameof(IncreaseRefreshCommand))]
+    public partial int RefreshMinutes { get; private set; } = LedgerPreferences.Default.RefreshMinutes;
+    /// <summary>The interval box, two-way bound while typing; a commit sets it back to the saved minutes.</summary>
+    [ObservableProperty] public partial string RefreshText { get; set; } = LedgerPreferences.Default.RefreshMinutes.ToString(CultureInfo.InvariantCulture);
     [ObservableProperty] public partial string UpdatesText { get; private set; } = string.Empty;
     /// <summary>The update status needs attention or action; otherwise it is only a tooltip.</summary>
     [ObservableProperty] public partial bool IsUpdateNotable { get; private set; }
@@ -98,7 +105,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     [ObservableProperty] public partial bool IsUpdateAlways { get; private set; }
     [ObservableProperty] public partial bool IsUpdateOnLaunch { get; private set; }
     [ObservableProperty] public partial bool IsUpdateOff { get; private set; }
-    /// <summary>A local-data or sync problem, empty while all is well; it replaces the refresh interval in the footer.</summary>
+    /// <summary>A local-data or sync problem, empty while all is well; the footer shows it beside ⋯.</summary>
     [ObservableProperty] public partial string SystemStatusText { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool HasSystemStatus { get; private set; }
     [ObservableProperty] public partial bool IsDeleteArmed { get; private set; }
@@ -114,6 +121,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         "Daily budgets split each period over work days (Mon–Fri by default). A day off shows today’s would-be share in neutral; Work today in the title bar colours it until midnight.";
     public string CapsNote => "A cap is yours, never the provider’s limit, and cannot exceed it. Caps are set in the pool’s own unit or currency.";
     public string DeleteNote => "Deletes sign-ins, names, preferences, caps, history and logs on this PC.";
+    public string RefreshTip => $"Refresh every {RefreshMinutes} min · {LedgerPreferences.MinRefreshMinutes} to {LedgerPreferences.MaxRefreshMinutes}";
 
     internal LimitCardModel? CapCard(string capTargetId) => snapshot?.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CapTargetId == capTargetId);
     internal bool HasCard(string capTargetId) => CapCard(capTargetId) is not null;
@@ -127,7 +135,12 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         CanRestorePreferences = current.Summaries.Recovery?.CanRestorePreferences ?? false;
         IsCompact = prefs.Density == Density.Compact;
         AlwaysOnTop = prefs.AlwaysOnTop;
-        MonitoringText = "every " + LedgerFormat.Duration(current.Summaries.RefreshInterval);
+        // Only a changed saved value moves the box, so a rebuild never overwrites what is being typed.
+        if (RefreshMinutes != prefs.RefreshMinutes)
+        {
+            RefreshMinutes = prefs.RefreshMinutes;
+            RefreshText = RefreshMinutes.ToString(CultureInfo.InvariantCulture);
+        }
         var updates = current.Summaries.Updates;
         UpdatesText = LedgerFormat.UpdateText(updates);
         IsUpdateNotable = updates.State is UpdateState.Available or UpdateState.Ready or UpdateState.Installing or UpdateState.CheckFailed
@@ -196,6 +209,35 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
 
     [RelayCommand]
     public Task SetUpdateModeAsync(UpdateMode mode) => source.SetPreferencesAsync(source.Preferences with { Updates = mode }, CancellationToken.None);
+
+    [RelayCommand(CanExecute = nameof(CanDecreaseRefresh))]
+    public Task DecreaseRefreshAsync() => SetRefreshMinutesAsync(Math.Max(LedgerPreferences.MinRefreshMinutes, RefreshMinutes - 1));
+
+    [RelayCommand(CanExecute = nameof(CanIncreaseRefresh))]
+    public Task IncreaseRefreshAsync() => SetRefreshMinutesAsync(Math.Min(LedgerPreferences.MaxRefreshMinutes, RefreshMinutes + 1));
+
+    private bool CanDecreaseRefresh() => RefreshMinutes > LedgerPreferences.MinRefreshMinutes;
+    private bool CanIncreaseRefresh() => RefreshMinutes < LedgerPreferences.MaxRefreshMinutes;
+
+    /// <summary>Typing filter: nothing, or up to two ASCII digits; the range is checked when the box is committed.</summary>
+    public bool AcceptsRefreshText(string text) => text.Length <= 2 && text.All(char.IsAsciiDigit);
+
+    /// <summary>R-11: whole minutes from 1 to 60 save at once; anything else is refused and the box returns to the saved value.</summary>
+    public async Task<bool> CommitRefreshTextAsync(string text)
+    {
+        var accepted = int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out var minutes)
+            && minutes is >= LedgerPreferences.MinRefreshMinutes and <= LedgerPreferences.MaxRefreshMinutes;
+        await SetRefreshMinutesAsync(accepted ? minutes : RefreshMinutes);
+        return accepted;
+    }
+
+    private async Task SetRefreshMinutesAsync(int minutes)
+    {
+        if (minutes != RefreshMinutes)
+            await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = minutes }, CancellationToken.None);
+        // What is saved decides what the box shows: this also turns 05 into 5 and undoes a value that could not be written.
+        RefreshText = source.Preferences.RefreshMinutes.ToString(CultureInfo.InvariantCulture);
+    }
 
     [RelayCommand]
     public Task CheckForUpdatesAsync() => source.CheckForUpdatesAsync(CancellationToken.None);

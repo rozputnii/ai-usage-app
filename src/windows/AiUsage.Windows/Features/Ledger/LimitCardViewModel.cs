@@ -127,6 +127,8 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     [ObservableProperty] public partial bool IsNew { get; set; }
     [ObservableProperty] public partial bool IsHistoryOpen { get; set; }
     [ObservableProperty] public partial bool IsCompact { get; set; } = true;
+    /// <summary>R-10: an account card shows a grip to drag the account when another account is shown.</summary>
+    [ObservableProperty] public partial bool CanReorder { get; set; }
 
     /// <summary>Every limit other than the account's primary one is drawn inside the primary card, so one account is one card (D-191).</summary>
     public bool IsAccountSection => AccountCard.Primary(Account)?.CardId != CardId;
@@ -155,6 +157,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public bool CanOpenHistory => Model.Layout != CardLayout.Note || Model.Monetary is not null;
     public bool IsStale => Model.Freshness.IsStale;
     public string SignOutName => "Sign out " + Account.DisplayName;
+    public string ReorderName => "Reorder " + Account.DisplayName;
     public string HistoryName => "History, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
 
     public void Update(LimitCardModel model, AccountModel account, ValueMode mode, DateTimeOffset now)
