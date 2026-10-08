@@ -9,7 +9,13 @@ public sealed record EffectiveLimit(Quantity? Value, LimitBinding Binding, bool 
     {
         ArgumentNullException.ThrowIfNull(facts);
         if (facts.Kind == LimitKind.PercentWindow)
-            return new(new CountQuantity(100, "percent"), LimitBinding.Provider, cap is not null);
+        {
+            // D-NEW: a whole-window cap in percent of the provider's window, at most 100.
+            var full = new CountQuantity(100, "percent");
+            if (cap is null) return new(full, LimitBinding.Provider, false);
+            if (cap.Amount is not CountQuantity { Unit: "percent", Value: >= 0 and <= 100 } percent) return new(full, LimitBinding.Provider, true);
+            return percent.Value < 100 ? new(percent, LimitBinding.PersonalCap, false) : new(full, LimitBinding.Provider, false);
+        }
         var provider = facts.Limit.State == LimitValueState.Finite && QuantityMath.IsValidFor(facts.Limit.Value, facts)
             ? facts.Limit.Value : null;
         if (provider is not null && (!QuantityMath.TryAlign(provider, provider, out var entitlement, out _, out _) || entitlement < 0)) provider = null;

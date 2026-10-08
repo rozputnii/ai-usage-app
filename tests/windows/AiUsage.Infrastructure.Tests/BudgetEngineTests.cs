@@ -105,6 +105,23 @@ public sealed class BudgetEngineTests
     }
 
     [Fact]
+    public void PercentCapIsTheBudgetLimit()
+    {
+        BudgetResult At(decimal used) => BudgetEngine.Calculate(new BudgetInput(Window with { UsedPercent = used }, new(new CountQuantity(90, "percent"), DateTimeOffset.MinValue),
+            Period("2026-10-01 15:00", "2026-10-08 15:00"), new CountQuantity(used, "percent"), new CountQuantity(38, "percent"), Local("2026-10-06"), Zone));
+        var result = At(63);
+        Assert.Equal(90, result.Limit);
+        Assert.Equal(LimitBinding.PersonalCap, result.Binding);
+        Assert.Equal(52 / result.Weights!.Remaining, result.Norm);
+        Assert.Equal(52 / result.Weights.Remaining * result.Weights.Today, result.TodayShare);
+        Assert.Equal(0, At(90).Remaining);
+        Assert.False(At(90).ProviderUsedUp);
+        Assert.Equal(AccountLimitState.Over, At(95).State);
+        Assert.False(At(95).ProviderUsedUp);
+        Assert.True(At(100).ProviderUsedUp);
+    }
+
+    [Fact]
     public void DayOffWorkTodayRushAndUsedUpHaveIndependentOutputs()
     {
         var input = new BudgetInput(Window, null, Period("2026-10-01 15:00", "2026-10-08 15:00"), new CountQuantity(31, "percent"), new CountQuantity(25, "percent"), Local("2026-10-03 12:00"), Zone);

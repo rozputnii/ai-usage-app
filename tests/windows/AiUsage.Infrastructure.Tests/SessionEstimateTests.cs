@@ -254,6 +254,16 @@ public sealed class SessionEstimateTests
     }
 
     [Fact]
+    public void WindowsLeftCountAgainstTheCap()
+    {
+        var settled = new SessionEstimate(SessionEstimateLevel.Settled, 10, 9.5m, 10.5m, 6);
+        Assert.Equal(new SessionCount(4, false), SessionEstimator.Figures(settled, 60, null).Weekly);
+        Assert.Equal(new SessionCount(3, false), SessionEstimator.Figures(settled, 60, null, 90).Weekly);
+        Assert.Equal(new SessionCount(0, false), SessionEstimator.Figures(settled, 95, null, 90).Weekly);
+        Assert.Equal(new SessionFigures(null, null), SessionEstimator.Figures(settled, 60, null, 101));
+    }
+
+    [Fact]
     public void ClaudeExtraUsageRequiresCurrentFullWindowAndComparableSpendAtFill()
     {
         var spendKey = Key with { Limit = new("claude", "extra", "extra") };

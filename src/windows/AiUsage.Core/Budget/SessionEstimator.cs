@@ -55,16 +55,16 @@ public static class SessionEstimator
             double.IsPositiveInfinity(high) ? null : (decimal)high, parts.Count);
     }
 
-    public static SessionFigures Figures(SessionEstimate estimate, decimal weeklyUsed, decimal? todayShare)
+    public static SessionFigures Figures(SessionEstimate estimate, decimal weeklyUsed, decimal? todayShare, decimal weeklyLimit = 100)
     {
         ArgumentNullException.ThrowIfNull(estimate);
-        if (!estimate.Ready || estimate.Cost is not > 0 || weeklyUsed is < 0 or > 100) return new(null, null);
+        if (!estimate.Ready || estimate.Cost is not > 0 || weeklyUsed is < 0 or > 100 || weeklyLimit is <= 0 or > 100) return new(null, null);
         static SessionCount Count(decimal amount, decimal cost)
         {
             var sessions = Math.Max(0, amount) / cost;
             return new(decimal.Floor(sessions), sessions is > 0 and < 1);
         }
-        var left = 100 - weeklyUsed;
+        var left = weeklyLimit - weeklyUsed;
         var weekly = Count(left, estimate.Cost.Value);
         if (estimate is { Level: SessionEstimateLevel.Rough, High: > 0 and var high, Low: > 0 })
         {

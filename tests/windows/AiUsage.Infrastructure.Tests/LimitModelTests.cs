@@ -32,9 +32,21 @@ public sealed class LimitModelTests
         }
         var zero = EffectiveLimit.Resolve(facts with { Limit = LimitValue.Finite(new CountQuantity(0, "requests")) }, null);
         Assert.Equal(new CountQuantity(0, "requests"), zero.Value);
-        var window = facts with { Kind = LimitKind.PercentWindow, Unit = "percent" };
-        Assert.Equal(new CountQuantity(100, "percent"), EffectiveLimit.Resolve(window, new(new CountQuantity(1, "percent"), DateTimeOffset.MinValue)).Value);
-        Assert.True(EffectiveLimit.Resolve(window, new(new CountQuantity(1, "percent"), DateTimeOffset.MinValue)).CapRejected);
+    }
+
+    [Fact]
+    public void PercentCapRules()
+    {
+        var window = Pool(LimitValue.NotApplicable) with { Kind = LimitKind.PercentWindow, Unit = "percent", Duration = TimeSpan.FromDays(7) };
+        EffectiveLimit Cap(Quantity amount) => EffectiveLimit.Resolve(window, new(amount, DateTimeOffset.MinValue));
+        Assert.Equal(new(new CountQuantity(90, "percent"), LimitBinding.PersonalCap, false), Cap(new CountQuantity(90, "percent")));
+        Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, false), Cap(new CountQuantity(100, "percent")));
+        Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, true), Cap(new CountQuantity(90, "requests")));
+        Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, true), Cap(new CountQuantity(101, "percent")));
+        Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, true), Cap(new MoneyQuantity(90, 2, "USD")));
+        Assert.Equal(new(new CountQuantity(100, "percent"), LimitBinding.Provider, false), EffectiveLimit.Resolve(window, null));
+        // A percent cap never applies to a count pool.
+        Assert.True(EffectiveLimit.Resolve(Pool(LimitValue.Finite(new CountQuantity(50, "requests"))), new(new CountQuantity(20, "percent"), DateTimeOffset.MinValue)).CapRejected);
     }
 
     [Fact]
