@@ -413,7 +413,7 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
   review, integrate, report.
 
 ### T-06 - Core continuity tolerance
-- status: pending
+- status: done
 - depends_on: []
 - ownership: reading-continuity
 - writes: [src/windows/AiUsage.Core/Budget/ReadingContinuity.cs, src/windows/AiUsage.Core/Budget/ReadingCalculations.cs, src/windows/AiUsage.Core/Budget/ExtraUsageEvidence.cs, tests/windows/AiUsage.Infrastructure.Tests/ReadingContinuityTests.cs]
@@ -422,7 +422,7 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-10]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at dbb0b8c; Infrastructure 915/915, Presentation 297/297, Release build 0 warnings, demo startup smoke PASS, opus review approve
 
 **Model:** sonnet. **Requirement:** R-13 (Core part).
 
@@ -437,7 +437,7 @@ public static class ReadingContinuity
 // ReadingCalculations.DayStart, ReadingCalculations.Track, ExtraUsageEvidence.Calculate
 ```
 
-- [ ] Tests in `ReadingContinuityTests`. Build fixtures like `ReadingBudgetTests`, `ReadingBoundaryTests` and the existing
+- [x] Tests in `ReadingContinuityTests`. Build fixtures like `ReadingBudgetTests`, `ReadingBoundaryTests` and the existing
   extra-usage tests.
   - `ToleranceIsThreeIntervalsWithAFifteenMinuteFloor`: 1 → 15, 5 → 15, 6 → 18, 30 → 90 and 60 → 180 min; 0 throws.
   - `DayStartCarriesWithinTheTolerance`: the last reading before midnight, confirmed 40 min before it with a different
@@ -449,9 +449,9 @@ public static class ReadingContinuity
     with tolerance 90 and `(null, null, null)` with the default.
 
   Run them and expect a compile failure.
-- [ ] Implement by replacing the four `TimeSpan.FromMinutes(15)` uses with `tolerance ?? ReadingContinuity.Floor`. Keep
+- [x] Implement by replacing the four `TimeSpan.FromMinutes(15)` uses with `tolerance ?? ReadingContinuity.Floor`. Keep
   `LocalBudgetStore`'s merge rule as it is.
-- [ ] Run Infrastructure: PASS, with every existing test unchanged. Commit
+- [x] Run Infrastructure: PASS, with every existing test unchanged. Commit
   `feat(AIU-055): continuity tolerance scales with the refresh interval (T-06)`; review, integrate, report.
 
 ### T-07 - Tray rows: main limit, one today bar, ring and density
