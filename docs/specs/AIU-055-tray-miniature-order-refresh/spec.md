@@ -1,10 +1,10 @@
 ---
-id: AIU-NEW
+id: AIU-055
 type: feature
 status: approved
 goal: G-003
 scope_version: 1
-approval_basis: Owner direction, 2026-10-08, in conversation. The owner listed seven changes. In the tray flyout there are no tab stops or focus frames, and only today's budget shows, without a five-hour split; a subscription with a five-hour window gets a clock-like five-hour indicator. The tray bars are taller, styled like the window's today strip and follow density, and a provider icon replaces the name, with the name in a tooltip. In the main window the owner renames a subscription by clicking its name and orders subscriptions by hand. A refresh interval setting is added, default 5 min, minimum 1 min, in whole minutes. Of the presented variants, the owner chose a thin ring arc for the five-hour indicator, dragging by a grip for the order, a stepper with a 1–60 min range whose 15-minute continuity rules scale with the interval, and only the main limit per subscription in the tray. The owner directed that this batch run in parallel as autonomous subagents, each of which merges and pushes its own reviewed work, with no questions. Recorded as D-NEW, D-NEW-2 and D-NEW-3.
+approval_basis: Owner direction, 2026-10-08, in conversation. The owner listed seven changes. In the tray flyout there are no tab stops or focus frames, and only today's budget shows, without a five-hour split; a subscription with a five-hour window gets a clock-like five-hour indicator. The tray bars are taller, styled like the window's today strip and follow density, and a provider icon replaces the name, with the name in a tooltip. In the main window the owner renames a subscription by clicking its name and orders subscriptions by hand. A refresh interval setting is added, default 5 min, minimum 1 min, in whole minutes. Of the presented variants, the owner chose a thin ring arc for the five-hour indicator, dragging by a grip for the order, a stepper with a 1–60 min range whose 15-minute continuity rules scale with the interval, and only the main limit per subscription in the tray. The owner directed that this batch run in parallel as autonomous subagents, each of which merges and pushes its own reviewed work, with no questions. Recorded as D-204, D-205 and D-206.
 ---
 
 # Tray miniature, subscription order, click rename and refresh interval
@@ -29,7 +29,7 @@ Checked in the source on 2026-10-08 at `b81ef9e`:
 
 ## Requirements
 
-### Tray flyout (D-NEW)
+### Tray flyout (D-204)
 
 - **R-01 No keyboard focus.** No element of the tray flyout is a tab stop. No focus
   frame ever shows, and opening the flyout focuses nothing. Arrow-key and Enter
@@ -78,7 +78,7 @@ Checked in the source on 2026-10-08 at `b81ef9e`:
   and on-extra-usage marks stay after the ring. Row automation names stay as they are,
   because the desktop smokes find rows by them.
 
-### Main window (D-NEW-2)
+### Main window (D-205)
 
 - **R-09 Click to rename.** A single click on the account name in a card header starts
   the existing inline rename (as F2) with the text selected. Enter, a click outside the
@@ -102,7 +102,7 @@ Checked in the source on 2026-10-08 at `b81ef9e`:
     `N`-format GUIDs. An older file without it loads with no order, which means the
     registry order.
 
-### Refresh interval (D-NEW-3)
+### Refresh interval (D-206)
 
 - **R-11 Setting.** Settings › View gets a `Refresh` row with a stepper:
   `[−] N min [+]`.

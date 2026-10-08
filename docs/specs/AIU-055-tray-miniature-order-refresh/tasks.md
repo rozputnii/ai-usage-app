@@ -1,9 +1,9 @@
 ---
-id: AIU-NEW
+id: AIU-055
 schema_version: 1
 ---
 
-# AIU-NEW Implementation Plan
+# AIU-055 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to run this plan in the parallel waves described under "Execution model"; that section overrides the skill's one-task-at-a-time loop and its stop before merges and pushes. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -49,7 +49,7 @@ It overrides the skill where they differ.
    - Then, as the primary, set the task's `status: done` and `evidence: integrated into
      main at <sha>; <checks>`, and append the report's evidence rows to
      `verification.md`.
-   - Commit as `docs(AIU-NEW): record T-0n` after merging `origin/main`, and push.
+   - Commit as `docs(AIU-055): record T-0n` after merging `origin/main`, and push.
      Completions that arrive together go in one commit.
 4. **Failures.** Rule, record the ruling in the SDD ledger and continue; do not ask the
    owner.
@@ -65,9 +65,9 @@ It overrides the skill where they differ.
 ### Worker brief (fill `<…>`)
 
 ```text
-You are the autonomous worker for task <T-0n> of AIU-NEW in the AI Usage repository. You run in your own git worktree.
-Read in order: AGENTS.md, CONTRIBUTING.md (Git policy), docs/specs/AIU-NEW-tray-miniature-order-refresh/spec.md, then in
-docs/specs/AIU-NEW-tray-miniature-order-refresh/tasks.md the sections "Global Constraints", "Worker procedure" and "<T-0n>".
+You are the autonomous worker for task <T-0n> of AIU-055 in the AI Usage repository. You run in your own git worktree.
+Read in order: AGENTS.md, CONTRIBUTING.md (Git policy), docs/specs/AIU-055-tray-miniature-order-refresh/spec.md, then in
+docs/specs/AIU-055-tray-miniature-order-refresh/tasks.md the sections "Global Constraints", "Worker procedure" and "<T-0n>".
 Follow the Worker procedure exactly, including your own independent review, merging fresh main and pushing to main.
 Never ask the owner anything: decide, and record each decision in your report. You may dispatch subagents: read-only research
 agents to compare solutions, and the reviewer the procedure requires. Return only the report format of the procedure.
@@ -101,7 +101,7 @@ agents to compare solutions, and the reviewer the procedure requires. Return onl
   - a worker writes only the files in its task's `writes` list;
   - if it must touch another file, it keeps the change minimal and names the file in its report;
   - workers never edit `docs/` (the controller owns the records).
-- **Commits:** `feat(AIU-NEW): … (T-0n)`, `test(AIU-NEW): … (T-0n)`, `fix(AIU-NEW): … (T-0n)`.
+- **Commits:** `feat(AIU-055): … (T-0n)`, `test(AIU-055): … (T-0n)`, `fix(AIU-055): … (T-0n)`.
   - No attribution lines.
   - Never `--no-verify`, never force-push, never rewrite published history.
 - **Host:**
@@ -149,12 +149,12 @@ try { <run the smoke exe with its -method filter> } finally { Remove-Item $lock 
      - Publish the UI suite with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`.
      - Set `AIU_SMOKE_EXE` to the absolute path of
        `src/windows/AiUsage.Windows/bin/x64/Debug/net10.0-windows10.0.26100.0/win-x64/AiUsage.exe`.
-     - Set `AIU_SMOKE_EVIDENCE_DIRECTORY` to `<worktree>/.ai-usage-local/AIU-NEW/<T-0n>` (git-ignored), and
+     - Set `AIU_SMOKE_EVIDENCE_DIRECTORY` to `<worktree>/.ai-usage-local/AIU-055/<T-0n>` (git-ignored), and
        `AIU_SMOKE_MODE=demo` where the smoke reads it.
      - Run the published `AiUsage.Windows.Tests.exe -method "<filter>"` under the desktop lock.
    - Open every screenshot you capture (Read tool) and compare it with the spec. A locked desktop: retry every 5 min for
      up to 30 min, then return BLOCKED without pushing.
-7. **Independent review.** Save `git diff origin/main...HEAD` to `.ai-usage-local/AIU-NEW/<T-0n>/review.diff`.
+7. **Independent review.** Save `git diff origin/main...HEAD` to `.ai-usage-local/AIU-055/<T-0n>/review.diff`.
    - Dispatch a fresh reviewer: `subagent_type: "aiu-reviewer"` (if that type is not listed, `"general-purpose"` with
      "read-only: never edit, commit or push"), `model: "opus"`.
    - Give it the spec path, your task id, the diff file, your test output paths and the worktree path.
@@ -229,7 +229,7 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
   build). Record whether Esc still closes the flyout.
 - [ ] Update `AuditTrayControls` (a Sandbox-only audit) to the click-based selection and the no-focusable assertion.
   Build it with `dotnet build tests/windows/AiUsage.Windows.Tests -c Release`; the run is NOT_RUN (Sandbox opt-in).
-- [ ] Commit `fix(AIU-NEW): tray flyout has no tab stops or focus frames (T-01)`, then review, integrate and report.
+- [ ] Commit `fix(AIU-055): tray flyout has no tab stops or focus frames (T-01)`, then review, integrate and report.
 
 ### T-02 - Provider marks
 - status: pending
@@ -267,11 +267,11 @@ internal static class ProviderMark { public static FrameworkElement Create(Provi
 - [ ] Implement `Create` as a `Viewbox` of `size` containing a 24 × 24 `Path` with `Fill = brush`. Parse the data with
   `XamlBindingHelper.ConvertValue(typeof(Geometry), data)`, as `LedgerTrayWindow` does.
 - [ ] Render check:
-  - Write each path into `.ai-usage-local/AIU-NEW/T-02/<provider>.svg`: a 24 × 24 view box, white fill on `#1F1E1B`, at
+  - Write each path into `.ai-usage-local/AIU-055/T-02/<provider>.svg`: a 24 × 24 view box, white fill on `#1F1E1B`, at
     16 px and at 64 px.
   - Render each to PNG with `msedge --headless --screenshot=<png> --window-size=200,120 <svg>`.
   - Open the PNGs and revise until each mark is recognisable at 16 px.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-NEW): monochrome provider marks (T-02)`; review (give the reviewer the
+- [ ] Run Presentation: PASS. Commit `feat(AIU-055): monochrome provider marks (T-02)`; review (give the reviewer the
   PNGs), integrate, report.
 
 ### T-03 - Five-hour ring control
@@ -318,7 +318,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
   - stroke 2 and round start and end caps.
 
   Rebuild on either property change.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-NEW): five-hour ring control (T-03)`; review, integrate, report.
+- [ ] Run Presentation: PASS. Commit `feat(AIU-055): five-hour ring control (T-03)`; review, integrate, report.
 
 ### T-04 - Rename by clicking the name
 - status: pending
@@ -353,7 +353,7 @@ internal sealed partial class FiveHourRing : Grid               // 16 × 16
 - [ ] In `LedgerWindow.xaml.cs`, a root `PointerPressed` handler (`AddHandler(…, handledEventsToo: true)`) commits any
   card with `IsRenaming` when the press is outside its `RenameBox`.
 - [ ] Rerun the smoke and the Ledger launch smoke: PASS; open `rename.png`. Presentation stays green. Commit
-  `feat(AIU-NEW): rename an account by clicking its name (T-04)`; review, integrate, report.
+  `feat(AIU-055): rename an account by clicking its name (T-04)`; review, integrate, report.
 
 ### T-05 - Account order in preferences, sources and keyboard
 - status: pending
@@ -409,7 +409,7 @@ public Task MoveAccountByAsync(string accountId, int offset);             // ±1
   - **View models:** `LedgerViewModel.MoveAccountByAsync` uses the visible account order: up → before the previous
     visible account; down → before the account two places on, or null when that leaves the end. `LimitCardViewModel`
     routes by `IsAccountSection`.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-NEW): saved subscription order, Alt+arrows move the account (T-05)`;
+- [ ] Run Presentation: PASS. Commit `feat(AIU-055): saved subscription order, Alt+arrows move the account (T-05)`;
   review, integrate, report.
 
 ### T-06 - Core continuity tolerance
@@ -452,7 +452,7 @@ public static class ReadingContinuity
 - [ ] Implement by replacing the four `TimeSpan.FromMinutes(15)` uses with `tolerance ?? ReadingContinuity.Floor`. Keep
   `LocalBudgetStore`'s merge rule as it is.
 - [ ] Run Infrastructure: PASS, with every existing test unchanged. Commit
-  `feat(AIU-NEW): continuity tolerance scales with the refresh interval (T-06)`; review, integrate, report.
+  `feat(AIU-055): continuity tolerance scales with the refresh interval (T-06)`; review, integrate, report.
 
 ### T-07 - Tray rows: main limit, one today bar, ring and density
 - status: pending
@@ -518,7 +518,7 @@ public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account,
 - [ ] Extend the Ledger launch smoke: capture `tray.png` after opening. Run it in both densities by switching
   Comfortable in settings first in one run; it saves `tray-comfortable.png`. Open both PNGs and check 14 px bars and the
   ring.
-- [ ] Run Presentation and the smoke: PASS. Commit `feat(AIU-NEW): tray shows the main limit's today bar and a five-hour ring (T-07)`;
+- [ ] Run Presentation and the smoke: PASS. Commit `feat(AIU-055): tray shows the main limit's today bar and a five-hour ring (T-07)`;
   review, integrate, report.
 
 ### T-08 - Refresh interval preference, schedule and staleness
@@ -570,7 +570,7 @@ internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool S
   - `DemoLedgerSource.SetPreferencesAsync` publishes `Summaries.RefreshInterval` from `RefreshMinutes`.
   - Review the refresh diagnostics per the spec.
 - [ ] Run Presentation and Infrastructure (the Audit* scenarios call `Account` and must stay green). Commit
-  `feat(AIU-NEW): refresh interval preference drives the schedule and staleness (T-08)`; review, integrate, report.
+  `feat(AIU-055): refresh interval preference drives the schedule and staleness (T-08)`; review, integrate, report.
 
 ### T-09 - Drag a card by its grip
 - status: pending
@@ -617,7 +617,7 @@ internal static class ReorderMath
     - on release calls `MoveAccountAsync(id, ReorderMath.BeforeId(…))` unless the order is unchanged;
     - cancels on Esc or `PointerCaptureLost`.
 - [ ] Run Presentation and the two `CardEditingSmoke` smokes: PASS; open `drag.png`. Commit
-  `feat(AIU-NEW): drag a card by its grip to reorder subscriptions (T-09)`; review, integrate, report.
+  `feat(AIU-055): drag a card by its grip to reorder subscriptions (T-09)`; review, integrate, report.
 
 ### T-10 - Provider icons and the narrow tray
 - status: pending
@@ -650,7 +650,7 @@ internal static class ReorderMath
     and on the row. `PopupWidth = 260`.
 - [ ] Extend the Ledger launch smoke: save `tray-icons.png`; the row found by its `Claude Pro` automation name still opens
   the window. Open the PNG: four marks, 260 px, aligned bars and rings.
-- [ ] Run Presentation and the smoke: PASS. Commit `feat(AIU-NEW): provider icons replace names in a 260 px tray (T-10)`;
+- [ ] Run Presentation and the smoke: PASS. Commit `feat(AIU-055): provider icons replace names in a 260 px tray (T-10)`;
   review, integrate, report.
 
 ### T-11 - Refresh stepper in Settings
@@ -696,7 +696,7 @@ constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
 - [ ] Smoke `RefreshIntervalSmoke.StepperChangesTheInterval`, in the demo app: open Settings, click `Longer refresh
   interval`, and the box reads `6`; type `1` and press Enter, and the box reads `1`; save `settings-refresh.png`. Run the
   smoke and the Ledger launch smoke: PASS; open the PNG.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-NEW): refresh interval stepper in settings (T-11)`; review, integrate,
+- [ ] Run Presentation: PASS. Commit `feat(AIU-055): refresh interval stepper in settings (T-11)`; review, integrate,
   report.
 
 ### T-12 - Integrated verification, review and records
@@ -727,7 +727,7 @@ constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
   - `spec.md`: status `implemented`.
   - `docs/backlog.md`: status `done` with a completion-note.
 
-  Validate with `--final`. Commit `docs(AIU-NEW): verification and completion records` and push.
+  Validate with `--final`. Commit `docs(AIU-055): verification and completion records` and push.
 - [ ] Confirm `origin/main` contains the commits. The final reply to the owner (in Ukrainian) lists the results and
   NOT_RUN items and states "Pushed to `main`: <hashes>".
 

@@ -584,15 +584,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: The owner asked on 2026-10-08 for a percent cap on percent-only subscription windows, for example 90 % of the weekly limit kept as a reserve, and for every cap to fill the whole bar, then chose variant A of three.
 - completion-note: Implemented and verified 2026-10-08 in the regression suites, the demo app and the desktop smokes; a whole-branch review found one important issue (a percent cap on a five-hour window), which is fixed. The owner checks live weekly windows in the updated installed app after deployment (D-190); that check is NOT_RUN.
 
-## AIU-NEW - Tray miniature, subscription order, click rename and refresh interval
+## AIU-055 - Tray miniature, subscription order, click rename and refresh interval
 - goal: G-003
 - status: selected
 - depends_on: [AIU-033, AIU-050, AIU-051, AIU-052]
 - trigger: owner-selection
-- outcome: The tray flyout has no keyboard focus and shows each subscription as a provider icon with its main limit's today bar, in the window's bar style and density, plus a five-hour ring where the subscription has one (D-NEW). In the main window a click on a name renames the subscription and a grip drag orders subscriptions (D-NEW-2). The refresh interval is a setting from 1 to 60 minutes, and staleness and reading continuity scale with it (D-NEW-3).
+- outcome: The tray flyout has no keyboard focus and shows each subscription as a provider icon with its main limit's today bar, in the window's bar style and density, plus a five-hour ring where the subscription has one (D-204). In the main window a click on a name renames the subscription and a grip drag orders subscriptions (D-205). The refresh interval is a setting from 1 to 60 minutes, and staleness and reading continuity scale with it (D-206).
 - acceptance: AC-01 through AC-11 in the specification cover the tray focus, rows, ring, look and icons, click rename, the saved order, the stepper, the schedule, the continuity tolerance and verification.
-- specification: docs/specs/AIU-NEW-tray-miniature-order-refresh/spec.md
-- evidence: docs/specs/AIU-NEW-tray-miniature-order-refresh/verification.md
+- specification: docs/specs/AIU-055-tray-miniature-order-refresh/spec.md
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md
 - registration-note: The owner listed seven changes on 2026-10-08 and chose a thin ring arc, a grip drag, a 1–60 min stepper and the main limit only in the tray. The owner asked for parallel execution by autonomous subagents that merge and push without questions; the plan is tasks.md in the specification folder.
 
 ## Deferred clarifications, not forgotten
