@@ -16,8 +16,9 @@ namespace AiUsage.Controls.Ledger;
 
 /// <summary>
 /// The tray flyout as a miniature of the window (D-187, S10): 360 wide, a title row, then per account its name and one
-/// 8 px today strip per limit. No pills, captions, period bars or buttons. ↑ ↓ move between accounts, ← → between strips,
-/// Enter or a click opens the window at that account, Esc closes. Closes on deactivation.
+/// 8 px today strip per limit. No pills, captions, period bars or buttons. A pointer-only surface (D-204): nothing in it
+/// is a tab stop or shows a focus frame, and opening it focuses nothing. A click on a row opens the window at that
+/// account, Esc closes when the window receives it, and the flyout closes on deactivation.
 /// </summary>
 internal sealed partial class LedgerTrayWindow : Window
 {
@@ -25,7 +26,6 @@ internal sealed partial class LedgerTrayWindow : Window
     private readonly LedgerTrayViewModel tray;
     private readonly Action<string> openAccount;
     private readonly StackPanel rows = new();
-    private readonly List<(Control Row, List<Control> Strips)> rowStops = [];
     private readonly Grid root;
     private bool closing;
 
@@ -53,13 +53,12 @@ internal sealed partial class LedgerTrayWindow : Window
             BorderBrush = LedgerTheme.Solid("LineWindow"),
             BorderThickness = new Thickness(1),
             RequestedTheme = ElementTheme.Dark,
-            XYFocusKeyboardNavigation = XYFocusKeyboardNavigationMode.Enabled,
         };
         AutomationProperties.SetName(root, "AI Usage tray");
         root.Children.Add(stack);
         root.KeyDown += OnKeyDown;
         Content = root;
-        root.Loaded += (_, _) => { PositionPopup(); FocusFirstRow(); };
+        root.Loaded += (_, _) => PositionPopup();
         if (AppWindow.Presenter is OverlappedPresenter presenter)
         {
             presenter.IsAlwaysOnTop = true;
@@ -90,7 +89,6 @@ internal sealed partial class LedgerTrayWindow : Window
     private void Rebuild()
     {
         rows.Children.Clear();
-        rowStops.Clear();
         if (tray.IsEmpty)
         {
             rows.Children.Add(new TextBlock { Text = tray.EmptyText, Margin = new Thickness(14, 12, 14, 12), FontSize = 12, Foreground = LedgerTheme.Solid("Ink3") });
@@ -102,7 +100,6 @@ internal sealed partial class LedgerTrayWindow : Window
 
     private FrameworkElement Row(TrayRow row)
     {
-        var stripStops = new List<Control>();
         var grid = new Grid { ColumnSpacing = 10, RowSpacing = 5, Padding = new Thickness(14, 9, 14, 9) };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(150) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -145,32 +142,13 @@ internal sealed partial class LedgerTrayWindow : Window
         {
             var strip = row.Strips[i];
             var body = StripBody(strip);
-            var stop = new ContentControl
-            {
-                Content = body,
-                IsTabStop = true,
-                UseSystemFocusVisuals = true,
-                FocusVisualPrimaryBrush = LedgerTheme.Solid("Focus"),
-                FocusVisualMargin = new Thickness(-3),
-                HorizontalContentAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Center,
-                Opacity = strip.Opacity,
-            };
-            ToolTipService.SetToolTip(stop, LedgerTheme.Tip(strip.Tip));
-            stripStops.Add(stop);
-            AutomationProperties.SetName(stop, strip.AccessibleName);
-            var accountId = row.AccountId;
-            stop.KeyDown += (_, e) =>
-            {
-                if (e.Key == VirtualKey.Enter)
-                {
-                    e.Handled = true;
-                    Open(accountId);
-                }
-            };
-            Grid.SetRow(stop, i);
-            Grid.SetColumn(stop, 1);
-            grid.Children.Add(stop);
+            body.VerticalAlignment = VerticalAlignment.Center;
+            body.Opacity = strip.Opacity;
+            ToolTipService.SetToolTip(body, LedgerTheme.Tip(strip.Tip));
+            AutomationProperties.SetName(body, strip.AccessibleName);
+            Grid.SetRow(body, i);
+            Grid.SetColumn(body, 1);
+            grid.Children.Add(body);
             if (strip.Mark != TrayMark.None)
             {
                 var mark = strip.Mark == TrayMark.Rush
@@ -190,19 +168,11 @@ internal sealed partial class LedgerTrayWindow : Window
             Content = grid, Background = LedgerTheme.Solid("Transparent"),
             BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1),
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            IsTabStop = true, UseSystemFocusVisuals = true, FocusVisualPrimaryBrush = LedgerTheme.Solid("Focus"),
-            FocusVisualSecondaryThickness = new Thickness(0), FocusVisualPrimaryThickness = new Thickness(2),
+            IsTabStop = false, UseSystemFocusVisuals = false,
         };
         container.Tapped += (_, _) => Open(row.AccountId);
-        container.KeyDown += (_, args) =>
-        {
-            if (args.Key != VirtualKey.Enter) return;
-            args.Handled = true;
-            Open(row.AccountId);
-        };
         ToolTipService.SetToolTip(container, LedgerTheme.Tip(row.NameTip));
         AutomationProperties.SetName(container, row.AccessibleName);
-        rowStops.Add((container, stripStops));
         return container;
     }
 
@@ -228,22 +198,6 @@ internal sealed partial class LedgerTrayWindow : Window
             e.Handled = true;
             HidePopup();
         }
-        else if (e.Key is VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right)
-        {
-            var focused = FocusManager.GetFocusedElement(root.XamlRoot);
-            var index = rowStops.FindIndex(r => ReferenceEquals(r.Row, focused) || r.Strips.Any(s => ReferenceEquals(s, focused)));
-            if (index < 0) return;
-            e.Handled = true;
-            if (e.Key is VirtualKey.Up or VirtualKey.Down)
-                rowStops[Math.Clamp(index + (e.Key == VirtualKey.Up ? -1 : 1), 0, rowStops.Count - 1)].Row.Focus(FocusState.Keyboard);
-            else
-            {
-                var stops = rowStops[index].Strips;
-                var current = stops.FindIndex(s => ReferenceEquals(s, focused));
-                if (stops.Count > 0)
-                    stops[Math.Clamp(current + (e.Key == VirtualKey.Left ? -1 : 1), 0, stops.Count - 1)].Focus(FocusState.Keyboard);
-            }
-        }
     }
 
     public void ShowNearTray()
@@ -252,18 +206,8 @@ internal sealed partial class LedgerTrayWindow : Window
             return;
         AppWindow.Show();
         Activate();
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            // XamlRoot's actual monitor scale is available only after the first show.
-            PositionPopup();
-            FocusFirstRow();
-        });
-    }
-
-    private void FocusFirstRow()
-    {
-        if (rowStops.Count > 0)
-            rowStops[0].Row.Focus(FocusState.Keyboard);
+        // XamlRoot's actual monitor scale is available only after the first show.
+        DispatcherQueue.TryEnqueue(PositionPopup);
     }
 
     private void PositionPopup()
