@@ -33,7 +33,7 @@ internal sealed partial class FiveHourRing : Grid
         Update();
     }
 
-    /// <summary>The share of the circle the arc spans, 0 to 1; values outside that range are clamped.</summary>
+    /// <summary>The share of the circle the arc spans, 0 to 1. The setter clamps, and the drawing clamps again, so a value that arrives through a binding is drawn within the range too.</summary>
     public double Fraction { get => (double)GetValue(FractionProperty); set => SetValue(FractionProperty, RingGeometry.Clamp(value)); }
 
     public Brush? ArcBrush { get => (Brush?)GetValue(ArcBrushProperty); set => SetValue(ArcBrushProperty, value); }
