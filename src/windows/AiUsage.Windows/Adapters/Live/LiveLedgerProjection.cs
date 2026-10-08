@@ -77,7 +77,7 @@ internal static class LiveLedgerProjection
                 var estimate = SessionEstimator.Estimate(data.Runs.Concat(shortData.Runs),
                     new(shortData.Series, data.Series, "shared", "shared", TimeSpan.FromHours(5), TimeSpan.FromDays(7)), now);
                 var figures = facts.UsedPercent is { } weeklyUsed
-                    ? SessionEstimator.Figures(estimate, weeklyUsed, card.Figures.TodayEnd - card.Figures.DayStart) : new SessionFigures(null, null);
+                    ? SessionEstimator.Figures(estimate, weeklyUsed, card.Figures.TodayEnd - card.Figures.DayStart, card.Figures.EffectiveLimit ?? 100) : new SessionFigures(null, null);
                 card = card with
                 {
                     Layout = card.Layout == CardLayout.Period ? CardLayout.FiveHourAndPeriod : card.Layout,
@@ -213,8 +213,10 @@ internal static class LiveLedgerProjection
             known.Precision == ResetPrecision.Date ? DateOnly.FromDateTime(known.At.Date) : null, ResetProvenance.Provider,
             period?.StartOrigin == ValueOrigin.Assumed ? WorkCalendar.Date(period.Start, zone) : null)
             : period is null ? null : new ResetModel(period.End, null, ResetProvenance.Assumed, WorkCalendar.Date(period.Start, zone));
-        var target = facts.Kind != LimitKind.PercentWindow && (scale is { Kind: ScaleKind.Count, UnitName: not (null or "unknown") } ||
-            scale is { Kind: ScaleKind.Money, Currency: not null, Exponent: >= 0 and <= 18 })
+        // D-NEW: a percent window of at least a day takes a percent cap; a five-hour window never does.
+        var target = (facts.Kind == LimitKind.PercentWindow ? facts.IsMonthly || facts.Duration >= TimeSpan.FromDays(1)
+            : scale is { Kind: ScaleKind.Count, UnitName: not (null or "unknown") } ||
+              scale is { Kind: ScaleKind.Money, Currency: not null, Exponent: >= 0 and <= 18 })
             ? CardId(data.Series) : null;
         var card = new LimitCardModel(CardId(data.Series), Label(facts, null), layout, scale, Period(facts, period), state, new(stale, null), marks,
             figures, null, reset, capModel, target, state is CardState.NoCap or CardState.LimitUnknown && target is not null ? CardAction.SetCap : CardAction.None, null)

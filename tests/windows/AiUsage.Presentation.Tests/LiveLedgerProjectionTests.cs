@@ -103,6 +103,20 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(Now.AddHours(3), card.FiveHour.CurrentWindowEndsAt); // Same instant.
     }
     [Fact]
+    public void WeeklyPercentWindowTakesACapAndBudgetsAgainstIt()
+    {
+        var weekly = Data(Weekly(63));
+        Assert.Equal(LiveLedgerProjection.CardId(weekly.Series), Card(weekly).CapTargetId);
+        var capped = Card(weekly, new(new CountQuantity(90, "percent"), Now));
+        Assert.Equal(new CapModel(90, true, CapStatus.Applied), capped.Cap);
+        Assert.Equal(90, capped.Figures.EffectiveLimit);
+        Assert.Equal(CardState.CapReached, Card(Data(Weekly(90)), new(new CountQuantity(90, "percent"), Now)).State);
+        Assert.Equal(new CapModel(100, false, CapStatus.Applied), Card(weekly, new(new CountQuantity(100, "percent"), Now)).Cap);
+        Assert.Null(Card(Data(Weekly() with { Key = new("claude", "CL-S", "short"), Duration = TimeSpan.FromHours(5) })).CapTargetId);
+        Assert.NotNull(Card(Data(Weekly() with { Duration = null, IsMonthly = true })).CapTargetId);
+    }
+
+    [Fact]
     public void ModelScopedWeeklyLimitIsMarkedForTheSubscriptionCard()
     {
         var fable = Weekly(0) with { Key = new("claude", "CL-M", "Fable") };

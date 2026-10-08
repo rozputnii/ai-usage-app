@@ -526,6 +526,33 @@ public sealed class LiveLedgerSourceTests
     }
 
     [Fact]
+    public async Task PercentCapIsStoredWholeAndListedInPercent()
+    {
+        var clock = new Clock(); var store = new Store(); var id = Guid.NewGuid();
+        var weekKey = new LimitKey("claude", "CL-W", "shared");
+        var week = new LimitFacts(weekKey, LimitKind.PercentWindow, "percent", FactValue.NotApplicable)
+        { UsedPercent = 40, Duration = TimeSpan.FromDays(7), Reset = new(clock.Now.AddDays(4), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        store.Runs = [Run(id, weekKey, new CountQuantity(30, "percent"), TrackedFrom), Run(id, weekKey, new CountQuantity(40, "percent"), clock.Now)];
+        using var source = Source(new Accounts { Current = [Snapshot(id, "claude", clock.Now, week)] }, store, clock);
+        await source.InitializeAsync(null, Token);
+        var target = source.Current.Accounts[0].Cards[0].CapTargetId!;
+        Assert.Equal(CommandOutcome.Rejected, await source.SetCapAsync(target, 101, Token));
+        Assert.Equal(CommandOutcome.Rejected, await source.SetCapAsync(target, 90.5m, Token));
+        Assert.Empty(store.Configuration.Caps);
+        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(target, 90, Token));
+        Assert.Equal(new CountQuantity(90, "percent"), Assert.Single(store.Configuration.Caps).Cap.Amount);
+        var card = source.Current.Accounts[0].Cards[0];
+        Assert.Equal(new CapModel(90, true, CapStatus.Applied), card.Cap);
+        Assert.Equal(90, card.Figures.EffectiveLimit);
+        var listed = Assert.Single(source.Current.Budget.Caps);
+        Assert.Equal(ScaleKind.Percent, listed.Scale.Kind);
+        Assert.Equal(90, listed.Amount);
+        Assert.Equal(CommandOutcome.Done, await source.SetCapAsync(target, null, Token));
+        Assert.Empty(store.Configuration.Caps);
+        await source.StopAsync();
+    }
+
+    [Fact]
     public async Task CaptureFailureIsVisibleWithoutClaimingSavedHistory()
     {
         var clock = new Clock(); var store = new Store { FailCapture = true };

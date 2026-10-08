@@ -252,7 +252,12 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             // A credit pool lists its cap in the unit its card shows (D-199).
             var shown = card is { Units: not null, Cap: not null } ? card : null;
             return new CapSettingModel(id, card?.CapTargetId, name, card?.ScopeLabel,
-                shown?.Scale ?? (cap.Cap.Amount is MoneyQuantity money ? new(ScaleKind.Money, null, money.Currency, money.Exponent) : ScaleModel.Count(((CountQuantity)cap.Cap.Amount).Unit)),
+                shown?.Scale ?? cap.Cap.Amount switch
+                {
+                    MoneyQuantity money => new(ScaleKind.Money, null, money.Currency, money.Exponent),
+                    CountQuantity { Unit: "percent" } => ScaleModel.Percent,
+                    var count => ScaleModel.Count(((CountQuantity)count).Unit)
+                },
                 shown?.Cap!.Amount ?? LiveLedgerProjection.Amount(cap.Cap.Amount) ?? 0, card?.Cap?.Status ?? CapStatus.Unmatched,
                 card?.Cap?.Binding ?? false, card?.Figures.ProviderLimit ?? AiUsage.Features.Ledger.Contract.LimitValue.Unknown,
                 facts?.Kind == LimitKind.MonetaryPool ? facts.Unit : null, card?.Figures.Tracking);
@@ -341,7 +346,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     public Task<CommandOutcome> SetCapAsync(string capTargetId, decimal? amount, CancellationToken ct) => ChangeAsync(async token =>
     {
         if (!configurationWritable) return CommandOutcome.Unavailable;
-        if (!limits.TryGetValue(capTargetId, out var limit) || limit.Facts.Kind == LimitKind.PercentWindow || amount < 0) return CommandOutcome.Rejected;
+        if (!limits.TryGetValue(capTargetId, out var limit) || amount < 0) return CommandOutcome.Rejected;
         var card = Current.Accounts.SelectMany(a => a.Cards).FirstOrDefault(c => c.CapTargetId == capTargetId);
         if (card is null || amount is { } requested && !card.Figures.ProviderLimit.AllowsCap(requested)) return CommandOutcome.Rejected;
         Quantity? quantity = null;
@@ -356,7 +361,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
                 if (minor != decimal.Truncate(minor) || minor > long.MaxValue) return CommandOutcome.Rejected;
                 quantity = new MoneyQuantity((long)minor, card.Scale.Exponent, currency);
             }
-            else if (card.Scale.Kind == ScaleKind.Count && value == decimal.Truncate(value)) quantity = new CountQuantity(value, limit.Facts.Unit);
+            else if (card.Scale.Kind is ScaleKind.Count or ScaleKind.Percent && value == decimal.Truncate(value)) quantity = new CountQuantity(value, limit.Facts.Unit);
             else return CommandOutcome.Rejected;
         }
         var caps = configuration.Caps.Where(c => c.Series != limit.Series).ToList();
