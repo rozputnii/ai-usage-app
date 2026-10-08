@@ -197,7 +197,7 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
 ---
 
 ### T-01 - Tray flyout without tab stops or focus frames
-- status: pending
+- status: done
 - depends_on: []
 - ownership: tray-focus
 - writes: [src/windows/AiUsage.Windows/Controls/Ledger/LedgerTrayWindow.cs, tests/windows/AiUsage.Windows.Tests/LedgerSmoke.cs, tests/windows/AiUsage.Windows.Tests/AuditTrayControls.cs]
@@ -206,18 +206,18 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-01]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at dc9664f and 88828c8 (merged 0c2157b); Ledger launch smoke PASS with the no-focusable assertion, Presentation 316/316, Release build 0 warnings, opus review approve; AuditTrayControls compiled, run NOT_RUN (Sandbox opt-in)
 
 **Model:** sonnet. **Requirement:** R-01.
 
-- [ ] In `LedgerSmoke.LedgerLaunchSettingsHistoryAndExit`, change the tray part:
+- [x] In `LedgerSmoke.LedgerLaunchSettingsHistoryAndExit`, change the tray part:
   - Before choosing a row, capture the flyout window to `tray.png`.
   - Assert `Assert.DoesNotContain(trayWindow.FindAllDescendants(), e => e.Properties.IsKeyboardFocusable.ValueOrDefault)`.
   - Replace `row!.Focus(); … Keyboard.Press(VirtualKeyShort.RETURN)` with `row!.Click()`.
   - Keep the two existing waits: the window restores, and focus lands in a `claude-week-` card.
-- [ ] Publish the UI suite and run `-method "*LedgerLaunchSettingsHistoryAndExit*"` under the lock. Expect a FAIL on the
+- [x] Publish the UI suite and run `-method "*LedgerLaunchSettingsHistoryAndExit*"` under the lock. Expect a FAIL on the
   focusable assertion.
-- [ ] In `LedgerTrayWindow`:
+- [x] In `LedgerTrayWindow`:
   - `LedgerClickRow` rows get `IsTabStop = false` and `UseSystemFocusVisuals = false`, without the focus-visual brushes or
     thicknesses.
   - Each strip body is added directly, carrying its tooltip and `AutomationProperties.Name`, with no `ContentControl`
@@ -225,11 +225,11 @@ OUT_OF_SCOPE_FILES: <paths or none>   NOT_RUN: <item: reason>
   - Remove `XYFocusKeyboardNavigation`, `rowStops`, `FocusFirstRow` and its two calls, the arrow-key branch and both
     Enter handlers.
   - Keep `root.KeyDown` for Esc only.
-- [ ] Rerun the smoke: PASS. Open `tray.png`: no frame. Click-away still hides the flyout (manual check with the demo
+- [x] Rerun the smoke: PASS. Open `tray.png`: no frame. Click-away still hides the flyout (manual check with the demo
   build). Record whether Esc still closes the flyout.
-- [ ] Update `AuditTrayControls` (a Sandbox-only audit) to the click-based selection and the no-focusable assertion.
+- [x] Update `AuditTrayControls` (a Sandbox-only audit) to the click-based selection and the no-focusable assertion.
   Build it with `dotnet build tests/windows/AiUsage.Windows.Tests -c Release`; the run is NOT_RUN (Sandbox opt-in).
-- [ ] Commit `fix(AIU-055): tray flyout has no tab stops or focus frames (T-01)`, then review, integrate and report.
+- [x] Commit `fix(AIU-055): tray flyout has no tab stops or focus frames (T-01)`, then review, integrate and report.
 
 ### T-02 - Provider marks
 - status: done

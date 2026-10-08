@@ -39,5 +39,11 @@ reported results, recorded after the controller confirmed each commit on `origin
 | T-08 Release and Debug app builds | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` (and `-c Debug`) | PASS, 0 warnings, 0 errors; `git diff --check` clean |
 | T-08 demo startup smoke | `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` under the desktop lock | PASS (demo and live-empty) before review and on merged `a208817` |
 | T-08 independent review | `aiu-reviewer` (opus) | Approve; AC-08 stored value, AC-09 and AC-10 app part met; no thread-safety issue. Minor, deferred to the final review: no test pins the tolerance passed by `GetHistoryAsync`; the "over 15 min" tooltip copy is imprecise above a 15 min tolerance; the demo accepts `RefreshMinutes` outside 1..60 |
+| T-01 Ledger launch smoke (red, then green) | `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` under the desktop lock | FAIL on the old flyout (18 focusable XAML elements), then PASS 2/2 on merged HEAD. The flyout screenshot `tray.png` shows no focus frame; a row click opens the window at the account |
+| T-01 Esc and click-away probes | throwaway, uncommitted probes on the demo app | Esc closes the flyout with nothing focused (3 of 3 runs); moving the foreground to the taskbar hides it |
+| T-01 Presentation suite | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS 316/316 on merged HEAD |
+| T-01 Release app build | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS, 0 warnings, 0 errors; `git diff --check` clean |
+| T-01 `AuditTrayControls` | `dotnet build tests/windows/AiUsage.Windows.Tests -c Release` | Compiles; run NOT_RUN (Windows Sandbox opt-in) |
+| T-01 independent review | `aiu-reviewer` (opus) | Approve; AC-01 met. Minor fixed in `88828c8` (comment placement, audit wording) |
 
-Integrated commits: T-06 `dbb0b8c`; T-05 `88b13fb`; T-03 `8ce42df`, `f20091a`; T-02 `804945f`, `13fb1a7`; T-08 `999a188`.
+Integrated commits: T-06 `dbb0b8c`; T-05 `88b13fb`; T-03 `8ce42df`, `f20091a`; T-02 `804945f`, `13fb1a7`; T-08 `999a188`; T-01 `dc9664f`, `88828c8`.
