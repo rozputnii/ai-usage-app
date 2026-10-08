@@ -429,7 +429,7 @@ Native chrome is retained. Contrast-theme behaviour is outside the amended scope
 | ink / ink2 / ink3 | #F0EEE6 / #B7B3A8 / #9D998E | text levels |
 | rail / prev / grey | #34332F / #8C887E / #75716A | bar track, used before today, not available today |
 | ok m / p / text | #7FB98F / #5E8A6B / #7FB98F | fill, hatch, text |
-| att m / p / text | #D97757 / #A35C44 / #E78E6E | orange states |
+| att m / p / text | #E58A3C / #A8652E / #F0A060 (D-NEW, was #D97757 / #A35C44 / #E78E6E) | orange states |
 | crit m / p / d / text | #E5604A / #B04A3A / #6E2E25 / #F78570 | red states; destructive Confirm #B04A3A |
 | neutral m / p | #B7B3A8 / #6C6963 | no-budget states, stale |
 | button.primary | #E8E4DA on #1A1410 | Save, Sign in, Undo, Try again |
