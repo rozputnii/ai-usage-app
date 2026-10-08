@@ -71,7 +71,21 @@ internal sealed record LimitCardModel(
     public bool ModelScoped { get; init; }
     /// <summary>The owner hid this section of the account card (D-191); its facts, tray strip and status stay.</summary>
     public bool Hidden { get; init; }
+    /// <summary>A credit pool the owner may show in US dollars (D-NEW); null for every other limit.</summary>
+    public UnitModel? Units { get; init; }
+    /// <summary>A money or credit pool with a daily budget whose today's use the owner may set (D-NEW).</summary>
+    public TodayUseModel? TodayUse { get; init; }
 }
+
+/// <summary>How a credit pool is shown: natively, or in US dollars at the owner's rate per credit.</summary>
+internal sealed record UnitModel(bool Usd, decimal Rate)
+{
+    /// <summary>GitHub's published price of one AI credit.</summary>
+    public const decimal DefaultRate = 0.01m;
+}
+
+/// <summary>Today's use as tracked from readings (in the card's scale), when tracking began after midnight, and whether the owner's figure applies.</summary>
+internal sealed record TodayUseModel(decimal? Tracked, DateTimeOffset? TrackedSince, bool Manual);
 
 /// <summary>D-191: one card per account. The primary limit heads it; every other limit is a section below it.</summary>
 internal static class AccountCard

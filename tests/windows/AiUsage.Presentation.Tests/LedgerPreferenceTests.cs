@@ -39,6 +39,23 @@ public sealed class LedgerPreferenceTests
     }
 
     [Fact]
+    public async Task NewFieldsPersistAndOldFilesLoad()
+    {
+        string? saved = """{"Version":1}""";
+        var store = new LedgerPreferenceStore(_ => Task.FromResult<string?>(saved), (json, _) => { saved = json; return Task.CompletedTask; });
+        Assert.True(await store.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Empty(store.Current.Units);
+        Assert.Empty(store.Current.Today);
+        var entry = new TodayEntry("card", new DateOnly(2026, 10, 8), "one", 3120m);
+        Assert.Equal(CommandOutcome.Done, await store.ChangeAsync(s => s with { Units = new() { ["card"] = new(true, 0.04m) }, Today = [entry] },
+            TestContext.Current.CancellationToken));
+        var reopened = new LedgerPreferenceStore(_ => Task.FromResult<string?>(saved), (_, _) => Task.CompletedTask);
+        Assert.True(await reopened.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Equal(new UnitModel(true, 0.04m), reopened.Current.Units["card"]);
+        Assert.Equal([entry], reopened.Current.Today);
+    }
+
+    [Fact]
     public async Task UnknownUpdateModeIsRejectedWithoutOverwrite()
     {
         var writes = 0;
@@ -55,6 +72,13 @@ public sealed class LedgerPreferenceTests
     [InlineData("{\"Version\":1,\"Labels\":{\"claude\":\"Old\"}}")]
     [InlineData("{\"Version\":1,\"Preferences\":{\"Mode\":0,\"Density\":0,\"ShowSignedOut\":false,\"AlwaysOnTop\":false},\"Labels\":{},\"Order\":[],\"Hidden\":null}")]
     [InlineData("{\"Version\":1,\"Preferences\":{\"Mode\":0,\"Density\":0,\"ShowSignedOut\":false,\"AlwaysOnTop\":false},\"Labels\":{},\"Order\":[],\"Hidden\":[\"a\",\"a\"]}")]
+    [InlineData("{\"Version\":1,\"Units\":null}")]
+    [InlineData("{\"Version\":1,\"Today\":null}")]
+    [InlineData("{\"Version\":1,\"Units\":{\"a\":{\"Usd\":true,\"Rate\":0}}}")]
+    [InlineData("{\"Version\":1,\"Units\":{\"a\":{\"Usd\":true,\"Rate\":1000.5}}}")]
+    [InlineData("{\"Version\":1,\"Units\":{\"a\":{\"Usd\":true,\"Rate\":0.0000001}}}")]
+    [InlineData("{\"Version\":1,\"Today\":[{\"Card\":\"a\",\"Date\":\"2026-10-08\",\"Instance\":\"one\",\"DayStart\":1},{\"Card\":\"a\",\"Date\":\"2026-10-08\",\"Instance\":\"two\",\"DayStart\":2}]}")]
+    [InlineData("{\"Version\":1,\"Today\":[{\"Card\":\"a\",\"Date\":\"2026-10-08\",\"Instance\":\"one\",\"DayStart\":-1}]}")]
     public async Task InvalidOrNewerFileIsNeverOverwritten(string original)
     {
         var writes = 0;

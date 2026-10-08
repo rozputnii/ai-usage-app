@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 
 namespace AiUsage.Adapters.Live;
@@ -68,6 +69,9 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
             x.Value is { Length: > 0 and <= 100 } && x.Value == x.Value.Trim()) &&
         state.Order.Length <= 4096 && state.Order.All(x => x is { Length: > 0 and <= 8192 }) && state.Order.Distinct().Count() == state.Order.Length &&
         state.Hidden is { Length: <= 4096 } && state.Hidden.All(x => x is { Length: > 0 and <= 8192 }) && state.Hidden.Distinct().Count() == state.Hidden.Length &&
+        state.Units is { Count: <= 4096 } && state.Units.All(x => x.Key is { Length: > 0 and <= 8192 } && x.Value is not null && CreditDollars.ValidRate(x.Value.Rate)) &&
+        state.Today is { Length: <= 4096 } && state.Today.All(x => x is { Card.Length: > 0 and <= 8192, Instance.Length: > 0 and <= 8192, DayStart: >= 0 }) &&
+            state.Today.DistinctBy(x => (x.Card, x.Date)).Count() == state.Today.Length &&
         (state.PendingWorkDays is null ? state.WorkDaysEffectiveOn is null :
             state.WorkDaysEffectiveOn is not null && state.PendingWorkDays.Length is > 0 and <= 7 &&
             state.PendingWorkDays.All(Enum.IsDefined) && state.PendingWorkDays.Distinct().Count() == state.PendingWorkDays.Length);
@@ -96,12 +100,19 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
         public Dictionary<string, string> Labels { get; set; } = [];
         public string[] Order { get; set; } = [];
         public string[] Hidden { get; set; } = [];
+        /// <summary>D-NEW: per-card unit choice of a credit pool.</summary>
+        public Dictionary<string, UnitModel> Units { get; set; } = [];
+        /// <summary>D-NEW: the owner's day starts, one per card and local date.</summary>
+        public TodayEntry[] Today { get; set; } = [];
         public DateOnly? WorkToday { get; set; }
         public DayOfWeek[]? PendingWorkDays { get; set; }
         public DateOnly? WorkDaysEffectiveOn { get; set; }
         [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }
     }
 }
+
+/// <summary>The owner's day start for one card on one local date, in the native amount of that period instance (D-NEW).</summary>
+internal sealed record TodayEntry(string Card, DateOnly Date, string Instance, decimal DayStart);
 
 [JsonSerializable(typeof(LedgerPreferenceStore.State))]
 internal sealed partial class LedgerPreferenceJson : JsonSerializerContext;

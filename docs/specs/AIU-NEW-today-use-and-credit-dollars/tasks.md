@@ -62,10 +62,10 @@ schema_version: 1
 ---
 
 ### T-01 - Preference fields for units and today's values
-- status: pending
+- status: done
 - depends_on: []
 - acceptance: [AC-04]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LedgerPreferenceTests.cs; NewFieldsPersistAndOldFilesLoad and seven new invalid-file cases red (compile) then green; Presentation suite 273/273
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs` (add `UnitModel`, `TodayUseModel`, two `LimitCardModel` init properties)
