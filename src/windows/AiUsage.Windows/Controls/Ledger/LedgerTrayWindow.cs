@@ -205,8 +205,11 @@ internal sealed partial class LedgerTrayWindow : Window
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         var scale = root.XamlRoot.RasterizationScale;
         root.Measure(new Windows.Foundation.Size(PopupWidth, double.PositiveInfinity));
-        var height = Math.Min(area.Height - 24, (int)Math.Ceiling(Math.Max(120, root.DesiredSize.Height + 2) * scale));
-        var width = (int)(PopupWidth * scale);
+        // R-08: the window frame adds invisible resize borders around the client area, so add them to the size that fits the
+        // content: the content is then PopupWidth wide. (AppWindow.ResizeClient counts a removed title bar and is not used.)
+        var frame = new SizeInt32(AppWindow.Size.Width - AppWindow.ClientSize.Width, AppWindow.Size.Height - AppWindow.ClientSize.Height);
+        var width = (int)(PopupWidth * scale) + frame.Width;
+        var height = Math.Min(area.Height - 24, (int)Math.Ceiling(Math.Max(120, root.DesiredSize.Height) * scale) + frame.Height);
         AppWindow.MoveAndResize(new RectInt32(area.X + area.Width - width - (int)(12 * scale), area.Y + area.Height - height - (int)(12 * scale), width, height));
     }
 

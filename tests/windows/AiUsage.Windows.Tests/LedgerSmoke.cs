@@ -364,7 +364,11 @@ public sealed partial class LedgerSmoke
                 {
                     for (var index = 0; ; index++)
                     {
-                        taskbar!.FindFirstDescendant(cf => cf.ByName("Show Hidden Icons"))!.AsButton().Invoke();
+                        // An icon tried before can leave the overflow open, which renames its button "Show Hidden Icons Hide" and
+                        // would close it again: open the overflow only when it is closed, and find the button by name prefix.
+                        if (desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland")) is null)
+                            taskbar!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button))
+                                .First(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Show Hidden Icons", StringComparison.Ordinal)).AsButton().Invoke();
                         AutomationElement? overflow = null;
                         Assert.True(Wait(() =>
                         {
@@ -380,11 +384,12 @@ public sealed partial class LedgerSmoke
                 Assert.True(row is not null, string.Join("; ", trayAttempts));
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 DesktopTestEnvironment.RequireUnlockedDesktop();
-                // AIU-055 R-08: the flyout is 260 logical px wide (the popup is placed at (int)(260 * scale) physical px).
-                var trayHandle = trayWindow!.Properties.NativeWindowHandle.Value;
-                var trayScale = GetDpiForWindow(trayHandle) / 96.0;
-                var trayWidth = (int)(260 * trayScale);
-                Assert.True(Math.Abs(trayWindow.BoundingRectangle.Width - trayWidth) <= 2, $"Tray flyout should be 260 px wide ({trayWidth} physical px), was {trayWindow.BoundingRectangle.Width}");
+                // AIU-055 R-08: the flyout content is 260 logical px wide. The window itself is wider by its invisible resize borders,
+                // so the width is measured on the content, not on the window.
+                var trayWidth = (int)(260 * GetDpiForWindow(trayWindow!.Properties.NativeWindowHandle.Value) / 96.0);
+                var trayContent = trayWindow.FindFirstDescendant(cf => cf.ByName("AI Usage tray"));
+                Assert.True(trayContent is not null && Math.Abs(trayContent.BoundingRectangle.Width - trayWidth) <= 2,
+                    $"Tray flyout content should be 260 px wide ({trayWidth} physical px), was {trayContent?.BoundingRectangle.Width}");
                 using (var capture = trayWindow.Capture()) capture.Save(Path.Combine(evidence!, comfortable ? "tray-icons-comfortable.png" : "tray-icons.png"), System.Drawing.Imaging.ImageFormat.Png);
                 // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
                 // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
