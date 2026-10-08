@@ -113,10 +113,10 @@ Expected: PASS, no regressions.
 - [ ] **Step 5: Commit** `feat(AIU-NEW): preference fields for limit units and today's values`
 
 ### T-02 - Projection: credits unit, today correction and dollar conversion
-- status: pending
+- status: done
 - depends_on: [T-01]
 - acceptance: [AC-01, AC-03]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LiveLedgerProjectionTests.cs; five projection tests red (compile) then green; Presentation suite 278/278
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Adapters/Live/LiveLedgerProjection.cs`
