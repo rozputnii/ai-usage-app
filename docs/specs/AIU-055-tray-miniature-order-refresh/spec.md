@@ -1,7 +1,7 @@
 ---
 id: AIU-055
 type: feature
-status: approved
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: Owner direction, 2026-10-08, in conversation. The owner listed seven changes. In the tray flyout there are no tab stops or focus frames, and only today's budget shows, without a five-hour split; a subscription with a five-hour window gets a clock-like five-hour indicator. The tray bars are taller, styled like the window's today strip and follow density, and a provider icon replaces the name, with the name in a tooltip. In the main window the owner renames a subscription by clicking its name and orders subscriptions by hand. A refresh interval setting is added, default 5 min, minimum 1 min, in whole minutes. Of the presented variants, the owner chose a thin ring arc for the five-hour indicator, dragging by a grip for the order, a stepper with a 1–60 min range whose 15-minute continuity rules scale with the interval, and only the main limit per subscription in the tray. The owner directed that this batch run in parallel as autonomous subagents, each of which merges and pushes its own reviewed work, with no questions. Recorded as D-204, D-205 and D-206.
@@ -90,6 +90,10 @@ Checked in the source on 2026-10-08 at `b81ef9e`:
 - **R-10 Subscription order.**
   - On card hover a quiet grip (a dot-grip glyph from Segoe Fluent Icons) appears at
     the left of the account card's header.
+    Implementation clarification, 2026-10-08, within D-205: the installed Segoe Fluent
+    Icons font has no dot gripper, so the grip is six dots drawn as a vector path in
+    this repository, placed in the card's left padding beside the header so the name
+    stays aligned.
   - Dragging the grip lifts the card, which follows the pointer vertically, and shows a
     2 px insertion line between cards. Releasing drops the card there; Esc or lost
     pointer capture cancels the drag. With one account the grip is hidden.

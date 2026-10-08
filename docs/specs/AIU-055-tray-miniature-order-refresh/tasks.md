@@ -700,14 +700,14 @@ constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
   report.
 
 ### T-12 - Integrated verification, review and records
-- status: pending
+- status: done
 - depends_on: [T-01, T-02, T-03, T-04, T-05, T-06, T-07, T-08, T-09, T-10, T-11]
 - acceptance: [AC-11]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated checks on main at 87c34e6: validator 85/85, document validation --final, Infrastructure 915/915, Presentation 330/330, Release and Debug builds 0 warnings, launch, card editing, refresh and work budget smokes PASS; whole-feature opus review approve
 
 **Model:** the controller (primary); the reviewer `opus`.
 
-- [ ] In the controller worktree, merge `origin/main`. Run every check:
+- [x] In the controller worktree, merge `origin/main`. Run every check:
   - validator tests and document validation with `--final`;
   - the Infrastructure and Presentation suites;
   - the Release build (0 warnings) and `git diff --check`;
@@ -715,12 +715,12 @@ constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
     regression, `*WorkBudget*`.
 
   Open every screenshot.
-- [ ] Dispatch one whole-feature reviewer: `aiu-reviewer` (or read-only `general-purpose`), `model: "opus"`.
+- [x] Dispatch one whole-feature reviewer: `aiu-reviewer` (or read-only `general-purpose`), `model: "opus"`.
   - Give it the spec and `git diff <plan commit>..origin/main -- src tests`.
   - Ask for a per-AC verdict and cross-task integration issues (the tray versus the order, the interval versus
     staleness, rename versus drag in the header).
   - One fix round goes to a fresh worker (worktree, the worker procedure), followed by a scoped re-review.
-- [ ] Records:
+- [x] Records:
   - `verification.md`: a commands table with actual results, the screenshots list, and the NOT_RUN owner live check
     after deployment (D-190).
   - This file: every task done with its evidence.
@@ -728,7 +728,7 @@ constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
   - `docs/backlog.md`: status `done` with a completion-note.
 
   Validate with `--final`. Commit `docs(AIU-055): verification and completion records` and push.
-- [ ] Confirm `origin/main` contains the commits. The final reply to the owner (in Ukrainian) lists the results and
+- [x] Confirm `origin/main` contains the commits. The final reply to the owner (in Ukrainian) lists the results and
   NOT_RUN items and states "Pushed to `main`: <hashes>".
 
 ## Acceptance criteria

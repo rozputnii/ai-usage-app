@@ -6,11 +6,69 @@ Evidence for [the specification](spec.md), recorded by the controller as tasks i
 
 ## Status
 
-In progress. The plan was written on 2026-10-08 from `main` at `b81ef9e` and committed at
-`22e1324`. Wave 1 (T-01 to T-06) started from `22e1324`. Rows below are the workers'
-reported results, recorded after the controller confirmed each commit on `origin/main`.
+Implemented and verified on 2026-10-08. The plan was written from `main` at `b81ef9e` and
+committed at `22e1324`. Eleven autonomous workers (T-01 to T-11) integrated into `main`;
+the controller confirmed each commit on `origin/main` before recording it. The integrated
+checks (T-12) passed on `87c34e6`, and a whole-feature review found no Critical or Important
+issue. The owner's check of the updated installed app is NOT_RUN until after deployment
+(D-190).
 
-## Commands
+## Integrated checks (T-12)
+
+Run by the controller on `main` at `87c34e6`, with all tasks integrated. Smokes ran under
+the desktop lock against the Debug demo build; evidence is in the controller worktree's
+git-ignored `.ai-usage-local/AIU-055/T-12/`.
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Validator tests | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS 85/85 |
+| Document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json --final` | PASS, valid, no diagnostics |
+| Infrastructure suite | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS 915/915 |
+| Presentation suite | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS 330/330 |
+| Release app build | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS, 0 warnings, 0 errors |
+| Debug app build | the same with `-c Debug` | PASS, 0 warnings, 0 errors |
+| Whitespace | `git diff --check 22e1324 HEAD` | PASS |
+| Ledger launch smoke (Preview gate) | `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` | PASS 3/3 (demo Compact, demo Comfortable, live-empty) |
+| Card editing smokes | `-method "*CardEditingSmoke*"` | PASS 2/2 (click rename, grip drag) |
+| Refresh stepper smoke | `-method "*RefreshIntervalSmoke*"` | PASS 1/1 |
+| Work budget regression smokes | `-method "*WorkBudget*"` | PASS 2/2 |
+| Whole-feature review | `aiu-reviewer` (opus) on `git diff 22e1324..87c34e6 -- src tests` and the deferred findings | Approve; AC-01 to AC-10 met; cross-task checks (tray and order, interval and staleness, rename and drag, tray focus and width) clean. Two Minor findings left: `TodayOnlyCell` keeps two unused parameters from the plan's interface; `SettingsSummaries.RefreshInterval` is no longer shown but R-14 keeps it. The one fix-before-done item was R-10's glyph wording, now clarified in the spec |
+
+Screenshots opened by the controller: `tray-icons.png` and `tray-icons-comfortable.png`
+(provider marks, one 14 px bar per row, rings for Claude and Codex, the Antigravity error
+mark in `CritText`, density padding), `ledger-demo.png`, `ledger-demo-comfortable.png` and
+`ledger-live-empty.png` (Settings with the `Refresh` row and no interval caption in the
+footer), `rename-hover.png` and `rename.png` (dotted underline and `Rename` tooltip, saved
+names), `drag.png` and `drag-cancelled.png` (lifted card, grip, insertion line; the order
+unchanged after Esc), `settings-refresh.png` (− disabled at 1), and the regression
+screenshots `work-budget-used.png`, `work-budget-left.png`, `credits-popover.png`,
+`credits-today-set.png`, `credits-usd-popover.png`, `percent-cap.png` and
+`percent-cap-popover.png` (unchanged behaviour).
+
+## Known limits and follow-ups
+
+- After a click outside an open rename, focus lands on the card's first icon and its
+  tooltip shows briefly; a drag started while a rename is open can show the same tooltip.
+- Alt+↑/↓ moves the account from any control in the account card, not only the header
+  (one card per account, D-191). A held Alt+↓ can drop presses; each move is validated.
+- An already open refresh tooltip keeps its old number until it closes.
+- The launch smoke can invoke the owner's installed app's tray icon once and dismiss it
+  with Esc, because UI Automation does not show which process owns a tray icon.
+- The card tooltip "Not renewed for over 15 min" stays true for longer tolerances but is
+  less precise.
+
+## Not run
+
+| Item | Reason |
+| --- | --- |
+| Owner check of the updated installed app: tray flyout, provider-mark tooltips, the wrapped empty-tray text, click rename, grip drag and the refresh stepper with live accounts | Post-deploy owner check (D-190) |
+| `AuditTrayControls` | Windows Sandbox opt-in; compiled only. Esc closing the flyout was checked with throwaway probes (T-01) |
+| A stale row with a five-hour ring | Not in the demo scenarios; the ring takes the strip's opacity in `LedgerTrayWindow`, checked by code review only |
+
+## Per-task evidence
+
+Reported by each worker and recorded after the controller confirmed the commit on
+`origin/main`.
 
 | Check | Command | Result |
 | --- | --- | --- |

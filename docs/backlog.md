@@ -586,7 +586,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 
 ## AIU-055 - Tray miniature, subscription order, click rename and refresh interval
 - goal: G-003
-- status: selected
+- status: done
 - depends_on: [AIU-033, AIU-050, AIU-051, AIU-052]
 - trigger: owner-selection
 - outcome: The tray flyout has no keyboard focus and shows each subscription as a provider icon with its main limit's today bar, in the window's bar style and density, plus a five-hour ring where the subscription has one (D-204). In the main window a click on a name renames the subscription and a grip drag orders subscriptions (D-205). The refresh interval is a setting from 1 to 60 minutes, and staleness and reading continuity scale with it (D-206).
@@ -594,6 +594,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - specification: docs/specs/AIU-055-tray-miniature-order-refresh/spec.md
 - evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md
 - registration-note: The owner listed seven changes on 2026-10-08 and chose a thin ring arc, a grip drag, a 1–60 min stepper and the main limit only in the tray. The owner asked for parallel execution by autonomous subagents that merge and push without questions; the plan is tasks.md in the specification folder.
+- completion-note: Implemented and verified 2026-10-08 by eleven parallel workers, each reviewed and integrated into main, then the integrated regression suites, the Release build and the launch, card editing, refresh and work budget desktop smokes in the demo app; a whole-feature review found no critical or important issue. The owner checks the updated installed app after deployment (D-190); that check is NOT_RUN.
 
 ## Deferred clarifications, not forgotten
 
