@@ -24,18 +24,18 @@ internal static class LedgerMotion
     }
 
     /// <summary>
-    /// Grows or shrinks a side panel's width; the end width is set first, so an interrupted slide lands on it. Done runs
+    /// Grows or shrinks a sheet's height; the end height is set first, so an interrupted slide lands on it. Done runs
     /// when the slide ends (at once without animations); the returned storyboard lets a new slide stop this one.
     /// </summary>
-    public static Storyboard? SlideWidth(FrameworkElement element, double from, double to, Action done)
+    public static Storyboard? SlideHeight(FrameworkElement element, double from, double to, Action done)
     {
-        element.Width = to;
+        element.Height = to;
         if (!LedgerTheme.AnimationsEnabled || Math.Abs(to - from) < .1)
         {
             done();
             return null;
         }
-        var storyboard = Animate(element, "Width", from, to, 200);
+        var storyboard = Animate(element, "Height", from, to, 200);
         storyboard.Completed += (_, _) => done();
         return storyboard;
     }
@@ -45,7 +45,7 @@ internal static class LedgerMotion
         var animation = new DoubleAnimation
         {
             From = from, To = to, Duration = TimeSpan.FromMilliseconds(milliseconds),
-            EnableDependentAnimation = property == "Width",
+            EnableDependentAnimation = property is "Width" or "Height",
             EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut },
         };
         Storyboard.SetTarget(animation, target);

@@ -61,14 +61,12 @@ internal sealed partial class LedgerFooterPanel : Panel
     }
 }
 
-/// <summary>Inline history under a card (S4): header, chart, legend. ← → move the focused day; Esc closes (window).</summary>
+/// <summary>Inline history under a card (S4): a short header and the chart. ← → move the focused day; Esc closes (window).</summary>
 internal sealed partial class HistoryPanel : ContentControl
 {
     private readonly HistoryChart chart = new();
     private readonly TextBlock title = Text(string.Empty, "Ink");
     private readonly TextBlock subtitle = Text(string.Empty, "Ink3");
-    private readonly TextBlock legend = Text(string.Empty, "Ink3");
-    private readonly TextBlock keys = Text(string.Empty, "Ink3");
 
     public HistoryPanel()
     {
@@ -86,16 +84,10 @@ internal sealed partial class HistoryPanel : ContentControl
         header.Children.Add(title);
         header.Children.Add(subtitle);
         subtitle.VerticalAlignment = VerticalAlignment.Bottom;
-        var top = new Grid();
-        top.Children.Add(header);
-        keys.HorizontalAlignment = HorizontalAlignment.Right;
-        top.Children.Add(keys);
-        legend.TextWrapping = TextWrapping.Wrap;
         var stack = new StackPanel { Spacing = 10 };
-        stack.Children.Add(top);
+        stack.Children.Add(header);
         chart.Margin = new Thickness(0, 4, 0, 0);
         stack.Children.Add(chart);
-        stack.Children.Add(legend);
         var surface = new SquircleSurface { Radius = 20, Fill = LedgerTheme.Solid("Hist"), Stroke = LedgerTheme.Solid("LineCard"), Padding = new Thickness(15, 13, 15, 12) };
         surface.Children.Add(stack);
         Content = surface;
@@ -111,8 +103,6 @@ internal sealed partial class HistoryPanel : ContentControl
             chart.History = value;
             title.Text = value?.Title ?? string.Empty;
             subtitle.Text = value?.Subtitle ?? string.Empty;
-            legend.Text = value?.Legend ?? string.Empty;
-            keys.Text = value?.KeysHint ?? string.Empty;
             UpdateName();
         }
     }

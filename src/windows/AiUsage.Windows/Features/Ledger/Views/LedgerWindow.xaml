@@ -166,18 +166,14 @@
       </lc:LedgerButton>
     </Grid>
 
-    <!-- Body: the card grid (or first run), the inline settings panel, and the undo bar overlay. -->
-    <Grid Grid.Row="2">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*" />
-        <ColumnDefinition Width="Auto" />
-      </Grid.ColumnDefinitions>
+    <!-- Body: the card grid (or first run), the settings sheet over them, and the undo bar overlay. -->
+    <Grid x:Name="Body" Grid.Row="2">
       <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-      <StackPanel Grid.ColumnSpan="2" Orientation="Vertical" Spacing="6" Margin="16,10" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
+      <StackPanel Orientation="Vertical" Spacing="6" Margin="16,10" Visibility="{x:Bind Show(ViewModel.NeedsRecovery), Mode=OneWay}">
         <TextBlock Text="{x:Bind ViewModel.RecoveryText, Mode=OneWay}" Style="{StaticResource LedgerBodyText}" TextWrapping="Wrap" />
         <lc:LedgerButton Style="{StaticResource LedgerOutlineButton}" Content="Recovery and diagnostics" Command="{x:Bind ViewModel.OpenSettingsCommand}" HorizontalAlignment="Left" />
       </StackPanel>
-      <TextBlock Grid.ColumnSpan="2" Text="Opening local data…" Margin="16,10" Style="{StaticResource LedgerBodyText}" Visibility="{x:Bind Show(ViewModel.IsStarting), Mode=OneWay}" />
+      <TextBlock Text="Opening local data…" Margin="16,10" Style="{StaticResource LedgerBodyText}" Visibility="{x:Bind Show(ViewModel.IsStarting), Mode=OneWay}" />
       <ScrollViewer x:Name="CardScroller" Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                     Visibility="{x:Bind Hide(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
         <!-- S1 (D-193): one column of full-width cards; inline history follows its card. -->
@@ -185,7 +181,7 @@
                     XYFocusKeyboardNavigation="Enabled" />
       </ScrollViewer>
 
-      <ScrollViewer Grid.Row="1" Visibility="{x:Bind Show(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
+      <ScrollViewer x:Name="FirstRunScroller" Grid.Row="1" Visibility="{x:Bind Show(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
         <StackPanel MaxWidth="460" Spacing="12" Margin="16,44,16,16" HorizontalAlignment="Stretch">
           <TextBlock Text="Add an account" Style="{StaticResource LedgerHeadingText}" />
           <TextBlock Text="AI Usage shows how much of each subscription limit is left today. Sign-in opens your browser; nothing is read before you sign in." Style="{StaticResource LedgerIntroText}" />
@@ -214,9 +210,10 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- S5 (D-193): the host's width slides open and shut, so the sheet enters from the right edge and the cards narrow. -->
-      <Grid x:Name="SettingsHost" Grid.Row="1" Grid.Column="1" Width="0" Visibility="Collapsed">
-        <views:LedgerSettingsView x:Name="SettingsPanel" Width="320" HorizontalAlignment="Left" ViewModel="{x:Bind ViewModel.Settings}" />
+      <!-- S5 (D-197): the sheet covers the whole body and leaves the cards in place. It keeps the body's height while the
+           host's height slides open and shut, so it rolls down from under the title row and back up. -->
+      <Grid x:Name="SettingsHost" Grid.RowSpan="2" Height="0" VerticalAlignment="Top" Background="{StaticResource LedgerBgPageBrush}" Visibility="Collapsed">
+        <views:LedgerSettingsView x:Name="SettingsPanel" ViewModel="{x:Bind ViewModel.Settings}" />
       </Grid>
 
       <lc:SquircleSurface x:Name="UndoBar" Grid.Row="1" Radius="9" Fill="{StaticResource LedgerTipBrush}" Stroke="{StaticResource LedgerLineWindowBrush}" Height="36"

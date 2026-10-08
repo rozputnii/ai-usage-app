@@ -19,10 +19,10 @@
     </Storyboard>
   </UserControl.Resources>
   <!--
-    S5 (D-193): a floating sheet, lighter than the page and the cards, inset from the window edges. Tiny labels name the
+    S5 (D-193, D-197): a floating sheet over the window body, lighter than the page and the cards, inset from the window edges. Tiny labels name the
     groups; explanations are tooltips. Rare support actions and Delete stored data sit in the footer's ⋯ menu.
   -->
-  <Grid Padding="0,8,8,8">
+  <Grid Padding="8">
     <lc:SquircleSurface Radius="14" Fill="{StaticResource LedgerPanelBrush}" Stroke="{StaticResource LedgerLineWindowBrush}">
       <Grid>
         <Grid.RowDefinitions>

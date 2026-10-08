@@ -25,7 +25,8 @@ namespace AiUsage.Features.Ledger.Views;
 /// </summary>
 internal sealed partial class LedgerWindow : Window
 {
-    private const int DefaultWidth = 760;
+    /// <summary>Until the content loads; then the window opens at its content-based minimum width (D-197).</summary>
+    private const int InitialWidth = 560;
     private const int DefaultHeight = 600;
     /// <summary>The shortest body without a card (first run, recovery, starting).</summary>
     private const double EmptyBodyMinHeight = 160;
@@ -52,13 +53,14 @@ internal sealed partial class LedgerWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleRow);
         AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Standard;
-        AppWindow.Resize(new SizeInt32(DefaultWidth, DefaultHeight));
+        AppWindow.Resize(new SizeInt32(InitialWidth, DefaultHeight));
         LedgerTheme.Apply(Root, AppWindow);
         Root.Loaded += OnLoaded;
         Root.SizeChanged += (_, _) => UpdateTitleBarRegions();
         TitleControls.SizeChanged += (_, _) => UpdateTitleBarRegions();
         DayGroup.SizeChanged += (_, _) => UpdateTitleBarRegions();
         CardGrid.SizeChanged += (_, _) => UpdateMinimumSize();
+        Body.SizeChanged += (_, e) => SettingsPanel.Height = e.NewSize.Height;
         AppWindow.Closing += OnClosing;
 
         AddAccelerator(VirtualKey.Escape, VirtualKeyModifiers.None, () => ViewModel.Escape());
@@ -105,9 +107,11 @@ internal sealed partial class LedgerWindow : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        // The default width is the minimum one, which this measures from the title row.
+        UpdateTitleBarRegions();
         var scale = Root.XamlRoot?.RasterizationScale ?? 1;
         var area = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
-        var width = Math.Min((int)(DefaultWidth * scale), area.Width);
+        var width = (AppWindow.Presenter as OverlappedPresenter)?.PreferredMinimumWidth ?? Math.Min((int)(InitialWidth * scale), area.Width);
         var height = Math.Min((int)(DefaultHeight * scale), area.Height);
         // Keep the entire window reachable at high DPI; the card scroller handles the shorter viewport.
         var x = Math.Clamp(AppWindow.Position.X, area.X, area.X + area.Width - width);
@@ -225,18 +229,35 @@ internal sealed partial class LedgerWindow : Window
             presenter.IsAlwaysOnTop = ViewModel.Preferences.AlwaysOnTop;
     }
 
-    /// <summary>The settings sheet slides in from the right edge and back out, narrowing and widening the cards (D-193).</summary>
+    /// <summary>
+    /// The settings sheet drops down over the body and rolls back up, leaving the cards in place (D-197). While it covers
+    /// them, the cards behind leave the tab order.
+    /// </summary>
     private void SlideSettings()
     {
         var open = ViewModel.IsSettingsOpen;
-        var from = SettingsHost.Visibility == Visibility.Visible ? SettingsHost.ActualWidth : 0;
+        var from = SettingsHost.Visibility == Visibility.Visible ? SettingsHost.ActualHeight : 0;
         settingsSlide?.Stop();
         SettingsHost.Visibility = Visibility.Visible;
-        settingsSlide = LedgerMotion.SlideWidth(SettingsHost, from, open ? SettingsPanel.Width : 0, () =>
+        if (!open)
+            CoverBody(false);
+        settingsSlide = LedgerMotion.SlideHeight(SettingsHost, from, open ? Body.ActualHeight : 0, () =>
         {
-            if (!ViewModel.IsSettingsOpen)
+            if (ViewModel.IsSettingsOpen)
+            {
+                // Open, the host follows the sheet, which follows the body as the window resizes.
+                SettingsHost.ClearValue(FrameworkElement.HeightProperty);
+                CoverBody(true);
+            }
+            else
                 SettingsHost.Visibility = Visibility.Collapsed;
         });
+    }
+
+    private void CoverBody(bool covered)
+    {
+        CardScroller.IsEnabled = !covered;
+        FirstRunScroller.IsEnabled = !covered;
     }
 
     private void OnCardsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RebuildGrid();

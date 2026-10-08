@@ -22,7 +22,7 @@ internal sealed partial class LedgerHistoryViewModel : ObservableObject
         this.model = model;
         this.scale = scale;
         Title = accountName;
-        Subtitle = LedgerFormat.PeriodLabel(model.Period) + " · use per local day · last " + model.Days.Count + " days · from this app’s readings";
+        Subtitle = LedgerFormat.PeriodLabel(model.Period) + " · " + model.Days.Count + " days";
         var values = model.Days.Where(d => d.Used is not null).Select(d => d.Used!.Value).DefaultIfEmpty(0);
         var top = Math.Max(values.Max() * 1.1m, (model.BaselinePerWorkDay ?? 0) * 1.25m);
         Top = top <= 0 ? 1 : top;
@@ -61,8 +61,6 @@ internal sealed partial class LedgerHistoryViewModel : ObservableObject
     public IReadOnlyList<HistoryLabel> Labels { get; }
     public double? Baseline { get; }
     public string BaselineText { get; }
-    public string Legend => "Bars: use in each local day. Dashed outline: no readings, a gap that is never drawn as zero. Short ticks: resets. Today is the green bar. History is local only and is kept on sign-out.";
-    public string KeysHint => "← → day · Esc closes";
 
     [ObservableProperty] public partial int FocusIndex { get; private set; }
 

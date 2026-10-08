@@ -11,8 +11,8 @@ namespace AiUsage.Windows.Tests;
 public sealed partial class LedgerSmoke
 {
     /// <summary>
-    /// A window squeezed below its minimum keeps the title controls clear of each other and of the caption buttons, and
-    /// grows again when Work today widens the title row.
+    /// The window launches at its minimum width; squeezed below its minimum it keeps the title controls clear of each other
+    /// and of the caption buttons, and grows again when Work today widens the title row.
     /// </summary>
     [Fact]
     public void SqueezedWindowKeepsTheTitleRowClearOfTheCaptionButtons()
@@ -49,13 +49,13 @@ public sealed partial class LedgerSmoke
                 .FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith(prefix, StringComparison.Ordinal))) is not null), prefix + " is missing");
             return button!;
         }
-        void Squeeze(string shot, bool narrower = true)
+        void Squeeze(string shot)
         {
             var handle = Main().Properties.NativeWindowHandle.Value;
             Assert.True(SetWindowPos(handle, IntPtr.Zero, 0, 0, 200, 120, 0x0002 | 0x0004), "SetWindowPos failed");
             Thread.Sleep(500);
             var bounds = Main().BoundingRectangle;
-            Assert.True((!narrower || bounds.Width < launched.Width) && bounds.Height < launched.Height, $"The window did not shrink: {bounds} from {launched}");
+            Assert.True(bounds.Width >= launched.Width && bounds.Height < launched.Height, $"The window did not shrink to its minimum: {bounds} from {launched}");
             Assert.True(bounds.Height > 120, $"No minimum height: {bounds}");
             AssertClear(shot);
         }
@@ -80,6 +80,7 @@ public sealed partial class LedgerSmoke
             launched = Main().BoundingRectangle;
             stage = "brief";
             Squeeze("size-brief");
+            Assert.True(Main().BoundingRectangle.Width == launched.Width, $"The window did not launch at its minimum width: {launched}");
             stage = "day off";
             Button("Demo scenarios").AsButton().Invoke();
             AutomationElement? scenario = null;
@@ -99,7 +100,7 @@ public sealed partial class LedgerSmoke
             Thread.Sleep(500);
             AssertClear("size-work-today");
             // Work today and the demo button make this title row wider than the launch width.
-            Squeeze("size-work-today-squeezed", narrower: false);
+            Squeeze("size-work-today-squeezed");
             passed = true;
         }
         finally
