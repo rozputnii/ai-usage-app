@@ -286,10 +286,10 @@ Expected: PASS, 0 warnings.
 - [ ] **Step 5: Commit** `feat(AIU-NEW): limit settings popover with units, today and cap`
 
 ### T-05 - Demo work-budget scenario and demo commands
-- status: pending
+- status: done
 - depends_on: [T-04]
 - acceptance: [AC-05]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LedgerTests.cs (DemoPopoverSwitchesUnitsAndSetsToday red then green, Presentation suite 289/289); tests/windows/AiUsage.Windows.Tests/LedgerActivationSmoke.cs (WorkBudgetPopoverShowsCreditsInDollarsAndSetsToday and the existing work-budget smoke, 2/2 against the Debug unpackaged demo build)
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Features/Ledger/Demo/DemoLedgerScenarios.cs`

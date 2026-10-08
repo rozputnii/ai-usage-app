@@ -1190,4 +1190,49 @@ public sealed class LimitSettingsTests
         Assert.Contains("Tracked since 10:43", tracked);
         Assert.DoesNotContain("Set by you", tracked);
     }
+
+    [Fact]
+    public async Task DemoPopoverSwitchesUnitsAndSetsToday()
+    {
+        var scheduler = new ManualScheduler();
+        var source = new DemoLedgerSource(scheduler);
+        source.LoadScenario(DemoLedgerScenarios.WorkBudget);
+        var window = new LedgerViewModel(source, scheduler, _ => { }, null);
+        var card = window.Cards.Single(c => c.CardId == "copilot-business-premium");
+        Assert.Equal("Copilot Business", card.Name);
+        Assert.Equal(ScaleModel.Count("credits"), card.Model.Scale);
+        Assert.Equal((3240m, 17500m), (card.Model.Figures.Used!.Value, card.Model.Figures.ProviderLimit.Amount!.Value));
+        Assert.Equal(new TodayUseModel(120, new DateTimeOffset(2026, 10, 14, 10, 43, 0, TimeSpan.FromHours(1)), false), card.Model.TodayUse);
+
+        // SwitchingUnitsRebuildsThePopoverInTheNewUnit
+        card.OpenSettings();
+        await card.Settings!.ShowUsdCommand.ExecuteAsync(null);
+        Assert.Equal(32.40m, card.Model.Figures.Used);
+        Assert.True(card.Settings!.IsUsd);
+        Assert.Equal(ScaleKind.Money, card.Settings.Cap!.Scale.Kind);
+        Assert.Contains("at most $175.00", card.Settings.Cap.Hint);
+
+        card.Settings.Today!.Text = "9.00";
+        await card.Settings.Today.SaveAsync();
+        Assert.Equal(9.00m, card.Model.Figures.Used - card.Model.Figures.DayStart);
+        Assert.True(card.Model.TodayUse!.Manual);
+        card.OpenSettings();
+        card.Settings!.Cap!.Text = "100.00";
+        await card.Settings.Cap.SaveAsync();
+        Assert.Equal(100.00m, card.Model.Cap!.Amount);
+        card.OpenSettings();
+        await card.Settings!.ShowCreditsCommand.ExecuteAsync(null);
+        Assert.Equal(10000m, card.Model.Cap!.Amount);
+        Assert.Equal(900m, card.Model.Figures.Used - card.Model.Figures.DayStart);
+        card.OpenSettings();
+        await card.Settings!.Today!.RemoveAsync();
+        Assert.Equal(120m, card.Model.Figures.Used - card.Model.Figures.DayStart);
+        Assert.False(card.Model.TodayUse!.Manual);
+
+        var spending = window.Cards.Single(c => c.CardId == "work-month");
+        spending.OpenSettings();
+        Assert.False(spending.Settings!.HasUnits);
+        Assert.NotNull(spending.Settings.Today);
+        Assert.NotNull(spending.Settings.Cap);
+    }
 }
