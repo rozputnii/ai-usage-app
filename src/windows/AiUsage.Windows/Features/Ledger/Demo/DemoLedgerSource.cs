@@ -241,6 +241,14 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         return Task.CompletedTask;
     }
 
+    public Task<CommandOutcome> MoveAccountAsync(string accountId, string? beforeAccountId, CancellationToken ct)
+    {
+        if (AccountCard.Move([.. Current.Accounts.Select(a => a.AccountId)], accountId, beforeAccountId) is not { } order)
+            return Task.FromResult(CommandOutcome.Rejected);
+        Publish(Current with { Accounts = [.. Current.Accounts.OrderBy(a => Array.IndexOf(order, a.AccountId))] });
+        return Task.FromResult(CommandOutcome.Done);
+    }
+
     public Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct)
     {
         var account = Current.Accounts.FirstOrDefault(a => a.Cards.Any(c => c.CardId == cardId));

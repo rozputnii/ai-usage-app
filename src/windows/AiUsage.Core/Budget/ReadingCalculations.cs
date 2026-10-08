@@ -48,7 +48,7 @@ public static class ReadingCalculations
     }
 
     public static DayStartValue DayStart(IEnumerable<ReadingRun> readings, ReadingSeriesKey key, string instance,
-        DateTimeOffset now, TimeZoneInfo zone)
+        DateTimeOffset now, TimeZoneInfo zone, TimeSpan? tolerance = null)
     {
         ArgumentNullException.ThrowIfNull(readings);
         var midnight = WorkCalendar.Midnight(WorkCalendar.Date(now, zone), zone);
@@ -61,7 +61,7 @@ public static class ReadingCalculations
         var covered = runs.FirstOrDefault(x => x.FirstSeen <= midnight && x.LastConfirmed >= midnight);
         if (covered is not null) return new(covered.Value, DayStartOrigin.Exact);
         var previous = runs.LastOrDefault(x => x.LastConfirmed < midnight);
-        if (previous is not null && midnight - previous.LastConfirmed <= TimeSpan.FromMinutes(15))
+        if (previous is not null && midnight - previous.LastConfirmed <= (tolerance ?? ReadingContinuity.Floor))
             return new(previous.Value, DayStartOrigin.Carried);
         if (previous is not null && QuantityMath.TryAlign(previous.Value, first.Value, out var p, out var f, out _) && p == f)
             return new(first.Value, DayStartOrigin.Exact);
@@ -69,7 +69,7 @@ public static class ReadingCalculations
     }
 
     public static TrackedConsumption Track(IEnumerable<ReadingRun> readings, ReadingSeriesKey key, PeriodBounds period,
-        DateTimeOffset now, bool balance, decimal roundingUnit)
+        DateTimeOffset now, bool balance, decimal roundingUnit, TimeSpan? tolerance = null)
     {
         ArgumentNullException.ThrowIfNull(readings);
         ArgumentNullException.ThrowIfNull(period);
@@ -110,7 +110,7 @@ public static class ReadingCalculations
                     QuantityMath.TryAlign(scale, previous.Value, out _, out var before, out _);
                     decimal delta = balance ? before - value : value - before;
                     if (delta > 0) used = checked(used + delta);
-                    if (delta < -roundingUnit && run.FirstSeen - previous.LastConfirmed > TimeSpan.FromMinutes(15)) incomplete = true;
+                    if (delta < -roundingUnit && run.FirstSeen - previous.LastConfirmed > (tolerance ?? ReadingContinuity.Floor)) incomplete = true;
                 }
                 if (WithAmount(scale!, used) is null) return new(null, null, true, []);
                 totals.Add(Cumulative(run, run.FirstSeen, run.LastConfirmed < now ? run.LastConfirmed : now));

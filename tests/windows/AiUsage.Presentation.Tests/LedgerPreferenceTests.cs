@@ -56,6 +56,26 @@ public sealed class LedgerPreferenceTests
     }
 
     [Fact]
+    public async Task AccountOrderIsValidated()
+    {
+        static string Json(string order) => """{"Version":1,"AccountOrder":""" + order + "}";
+        static string Ids(int count) => "[" + string.Join(",", Enumerable.Range(0, count).Select(_ => "\"" + Guid.NewGuid().ToString("N") + "\"")) + "]";
+        var id = Guid.NewGuid().ToString("N");
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json("""["x"]""")));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json($"""["{id}","{id}"]""")));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json(Ids(257))));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json("""["00000000000000000000000000000000"]""")));
+        Assert.False(LedgerPreferenceStore.IsValidJson(Json("null")));
+        Assert.True(LedgerPreferenceStore.IsValidJson(Json(Ids(256))));
+
+        var old = """{"Version":1,"Preferences":{"Mode":0,"Density":0,"ShowSignedOut":false,"AlwaysOnTop":false},"Labels":{},"Order":[]}""";
+        Assert.True(LedgerPreferenceStore.IsValidJson(old));
+        var store = new LedgerPreferenceStore(_ => Task.FromResult<string?>(old), (_, _) => Task.CompletedTask);
+        Assert.True(await store.LoadAsync(null, TestContext.Current.CancellationToken));
+        Assert.Empty(store.Current.AccountOrder);
+    }
+
+    [Fact]
     public async Task UnknownUpdateModeIsRejectedWithoutOverwrite()
     {
         var writes = 0;
