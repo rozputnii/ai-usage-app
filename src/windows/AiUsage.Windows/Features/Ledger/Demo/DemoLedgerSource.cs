@@ -159,6 +159,10 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         return Task.FromResult(CommandOutcome.Done);
     }
 
+    public Task<CommandOutcome> SetTodayUsedAsync(string cardId, decimal? amount, CancellationToken ct) => Task.FromResult(CommandOutcome.Rejected);
+
+    public Task<CommandOutcome> SetUnitsAsync(string cardId, bool usd, decimal rate, CancellationToken ct) => Task.FromResult(CommandOutcome.Rejected);
+
     public Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct)
     {
         if (days.Count == 0)

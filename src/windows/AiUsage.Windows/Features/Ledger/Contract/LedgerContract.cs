@@ -301,6 +301,10 @@ internal interface ILedgerSource
     Task<CommandOutcome> RenameAccountAsync(string accountId, string name, CancellationToken ct);
     Task<CommandOutcome> SetCapAsync(string capTargetId, decimal? amount, CancellationToken ct);
     Task<CommandOutcome> RemoveUnmatchedCapAsync(string capId, CancellationToken ct);
+    /// <summary>D-NEW: the owner's figure for today's use in the card's shown unit; null returns to the tracked figure.</summary>
+    Task<CommandOutcome> SetTodayUsedAsync(string cardId, decimal? amount, CancellationToken ct);
+    /// <summary>D-NEW: shows a credit pool natively or in US dollars at the rate per credit.</summary>
+    Task<CommandOutcome> SetUnitsAsync(string cardId, bool usd, decimal rate, CancellationToken ct);
     Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct);
     Task MoveCardAsync(string cardId, int offset, CancellationToken ct);
     /// <summary>Hides or shows a section of its account card; the primary limit cannot be hidden.</summary>

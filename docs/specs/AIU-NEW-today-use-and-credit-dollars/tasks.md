@@ -176,10 +176,10 @@ entry per date and group instance.
 - [ ] **Step 5: Commit** `feat(AIU-NEW): project credits, today's day start and dollar conversion`
 
 ### T-03 - Live source commands, caps and history in the chosen unit
-- status: pending
+- status: done
 - depends_on: [T-02]
 - acceptance: [AC-02, AC-03]
-- evidence: not-run
+- evidence: tests/windows/AiUsage.Presentation.Tests/LiveLedgerSourceTests.cs; four source tests red (compile) then green; Presentation suite 282/282
 
 **Files:**
 - Modify: `src/windows/AiUsage.Windows/Features/Ledger/Contract/LedgerContract.cs` (`ILedgerSource`)
