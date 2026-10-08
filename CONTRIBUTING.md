@@ -54,6 +54,16 @@ force-push, rewrite published history, or bypass protection. If the remote has d
 integrate it normally; if that is not possible or the target is ambiguous, stop and report.
 Do not reset, stash, stage or discard unrelated work automatically.
 
+Owner direction (2026-10-08, D-NEW): the owner often runs tasks in parallel worktrees,
+so numbers for new items are assigned only when the work merges into `main`. Until then
+a new backlog item and its specification folder use `AIU-NEW` (`AIU-NEW-2` for a second
+one) and a new decision uses `D-NEW` (`D-NEW-2`, ...). Right before merging: fetch fresh
+`main` and merge it, replace every placeholder with the next free number there (the
+specification folder, frontmatter, backlog, goal scope, decisions and every reference),
+run the document validation with `--final`, commit and push at once. If the push is
+rejected because `main` moved, repeat these steps. CI validates with `--final`, so a
+placeholder never stays on `main`. An item already numbered on `main` keeps its number.
+
 Releases, tags, workflow dispatch, repository settings changes and other remote actions
 beyond committing and pushing `main` still require explicit owner authorization. An old
 task-specific permission is not a new grant.

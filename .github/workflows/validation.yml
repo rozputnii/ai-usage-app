@@ -39,7 +39,7 @@ jobs:
       - name: Validator regressions
         run: dotnet run --project tests/AiUsage.ProjectValidation.Tests
       - name: Canonical document validation
-        run: dotnet run --project tools/AiUsage.ProjectValidation --no-build -- --root . --json
+        run: dotnet run --project tools/AiUsage.ProjectValidation --no-build -- --root . --json --final
       - name: Preview release policy regressions
         shell: pwsh
         run: ./tests/release/Test-PreviewRelease.ps1

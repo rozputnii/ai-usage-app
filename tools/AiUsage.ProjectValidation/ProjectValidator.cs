@@ -15,8 +15,12 @@ public static class ProjectValidator
     private static string Value(Block block, string name) => block.Fields.GetValueOrDefault(name, "");
     private static string[] List(string value) => value.Trim().Trim('[', ']').Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim('"', '\'')).ToArray();
     private static string WithoutFences(string text) => Regex.Replace(text, @"(?ms)^```[^\n]*\n.*?^```[ \t]*$", "", RegexOptions.CultureInvariant, MatchTimeout);
+    // Branch work names a new item AIU-NEW and a new decision D-NEW (with -2, -3 for more); the final number is assigned
+    // from fresh main right before the merge, and the final check refuses any placeholder left outside code.
+    private static bool PlaceholderId(string id) => Regex.IsMatch(id, @"^AIU-NEW(?:-\d+)?$", RegexOptions.CultureInvariant, MatchTimeout);
 
-    public static IReadOnlyList<Diagnostic> Validate(string root)
+    /// <param name="final">Refuse AIU-NEW and D-NEW placeholders, as on main.</param>
+    public static IReadOnlyList<Diagnostic> Validate(string root, bool final = false)
     {
         root = Path.GetFullPath(root);
         var errors = new List<Diagnostic>();
@@ -52,6 +56,10 @@ public static class ProjectValidator
         foreach (var (file, text) in documents)
         {
             if (file.EndsWith(".md", StringComparison.Ordinal)) CheckLinks(root, file, text, Error);
+            if (final)
+                foreach (var id in Matches(Regex.Replace(WithoutFences(text), "`[^`\n]*`", "", RegexOptions.CultureInvariant, MatchTimeout), @"\b(?:AIU|D)-NEW(?:-\d+)?\b")
+                    .Select(m => m.Value).Distinct())
+                    Error(file, id, "PLACEHOLDER_ID", "Replace the placeholder with the next free number from fresh main before merging.");
         }
         CheckSkills(documents, Error);
         var goals = Parse(documents.GetValueOrDefault("docs/product/goals.md", ""), "docs/product/goals.md", "##", "G", 3, Error);
@@ -77,7 +85,7 @@ public static class ProjectValidator
             var id = metadata.GetValueOrDefault("id", "");
             var spec = new Block(id, file, text, metadata);
             CheckFields(spec, ["id", "type", "status", "goal", "scope_version", "approval_basis"], DocStates, Error);
-            if (!Regex.IsMatch(id, @"^AIU-\d{3}$")) Error(file, id, "INVALID_ID", "Specification ID must use AIU-NNN.");
+            if (!Regex.IsMatch(id, @"^AIU-\d{3}$") && !PlaceholderId(id)) Error(file, id, "INVALID_ID", "Specification ID must use AIU-NNN.");
             var item = items.FirstOrDefault(i => i.Id == id);
             if (item is null) Error(file, id, "MISSING_REFERENCE", "Specification has no backlog item.");
             else
@@ -187,7 +195,7 @@ public static class ProjectValidator
             var id = matches[i].Groups[1].Value;
             var body = text[(matches[i].Index + matches[i].Length)..(i + 1 < matches.Count ? matches[i + 1].Index : text.Length)];
             var fields = Matches(body, @"^- ([a-z_]+): (.*)$").GroupBy(m => m.Groups[1].Value).ToDictionary(g => g.Key, g => g.First().Groups[2].Value.Trim());
-            if (!Regex.IsMatch(id, $@"^{prefix}-\d{{{digits}}}$")) error(file, id, "INVALID_ID", $"ID must use {prefix} and {digits} digits.");
+            if (!Regex.IsMatch(id, $@"^{prefix}-\d{{{digits}}}$") && !(prefix == "AIU" && PlaceholderId(id))) error(file, id, "INVALID_ID", $"ID must use {prefix} and {digits} digits.");
             if (blocks.Any(b => b.Id == id)) error(file, id, "DUPLICATE_ID", "Duplicate ID in document namespace.");
             blocks.Add(new(id, file, body, fields));
         }

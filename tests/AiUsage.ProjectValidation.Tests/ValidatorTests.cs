@@ -29,6 +29,29 @@ public sealed class ValidatorTests
         Assert.Empty(ProjectValidator.Validate(root.Path));
     }
 
+    [Theory]
+    [InlineData("AIU-NEW")]
+    [InlineData("AIU-NEW-2")]
+    public void BranchWorkMayUsePlaceholderIdsThatTheFinalCheckRefuses(string placeholder)
+    {
+        using var root = new Fixture();
+        foreach (var file in new[] { "docs/product/goals.md", "docs/backlog.md", "docs/specs/AIU-001/spec.md", "docs/specs/AIU-001/design.md", Fixture.Tasks })
+            root.Replace(file, "AIU-001", placeholder);
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        Assert.Contains(ProjectValidator.Validate(root.Path, final: true), d => d.Code == "PLACEHOLDER_ID" && d.File == "docs/backlog.md");
+    }
+
+    [Fact]
+    public void FinalCheckRefusesAPlaceholderDecisionButNotQuotedRuleText()
+    {
+        using var root = new Fixture();
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\nUse `D-NEW` and `AIU-NEW` until the merge.\n\n```text\n### D-NEW - Example\n```\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path, final: true));
+        root.Append("docs/decisions/accepted.md", "\n### D-NEW-1 - Owner direction\nText.\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        Assert.Contains(ProjectValidator.Validate(root.Path, final: true), d => d.Code == "PLACEHOLDER_ID" && d.Task == "D-NEW-1");
+    }
+
     [Fact]
     public void FeatureMayOmitInternalTasks()
     {

@@ -44,7 +44,7 @@ Include ID, affected AIU/goal, precise question/options/recommendation/impact, e
 Use provider, source_verified_at, live_verified_at, classification, confidence and source references. Verification dates may be null. A generic verified_at must not imply live success. Classify authentication and quota methods separately when they differ.
 
 ## Validator tests
-Reject duplicate IDs, dependency cycles, missing references, invalid statuses, broken AC references, escaping paths, unsafe concurrent ownership and done-without-evidence. Accept explicit deferred unknowns without falsely marking the work ready. The validator must not make network/model calls or rewrite documents. Report file/task/error code.
+Reject duplicate IDs, dependency cycles, missing references, invalid statuses, broken AC references, escaping paths, unsafe concurrent ownership and done-without-evidence. Accept `AIU-NEW` and `D-NEW` placeholders for branch work, and with `--final` reject any placeholder outside code; numbers are assigned at the merge into `main` under the [Git policy](../../CONTRIBUTING.md#git-policy). Accept explicit deferred unknowns without falsely marking the work ready. The validator must not make network/model calls or rewrite documents. Report file/task/error code.
 
 ## Authored scan and evidence
 The validator reads docs except docs/archive, .agents/skills, and named root/adapter Markdown files. It does not scan local authentication or runtime directories. Archive reparse boundaries are rejected before contents are skipped. Shared skills require name/description metadata, unique names and matching paths.
