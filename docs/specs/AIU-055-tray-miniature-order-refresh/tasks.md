@@ -654,7 +654,7 @@ internal static class ReorderMath
   review, integrate, report.
 
 ### T-11 - Refresh stepper in Settings
-- status: pending
+- status: done
 - depends_on: [T-07, T-08]
 - ownership: refresh-stepper
 - writes: [src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerSettingsView.xaml, src/windows/AiUsage.Windows/Features/Ledger/Views/LedgerSettingsView.xaml.cs, src/windows/AiUsage.Windows/Features/Ledger/LedgerSettingsViewModel.cs, tests/windows/AiUsage.Presentation.Tests/LedgerTests.cs, tests/windows/AiUsage.Presentation.Tests/RefreshIntervalSettingsTests.cs, tests/windows/AiUsage.Windows.Tests/RefreshIntervalSmoke.cs]
@@ -663,7 +663,7 @@ internal static class ReorderMath
 - isolation: required
 - agent: task-worker
 - acceptance: [AC-08]
-- evidence: not-run
+- evidence: docs/specs/AIU-055-tray-miniature-order-refresh/verification.md; integrated into main at 274091e and f6bf869 (merged d663b58); RefreshIntervalSmoke FAIL then PASS, Ledger launch smoke PASS 3/3, Presentation 325/325, Release build 0 warnings, opus review approve
 
 **Model:** sonnet. **Requirement:** R-11 (control). **Consumes:** `LedgerPreferences.RefreshMinutes` and its `Min`/`Max`
 constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
@@ -674,7 +674,7 @@ constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
 `Task<bool> CommitRefreshTextAsync(string text)` (1..60 saves; otherwise reverts `RefreshText` and returns false).
 `MonitoringText` is removed.
 
-- [ ] Tests in `RefreshIntervalSettingsTests` (demo `Start()` pattern):
+- [x] Tests in `RefreshIntervalSettingsTests` (demo `Start()` pattern):
   - `StepperSavesWithinOneToSixty`:
     - `RefreshMinutes == 5`;
     - Increase gives 6, `source.Preferences.RefreshMinutes == 6` and `Summaries.RefreshInterval == 6 min`;
@@ -686,17 +686,17 @@ constants (T-08). It depends on T-07 only because both edit `LedgerTests.cs`.
 
   Replace the `"every 5 min"` assertion in `LedgerTests` with `window.Settings.RefreshMinutes == 5`. Run them and
   expect failures.
-- [ ] Implement:
+- [x] Implement:
   - **Settings view model:** the members above.
   - **XAML:** a `Refresh` row in the View section: a caption, a `LedgerIconButton` with glyph `&#xE738;` (automation
     name `Shorter refresh interval`), a 36 px `TextBox` (`BeforeTextChanging` → `AcceptsRefreshText`; Enter and
     `LostFocus` → commit; automation name `Refresh interval in minutes`), a `min` caption, and a `LedgerIconButton` with
     glyph `&#xE710;` (`Longer refresh interval`). The tooltip reads `Refresh every <n> min · 1 to 60`.
   - **Footer:** remove the footer `MonitoringText` `TextBlock`; the system status and ⋯ stay.
-- [ ] Smoke `RefreshIntervalSmoke.StepperChangesTheInterval`, in the demo app: open Settings, click `Longer refresh
+- [x] Smoke `RefreshIntervalSmoke.StepperChangesTheInterval`, in the demo app: open Settings, click `Longer refresh
   interval`, and the box reads `6`; type `1` and press Enter, and the box reads `1`; save `settings-refresh.png`. Run the
   smoke and the Ledger launch smoke: PASS; open the PNG.
-- [ ] Run Presentation: PASS. Commit `feat(AIU-055): refresh interval stepper in settings (T-11)`; review, integrate,
+- [x] Run Presentation: PASS. Commit `feat(AIU-055): refresh interval stepper in settings (T-11)`; review, integrate,
   report.
 
 ### T-12 - Integrated verification, review and records
