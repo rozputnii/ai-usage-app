@@ -374,11 +374,11 @@ public sealed partial class LedgerSmoke
                     }
                 }
                 Assert.True(row is not null, string.Join("; ", trayAttempts));
-                // The flyout is a pointer-only miniature (D-204): no element of it is a tab stop, so no focus frame can show.
-                // Only XAML content counts; the popup host panes of an open tooltip and the native title bar are not its elements.
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 DesktopTestEnvironment.RequireUnlockedDesktop();
                 using (var capture = trayWindow!.Capture()) capture.Save(Path.Combine(evidence!, "tray.png"), System.Drawing.Imaging.ImageFormat.Png);
+                // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
+                // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
                 var focusable = trayWindow.FindAllDescendants().Where(e => e.Properties.FrameworkId.ValueOrDefault == "XAML" && e.Properties.IsKeyboardFocusable.ValueOrDefault)
                     .Select(e => $"{e.Properties.FrameworkId.ValueOrDefault}/{e.Properties.ControlType.ValueOrDefault}/{e.Properties.Name.ValueOrDefault}").ToArray();
                 Assert.True(focusable.Length == 0, "Tray flyout elements must not be keyboard-focusable: " + string.Join("; ", focusable));

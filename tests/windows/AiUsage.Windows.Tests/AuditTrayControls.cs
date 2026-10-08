@@ -33,12 +33,10 @@ public sealed partial class AuditWindows
         session.TrayIconClick(false);
         var popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray");
         session.CaptureSurface(popup, "tray-miniature-" + hidden + "-" + inFlight);
-        // The flyout is a pointer-only miniature (D-204): no XAML element of it is a tab stop or holds focus. The popup host
-        // panes of an open tooltip are Win32 elements, not part of its content.
+        // The flyout is a pointer-only miniature (D-204): no element of its content is a tab stop or holds focus.
         var elements = popup.FindAllDescendants();
         Assert.Contains(elements, e => (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal));
-        Assert.DoesNotContain(elements, e => e.Properties.FrameworkId.ValueOrDefault == "XAML" &&
-            (e.Properties.IsKeyboardFocusable.ValueOrDefault || e.Properties.HasKeyboardFocus.ValueOrDefault));
+        Assert.DoesNotContain(elements, e => e.Properties.IsKeyboardFocusable.ValueOrDefault || e.Properties.HasKeyboardFocus.ValueOrDefault);
         // A click on a row, not Enter, selects the account and opens the main window.
         session.Click(elements.First(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Claude", StringComparison.Ordinal)));
         Assert.True(Session.Wait(() => session.IsVisible)); session.RequireForeground();
