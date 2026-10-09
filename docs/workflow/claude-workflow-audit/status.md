@@ -149,6 +149,14 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   - "Amended by" back-pointers;
   - validator checks for D-ID uniqueness and AC coverage;
   - spec and verification skeletons.
+- **2026-10-09, OD-20 = yes.** One "Pending owner checks" list, plus an owner-invoked
+  `post-deploy-check` skill.
+  - The skill reads the installed version and sanitized logs.
+  - It records verdicts only and never reads credentials.
+- **2026-10-09, OD-21 = yes.** Rules live only in the repo, for all agents.
+  - Host facts are copied into a repo environment doc.
+  - Memory duplicates are pruned once their repo copies exist, and the stale entry is fixed.
+  - Memory keeps host facts and owner preferences.
 
 ## Open owner decisions
 
