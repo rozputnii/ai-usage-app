@@ -7,6 +7,9 @@ if (args is not [var root, var mode] || mode is not ("crash" or "wait") ||
 using var log = new FileDiagnostics(root);
 AppDomain.CurrentDomain.UnhandledException += (_, incident) => log.Fatal(DiagnosticEvent.UnhandledFailure, incident.ExceptionObject as Exception, incident.IsTerminating);
 await log.FlushAsync();
+// Ready signal: the crash tests start their bounds here, after Defender's first-run scan of this exe.
+Console.Out.WriteLine("AIU_PROBE_READY");
+Console.Out.Flush();
 if (mode == "wait") await Task.Delay(Timeout.InfiniteTimeSpan);
 var crashing = new Thread(() =>
 {

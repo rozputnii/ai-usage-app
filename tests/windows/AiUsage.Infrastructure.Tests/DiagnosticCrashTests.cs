@@ -8,15 +8,21 @@ namespace AiUsage.Infrastructure.Tests;
 
 public sealed class DiagnosticCrashTests
 {
+    // The probe prints this line once its log exists and is flushed. The test bounds start there, so
+    // Microsoft Defender's first-run scan of a freshly built probe (seconds on this host) is excluded.
+    private const string ReadyLine = "AIU_PROBE_READY";
+    private static readonly TimeSpan StartupBound = TimeSpan.FromSeconds(120);
+
     [Fact]
     public async Task ManagedChildCrashLeavesCriticalStackBeforeTermination()
     {
         var root = Path.Combine(Path.GetTempPath(), "aiu-crash-" + Guid.NewGuid().ToString("N"));
         using var child = StartProbe(root, "crash");
-        var stdout = child.StandardOutput.ReadToEndAsync(TestContext.Current.CancellationToken);
         var stderr = child.StandardError.ReadToEndAsync(TestContext.Current.CancellationToken);
         try
         {
+            await WaitUntilReadyAsync(child);
+            var stdout = child.StandardOutput.ReadToEndAsync(TestContext.Current.CancellationToken);
             await child.WaitForExitAsync(TestContext.Current.CancellationToken).WaitAsync(TimeSpan.FromSeconds(20), TestContext.Current.CancellationToken);
             await Task.WhenAll(stdout, stderr);
             Assert.NotEqual(0, child.ExitCode);
@@ -51,13 +57,30 @@ public sealed class DiagnosticCrashTests
         return Process.Start(start)!;
     }
 
+    private static async Task WaitUntilReadyAsync(Process child)
+    {
+        bool ready;
+        try { ready = await ReadUntilReadyAsync(child.StandardOutput).WaitAsync(StartupBound, TestContext.Current.CancellationToken); }
+        catch (TimeoutException) { ready = false; }
+        Assert.True(ready, $"The diagnostics probe never became ready: no {ReadyLine} line on stdout before it closed or within {StartupBound.TotalSeconds:0} s of launch.");
+    }
+
+    private static async Task<bool> ReadUntilReadyAsync(StreamReader output)
+    {
+        while (await output.ReadLineAsync() is { } line)
+            if (line == ReadyLine) return true;
+        return false;
+    }
+
     [Fact]
     public async Task ForcedKillLeavesPriorRecordsAndUnknownExitWithoutInventedCritical()
     {
         var root = Path.Combine(Path.GetTempPath(), "aiu-crash-" + Guid.NewGuid().ToString("N"));
         using var child = StartProbe(root, "wait");
+        var stderr = child.StandardError.ReadToEndAsync(TestContext.Current.CancellationToken);
         try
         {
+            await WaitUntilReadyAsync(child);
             var wait = Stopwatch.StartNew();
             var folder = Path.Combine(root, "logs");
             while (wait.Elapsed < TimeSpan.FromSeconds(10) && (!Directory.Exists(folder) ||
@@ -68,6 +91,7 @@ public sealed class DiagnosticCrashTests
             // WaitForExitAsync can return once the exit code is set, before Windows has closed the killed
             // probe's handles; its session lease would still read as a live process. Wait on the process object.
             child.WaitForExit();
+            await stderr;
             Assert.Empty(Directory.GetFiles(folder, "critical-*.jsonl"));
             using var restarted = new FileDiagnostics(root);
             Assert.Contains("PreviousExitUnknown", await restarted.PreviewAsync());
