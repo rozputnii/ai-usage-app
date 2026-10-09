@@ -11,8 +11,13 @@ using Xunit;
 namespace AiUsage.Windows.Tests;
 
 /// <summary>Ordinary desktop interaction on isolated synthetic state; no sign-in or real credentials.</summary>
-public sealed partial class LedgerSmoke
+public sealed partial class LedgerSmoke : IDisposable
 {
+    private readonly Stopwatch started = Stopwatch.StartNew();
+
+    /// <summary>R5: every LedgerSmoke result is appended to the local smoke history once the test has finished.</summary>
+    public void Dispose() => SmokeKit.RecordResult(started.Elapsed);
+
     [Fact]
     public void AccountSpendingUsesNestedContentHistoryCapsAndAccountActions()
     {
@@ -325,7 +330,8 @@ public sealed partial class LedgerSmoke
             Assert.NotNull(Button("Cancel deleting stored data"));
             Button("Cancel deleting stored data").Invoke();
             Menu("Preview diagnostics");
-            Thread.Sleep(300);
+            Assert.True(Wait(() => Main().FindFirstDescendant(cf => cf.ByName("Preview diagnostics").And(cf.ByControlType(ControlType.MenuItem))) is null),
+                "The settings menu did not close");
             using (var screenshot = Main().Capture()) screenshot.Save(Path.Combine(evidence!, prefix + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             Button("Close settings").Invoke();
             if (demo)
@@ -349,13 +355,10 @@ public sealed partial class LedgerSmoke
                     // The chevron is a SystemTrayIcon button named "Show Hidden Icons", and "Show Hidden Icons Hide" while the
                     // overflow is open (invoking it then closes it), so it is invoked only while the overflow is closed.
                     if (Overflow() is null)
-                    {
-                        var chevron = taskbar?.FindAllDescendants(cf => cf.ByAutomationId("SystemTrayIcon").And(cf.ByControlType(ControlType.Button)))
-                            .FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Show Hidden Icons", StringComparison.Ordinal));
-                        Assert.True(chevron is not null, "The taskbar has no Show Hidden Icons button");
-                        chevron!.AsButton().Invoke();
-                    }
-                    Assert.True(Wait(() => (icon = Icon(Overflow())) is not null), "No tray icon named " + trayName);
+                        SmokeKit.Find(() => taskbar?.FindAllDescendants(cf => cf.ByAutomationId("SystemTrayIcon").And(cf.ByControlType(ControlType.Button)))
+                            .FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Show Hidden Icons", StringComparison.Ordinal)),
+                            "Show Hidden Icons button").AsButton().Invoke();
+                    icon = SmokeKit.Find(() => Icon(Overflow()), "tray icon " + trayName);
                 }
                 icon!.AsButton().Invoke();
                 AutomationElement? row = null;
@@ -375,9 +378,10 @@ public sealed partial class LedgerSmoke
                 // AIU-055 R-08: the flyout content is 260 logical px wide. The window itself is wider by its invisible resize borders,
                 // so the width is measured on the content, not on the window.
                 var trayWidth = (int)(260 * GetDpiForWindow(trayWindow!.Properties.NativeWindowHandle.Value) / 96.0);
-                var trayContent = trayWindow.FindFirstDescendant(cf => cf.ByName("AI Usage tray"));
-                Assert.True(trayContent is not null && Math.Abs(trayContent.BoundingRectangle.Width - trayWidth) <= 2,
-                    $"Tray flyout content should be 260 px wide ({trayWidth} physical px), was {trayContent?.BoundingRectangle.Width}");
+                // The flyout content has no AutomationId, so it is found by its name.
+                var trayContent = SmokeKit.Find(() => trayWindow.FindFirstDescendant(cf => cf.ByName("AI Usage tray")), "tray flyout content");
+                Assert.True(Math.Abs(trayContent.BoundingRectangle.Width - trayWidth) <= 2,
+                    $"Tray flyout content should be 260 px wide ({trayWidth} physical px), was {trayContent.BoundingRectangle.Width}");
                 using (var capture = trayWindow.Capture()) capture.Save(Path.Combine(evidence!, comfortable ? "tray-icons-comfortable.png" : "tray-icons.png"), System.Drawing.Imaging.ImageFormat.Png);
                 // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
                 // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
@@ -407,9 +411,7 @@ public sealed partial class LedgerSmoke
             File.WriteAllText(Path.Combine(evidence!, prefix + ".json"), JsonSerializer.Serialize(new { passed, state, pid = app.ProcessId, exited = process.HasExited }));
             if (!process.HasExited)
             {
-                if (window is not null)
-                    try { DesktopTestEnvironment.RequireUnlockedDesktop(); using var screenshot = (Current() ?? window).Capture(); screenshot.Save(Path.Combine(evidence!, prefix + "-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
-                    catch (Exception) { }
+                SmokeKit.SaveFailure(evidence!, prefix, () => Current() ?? window);
                 process.Kill(); process.WaitForExit(5000);
             }
         }
