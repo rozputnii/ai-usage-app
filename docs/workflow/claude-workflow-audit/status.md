@@ -171,6 +171,15 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 - **2026-10-09, OD-25 = yes.** The opt-in Sandbox UI audit suite (`Audit*.cs`) is frozen:
   marked `Explicit`, with no edits required on UI changes. The package, upgrade and feed
   smokes stay.
+- **2026-10-09, OD-26 = yes.** The AIU-002 routing spike build step is removed from CI. The
+  `spikes/windows/AIU-002-routing` folder stays.
+- **2026-10-09, OD-27 = owner variant: trial both.** Two language servers, compared on the
+  same task:
+  - the `csharp-lsp` plugin with a pinned `csharp-ls`;
+  - Microsoft `roslyn-language-server` (prerelease).
+
+  Both are time-boxed. The write-up compares solution discovery, WinUI/XAML false
+  positives, diagnostic latency and memory, and recommends one to keep. The other is removed.
 
 ## Open owner decisions
 
