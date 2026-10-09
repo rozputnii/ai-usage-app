@@ -420,6 +420,15 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   unfinished plans stay: AIU-046 (review), AIU-014 (paused), AIU-011 (dropped). Primary diff
   check: AIU-034, AIU-048 and AIU-055 ledgers read against their plans; C2 PASS.
 
+- **2026-10-09 — re-check of the fixed lines (steps 1-4, 7).** One fresh reviewer re-checked
+  only the fixes: all 10 Important findings RESOLVED (C10 PASS, 85). Five new Minor items:
+  four fixed (PowerShell `push -u origin +ref`, `git -C <path> push ... -f` and
+  `git -C <path> push origin +ref` forms added and re-probed: blocked, while routine pushes
+  with a pipe or a second command still run; a malformed served feed now publishes instead of
+  failing the step; the pending-check row order; three wrapped lines). Accepted: if a run fails
+  after the feed upload but before the Pages deploy, a re-run skips and the install page stays
+  one build behind until the next product push; App Installer updates are unaffected.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;

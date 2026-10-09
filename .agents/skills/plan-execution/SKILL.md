@@ -24,8 +24,9 @@ this text seems to differ.
 - **Sequential:** one task at a time, red to green, the task's checks, commit, push the save
   point to the task branch.
 - **Parallel:** when the owner asks, or when there are at least three independent tasks with
-  non-overlapping write sets; at most about four workers at once. Give each worker a self-contained brief and the implementer
-  contract (`.agents/agents/implementer.md`), in its own worktree created from the task branch.
+  non-overlapping write sets; at most about four workers at once. Give each worker a
+  self-contained brief and the implementer contract (`.agents/agents/implementer.md`), in its
+  own worktree created from the task branch.
   Workers do not add backlog items or decisions. Wait with background tasks or Monitor, never
   sleep loops; check CI once at the end, not in a foreground loop.
 - Run desktop smokes under the desktop lock; after integration, run them once on the merged

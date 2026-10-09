@@ -71,8 +71,9 @@ serves).
 
 Work is **verified** when every required check is PASS, with two exceptions: a required
 smoke may stay BLOCKED only under the blocked-smoke rule in the
-[Git flow](../../CONTRIBUTING.md#git-flow), and post-deploy owner checks may stay NOT_RUN: the owner's manual and live-provider checks run after deployment in the
-installed app (D-190), and are recorded under "Pending owner checks" in the backlog.
+[Git flow](../../CONTRIBUTING.md#git-flow), and post-deploy owner checks may stay NOT_RUN: the
+owner's manual and live-provider checks run after deployment in the installed app (D-190),
+and are recorded under "Pending owner checks" in the backlog.
 Before pushing to `main`:
 
 - the required checks from the matrix, on the merged tree;

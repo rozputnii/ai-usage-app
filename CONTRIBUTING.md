@@ -49,12 +49,11 @@ reviewer checks the diff against the T3 area list.
 | T3 | Any change in a T3 area | As its size requires, plus a design note when there is a real choice; use the security-lifecycle skill | As T1, plus a blocking focused independent review with the convergence-review skill and `/security-review` where available |
 
 T3 areas: authentication and provider contracts; credentials and DPAPI stores; persisted
-records, the preferences schema and migrations; destructive or owned-root cleanup;
-logging, diagnostics, crash data and exports; privilege and capability changes (package
-manifest capabilities, elevation, startup or protocol registration, certificate trust); new
-network hosts; update, install,
-signing and Preview scripts; CI workflows; dependencies; rule files (AGENTS.md,
-CONTRIBUTING.md, docs/workflow/verification.md, docs/constitution.md) and agent
+records, the preferences schema and migrations; destructive or owned-root cleanup; logging,
+diagnostics, crash data and exports; privilege and capability changes (package manifest
+capabilities, elevation, startup or protocol registration, certificate trust); new network
+hosts; update, install, signing and Preview scripts; CI workflows; dependencies; rule files
+(AGENTS.md, CONTRIBUTING.md, docs/workflow/verification.md, docs/constitution.md) and agent
 configuration (`.claude/`, `.agents/`, CLAUDE.md).
 
 ## Git flow

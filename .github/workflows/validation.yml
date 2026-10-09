@@ -128,9 +128,11 @@ jobs:
             New-Item -ItemType Directory -Force -Path $feedDir | Out-Null
             gh release download feed-preview --repo $env:GITHUB_REPOSITORY --pattern AiUsage.appinstaller --dir $feedDir --clobber
             if ($LASTEXITCODE -eq 0) {
-              [xml]$served = Get-Content -Raw -LiteralPath (Join-Path $feedDir 'AiUsage.appinstaller')
-              $base = [string](gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/preview-$($served.AppInstaller.Version)" --jq .target_commitish)
-              if ($LASTEXITCODE -ne 0) { $base = '' }
+              try {
+                [xml]$served = Get-Content -Raw -LiteralPath (Join-Path $feedDir 'AiUsage.appinstaller')
+                $base = [string](gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/preview-$($served.AppInstaller.Version)" --jq .target_commitish)
+                if ($LASTEXITCODE -ne 0) { $base = '' }
+              } catch { $base = '' }
             }
             $global:LASTEXITCODE = 0
             $ancestor = $false
