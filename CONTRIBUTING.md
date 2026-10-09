@@ -105,17 +105,20 @@ already numbered on `main` keeps its number.
 
 ## Agent permissions
 
-The committed `.claude/settings.json` holds deny rules only: force-push variants (including
-`--mirror` and `+refspec`), `gh release` and `gh workflow run` in Bash and PowerShell, and
-reads or edits of source-CLI credential stores through the agent's file tools. It also
-disables plugins for this project: ux-superpowers, design-superpowers, desktop-commander and
-design (OD-8), and superpowers, whose used skills have repository replacements (OD-7). Deny rules apply in every permission mode, and a
-local allow cannot lift them. Changing this file is T3 and needs the owner's decision. The
-patterns are a backstop only: other spellings, scripts and shell reads such as `cat` or
-`Get-Content` are not blocked, so the prose rules stay authoritative.
+The committed `.claude/settings.json` holds deny rules and plugin switches. The deny rules
+cover force-push variants (including `--mirror` and `+refspec`), `gh release` and
+`gh workflow run` in Bash and PowerShell, and reads or edits of source-CLI credential
+stores. The plugin switches disable ux-superpowers, design-superpowers, desktop-commander,
+design and superpowers for this project; the superpowers skills in use have repository
+replacements (R-NEW-10). Deny rules apply in every permission mode, and a local allow
+cannot lift them. Changing this file is T3 and needs the owner's decision. The patterns
+are a backstop only: other command spellings and scripts are not blocked. A read rule also
+blocks shell commands that name a denied file, such as `cat`, `head` or `Get-Content`, but
+not commands that read files without naming them, such as a recursive `grep`. The prose
+rules stay authoritative.
 
-When the owner explicitly authorizes a provider-evidence read of a CLI credential store in the
-current request, the owner either performs the read or starts that one session with
+When the owner explicitly authorizes a provider-evidence read of a CLI credential store in
+the current request, the owner either performs the read or starts that one session with
 `claude --setting-sources user,local`, which skips all project settings, including the other
 deny rules and plugin switches. That session does only the authorized read; the next session
 loads the deny rules again.
@@ -140,7 +143,8 @@ is not completion. No model vendor or family is prescribed.
   agent given the same contract when the tracked one is not loaded.
 - In parallel runs, each code, test or harness task gets a per-task independent review.
   Docs tasks get a primary diff check, except rule and agent-configuration edits, which
-  are T3. One whole-feature review always runs before the merge.
+  are T3. One whole-feature review always runs, after the parallel tasks have landed and
+  before the run is reported done; its findings are fixed as follow-ups.
 - An Important finding violates an acceptance criterion, the spec, or a security or data
   boundary, or is a reproducible defect; it needs file:line evidence and a failing test or
   a reproduction. Report at most five Minor findings. Zero findings is a valid result.
@@ -163,11 +167,13 @@ verification of the integrated result.
 - Worker briefs are self-contained. The tracked implementer agent holds the worker
   procedure: simple single-purpose commands, background tasks or Monitor instead of
   sleep, unit suites and builds per worker, reports returned as messages.
-- Workers may merge verified work into `main` and push it under the Git flow above. Workers
-  do not add backlog items or decisions; the primary owns those and their numbering.
+- Workers may merge verified work into `main` and push it under the Git flow above, so a
+  worker's worktree branches from up-to-date `main`, not from the primary's task branch.
+  Workers do not add backlog items or decisions; the primary owns those and their numbering.
 - Desktop smokes run under the desktop lock in
-  [verification](docs/workflow/verification.md#desktop-smokes); after integration the
-  primary runs them once on the merged tree.
+  [verification](docs/workflow/verification.md#desktop-smokes). A worker whose change has
+  product inputs runs the launch smoke (C8) before its own push to `main`; after the tasks
+  have landed, the primary runs the required smokes once more on the merged tree.
 
 ## Contributions and checks
 
