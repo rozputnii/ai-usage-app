@@ -4,7 +4,7 @@ description: Execute an approved multi-part (T2/T3) plan, sequentially or with p
 ---
 # plan-execution
 
-The repository's execution step (owner decision OD-7). It replaces the superpowers
+The repository's execution step (decision R-NEW-10). It replaces the superpowers
 writing-plans, executing-plans and subagent-driven-development skills and follows
 CONTRIBUTING.md (Development procedure, Git flow, Review, Parallel work), which wins wherever
 this text seems to differ.

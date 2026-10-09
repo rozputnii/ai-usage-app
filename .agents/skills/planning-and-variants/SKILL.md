@@ -4,7 +4,7 @@ description: Turn an owner's request into an agreed plan before implementation. 
 ---
 # planning-and-variants
 
-The repository's planning step (owner decision OD-7). It replaces the superpowers brainstorming
+The repository's planning step (decision R-NEW-10). It replaces the superpowers brainstorming
 skill and follows AGENTS.md and CONTRIBUTING.md, which win wherever this text seems to differ.
 
 ## 1. Understand
