@@ -1,6 +1,6 @@
 # Synthetic Windows UI/UX audit implementation plan
 
-**Archived on 2026-10-09; not to be executed.** The unchecked boxes below are historical. **Paused by the owner on 2026-10-04 because execution was taking too long.** Preserve current code and evidence; do not resume the audit automatically. Follow-up task: [AIU-045](../../../specs/AIU-045-ui-audit-follow-up/spec.md), with the complete [findings and exact handoff](../../../specs/AIU-045-ui-audit-follow-up/verification.md). Latest scope-annotation working build fails before a window appears in two actual guest runs; its cause is unresolved.
+**Archived on 2026-10-09; not to be executed.** The unchecked boxes below are historical, and the startup failure described next was root-caused and fixed on 2026-10-06 (AIU-045 AUD-01, `5560205`). **Paused by the owner on 2026-10-04 because execution was taking too long.** Preserve current code and evidence; do not resume the audit automatically. Follow-up task: [AIU-045](../../../specs/AIU-045-ui-audit-follow-up/spec.md), with the complete [findings and exact handoff](../../../specs/AIU-045-ui-audit-follow-up/verification.md). Latest scope-annotation working build fails before a window appears in two actual guest runs; its cause is unresolved.
 
 **Goal:** Execute the owner's 2026-10-04 audit against the ordinary Windows application, repair evidence-backed defects, and retain an honest coverage matrix and readable final gallery.
 

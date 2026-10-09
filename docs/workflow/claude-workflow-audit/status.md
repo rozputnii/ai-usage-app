@@ -315,7 +315,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     `.claude/skills/` make them invocable by name; CLAUDE.md names the paths and says reading
     the matching skill is mandatory.
   - OD-13: `.codex/` and `.omp/` deleted, the `.omp` ignore lines removed, and the validator no
-    longer scans `.omp/AGENTS.md` (one test case removed). The agent-neutral plan and
+    longer scans `.omp/AGENTS.md` (the two `.omp` test cases removed). The agent-neutral plan and
     verification, the architecture-audit plan, environment.md, omp-native.md and the paused
     ui-ux audit moved to `docs/archive/workflow/` with corrected status headers; live links
     were rewritten. The owner's e-mail address (environment.md, pending.md) and 14 native
@@ -347,6 +347,15 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     `origin/main` → skip (0 paths), the step-1 commit `4206880` → skip (31 docs paths), this
     branch's HEAD → publish (PASS). The workflow YAML itself was not parsed by a YAML tool
     offline (NOT_RUN); CI first runs it after the merge into `main`. C2 PASS; C6 PASS.
+
+- **2026-10-09 — step 3 review fixes.** The focused review (changes needed: 1 Important,
+  5 Minor) found that the implementer's integration step named only "the brief's checks". Fixed:
+  it now runs the merge gate on the merged tree including C3, and the primary integrates a
+  worker that cannot be resumed. Also fixed: the reviewer deletes the added test before
+  removing its temporary worktree; historical plain-text paths in the archived migration plan
+  and the AIU-045 analysis and orchestration prompt are restored (only links were updated);
+  live plain-text pointers in pending.md, superseded.md and the AIU-001 tasks now name the
+  archive; the archived audit plan's header notes that its startup failure was fixed. C2 PASS.
 
 ## New owner decisions (Stage 2)
 

@@ -28,8 +28,8 @@ the full review.
    given worktree; keep the output under the review path. A mismatch between your results and
    the report is a finding.
 3. For a bug fix, create a temporary worktree at the base commit outside the checkout, add the
-   new test there, and confirm that it fails for the expected reason. Then remove the worktree
-   without `--force`.
+   new test there, and confirm that it fails for the expected reason. Then delete or revert the
+   added test file and remove the worktree without `--force`.
 4. Run local `/code-review` on the diff where it is available, and triage its output with the
    calibration below.
 

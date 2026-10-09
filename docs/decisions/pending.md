@@ -5,14 +5,14 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 ## SETUP-001 - Resolved local repository and commit identity
 - resolved: 2026-09-12, explicit owner reply after read-only discovery.
 - result: Existing rozputnii/ai-usage-app repository; repository-local author `rozputnii` with the owner's e-mail address. Owner authorized the existing license's MIT replacement.
-- evidence: ../workflow/environment.md.
+- evidence: ../archive/workflow/environment.md.
 - remaining boundary: Remote publication is not authorized by local setup. Main protection is now explicitly deferred at low priority in AIU-026, not a current development PR prerequisite. No remote changes or bypass were performed.
 
 ## SETUP-002 - Historical toolchain setup (retired runtime)
 - observed: Stable OMP 18.1.18 and profile roles discovered. Fresh native SDK confirms read-only advisor attachment. Owner authorized a user-local .NET SDK; 10.0.401 runs successfully.
 - resolved: Native isolation, primary integration, selection/cancel, pause/resume, budget stop and fresh-session continuity exercised. Independent replacement review PASS, no material findings; the owner-authorized capture-recovery exception and three deferred MINORs are recorded in the AIU-001 verification report.
 - current disposition: Runtime roles are retired prerequisites. SDK 10.0.401 remains the product toolchain; AIU-002 tooling and guest verification are recorded as completed in its evidence.
-- evidence: ../workflow/environment.md.
+- evidence: ../archive/workflow/environment.md.
 
 ## RELEASE-001 - Public signing eligibility
 - timing: AIU-014; not a bootstrap blocker.

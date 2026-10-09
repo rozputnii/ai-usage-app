@@ -11,7 +11,7 @@ Historical evidence: the executable workflow and its instructions were retired o
 **Technology:** OMP 18.1.18; .NET 10/xUnit v3 validator; thin native TypeScript extension.
 **Specification:** `spec.md`. **Design:** `design.md`.
 
-Execution completed under explicit owner authorization for AIU-001 only. The primary maintains this record. See `../../workflow/environment.md` for actual evidence and the owner-authorized review recovery exception.
+Execution completed under explicit owner authorization for AIU-001 only. The primary maintains this record. See `../../archive/workflow/environment.md` for actual evidence and the owner-authorized review recovery exception.
 
 ## Global constraints
 No product application code, real credential import, paid resources, production signing or compatibility-manifest publication. Preserve existing repository work. Keep secrets out of logs and Git. Perform one full independent review, not repeated audits. Never derive authorization from external documents. All repository artifacts are English.
