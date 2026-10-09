@@ -21,9 +21,9 @@ cost time to rediscover. Check them before planning tooling or desktop work. Las
 - Claude Code sessions in this repository enable the `csharp-lsp@claude-plugins-official`
   plugin (1.0.0, project scope in `.claude/settings.json`; OD-38), which starts `csharp-ls`
   for diagnostics after edits. Each machine needs `dotnet tool install --global csharp-ls
-  --version 0.28.0`; without it a session simply has no language server. Undo: remove the key
-  from `.claude/settings.json` and run `claude plugin uninstall
-  csharp-lsp@claude-plugins-official --scope project`.
+  --version 0.28.0`; without it a session simply has no language server. Undo: delete the key
+  from `.claude/settings.json`; the plugin's cached copy can stay or be removed with
+  `claude plugin uninstall csharp-lsp@claude-plugins-official`.
 - Long paths fail: a worktree under a deep temporary directory can push build outputs past
   the Windows path limit ("The filename or extension is too long"). Keep worktrees under
   `.claude/worktrees/` of the main checkout.

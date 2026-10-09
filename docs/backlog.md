@@ -186,17 +186,17 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - depends_on: []
 - trigger: owner-selection
 - outcome: Each budget store write checks the owned directory for reparse points once and each existing file only once, instead of re-checking every ancestor directory of every file, so the store-growth cap test `LocalBudgetStoreTests.ExcessSeriesCannotGrowTheOwnedStoreIndefinitely` (about 13 s, the Infrastructure suite's critical path) and real writes get faster without weakening the reparse-point boundary.
-- acceptance: The reparse-point refusals keep their tests and still fail closed (security-lifecycle review, T3); the cap test keeps its assertions and runs in about 1-2 s; the Infrastructure suite and the Release build without warnings pass.
+- acceptance: The reparse-point refusals keep their tests and still fail closed (security-lifecycle review, T3); the cap test keeps its assertions and gets markedly faster (target about 1-2 s, from about 13 s); the Infrastructure suite and the Release build without warnings pass.
 - registration-note: Workflow audit OD-36, approved 2026-10-09 as a separate T3 item after the workflow-optimization branch merges. A Stage 2 measurement found about 9.7 s of the test's 12.5 s in `BudgetJsonFile.EnsureCapacity`, about 33k reparse-point checks for 256 files.
 
-## T-NEW-2 - Five activation smokes fail on main
+## T-NEW-2 - Five activation smokes fail
 - goal: G-003
 - status: ready
 - depends_on: []
 - trigger: owner-selection
 - outcome: The LedgerActivationSmoke cases `FirstRunSignInButtonsRespondToMouseClicksWithSettingsOpen` (four cases) and `BusyStorageExplainsTheBlockAndRetryEnablesSignIn` pass again, or are corrected where the test, not the app, is wrong.
 - acceptance: The root cause is found first (systematic debugging) and named in the verification record; the five cases pass twice in a row under the desktop lock; the launch smoke (C8) and the Presentation suite pass.
-- registration-note: Workflow audit OD-37, approved 2026-10-09. Found during Stage 2 step 5: the five cases fail the same way at `main` (`27a14b0`) as on the branch, so the branch did not cause them. Until this item is done, a change that needs these smokes records them FAIL with a pointer here.
+- registration-note: Workflow audit OD-37, approved 2026-10-09. Found during Stage 2 step 5: the five cases fail the same way at `27a14b0`, a workflow-optimization commit whose app and smoke code match `main` (`3724a17`), so the branch did not cause them; they have not been run on `main` itself. Until this item is done, a change that needs these smokes records them FAIL with a pointer here.
 
 ## Done index
 

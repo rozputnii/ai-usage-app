@@ -560,7 +560,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
 
 - **2026-10-09 — owner decisions OD-32 to OD-39 applied.** OD-34: the archived nested
   instruction file renamed to `AGENTS.md.txt` with a README line. OD-36 and OD-37: backlog items
-  `T-NEW` and `T-NEW-2` (G-003). OD-38: `csharp-lsp` 1.0.0 enabled at project scope. OD-33,
+  T-NEW and T-NEW-2 (G-003). OD-38: `csharp-lsp` 1.0.0 enabled at project scope. OD-33,
   host cleanup after a fresh read-only audit of 25 worktrees (all heads ancestors of
   `origin/main`, no tracked changes, no stash, no unpushed commits):
   - 22 worktrees removed with `git worktree remove` (no `--force`, none refused): 11 subagent
@@ -621,12 +621,13 @@ work continues on the recommended path unless it is marked as waiting.
   the test to 1-2 s and also speed real writes, but it is product code on the reparse-point
   safety boundary (T3, security-lifecycle review). *Recommendation:* approve it as a separate
   T3 item after this branch merges. Until then the test stays unchanged. Accepted 2026-10-09:
-  registered as backlog item `T-NEW` (cheaper store-growth cap check).
+  registered as backlog item T-NEW (cheaper store-growth cap check).
 
 - **OD-37 — Five activation smokes already fail on `main`.** See step 5. *Recommendation:*
   register a backlog bug item for them (owner selection decides when it is fixed); until then a
   change that needs these smokes records them FAIL with this note. Accepted 2026-10-09:
-  registered as backlog item `T-NEW-2`, which now holds that note.
+  registered as backlog item T-NEW-2, which now holds that note. ("On `main`" means at
+  `27a14b0`, whose app and smoke code match `main`; the cases were not run on `main` itself.)
 
 - **OD-38 — Enable the C# language server for this project.** The OD-27 trial recommends
   csharp-ls (see [trials.md](trials.md)). Enabling `csharp-lsp@claude-plugins-official` in the
@@ -647,9 +648,9 @@ work continues on the recommended path unless it is marked as waiting.
 
 ## Next action
 
-Stage 2 is implemented and verified; the branch waits for the owner. Owner: review
-[rule-inventory.md](rule-inventory.md) and decide OD-10 (start the auto-mode trial),
-OD-33, OD-34, OD-35, OD-36, OD-37, OD-38 and OD-39, then say whether to merge.
+Stage 2 is implemented and verified, and every Stage 2 decision is taken. The branch waits
+for the owner: review [rule-inventory.md](rule-inventory.md) and say whether to merge. OD-10's
+one-week auto-mode trial starts when the owner picks Auto as the permission mode.
 
 At the merge, in order: merge fresh `origin/main`; re-run `tools/windows/Convert-IdScheme.ps1`
 for items `main` added and review its step references; wrap the two stage-1-prompt
