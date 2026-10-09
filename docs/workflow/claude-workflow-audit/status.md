@@ -466,6 +466,16 @@ work continues on the recommended path unless it is marked as waiting.
   spec requirements to `Q-xx`. Step 6 proceeds with the first option unless the owner picks
   the second.
 
+- **OD-36 — Cheaper store-growth cap test needs a product change.** R14 asked to make
+  `LocalBudgetStoreTests.ExcessSeriesCannotGrowTheOwnedStoreIndefinitely` (about 13 s, now the
+  Infrastructure suite's critical path) cheaper without weakening it. The worker measured that
+  about 9.7 s of 12.5 s is the per-write capacity check in `BudgetJsonFile.EnsureCapacity`,
+  which re-checks every ancestor directory of every existing file for reparse points (about
+  33k checks for 256 files). Checking the directory once and each file only would likely bring
+  the test to 1-2 s and also speed real writes, but it is product code on the reparse-point
+  safety boundary (T3, security-lifecycle review). *Recommendation:* approve it as a separate
+  T3 item after this branch merges. Until then the test stays unchanged. Waiting for the owner.
+
 ## Next action
 
 Stage 2, step 5: tests and smoke — OD-23 per-run tray identity and Release-build smokes,
