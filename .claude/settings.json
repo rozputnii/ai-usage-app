@@ -76,6 +76,7 @@
     "design-superpowers@synced": false,
     "desktop-commander@synced": false,
     "design@synced": false,
-    "superpowers@synced": false
+    "superpowers@synced": false,
+    "csharp-lsp@claude-plugins-official": true
   }
 }

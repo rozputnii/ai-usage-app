@@ -180,6 +180,24 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - acceptance: A test or a bounded probe shows the process handle count stays flat over thousands of tray glyph updates; a recurring failure produces one detailed record plus a coalesced count; the Infrastructure and Presentation suites, the Release build without warnings and the demo startup smoke pass. The owner checks the installed app's logs after deployment (R-190).
 - registration-note: Found on 2026-10-09 in the installed app's logs (2026.10.837.0 and earlier): 5,778 TrayFailure errors (ExternalException, hResult -2147467259) from `TrayGlyph.Create` through `LedgerWindow.UpdateTrayGlyph` in three sessions. Each time they began 5.5 to 8 hours after launch, and every later attempt failed until the app restarted. `TrayGlyph.Create` returns `Icon.FromHandle(bitmap.GetHicon())`, and nothing destroys that handle or disposes the replaced icon, so every card rebuild probably leaks one icon handle until the process runs out; each failure is also logged, about three records a minute.
 
+## T-NEW - Cheaper store-growth cap check
+- goal: G-003
+- status: ready
+- depends_on: []
+- trigger: owner-selection
+- outcome: Each budget store write checks the owned directory for reparse points once and each existing file only once, instead of re-checking every ancestor directory of every file, so the store-growth cap test `LocalBudgetStoreTests.ExcessSeriesCannotGrowTheOwnedStoreIndefinitely` (about 13 s, the Infrastructure suite's critical path) and real writes get faster without weakening the reparse-point boundary.
+- acceptance: The reparse-point refusals keep their tests and still fail closed (security-lifecycle review, T3); the cap test keeps its assertions and runs in about 1-2 s; the Infrastructure suite and the Release build without warnings pass.
+- registration-note: Workflow audit OD-36, approved 2026-10-09 as a separate T3 item after the workflow-optimization branch merges. A Stage 2 measurement found about 9.7 s of the test's 12.5 s in `BudgetJsonFile.EnsureCapacity`, about 33k reparse-point checks for 256 files.
+
+## T-NEW-2 - Five activation smokes fail on main
+- goal: G-003
+- status: ready
+- depends_on: []
+- trigger: owner-selection
+- outcome: The LedgerActivationSmoke cases `FirstRunSignInButtonsRespondToMouseClicksWithSettingsOpen` (four cases) and `BusyStorageExplainsTheBlockAndRetryEnablesSignIn` pass again, or are corrected where the test, not the app, is wrong.
+- acceptance: The root cause is found first (systematic debugging) and named in the verification record; the five cases pass twice in a row under the desktop lock; the launch smoke (C8) and the Presentation suite pass.
+- registration-note: Workflow audit OD-37, approved 2026-10-09. Found during Stage 2 step 5: the five cases fail the same way at `main` (`27a14b0`) as on the branch, so the branch did not cause them. Until this item is done, a change that needs these smokes records them FAIL with a pointer here.
+
 ## Done index
 
 Done and dropped items, one row each (OD-19). Their history is in each item's specification and verification records and in Git history.

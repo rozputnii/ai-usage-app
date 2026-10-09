@@ -221,6 +221,10 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   Removed from the bundle under OD-11's agent-neutral principle: the Claude-only
   path-scoped `.claude/rules/logging.md` trial. Logging policy stays in AGENTS.md and
   logging.md.
+- **2026-10-09, OD-32 to OD-39 = recommendations accepted.** After the verification round the
+  owner accepted OD-39 and took every other Stage 2 decision as recommended (see "New owner
+  decisions (Stage 2)"). OD-10's trial start stays the owner's action: the agent cannot change
+  the permission mode.
 
 ## Open owner decisions
 
@@ -565,7 +569,7 @@ work continues on the recommended path unless it is marked as waiting.
   Assigning numbers now would collide with parallel work merged meanwhile. *Recommendation:*
   keep placeholders (converted to the OD-31 scheme in step 6) and number them with the R13
   script at the final merge; until then `--final` also lists these placeholders.
-  Not waiting.
+  Accepted 2026-10-09.
 
 - **OD-33 — Worktree cleanup that the strict conditions block.** A fresh audit of the 33
   worktrees besides this one: all branches are ancestors of `origin/main` and no stash refers
@@ -575,21 +579,20 @@ work continues on the recommended path unless it is marked as waiting.
   main checkout's `.ai-usage-local/worktree-archive/<worktree>/`; (2) archive the 20
   session-owned worktrees through the desktop app (reversible with unarchive), after checking
   on the first one that archiving keeps its branch; (3) remove the 13 subagent worktrees with
-  `git worktree remove` (no `--force`); (4) then enable the 7-day inactive archive. Waiting for
-  the owner.
+  `git worktree remove` (no `--force`); (4) then enable the 7-day inactive archive.
+  Accepted 2026-10-09; carried out on a fresh audit (see the Stage 2 log).
 - **OD-34 — Archived nested instruction file.** `docs/archive/omp/.omp/AGENTS.md` says "OMP
   remains the canonical full workflow" and may load as a nested instruction file when an agent
   reads that folder (prompt-audit F7). The archive README promises byte-for-byte preservation.
   *Recommendation:* rename it to `AGENTS.md.txt` and add one line to the archive README
-  recording the rename. Not waiting; until decided, AGENTS.md already limits archive reads to
-  historical questions.
+  recording the rename. Accepted and done 2026-10-09.
 - **OD-35 — `R-` prefix collision.** OD-31 renames decisions `D-nnn` to `R-nnn`, but 17
   specifications already use `R-01`…`R-xx` for requirements, and the T1 spec skeleton keeps
   `R-xx`. Decision numbers have three digits and requirement numbers two, so they are
   distinguishable but easy to confuse. *Recommendation:* keep OD-31 as decided and have the
   validator accept only three-digit `R-nnn` decision IDs in the decision registers; or rename
-  spec requirements to `Q-xx`. Step 6 proceeds with the first option unless the owner picks
-  the second.
+  spec requirements to `Q-xx`. Accepted 2026-10-09: the first option, which the validator
+  already enforces.
 
 - **OD-36 — Cheaper store-growth cap test needs a product change.** R14 asked to make
   `LocalBudgetStoreTests.ExcessSeriesCannotGrowTheOwnedStoreIndefinitely` (about 13 s, now the
@@ -599,18 +602,22 @@ work continues on the recommended path unless it is marked as waiting.
   33k checks for 256 files). Checking the directory once and each file only would likely bring
   the test to 1-2 s and also speed real writes, but it is product code on the reparse-point
   safety boundary (T3, security-lifecycle review). *Recommendation:* approve it as a separate
-  T3 item after this branch merges. Until then the test stays unchanged. Waiting for the owner.
+  T3 item after this branch merges. Until then the test stays unchanged. Accepted 2026-10-09:
+  registered as backlog item `T-NEW` (cheaper store-growth cap check).
 
 - **OD-37 — Five activation smokes already fail on `main`.** See step 5. *Recommendation:*
   register a backlog bug item for them (owner selection decides when it is fixed); until then a
-  change that needs these smokes records them FAIL with this note. Waiting for the owner.
+  change that needs these smokes records them FAIL with this note. Accepted 2026-10-09:
+  registered as backlog item `T-NEW-2`, which now holds that note.
 
 - **OD-38 — Enable the C# language server for this project.** The OD-27 trial recommends
   csharp-ls (see [trials.md](trials.md)). Enabling `csharp-lsp@claude-plugins-official` in the
   committed `.claude/settings.json` gives every session diagnostics after edits, but needs
   `csharp-ls` installed on each machine (a session without it just has no LSP) and is an
   agent-configuration change (T3). *Recommendation:* enable it at project scope and keep the
-  pinned tool in the host environment notes. Waiting for the owner.
+  pinned tool in the host environment notes. Accepted and done 2026-10-09: installed with
+  `claude plugin install csharp-lsp@claude-plugins-official --scope project` (1.0.0), which
+  wrote the switch into `.claude/settings.json`; host-environment.md records the tool and undo.
 
 - **OD-39 — Tray test identity uses its own variable.** OD-23 names the existing
   `DesktopTestEnvironment` switch; the implementation reads a separate `AIU_SMOKE_TRAY_ID`
@@ -618,7 +625,7 @@ work continues on the recommended path unless it is marked as waiting.
   never changes its tooltip. The verification round found the behaviour sound but the
   mechanism different from the decision text. *Recommendation:* accept the variable as the
   OD-23 implementation (`DesktopTestEnvironment` is a test-side class the app does not read).
-  Not waiting.
+  Accepted 2026-10-09.
 
 ## Next action
 
