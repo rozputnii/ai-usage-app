@@ -83,6 +83,26 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   - Personal connectors are not changed.
   - Stage 2 must confirm the exact `enabledPlugins` key for the design plugin, whose install
     location was not found (B2-F8).
+- **2026-10-09, OD-9 = alternative 2.** A minimal deny-only project
+  `.claude/settings.json`.
+  - Covered, in Bash and PowerShell forms: force-push variants, `gh release *`,
+    `gh workflow run *`, and `Read`/`Edit` on source-CLI credential stores.
+  - Not covered: reset, clean, branch deletion, stash, variables and secrets.
+- **2026-10-09, OD-10 = yes.** One-week trial of auto permission mode, starting after the
+  OD-9 deny rules land. Revert to bypass at the first false block of a routine action.
+- **2026-10-09, OD-11 = owner variant.** The project stays agent-neutral, because
+  non-Claude agents may also work on it.
+  - Skills stay in `.agents/skills`; D-034's location clause stands and the validator is
+    unchanged.
+  - AGENTS.md stays the canonical, mandatory entry point.
+  - CLAUDE.md gets explicit paths to each skill with a mandatory instruction to read it when
+    its topic applies, so Claude behaves as if the skills were native. Stage 2 may instead
+    `@import` the three small `SKILL.md` files (about 600 tokens) into CLAUDE.md if that is
+    more reliable.
+  - Consequences:
+    - OD-7's new repo skills also live in `.agents/skills`; a Claude slash command, if
+      needed, is a thin `.claude/` wrapper pointing to the canonical file.
+    - OD-13 must be reframed: no "Claude Code only" decision.
 
 ## Open owner decisions
 
