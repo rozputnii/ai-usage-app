@@ -157,6 +157,15 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   - Host facts are copied into a repo environment doc.
   - Memory duplicates are pruned once their repo copies exist, and the stale entry is fixed.
   - Memory keeps host facts and owner preferences.
+- **2026-10-09, OD-22 = yes.** Worktree cleanup under R12's strict conditions.
+  - A worktree is removed only when its branch is in `origin/main` after a fresh fetch, its
+    status is clean including ignored evidence, and no stash refers to it. Never `--force`.
+  - One-time cleanup of the 31 merged worktrees.
+  - The desktop's 7-day inactive archive is enabled after verifying it keeps unmerged
+    branches.
+- **2026-10-09, OD-23 = yes.** A test-only per-run tray identity: only the identity value
+  changes, inside the existing `DesktopTestEnvironment` switch, and the reviewer confirms the
+  production path is unchanged. Smokes run against the Release unpackaged build.
 
 ## Open owner decisions
 
