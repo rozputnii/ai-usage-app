@@ -185,6 +185,26 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 - **2026-10-09, OD-29 = yes.** A trial of the Microsoft `winapp ui` CLI, read-only commands
   only (inspect and screenshot), with telemetry opted out. It is used to debug smoke
   locators and to screenshot UI variants.
+- **2026-10-09, OD-30 = yes.** At the final merge, the verbatim prompt's two placeholder
+  mentions are wrapped in code spans, with a note that this is the only change.
+  - The owner also asked to simplify the ID scheme; that becomes new decision OD-31.
+- **2026-10-09, OD-31 = yes (new, owner-raised).** A simpler ID scheme:
+  - Work items (features and bugs) become `T-nnn` and keep their numbers (AIU-055 →
+    T-055).
+  - Steps inside an item become `T-nnn.k`.
+  - Decisions become `R-nnn` and keep their numbers (D-207 → R-207).
+  - Branch placeholders become `T-NEW` / `R-NEW`.
+  - Git history keeps the old prefixes, with the same numbers.
+
+  Stage 2 work:
+  - update the validator, formats.md, CONTRIBUTING (D-196 text), the backlog, spec folder
+    names, the decision registers, docs references and source comments;
+  - run the rename only when no unmerged worktree branches are in flight, or migrate them
+    in the same pass;
+  - keep the numbering script (R13) in step with the new scheme.
+
+  Note: the report's recommendation labels R1-R18 are audit-internal and unrelated to
+  decision IDs.
 
 ## Open owner decisions
 
