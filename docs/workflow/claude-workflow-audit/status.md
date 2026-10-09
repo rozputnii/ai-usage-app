@@ -180,6 +180,11 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 
   Both are time-boxed. The write-up compares solution discovery, WinUI/XAML false
   positives, diagnostic latency and memory, and recommends one to keep. The other is removed.
+- **2026-10-09, OD-28 = yes.** A half-day Stryker.NET spike on Core budget logic and
+  parsers, with no CI gate and no threshold. The output is a report of weak test spots.
+- **2026-10-09, OD-29 = yes.** A trial of the Microsoft `winapp ui` CLI, read-only commands
+  only (inspect and screenshot), with telemetry opted out. It is used to debug smoke
+  locators and to screenshot UI variants.
 
 ## Open owner decisions
 
