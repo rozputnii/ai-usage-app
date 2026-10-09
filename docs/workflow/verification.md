@@ -21,7 +21,7 @@ PATH, use `& "$HOME/.dotnet/ai-usage-sdk/dotnet.exe"`. Evidence names checks by 
 | C7 | App build (Release, unpackaged) | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` |
 | C8 | Launch smoke | Publish the UI suite with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`, then run `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` against the C7 build under the [desktop lock](#desktop-smokes) |
 | C9 | Package build | `./tools/windows/Build-Package.ps1` (see README) |
-| C10 | Preview release script tests | `tests/release/Test-PreviewRelease.ps1`; CI runs it on pushes to `main` |
+| C10 | Preview release script tests | `tests/release/Test-PreviewRelease.ps1`; CI runs it in `validate` |
 
 In the inner loop, run one class with `-class "<Namespace.Class>"` after a single build, and
 pass `--no-build` to `dotnet run`; run the full suites once on the merged tree. A missing
@@ -83,8 +83,10 @@ Before pushing to `main`:
 
 CI `validate` and `windows-package` must be green on the pushed commit before a Preview is
 signed and published; the workflow enforces this. An owner dispatch with
-`PublishPreview=true` can republish the current `main` commit. `AIU_PREVIEW_ENABLED` is the
-kill switch. A Preview is an owner-test build, not public release approval.
+`PublishPreview=true` can republish the current `main` commit. If a run fails after the feed
+upload (Pages upload or deploy), its re-run skips because the feed already serves that commit;
+republish with that dispatch. `AIU_PREVIEW_ENABLED` is the kill switch. A Preview is an
+owner-test build, not public release approval.
 
 A BLOCKED required smoke follows the blocked-smoke rule in the
 [Git flow](../../CONTRIBUTING.md#git-flow). After two failed reruns of a smoke, record FAIL
@@ -118,9 +120,11 @@ demo and product paths itself. Missing prerequisites fail; they never skip silen
   packaged app ignores the variable.
 - Find elements through the re-find helper in `SmokeKit.cs`, by AutomationId where one exists;
   do not hold UIA references across UI changes or wait with fixed sleeps.
-- A failing smoke saves a screenshot and a UI-tree dump into the evidence directory. Every
-  smoke result is appended to `%LOCALAPPDATA%\AiUsage-smoke-history.csv` (test, outcome,
-  duration, commit, worktree), which shows flaky tests across worktrees.
+- `SmokeKit.SaveFailure` saves a screenshot and a UI-tree dump into the evidence directory,
+  and `SmokeKit.RecordResult` appends a result to `%LOCALAPPDATA%\AiUsage-smoke-history.csv`
+  (test, outcome, duration, commit, worktree), which shows flaky tests across worktrees. So
+  far the launch smoke saves failure evidence and the `LedgerSmoke` partial class records
+  history; adopt both in other smoke classes when they are touched.
 
 ## Development environment
 
@@ -128,8 +132,9 @@ Use the local unpackaged app, local regression tests and local interactive smoke
 routine development, including provider integration. Use Windows Sandbox or a disposable
 VM only when a check needs isolation or a clean machine: installation prerequisites,
 package install, update or uninstall, recovery with destructive fault injection, or
-certificate trust changes. State the reason before using one. Those checks run when the
-affected behavior requires them; they are not deferred to the final release.
+certificate trust changes. Ask the owner first, with the reason
+([AGENTS](../../AGENTS.md#when-to-ask)). Those checks run when the affected behavior
+requires them; they are not deferred to the final release.
 
 Wait for a Sandbox run with a background task, not foreground sleeps. The audit runner's guest
 writes `run.json` with `STARTED` as soon as it begins and replaces it with the final status;
