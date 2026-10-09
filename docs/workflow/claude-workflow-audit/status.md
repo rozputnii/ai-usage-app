@@ -30,6 +30,18 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   - Placeholder mentions in the lane reports were put in code spans, and that was the only
     change made to them.
 
+- **2026-10-09 — merged `origin/main` (`6e169dd`) into the branch (merge `4e513e1`).** The
+  owner asked for main's unrelated bug fixes. A rebase was not used because the branch is
+  published and CONTRIBUTING forbids force-push.
+  - The merge brought six commits: a five-hour window fix, hover-only tooltips, the interval
+    field fix and D-207.
+  - None of them touches AGENTS.md, CONTRIBUTING.md, `docs/workflow/verification.md`,
+    `docs/workflow/formats.md`, `.claude`, `.agents` or `.github`, so no finding is
+    invalidated.
+  - D-207 is one more UI-preference decision, which supports A5-F9.
+  - `LocalBudgetStoreTests` gained tests, so re-measure A6-F1's timings before acting on R14.
+  - Normal-mode validation passes.
+
 ## Owner decisions taken
 
 - **2026-10-08:** Stage 1 was authorized with a broad multi-agent fan-out (see the prompt).
