@@ -63,3 +63,13 @@ Rulings made during implementation: the percent cap footer keeps the five-hour c
 the cap words, because R-02 calculates it against the cap; the zero-width hatched segment
 above a cap was removed as dead code; the UI smoke sets 90 through UI Automation, and the
 refusal of 101 is covered by a unit test.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 902b196.
+
+- T-01 Core: percent cap and five-hour count against the limit: done; commits not recorded; review not recorded per task (whole-branch review at T-05); checks PercentCapRules, PercentCapIsTheBudgetLimit and WindowsLeftCountAgainstTheCap red then green, C4 (905/905); grant owner direction, 2026-10-08 (D-202).
+- T-02 Projection and source: percent cap targets and storage: done; commits not recorded; review not recorded per task; checks two source and projection tests red then green, C5 (294/294); grant owner direction, 2026-10-08.
+- T-03 Visuals: the cap is the full bar: done; commits not recorded; review not recorded per task; checks CapIsTheFullBarAndATickMarksItOnceExceeded and FiveHourDividersFollowTheCapScale red then green, C5 (295/295); grant owner direction, 2026-10-08.
+- T-04 Demo and desktop smoke: done; commits not recorded; review not recorded per task; checks WorkBudget UI smoke 2/2, C8 (2/2), C5 (296/296); grant owner direction, 2026-10-08.
+- T-05 Verification, review and merge: done; commits d8fb098 (review fix), merged with main 65f7fcb; review whole-branch review of a0f0d22..033b6bf ready with fixes, one important finding fixed, minors deferred; checks C4 (905/905), C5 (297/297), C1 (85/85), C3, C6, Debug app build, WorkBudget UI smoke 2/2, C8 (2/2), C9 NOT_RUN locally (CI), live weekly windows NOT_RUN post-deploy (D-190); grant owner direction, 2026-10-08.

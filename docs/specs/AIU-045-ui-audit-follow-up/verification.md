@@ -234,3 +234,15 @@ Recorded 2026-10-06 after the owner installed Preview 2026.10.602.0 on the owner
 | AIU-043 device-code display delay | NOT_RUN | Not exercised; no sign-in was performed. It stays open as a separate follow-up |
 
 Closure (2026-10-06): AUD-03, ANL-06, ANL-07, ANL-12, ANL-16 (for this install), the AIU-043 AC-13 and AIU-044 packaged repeat-launch gaps (ANL-13) and FIX-01..FIX-14 are recorded in the analysis record's final status; T-03 and T-04 are done and AIU-045 is closed. Opt-in follow-ups that need a separate owner selection: AUD-05..AUD-09, ANL-20, ANL-23 and the AIU-043 device-code delay.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 23d0b9e.
+
+- T-01 CI and publication safety: done; commits 2f85275, 8f05989, 13814e1, c24de6e, integrated c26f18b and effcb4b; review independent aiu-reviewer per worker brief before merge; checks C10 (40 assertions), C1 (82/82), C2, C4 (870/870), C5 (189/189), CI runs 37416927644 and 37417959587; grant owner kickoff answers, 2026-10-06.
+- T-02 Audit replay fix and harness hardening: done; commits 5560205, 2c0913c, f4c13fd, cce0d60, integrated c26f18b and 8cf68de; review independent aiu-reviewer per worker brief before merge; checks red-then-green replay fixtures, host A/B, omitted-property probes with C4 (879/879), C5 (189/189), CI runs as T-01; grant owner kickoff answers, 2026-10-06, running concurrently with T-01 by owner request.
+- T-03 Candidate verification and Preview: done; commits test fixes 02e0ca8, 4c32153, 11645ac, e40c76d, runner fix 3e0a509 (merged f409def), feed fix c703c96, c8a98c1, f32ff36 (merge 4ea9667), records 525fc26, a4d33cf; review R0 product diff review (all four ANL-21 notes keep), independent review PASS of the four test-only commits, independent review clean for the feed fix; checks C7, host Release --demo smoke, C8 (demo and live-empty), native smokes, AIU-043 probes, Sandbox batch 1 (2 of 3) and batch 2 (PASS), owner's installed-build checks; grant owner authorization of one Sandbox batch (D7a), the second batch, both Preview dispatches and the installed-app log read, 2026-10-06.
+- T-04 Records, process and cleanup: done; commits integrated 4ea9667 and the task N records commit (hash not recorded); review primary's reviewed merge; checks not recorded (records only); grant owner kickoff answers (D5 cleanup, AGENTS.md Codex section removal), 2026-10-06.
+
+Kept from the plan:
+- Base 6161e3b (= origin/main at kickoff, clean). Run ledger: the git-ignored `.ai-usage-local/AIU-045/run-2026-10-06/ledger.md`.

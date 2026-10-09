@@ -91,3 +91,12 @@ from accepted AIU-034 research and D-187; it has not received a separate owner r
 - Independent read-only review requested from GPT-5.6 Luna, reasoning max, for the frozen
   73553fb..e2970ea range. Result and final disposition are recorded above; subsequent Work
   today fix was communicated separately and the reviewer acknowledged it as resolved.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at aeaf11e.
+
+- T-01 Normalized facts and arithmetic: done; commits not recorded (save point within 73553fb..e2970ea); review within the T-04 range review; checks targeted LimitModelTests; grant owner request, 2026-10-02.
+- T-02 Calendar, budget and display: done; commits not recorded; review within the T-04 range review; checks targeted BudgetEngineTests and BudgetScenarioTests; grant owner request, 2026-10-02.
+- T-03 Reading calculations and sessions: done; commits not recorded (save point within 73553fb..e2970ea); review within the T-04 range review; checks targeted ReadingBudgetTests and SessionEstimateTests, C4 (376/376); grant owner request, 2026-10-02.
+- T-04 Integrated verification: done; commits b9e603b; review independent FAIL on 73553fb..e2970ea with four material findings, all resolved in b9e603b (primary disposition); checks C2, C4 (381/381), C5 (176/176), C6; grant owner request, 2026-10-02.

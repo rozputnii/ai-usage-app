@@ -310,3 +310,12 @@ Never-accepted gaps (ANL-13), as of 2026-10-06:
 
 - AC-13: packaged Open logs (opening the packaged log folder) is NOT_RUN; the final acceptance disposition above passed AC-13 without it because no package installation was requested. Status: AC-13 packaged Open logs PASS 2026-10-06 (2026.10.602.0): Settings > System status > Open logs opened the logs folder (AIU-045 T-03).
 - The owner-reported device-code display delay (owner-operated sign-in follow-up above) was never diagnosed; its exact delay and root cause remain NOT_RUN. Status: not exercised on 2026-10-06 (no sign-in was performed); still open as a separate follow-up.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at c9c4e9a.
+
+- T-01 Bounded diagnostic storage: done; commits within 44cee2e..5c60dae (checkpoint b91da5d), completion fixes c25a01d; review independent Astra low review of 44cee2e..5c60dae (one P2, fixed) and supplemental review PASS; checks C4, STORAGE, MANAGED-CRASH, clock-controlled hourly sweep red then green; grant owner selection of implementation, 2026-10-03.
+- T-02 Provider evidence: done; commits within 44cee2e..5c60dae, fix c25a01d; review independent P2 (lost original transport/parser failure evidence) fixed with five red-then-green capture cases, supplemental review PASS; checks C4, CAPTURE, live Codex and Copilot captures PASS, Claude and Antigravity NOT_RUN; grant owner selection, 2026-10-03, and owner authorization of live checks through existing sessions only.
+- T-03 Windows and console integration: done; commits within 44cee2e..5c60dae (including 4dc291b), Windows probes and smoke 4362346; review supplemental independent review PASS; checks C5, C7, UI-FAULTS, UI-UNHANDLED, startup and late-disposal probes, binding with debugger, ShellSmoke (8 scenarios), Demo Open logs, PERFORMANCE; grant owner selection of implementation, 2026-10-03.
+- T-04 Policy, verification and review: done; commits c25a01d, 4362346; review independent PASS, no unresolved material findings; checks C4 (590/590), C5 (262/262), C7, C9 (2026.10.354.0), C2, C6; grant owner completion request authorizing one Astra low reviewer, 2026-10-03.

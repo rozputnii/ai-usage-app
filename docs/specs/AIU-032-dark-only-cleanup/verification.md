@@ -31,3 +31,12 @@ directory under the session scratch folder, and each was closed afterwards.
 ## Owner closure - 2026-09-29
 
 Owner decision, 2026-09-29: closed. Rendering under Windows light mode or a contrast theme and the packaged harnesses are deferred to the AIU-034 implementation items, which keep dark-only (D-182) and verify it on the new interface. The NOT_RUN rows above stay NOT_RUN; they are not converted to PASS.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at cb3e87c.
+
+- T-01 Dark-only tokens and theme plumbing: done; commits decb204; review not recorded; checks C5 (172/172), app and smoke project builds; grant not recorded.
+- T-02 Remove theme settings and demo display simulation: done; commits decb204; review not recorded; checks C5 (172/172), `appearance` smoke row (run in T-04); grant not recorded.
+- T-03 Removed-UI leftovers: done; commits 32f8b67; review not recorded; checks C5 (167/167), reference scan of strings, styles and members; grant not recorded.
+- T-04 Verification and records: done; commits not recorded; review not recorded; checks C1, C2, C4, C5, unsigned MSIX build, demo and product Windows smoke 6/6 each; grant not recorded (owner closed the item on 2026-09-29).

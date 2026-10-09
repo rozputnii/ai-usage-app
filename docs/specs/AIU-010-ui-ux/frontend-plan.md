@@ -1,6 +1,6 @@
 # AIU-010 mock-first frontend plan
 
-Executes the owner brief in [frontend-brief.md](frontend-brief.md) under [spec](spec.md) scope version 2. [tasks.md](tasks.md) is the only progress and resume record; this plan does not track status. After interruption or compaction read the brief, this plan and tasks.md before editing.
+Executes the owner brief in [frontend-brief.md](frontend-brief.md) under [spec](spec.md) scope version 2. This plan does not track status; the executed tasks are recorded in the [execution ledger](verification.md#execution-ledger).
 
 ## Intended result and acceptance checks
 

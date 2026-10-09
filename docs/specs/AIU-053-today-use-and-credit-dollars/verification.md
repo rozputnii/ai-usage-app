@@ -59,3 +59,14 @@ One fresh whole-branch review ran anyway, as the execution plan's final gate, on
   unknown-unit cap guard (theoretical, the parser always reports "requests"); the dollar
   footer tooltip repeats the currency ("$175.00 USD"); small code nits; and test gaps for a
   replayed UTC+1 reset, oversized preference lists and the smoke's first Save button.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 727c1f0.
+
+- T-01 Preference fields for units and today's values: done; commits not recorded; review not recorded per task (whole-branch review at T-06); checks NewFieldsPersistAndOldFilesLoad and seven invalid-file cases red then green, C5 (273/273); grant owner direction, 2026-10-08 (D-199).
+- T-02 Projection: credits unit, today correction and dollar conversion: done; commits not recorded; review not recorded per task; checks five projection tests red then green, C5 (278/278); grant owner direction, 2026-10-08.
+- T-03 Live source commands, caps and history in the chosen unit: done; commits not recorded; review not recorded per task; checks four source tests red then green, C5 (282/282); grant owner direction, 2026-10-08.
+- T-04 Limit settings popover and today tooltip: done; commits not recorded; review not recorded per task; checks six LimitSettingsTests red then green, C5 (288/288), Debug app build; grant owner direction, 2026-10-08.
+- T-05 Demo work-budget scenario and demo commands: done; commits 7d4e468 (smoke run); review not recorded per task; checks DemoPopoverSwitchesUnitsAndSetsToday red then green, C5 (289/289), WorkBudget UI smoke 2/2; grant owner direction, 2026-10-08.
+- T-06 Records, full checks and merge: done; commits daf6b31, ea77e0b, merged with main d8b5efa; review whole-branch review of dc7e8fd..daf6b31 ready to merge, one finding fixed, minors deferred; checks C5 (290/290; 292/292 merged), C4 (902/902), C1 (85/85), C2, C3, C6, Debug app build, WorkBudget UI smoke 2/2, C8 (2/2), C9 NOT_RUN locally (CI), live owner checks NOT_RUN post-deploy (D-190); grant owner direction, 2026-10-08.

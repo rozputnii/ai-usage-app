@@ -94,3 +94,14 @@ Final extension SHA-256: `8542bf452b03b8d9bc978e75c8830789ff5ed63722505685d3a17d
 ## Next work
 
 AIU-002 is the next runnable Windows package milestone. AIU-003 supplies Codex authentication/quota feasibility and contract evidence. Both require their own selection/authorization; neither was started under this bootstrap.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at cbbea30.
+
+- T-01 Preflight and baseline adoption: done; commits not recorded; review within the T-06 independent review; checks 25-document adoption comparison and D-001 to D-176 sequence check; grant owner, AIU-001 only, date not recorded.
+- T-02 Portable native rules, skills and configuration: done; commits not recorded; review within the T-06 independent review; checks fresh native SDK project and skill discovery, advisor tool inspection; grant owner, AIU-001 only, date not recorded.
+- T-03 Lightweight document validator: done; commits not recorded; review within the T-06 independent review; checks C1 (49/49), C2; grant owner, AIU-001 only, date not recorded.
+- T-04 Thin native selection, gates and dispatch bridge: done; commits not recorded; review within the T-06 independent review; checks Bun workflow tests (11), native selection, cancellation, isolated-worker and headless-denial exercises; grant owner, AIU-001 only, date not recorded.
+- T-05 Pause, fresh-session accounting and bounded-review behavior: done; commits not recorded; review within the T-06 independent review; checks native handoff, owner pause and budget-stop scenarios; grant owner, AIU-001 only, date not recorded.
+- T-06 One final convergence review and handoff: done; commits not recorded (review froze 9afa9d5); review independent PASS with three deferred MINORs (CR-AIU-001-01 to CR-AIU-001-03); checks C1 (49/49), C2, Bun workflow suite (11 tests, 74 assertions), formatting checks on both projects; grant owner, AIU-001 only, plus one owner-authorized replacement review, 2026-09-12.

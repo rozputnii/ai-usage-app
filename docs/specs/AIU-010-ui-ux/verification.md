@@ -44,7 +44,7 @@ Scope: the presentation layer, WinUI shell and deterministic demo services insid
 | Live providers, credentials, notifications, updates, install | NOT_RUN | Out of scope by the owner brief: no provider call, no credential read, no Windows notification, no update and no install were performed |
 | Backend integration (AC-07), owner visual acceptance | NOT_RUN | T-10/T-11; this delivery is mock-only and is not an acceptance of AIU-010 as a whole |
 
-Defects found and fixed while verifying (each re-checked after the fix): implicit `ScalarTransition`/`BrushTransition` inside control templates crashed WinUI layout a few seconds after launch (removed, deviation recorded in tasks.md); a `GradientStop` reused across rebuilt shimmer brushes threw on the second theme change (`SkeletonBlock` now builds a fresh stop); a cancelled first History query left the chart area blank (the load key is reset on cancellation); reset text overflowed its column on account rows (star-sized column with trimming); pages resolved stale colours when the simulated contrast was toggled (`ThemeService.RefreshContrast` re-resolves new content); the shell nav had a single tab stop and no arrow navigation, so only Overview was keyboard-reachable (`Controls.ArrowNavigation`, applied to the shell nav and the settings tabs).
+Defects found and fixed while verifying (each re-checked after the fix): implicit `ScalarTransition`/`BrushTransition` inside control templates crashed WinUI layout a few seconds after launch (removed, deviation kept in the [execution ledger](#execution-ledger)); a `GradientStop` reused across rebuilt shimmer brushes threw on the second theme change (`SkeletonBlock` now builds a fresh stop); a cancelled first History query left the chart area blank (the load key is reset on cancellation); reset text overflowed its column on account rows (star-sized column with trimming); pages resolved stale colours when the simulated contrast was toggled (`ThemeService.RefreshContrast` re-resolves new content); the shell nav had a single tab stop and no arrow navigation, so only Overview was keyboard-reachable (`Controls.ArrowNavigation`, applied to the shell nav and the settings tabs).
 
 Known limitations: WinUI re-resolves `ThemeResource` references only on a theme change, so the simulated-contrast toggle passes each root through the opposite theme; content created afterwards (navigated pages, dialogs, tray popup) is refreshed explicitly. The page roots carry `AutomationProperties.AccessibilityView="Control"`, but WinUI still does not surface them, so the smoke test identifies pages by a page-specific control instead.
 
@@ -232,3 +232,24 @@ on owner attestation, so a later regression in live Claude lifecycle, screen-rea
 coverage or visual quality would not contradict any agent-observed evidence here.
 
 Documentation checks for this closure are recorded with the commit.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 6d87415.
+
+- T-01 Prepare current and planned UI contract: done; commits not recorded (base ba6b49f inspected); review primary diff, link and instruction review PASS; checks C2, synthetic fixture consistency; grant not recorded.
+- T-02 Claude Design visual system and complete mockup: done; commits not recorded; review owner selection, counted as design approval; checks none recorded; grant owner amendment, 2026-09-15.
+- T-03 Import selected design and record revision: done; commits not recorded; review not recorded; checks C2, C6 after the import; grant owner amendment and `/design-login`, 2026-09-15.
+- T-04 Presentation contracts, mock services and application composition: done; commits not recorded (branch `codex/aiu-010-mock-frontend`, base 375c409); review not recorded; checks C1 (78/78), C2, C4 (130/130), C5 (100/100), C6, Debug unpackaged build, C9 (unsigned 2026.9.1601.0), Windows UI smoke 6/6; grant owner `/goal` for T-04 to T-09, 2026-09-15.
+- T-05 Theme resources, reusable controls, motion and navigation shell: done; commits not recorded; review not recorded; checks as T-04; grant owner `/goal`, 2026-09-15.
+- T-06 Overview, accounts, quotas, connection and tray: done; commits not recorded; review not recorded; checks as T-04; grant owner `/goal`, 2026-09-15.
+- T-07 History, appearance, monitoring and notification settings: done; commits not recorded; review not recorded; checks as T-04; grant owner `/goal`, 2026-09-15.
+- T-08 CLI import, diagnostics, data management, recovery and updates: done; commits not recorded; review not recorded; checks as T-04; grant owner `/goal`, 2026-09-15.
+- T-09 Scenario coverage, Windows verification and backend handoff: done; commits not recorded; review not recorded; checks as T-04, plus theme, simulated contrast, keyboard, scaling, reduced-motion and destructive-flow checks on the desktop; grant owner `/goal`, 2026-09-15.
+- T-10 Codex available-service integration: done; commits 90b07c4 (base 3ba2c88); review focused independent PASS on frozen d10d21b, one P2 finding resolved by the primary; checks C2, C4 (131/131), C5 (113/113), C6, Debug unpackaged build, product smoke 7/7, demo smoke 7/7, C9 (unsigned 2026.9.1634.0); grant not recorded.
+- T-11 Integrated Windows and visual acceptance: done; commits not recorded (candidates 5358d2f and f4d0fbf); review primary integrated review PASS; checks C4 (131/131), C5 (117/117), Release unpackaged build, Windows smoke 7/7, signed 2026.9.1635.0 and 2026.9.1636.0 guest install, upgrade and smoke 7/7, unsigned 2026.9.1637.0, Narrator subsets, live Codex lifecycle, main CI 35401416353, C2, C6; live Claude lifecycle, full screen-reader and overall visual acceptance OWNER_ATTESTED; grant owner integration request, 2026-09-16, and closure by owner attestation, 2026-09-20.
+
+Kept from the plan:
+
+- Implicit `ScalarTransition`/`BrushTransition` inside control templates crash WinUI layout in WindowsAppSDK 2.4.0 (access violation in `coreclr`); the designed motion plays through explicit storyboards in `Controls/Motion` and `SkeletonBlock`, gated by `MotionSettings.Allowed`.
+- Live adapter rules: publish snapshots from any thread (view models marshal through `IUiDispatcher`); return typed records, never formatted text or raw exceptions; report an unavailable capability as `CommandStatus.Unsupported` before any side effect; keep provider payloads opaque.

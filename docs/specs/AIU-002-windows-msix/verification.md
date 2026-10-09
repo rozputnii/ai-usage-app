@@ -111,3 +111,18 @@ Negative prerequisites stay genuinely observed, not simulated: deployment event 
 - https://github.com/unoplatform/uno.extensions/tree/c12a3c95060137ee51118d2f171775aae0fa2a3b
 - https://raw.githubusercontent.com/FlaUI/FlaUI/v5.0.0/src/FlaUI.Core/Application.cs
 - https://github.com/actions/upload-artifact/tree/043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 93fb394.
+
+- T-01 Establish scoped execution and prerequisites: done; commits not recorded; review not recorded; checks prerequisite probes (OMP, SDK, MSBuild, Windows SDK, virtualization); grant owner selected AIU-002 and approved the plan, date not recorded.
+- T-02 Create native application and coordinated lifetime: done; commits not recorded; review focused independent review PASS on the source boundary, with targeted corrections; checks native VS MSBuild Release x64 build, three guest product scenarios on 2026.9.1305.0; grant owner plan approval, date not recorded.
+- T-03 Prove native routing candidate: done; commits not recorded; review primary review and integration of the routing worker patch; checks routing spike build and package, guest routing run on 2026.9.1302.0 (Main, Second, Main; exit 0); grant owner plan approval, date not recorded.
+- T-04 Produce reusable development package: done; commits not recorded; review focused independent review PASS on the source boundary; checks C9 (signed 2026.9.1305.0, guest signature Valid, version reuse rejected); grant owner plan approval, date not recorded.
+- T-05 Implement disposable guest and UI smoke: done; commits not recorded; review focused independent review PASS on the source boundary; checks clean guest run guest-evidence-1789318982408 (positive PASS, observed negative prerequisites), PowerShell parser checks; grant owner plan approval, and owner Sandbox enablement on 2026-09-13.
+- T-06 Wire CI and verify integrated acceptance: done; commits not recorded; review primary final acceptance review; checks C1 (49/49), Bun workflow suite (12 tests), C2, local unsigned CI package command, remote CI NOT_RUN; grant owner decision to close AIU-002, 2026-09-14.
+
+Kept from the plan:
+
+- The old session chronology is preserved in docs/decisions/superseded.md.

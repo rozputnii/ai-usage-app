@@ -103,3 +103,11 @@ full suite reruns were performed by the reviewer. No deferred minor findings wer
   process 31452 exited with code 0. Evidence in `.ai-usage-local/AIU-036/smoke-final-evidence`,
   isolated empty `smoke-final-state`; restored screenshot inspected. No sign-in occurred.
 - PASS: final document validator (`valid: true`, zero diagnostics) and whitespace check.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 85b6c09.
+
+- T-01 Stores and observation contracts: done; commits not recorded (within aeaf11e..014fc31); review within the T-03 range review; checks targeted LocalBudgetStoreTests and QuotaObservationRecorderTests, C2, C6; grant owner-selected store and cleanup scope, 2026-10-02.
+- T-02 Refresh recording and lifecycle: done; commits not recorded (within aeaf11e..014fc31); review within the T-03 range review; checks targeted LiveReadingRecorderTests; grant owner-selected store and cleanup scope, 2026-10-02.
+- T-03 Calculation replay and integrated review: done; commits 014fc31, 2a46264, ba1bf87; review independent FAIL on aeaf11e..014fc31 with one material finding, resolved in ba1bf87 (primary disposition); checks C2, C4 (416/416), C5 (179/179), C6, unsigned MSIX build, Windows Debug unpackaged build, close-to-tray smoke; grant owner-selected store and cleanup scope, 2026-10-02.

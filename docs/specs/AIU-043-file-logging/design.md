@@ -151,7 +151,7 @@ authorized available independent reviewer or record the required review as block
 the primary's self-review is not independent review.
 
 The subsequent owner request selected implementation on 2026-10-03. The sequential
-plan is in tasks.md; D-137/security lifecycle now describe the selected pipeline.
+plan is collapsed into the verification [execution ledger](verification.md#execution-ledger); D-137/security lifecycle now describe the selected pipeline.
 That original selection did not authorize live-provider access or waive independent review. The subsequent completion request and explicit existing-session live-check permission are recorded in verification.md.
 The current endpoint and boundary inventory is in coverage.md.
 

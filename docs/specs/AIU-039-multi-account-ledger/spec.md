@@ -208,4 +208,4 @@ CONTRIBUTING. Do not treat a save point as feature completion. A detailed implem
 plan includes the settled account/contract and full-deletion scope.
 [design.md](design.md) records the
 proposed boundaries. [verification.md](verification.md) owns observed results and
-[tasks.md](tasks.md) contains the exact continuation action.
+its [execution ledger](verification.md#execution-ledger) keeps the exact continuation action.

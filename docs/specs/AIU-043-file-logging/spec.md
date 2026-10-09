@@ -315,7 +315,7 @@ No provider inference requests, new permissions, automatic sign-in, CLI credenti
 import, generic profiler, distributed tracing backend, automatic memory dumps,
 remote telemetry, public fixture upload or permanent raw-response archive. No
 screen-reader/contrast/extreme-DPI matrix or host accessibility/display changes.
-Implementation progress and remaining gates are recorded in tasks.md and verification.md.
+Implementation progress and remaining gates are recorded in verification.md, including its [execution ledger](verification.md#execution-ledger).
 
 See [design](design.md) for alternatives, source references and defaults,
 and [verification](verification.md) for actual implementation evidence and remaining gates.

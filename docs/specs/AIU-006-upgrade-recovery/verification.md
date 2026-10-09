@@ -107,3 +107,11 @@ actual file-sharing failure and process termination establish the recorded recov
 behavior, not physical storage durability. Restore deliberately returns preferences
 to the checkpoint, while retaining independently managed provider records. No remaining
 acceptance check for this selected scope is BLOCKED.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at f708954.
+
+- T-01 Durable maintenance state machine: done; commits 3c4e0ee (base 9a7f3e5); review independent read-only PASS on frozen 3c4e0ee; checks C4 (330/330, 23 maintenance cases); grant owner request for automatic execution, date not recorded.
+- T-02 Live recovery integration: done; commits 3c4e0ee; review independent read-only PASS on frozen 3c4e0ee; checks C5 (157/157), C7, signed MSIX build, packaged recovery UI; grant owner request for automatic execution, date not recorded.
+- T-03 Package proof and focused review: done; commits 64d196f; review independent read-only PASS on 3c4e0ee, post-review fixes primary check with regressions; checks C4 (330/330), C5 (157/157), C7, C9 (2026.9.2222.0), guest upgrade and recovery smoke, C2, C6; grant owner request for automatic execution, completed 2026-09-22.

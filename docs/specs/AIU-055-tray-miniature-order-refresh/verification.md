@@ -1,7 +1,7 @@
 # AIU-055 verification
 
 Evidence for [the specification](spec.md), recorded by the controller as tasks integrate
-(see [tasks.md](tasks.md), "Execution model"). Host: the owner's Windows 11 Pro
+(see the execution model kept in the [execution ledger](#execution-ledger)). Host: the owner's Windows 11 Pro
 10.0.26200 desktop, .NET 10.
 
 ## Status
@@ -129,3 +129,24 @@ Reported by each worker and recorded after the controller confirmed the commit o
 | T-10 independent review | `aiu-reviewer` (opus), two rounds | Round 1 Important: the flyout drew about 247 px because the window width included invisible resize borders; fixed in `4f2b8a1` test-first. Round 2 approve. Left: the smoke can still invoke the installed app's tray icon once, then Esc (UIA does not expose a tray icon's process). The mark tooltip on hover and the wrapped empty-tray text are not in any screenshot |
 
 Integrated commits: T-06 `dbb0b8c`; T-05 `88b13fb`; T-03 `8ce42df`, `f20091a`; T-02 `804945f`, `13fb1a7`; T-08 `999a188`; T-01 `dc9664f`, `88828c8`; T-07 `d94b7b8`, `10ed014`; T-04 `6231cbe`, `c6bd591`; T-11 `274091e`, `f6bf869`; T-09 `7114ed7`, `c1e844c`; T-10 `29f0fb3`, `4f2b8a1`, `918b1cd`.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 4f32185.
+
+- T-01 Tray flyout without tab stops or focus frames: done; commits dc9664f, 88828c8 (merged 0c2157b); review `aiu-reviewer` (opus) approve; checks C5 (316/316), C6, C7, C8 (red, then green), `AuditTrayControls` compiled only; grant owner, 2026-10-08.
+- T-02 Provider marks: done; commits 804945f, 13fb1a7 (merged 6f6eebd); review `aiu-reviewer` (opus) approve after a scoped re-review; checks C5 (306/306), C6, C7, C8, mark renders; grant owner, 2026-10-08.
+- T-03 Five-hour ring control: done; commits 8ce42df, f20091a (merged fcafc33); review `aiu-reviewer` (opus) approve; checks C5 (305/305), C6, C7, C8, ring drawing probe; grant owner, 2026-10-08.
+- T-04 Rename by clicking the name: done; commits 6231cbe, c6bd591 (merged bbd9869); review `aiu-reviewer` (opus) approve after a scoped re-review; checks C5 (322/322), C6, C7, C8, rename smoke (red, then green); grant owner, 2026-10-08.
+- T-05 Account order in preferences, sources and keyboard: done; commits 88b13fb (merged 387e0df); review `aiu-reviewer` (opus) approve, three Minor findings deferred to the final review; checks C4 (915/915), C5 (302/302), C6, C7, C8; grant owner, 2026-10-08.
+- T-06 Core continuity tolerance: done; commits dbb0b8c; review `aiu-reviewer` (opus) approve; checks C4 (915/915), C5 (297/297), C6, C7, C8; grant owner, 2026-10-08.
+- T-07 Tray rows: main limit, one today bar, ring and density: done; commits d94b7b8, 10ed014 (merged 2d8e87e); review `aiu-reviewer` (opus) approve after a scoped re-review; checks C4 (915/915), C5 (322/322), C6, C7, C8 (3/3); grant owner, 2026-10-08.
+- T-08 Refresh interval preference, schedule and staleness: done; commits 999a188 (merged a208817, bae967f); review `aiu-reviewer` (opus) approve, three Minor findings deferred to the final review; checks C4 (915/915), C5 (316/316), C6, C7, Debug app build, C8; grant owner, 2026-10-08.
+- T-09 Drag a card by its grip: done; commits 7114ed7, c1e844c (merged e0b090a); review `aiu-reviewer` (opus) approve after a scoped re-review; checks C5 (328/328), C6, C7, card editing smokes (red, then green), C8 FAIL 2/3 after the merge (smoke fix assigned to T-10); grant owner, 2026-10-08.
+- T-10 Provider icons and the narrow tray: done; commits 29f0fb3, 4f2b8a1, 918b1cd (merged c85e6ca); review `aiu-reviewer` (opus) approve in round 2 after an Important width fix; checks C5 (330/330), C6, C7, C8 (3/3 twice, tray lookup red first); grant owner, 2026-10-08.
+- T-11 Refresh stepper in Settings: done; commits 274091e, f6bf869 (merged d663b58); review `aiu-reviewer` (opus) approve after two rounds; checks C5 (325/325), C6, C7, C8, refresh stepper smoke (red, then green); grant owner, 2026-10-08.
+- T-12 Integrated verification, review and records: done; commits not recorded (checks on 87c34e6); review whole-feature `aiu-reviewer` (opus) approve, two Minor findings left; checks C1 (85/85), C3, C4 (915/915), C5 (330/330), C6, C7, Debug app build, C8 (3/3), card editing, refresh stepper and work budget smokes; grant owner, 2026-10-08.
+
+Kept from the plan:
+
+- Execution model (owner direction, 2026-10-08): one autonomous worker per task T-01 to T-11 in its own worktree, reviewed by a nested `aiu-reviewer`, merging and pushing to `main` itself; the controller confirmed each commit on `origin/main` before recording it and ran T-12.

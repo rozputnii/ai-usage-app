@@ -161,3 +161,11 @@ no extension-member framework, field-property churn, preview features, SDK/depen
 or floating language version is warranted. `decimal.Scale` was assessed as an allocation-free
 alternative to GetBits in the recorder but not adopted: no isolated benefit was measured,
 and the observed workload cost is dominated by serialization. This is not an outstanding gate.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 954ae68.
+
+- T-01 Inventory and baseline: done; commits not recorded (base 66e3eb8); review primary check; checks C4 (416/416), C5 (179/179); grant owner Goal instruction, 2026-10-02.
+- T-02 Regression-backed remediation and measurements: done; commits 019836a, a0e4b75; review independent read-only Claude reviewer FAIL on the core input (F-02 overcorrection) and the journal input (blocked fresh authorization), both corrected, focused follow-up PASS; checks targeted regressions red then green, C4 (436, then 448/448), measure-backend harness; grant owner Goal instruction, 2026-10-02, and owner authorization of the protected-journal renewal intent (F-04).
+- T-03 Integrated verification and closure: done; commits 019836a, a0e4b75 (planning save point 3c0c30d); review primary integrated review, required focused independent review satisfied; checks C4 (448/448), C5 (179/179), C7, ProviderConsole Release build, C2, C6; grant owner Goal instruction, 2026-10-02.

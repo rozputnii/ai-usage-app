@@ -54,7 +54,7 @@ Required independent credential/durable-state review is NOT_RUN: there is no Cla
 
 AIU-007 is incomplete. The verified documentation preparation is committed on its task branch, identified by the Git history for this record; main has not moved. The incomplete feature branch is not published under CONTRIBUTING's completed-task rule. No remote publication, main push, release, signing or host installation occurred.
 
-Exact next action: obtain the owner's disposition of PROVIDER-002 before implementing or launching any Claude OAuth flow. The remaining task sequence is in [tasks.md](tasks.md).
+Exact next action: obtain the owner's disposition of PROVIDER-002 before implementing or launching any Claude OAuth flow. The task sequence is summarized in the [execution ledger](#execution-ledger).
 
 ## Owner amendment and implementation run
 
@@ -151,3 +151,13 @@ Remaining limitations are the documented Anthropic restriction and the live vari
 ## Owner-requested repository publication
 
 On 2026-09-15, after completion at `e02b8f1`, the owner explicitly requested commit and push and marking the task done if verification passed. The working tree was clean, AIU-007 was already done, and all final acceptance evidence above was present. A fresh remote-ref check found origin/main at `1e4f0ce` and no remote Claude task branch, allowing ordinary fast-forward publication without force or history rewriting. The latest scope amendment authorizes publishing the completed task branch and local main. Earlier no-publication statements describe the state before this request; no release is authorized. Publication results are verified against the remote refs, with the publication-record commit included in both branches.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at e02b8f1.
+
+- T-01 Establish provider and toolchain evidence: done; commits not recorded; review primary document and diff review PASS; checks C1 (78/78), C4 (72/72), C5 (12/12), C2, staged diff check (C6); grant owner goal objective, 2026-09-14.
+- T-02 Claude quota semantics: done; commits b3b1d98 (worker), integrated as 683ba35; review primary review with semantic corrections, then within the independent Luna review; checks C4 (120/120); grant owner amendment selecting the private, unsupported integration (PROVIDER-002), recorded 2026-09-14.
+- T-03 Claude authentication and protected state: done; commits 97ca3f2 (frozen for review), bb25558 (review fixes); review independent FAIL with two material findings, fixed, targeted follow-up PASS at bb25558; checks C4 (130/130), console Release build; grant owner amendment (PROVIDER-002), recorded 2026-09-14.
+- T-04 Application workflow and Windows presentation: done; commits 05a4692 (package 2026.9.1415.0 source), bb25558; review within the independent Luna review and its follow-up; checks C5 (16/16), C9 (2026.9.1413.0 to 2026.9.1416.0), six guest Windows scenarios on 2026.9.1416.0; grant owner amendment (PROVIDER-002), recorded 2026-09-14.
+- T-05 Review, actual verification and integration: done; commits e027321 (live candidate), ba6d45e (local main), e02b8f1 (completion); review independent PASS after follow-up, plus primary combined-candidate review; checks C1 (78/78), C4 (130/130), C5 (16/16), C2, C6, C9 (2026.9.1416.0), owner-led LIVE-01 to LIVE-05; grant owner-led live sign-in and publication request, 2026-09-15.

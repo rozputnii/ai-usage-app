@@ -297,3 +297,13 @@ branch evidence above is retained for the unchanged Ledger UI. Live providers,
 installation/update and product switching were not exercised. No host settings,
 credentials or trust were changed. AIU-038 is done; AIU-039 is ready for owner
 selection, not started. AIU-040 remains dependent on AIU-039.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 00007ca.
+
+- T-01 Contract, demo source and platform spikes: done; commits not recorded per task (implementation through ba6cd01 and dbec191); review primary check; checks C5 (V-01, 261/261); grant owner spec approval, 2026-10-02.
+- T-02 Tokens, styles and fonts: done; commits aa416aa (fonts); review primary check; checks C5, Debug app build, C9 (MSIX 2026.10.203.0), font checks F-01 to F-04; grant owner approval of the spec and the four named font files, 2026-10-02.
+- T-03 Card view models and controls: done; commits not recorded per task (corner work after dbec191); review primary check; checks C5 (262/262), Debug app build, display-scale matrix W-01, corner check W-07; grant owner-authorized Windows matrix, 2026-10-02, and owner amendment (scope version 2), 2026-10-03.
+- T-04 Main window, tray and interactions: done; commits not recorded per task; review primary check; checks C5 (262/262 after the W-05 red/green), interactive checks UI-01 to UI-10 and W-02 to W-06; grant owner-authorized Windows matrix, 2026-10-02, and owner amendment (scope version 2), 2026-10-03.
+- T-05 Verification and record: done; commits ea4aa1c (closure), 58d94b9 (handoff), branch tip 8a53324 merged with main 04c2900; review primary integrated review (no independent review triggered); checks C4 (530/530 on the merged tree), C5 (262/262), C1 (80/80), C2, C6, Debug app build, C9 (2026.10.206.0; 2026.10.305.0 on the merged tree), F-03 byte checks; grant owner amendment (scope version 2) and owner request to merge into main, 2026-10-03.

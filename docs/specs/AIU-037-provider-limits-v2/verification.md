@@ -146,3 +146,15 @@ independent baseline verdict remains FAIL; no fresh independent PASS is claimed.
 Live providers, interactive UI, installed-package upgrades, cross-user DPAPI isolation,
 actual power-loss durability and same-user filesystem substitution races are NOT_RUN
 or outside the verified boundary. The earlier provider source/live dates are unchanged.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 04c2900.
+
+- T-01 Native parser facts: done; commits a3ef130; review within the T-03 independent review; checks targeted ProviderLimitParserTests; grant not recorded.
+- T-02 Stored v2 migration: done; commits a3ef130; review within the T-03 independent review; checks targeted QuotaV2StorageTests and ProtectedQuotaMigrationTests; grant not recorded.
+- T-03 History and integrated verification: done; commits a3ef130, f844c33; review independent FAIL on 954ae68..a3ef130 with four P2 findings, resolved in f844c33 (primary acceptance, no second independent verdict); checks C2, C4 (530/530), C5 (179/179), C6, C7, offline console inspection; grant owner, 2026-10-03 (review, then correction and completion).
+
+Kept from the plan:
+
+- V1 reset precision stays Unknown; ambiguous scoped histories stay separate; CX-I raw amount strings remain opaque.

@@ -361,3 +361,17 @@ Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-039,
 | FIX-14 | A pending history read could reopen the panel after it was closed. | `9e51fbb` | `LiveLedgerSourceTests.ClosingHistoryWhileItsReadIsPendingRejectsTheLateCompletion` |
 
 The fixing commits are `[skip ci]` WIP save points in `git log 383644c..b84bf7c`. Each row's commit is the one that added its regression test and changed the fixed source file; the audit report gives no per-commit mapping. ANL-13 lists no never-accepted AIU-039 gap, and the gaps already recorded above are unchanged. The native smoke passes recorded above predate these changes and do not carry over to current `main` (ANL-07); AIU-045 T-03 reruns them.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at c349e4c.
+
+- T-01 Account-scoped provider sessions: done; commits not recorded; review within the independent review of frozen fbc38c4 (see T-02); checks focused MultiAccountSessionTests red then 6/6, C4 (596/596), C5 (264/264), C2; grant owner selection of AIU-039, 2026-10-03.
+- T-02 Protected registry and account workflow: done; commits not recorded (review tree fbc38c4); review independent GPT-6 Astra low FAIL with one P2 (Codex cache lacked account binding), corrected, follow-up review of e7725d6 PASS; checks registry tests 8/8, account suite 9/9, cache suite 7/7, C4 (621/621), C5 (264/264), C2, C6; grant owner selection of AIU-039, 2026-10-03.
+- T-03 Forward migration and persisted preferences: done; commits not recorded (review tree e7725d6); review independent follow-up PASS on e7725d6, no new material findings; checks migration suite 7/7 then 13/13, preferences 5/5, C4 (621/621), C2, C6; grant owner selection of AIU-039, 2026-10-03.
+- T-04 Live budget, history and Ledger contract: done; commits not recorded; review primary check; checks projection 5/5, live source 3/3, parser-to-Ledger 4/4, C5 (277/277), Debug app build; grant owner selection of AIU-039, 2026-10-03.
+- T-05 Product switch, lifecycle and retained surfaces: done; commits not recorded (review trees 90480f1 and 37eac6d); review independent destructive-data review of 90480f1 FAIL (one P1, one P2) and integrated lifecycle review of 37eac6d FAIL (two P2), all corrected with red/green regressions; checks C4 (640/640), C5 (114/114), Debug app build, C9 (2026.10.355.0 and 2026.10.356.0), Windows Ledger suite 4/4, recovery suite 1/1, normal-settings/tray recheck 2/2, C2, C6; grant owner acceptance of full local deletion (PD-039-03), date not recorded.
+- T-06 Independent review and authorized Windows/live acceptance: done; commits 35ca7d9 (live check build), dcd9e52 (final installed acceptance); review independent reviews above, no unresolved material findings; checks live two-account Claude admission, refresh, restart and selected sign-out/reconnect PASS, Sandbox installed update and recovery PASS, automatic offline retry assertions PASS (invocation FAIL in cleanup), live failure injection BLOCKED, installed real-account refresh NOT_RUN, C4 (645/645), C5 (115/115), C9 (2026.10.357.0), C2, C6; grant owner authorization of the two-account Claude check, 2026-10-03; the owner then declined duplicate installed sign-in (scope version 2).
+
+Exact next action: wait for the owner to select subsequent work. Do not restart the
+declined installed sign-in check or select AIU-044 automatically.

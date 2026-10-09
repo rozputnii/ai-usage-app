@@ -116,3 +116,12 @@ Verdicts: PASS for credential handling, durable state, the OAuth flow, the provi
 The reviewer's only requested code change before closing was the provisioning fence. Its integration recommendation was to integrate the code and correct the records first, with no unresolved material finding against AC-02, AC-03, AC-04, AC-05 or AC-08. All nine are resolved above; the suites were re-run after the fixes.
 
 One reviewer observation is recorded rather than changed: a quota group's identity derives from the provider's `displayName`, so a relabelled group changes identity between readings. The response carries no group-level identifier, so there is no more stable choice available.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 6681b7a.
+
+- T-01 Establish provider contract and registration: done; commits not recorded; review within the T-04 independent review; checks provider record docs/providers/antigravity.md; grant owner accepted the published Antigravity restriction, 2026-09-20.
+- T-02 Shared authentication, discovery and quota implementation: done; commits b2a4288 (published commit); review within the T-04 independent review, provisioning gate fixed; checks C4 (226/226), console Release build; grant owner selected provisioning and directed the client identity, 2026-09-20.
+- T-03 Protected lifecycle and Windows integration: done; commits b2a4288; review within the T-04 independent review; checks C5 (125/125), C7; grant owner, 2026-09-20.
+- T-04 Integrated verification and publication: done; commits b2a4288; review independent on frozen d7c6334, FAIL for evidence honesty with nine findings, all resolved; checks C1, C2, C4 (226/226), C5 (125/125), C6, C7, C9 (unsigned 2026.9.2002.0), Windows smoke 7/7, live connect, quota, refresh, resume, product UI and disconnect; grant owner, 2026-09-20.

@@ -62,3 +62,14 @@ Also NOT_RUN: a relaunch that resumes a real stored grant end to end, disconnect
 The previous smoke asserted an `EmptyState` element that the new dashboard replaces with `StatusText`. The smoke was updated to the new surface and strengthened: it now also asserts that the quota list is empty on a first run, that Connect is enabled and keyboard focusable, and that Refresh and Disconnect are disabled while nothing is connected. Assertions on actual process exit and the absence of process-owned windows are unchanged.
 
 Packages retained: 2026.9.1401.0 unsigned, 2026.9.1402.0 signed for the dashboard guest run, and 2026.9.1403.0 signed for the tray and cache run. Earlier candidates remain untouched.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 5038f32.
+
+- T-01 Protect one Codex grant with DPAPI: done; commits not recorded; review not recorded; checks C4 (68/68); grant owner selection, 2026-09-14.
+- T-02 Show real quota on the dashboard: done; commits not recorded; review not recorded; checks Release app build, C4 (68/68), C9 (signed 2026.9.1402.0), clean guest smoke with inspected screenshot, C2; grant owner selection, 2026-09-14.
+- T-03 Verify behavior and record evidence: done; commits not recorded; review not recorded; checks Release build, C4 (72/72), two clean guest runs (2026.9.1402.0 and 2026.9.1403.0) with inspected screenshots, C2; grant owner selection, 2026-09-14.
+- T-04 Cache the last quota snapshot honestly: done; commits not recorded; review not recorded; checks C4 (72/72), clean guest run on 2026.9.1403.0; grant owner selection, 2026-09-14.
+- T-05 Add tray presence: done; commits not recorded; review not recorded; checks tray assertion in the clean guest smoke on 2026.9.1403.0; grant owner selection, 2026-09-14.
+- T-06 Close to tray and terminate only through Exit (CR-AIU-004-01): done; commits not recorded (base 93fb394, branch `codex/cr-aiu-004-01-close-to-tray`); review primary check of the integrated diff against AC-06 and AC-08; checks C1 (78/78), C4 (72/72), C9 (2026.9.1406.0), five-scenario guest UI smoke, C2, C6; grant owner, 2026-09-14.

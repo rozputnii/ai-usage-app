@@ -79,3 +79,12 @@ PASS: final document validation (dotnet run --project tools/AiUsage.ProjectValid
 PASS: implementation commit 0d047632fae06147fbe0dbdd3385cf290d391416 was pushed to origin/codex/aiu-008-copilot-integration on 2026-09-18. Outgoing changes were inspected; the worktree was clean after commit and main remained at bc67aae. This follow-up records completion without changing product source.
 
 NOT_RUN: GitHub CI. A read-only run listing returned no runs for this branch; the Validation workflow triggers on pull requests, main pushes or explicit manual dispatch, not task-branch pushes. No PR, manual dispatch, main merge or release was requested or performed. Local required checks and actual authorized browser/Windows checks passed as recorded above.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at f4d0fbf.
+
+- T-01 Establish provider contract and registration: done; commits not recorded; review within the T-04 independent review; checks provider evidence at OMP v18.2.6 (78b7531) in docs/providers/copilot.md; grant owner selected OMP and authorized independent final checks, 2026-09-18.
+- T-02 Shared authentication and quota implementation: done; commits 0d04763; review within the T-04 independent review; checks C4 (162/162), console Release build; grant owner, 2026-09-18.
+- T-03 Protected lifecycle and Windows integration: done; commits 0d04763; review within the T-04 independent review; checks C5 (120/120), C7, demo smoke 7/7; grant owner, 2026-09-18.
+- T-04 Integrated verification and publication: done; commits 0d04763 (pushed to `origin/codex/aiu-008-copilot-integration`); review independent FAIL with four material findings, fixed and primary-checked; checks C2, C4 (162/162), C5 (120/120), C6, C7, C9 (unsigned 2026.9.1801.0), product and demo smoke 7/7, authorized live lifecycle; grant owner, 2026-09-18.

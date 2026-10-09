@@ -2,8 +2,8 @@
 
 Date: 2026-09-20. This record holds the Phase 1 evidence from the analysis-only audit session
 that produced [spec.md](spec.md), plus NOT_RUN placeholders for the remediation checks. It is an
-evidence record, not a status mirror. The session that wrote it started no task in
-[tasks.md](tasks.md) and changed no file outside `docs/`; remediation evidence is appended per
+evidence record, not a status mirror. The session that wrote it started no planned task (see the
+[execution ledger](#execution-ledger)) and changed no file outside `docs/`; remediation evidence is appended per
 task as tasks are executed, starting with [T-08 and T-09](#t-08-and-t-09---2026-09-20).
 
 ## Environment and base
@@ -188,7 +188,7 @@ the reason claimed, rather than passing vacuously:
 | Independent review | NOT_RUN | Not required under CONTRIBUTING.md: neither task changes credential storage, destructive data handling or a privilege boundary |
 | `dotnet format --verify-no-changes` | NOT_RUN | Optional read-only inspection; formatting remains local-only under CR-AIU-001-01 |
 
-No other task in [tasks.md](tasks.md) was started, and no provider, transport, exception or
+No other task in the [execution ledger](#execution-ledger) was started, and no provider, transport, exception or
 state-lease file was touched: that work belongs to T-01.
 
 ## Limitations
@@ -767,3 +767,20 @@ The final suites cover the integrated product changes. The check index's stale T
 T-10 placeholders now point to their already-recorded results; those checks were not rerun or
 newly claimed by this session. This closes the selected remediation feature, not a release or
 any previously unverified live-provider/packaged lifecycle scenario.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 7d0bf06.
+
+- T-01 Shared provider transport, exception and state lease: done; commits 5462057, 2ddcc7f (range cfb9ceb..2ddcc7f); review independent PASS, 2026-09-22; checks C2, C4 (254/254), C5 (129/129), C6, original-writer compatibility harness, ProviderConsole Release build; grant owner, 2026-09-22.
+- T-02 Codex grant store onto the hardened lease: done; commits 5462057, 2ddcc7f (range cfb9ceb..2ddcc7f); review focused independent PASS, 2026-09-22; checks C2, C4 (254/254), C5 (129/129), C6, reparse and forward-compatibility tests, Windows Debug unpackaged build; grant owner, 2026-09-22.
+- T-03 Retire the Codex-only session contract: done; commits 13d45a7; review primary check; checks C2, C4 (257/257), C5 (129/129), C6, ProviderConsole Release build, Windows Debug unpackaged build; grant owner, 2026-09-22.
+- T-04 Classify unclassified failures and add redacted diagnostics: done; commits 9bbf13e, 55bb169 (range 56d6315..55bb169); review independent PASS, 2026-09-22; checks C2, C4 (261/261), C5 (136/136), C6, Windows Debug unpackaged build, product Windows smoke 7/7, unsigned MSIX build; grant owner, 2026-09-22.
+- T-05 One provider descriptor table: done; commits fc402dd; review primary check; checks C2, C4 (261/261), C5 (142/142), C6, Windows Debug unpackaged build, product and demo Windows smoke 7/7 each, unsigned MSIX build; grant owner, 2026-09-22.
+- T-06 Shared MSBuild and central package version roots: done; commits 97f0ef9; review primary check; checks C1 (78/78), C2, C4 (261/261), C5 (142/142), C6, offline restore 10/10, product Windows smoke 7/7, Windows, routing and ProviderConsole builds; grant not recorded.
+- T-07 Explicit analyzer level and code-style enforcement: done; commits c9cdd6a; review primary check; checks C1 (80/80), C2, C4 (261/261), C5 (142/142), C6, analyzer probe, product Windows smoke 7/7, Windows, routing and ProviderConsole builds; grant not recorded.
+- T-08 Non-throwing disposal and lock-free publication: done; commits not recorded (base 5c415d6); review not recorded (independent review not required); checks C1 (78/78), C2, C4 (226/226), C5 (129/129), C6, Windows Debug unpackaged build; grant not recorded.
+- T-09 Source-generated preference serialization: done; commits not recorded (base 5c415d6); review not recorded (independent review not required); checks C1 (78/78), C2, C4 (226/226), C5 (129/129), C6, Windows Debug unpackaged build; grant not recorded.
+- T-10 Gate the UI clock on window visibility: done; commits 829d38b; review primary check; checks C4 (261/261), C5 (147/147), Windows Debug unpackaged build, interactive clock/tray observation, targeted restore smoke, product and demo Windows smoke 7/7 each, unsigned MSIX build; grant not recorded.
+- T-11 Close CR-AIU-003-01: hardening at the library boundary: done; commits 9f4d347; review primary check; checks C2, C4 (271/271), C5 (147/147), C6, ProviderConsole Release build, Windows Debug unpackaged build; grant owner, 2026-09-22 (main, no subagents).
+- T-12 Transport options: done; commits 5095a1d; review primary check; checks C2, C4 (286/286), C5 (147/147), C6, ProviderConsole Release build, Windows Debug unpackaged build; grant owner, 2026-09-22 (with T-11).

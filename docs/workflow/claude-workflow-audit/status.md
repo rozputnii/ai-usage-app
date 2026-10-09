@@ -411,6 +411,15 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   approach options with a recommendation when the owner asks to brainstorm, and the missing
   AIU-046 AC-06 owner check.
 
+- **2026-10-09 — step 6a, lean records (OD-19), part 2.** Three parallel docs workers
+  collapsed the 25 executed `tasks.md` plans of done items into an "Execution ledger" section
+  of each verification record (one line per task: status, commits, review, check IDs, grant;
+  facts found only in a plan kept under "Kept from the plan"; open next actions kept verbatim)
+  and deleted the plans (4,621 lines removed, 322 added; Git history keeps them). Missing
+  per-task commits, reviews or grants are written as "not recorded", never invented. Live or
+  unfinished plans stay: AIU-046 (review), AIU-014 (paused), AIU-011 (dropped). Primary diff
+  check: AIU-034, AIU-048 and AIU-055 ledgers read against their plans; C2 PASS.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;

@@ -1,6 +1,6 @@
 # AIU-048 verification
 
-Evidence for [the specification](spec.md) and [the plan](tasks.md). Host: the owner's
+Evidence for [the specification](spec.md) and [the plan](#execution-ledger). Host: the owner's
 Windows 11 Pro 10.0.26200 desktop, .NET 10, branch `users/5-hour-limits-display-1e0e91`.
 Product source at `bbe71fe`. The checks ran on that tree after the whole-branch review
 fixes; the records commit that follows adds only documents. Times are local (+01:00),
@@ -107,3 +107,19 @@ Checks on the merged tree:
 - Release `--demo` startup smoke: PASS. The process stayed up and showed the visible
   "AI Usage" window with its card tree (UI Automation); it was then closed.
 - `git diff --check` on the merge: PASS.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 8bac814.
+
+- T-01 Core interval estimator: done; commits ed89d1b; review independent task review approved; checks SessionEstimateTests 11/11, C4 (882/882), C5 (189/189), measure-backend sessions/four-pairs median 75.95 ms; grant owner approval of the spec, design and plan, 2026-10-06.
+- T-02 Contract and projection mapping: done; commits 4a792d2; review independent task review approved; checks PairedCardCarriesRoughBoundsAndRange red then green, C5 (190/190), C4 (882/882); grant owner approval of the plan, 2026-10-06.
+- T-03 One-window cell, rough and settled footers: done; commits bf3c1d6, ce050f1; review independent review approved after one fix round; checks C5 (193/193), Debug app build; grant owner approval of the plan, 2026-10-06.
+- T-04 Records, full checks and live run: done; commits 71568ed, 3ad65d9, review fix wave c125f3b..2616e99; review whole-branch convergence-review found no Critical issue, findings closed by a scoped re-review; checks C4 (884/884; 902/902 merged), C5 (193/193; 239/239 merged), C1 (82/82), C2, C6, C7 and Release --demo startup smoke on the merged tree, demo H2, H3 and A1 observed PASS, live one-window check NOT_RUN as a post-deploy owner check (D-190); grant owner approval of the plan, 2026-10-06; merge approval not recorded.
+
+Exact next action: after the Preview update, the owner checks the live one-window
+state; an agent may check the installed version and its logs on request.
+
+Kept from the plan:
+- Open owner questions from the review: a rush or over-today card without an estimate draws today's allowance nowhere and shows the red over label beside a neutral 5h cell; the bounds are guaranteed only while the window cost `C` is constant across the pooled windows.
+- The design's figures come from a throwaway simulation that is not in the repo; T-01's tests re-establish them.

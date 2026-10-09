@@ -14,7 +14,7 @@ Recorded with this entry:
   - the used-up flag;
   - the rush flag and the 5h windows that fit before the reset;
   - the on-extra-usage flag.
-- tasks.md names the exact next action.
+- The execution ledger below records the tasks; the work is complete.
 
 The validator printed `valid: true`.
 
@@ -1800,3 +1800,30 @@ Retry checkpoint checks PASS: validator `--json` returned `valid: true` without 
 `git diff --check` passed; added-line secret/personal-data scan returned zero matches.
 Primary review confirmed the two changed Markdown files contain only the blocker and
 handoff update, without private values or captures. Product tests NOT_RUN (documents only).
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 66e3eb8.
+
+- T-01 Current parsing and storage baseline: done; commits 6ee7f42, 4ed5ee4 (evidence-reference fix); review primary source review; checks C2, C6; grant owner assignment, 2026-09-26.
+- T-02 Claude audit: done; commits not recorded; review primary review; checks C2, C6; grant owner assignment, 2026-09-26.
+- T-03 Codex audit: done; commits not recorded; review primary review; checks C2, C6; grant owner assignment, 2026-09-26.
+- T-04 Copilot audit: done; commits not recorded; review primary review; checks C2, C6; grant owner assignment, 2026-09-26.
+- T-05 Antigravity audit: done; commits not recorded; review primary review; checks C2, C6; grant owner assignment, 2026-09-26.
+- T-06 Live checks with owner authorization: done; commits not recorded (bases f42247a, 355599e, 62b5e2f, 2c16f71, e4c4535); review primary acceptance review; checks C2, C6, added-line privacy scans, LC-01 and LC-07 PASS, LC-22 PASS on an owner-supplied image, other checks NOT_RUN; grant owner per-check authorization, 2026-09-26, renewed 2026-09-28.
+- T-07 Normalized limit model: done; commits not recorded (base 036bf81); review primary review, then the T-10 independent review; checks family-coverage check, C2, C6, privacy scan; grant owner assignment, 2026-09-26.
+- T-08 Start-of-day amount and five-hour session estimator: done; commits not recorded (base c8fa7ca); review the T-10 independent review; checks C2, C6, privacy scan; grant owner assignment, 2026-09-26.
+- T-09 Budget rules and worked examples: done; commits not recorded (base e0ef2e6); review the T-10 independent review; checks hand and scratch recomputation of every row, C2, C6, privacy scan; grant owner assignment, 2026-09-26.
+- T-10 Independent detail review of T-07 to T-09: done; commits not recorded (frozen base 4c4318f); review this task is the independent review, twelve findings F-01 to F-12; checks independent recomputation (139 comparisons, 0 mismatches), C2, C6, privacy scan; grant owner assignment, 2026-09-26.
+- T-11 Resolve findings and assemble the Gate A package: done; commits not recorded (base 9a96024); review primary review, all twelve findings resolved; checks AC-01 coverage script (700/700), recomputation (213 comparisons, 0 mismatches), Phase A privacy scan, C2, C6; grant owner assignment, 2026-09-26, and Gate A acceptance, 2026-09-29 (D-185).
+- T-12 Brief part 1, user, data and states, information architecture: done; commits not recorded (base 3d544cd); review the T-14 independent review; checks figure check (68 comparisons, 0 mismatches), state coverage (62 states, 0 missing), privacy scan, C2, C6; grant owner approval of the Phase B plan and T-12 instruction, 2026-09-29.
+- T-13 Brief part 2, visual identity, deliverables and acceptance rubric: done; commits not recorded (base edeefc3); review the T-14 independent review; checks clause and rubric script (0 failures, 8 of 8 injected defects detected), privacy scan, C2, C6; grant owner authorization of T-13, 2026-09-29.
+- T-14 Independent detail review of the brief: done; commits not recorded (base 9115984); review this task is the independent review, four findings F-13 to F-16; checks recomputation (166 comparisons, 0 mismatches), official licence pages, privacy scan, link check, C2, C6; grant owner approval of the Phase B plan, 2026-09-29.
+- T-15 Resolve brief findings and prepare Gate B: done; commits not recorded (base 0eee0ef; Gate B approved the brief at 3cec434); review primary review, all four findings resolved; checks coverage and resolution script (93 of 93, 6 of 6 injected defects detected), privacy scan, C2, C6; grant owner instruction to continue with T-15, 2026-09-29.
+- T-16 Closing proposal, follow-up implementation items: done; commits not recorded (base 3cec434); review primary check; checks backlog entry field check (6 of 6), C2, C6; grant owner Gate B approval, 2026-09-29.
+- T-17 Claude Design round, directions: done; commits not recorded (bases 1997206 and 2609404); review direction checklist DA-1 to DA-7 PASS for all three directions, owner selection of 1a Ledger (D-186); checks fit, truncation, bar positions, contrast, minimum text size, console errors; grant owner approval, 2026-09-30, and selection, 2026-10-01.
+- T-18 Full prototype, owner acceptance and import: done; commits not recorded (base d7b5706); review owner acceptance of both handoff pages, 2026-10-02; checks privacy scan of every Phase B file and the imported reference, C2, C6; grant owner instruction, 2026-10-01, and acceptance, 2026-10-02.
+
+Kept from the plan:
+
+- The local clone path in docs/providers/codex.md that the T-11 scan reported was replaced by owner choice in 2087bc3.

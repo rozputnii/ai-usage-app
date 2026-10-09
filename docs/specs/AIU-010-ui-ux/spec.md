@@ -12,7 +12,7 @@ approval_basis: Owner selected the staged Codex / Claude Design / Claude Code wo
 
 A minimal, beautiful, animated native Windows dashboard whose complete planned Windows experience can be reviewed with synthetic data before its services exist. The current delivery is the preparation package, not a claim that design, frontend or future backend features are complete.
 
-Read [design](design.md), [screen inventory](screens.md), [UI contract](ui-contract.md), [scenario fixtures](fixtures.json), [agent handoffs](handoffs.md), [tasks](tasks.md) and [verification](verification.md). Product requirements derive from [accepted decisions](../../decisions/accepted.md), especially D-073–080, D-091–128, D-129–153 and D-160–168.
+Read [design](design.md), [screen inventory](screens.md), [UI contract](ui-contract.md), [scenario fixtures](fixtures.json), [agent handoffs](handoffs.md) and [verification](verification.md), including its [execution ledger](verification.md#execution-ledger). Product requirements derive from [accepted decisions](../../decisions/accepted.md), especially D-073–080, D-091–128, D-129–153 and D-160–168.
 
 ## Scope
 

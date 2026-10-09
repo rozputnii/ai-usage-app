@@ -64,3 +64,11 @@ Earlier package 2026.9.1410.0 and its guest run were superseded before acceptanc
 Packaged real-account sign-in/resume, installation-negative scenarios and remote CI are NOT_RUN. This change does not claim fresh live-provider verification, release approval or completion of deferred multi-account/background-refresh architecture.
 
 No acceptance blocker remains. Publication is limited to the owner-authorized task branch, with no merge or release.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 0a0ffd4.
+
+- T-01 Core workflow and session contract: done; commits not recorded; review independent PASS on the integrated diff (see Review); checks C4, independent workflow regressions; grant owner-authorized task branch `codex/aiu-027-architecture-refinement`, date not recorded.
+- T-02 Presentation and desktop composition: done; commits not recorded; review independent PASS on the integrated diff (see Review); checks independent workflow/presentation/dependency regressions, C4; grant owner-authorized task branch, date not recorded.
+- T-03 Review and packaged verification: done; commits not recorded; review independent PASS, plus targeted follow-up PASS on the startup-disposal fix; checks C1, C2, C4, C6, independent regressions, provider console Release build, signed package build, Windows Sandbox packaged lifecycle; grant owner-authorized task branch, date not recorded.

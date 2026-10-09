@@ -72,3 +72,16 @@ The console discloses client-reuse uncertainty and requires a separate interacti
 AIU-003 is complete: the owner-selected library and console are implemented and the provider path is live-verified end to end. AIU-002 remains paused; no other provider, UI integration, source-token import or durable credential work was started. The temporary malformed console fixture was removed after its output was retained; permanent synthetic regression fixtures remain under the test project. This verification record, the provider evidence file and D-177 are the change record; no separate release or changelog infrastructure was introduced.
 
 Canonical validation rejected earlier metadata twice - an implemented spec paired with a blocked backlog item, then an unsupported status label - and the records were corrected rather than the validator weakened. With live verification complete, the backlog item is `done` and the spec is `implemented`, while provider scope that was never exercised stays explicitly NOT_RUN.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 93fb394.
+
+- T-01 Establish pinned provider contracts: done; commits not recorded; review within the focused independent security review; checks provider evidence in docs/providers/codex.md; grant owner-selected slice, 2026-09-13.
+- T-02 Implement reusable Codex integration: done; commits not recorded; review focused independent security review PASS on the pre-parity slice, three low findings (CR-AIU-003-01 to CR-AIU-003-03); checks C4 (54/54), console Release build; grant owner-selected slice, 2026-09-13, and owner instruction for the D-177 parity rewrite.
+- T-03 Implement console verification surface: done; commits not recorded; review within the focused independent security review; checks console help, fixture inspection, malformed input, noninteractive login and consent-decline scenarios; grant owner-selected slice, 2026-09-13.
+- T-04 Verify behavior and credential boundaries: done; commits not recorded; review focused independent security review PASS; checks C4 (54/54), C2, live browser sign-in with two quota reads around a refresh on 2026-09-14; grant owner-selected slice, 2026-09-13.
+
+Kept from the plan:
+
+- The old session chronology is preserved in docs/decisions/superseded.md.
