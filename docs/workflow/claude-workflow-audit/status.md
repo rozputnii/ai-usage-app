@@ -261,6 +261,33 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - CLAUDE.md is unchanged in this step; its skill pointers come with the `.claude` wrappers
     in step 3.
 
+- **2026-10-09 — step 2, project settings (OD-8, OD-9, OD-10).**
+  - New committed `.claude/settings.json`: deny rules for force-push variants (`--force*`,
+    `-f*`, `+refspec`, also inside compound commands), `gh release *` and `gh workflow run *`,
+    each in Bash and PowerShell form; `Read`/`Edit` deny on `~/.codex/**`,
+    `~/.claude/.credentials.json`, `~/.gemini/**`, `~/.config/github-copilot/**`,
+    `~/AppData/Local/github-copilot/**` and `~/AppData/Roaming/GitHub CLI/hosts.yml`.
+    `enabledPlugins` sets `ux-superpowers@synced`, `design-superpowers@synced`,
+    `desktop-commander@synced` and `design@synced` to false. The design plugin's key is
+    `design@synced` (B2-F8 resolved via `claude plugin list`).
+  - AGENTS.md: "deny rules are a backstop; a missing deny rule is not permission".
+    CONTRIBUTING.md, Agent permissions: what the file holds, T3 status, and the override for
+    an owner-authorized provider-evidence read (`claude --setting-sources user,local` for that
+    one session).
+  - Checks: `claude plugin list` shows the four plugins disabled and superpowers loaded
+    (PASS). A fresh headless session in bypass mode blocked all 11 deny probes (force-push
+    forms, `--force-with-lease`, `+refspec`, a compound `cd . && git push --force`, PowerShell
+    form, `gh release list`, `gh workflow run --help`, reads in three denied folders) and ran
+    the ordinary `git push --dry-run` (PASS; dry runs only, nothing pushed). The exact-file
+    and space-in-path rule forms were proven on missing files with a temporary `--settings`
+    file (PASS). The running session does not reload new project settings: its own dry-run
+    force push was not blocked, so the rules apply from the next session.
+  - OD-10 auto-mode trial: NOT_RUN, owner action. Permission mode is a security setting the
+    agent cannot change. To start: choose Auto as the permission mode for new sessions in the
+    desktop app (Settings → Claude Code, or the session's mode picker) from 2026-10-10 to
+    2026-10-17. Revert to bypass at the first false block of a routine push, merge or read,
+    and note the date and the blocked action here.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
@@ -276,9 +303,10 @@ work continues on the recommended path unless it is marked as waiting.
 
 ## Next action
 
-Stage 2, step 2: write the deny-only project `.claude/settings.json` (OD-9) with the OD-8
-plugin disables, test each deny rule with a harmless command, add the AGENTS deny-rule line,
-then start the OD-10 auto-mode trial. Remaining order after that: step 3 agents and hygiene
+Stage 2, step 3: track the generalized reviewer and implementer agents under `.agents/` with
+thin `.claude/agents` wrappers (OD-12), add `.claude/skills` wrappers and the CLAUDE.md skill
+pointers (OD-11), do the OD-13 cleanup, prune memory (OD-21), and run the OD-22 worktree
+cleanup. Remaining order after that: step 3 agents and hygiene
 (OD-12, OD-13, OD-21, OD-22, CLAUDE.md pointers and `.claude/skills` wrappers); step 4 CI
 (OD-17, OD-26); step 5 tests and smoke (OD-23..OD-25, R14, R5); step 6 records and IDs
 (OD-19, OD-31, R13; re-check in-flight branches first); step 7 skills (OD-20, OD-7); step 8

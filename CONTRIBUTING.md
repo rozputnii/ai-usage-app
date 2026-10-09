@@ -100,6 +100,20 @@ frontmatter, backlog, goal scope, decisions and every reference. Keep placeholde
 of commit subjects and source comments. CI validates with `--final`, so a placeholder
 never stays on `main`. An item already numbered on `main` keeps its number.
 
+## Agent permissions
+
+The committed `.claude/settings.json` holds deny rules only: force-push variants, `gh release`
+and `gh workflow run` in Bash and PowerShell, and reads or edits of source-CLI credential
+stores. It also disables plugins this project does not use. Deny rules apply in every
+permission mode, and a local allow cannot lift them. Changing this file is T3 and needs the
+owner's decision. Patterns can be bypassed (for example through `sh -c`), so the prose rules
+stay authoritative.
+
+When the owner explicitly authorizes a provider-evidence read of a CLI credential store in the
+current request, the owner either performs the read or starts that one session with
+`claude --setting-sources user,local`, which skips the project settings; the next session
+loads the deny rules again.
+
 ## Records
 
 Follow [document formats](docs/workflow/formats.md) and size records by tier. Goals own

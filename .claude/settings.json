@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git push +*)",
+      "Bash(git push * +*)",
+      "Bash(gh release *)",
+      "Bash(gh workflow run *)",
+      "PowerShell(git push --force*)",
+      "PowerShell(git push -f*)",
+      "PowerShell(git push * --force*)",
+      "PowerShell(git push * -f*)",
+      "PowerShell(git push +*)",
+      "PowerShell(git push * +*)",
+      "PowerShell(gh release *)",
+      "PowerShell(gh workflow run *)",
+      "Read(~/.codex/**)",
+      "Edit(~/.codex/**)",
+      "Read(~/.claude/.credentials.json)",
+      "Edit(~/.claude/.credentials.json)",
+      "Read(~/.gemini/**)",
+      "Edit(~/.gemini/**)",
+      "Read(~/.config/github-copilot/**)",
+      "Edit(~/.config/github-copilot/**)",
+      "Read(~/AppData/Local/github-copilot/**)",
+      "Edit(~/AppData/Local/github-copilot/**)",
+      "Read(~/AppData/Roaming/GitHub CLI/hosts.yml)",
+      "Edit(~/AppData/Roaming/GitHub CLI/hosts.yml)"
+    ]
+  },
+  "enabledPlugins": {
+    "ux-superpowers@synced": false,
+    "design-superpowers@synced": false,
+    "desktop-commander@synced": false,
+    "design@synced": false
+  }
+}
