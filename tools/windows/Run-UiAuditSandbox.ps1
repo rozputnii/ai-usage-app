@@ -66,7 +66,7 @@ try {
     for ($probe = 0; $probe -lt 6; $probe++) {
         $probeXml = 'C:/AIU-Evidence/desktop-' + $probe + '.xml'
         $probeLog = 'C:/AIU-Evidence/desktop-' + $probe + '.log'
-        & C:/AIU-Work/smoke/AiUsage.Windows.Tests.exe -class '*AuditDesktopPrerequisite' -parallel none -xml $probeXml *> $probeLog
+        & C:/AIU-Work/smoke/AiUsage.Windows.Tests.exe -explicit on -class '*AuditDesktopPrerequisite' -parallel none -xml $probeXml *> $probeLog
         $report.DesktopExitCode = $LASTEXITCODE
         Copy-Item -LiteralPath $probeXml -Destination C:/AIU-Evidence/desktop.xml -Force
         Copy-Item -LiteralPath $probeLog -Destination C:/AIU-Evidence/desktop.log -Force
@@ -74,7 +74,7 @@ try {
         Start-Sleep -Seconds 1
     }
     if ($LASTEXITCODE) { $report.Status = 'BLOCKED'; return }
-    $nativeArguments = @('-parallel', 'none', '-xml', 'C:/AIU-Evidence/native.xml')
+    $nativeArguments = @('-explicit', 'on', '-parallel', 'none', '-xml', 'C:/AIU-Evidence/native.xml')
     foreach ($method in @((Get-Content C:/AIU-Input/build.json -Raw | ConvertFrom-Json).TestMethod)) { $nativeArguments += @('-method', $method) }
     & C:/AIU-Work/smoke/AiUsage.Windows.Tests.exe @nativeArguments *> C:/AIU-Evidence/native.log
     $report.NativeExitCode = $LASTEXITCODE
