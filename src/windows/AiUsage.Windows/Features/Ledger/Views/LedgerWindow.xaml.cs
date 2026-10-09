@@ -55,6 +55,8 @@ internal sealed partial class LedgerWindow : Window
         OpenWindowCommand = new RelayCommand(ShowAndActivate);
         ExitCommand = new AsyncRelayCommand(exit);
         InitializeComponent();
+        if (SmokeTrayName() is { } trayName)
+            TrayIcon.ToolTipText = trayName;
         Title = "AI Usage";
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleRow);
@@ -590,6 +592,14 @@ internal sealed partial class LedgerWindow : Window
     private void OnUndoBlur(object sender, RoutedEventArgs e) => ViewModel.HoldUndo(false);
 
     // ---- Tray ----
+
+    /// <summary>
+    /// OD-23: an unpackaged development run started by a desktop smoke names its tray icon "AI Usage &lt;id&gt;" (8 lowercase hex
+    /// digits from AIU_SMOKE_TRAY_ID), so the smoke never finds another AI Usage instance. Every other run keeps "AI Usage".
+    /// </summary>
+    private static string? SmokeTrayName() =>
+        Environment.GetEnvironmentVariable("AIU_SMOKE_TRAY_ID") is { Length: 8 } id && id.All(c => c is (>= '0' and <= '9') or (>= 'a' and <= 'f')) &&
+        !Composition.ApplicationDiagnostics.Packaged() ? "AI Usage " + id : null;
 
     /// <summary>The tray mark takes the most urgent card colour; drawn synchronously as in the current tray (D9).</summary>
     private void UpdateTrayGlyph()

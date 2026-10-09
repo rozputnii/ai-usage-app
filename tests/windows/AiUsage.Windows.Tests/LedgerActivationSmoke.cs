@@ -115,6 +115,9 @@ public sealed partial class LedgerSmoke
         Assert.False(string.IsNullOrWhiteSpace(exe));
         var start = new ProcessStartInfo(exe!, "--demo") { UseShellExecute = false };
         start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = Path.Combine(Path.GetTempPath(), "aiu-tray-exit-" + Guid.NewGuid().ToString("N"));
+        // OD-23: this launch's tray icon is "AI Usage <id>", so no other AI Usage instance can match.
+        var trayId = SmokeKit.NewTrayId();
+        start.Environment[SmokeKit.TrayIdVariable] = trayId;
         using var app = Application.Launch(start);
         using var process = Process.GetProcessById(app.ProcessId);
         using var automation = new UIA3Automation();
@@ -128,40 +131,32 @@ public sealed partial class LedgerSmoke
             var desktop = automation.GetDesktop();
             AutomationElement? taskbar = null;
             Assert.True(Wait(() => (taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"))) is not null), "Windows taskbar must be available");
-            FlaUI.Core.AutomationElements.AutomationElement? exitItem = null;
-            bool OpenOwnedMenu(FlaUI.Core.AutomationElements.AutomationElement icon)
+            // OD-23: only this launch's icon carries its name; it shows in the taskbar or in the hidden-icons overflow.
+            var trayName = SmokeKit.TrayName(trayId);
+            AutomationElement? Icon(AutomationElement? parent) => parent?
+                .FindAllDescendants(cf => cf.ByName(trayName).And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)))
+                .FirstOrDefault(e => !e.IsOffscreen);
+            AutomationElement? Overflow() => desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
+            AutomationElement? icon = null;
+            if (!Wait(() => (icon = Icon(taskbar)) is not null, TimeSpan.FromSeconds(2)))
             {
-                icon.RightClick();
-                if (Wait(() =>
+                if (Overflow() is not { IsOffscreen: false })
                 {
-                    exitItem = desktop.FindAllChildren().Where(w => w.Properties.ProcessId.ValueOrDefault == app.ProcessId)
-                        .Select(w => w.FindFirstDescendant(cf => cf.ByName("Exit"))).FirstOrDefault(e => e is not null);
-                    return exitItem is not null;
-                }, TimeSpan.FromSeconds(2))) return true;
-                Keyboard.Press(VirtualKeyShort.ESCAPE);
-                return false;
-            }
-            FlaUI.Core.AutomationElements.AutomationElement[] Icons(FlaUI.Core.AutomationElements.AutomationElement? parent) => parent?
-                .FindAllDescendants(cf => cf.ByName("AI Usage").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button)))
-                .Where(e => !e.IsOffscreen).ToArray() ?? [];
-            foreach (var icon in Icons(taskbar)) if (OpenOwnedMenu(icon)) break;
-            if (exitItem is null)
-                for (var index = 0; ; index++)
-                {
-                    var overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
-                    if (overflow is null || overflow.IsOffscreen)
-                    {
-                        var toggle = taskbar!.FindAllDescendants().FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Hidden Icons", StringComparison.Ordinal));
-                        Assert.NotNull(toggle);
-                        toggle.AsButton().Invoke();
-                    }
-                    Assert.True(Wait(() => (overflow = desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"))) is not null));
-                    var icons = Icons(overflow);
-                    if (index >= icons.Length) { Keyboard.Press(VirtualKeyShort.ESCAPE); break; }
-                    if (OpenOwnedMenu(icons[index])) break;
+                    var toggle = taskbar!.FindAllDescendants().FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("Hidden Icons", StringComparison.Ordinal));
+                    Assert.NotNull(toggle);
+                    toggle.AsButton().Invoke();
                 }
-            Assert.NotNull(exitItem);
-            exitItem.Click();
+                Assert.True(Wait(() => (icon = Icon(Overflow())) is not null), "No tray icon named " + trayName);
+            }
+            icon!.RightClick();
+            AutomationElement? exitItem = null;
+            Assert.True(Wait(() =>
+            {
+                exitItem = desktop.FindAllChildren().Where(w => w.Properties.ProcessId.ValueOrDefault == app.ProcessId)
+                    .Select(w => w.FindFirstDescendant(cf => cf.ByName("Exit"))).FirstOrDefault(e => e is not null);
+                return exitItem is not null;
+            }, TimeSpan.FromSeconds(5)), "The tray menu of " + trayName + " did not open");
+            exitItem!.Click();
             Assert.True(process.WaitForExit(10000), "Clicking the native tray Exit item must drain and exit");
             Assert.Equal(0, process.ExitCode);
         }
