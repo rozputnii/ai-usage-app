@@ -601,14 +601,21 @@ internal sealed partial class LedgerWindow : Window
         Environment.GetEnvironmentVariable("AIU_SMOKE_TRAY_ID") is { Length: 8 } id && id.All(c => c is (>= '0' and <= '9') or (>= 'a' and <= 'f')) &&
         !Composition.ApplicationDiagnostics.Packaged() ? "AI Usage " + id : null;
 
-    /// <summary>The tray mark takes the most urgent card colour; drawn synchronously as in the current tray (D9).</summary>
+    /// <summary>
+    /// The tray mark takes the most urgent card colour; drawn synchronously as in the current tray (D9). T-056: the icon it
+    /// replaces is disposed once the tray shows the new one, so redraws over days of uptime keep the handle count flat.
+    /// </summary>
     private void UpdateTrayGlyph()
     {
         var tones = ViewModel.Cards.Select(c => c.Visual.Tone).ToArray();
         var key = tones.Contains(Tone.Critical) ? "CritM" : tones.Contains(Tone.Attention) ? "AttM" : "OkM";
         try
         {
-            TrayIcon.Icon = TrayGlyph.Create(LedgerTheme.Color(key));
+            var replaced = TrayIcon.Icon;
+            var next = TrayGlyph.Create(LedgerTheme.Color(key));
+            try { TrayIcon.Icon = next; }
+            // The icon the tray no longer holds is released, also when the assignment fails.
+            finally { (ReferenceEquals(TrayIcon.Icon, next) ? replaced : next)?.Dispose(); }
         }
         catch (Exception error) when (error is System.Runtime.InteropServices.ExternalException or InvalidOperationException or ArgumentException or OutOfMemoryException)
         {
