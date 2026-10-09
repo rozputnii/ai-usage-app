@@ -14,7 +14,7 @@ internal static class TrayGlyph
     private const int Size = 128;
     private const float Inset = 8;
 
-    public static Icon Create(Windows.UI.Color color)
+    public static Icon Create(global::Windows.UI.Color color)
     {
         using var bitmap = new Bitmap(Size, Size, PixelFormat.Format32bppArgb);
         using (var graphics = Graphics.FromImage(bitmap))
