@@ -295,8 +295,9 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   `~/AppData/Local/agy` and `~/AppData/Local/Antigravity` denied, `-uf`, `--mirror` and
   `git -C <path> push` forms added, and the CONTRIBUTING wording now says shell reads are not
   covered and the override session drops every project rule. Re-probe in fresh headless
-  sessions: all force forms blocked except a PowerShell `+refspec` to a remote other than
-  `origin` (accepted: `origin` is the only remote); routine pushes with pipes or a second
+  sessions: all probed force forms blocked except a PowerShell `+refspec` to a remote other
+  than `origin` (accepted: `origin` is the only remote); the verification round later found
+  `git -C <path> push` with the flag right after `push` unprobed and open (fixed there); routine pushes with pipes or a second
   command and `git push origin --delete <branch>` ran (PASS, dry runs against a missing remote).
 - **2026-10-09 — step 1 review fixes.** The focused review (changes needed: 3 Important,
   5 Minor) found the package build dropped from the Windows UI row, "privilege" changes
@@ -500,7 +501,8 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   AIU-045 T-03), rewrote real paths and a branch name (`spikes/windows/AIU-002-routing`,
   `.ai-usage-local\AIU-...` with a backslash, `feature/AIU-002-...`), left two `AIU-nnn` /
   `D-nnn` forms in formats.md, and let leftover `AIU-NEW`/`D-NEW` pass `--final`.
-  Fixed at the source: `Convert-IdScheme.ps1` now takes a step's item from the last item named
+  Partly fixed at the source (the verification round found 16 step references this rule gave
+  the wrong item, fixed by hand there): `Convert-IdScheme.ps1` now takes a step's item from the last item named
   earlier on the same line, converts lowercase heading anchors, and excludes those paths and
   branch names; re-run on a pre-rename copy, its output replaced 18 migration-only files, and
   a re-run on the converted tree changes nothing. The validator refuses legacy placeholders
@@ -570,6 +572,14 @@ work continues on the recommended path unless it is marked as waiting.
   `csharp-ls` installed on each machine (a session without it just has no LSP) and is an
   agent-configuration change (T3). *Recommendation:* enable it at project scope and keep the
   pinned tool in the host environment notes. Waiting for the owner.
+
+- **OD-39 — Tray test identity uses its own variable.** OD-23 names the existing
+  `DesktopTestEnvironment` switch; the implementation reads a separate `AIU_SMOKE_TRAY_ID`
+  (8 hex characters) and only when the app runs unpackaged, so a packaged or released build
+  never changes its tooltip. The verification round found the behaviour sound but the
+  mechanism different from the decision text. *Recommendation:* accept the variable as the
+  OD-23 implementation (`DesktopTestEnvironment` is a test-side class the app does not read).
+  Not waiting.
 
 ## Next action
 
