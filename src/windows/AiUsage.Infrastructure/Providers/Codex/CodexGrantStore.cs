@@ -35,7 +35,7 @@ internal sealed class CodexGrantStore
     internal Task<ProviderStateLease<StoredRecord>> AcquireAsync(CancellationToken cancellationToken) =>
         Policy.AcquireAsync(Directory, afterStage, diagnostics, cancellationToken);
 
-    // Legacy synchronous entry points remain until the separate T-03 contract cleanup.
+    // Legacy synchronous entry points remain until the separate T-028.3 contract cleanup.
     public CodexStoredGrant? Read() => ReadAsync().GetAwaiter().GetResult();
     public void Write(CodexStoredGrant grant) => WriteAsync(grant).GetAwaiter().GetResult();
     public void Delete() => DeleteAsync().GetAwaiter().GetResult();
