@@ -53,6 +53,50 @@ public sealed class ValidatorTests
     }
 
     [Fact]
+    public void DoneIndexRowsAreBacklogItems()
+    {
+        using var root = new Fixture();
+        root.Put("docs/evidence.md", "# Evidence\n");
+        root.Replace("docs/product/goals.md", "- scope: AIU-001", "- scope: AIU-001, AIU-002");
+        root.Replace("docs/backlog.md", "- depends_on: []", "- depends_on: [AIU-002]");
+        root.Append("docs/backlog.md", "\n## Done index\n\n| Item | Title | Status | Goal | Evidence |\n| --- | --- | --- | --- | --- |\n| AIU-002 | Earlier work | done | G-001 | docs/evidence.md |\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        root.Replace("docs/backlog.md", "| done | G-001 | docs/evidence.md |", "| done | G-001 | docs/missing.md |");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AIU-002" && d.Code == "DONE_WITHOUT_EVIDENCE");
+        root.Replace("docs/backlog.md", "| done | G-001 | docs/missing.md |", "| ready | G-001 | docs/evidence.md |");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AIU-002" && d.Code == "INVALID_STATUS");
+    }
+
+    [Fact]
+    public void AcceptanceResultsMustCoverEverySpecCriterion()
+    {
+        using var root = new Fixture();
+        root.Append("docs/specs/AIU-001/spec.md", "- AC-02: Second behavior.\n");
+        root.Put("docs/specs/AIU-001/verification.md", "# Verification\n\nFree-form history mentioning AC-01 only.\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        root.Append("docs/specs/AIU-001/verification.md", "\n## Acceptance results\n\n| AC | Verdict | Evidence |\n| --- | --- | --- |\n| AC-01 | PASS | C4 |\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AC-02" && d.Code == "AC_COVERAGE");
+        root.Append("docs/specs/AIU-001/verification.md", "| AC-02 | NOT_RUN (post-deploy owner check) | D-190 |\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        root.Append("docs/specs/AIU-001/verification.md", "| AC-03 | maybe | none |\n");
+        var errors = ProjectValidator.Validate(root.Path);
+        Assert.Contains(errors, d => d.Task == "AC-03" && d.Code == "AC_REFERENCE");
+        Assert.Contains(errors, d => d.Task == "AC-03" && d.Code == "INVALID_STATUS");
+    }
+
+    [Fact]
+    public void DecisionIdsAreUniqueAndAmendmentPointersResolve()
+    {
+        using var root = new Fixture();
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### D-001 - First\nText.\n\nAmended by D-002 (2026-10-09): changed.\n\n### D-002 - Second\nText.\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        root.Append("docs/decisions/accepted.md", "\n### D-002 - Again\nText.\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "D-002" && d.Code == "DUPLICATE_ID");
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### D-001 - First\nSuperseded by D-009 (2026-10-09): gone.\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "D-009" && d.Code == "MISSING_REFERENCE");
+    }
+
+    [Fact]
     public void FeatureMayOmitInternalTasks()
     {
         using var root = new Fixture();

@@ -64,11 +64,18 @@ public static class ProjectValidator
         CheckSkills(documents, Error);
         var goals = Parse(documents.GetValueOrDefault("docs/product/goals.md", ""), "docs/product/goals.md", "##", "G", 3, Error);
         var items = Parse(documents.GetValueOrDefault("docs/backlog.md", ""), "docs/backlog.md", "##", "AIU", 3, Error);
+        var indexed = DoneIndex(documents.GetValueOrDefault("docs/backlog.md", ""), Error);
+        foreach (var row in indexed)
+        {
+            if (items.Any(i => i.Id == row.Id)) Error(row.File, row.Id, "DUPLICATE_ID", "Duplicate ID in document namespace.");
+            if (!new[] { "done", "dropped" }.Contains(Value(row, "status"))) Error(row.File, row.Id, "INVALID_STATUS", "The done index holds only done or dropped items.");
+            CheckEvidence(root, row, Error);
+        }
         foreach (var goal in goals) CheckFields(goal, Value(goal, "status") == "idea" ? ["status", "scope", "outcome"] : ["status", "scope", "outcome", "success"], BacklogStates, Error);
+        foreach (var item in items) { CheckFields(item, ["goal", "status", "depends_on", "trigger", "outcome"], BacklogStates, Error); CheckEvidence(root, item, Error); }
+        items.AddRange(indexed);
         foreach (var item in items)
         {
-            CheckFields(item, ["goal", "status", "depends_on", "trigger", "outcome"], BacklogStates, Error);
-            CheckEvidence(root, item, Error);
             var goal = goals.FirstOrDefault(g => g.Id == Value(item, "goal"));
             if (goal is null) Error(item.File, item.Id, "MISSING_GOAL", "Backlog goal does not exist.");
             else if (!List(Value(goal, "scope")).Contains(item.Id)) Error(goal.File, goal.Id, "GOAL_SCOPE", "Goal scope omits one of its backlog items.");
@@ -77,6 +84,7 @@ public static class ProjectValidator
             foreach (var id in List(Value(goal, "scope")))
                 if (!items.Any(i => i.Id == id && Value(i, "goal") == goal.Id)) Error(goal.File, goal.Id, "MISSING_REFERENCE", "Goal scope names a missing or differently owned item.");
         CheckDependencies(items, Error);
+        if (documents.TryGetValue("docs/decisions/accepted.md", out var decisions)) CheckDecisions("docs/decisions/accepted.md", decisions, Error);
         var goalMeta = Metadata(documents.GetValueOrDefault("docs/product/goals.md", ""));
         if (!goalMeta.TryGetValue("active_goal", out var active) || !goals.Any(g => g.Id == active)) Error("docs/product/goals.md", "", "MISSING_GOAL", "Active goal does not exist.");
         foreach (var (file, text) in documents.Where(p => p.Key.EndsWith("/spec.md", StringComparison.Ordinal)))
@@ -100,6 +108,7 @@ public static class ProjectValidator
             if (ac.Length == 0) Error(file, id, "AC_REFERENCE", "Specification requires acceptance criteria.");
             if (ac.Distinct().Count() != ac.Length) Error(file, id, "DUPLICATE_ID", "Duplicate acceptance criterion.");
             var folder = file[..file.LastIndexOf('/')];
+            if (documents.TryGetValue(folder + "/verification.md", out var verification)) CheckAcceptanceResults(folder + "/verification.md", verification, ac, Error);
             var designFile = folder + "/design.md";
             if (documents.TryGetValue(designFile, out var design))
             {
@@ -146,6 +155,47 @@ public static class ProjectValidator
 
         }
         return errors.OrderBy(e => e.File, StringComparer.Ordinal).ThenBy(e => e.Task, StringComparer.Ordinal).ThenBy(e => e.Code, StringComparer.Ordinal).ToArray();
+    }
+
+    // OD-19: done and dropped items may sit as one row each in a "## Done index" table:
+    // | Item | Title | Status | Goal | Evidence |
+    private static List<Block> DoneIndex(string text, Action<string, string, string, string> error)
+    {
+        var section = Regex.Match(WithoutFences(text), @"(?ms)^## Done index[ \t]*$(.*?)(?=^## |\z)", RegexOptions.None, MatchTimeout);
+        var rows = new List<Block>();
+        if (!section.Success) return rows;
+        foreach (Match row in Matches(section.Groups[1].Value, @"^\| *(AIU-[^ |]+) *\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|[ \t]*$"))
+        {
+            var id = row.Groups[1].Value;
+            if (!Regex.IsMatch(id, @"^AIU-\d{3}$")) error("docs/backlog.md", id, "INVALID_ID", "ID must use AIU and 3 digits.");
+            if (rows.Any(b => b.Id == id)) error("docs/backlog.md", id, "DUPLICATE_ID", "Duplicate ID in document namespace.");
+            rows.Add(new(id, "docs/backlog.md", row.Value, new() { ["status"] = row.Groups[3].Value.Trim(), ["goal"] = row.Groups[4].Value.Trim(), ["depends_on"] = "[]", ["evidence"] = row.Groups[5].Value.Trim() }));
+        }
+        return rows;
+    }
+
+    // OD-19: a verification record with an "## Acceptance results" table has one row per specification criterion.
+    private static void CheckAcceptanceResults(string file, string text, string[] criteria, Action<string, string, string, string> error)
+    {
+        var section = Regex.Match(WithoutFences(text), @"(?ms)^## Acceptance results[ \t]*$(.*?)(?=^## |\z)", RegexOptions.None, MatchTimeout);
+        if (!section.Success) return;
+        var rows = Matches(section.Groups[1].Value, @"^\| *(AC-[^ |]+)[^|\n]*\| *([^|\n]*)\|").Select(m => (Id: m.Groups[1].Value, Verdict: m.Groups[2].Value.Trim())).ToArray();
+        foreach (var (id, verdict) in rows)
+        {
+            if (!criteria.Contains(id)) error(file, id, "AC_REFERENCE", "Acceptance result names a criterion that the specification lacks.");
+            if (!Regex.IsMatch(verdict, @"^(PASS|FAIL|NOT_RUN|BLOCKED)\b")) error(file, id, "INVALID_STATUS", "Verdict must start with PASS, FAIL, NOT_RUN or BLOCKED.");
+        }
+        foreach (var id in criteria.Where(c => !rows.Any(r => r.Id == c))) error(file, id, "AC_COVERAGE", "Acceptance results omit a specification criterion.");
+    }
+
+    // OD-19: decision numbers are unique, and "Amended by" / "Superseded by" pointers name an existing decision.
+    private static void CheckDecisions(string file, string text, Action<string, string, string, string> error)
+    {
+        text = WithoutFences(text);
+        var ids = Matches(text, @"^### (D-[^ ]+) - ").Select(m => m.Groups[1].Value).ToArray();
+        foreach (var id in ids.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key)) error(file, id, "DUPLICATE_ID", "Duplicate decision ID.");
+        foreach (var id in Matches(text, @"^(?:Amended|Superseded) by (D-(?:\d{3}|NEW(?:-\d+)?))\b").Select(m => m.Groups[1].Value).Distinct())
+            if (!ids.Contains(id)) error(file, id, "MISSING_REFERENCE", "Amendment pointer names a decision that does not exist.");
     }
 
     private static void CheckEvidence(string root, Block block, Action<string, string, string, string> error)

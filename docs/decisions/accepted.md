@@ -304,6 +304,8 @@ The goal is fewer clicks and an app-local credential copy. Prove token-lifecycle
 ### D-091 - Connection flow
 Provider picker -> supported methods -> credential/identity verification -> initial quota. Temporary quota failure means connected/verification pending, not falsely healthy or automatic credential loss.
 
+Amended by D-180 (2026-09-24): Single-window shell, one-click sign-in and immediate sign-out.
+
 ### D-092 - Reauthentication
 An invalid or revoked refresh grant puts only that account into Re-auth required. Preserve stale cache/history and keep other accounts operational. No endless retries.
 
@@ -368,6 +370,8 @@ Use a clean-shutdown marker and targeted checks for interrupted operations. Do n
 ### D-111 - First run
 Show an empty dashboard with Add account, not a wizard. Discover CLI candidates asynchronously and progressively; support individual and bulk import.
 
+Amended by D-180 (2026-09-24): Single-window shell, one-click sign-in and immediate sign-out.
+
 ### D-112 - Window behavior
 Use one application instance and one main window. Repeated launch/notification activation opens the existing window. Restore size, position, maximization and monitor while correcting off-screen bounds. Always on top defaults off.
 
@@ -377,8 +381,12 @@ No splash screen. Display cached data first, with no startup network or maintena
 ### D-114 - Dashboard layout
 Use Overview and an adaptive one/two/three-or-more-column grid with balanced density. Preserve user order instead of dynamic risk sorting; highlight states.
 
+Amended by D-193 (2026-10-07): Single-column cards and a minimal sliding settings sheet.
+
 ### D-115 - Overview
 Show provider/account counts, the lowest remaining quota and nearest reset with source/freshness, plus warning/critical/reauth counts. No global usage percentage.
+
+Amended by D-181 (2026-09-24): Compact usage view and daily pace colors.
 
 ### D-116 - Cards
 Use account cards with nested primary windows and quota groups. Primary limits remain visible; groups default collapsed and expand for warning/critical states while respecting manual preference.
@@ -391,6 +399,8 @@ Show relative reset time and the exact local timestamp. Reaching a reset time tr
 
 ### D-119 - Appearance and accessibility
 Offer System, Light and Dark themes, default System. Use Fluent styling, DPI support, keyboard navigation, accessible labels and high contrast. Status cannot rely on color alone.
+
+Amended by D-182 (2026-09-24): Dark-only appearance.
 
 ### D-120 - Localization
 Use resources immediately, with English-only v1 and English fallback. Do not localize provider IDs, protocol values or persisted keys. Format dates/numbers using Windows culture.
@@ -419,8 +429,12 @@ Single left-click opens the mini-dashboard, double-click opens the main app, and
 ### D-128 - Tray popup
 Show current quota, reset and status for all accounts/groups with per-account and global refresh. No charts. Keep it read-mostly; settings live in the main app. Use the same central state store.
 
+Amended by D-187 (2026-10-02): AIU-034 tray miniature, no OK pill, day off, rush and on extra usage.
+
 ### D-129 - Diagnostics
 Provide a System Status page with build/commit/schema/provider evidence/status, latest refresh/update/manifest state and Export diagnostics, Open logs and Run health check actions.
+
+Amended by D-180 (2026-09-24): Single-window shell, one-click sign-in and immediate sign-out.
 
 ### D-130 - Health checks
 Diagnosis only; repairs are separate explicit actions. Do not disguise state mutation as a health check.
@@ -432,6 +446,8 @@ Rely on Windows user-session protection; no separate PIN or Windows Hello gate i
 
 ### D-132 - Storage scope
 Use per-user package-owned ApplicationData local storage through IAppPaths. Canonical roots: Data, Secrets, Cache, Logs, Diagnostics, Backups and Temp. User-selected exports are not silent cleanup targets.
+
+Amended by D-188 (2026-10-07): Usage history survives reinstall.
 
 ### D-133 - Settings
 Use SQLite/EF with strongly typed core entities and a typed extensible provider store. Keep immutable defaults in application configuration. Validate writes, imports and migrations, not the entire state at every startup.
@@ -603,8 +619,13 @@ Superseded by D-NEW (2026-10-09): task branches and verified merges into `main`.
 ### D-180 - Single-window shell, one-click sign-in and immediate sign-out
 Owner amendment, 2026-09-24: the interface had too many steps and transitions. The main window is one usage view with no navigation tabs; a Settings icon on the right shows all settings, with System Status as its last section rather than a separate page. Account detail and History open from the account panel with Back, not from tabs. There is no Add account dialog: a provider menu opens on hover, one provider click starts browser sign-in, progress stays inline, and success adds the account without a confirmation step. First run lists the providers directly. Each account panel has an icon-only sign-out that disconnects without confirmation. This amends D-091 (no method step; the manual code stays available inline where a provider supports it), D-111 (first run lists providers instead of an Add account button), D-129 (System Status becomes a settings section) and the AIU-010 navigation proposal. D-093 retention is unchanged: sign-out keeps history, labels, order and identity, and Delete stored data stays separate and confirmed. See [AIU-030](../specs/AIU-030-single-window/spec.md).
 
+Amended by D-183 (2026-09-26): Budget-aware single-window redesign direction.
+Amended by D-193 (2026-10-07): Single-column cards and a minimal sliding settings sheet.
+
 ### D-181 - Compact usage view and daily pace colors
 Owner amendment, 2026-09-24: the usage view shows only the limit bars. One line per account holds its label, at most one status mark (failed refresh, stale reading, or pace attention), one bar per primary window and the sign-out icon; window names appear once per provider. The summary block, plan, History link, freshness pill, percentages, reset times and dates leave the line: bar hover text and accessible names carry the reading, the relative and exact reset and the pace advice, an exhausted bar shows "Back in …", and account detail keeps other groups, contexts and history. Bar color is pace advice: a window shorter than a day is red at 20 % or less remaining with no time pacing; a window of a day or longer splits its remainder into even local-calendar-day shares with carry-over, turning orange below 30 % of today's share and red once it is used, with a mark at the end-of-today pace position. Stale, unknown, unlimited and untimed readings get no advice. This amends D-115 (the summary leaves the Overview; the tray keeps it), D-116 (groups stay in detail), D-118 (the reset is shown on demand and when exhausted) and D-122 as it applies to the Overview (advice, not a forecast, and it never changes readings, detail, the tray or notification thresholds). See [AIU-031](../specs/AIU-031-compact-pace/spec.md).
+
+Amended by D-183 (2026-09-26): Budget-aware single-window redesign direction.
 
 ### D-182 - Dark-only appearance
 Owner amendment, 2026-09-24: the app has one appearance, the designed dark palette, in every window, dialog, the tray popup and the title bar, whatever the Windows app mode. The System and Light themes, the theme setting and the app's own high-contrast token set are removed, and the demo no longer simulates the Windows app mode or a contrast theme. Keyboard access, accessible names, display scaling, reduced motion and the rule that status never relies on color alone stay. This amends D-119. A stored theme value is kept as unknown data rather than rewritten. See [AIU-032](../specs/AIU-032-dark-only-cleanup/spec.md).
@@ -612,17 +633,28 @@ Owner amendment, 2026-09-24: the app has one appearance, the designed dark palet
 ### D-183 - Budget-aware single-window redesign direction
 Owner direction, 2026-09-26: the interface is redesigned as one laconic window with no account detail view, modal dialog or pop-up. Every limit of every account, including model-scoped weekly limits and credit or monetary pools, is shown inline with inline rename, status marks and settings; actions that need confirmation are confirmed in place and reversible ones offer undo. Supported limits are the subscription-attached windows and pools visible through the existing sign-ins; API-key billing stays excluded, so the constitution's line between consumer quotas and API billing holds. Countable and monetary pools accept an always-available personal cap, a local setting never presented as provider data, and the lower of the cap and the provider limit applies. A work-day calendar (Monday to Friday by default) drives a daily budget for every window or pool of a day or longer: an adaptive norm fixed for the day, shown with the fixed baseline and the deviation from it. A missing provider period defaults to the calendar month, marked as assumed. Weekly remainder and today's norm are also expressed in estimated five-hour sessions. Five-hour windows are amber at 30 % or less remaining and red at 10 % or less, with the reset countdown from amber, and an account's status reflects its binding limit. Provider data is audited first and a Claude Design brief with its own visual identity follows; see [AIU-034](../specs/AIU-034-limit-audit-design-brief/spec.md). This direction amends D-180 (confirmations become inline) and D-181 (the 20 % floor and even calendar-day shares) only through the implementation items AIU-034 proposes; until they land, current behavior stays.
 
+Amended by D-191 (2026-10-07): One card per account with hideable limit sections.
+Amended by D-194 (2026-10-08): A personal cap cannot exceed the provider limit.
+
 ### D-184 - Local-only usage history
 Owner direction, 2026-09-29: usage history comes only from the app's own local tracking of the readings it already takes. Provider-supplied history is no longer a data source, because it can be less accurate than local tracking and adds a second source to reconcile. History is kept, not removed: the start-of-day amount, the five-hour session estimate, work-day budget splits and any history display all derive from one local reading series. AIU-034 specifies that series; AIU-029 later extends its retention, rollups and history queries. This supersedes AIU-011's provider-history retrieval as a data source. Removing the existing retrieval code is left to a proposed follow-up item and is not selected by this decision. No new transport, grant or provider request follows. See [AIU-034](../specs/AIU-034-limit-audit-design-brief/spec.md).
 
 ### D-185 - Limit model and budget rules accepted at Gate A
 Owner decisions, 2026-09-29, at the AIU-034 Gate A review, which accepted the Phase A research. A credit pool that reports only a balance (Codex `credits.balance`) accepts a personal cap; its use in the budget period is tracked locally from observed balance decreases, ignoring top-ups, and labelled an estimate (PD-034-01, option b). Limits visible only in a provider's own UI (Copilot AI credits, Codex workspace credits and USD budgets, Claude prepaid balances and organization controls, Antigravity credits) are not shown until a current quota source is established through the existing connection; provider history is not such a source (PD-034-03, option a). Three readings of D-183 are confirmed. A window whose provider reset is known but whose duration is not has no budget and shows "period unknown" instead of the calendar-month default. On a day off only the daily budget is neutral; an exhausted or over-cap limit still shows that state. A zero limit, from the provider or a personal cap of 0, shows "not included" or "capped at 0" instead of a zero budget and "over" once used, and an explicit unlimited flag outranks any reported amount. The choice between two snapshot sources (PD-034-02) stays open until an AIU-005 implementation is selected. See [AIU-034 research](../specs/AIU-034-limit-audit-design-brief/research.md).
 
+Amended by D-189 (2026-10-06): Early five-hour window display and interval session estimate.
+
 ### D-186 - AIU-034 design reference and brief amendments
 Owner decisions, 2026-10-01, in the Claude Design round of AIU-034 (project `9a6b2cdd-1c9c-4abe-9477-2869aa10f9bd`). The owner developed the 1a Ledger direction with Claude Design and selected the page `Provider States Handoff.dc.html` as the design reference for implementation, after the corrections recorded in AIU-034 verification. The owner lifted the brief's visual-identity restrictions (design-brief section 6, DA-2 and R-08), including the ban on a Claude-like look, and kept dark-only (D-182). The reference amends the Gate B brief as follows. Each subscription is one card. A five-hour window is no longer its own bar: a "today" strip shows today's allowance split into the remaining five-hour windows, with the current window first, and the part of the last window that today's allowance does not cover is grey. Below it, the 7d or month bar rings today's span. A Used or Left setting chooses which value is drawn solid and which is hatched, and the hatching always sits to the right of the solid fill. Colours: green for OK; orange while today's allowance is almost but not yet used up (today low, today short, cap close, a full current five-hour window); red once today's allowance is reached or exceeded, for over cap, and for a limit or cap that is reached, including an exhausted 7d limit (owner, 2026-10-02: today reached is the same red as over). An over label appears only when today's allowance is exceeded. Percentages are whole numbers. This replaces R-09's colouring by a window's own remainder and the visible pace mark, deviation words and per-account status naming its limit. Secondary facts such as the window end time, the remainder beyond a cap and sync details move to tooltips, which must also be reachable by keyboard focus. These rules are unchanged: the truth rules of D-185 (a balance-only Codex pool is tracked as an estimate on its cap, and no plan size is invented), "assumed" on an assumed period, no zero for unknown, WCAG AA contrast, and words for every coloured state. On 2026-10-02 the owner also accepted the companion page `Surfaces Handoff.dc.html` and made Compact the default of Appearance › Density, because only Compact fits the design-brief scenario into the 760 × 600 window; Comfortable stays available. API-key billing stays excluded (D-183); showing it is proposed separately as AIU-041. See [AIU-034 verification](../specs/AIU-034-limit-audit-design-brief/verification.md).
 
+Amended by D-187 (2026-10-02): AIU-034 tray miniature, no OK pill, day off, rush and on extra usage.
+Amended by D-189 (2026-10-06): Early five-hour window display and interval session estimate.
+Amended by D-207 (2026-10-09): Tooltips open only under the pointer.
+
 ### D-187 - AIU-034 tray miniature, no OK pill, day off, rush and on extra usage
 Owner decisions, 2026-10-02, in the AIU-034 design conversation, applied to both pages of the Claude Design reference and re-imported. This amends D-186, D-128 (the tray no longer shows resets or per-account refresh) and R-11 of the AIU-034 specification. The main window shows no "OK" pill: a card without a pill is on track, and the accessible name still says OK. The tray flyout is a miniature of the window: a title row, then per account its name and one today strip per limit in the window's order, in the window's Used or Left mode, with no pills, captions, period bars or buttons; a click opens the window at that account and Refresh stays in the tray menu. Not included and no-cap pools are left out of the tray, and period unknown is an empty dashed track. An account name is red with a warning icon when the sign-in expired or the account is signed out, when a failed sync left a stale reading, or on a provider error; a failed sync with a fresh reading does not turn it red. On a day off no limit is hidden: the today strip shows today's would-be share, the remainder divided by the remaining work days plus today, drawn neutral with a dashed outline and with no orange, red or over label, while a used-up limit stays red. Work today is one switch in the title bar for the whole window; until local midnight it colours the same strips as on a work day and marks on-track cards "extra day", and it never changes the work-day settings. Over- or under-use on any day spreads evenly over the remaining work days through the adaptive norm (R-05, unchanged). On the last work day before a reset that the provider replenishes, with no custom cap on the limit, today's share is the whole remainder: the card shows a green "rush" pill, no 7d or month bar and no grey, and only the 5h windows that fit before the reset; the tray shows a lightning mark. Money (extra usage) and credit pools never rush, and a capped pool keeps its normal look on that day. Claude extra usage and Codex credits keep their own cards and budgets as in D-186 and D-185. While a Claude 5h or 7d window is full and extra-usage spend rose since then, the 5h + 7d card shows an orange "on extra usage" mark with the spend since the window filled; the tray shows a dollar mark. A prepaid balance that the provider shows only in its own UI is not shown. When a provider limit (not a custom cap) is fully used, the card shows no today strip, no 5h cells and no over label, only the red 7d or month bar and when it comes back; this wins over rush, and the tray shows one solid red strip for that limit. See [AIU-034 verification](../specs/AIU-034-limit-audit-design-brief/verification.md).
+
+Amended by D-204 (2026-10-08): The tray is a focus-free miniature with provider icons and a five-hour ring.
 
 ### D-188 - Usage history survives reinstall
 Owner decision, 2026-10-07: the packaged app keeps the local reading series and budget configuration (D-184) in `%LOCALAPPDATA%\AiUsage\History`, which the manifest excludes from MSIX file-system write virtualization with the `unvirtualizedResources` restricted capability, so uninstall leaves it. A DPAPI-protected identity map in the same folder records provider, provider-verified identity and app account ID; signing in again after a reinstall reuses that account ID, so the existing series re-attach without copying or merging, under the same exact-identity rule as D-094. Credentials, labels, order and other preferences still leave with the package. Delete stored data removes the history root as well; uninstall deliberately does not. Existing installs move their store once at startup, and the state layout becomes 3 so older builds refuse it. This amends D-132 (package-owned ApplicationData) for this data only. See [AIU-047](../specs/AIU-047-history-survives-reinstall/spec.md).
@@ -642,6 +674,8 @@ Owner direction, 2026-10-07, in conversation (variant A of three). Card colour f
 ### D-193 - Single-column cards and a minimal sliding settings sheet
 Owner direction, 2026-10-07, in conversation (AIU-051, design B of three). Account cards always stack in one full-width column, whatever the window width and whether settings is open; inline history follows its card. Settings is a floating sheet lighter than the page and the cards, inset from the window edges, that slides in from the right edge and narrows the cards while it is open. The sheet carries as little text as possible: small labels (Work days, Caps, View, Updates), no title or "Esc closes" line, and no explanatory paragraphs; explanations become tooltips. Used/Left stays only in the title bar and Show signed-out accounts only in the + menu. The footer shows the refresh interval, or a local-data or sync problem in its place, and a ⋯ menu holds Preview diagnostics, Open logs, Open data folder, Export recovery summary and Delete stored data, which still confirms in place with a short warning. This supersedes the two-column grid of AIU-038 S1, S2 and S4 and the adaptive grid of D-114, and amends D-180's "System Status as its last section" and AIU-038 S5's section list and 400 px panel. See [AIU-051](../specs/AIU-051-single-column-settings-sheet/spec.md).
 
+Amended by D-197 (2026-10-08): Settings drops down over the body; the window opens at its minimum width.
+
 ### D-194 - A personal cap cannot exceed the provider limit
 Owner direction, 2026-10-08, in conversation. A personal cap may equal a known provider limit but never exceed it. The cap field accepts only digits, plus a decimal point and the currency's decimals for money, with no grouping commas, signs or symbols; a keystroke or paste that would exceed a known provider limit is simply not added. On save the editor still refuses a larger amount with "Enter at most <limit> · the provider limit", and both Ledger sources reject it. A cap saved earlier above the limit, or one the provider limit later fell below, is kept but not applied: the card shows the provider limit and names the kept cap in its footer tooltip, and Settings › Caps marks it "above the provider limit · kept, not applied" with Edit. Any cap is still accepted when the provider limit is unknown or unlimited. This amends D-183's "the lower of the cap and the provider limit applies".
 
@@ -660,8 +694,13 @@ Owner direction, 2026-10-08, in conversation, after toggling work days showed no
 ### D-199 - Today's use by hand and Copilot credits in dollars
 Owner direction, 2026-10-08, in conversation (design B of three). A money or credit limit with a daily budget accepts the owner's figure for today's use when the app missed part of the day; it replaces that day's start with the period use at saving minus the figure, applies only on that local date and provider period, also drives that day's history bar, and is kept 35 days. Percent windows have no such figure. The Copilot premium pool (`premium_interactions`, GH-P) is shown in "credits", the owner's identification of the pool as AI credits, and optionally in US dollars at an owner-editable rate per limit, defaulting to GitHub's published $0.01 per AI credit. Dollars are a display of the credit facts, rounded down to the cent; caps stay stored in whole credits, so switching units or changing the rate never rewrites them and the converted provider limit stays the largest cap (D-194). The settings live in a popover on each limit and in the window preferences, not in global settings, and nothing new is sent to a provider. This amends AIU-008 AC-03's rule that requests and credits are never relabelled, for this pool only. See [AIU-053](../specs/AIU-053-today-use-and-credit-dollars/spec.md).
 
+Amended by D-203 (2026-10-08): A cap is set only in the limit settings.
+
 ### D-200 - Cards are not tab stops; Esc hides the keyboard focus frame
 Owner direction, 2026-10-08, in conversation, after a focus frame stayed on a provider card after an action and Esc did not remove it. A card is no longer a tab stop: Tab moves between the controls inside it, and F2, C, Alt+↑/↓ and ← → work from any of them; Enter on the History button opens history, and its tooltip no longer says "(Enter)". When an action moves focus (closing history, hiding or showing a limit, reordering, ending a rename or cap edit, choosing an account in the tray, arming Delete stored data), focus goes to the card's first control or to Cancel and shows the frame only when the last input was the keyboard. With nothing left to close, Esc hides the frame and focus stays on the same control. This amends the AIU-038 keyboard section (cards in the tab order, Enter on a card opens history).
+
+Amended by D-204 (2026-10-08): The tray is a focus-free miniature with provider icons and a five-hour ring.
+Amended by D-205 (2026-10-08): Click a name to rename; drag a grip to order subscriptions.
 
 ### D-201 - Attention is a true orange
 Owner direction, 2026-10-08, in conversation (variant A of three), after `cap close` read as red. The attention colours from the AIU-034 reference (#D97757 / #A35C44 / #E78E6E, hue about 15°) sat only about 7° from critical red (#E5604A) and read as red on the dark card. Attention becomes a true orange at hue about 28°: mark #E58A3C, hatch #A8652E, text #F0A060, and its pill the mark at 14 %. Critical red, the amber of a waiting sign-in (#E8B04B, hue about 39°) and every state-to-tone rule of D-192 are unchanged. Contrast on the card improves: attention text on its pill 5.67:1 (was 5.04:1), the mark on the card 5.80:1 (was 4.86:1). This amends the AIU-038 token table; see [AIU-038 section 7](../specs/AIU-038-ledger-presentation/spec.md#7-tokens-and-styles).

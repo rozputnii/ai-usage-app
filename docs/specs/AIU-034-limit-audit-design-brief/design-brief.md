@@ -32,7 +32,7 @@ hierarchy below, with independent account labels, limits, budgets, history, stat
 and actions in the main window and tray. Adding another account must not disconnect
 the first. The one-per-provider counts in this original reference scenario remain
 fixture descriptions, not a restriction on AIU-039 delivery. See
-[AIU-039](../../backlog.md#aiu-039---astra-multi-account-live-adapters-new-presentation-and-windows-acceptance)
+[AIU-039](../../backlog.md#done-index)
 for lifecycle and acceptance requirements.
 
 The four glance questions, verbatim from the specification, and the section 3 element that

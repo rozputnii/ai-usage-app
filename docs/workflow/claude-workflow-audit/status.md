@@ -387,6 +387,22 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     fresh headless session lists the eight model-invocable repo skills and no `superpowers:`
     skill (PASS); C2 PASS; C6 PASS.
 
+- **2026-10-09 — step 6a, lean records (OD-19), part 1.**
+  - Validator, test-first (3 new tests red, then 86/86 PASS): Done index rows count as backlog
+    items (status done or dropped, evidence required for done); a verification
+    "## Acceptance results" table must cover every specification AC and use PASS, FAIL,
+    NOT_RUN or BLOCKED (records without that heading are not checked, so history is not
+    rewritten); decision IDs are unique; "Amended by" / "Superseded by" pointers must resolve.
+  - Backlog: 35 done or dropped items became one Done index row each (11,434 → 3,719 words);
+    21 live items keep their blocks. One link to a removed backlog anchor fixed.
+  - Decisions: "Amended by" back-pointers on 17 earlier decisions (22 relations found by
+    scanning "amends/replaces/supersedes" sentences; one false positive excluded).
+  - formats.md: backlog, decisions and executed-plan rules, the spec and verification
+    skeletons, and the new validator contract.
+  - Not yet done: collapsing the 26 executed tasks.md plans into ledgers (next, as parallel
+    docs tasks).
+  - Checks: C1 PASS (86); C2 PASS; C6 PASS.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
