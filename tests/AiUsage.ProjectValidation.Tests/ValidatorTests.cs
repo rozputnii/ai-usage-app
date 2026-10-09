@@ -172,7 +172,9 @@ public sealed class ValidatorTests
         using var root = new Fixture();
         root.Put("docs/specs/T-001/verification.md", "# Verification\n\n## Acceptance results\n\n| AC | Verdict | Evidence |\n| --- | --- | --- |\n| AC-01 | owner-reported PASS (2026-10-10) | installed Preview |\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
-        root.Replace("docs/specs/T-001/verification.md", "owner-reported PASS", "owner-reported maybe");
+        root.Replace("docs/specs/T-001/verification.md", "owner-reported PASS (2026-10-10)", "owner-reported PASS");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AC-01" && d.Code == "INVALID_STATUS");
+        root.Replace("docs/specs/T-001/verification.md", "owner-reported PASS", "owner-reported maybe (2026-10-10)");
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AC-01" && d.Code == "INVALID_STATUS");
     }
 

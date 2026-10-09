@@ -196,7 +196,7 @@ public static class ProjectValidator
         foreach (var (id, verdict) in rows)
         {
             if (!criteria.Contains(id)) error(file, id, "AC_REFERENCE", "Acceptance result names a criterion that the specification lacks.");
-            if (!Regex.IsMatch(verdict, @"^(?:owner-reported (?:PASS|FAIL)|PASS|FAIL|NOT_RUN|BLOCKED)\b")) error(file, id, "INVALID_STATUS", "Verdict must start with PASS, FAIL, NOT_RUN, BLOCKED, or owner-reported PASS or FAIL.");
+            if (!Regex.IsMatch(verdict, @"^(?:owner-reported (?:PASS|FAIL) \(\d{4}-\d{2}-\d{2}\)|(?:PASS|FAIL|NOT_RUN|BLOCKED)\b)")) error(file, id, "INVALID_STATUS", "Verdict must start with PASS, FAIL, NOT_RUN, BLOCKED, or owner-reported PASS or FAIL with its date in parentheses.");
         }
         foreach (var id in criteria.Where(c => !rows.Any(r => r.Id == c))) error(file, id, "AC_COVERAGE", "Acceptance results omit a specification criterion.");
     }

@@ -149,7 +149,8 @@ is not completion. No model vendor or family is prescribed.
   boundary, or is a reproducible defect; it needs file:line evidence and a failing test or
   a reproduction. Report at most five Minor findings. Zero findings is a valid result.
 - One review round, then a re-check of the fixed lines only, without an automatic
-  full-review loop. Unresolved material findings block integration. Report an
+  full-review loop. Unresolved material findings block integration; in a parallel run the
+  whole-feature review's findings become follow-ups (Parallel work). Report an
   unavailable required review honestly.
 - For a bug fix, the reviewer confirms in a temporary worktree outside the checkout that
   the new test fails at the base commit.
@@ -168,8 +169,9 @@ verification of the integrated result.
   procedure: simple single-purpose commands, background tasks or Monitor instead of
   sleep, unit suites and builds per worker, reports returned as messages.
 - Workers may merge verified work into `main` and push it under the Git flow above, so a
-  worker's worktree branches from up-to-date `main`, not from the primary's task branch.
-  Workers do not add backlog items or decisions; the primary owns those and their numbering.
+  worker's worktree branches from up-to-date `main`, not from the primary's task branch
+  (`git fetch origin`, then `git worktree add -b <branch> <path> origin/main`). Workers
+  do not add backlog items or decisions; the primary owns those and their numbering.
 - Desktop smokes run under the desktop lock in
   [verification](docs/workflow/verification.md#desktop-smokes). A worker whose change has
   product inputs runs the launch smoke (C8) before its own push to `main`; after the tasks
