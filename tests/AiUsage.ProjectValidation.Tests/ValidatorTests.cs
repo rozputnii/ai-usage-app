@@ -130,6 +130,63 @@ public sealed class ValidatorTests
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "T-001" && d.Code == "DUPLICATE_ID");
     }
 
+    [Theory]
+    [InlineData("T-NEW")]
+    [InlineData("T-NEW-2")]
+    public void DoneIndexMayHoldAPlaceholderRowThatTheFinalCheckRefuses(string placeholder)
+    {
+        using var root = new Fixture();
+        root.Put("docs/evidence.md", "# Evidence\n");
+        root.Replace("docs/product/goals.md", "- scope: T-001", $"- scope: T-001, {placeholder}");
+        root.Append("docs/backlog.md", $"\n## Done index\n\n| Item | Title | Status | Goal | Evidence |\n| --- | --- | --- | --- | --- |\n| {placeholder} | Branch work | done | G-001 | docs/evidence.md |\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        Assert.Contains(ProjectValidator.Validate(root.Path, final: true), d => d.Task == placeholder && d.Code == "PLACEHOLDER_ID");
+    }
+
+    [Theory]
+    [InlineData("| T-02 | Two digits | done | G-001 | docs/evidence.md |", "T-02", "INVALID_ID")]
+    [InlineData("| [T-002](docs/evidence.md) | Linked | done | G-001 | docs/evidence.md |", "[T-002](docs/evidence.md)", "REQUIRED_METADATA")]
+    [InlineData("| T-002 | Extra | column | done | G-001 | docs/evidence.md |", "T-002", "REQUIRED_METADATA")]
+    [InlineData("| T-002 | Missing evidence | done | G-001 |", "T-002", "REQUIRED_METADATA")]
+    public void MalformedDoneIndexRowsAreReported(string row, string task, string code)
+    {
+        using var root = new Fixture();
+        root.Put("docs/evidence.md", "# Evidence\n");
+        root.Append("docs/backlog.md", $"\n## Done index\n\n| Item | Title | Status | Goal | Evidence |\n| --- | --- | --- | --- | --- |\n{row}\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.File == "docs/backlog.md" && d.Task == task && d.Code == code);
+    }
+
+    [Fact]
+    public void DuplicateDoneIndexRowsAreReported()
+    {
+        using var root = new Fixture();
+        root.Put("docs/evidence.md", "# Evidence\n");
+        root.Replace("docs/product/goals.md", "- scope: T-001", "- scope: T-001, T-002");
+        root.Append("docs/backlog.md", "\n## Done index\n\n| Item | Title | Status | Goal | Evidence |\n| --- | --- | --- | --- | --- |\n| T-002 | One | done | G-001 | docs/evidence.md |\n| T-002 | Two | done | G-001 | docs/evidence.md |\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "T-002" && d.Code == "DUPLICATE_ID");
+    }
+
+    [Fact]
+    public void AcceptanceResultsAcceptAnOwnerReportedVerdict()
+    {
+        using var root = new Fixture();
+        root.Put("docs/specs/T-001/verification.md", "# Verification\n\n## Acceptance results\n\n| AC | Verdict | Evidence |\n| --- | --- | --- |\n| AC-01 | owner-reported PASS (2026-10-10) | installed Preview |\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        root.Replace("docs/specs/T-001/verification.md", "owner-reported PASS", "owner-reported maybe");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AC-01" && d.Code == "INVALID_STATUS");
+    }
+
+    [Fact]
+    public void DecisionPointersResolveAcrossBothRegisters()
+    {
+        using var root = new Fixture();
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### R-002 - Current\nText.\n\nAmended by R-003 (2026-10-09): narrowed.\n");
+        root.Put("docs/decisions/superseded.md", "# Superseded\n\n### R-001 - Old\nText.\n\nSuperseded by R-002 (2026-10-09): replaced.\n\n### R-003 - Later retired\nText.\n");
+        Assert.Empty(ProjectValidator.Validate(root.Path));
+        root.Append("docs/decisions/superseded.md", "\nSuperseded by R-009 (2026-10-09): missing.\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.File == "docs/decisions/superseded.md" && d.Task == "R-009" && d.Code == "MISSING_REFERENCE");
+    }
+
     [Fact]
     public void FeatureMayOmitInternalTasks()
     {
