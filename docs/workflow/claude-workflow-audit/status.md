@@ -558,6 +558,24 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     branch's `R-NEW`…`R-NEW-13` (OD-32), all inside the files `Set-ItemNumbers.ps1` numbers.
   - Host: the stale `D-NEW-2` in the memory index now reads `R-NEW-2`.
 
+- **2026-10-09 — owner decisions OD-32 to OD-39 applied.** OD-34: the archived nested
+  instruction file renamed to `AGENTS.md.txt` with a README line. OD-36 and OD-37: backlog items
+  `T-NEW` and `T-NEW-2` (G-003). OD-38: `csharp-lsp` 1.0.0 enabled at project scope. OD-33,
+  host cleanup after a fresh read-only audit of 25 worktrees (all heads ancestors of
+  `origin/main`, no tracked changes, no stash, no unpushed commits):
+  - 22 worktrees removed with `git worktree remove` (no `--force`, none refused): 11 subagent
+    `agent-*` worktrees and 11 of already archived desktop sessions (archiving had not removed
+    their worktrees; a resumed session checks its branch out again). Their branches stay.
+  - Before removal, each worktree's `.ai-usage-local/` and `.superpowers/` moved to the main
+    checkout's `.ai-usage-local/worktree-archive/<worktree>/` (17 folders, 157 MB, of which
+    149 MB is one rebuildable size-smoke build), and the untracked old
+    `.claude/agents/aiu-*.md` copies deleted after a hash match with the main checkout's copies.
+  - Kept: `kanban-ai-task-management-0acbf2` (pinned session) and
+    `tray-miniature-order-refresh-21ddf3` (open session with Remote Control), this session's
+    worktree and `s2-smoke` (removed after the merge). An empty unregistered folder was removed.
+  - "Archive inactive sessions" set from Never to 7 days (Settings → Claude Code; undo there).
+  - The script is `od33-cleanup.ps1` in this session's scratchpad; nothing in the repo changed.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
