@@ -74,8 +74,11 @@ stays valid.
 Each part's own bounds are intersected into the pool in that order. At the first
 part whose bounds do not intersect the pool, that part and all older parts are
 excluded. A change in the provider's weighting or a model violation therefore
-removes stale readings without waiting 28 days. If the newest part's own pairs
-conflict, there is no estimate.
+removes stale readings without waiting 28 days. A part whose own pairs conflict,
+for example several windows stored as one instance, says nothing about the cost
+and is skipped before pooling, so the other parts keep the last known cost. Owner
+direction, 2026-10-09: the number of five-hour windows in the weekly limit almost
+never changes, so the earlier estimate stays shown until new readings refine it.
 
 **Point estimate.** `C = √(L H)`, the geometric middle of the interval. It
 minimizes the worst relative error, which is at most `√(H / L)`: about 12 % when

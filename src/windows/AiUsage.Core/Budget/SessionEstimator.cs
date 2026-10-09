@@ -27,6 +27,9 @@ public static class SessionEstimator
             pair.FiveHour.AccountTarget != pair.Weekly.AccountTarget || pair.FiveHour.Limit.Provider != pair.Weekly.Limit.Provider || pair.FiveHour == pair.Weekly)
             return SessionEstimate.Empty;
         var parts = Parts(readings.ToArray(), pair, now);
+        // A part whose own pairs cannot share one cost (for example several windows stored as one instance) says nothing
+        // about the cost: skip only it, so the other parts keep the last known cost.
+        parts.RemoveAll(part => Bounds(part, double.PositiveInfinity) is var (l, h) && l > h);
         double high = double.PositiveInfinity, low = 0;
         for (int pass = 0; pass < 4 && parts.Count > 0; pass++)
         {
