@@ -53,7 +53,7 @@ dotnet_diagnostic.CA1001.severity = suggestion
 
 [src/windows/AiUsage.Windows/Features/{Accounts/AccountDetailViewModel,Overview/AccountRowViewModel}.cs]
 # Existing sparkline cancellation sources lack deterministic disposal. Deferred lifecycle
-# work must cover replacement, in-flight queries and view removal together; T-07 does not
+# work must cover replacement, in-flight queries and view removal together; T-028.7 does not
 # change that behavior. Retain the diagnostic as an explicit, file-scoped suggestion.
 dotnet_diagnostic.CA1001.severity = suggestion
 

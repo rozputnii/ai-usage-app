@@ -15,7 +15,7 @@
     <PublishAot>false</PublishAot>
     <WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <!-- AIU-046: source-generated kernel32 restart registration (LibraryImport needs it). -->
+    <!-- T-046: source-generated kernel32 restart registration (LibraryImport needs it). -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>

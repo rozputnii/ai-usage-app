@@ -4,6 +4,10 @@
 #   AIU-nnn -> T-nnn and AIU-NEW -> T-NEW (work items, spec folders)
 #   T-xx -> T-nnn.k (steps inside an item): the item is the last AIU-nnn named earlier on the same line,
 #          otherwise the item that owns the spec folder; elsewhere a T-xx without such a line context stays
+#          Limitation: this is a heuristic. On a line that names another item before a step of the folder's own
+#          item ("AIU-043 tests ... | T-01 |"), the step gets the wrong item; the first run produced 16 such
+#          references, corrected by hand. After every re-run, review each converted step whose item differs from
+#          the folder's item against the original text (git diff), and fix wrong owners by hand.
 #   D-nnn -> R-nnn and D-NEW -> R-NEW (decisions)
 #   Markdown heading anchors (#aiu-nnn, #d-nnn, #...t-xx...) follow the same rules.
 # Markdown is converted in full; C#, PowerShell and YAML only in comments, XAML and manifests only in <!-- -->.
@@ -48,7 +52,8 @@ try {
         $bom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
         $offset = if ($bom) { 3 } else { 0 }
         $original = [Text.UTF8Encoding]::new($false).GetString($bytes, $offset, $bytes.Length - $offset)
-        $item = if ($file -match '^docs/specs/AIU-(\d{3})-') { $Matches[1] } else { '' }
+        # A folder this branch already renamed still owns the bare steps that a merge from main brings into it.
+        $item = if ($file -match '^docs/specs/(?:AIU|T)-(\d{3})-') { $Matches[1] } else { '' }
         if ($file -match '\.md$') { $text = Convert-Text $original $item }
         elseif ($file -match '\.(xaml|appxmanifest)$') {
             $text = [regex]::Replace($original, '(?s)<!--.*?-->', { param($m) Convert-Text $m.Value '' })

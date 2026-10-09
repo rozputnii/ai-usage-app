@@ -1,6 +1,6 @@
 # T-045 fix run: orchestration prompt
 
-**Status:** owner-requested execution prompt, authored 2026-10-06. It turns the accepted decisions AIU045-D1..D9 and tasks T-045.1..T-04 of the [analysis record](analysis-2026-10-05.md) into one long primary session with parallel subagents. It grants nothing by itself; authority comes from the record's accepted decisions, CONTRIBUTING.md and the owner's kickoff answers in section 2.
+**Status:** owner-requested execution prompt, authored 2026-10-06. It turns the accepted decisions AIU045-D1..D9 and tasks T-045.1..T-045.4 of the [analysis record](analysis-2026-10-05.md) into one long primary session with parallel subagents. It grants nothing by itself; authority comes from the record's accepted decisions, CONTRIBUTING.md and the owner's kickoff answers in section 2.
 
 **How the owner starts it.** Open a new Claude Code session in the repository root on `main` and send:
 
@@ -16,7 +16,7 @@ You are the primary session: a senior .NET/WinUI engineer, the architect and the
 
 Binding inputs, read in this order before anything else:
 
-1. [analysis-2026-10-05.md](analysis-2026-10-05.md): sections 3 (root cause), 5 (findings), 6 (P0 and gates), 7 (decisions, all accepted 2026-10-06), 8 (T-045.1..T-04), 11 (next action).
+1. [analysis-2026-10-05.md](analysis-2026-10-05.md): sections 3 (root cause), 5 (findings), 6 (P0 and gates), 7 (decisions, all accepted 2026-10-06), 8 (T-045.1..T-045.4), 11 (next action).
 2. [spec.md](spec.md) (AC-01..AC-05, boundaries) and [verification.md](verification.md) (AUD-01..AUD-10, FIX-01..FIX-14).
 3. [CONTRIBUTING.md](../../../CONTRIBUTING.md), [AGENTS.md](../../../AGENTS.md), [formats.md](../../workflow/formats.md), [verification policy](../../workflow/verification.md), [logging guide](../../workflow/logging.md).
 4. The project review skill `.agents/skills/convergence-review/SKILL.md`, and the superpowers skills `subagent-driven-development`, `dispatching-parallel-agents`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`.
@@ -128,7 +128,7 @@ Owner checkpoint: dispatch Preview, installed-build checks; then N post-install 
 
 1. Verify: `git status` clean; `git rev-parse HEAD` equals `origin/main`; `gh variable get AIU_PREVIEW_ENABLED` prints `false`; no other agent session is writing to this repository; `wsb list --raw` returns no running Sandbox.
 2. Create the agent definitions (section 4) and the workspace and ledger (section 5). Record `BASE=<sha>`.
-3. Write `tasks.md`, run `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` (expect `{"valid":true,...}`), commit `docs(T-045): register fix-run tasks T-045.1..T-04 with parallel ownership`, push, watch CI.
+3. Write `tasks.md`, run `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` (expect `{"valid":true,...}`), commit `docs(T-045): register fix-run tasks T-045.1..T-045.4 with parallel ownership`, push, watch CI.
 4. Write the pre-flight conflict table into the ledger.
 
 ### Wave 1 (parallel)
@@ -168,7 +168,7 @@ Then stop at the owner checkpoint (section 9).
 
 Each block is copied verbatim into a brief. "Writes" is the exclusive write-set; anything outside it is out of scope for that agent. Commands run from the worktree root unless stated.
 
-### A - Dispatch-only Preview publication and T-014 records (T-014.1, closes ANL-01, ANL-03 code side; D1a)
+### A - Dispatch-only Preview publication and T-014 records (T-045.1, closes ANL-01, ANL-03 code side; D1a)
 
 - agent: aiu-implementer; worktree
 - writes: `.github/workflows/validation.yml`, `tools/windows/PreviewRelease.psm1`, `tools/windows/Publish-Preview.ps1`, `tests/release/Test-PreviewRelease.ps1`, `README.md` (Preview section only), `docs/specs/T-014-preview-updates/spec.md`, `docs/specs/T-014-preview-updates/verification.md`, `docs/specs/T-014-preview-updates/bug-2026-10-04-installer-connection-aborted.md`, `docs/decisions/accepted.md` (R-157 entry only)
@@ -250,7 +250,7 @@ Each block is copied verbatim into a brief. "Writes" is the exclusive write-set;
   1. CONTRIBUTING Git policy: save points run CI normally and never carry `[skip ci]`; Previews publish only through an explicit owner `workflow_dispatch` (AIU045-D1); a green push to `main` is a candidate, not a release. CONTRIBUTING review paragraph: a Preview is an owner-test build; its gate is the D4 list; full independent review stays for public release approval or explicit owner request.
   2. `docs/workflow/verification.md`: a "Preview gate" section (D4a): required on the exact commit are CI `validate` and `windows-package` green, an ordinary `--demo` startup smoke of the Release candidate when `src` changed, a primary diff review, and an explicit owner dispatch; opt-in only are the Sandbox UI corpus, gallery and control matrices, package, upgrade and feed smoke (for manifest, packaging, update or migration changes), live-provider checks (provider or auth changes, with authorization) and independent review on the CONTRIBUTING triggers.
   3. `docs/backlog.md`: amend the T-014 `scope-note` with one sentence dated 2026-10-06 (dispatch-only publication per AIU045-D1). Do not change any status.
-  4. D6(a) annotations: add a "Post-done corrections (2026-10-06)" section to the T-039, T-043 and T-044 verification records, listing the FIX IDs that belong to each task (T-044: FIX-03, 04, 05, 06, 11, 12; T-039: FIX-01, 02, 07, 08, 09, 10, 13, 14; T-043: the AC-08 startup-ordering change), the fixing commits (derive from `git log 383644c..HEAD` and the audit report), and the never-accepted gaps: T-043 AC-13 packaged Open logs NOT_RUN and the undiagnosed device-code display delay; T-044 installed-app repeat-launch and lease fault fixed with unpackaged evidence only. Mark each gap "pending the owner's installed-build check (T-045 T-045.3)". Do not reopen the tasks.
+  4. D6(a) annotations: add a "Post-done corrections (2026-10-06)" section to the T-039, T-043 and T-044 verification records, listing the FIX IDs that belong to each task (T-044: FIX-03, 04, 05, 06, 11, 12; T-039: FIX-01, 02, 07, 08, 09, 10, 13, 14; T-043: the AC-08 startup-ordering change), the fixing commits (derive from `git log 383644c..HEAD` and the audit report), and the never-accepted gaps: T-043 AC-13 packaged Open logs NOT_RUN and the undiagnosed device-code display delay; T-044 installed-app repeat-launch and lease fault fixed with unpackaged evidence only. Mark each gap "pending the owner's installed-build check (T-045.3)". Do not reopen the tasks.
   5. T-045 `verification.md`: AUD-10 frozen as historical; AUD-05..AUD-09 recorded as opt-in follow-ups with their exact next action unchanged; note that generated CSVs now default to `.ai-usage-local/ui-audit/coverage/` (task F). `docs/workflow/ui-ux-audit-2026-10-04/report.md` and `gallery.md`: add a first-line banner "Historical record, frozen 2026-10-06 (T-045 AUD-10); not maintained."
   6. Run the canonical validator; commit.
 - acceptance: validator passes; every sentence above is present with its date; no status field changed.

@@ -10,6 +10,7 @@ public static class ProjectValidator
     private static readonly string[] BacklogStates = ["idea", "research-needed", "blocked", "ready", "selected", "in-progress", "paused", "review", "done", "dropped"];
     private static readonly string[] TaskStates = ["pending", "ready", "in-progress", "blocked", "done", "dropped"];
     private static readonly string[] DocStates = ["draft", "approved", "implementing", "implemented", "superseded"];
+    private static readonly string[] DecisionRegisters = ["docs/decisions/accepted.md", "docs/decisions/superseded.md"];
     private static readonly TimeSpan MatchTimeout = TimeSpan.FromSeconds(2);
     private static MatchCollection Matches(string text, string pattern) => Regex.Matches(text, pattern, RegexOptions.Multiline | RegexOptions.CultureInvariant, MatchTimeout);
     private static string Value(Block block, string name) => block.Fields.GetValueOrDefault(name, "");
@@ -86,8 +87,10 @@ public static class ProjectValidator
             foreach (var id in List(Value(goal, "scope")))
                 if (!items.Any(i => i.Id == id && Value(i, "goal") == goal.Id)) Error(goal.File, goal.Id, "MISSING_REFERENCE", "Goal scope names a missing or differently owned item.");
         CheckDependencies(items, Error);
-        foreach (var register in new[] { "docs/decisions/accepted.md", "docs/decisions/superseded.md" })
-            if (documents.TryGetValue(register, out var decisions)) CheckDecisions(register, decisions, Error);
+        var registers = DecisionRegisters.Where(documents.ContainsKey).ToArray();
+        // Pointers may cross registers: a superseded decision names its accepted successor.
+        var decisionIds = registers.SelectMany(r => DecisionIds(documents[r])).ToHashSet(StringComparer.Ordinal);
+        foreach (var register in registers) CheckDecisions(register, documents[register], decisionIds, Error);
         // OD-31: the former AIU-nnn and D-nnn headings are no longer parsed, so refuse them instead of skipping them.
         foreach (Match legacy in Matches(WithoutFences(documents.GetValueOrDefault("docs/backlog.md", "")), @"^## (AIU-[^ ]+) - "))
             Error("docs/backlog.md", legacy.Groups[1].Value, "INVALID_ID", "Backlog items use T-nnn or T-NEW.");
@@ -170,10 +173,14 @@ public static class ProjectValidator
         var section = Regex.Match(WithoutFences(text), @"(?ms)^## Done index[ \t]*$(.*?)(?=^## |\z)", RegexOptions.None, MatchTimeout);
         var rows = new List<Block>();
         if (!section.Success) return rows;
-        foreach (Match row in Matches(section.Groups[1].Value, @"^\| *(T-[^ |]+) *\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|[ \t]*$"))
+        foreach (Match line in Matches(section.Groups[1].Value, @"^\|.*$"))
         {
+            if (Regex.IsMatch(line.Value, @"^\| *(?:Item *\||:?-{3,})", RegexOptions.None, MatchTimeout)) continue;
+            var row = Regex.Match(line.Value, @"^\| *(T-[^ |]+) *\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|[ \t]*$", RegexOptions.None, MatchTimeout);
+            if (!row.Success)
+            { error("docs/backlog.md", line.Value.Split('|')[1].Trim(), "REQUIRED_METADATA", "Done index row needs five plain cells: Item, Title, Status, Goal, Evidence."); continue; }
             var id = row.Groups[1].Value;
-            if (!Regex.IsMatch(id, @"^T-\d{3}$")) error("docs/backlog.md", id, "INVALID_ID", "ID must use T and 3 digits.");
+            if (!Regex.IsMatch(id, ItemId)) error("docs/backlog.md", id, "INVALID_ID", "ID must use T and 3 digits, or T-NEW on a branch.");
             if (rows.Any(b => b.Id == id)) error("docs/backlog.md", id, "DUPLICATE_ID", "Duplicate ID in document namespace.");
             rows.Add(new(id, "docs/backlog.md", row.Value, new() { ["status"] = row.Groups[3].Value.Trim(), ["goal"] = row.Groups[4].Value.Trim(), ["depends_on"] = "[]", ["evidence"] = row.Groups[5].Value.Trim() }));
         }
@@ -189,21 +196,23 @@ public static class ProjectValidator
         foreach (var (id, verdict) in rows)
         {
             if (!criteria.Contains(id)) error(file, id, "AC_REFERENCE", "Acceptance result names a criterion that the specification lacks.");
-            if (!Regex.IsMatch(verdict, @"^(PASS|FAIL|NOT_RUN|BLOCKED)\b")) error(file, id, "INVALID_STATUS", "Verdict must start with PASS, FAIL, NOT_RUN or BLOCKED.");
+            if (!Regex.IsMatch(verdict, @"^(?:owner-reported (?:PASS|FAIL)|PASS|FAIL|NOT_RUN|BLOCKED)\b")) error(file, id, "INVALID_STATUS", "Verdict must start with PASS, FAIL, NOT_RUN, BLOCKED, or owner-reported PASS or FAIL.");
         }
         foreach (var id in criteria.Where(c => !rows.Any(r => r.Id == c))) error(file, id, "AC_COVERAGE", "Acceptance results omit a specification criterion.");
     }
 
-    // OD-19: decision numbers are unique, and "Amended by" / "Superseded by" pointers name an existing decision.
-    private static void CheckDecisions(string file, string text, Action<string, string, string, string> error)
+    private static string[] DecisionIds(string text) => Matches(WithoutFences(text), @"^### (R-[^ ]+) - ").Select(m => m.Groups[1].Value).ToArray();
+
+    // OD-19: decision numbers are unique, and "Amended by" / "Superseded by" pointers name an existing decision in either register.
+    private static void CheckDecisions(string file, string text, HashSet<string> allIds, Action<string, string, string, string> error)
     {
+        var ids = DecisionIds(text);
         text = WithoutFences(text);
         foreach (Match legacy in Matches(text, @"^### (D-[^ ]+) - ")) error(file, legacy.Groups[1].Value, "INVALID_ID", "Decisions use R-nnn or R-NEW.");
-        var ids = Matches(text, @"^### (R-[^ ]+) - ").Select(m => m.Groups[1].Value).ToArray();
         foreach (var id in ids.Where(i => !Regex.IsMatch(i, @"^R-(?:\d{3}|NEW(?:-\d+)?)$"))) error(file, id, "INVALID_ID", "Decision ID must use R and 3 digits.");
         foreach (var id in ids.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key)) error(file, id, "DUPLICATE_ID", "Duplicate decision ID.");
         foreach (var id in Matches(text, @"^(?:Amended|Superseded) by (R-(?:\d{3}|NEW(?:-\d+)?))\b").Select(m => m.Groups[1].Value).Distinct())
-            if (!ids.Contains(id)) error(file, id, "MISSING_REFERENCE", "Amendment pointer names a decision that does not exist.");
+            if (!allIds.Contains(id)) error(file, id, "MISSING_REFERENCE", "Amendment pointer names a decision that does not exist.");
     }
 
     private static void CheckEvidence(string root, Block block, Action<string, string, string, string> error)
