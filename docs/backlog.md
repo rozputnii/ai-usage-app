@@ -596,6 +596,15 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - registration-note: The owner listed seven changes on 2026-10-08 and chose a thin ring arc, a grip drag, a 1–60 min stepper and the main limit only in the tray. The owner asked for parallel execution by autonomous subagents that merge and push without questions; the plan is tasks.md in the specification folder.
 - completion-note: Implemented and verified 2026-10-08 by eleven parallel workers, each reviewed and integrated into main, then the integrated regression suites, the Release build and the launch, card editing, refresh and work budget desktop smokes in the demo app; a whole-feature review found no critical or important issue. The owner checks the updated installed app after deployment (D-190); that check is NOT_RUN.
 
+## AIU-056 - Tray icon handle leak and TrayFailure log flood
+- goal: G-003
+- status: ready
+- depends_on: []
+- trigger: owner-selection
+- outcome: The tray icon keeps updating its colour for days of uptime: each redraw releases the icon handle it replaces, and a tray failure that repeats is logged once with a count instead of on every attempt.
+- acceptance: A test or a bounded probe shows the process handle count stays flat over thousands of tray glyph updates; a recurring failure produces one detailed record plus a coalesced count; the Infrastructure and Presentation suites, the Release build without warnings and the demo startup smoke pass. The owner checks the installed app's logs after deployment (D-190).
+- registration-note: Found on 2026-10-09 in the installed app's logs (2026.10.837.0 and earlier): 5,778 TrayFailure errors (ExternalException, hResult -2147467259) from `TrayGlyph.Create` through `LedgerWindow.UpdateTrayGlyph` in three sessions. Each time they began 5.5 to 8 hours after launch, and every later attempt failed until the app restarted. `TrayGlyph.Create` returns `Icon.FromHandle(bitmap.GetHicon())`, and nothing destroys that handle or disposes the replaced icon, so every card rebuild probably leaks one icon handle until the process runs out; each failure is also logged, about three records a minute.
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |
