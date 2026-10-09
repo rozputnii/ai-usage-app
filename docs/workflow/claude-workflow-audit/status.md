@@ -103,6 +103,26 @@ Living log for the workflow-optimization effort. Read this first in every sessio
     - OD-7's new repo skills also live in `.agents/skills`; a Claude slash command, if
       needed, is a thin `.claude/` wrapper pointing to the canonical file.
     - OD-13 must be reframed: no "Claude Code only" decision.
+- **2026-10-09, OD-12 = yes.** One generalized reviewer and one implementer agent are
+  versioned in Git.
+  - simple-implementer is merged into the implementer.
+  - The contracts are canonical under `.agents/`, and `.claude/agents/*.md` are thin Claude
+    wrappers.
+  - Models are given as aliases.
+- **2026-10-09, OD-13 = yes, reframed.** The agent-neutral policy stays; no "Claude Code
+  only" decision is recorded.
+  - Removed: retired-tool configuration (`.codex/` with the astra subagent, `.omp/`, the
+    `.omp` ignore lines).
+  - Kept: the thin `.github/copilot-instructions.md` adapter.
+  - Finished and paused workflow records move to `docs/archive/` with corrected status
+    headers.
+  - The personal email and session IDs are redacted from environment.md and pending.md.
+- **2026-10-09, OD-14 = yes.** T0-T3 tiers go into CONTRIBUTING.
+  - T3 is set by the touched-area list, the highest trigger wins, and the reviewer checks
+    the diff against the list.
+  - Local `/code-review` for T1 and T2; `/security-review` inside T3 review.
+  - Bug-fix tests must fail at the base commit.
+  - Red-to-green is written into CONTRIBUTING.
 
 ## Open owner decisions
 
