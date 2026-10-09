@@ -655,10 +655,17 @@ work continues on the recommended path unless it is marked as waiting.
   C8 3/3, C9 PASS (unsigned MSIX), C10 22 + 101, numbering 25; C6 failed on two
   whitespace-only lines in Stage 1 lane reports, stripped, then PASS over `3724a17..HEAD`.
 
+- **2026-10-10 — after the merge.** Pushed to `main` as `97311e9` (fast-forward) and the
+  remote task branch deleted. The first `main` run (Validation 38004473970) passed: validate,
+  windows-package and preview; the new decision step published ("product inputs changed since
+  the served Preview 3724a17"). The main checkout's untracked old `.claude/agents/aiu-*.md`
+  moved to `.ai-usage-local/backup/2026-10-10-claude-agents/` and the checkout fast-forwarded;
+  the `s2-smoke` worktree removed after archiving its `.ai-usage-local/`, and its branch
+  deleted; the no-repeated-approval-gates memory entry pruned (backup in
+  `memory-archive/2026-10-10/`).
+
 ## Next action
 
-Stage 2 is merged into `main`. After the merge: watch the first CI run of the new Preview
-decision step; back up and remove the untracked old `.claude/agents/aiu-*.md` in the main
-checkout (they block `git pull` there); remove the `s2-smoke` worktree and its branch; prune
-the no-repeated-approval-gates memory entry. OD-10's one-week auto-mode trial starts when the
-owner picks Auto as the permission mode.
+Stage 2 is done and on `main`. Owner: start OD-10's one-week auto-mode trial by picking Auto
+as the permission mode, and revert to bypass at the first false block of a routine action,
+noting it here. T-057 and T-058 wait for owner selection.
