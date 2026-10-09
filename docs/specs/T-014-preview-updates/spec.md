@@ -9,7 +9,7 @@ approval_basis: Derived from the owner's 2026-09-22 request for automatic main-p
 # Automatic development Preview updates
 
 Each successful main push run that changed product inputs since the Preview the feed
-serves (R-NEW-9, 2026-10-09) produces a distinct signed development MSIX (restored
+serves (R-216, 2026-10-09) produces a distinct signed development MSIX (restored
 2026-10-06 by owner decision after the AIU045-D1 dispatch-only interval; an owner
 dispatch can republish). The only
 current audience is the owner as tester; public trust and Stable promotion remain

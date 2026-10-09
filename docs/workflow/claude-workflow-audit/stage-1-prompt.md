@@ -33,7 +33,7 @@ separate until the owner decides the optimization is complete and approves mergi
 - At the start of every session and before writing conclusions, fetch origin and merge
   origin/main into the branch, so the analysis reflects current main; resolve conflicts
   preserving both sides' intent and note anything that invalidates earlier findings.
-- New backlog items or decisions created on this branch use AIU-NEW / D-NEW placeholders
+- New backlog items or decisions created on this branch use `AIU-NEW` / `D-NEW` placeholders
   per CONTRIBUTING.md; real numbers are assigned only at the final merge.
 - Save this prompt verbatim as docs/workflow/claude-workflow-audit/stage-1-prompt.md
   in the first commit.
@@ -60,7 +60,7 @@ A4 Session transcripts (~\.claude\projects\...\*.jsonl for this project; split i
    lanes by date range if large): owner interruptions, questions the agent could have
    decided, re-asked settled questions, permission prompts, rework loops, long stalls.
 A5 Git and CI history: fix-after-feat chains (e.g. AIU-055 T-09/T-10), merge and
-   AIU-NEW/D-NEW renumbering churn, CI duration and failure causes (read-only gh).
+   `AIU-NEW`/`D-NEW` renumbering churn, CI duration and failure causes (read-only gh).
 A6 Tests and checks: suites, measured timings, smoke lanes, redundant or low-value tests,
    gaps that let bugs reach deploy, verification-matrix cost vs value.
 Part B — external research (current, primary sources preferred; judge fit for a solo
@@ -121,3 +121,9 @@ low-value tests and checks). Anything with real value goes to KEEP.
 ## Final reply
 Top 5 recommendations in one line each, the owner decisions, the report path, and
 explicit push status of the workflow-optimization branch (state that main is untouched).
+
+---
+
+Record note (2026-10-10, OD-30): the two placeholder mentions above were wrapped in code
+spans at the merge so that the final document validation passes; this is the only change to
+the verbatim prompt.

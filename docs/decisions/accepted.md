@@ -42,7 +42,7 @@ Share requirements, provider semantics, research and sanitized fixtures. Do not 
 ### R-012 - Development harness
 Owner-approved agent-neutral amendment, 2026-09-14: Development is agent-neutral. Root AGENTS.md is the common entry point; specialized guidance has one active copy in .agents/skills. No workflow runtime or plugin is required.
 
-Amended by R-NEW-10 (2026-10-09): agent contracts in `.agents/agents/`, thin Claude Code pointers, and project-level plugin switches.
+Amended by R-217 (2026-10-09): agent contracts in `.agents/agents/`, thin Claude Code pointers, and project-level plugin switches.
 
 ## AI workflow and autonomy
 
@@ -112,7 +112,7 @@ Owner-approved agent-neutral amendment, 2026-09-14: Version authored instruction
 ### R-034 - Skills
 Owner-approved agent-neutral amendment, 2026-09-14: Keep essential instructions and the selective map in root AGENTS.md. Read specialized .agents/skills guidance on demand; native discovery is optional.
 
-Amended by R-NEW-10 (2026-10-09): thin native wrappers in `.claude/skills/` point to the canonical `.agents/skills/` copies.
+Amended by R-217 (2026-10-09): thin native wrappers in `.claude/skills/` point to the canonical `.agents/skills/` copies.
 
 ### R-035 - AI infrastructure changes
 Owner-approved agent-neutral amendment, 2026-09-14: Respect current owner scope for workflow changes. Repository guidance does not grant native tool privileges.
@@ -530,7 +530,7 @@ Disconnect/reset must not modify original CLI credentials or delete exports save
 ### R-154 - CI
 Owner-approved agent-neutral amendment, 2026-09-14: CI retains validator regressions and document validation, adds deterministic product regressions on Windows, and retains unsigned package/routing builds and smoke-harness publication. Formatting remains local. Cancel obsolete PR runs; live provider and interactive UI execution are separate evidence.
 
-Amended by R-NEW-13 (2026-10-09): CI no longer builds the routing spike.
+Amended by R-220 (2026-10-09): CI no longer builds the routing spike.
 
 ### R-155 - Test-first policy
 Use test-first for parsers, authentication, token refresh, repositories, security logic and bug fixes. Test UI/configuration proportionally. Never fabricate passing verification.
@@ -545,7 +545,7 @@ Owner amendment (2026-10-06, AIU045-D1): Previews publish only through an explic
 
 Owner amendment (2026-10-06, later the same day): reverses the AIU045-D1 amendment. Every green main push publishes a Preview automatically again; an owner dispatch with `PublishPreview=true` can republish.
 
-Amended by R-NEW-9 (2026-10-09): a push publishes only when product inputs changed since the Preview the feed serves.
+Amended by R-216 (2026-10-09): a push publishes only when product inputs changed since the Preview the feed serves.
 
 ### R-158 - No downgrade on channel switch
 Switching Preview to Stable changes the feed but keeps the newer installed binary until Stable catches up. Keep ForceUpdateFromAnyVersion disabled.
@@ -615,12 +615,12 @@ On 2026-09-14 a live console sign-in proved the owner's account carries a `chatg
 ### R-178 - Direct main development until the first release
 Owner-approved agent-neutral amendment, 2026-09-14: The former direct-main default is superseded. Follow the sole Git policy in [CONTRIBUTING](../../CONTRIBUTING.md#git-flow); historical task permission is not current authority.
 
-Superseded by R-NEW (2026-10-09): task branches and verified merges into `main`.
+Superseded by R-208 (2026-10-09): task branches and verified merges into `main`.
 
 ### R-179 - Automatic publication of completed task branches
 Owner amendment after the agent-neutral migration, 2026-09-14: automatically commit and push each owner-selected task after completion, review and successful required verification. This is a standing task-branch publication instruction, not a direct-main or automatic task-selection grant. The sole operative Git policy and its boundaries are in [CONTRIBUTING](../../CONTRIBUTING.md#git-flow).
 
-Superseded by R-NEW (2026-10-09): task branches and verified merges into `main`.
+Superseded by R-208 (2026-10-09): task branches and verified merges into `main`.
 
 ## Owner UI amendments
 
@@ -694,7 +694,7 @@ Owner direction, 2026-10-08, in conversation (T-052, design B of three). The tit
 Owner direction, 2026-10-08, in conversation. The owner runs tasks in parallel worktrees, and numbers taken from a stale `main` collided (T-048 and R-189 were renumbered on 2026-10-07, R-195 on 2026-10-08). Branch work names a new backlog item and its specification folder `T-NEW` and a new decision `R-NEW`, with `-2`, `-3` for more. Right before merging, the agent fetches and merges fresh `main`, replaces every placeholder with the next free number there, runs the document validation with `--final`, commits and pushes at once, and repeats if the push is rejected. The validator accepts placeholders for branch work, and its `--final` mode, which CI uses, refuses any placeholder outside code. The owner chose placeholders over provisional numbers. See the [numbering rule](../../CONTRIBUTING.md#numbering).
 
 
-Amended by R-NEW-11 (2026-10-09): placeholders are `T-NEW` and `R-NEW`, numbered by a script.
+Amended by R-218 (2026-10-09): placeholders are `T-NEW` and `R-NEW`, numbered by a script.
 ### R-197 - Settings drops down over the body; the window opens at its minimum width
 Owner direction, 2026-10-08, in conversation (settings at full width and the shortest history text, each the recommended variant of two or three). Settings is a sheet over the whole window body, below the title row and the sign-in strip, that rolls down from the top and back up; the cards stay where they are and leave the tab order while it covers them. Inline history shows only the account name, the period and the day count ("7d · 35 days") above the chart: the "use per local day · from this app's readings" text, the "← → day · Esc closes" hint and the legend paragraph are removed, and the keys still work. The main window opens at its content-based minimum width (R-195) instead of 760 px. This amends R-193's sheet that slides in from the right and narrows the cards, and T-038 S4's history header and legend.
 
@@ -735,41 +735,41 @@ Owner direction, 2026-10-09, in conversation. A tooltip opens only when the mous
 
 ## Workflow amendments
 
-### R-NEW - Task branches, save points on the branch, verified merges into main
+### R-208 - Task branches, save points on the branch, verified merges into main
 Owner decisions OD-2 and OD-3 of the [workflow audit](../workflow/claude-workflow-audit/status.md), 2026-10-09. Each task runs on its own branch, normally the desktop app's worktree branch. Save-point commits are pushed to `origin/<task-branch>`, which runs no CI and publishes nothing, after each meaningful step and before going idle. Only verified work merges into `main`, and the remote task branch is deleted after the merge. A Preview still publishes automatically from `main` after a verified merge that changes product inputs (see the [merge gate](../workflow/verification.md#merge-gate)). When a required smoke is BLOCKED, a change that touches Windows UI, tray, launch or lifetime code stays on its branch until the smoke passes or the owner approves that change; other product changes covered by unit tests may merge with the smoke recorded BLOCKED. This replaces the 2026-09-20 direct-main instruction ("do not create new branches; push work in progress to `main`"), R-178 and R-179. See the [Git flow](../../CONTRIBUTING.md#git-flow).
 
-### R-NEW-2 - When agents ask the owner
+### R-209 - When agents ask the owner
 Owner decisions OD-4 and OD-5 of the workflow audit, 2026-10-09. AGENTS.md holds an always-ask list (new scope or product intent, significant architecture or complexity, security boundaries, destructive or external authority, dependencies, visible UI variants) and a never-ask list. Inside that authority the agent's recommendation is the default and the agent records the reason. A result the owner reports is recorded as owner-reported PASS without asking. Prompts written for primary sessions inherit standing policy unless the owner narrows it in the current request. Unattended runs skip always-ask work and list those questions at the checkpoint. Worker subagents may merge verified work into `main` and push it without a per-run grant. This also records the 2026-10-07 direction that one owner approval covers the path from design to a verified merge, without repeated approval gates.
 
-### R-NEW-3 - Risk tiers and proportional review
+### R-210 - Risk tiers and proportional review
 Owner decisions OD-14, OD-15, OD-16 and OD-18 of the workflow audit, 2026-10-09. CONTRIBUTING defines tiers T0 to T3; the tier is the highest one that any touched area triggers, from a published T3 area list that the reviewer checks against the diff. T1 and T2 get one fresh-context review of the integrated diff and local `/code-review`; T3 adds a blocking focused independent review with `/security-review`. A fresh-context read-only subagent counts as independent. Bug-fix tests must fail at the base commit, and red-to-green testing is part of CONTRIBUTING. In parallel runs each code, test or harness task gets a per-task review, docs tasks a primary check (rule and agent-configuration edits are T3), and one whole-feature review always runs; one round, then a re-check of the fixed lines. The primary may start parallel worktree workers itself for at least three independent tasks with non-overlapping write sets, at most about four at once. Evidence is recorded once per wave or at feature end, without separate per-task record commits.
 
-### R-NEW-4 - Plugin skills are optional tools
+### R-211 - Plugin skills are optional tools
 Owner decision OD-6 of the workflow audit, 2026-10-09. Repository rules win over plugin process. A plugin's spec-review, execution-mode and finish-branch prompts are answered in advance by the standing rules, and no `.superpowers` or `docs/superpowers` artifacts outlive the session.
 
-### R-NEW-5 - Verification targets ordinary desktop use
+### R-212 - Verification targets ordinary desktop use
 Owner direction, 2026-10-03, recorded 2026-10-09. AI Usage is a personal app for the owner's ordinary desktop use. Agents do not run or expand scope for screen-reader, contrast-theme, extreme zoom/DPI or unusual-display checks unless the owner asks for that work again, do not change host display or accessibility settings for a test matrix, and keep the native window and tray chrome instead of adding custom chrome for those cases. Normal launch, core interactions and relevant regressions stay required. This supersedes older accessibility and display-matrix requirements in task references.
 
-### R-NEW-6 - Minimum sufficient complexity
+### R-213 - Minimum sufficient complexity
 Owner direction, 2026-10-03, recorded 2026-10-09. Implement the requested functionality with the least code and complexity that remains correct, readable and easy to change; add layers, interfaces, dependencies or configuration only for a concrete current requirement; ask the owner before materially increasing complexity. See [CONTRIBUTING](../../CONTRIBUTING.md#simplicity-and-architecture).
 
-### R-NEW-7 - UI design variants before implementation
+### R-214 - UI design variants before implementation
 Owner direction, 2026-10-07, recorded 2026-10-09. When a change visibly alters the UI (layout, card structure, controls, copy placement), the agent first proposes 2-3 short rendered design variants with a recommendation in one question and implements the owner's pick. Bug fixes that restore already approved UI need no variants. The pick is recorded as one line in the feature's spec.
 
-### R-NEW-8 - Push status in every final reply
+### R-215 - Push status in every final reply
 Owner direction, 2026-10-08, recorded 2026-10-09. Every final reply that follows commits states the push status, so the owner never has to ask: after `git fetch` confirms the commits are in `origin/main`, "Pushed to `main`" with the hash or hashes; otherwise what is pushed where, what is not, and why.
 
-### R-NEW-9 - Previews publish only for product changes
+### R-216 - Previews publish only for product changes
 Owner decision OD-17 of the workflow audit, 2026-10-09. A green push to `main` publishes a Preview unless every path changed since the Preview the feed serves is on the non-product allowlist: `docs/**`, `.claude/**`, `.agents/**` and Markdown files at the repository root. Any other path, including an unknown kind of file, is a product input and publishes. The same "product inputs" definition decides when the launch smoke is required before a merge. The workflow records each decision and its reason in the job summary; an owner dispatch with `PublishPreview=true` always publishes, and `AIU_PREVIEW_ENABLED` stays the kill switch. This amends R-157.
 
-### R-NEW-10 - Repository skills replace the superpowers plugin
+### R-217 - Repository skills replace the superpowers plugin
 Owner decisions OD-7, OD-8, OD-11, OD-12 and OD-20 of the workflow audit, 2026-10-09. The project stays agent-neutral: AGENTS.md is the mandatory entry point, canonical skills live in `.agents/skills/` and agent contracts in `.agents/agents/`, and Claude Code files (`CLAUDE.md`, `.claude/skills/`, `.claude/agents/`) are thin pointers to them. One reviewer and one implementer contract are versioned; models are given as aliases. The repository skills planning-and-variants and plan-execution replace the superpowers planning and execution skills; systematic-debugging, verification-before-completion and receiving-code-review are vendored from superpowers v6.4.2 at a pinned commit; post-deploy-check runs only when the owner asks. Every superpowers skill is mapped to a replacement in the [mapping](../workflow/claude-workflow-audit/superpowers-mapping.md). The project settings disable superpowers, ux-superpowers, design-superpowers, desktop-commander and the design plugin for this repository only. This amends R-012 and R-034: discovery through thin native wrappers is now provided, while `.agents/skills` stays the only canonical copy.
 
-### R-NEW-11 - Item, step and decision IDs
+### R-218 - Item, step and decision IDs
 Owner decision OD-31 of the workflow audit, 2026-10-09. Work items (features and bugs) are `T-nnn` and keep their former `AIU-nnn` numbers; steps inside an item are `T-nnn.k`; decisions are `R-nnn` and keep their former `D-nnn` numbers. Branch placeholders are `T-NEW` and `R-NEW`, numbered at the merge by `tools/windows/Set-ItemNumbers.ps1`. Git history, the archive and the Stage 1 audit records keep the old prefixes with the same numbers, as do paths into the ignored `.ai-usage-local` root. Decision IDs have three digits, which tells them apart from the two-digit `R-xx` requirements inside specifications (OD-35). This amends R-196.
 
-### R-NEW-12 - Lean work records
+### R-219 - Lean work records
 Owner decision OD-19 of the workflow audit, 2026-10-09. The backlog keeps live items in full, one "Done index" row per done or dropped item and one "Pending owner checks" table. An executed plan collapses into an execution ledger in its verification record (task, commits, review verdict, check IDs, grant, open next action). A decision record is written only for a rule that binds future work; an owner's pick among UI variants is one line in the spec. An amended decision carries an "Amended by" line. The validator checks the Done index, decision ID uniqueness, amendment pointers and "Acceptance results" coverage. See [document formats](../workflow/formats.md).
 
-### R-NEW-13 - CI no longer builds the routing spike
+### R-220 - CI no longer builds the routing spike
 Owner decision OD-26 of the workflow audit, 2026-10-09. CI no longer builds the T-002 standalone native routing reproduction; the `spikes/windows/AIU-002-routing` folder stays in the repository. The rest of the R-154 CI scope is unchanged. This amends R-154.

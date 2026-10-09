@@ -257,7 +257,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - logging.md gained the Logging policy; the ANL-11 lesson moved to architecture.md;
     goals.md has a current direction paragraph; README's commands moved to verification.md;
     host facts copied to [host-environment.md](../host-environment.md).
-  - Decisions R-NEW to R-NEW-8 added (Git flow, ask lists, tiers, plugin precedence, and four
+  - Decisions R-208 to R-215 added (Git flow, ask lists, tiers, plugin precedence, and four
     back-filled directions); R-178 and R-179 marked superseded.
   - Rule-inventory diff for the owner: [rule-inventory.md](rule-inventory.md).
   - Checks: C2 PASS; C6 PASS; C3 FAIL with only `PLACEHOLDER_ID` diagnostics (the two known
@@ -345,7 +345,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     `.claude/**`, `.agents/**`, root `*.md`; unknown paths publish).
   - OD-26: the T-002 routing-spike build step is removed; `spikes/windows/AIU-002-routing`
     stays.
-  - README's Preview paragraph and R-NEW-9 (amends R-157, with an "Amended by" line there).
+  - README's Preview paragraph and R-216 (amends R-157, with an "Amended by" line there).
   - Checks: C10 red first (`Test-PreviewInputsChanged` not found), then PASS (80 assertions,
     Windows PowerShell 5.1; CI runs it under pwsh). The decision script, extracted from the
     workflow and run locally against the real release list with simulated push variables:
@@ -368,7 +368,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   skip after a run failed between making its release public and updating the feed. Fixed: the
   base is now the source of the build the feed serves (`feed-preview`'s App Installer version →
   its `preview-*` release), `--no-renames`, case-sensitive folder allowlist, tests anchored to
-  the publish step, and AGENTS/README/verification/R-NEW-9 say "since the served Preview".
+  the publish step, and AGENTS/README/verification/R-216 say "since the served Preview".
   Checks: C10 PASS (85); the revised decision script against the real feed: `origin/main` skip
   (0 paths), `4206880` skip (31 docs paths), HEAD publish (PASS); C2 PASS; C6 PASS.
 
@@ -386,7 +386,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - Backlog: one "Pending owner checks" table with eight open post-deploy checks
     (T-045, 048, 050-055).
   - Mapping of all 15 superpowers skills to replacements: [superpowers-mapping.md](superpowers-mapping.md).
-    Then `"superpowers@synced": false` in `.claude/settings.json`. R-NEW-10 records the agent
+    Then `"superpowers@synced": false` in `.claude/settings.json`. R-217 records the agent
     and skill layout and amends R-012 and R-034.
   - Checks: `claude plugin list` shows all five plugins disabled for the project (PASS); a
     fresh headless session lists the eight model-invocable repo skills and no `superpowers:`
@@ -480,7 +480,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - `tools/windows/Set-ItemNumbers.ps1` (R13) numbers `T-NEW`/`R-NEW` from fresh `main`,
     skips code spans and fences, renames `T-NEW*` folders and runs `--final`;
     `tests/tools/Test-ItemNumbers.ps1` PASS (12). CONTRIBUTING, AGENTS, formats.md and the
-    backlog intro describe the scheme; R-NEW-11 (scheme, amends R-196) and R-NEW-12 (lean
+    backlog intro describe the scheme; R-218 (scheme, amends R-196) and R-219 (lean
     records) added.
   - `--final` lists this branch's `R-NEW` placeholders (OD-32), which `Set-ItemNumbers.ps1`
     numbers at the merge, and the two known stage-1-prompt mentions (OD-30 still applies: the
@@ -541,7 +541,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     parallel-run wording aligned with OD-5/OD-15/OD-16 (whole-feature review after the tasks
     land, workers branch from `main`, C8 before a worker's own push); the Sandbox audit runner
     passes `-explicit on`; the Preview decision moved into `Get-PreviewPublicationDecision`,
-    failing open on every lookup, diff or import error (C10 85 → 101); R-NEW-13 records OD-26
+    failing open on every lookup, diff or import error (C10 85 → 101); R-220 records OD-26
     and amends R-154; the 16 step references, 10 half-converted ranges and 9 archive links
     fixed by hand; the validator accepts `T-NEW` Done rows and dated "owner-reported" verdicts,
     resolves pointers across both registers and reports malformed Done rows (C1 89 → 98);
@@ -560,7 +560,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
 
 - **2026-10-09 — owner decisions OD-32 to OD-39 applied.** OD-34: the archived nested
   instruction file renamed to `AGENTS.md.txt` with a README line. OD-36 and OD-37: backlog items
-  T-NEW and T-NEW-2 (G-003). OD-38: `csharp-lsp` 1.0.0 enabled at project scope. OD-33,
+  T-057 and T-058 (G-003). OD-38: `csharp-lsp` 1.0.0 enabled at project scope. OD-33,
   host cleanup after a fresh read-only audit of 25 worktrees (all heads ancestors of
   `origin/main`, no tracked changes, no stash, no unpushed commits):
   - 22 worktrees removed with `git worktree remove` (no `--force`, none refused): 11 subagent
@@ -621,12 +621,12 @@ work continues on the recommended path unless it is marked as waiting.
   the test to 1-2 s and also speed real writes, but it is product code on the reparse-point
   safety boundary (T3, security-lifecycle review). *Recommendation:* approve it as a separate
   T3 item after this branch merges. Until then the test stays unchanged. Accepted 2026-10-09:
-  registered as backlog item T-NEW (cheaper store-growth cap check).
+  registered as backlog item T-057 (cheaper store-growth cap check).
 
 - **OD-37 — Five activation smokes already fail on `main`.** See step 5. *Recommendation:*
   register a backlog bug item for them (owner selection decides when it is fixed); until then a
   change that needs these smokes records them FAIL with this note. Accepted 2026-10-09:
-  registered as backlog item T-NEW-2, which now holds that note. ("On `main`" means at
+  registered as backlog item T-058, which now holds that note. ("On `main`" means at
   `27a14b0`, whose app and smoke code match `main`; the cases were not run on `main` itself.)
 
 - **OD-38 — Enable the C# language server for this project.** The OD-27 trial recommends

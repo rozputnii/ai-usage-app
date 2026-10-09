@@ -6,9 +6,10 @@
 # every path to them, code spans included, keeps a UTF-8 BOM where present, and runs the document validation
 # with --final. Review the diff, then commit and push at once.
 [CmdletBinding()]
-param([string] $Root = (Join-Path $PSScriptRoot '../..'), [switch] $SkipFinalCheck, [switch] $NoFetch)
+param([string] $Root, [switch] $SkipFinalCheck, [switch] $NoFetch)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+if (!$Root) { $Root = Join-Path $PSScriptRoot '../..' }
 $Root = (Resolve-Path $Root).Path
 Push-Location $Root
 try {

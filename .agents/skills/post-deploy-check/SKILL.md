@@ -4,7 +4,7 @@ description: Owner-invoked check of the installed Preview after an update. Use o
 ---
 # post-deploy-check
 
-Decisions R-NEW-10 and R-190: the owner's manual and live checks happen in the
+Decisions R-217 and R-190: the owner's manual and live checks happen in the
 installed app after deployment. This skill helps the owner close them. It runs only when the
 owner asks for it.
 

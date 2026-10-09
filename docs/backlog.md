@@ -39,7 +39,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - depends_on: [T-006]
 - trigger: before-public
 - outcome: Verify signing eligibility/identity and runtime prerequisite delivery. Implement monotonic version allocation, Releases/Pages/App Installer, channel switching and nonblocking updates.
-- scope-note: Owner selected an initial development-only phase on 2026-09-22: publish every successful main push and automatically update the owner's test installations. Use self-signed CI packages with one-time explicit tester trust; official signing/public distribution and Stable remain deferred. See docs/specs/T-014-preview-updates/spec.md. That phase was operational on 2026-09-23: signed Previews publish from main, and a Sandbox feed install then updated automatically. Official signing, Stable, channel switching and public distribution remain open. Public signing research draft: docs/specs/T-014-public-signing/spec.md. Owner decision 2026-09-24: personal tool; public signing, Store and Stable deferred (paused). Owner decision 2026-10-06 (AIU045-D1): Previews publish only through an explicit owner workflow_dispatch of a green main commit, replacing the 2026-09-22 publish-every-push rule; pushes to main, including save points, never publish. Owner decision later on 2026-10-06 reversed this: every green main push publishes again, and a dispatch can republish. Since 2026-10-09 (R-NEW-9), a push publishes only when product inputs changed since the Preview the feed serves.
+- scope-note: Owner selected an initial development-only phase on 2026-09-22: publish every successful main push and automatically update the owner's test installations. Use self-signed CI packages with one-time explicit tester trust; official signing/public distribution and Stable remain deferred. See docs/specs/T-014-preview-updates/spec.md. That phase was operational on 2026-09-23: signed Previews publish from main, and a Sandbox feed install then updated automatically. Official signing, Stable, channel switching and public distribution remain open. Public signing research draft: docs/specs/T-014-public-signing/spec.md. Owner decision 2026-09-24: personal tool; public signing, Store and Stable deferred (paused). Owner decision 2026-10-06 (AIU045-D1): Previews publish only through an explicit owner workflow_dispatch of a green main commit, replacing the 2026-09-22 publish-every-push rule; pushes to main, including save points, never publish. Owner decision later on 2026-10-06 reversed this: every green main push publishes again, and a dispatch can republish. Since 2026-10-09 (R-216), a push publishes only when product inputs changed since the Preview the feed serves.
 - specification: docs/specs/T-014-preview-updates/spec.md
 - evidence: docs/specs/T-014-preview-updates/verification.md
 
@@ -180,7 +180,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - acceptance: A test or a bounded probe shows the process handle count stays flat over thousands of tray glyph updates; a recurring failure produces one detailed record plus a coalesced count; the Infrastructure and Presentation suites, the Release build without warnings and the demo startup smoke pass. The owner checks the installed app's logs after deployment (R-190).
 - registration-note: Found on 2026-10-09 in the installed app's logs (2026.10.837.0 and earlier): 5,778 TrayFailure errors (ExternalException, hResult -2147467259) from `TrayGlyph.Create` through `LedgerWindow.UpdateTrayGlyph` in three sessions. Each time they began 5.5 to 8 hours after launch, and every later attempt failed until the app restarted. `TrayGlyph.Create` returns `Icon.FromHandle(bitmap.GetHicon())`, and nothing destroys that handle or disposes the replaced icon, so every card rebuild probably leaks one icon handle until the process runs out; each failure is also logged, about three records a minute.
 
-## T-NEW - Cheaper store-growth cap check
+## T-057 - Cheaper store-growth cap check
 - goal: G-003
 - status: ready
 - depends_on: []
@@ -189,7 +189,7 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - acceptance: The reparse-point refusals keep their tests and still fail closed (security-lifecycle review, T3); the cap test keeps its assertions and gets markedly faster (target about 1-2 s, from about 13 s); the Infrastructure suite and the Release build without warnings pass.
 - registration-note: Workflow audit OD-36, approved 2026-10-09 as a separate T3 item after the workflow-optimization branch merges. A Stage 2 measurement found about 9.7 s of the test's 12.5 s in `BudgetJsonFile.EnsureCapacity`, about 33k reparse-point checks for 256 files.
 
-## T-NEW-2 - Five activation smokes fail
+## T-058 - Five activation smokes fail
 - goal: G-003
 - status: ready
 - depends_on: []

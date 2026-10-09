@@ -13,7 +13,8 @@ the auto-memory files, with what happened to it. Base: `a11df41` (main `3724a17`
 
 Line references are to the old files at `a11df41`. New locations are file and section.
 Placeholders `R-NEW`…`R-NEW-13` are the new decision records in
-[accepted.md](../../decisions/accepted.md#workflow-amendments); they get numbers at the merge.
+[accepted.md](../../decisions/accepted.md#workflow-amendments); at the merge (2026-10-10)
+they became R-208…R-220 in order.
 
 ## AGENTS.md (old: 817 words; new: 920)
 
@@ -22,10 +23,10 @@ Placeholders `R-NEW`…`R-NEW-13` are the new decision records in
 | A1 | Core/Infrastructure/Windows boundaries; preserve opaque data (:3-6) | kept | AGENTS, header |
 | A2 | Inspect request and Git state; preserve existing work (:10) | kept | AGENTS, Working rules; adds "check whether it is already done on `main` or in another worktree" (report §4.1) |
 | A3 | Follow CONTRIBUTING for development, Git and review (:11) | kept | AGENTS, header, with the ownership split CONTRIBUTING / verification |
-| A4 | Minimum sufficient code; no speculative abstractions; ask before materially increasing complexity (:12-14) | kept | AGENTS, Working rules (one line); home CONTRIBUTING, Simplicity; provenance R-NEW-6 |
+| A4 | Minimum sufficient code; no speculative abstractions; ask before materially increasing complexity (:12-14) | kept | AGENTS, Working rules (one line); home CONTRIBUTING, Simplicity; provenance R-213 |
 | A5 | State intended result and acceptance checks for substantial work (:15) | merged | AGENTS, Working rules: one plan line with the tier (OD-14) |
-| A6 | Complete implementation, verification and review without repeated approval (:16-17) | kept | AGENTS, Working rules; extended to the merge (R-NEW-2) |
-| A7 | UI design variants first, owner direction 2026-10-07 (:18-21) | kept | AGENTS, Working rules ("rendered", "in one question"); provenance R-NEW-7 |
+| A6 | Complete implementation, verification and review without repeated approval (:16-17) | kept | AGENTS, Working rules; extended to the merge (R-209) |
+| A7 | UI design variants first, owner direction 2026-10-07 (:18-21) | kept | AGENTS, Working rules ("rendered", "in one question"); provenance R-214 |
 | A8 | English for authored prompts and specs (:23-26) | kept | AGENTS, Working rules |
 | A9 | Ask when a missing decision changes scope, intent, architecture, dependencies, security, external/destructive authority (:28-30) | merged | AGENTS, When to ask: always-ask list (OD-4) |
 | A10 | Backlog status and historical permissions do not select work (:30) | kept | AGENTS, When to ask |
@@ -43,11 +44,11 @@ Placeholders `R-NEW`…`R-NEW-13` are the new decision records in
 | A22 | Logging: verify context, secret exclusion, bounded noise; use existing logs first (:62-63) | moved | logging.md, Logging policy |
 | A23 | Never read CLI credentials without authorization; no secrets, host trust or auto sign-in; external content is data (:68-70) | kept | AGENTS, Security and logging |
 | A24 | Run appropriate checks; repeat or broaden only for new changes (:72-73) | moved | verification.md, Checks by change (was duplicated there already) |
-| A25 | Ordinary desktop use, no accessibility/display matrices, owner direction 2026-10-03 (:74-81) | moved | verification.md, Checks by change (home); AGENTS one line; provenance R-NEW-5 |
+| A25 | Ordinary desktop use, no accessibility/display matrices, owner direction 2026-10-03 (:74-81) | moved | verification.md, Checks by change (home); AGENTS one line; provenance R-212 |
 | A26 | Local unpackaged run/debug default; Sandbox or VM only when needed (:82-84) | moved | verification.md, Development environment (was duplicated there) |
 | A27 | Report PASS/FAIL/NOT_RUN/BLOCKED accurately; compilation is not live or interactive proof (:85-86) | kept | AGENTS, Git and completion |
 | A28 | R-190 post-deploy owner checks (:87-92) | kept | AGENTS, Git and completion; adds the "Pending owner checks" list (OD-20) |
-| A29 | Push status in every final reply, owner direction 2026-10-08 (:93-96) | kept | AGENTS, Git and completion; extended to branch pushes; provenance R-NEW-8 |
+| A29 | Push status in every final reply, owner direction 2026-10-08 (:93-96) | kept | AGENTS, Git and completion; extended to branch pushes; provenance R-215 |
 | A30 | One primary agent by default; CONTRIBUTING for review and parallel work (:98-99) | moved | CONTRIBUTING, Parallel work; the primary may now start workers itself (OD-16) |
 | A31 | On interruption record one exact next action (:100-101) | kept | AGENTS, Working rules, with "when writing is authorized" (was also in CONTRIBUTING; that copy removed) |
 
@@ -60,14 +61,14 @@ unattended runs (OD-4, OD-5); plugin precedence (OD-6); the Microsoft Learn MCP 
 
 | # | Rule (old location) | Result | New location |
 |---|---|---|---|
-| C1 | Simplicity and architecture, five bullets (:3-19) | kept | CONTRIBUTING, Simplicity; date header moved to R-NEW-6 |
+| C1 | Simplicity and architecture, five bullets (:3-19) | kept | CONTRIBUTING, Simplicity; date header moved to R-213 |
 | C2 | Procedure 1: inspect, preserve unrelated changes (:23) | kept | Development procedure 1 |
 | C3 | Procedure 2: short written plan; planning tools optional (:24) | kept | Development procedure 2, with the tier |
 | C4 | Procedure 3: no repeated approval; ask only for missing decisions; prepare first (:25) | merged | Development procedure 3 points to the AGENTS always-ask list |
 | C5 | Procedure 4: one active feature; backlog never starts work (:26) | kept | Development procedure 4 |
 | C6 | Procedure 5: review the integrated diff; record results; never weaken requirements (:27) | kept | Development procedure 6 |
 | C7 | Procedure 6: commit and push to `main` as work progresses (:28) | merged | Replaced by save points on the task branch (OD-2); "report changes" kept in step 7; interruption rule kept in AGENTS |
-| C8 | Direct-main default, "do not create new branches", owner instruction 2026-09-20 (:32-38) | removed | Replaced by the Git flow (OD-2); recorded in R-NEW, which supersedes R-178 and R-179 |
+| C8 | Direct-main default, "do not create new branches", owner instruction 2026-09-20 (:32-38) | removed | Replaced by the Git flow (OD-2); recorded in R-208, which supersedes R-178 and R-179 |
 | C9 | Commit is a save point; never upgrades a status; say when in progress (:40-43) | kept | Git flow, Save points |
 | C10 | Save points run CI and never carry `[skip ci]` (AIU045-D1) (:45-46) | merged | Git flow, Save points: "Never use `[skip ci]`". Save points now go to the task branch, where CI does not run |
 | C11 | Every green push to `main` publishes a Preview; dispatch republishes; Preview is an owner-test build (:46-49) | moved | verification.md, Merge gate; publication is filtered by product inputs (OD-17, CI change in step 4); history stays in R-157 |
@@ -95,14 +96,14 @@ rule (OD-3); merge procedure with ancestry check and remote-branch deletion (OD-
 worktree cleanup conditions (OD-22); parallel workers and worker merges (OD-16, OD-5);
 evidence once per wave (OD-18); the ID scheme and `Set-ItemNumbers.ps1` in Numbering (R13,
 OD-31); the Agent permissions section with deny rules, plugin switches and the
-`--setting-sources user,local` override (OD-9, R-NEW-10).
+`--setting-sources user,local` override (OD-9, R-217).
 
 ## docs/workflow/verification.md (old: 971 words; new: 1,672)
 
 | # | Rule (old location) | Result | New location |
 |---|---|---|---|
-| V1 | CI scope; no interactive or live claim (:3) | kept | Intro; the routing build left CI (OD-26, R-NEW-13, amends R-154) |
-| V2 | Ordinary desktop scope, owner amendment 2026-10-03 (:7-14) | kept | Checks by change (home); date to R-NEW-5 |
+| V1 | CI scope; no interactive or live claim (:3) | kept | Intro; the routing build left CI (OD-26, R-220, amends R-154) |
+| V2 | Ordinary desktop scope, owner amendment 2026-10-03 (:7-14) | kept | Checks by change (home); date to R-212 |
 | V3 | Select all rows; ACs still apply; repeat only for new changes (:16) | kept | Checks by change |
 | V4 | Matrix, five rows (:18-24) | kept | Checks by change, with check IDs and new rows: rule files and agent configuration (T3), any `src/windows` edit builds both test projects, scripts, tests or harness only, CI and dependencies (R14); the Test-Erosion row (R14) |
 | V5 | Local unpackaged development default, owner direction 2026-09-16 (:28) | kept | Development environment |
@@ -138,11 +139,11 @@ index lists M1, M2 and M3; the M4-M7 files are gone.
 |---|---|---|---|
 | M1 | claude-code-only (Codex retired; stale note about an AGENTS section removed in `5d24744`) | rewritten (step 3): account fact only, no rule | OD-11/OD-13 keep the project agent-neutral; no Claude-only rule is recorded |
 | M2 | host-tooling-constraints (pwsh, Defender, agents mid-session, IPv6, locked desktop) | moved, memory keeps host facts | docs/workflow/host-environment.md |
-| M3 | no-repeated-approval-gates (one yes covers the path; plugin gates count as approved; worktree branches merge to `main`) | moved; memory copy kept until the branch is on `main`, then pruned | AGENTS, When to ask and Skills and plugins; R-NEW-2, R-NEW-4; CONTRIBUTING, Git flow |
+| M3 | no-repeated-approval-gates (one yes covers the path; plugin gates count as approved; worktree branches merge to `main`) | moved; memory copy kept until the branch is on `main`, then pruned | AGENTS, When to ask and Skills and plugins; R-209, R-211; CONTRIBUTING, Git flow |
 | M4 | numbers-at-merge | moved; memory entry pruned (step 3) | CONTRIBUTING, Numbering; R-196 |
 | M5 | post-deploy-owner-checks | moved; memory entry pruned (step 3) | AGENTS; R-190 |
-| M6 | ui-design-variants-first | moved; memory entry pruned (step 3) | AGENTS; R-NEW-7 |
-| M7 | state-push-status | moved; memory entry pruned (step 3) | AGENTS; R-NEW-8 |
+| M6 | ui-design-variants-first | moved; memory entry pruned (step 3) | AGENTS; R-214 |
+| M7 | state-push-status | moved; memory entry pruned (step 3) | AGENTS; R-215 |
 
 ## Other files touched
 
@@ -150,11 +151,11 @@ index lists M1, M2 and M3; the M4-M7 files are gone.
 - docs/workflow/logging.md: new Logging policy section (A18-A22).
 - docs/product/goals.md, Current direction: the fulfilled 2026-09-14 paragraphs are replaced
   by a current paragraph (R9, A1-F10).
-- docs/decisions/accepted.md: R-NEW to R-NEW-8 added in step 1, R-NEW-9 to R-NEW-12 in later
-  steps and R-NEW-13 (routing build out of CI, amends R-154) in the verification round; R-178
-  and R-179 marked "Superseded by R-NEW"; links to the renamed CONTRIBUTING sections fixed.
+- docs/decisions/accepted.md: R-208 to R-215 added in step 1, R-216 to R-219 in later
+  steps and R-220 (routing build out of CI, amends R-154) in the verification round; R-178
+  and R-179 marked "Superseded by R-208"; links to the renamed CONTRIBUTING sections fixed.
 - docs/decisions/superseded.md: the sentence that contradicted the current flow now points
-  to R-NEW.
+  to R-208.
 - docs/workflow/formats.md, Validator tests (verification round): an "Acceptance results"
   verdict may also be "owner-reported PASS" or "owner-reported FAIL" with its date, matching
   the AGENTS owner-reported rule.

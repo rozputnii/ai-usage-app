@@ -110,7 +110,7 @@ cover force-push variants (including `--mirror` and `+refspec`), `gh release` an
 `gh workflow run` in Bash and PowerShell, and reads or edits of source-CLI credential
 stores. The plugin switches disable ux-superpowers, design-superpowers, desktop-commander,
 design and superpowers for this project; the superpowers skills in use have repository
-replacements (R-NEW-10). Deny rules apply in every permission mode, and a local allow
+replacements (R-217). Deny rules apply in every permission mode, and a local allow
 cannot lift them. Changing this file is T3 and needs the owner's decision. The patterns
 are a backstop only: other command spellings and scripts are not blocked. A read rule also
 blocks shell commands that name a denied file, such as `cat`, `head` or `Get-Content`, but
