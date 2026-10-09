@@ -1,6 +1,6 @@
 # Architecture and Clean-Code Audit Plan
 
-**Status:** Executed on 2026-09-20; the findings were remediated in [AIU-028](../../specs/AIU-028-architecture-remediation/spec.md). Archived on 2026-10-09 as a historical record. Original status line: ready for execution when the owner requests it. This document is the task plan
+**Status:** Executed on 2026-09-20; the findings were remediated in [AIU-028](../../specs/T-028-architecture-remediation/spec.md). Archived on 2026-10-09 as a historical record. Original status line: ready for execution when the owner requests it. This document is the task plan
 for an analysis-only session. It does not start remediation, authorize code changes, or grant
 remote, installation, live-provider or credential authority.
 
@@ -14,7 +14,7 @@ the detail the prompt refers to; the prompt owns the goal and the stop condition
 owns the checklist. If the two disagree, the current owner request wins, then CONTRIBUTING.md,
 then this file.
 
-**Relation to AIU-027:** [AIU-027](../../specs/AIU-027-architecture-refinement/spec.md) already
+**Relation to AIU-027:** [AIU-027](../../specs/T-027-architecture-refinement/spec.md) already
 refined Core, Infrastructure and Windows into feature-oriented boundaries and was closed with
 evidence on 2026-09-14. This audit measures the code as it stands today, including everything
 added by AIU-007, AIU-008, AIU-009 and AIU-010, and reports drift and newly accumulated debt.
@@ -60,9 +60,9 @@ The audit session is complete when all of the following hold:
 - `AGENTS.md`, `CONTRIBUTING.md`, [constitution](../../constitution.md), [goals](../../product/goals.md)
 - [verification policy](../../workflow/verification.md), [document formats](../../workflow/formats.md), `README.md#local-checks`
 - [backlog](../../backlog.md) for status and the next free `AIU-` identifier
-- [AIU-027 spec](../../specs/AIU-027-architecture-refinement/spec.md),
-  [design](../../specs/AIU-027-architecture-refinement/design.md) and
-  [verification](../../specs/AIU-027-architecture-refinement/verification.md)
+- [AIU-027 spec](../../specs/T-027-architecture-refinement/spec.md),
+  [design](../../specs/T-027-architecture-refinement/design.md) and
+  [verification](../../specs/T-027-architecture-refinement/verification.md)
 - [accepted decisions](../../decisions/accepted.md) and the
   [technical audit](../../decisions/technical-audit.md). A finding that contradicts an accepted
   decision must cite it and argue explicitly rather than ignore it.
