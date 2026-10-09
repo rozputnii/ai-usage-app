@@ -77,6 +77,26 @@ function Test-PreviewInputsChanged {
     }
     return $false
 }
+# OD-17 decide step. A push skips only when the served build's source commit is a known ancestor and
+# every changed path is non-product; a dispatch, an unknown source and any lookup failure publish.
+# The lookups are injected so C10 can drive each branch; reasons never carry exception text.
+function Get-PreviewPublicationDecision {
+    param([string]$EventName, [scriptblock]$GetServedCommit, [scriptblock]$TestAncestor, [scriptblock]$GetChangedPaths)
+    if ($EventName -ne 'push') { return [pscustomobject]@{ Publish = $true; Reason = 'owner dispatch' } }
+    try {
+        $base = [string](& $GetServedCommit)
+        if ($base -notmatch '^[0-9a-f]{40}$' -or !(& $TestAncestor $base)) {
+            return [pscustomobject]@{ Publish = $true; Reason = "the served Preview's source is unknown or not an ancestor of this commit ($base)" }
+        }
+        $changed = @(& $GetChangedPaths $base)
+        if (Test-PreviewInputsChanged -ChangedPaths $changed) {
+            return [pscustomobject]@{ Publish = $true; Reason = "product inputs changed since the served Preview $base" }
+        }
+        return [pscustomobject]@{ Publish = $false; Reason = "only non-product paths changed since the served Preview $base ($($changed.Count) paths)" }
+    } catch {
+        return [pscustomobject]@{ Publish = $true; Reason = 'a lookup failed; publish by default' }
+    }
+}
 function Assert-PreviewPublicationRunner {
     if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -notin 'push', 'workflow_dispatch' -or $env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_JOB -ne 'preview' -or
         $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:GITHUB_REPOSITORY -ne 'rozputnii/ai-usage-app') { throw 'Preview publication requires the owned hosted main push or owner dispatch.' }
@@ -111,4 +131,4 @@ function Remove-PreviewRunnerTrust {
         if ($store.Certificates.Find('FindByThumbprint', $Thumbprint, $false).Count) { throw 'Development root trust was not removed.' }
     } finally { $store.Dispose() }
 }
-Export-ModuleMember -Function Get-NextPreviewVersion, New-PreviewFeed, Test-PreviewPromotion, Test-PreviewInputsChanged, Assert-PreviewPublicationRunner, Add-PreviewRunnerTrust, Remove-PreviewRunnerTrust
+Export-ModuleMember -Function Get-NextPreviewVersion, New-PreviewFeed, Test-PreviewPromotion, Test-PreviewInputsChanged, Get-PreviewPublicationDecision, Assert-PreviewPublicationRunner, Add-PreviewRunnerTrust, Remove-PreviewRunnerTrust

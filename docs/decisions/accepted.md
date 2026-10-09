@@ -530,6 +530,8 @@ Disconnect/reset must not modify original CLI credentials or delete exports save
 ### R-154 - CI
 Owner-approved agent-neutral amendment, 2026-09-14: CI retains validator regressions and document validation, adds deterministic product regressions on Windows, and retains unsigned package/routing builds and smoke-harness publication. Formatting remains local. Cancel obsolete PR runs; live provider and interactive UI execution are separate evidence.
 
+Amended by R-NEW-13 (2026-10-09): CI no longer builds the routing spike.
+
 ### R-155 - Test-first policy
 Use test-first for parsers, authentication, token refresh, repositories, security logic and bug fixes. Test UI/configuration proportionally. Never fabricate passing verification.
 
@@ -768,3 +770,6 @@ Owner decision OD-31 of the workflow audit, 2026-10-09. Work items (features and
 
 ### R-NEW-12 - Lean work records
 Owner decision OD-19 of the workflow audit, 2026-10-09. The backlog keeps live items in full, one "Done index" row per done or dropped item and one "Pending owner checks" table. An executed plan collapses into an execution ledger in its verification record (task, commits, review verdict, check IDs, grant, open next action). A decision record is written only for a rule that binds future work; an owner's pick among UI variants is one line in the spec. An amended decision carries an "Amended by" line. The validator checks the Done index, decision ID uniqueness, amendment pointers and "Acceptance results" coverage. See [document formats](../workflow/formats.md).
+
+### R-NEW-13 - CI no longer builds the routing spike
+Owner decision OD-26 of the workflow audit, 2026-10-09. CI no longer builds the T-002 standalone native routing reproduction; the `spikes/windows/AIU-002-routing` folder stays in the repository. The rest of the R-154 CI scope is unchanged. This amends R-154.
