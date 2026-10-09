@@ -62,6 +62,8 @@ dotnet_diagnostic.CA1001.severity = suggestion
 # each test independent and readable instead of sharing mutable static fixture arrays.
 dotnet_diagnostic.CA1707.severity = suggestion
 dotnet_diagnostic.CA1861.severity = suggestion
+# A skipped test silently stops checking; remove or fix it instead.
+dotnet_diagnostic.xUnit1004.severity = error
 
 [tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs]
 # Deliberately inject System.Exception to exercise the unknown-failure boundary.
