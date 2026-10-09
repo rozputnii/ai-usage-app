@@ -46,7 +46,7 @@
               <Grid>
                 <TextBlock Text="Work days" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.WorkDaysNote)}" />
                 <lc:LedgerButton Style="{StaticResource LedgerIconButton}" HorizontalAlignment="Right" Command="{x:Bind ViewModel.Owner.ToggleSettingsCommand}"
-                        AutomationProperties.Name="Close settings" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Close (Esc)')}">
+                        AutomationProperties.Name="Close settings">
                   <Path Data="M2.5,2.5 L9.5,9.5 M9.5,2.5 L2.5,9.5" Stroke="{StaticResource LedgerInk2Brush}" StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="12" Height="12" />
                 </lc:LedgerButton>
               </Grid>
@@ -89,7 +89,7 @@
                         <TextBlock Grid.Column="2" Text="{x:Bind AmountText}" Style="{StaticResource LedgerStrongText}" VerticalAlignment="Center"
                                    Foreground="{x:Bind views:LedgerSettingsView.AmountBrush(IsApplied)}" />
                         <lc:LedgerButton Grid.Column="3" Style="{StaticResource LedgerIconButton}" Command="{x:Bind ActCommand}" IsEnabled="{x:Bind CanAct}"
-                                AutomationProperties.Name="{x:Bind ActionText}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ActionText)}">
+                                AutomationProperties.Name="{x:Bind ActionText}">
                           <FontIcon FontFamily="Segoe Fluent Icons" Glyph="{x:Bind views:LedgerSettingsView.ActionGlyph(ActionText)}" FontSize="12" Foreground="{StaticResource LedgerInk2Brush}" />
                         </lc:LedgerButton>
                       </Grid>
@@ -142,7 +142,7 @@
                     </lc:LedgerButton>
                     <TextBox x:Name="RefreshBox" Style="{StaticResource LedgerAmountBox}" Width="36" TextAlignment="Center" Text="{x:Bind ViewModel.RefreshText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              BeforeTextChanging="OnRefreshBeforeChanging" KeyDown="OnRefreshKeyDown" LostFocus="OnRefreshLostFocus" AutomationProperties.Name="Refresh interval in minutes">
-                      <TextBox.Resources><x:Double x:Key="TextControlThemeMinHeight">24</x:Double></TextBox.Resources>
+                      <TextBox.Resources><x:Double x:Key="TextControlThemeMinHeight">24</x:Double><x:Double x:Key="TextControlThemeMinWidth">36</x:Double></TextBox.Resources>
                     </TextBox>
                     <TextBlock Text="min" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
                     <lc:LedgerButton Style="{StaticResource LedgerIconButton}" Command="{x:Bind ViewModel.IncreaseRefreshCommand}" AutomationProperties.Name="Longer refresh interval">
@@ -174,7 +174,7 @@
                   </StackPanel>
                 </Border>
                 <lc:LedgerButton Style="{StaticResource LedgerIconButton}" HorizontalAlignment="Right" Command="{x:Bind ViewModel.CheckForUpdatesCommand}"
-                        Visibility="{x:Bind Show(ViewModel.CanCheckUpdates), Mode=OneWay}" AutomationProperties.Name="Check for updates" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Check for updates')}">
+                        Visibility="{x:Bind Show(ViewModel.CanCheckUpdates), Mode=OneWay}" AutomationProperties.Name="Check for updates">
                   <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE72C;" FontSize="13" Foreground="{StaticResource LedgerInk2Brush}" />
                 </lc:LedgerButton>
               </Grid>
@@ -223,7 +223,7 @@
                   <MenuFlyoutItem Text="Export recovery summary" Command="{x:Bind ViewModel.SupportCommand}" CommandParameter="{x:Bind contract:LedgerSupportAction.ExportRecovery}" />
                   <MenuFlyoutSeparator />
                   <MenuFlyoutItem Text="Delete stored data…" Command="{x:Bind ViewModel.ArmDeleteCommand}" AutomationProperties.Name="Delete stored data"
-                                  ToolTipService.ToolTip="History saved by older versions is kept separately and deleted too" />
+                                  ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('History saved by older versions is kept separately and deleted too')}" />
                 </MenuFlyout>
               </lc:LedgerButton.Flyout>
             </lc:LedgerButton>

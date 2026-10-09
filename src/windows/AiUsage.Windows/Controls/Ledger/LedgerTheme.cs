@@ -3,6 +3,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Windowing;
 using Windows.UI;
@@ -42,23 +43,6 @@ internal static class LedgerTheme
     {
         root.RequestedTheme = ElementTheme.Dark;
         root.HighContrastAdjustment = ElementHighContrastAdjustment.None;
-        ToolTip? focusedTip = null;
-        root.GotFocus += (_, args) =>
-        {
-            if (focusedTip is not null) focusedTip.IsOpen = false;
-            focusedTip = null;
-            for (var current = args.OriginalSource as DependencyObject; current is not null; current = VisualTreeHelper.GetParent(current))
-            {
-                if (current is not FrameworkElement element || ToolTipService.GetToolTip(element) is not { } content)
-                    continue;
-                focusedTip = content as ToolTip ?? Tip([content.ToString() ?? string.Empty]);
-                if (focusedTip is null) break;
-                focusedTip.PlacementTarget = element;
-                focusedTip.IsOpen = true;
-                break;
-            }
-        };
-        root.LostFocus += (_, _) => { if (focusedTip is not null) focusedTip.IsOpen = false; };
         if (window is null || !AppWindowTitleBar.IsCustomizationSupported()) return;
         var bar = window.TitleBar;
         bar.ButtonBackgroundColor = Color("Transparent");
@@ -128,7 +112,7 @@ internal static class LedgerTheme
             Padding = new Thickness(10, 6, 10, 6),
         };
         surface.Children.Add(panel);
-        return new ToolTip
+        var tip = new ToolTip
         {
             RequestedTheme = ElementTheme.Dark,
             HighContrastAdjustment = ElementHighContrastAdjustment.None,
@@ -139,9 +123,29 @@ internal static class LedgerTheme
             Padding = new Thickness(0),
             MaxWidth = 320,
         };
+        // Tooltips follow the pointer only. WinUI also opens one when its element takes keyboard focus; that one closes
+        // with its content hidden, so neither the opening frame nor the fade-out shows it.
+        tip.Opened += (_, _) =>
+        {
+            var keyboard = OwnedByKeyboardFocus(tip);
+            surface.Opacity = keyboard ? 0 : 1;
+            if (keyboard)
+                tip.IsOpen = false;
+        };
+        return tip;
     }
 
-    /// <summary>Makes an element a keyboard stop that shows its tooltip and reads its lines.</summary>
+    private static bool OwnedByKeyboardFocus(ToolTip tip)
+    {
+        if (tip.XamlRoot is null || FocusManager.GetFocusedElement(tip.XamlRoot) is not UIElement { FocusState: FocusState.Keyboard or FocusState.Programmatic } focused)
+            return false;
+        for (DependencyObject? current = focused; current is not null; current = VisualTreeHelper.GetParent(current))
+            if (ReferenceEquals(ToolTipService.GetToolTip(current), tip))
+                return true;
+        return false;
+    }
+
+    /// <summary>Gives an element a tooltip and reads its lines.</summary>
     public static void AttachTip(FrameworkElement element, IReadOnlyList<string> lines)
     {
         ToolTipService.SetToolTip(element, Tip(lines));

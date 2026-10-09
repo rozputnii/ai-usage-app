@@ -170,6 +170,53 @@ public sealed partial class CardEditingSmoke
         }
     }
 
+    /// <summary>Tooltips open only under the pointer: Tab through the window opens none, hovering the refresh icon opens its tooltip.</summary>
+    [Fact]
+    public void TooltipsOpenOnHoverOnly()
+    {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
+        var evidence = EvidenceDirectory();
+        using var app = new DemoApp("aiu-tooltip-smoke-");
+        var passed = false;
+        var stage = "launch";
+        try
+        {
+            Focus(app.Main());
+            // The pointer rests in the Codex card's top padding, over no control.
+            var codex = app.Card("codex-week").BoundingRectangle;
+            var empty = new System.Drawing.Point(codex.Left + codex.Width / 2, codex.Top + 4);
+            DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, empty);
+            Hover(empty);
+            Assert.True(Wait(() => !app.ShowsToolTip()), "A tooltip stayed open before Tab");
+
+            stage = "Tab";
+            for (var i = 0; i < 12; i++)
+            {
+                Keyboard.Press(VirtualKeyShort.TAB);
+                // WinUI opens a keyboard-focus tooltip after about the hover delay; the app closes it at once, though UI
+                // Automation may still list it while its popup goes.
+                Thread.Sleep(1200);
+                Assert.True(Wait(() => !app.ShowsToolTip(), TimeSpan.FromSeconds(1)), $"Tab {i + 1} left a tooltip open");
+            }
+            Save(app, evidence, "tooltip-tab.png");
+
+            stage = "hover";
+            var refresh = app.Main().FindFirstDescendant(cf => cf.ByAutomationId("RefreshButton"))!.BoundingRectangle;
+            Hover(new System.Drawing.Point(refresh.Left + refresh.Width / 2, refresh.Top + refresh.Height / 2));
+            Assert.True(Wait(app.ShowsToolTip, TimeSpan.FromSeconds(5)), "Hovering the refresh icon opened no tooltip");
+            Save(app, evidence, "tooltip-hover.png");
+
+            stage = "exit";
+            Hover(empty);
+            app.Exit();
+            passed = true;
+        }
+        finally
+        {
+            app.Finish(evidence, "tooltip", passed, stage);
+        }
+    }
+
     private static string EvidenceDirectory()
     {
         var evidence = Environment.GetEnvironmentVariable("AIU_SMOKE_EVIDENCE_DIRECTORY");
@@ -251,6 +298,11 @@ public sealed partial class CardEditingSmoke
         }
 
         public bool NoBox() => Main().FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))) is null;
+
+        /// <summary>An open tooltip, inside the window or in a popup window of the app.</summary>
+        public bool ShowsToolTip() => automation.GetDesktop().FindAllChildren().Any(w =>
+            w.Properties.ProcessId.ValueOrDefault == app.ProcessId &&
+            (w.Properties.ControlType.ValueOrDefault == ControlType.ToolTip || w.FindFirstDescendant(cf => cf.ByControlType(ControlType.ToolTip)) is not null));
 
         public void Exit()
         {

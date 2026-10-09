@@ -150,6 +150,30 @@ public sealed class SessionEstimateTests
     }
 
     [Fact]
+    public void APartThatConflictsWithItselfIsSkippedAndTheOtherPartsKeepTheCost()
+    {
+        // Several windows stored as one instance give pairs that cannot share one cost. Such a part says nothing about
+        // the cost, so the newest one no longer hides the older windows, and a middle one no longer drops everything older.
+        var oldest = Part("oldest", Now.AddHours(-16), Window(10, 0.5, Steps(1.5, 50)));
+        var older = Part("older", Now.AddHours(-10), Window(10, 5.7, Steps(1.5, 50)));
+        ReadingRun[] Merged(string instance, DateTimeOffset start, double weekly) =>
+            [.. Part(instance, start, Window(10, weekly, Steps(1.5, 50))),
+             .. Part(instance, start.AddHours(3), ((decimal)Math.Floor(weekly) + 47, (decimal)Math.Floor(weekly) + 5), ((decimal)Math.Floor(weekly) + 67, (decimal)Math.Floor(weekly) + 11))];
+        var newestMerged = Merged("new", Now.AddHours(-4), 20.4);
+        Assert.Equal(SessionEstimate.Empty, SessionEstimator.Estimate(newestMerged, Pair, Now));
+
+        var estimate = SessionEstimator.Estimate([.. older, .. newestMerged], Pair, Now);
+        Assert.NotEqual(SessionEstimateLevel.None, estimate.Level);
+        Assert.Equal(SessionEstimator.Estimate(older, Pair, Now), estimate);
+
+        var newest = Part("new", Now.AddHours(-4), Window(10, 20.4, Steps(1.5, 50)));
+        var middleMerged = Merged("mid", Now.AddHours(-10), 5.7);
+        var pooled = SessionEstimator.Estimate([.. oldest, .. middleMerged, .. newest], Pair, Now);
+        Assert.Equal(2, pooled.Windows);
+        Assert.Equal(SessionEstimator.Estimate([.. oldest, .. newest], Pair, Now), pooled);
+    }
+
+    [Fact]
     public void PlanChangeWeeklyInstanceSourceAgeAndExhaustionExclusions()
     {
         var window = Part("s", Now.AddHours(-3), Window(10, 2.3, Steps(2, 30)));
