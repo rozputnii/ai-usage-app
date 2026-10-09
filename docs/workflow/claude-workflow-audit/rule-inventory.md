@@ -150,11 +150,23 @@ Memory pruning is OD-21 and happens in step 3 of Stage 2.
 
 ## Size
 
-The report estimated a 35 % smaller per-session core. That did not happen: the three rule
-files grew from about 2,890 to about 3,810 words, because the approved decisions add rules
-that were missing or lived elsewhere — the ask lists (OD-4/5), tiers and review calibration
-(OD-14/15), parallel work (OD-16), the merge procedure (OD-2/3), check IDs and commands,
-and the desktop-lock procedure that each parallel feature's tasks.md used to repeat. The
-duplicate copies are gone: no rule is now stated in two operative files, apart from the
-deliberate one-line summaries in AGENTS.md. Memory pruning (step 3) removes about 1,000
-words of duplicated rules from the memory files.
+Measured at the end of Stage 2 (word counts with `wc -w`, including commands and tables):
+
+| File | Before (`a11df41`) | After |
+| --- | --- | --- |
+| AGENTS.md | 817 | 920 |
+| CONTRIBUTING.md | 1,105 | 1,774 |
+| docs/workflow/verification.md | 971 | 1,623 |
+| CLAUDE.md | 1 | 95 |
+| Memory files (all) | 1,301 | 682 |
+| docs/backlog.md | 11,030 | 3,730 |
+
+The report estimated a 35 % smaller per-session core. That did not happen for the rule files:
+they grew by about half, because the approved decisions add rules that were missing or lived
+elsewhere — the ask lists (OD-4/5), tiers, review calibration and agent permissions (OD-9,
+OD-14/15), parallel work (OD-16), the merge procedure (OD-2/3), the ID scheme (OD-31), check
+IDs and commands, the desktop-lock and smoke-harness procedure that each parallel feature's
+tasks.md used to repeat, and the skill list. The duplicate copies are gone: no rule is stated
+in two operative files, apart from the deliberate one-line summaries in AGENTS.md. The
+records shrank instead: the backlog by two thirds, 25 executed plans (about 39,000 words) to
+short ledgers, and memory by about half.
