@@ -48,6 +48,25 @@ public sealed class LocalBudgetStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task AnEndedWindowReportedWithoutAResetStartsTheNextPeriod()
+    {
+        // Claude reports an ended five-hour window as 0 % with no reset until the next window starts on first use.
+        var end = Start.AddMinutes(10);
+        await Store().AppendAsync([At(87, 0) with { ResetAt = end }, At(0, 15) with { ResetAt = null, ResetPrecision = null },
+            At(0, 20) with { ResetAt = Start.AddHours(5) }, At(4, 25) with { ResetAt = Start.AddHours(5) }], Token);
+        var runs = (await Store().ReadAsync(Key, Token)).Value;
+        Assert.Equal(4, runs.Count);
+        Assert.NotEqual(runs[0].PeriodInstance, runs[1].PeriodInstance);
+        Assert.Equal(end, runs[1].PeriodStartedAt);
+        Assert.Equal(runs[1].PeriodInstance, runs[2].PeriodInstance);
+        Assert.Equal(runs[2].PeriodInstance, runs[3].PeriodInstance);
+
+        // Before the old reset, a reading without a reset still belongs to the current period.
+        Assert.Equal(PeriodChangeKind.Continuing, ReadingCalculations.Transition(runs[0],
+            runs[1] with { FirstSeen = end.AddMinutes(-1), LastConfirmed = end.AddMinutes(-1) }, 1).Kind);
+    }
+
+    [Fact]
     public async Task ReplayAndOutOfOrderReadingsCannotRewriteHistory()
     {
         await Store().AppendAsync([At(4, 10), At(5, 20)], Token);

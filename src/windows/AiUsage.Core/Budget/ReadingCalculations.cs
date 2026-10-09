@@ -44,6 +44,9 @@ public static class ReadingCalculations
                 return new(PeriodChangeKind.EarlyReplenishment, After: previous.LastConfirmed);
             if (decreased) return new(PeriodChangeKind.Correction);
         }
+        // An ended window that has not started again reports no reset (Claude's five-hour window): its old reset has passed.
+        if (previous.ResetAt is { } passed && current.ResetAt is null && current.FirstSeen >= passed)
+            return new(PeriodChangeKind.Rollover, passed);
         return new(PeriodChangeKind.Continuing);
     }
 
