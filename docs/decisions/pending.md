@@ -4,7 +4,7 @@ No further product questionnaire blocks bootstrap. Discover setup from the curre
 
 ## SETUP-001 - Resolved local repository and commit identity
 - resolved: 2026-09-12, explicit owner reply after read-only discovery.
-- result: Existing rozputnii/ai-usage-app repository; repository-local author `rozputnii <daniil.rozputnii@gmail.com>`. Owner authorized the existing license's MIT replacement.
+- result: Existing rozputnii/ai-usage-app repository; repository-local author `rozputnii` with the owner's e-mail address. Owner authorized the existing license's MIT replacement.
 - evidence: ../workflow/environment.md.
 - remaining boundary: Remote publication is not authorized by local setup. Main protection is now explicitly deferred at low priority in AIU-026, not a current development PR prerequisite. No remote changes or bypass were performed.
 

@@ -288,6 +288,47 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     2026-10-17. Revert to bypass at the first false block of a routine push, merge or read,
     and note the date and the blocked action here.
 
+- **2026-10-09 — step 2 review fixes.** The focused review (verdict: changes requested, 2
+  Important, 5 Minor) found that the PowerShell patterns `git push * -f*` and `git push * +*`
+  blocked routine pushes piped to `Select-Object -First` or followed by a string `+`, and that
+  the existing `~/.copilot` store was not denied. Fixed: tighter PowerShell forms, `~/.copilot`,
+  `~/AppData/Local/agy` and `~/AppData/Local/Antigravity` denied, `-uf`, `--mirror` and
+  `git -C <path> push` forms added, and the CONTRIBUTING wording now says shell reads are not
+  covered and the override session drops every project rule. Re-probe in fresh headless
+  sessions: all force forms blocked except a PowerShell `+refspec` to a remote other than
+  `origin` (accepted: `origin` is the only remote); routine pushes with pipes or a second
+  command and `git push origin --delete <branch>` ran (PASS, dry runs against a missing remote).
+- **2026-10-09 — step 1 review fixes.** The focused review (changes needed: 3 Important,
+  5 Minor) found the package build dropped from the Windows UI row, "privilege" changes
+  dropped from focused review, and a "verified" definition that contradicted OD-3. Fixed: C9
+  is back in the row, "privilege and capability changes" is a T3 area, "verified" names the
+  blocked-smoke exception, plus the minor fixes (`AIU_SMOKE_MODE` was never read by code and
+  is removed, the interruption rule keeps "when writing is authorized", workers do not add
+  backlog items or decisions). The rule inventory records each change.
+- **2026-10-09 — step 3, agents and hygiene (OD-11, OD-12, OD-13, OD-21, OD-22).**
+  - Agents: canonical contracts `.agents/agents/reviewer.md` and `implementer.md`; thin
+    tracked wrappers `.claude/agents/aiu-reviewer.md` and `aiu-implementer.md` with model
+    aliases (`opus`); `aiu-simple-implementer` is merged into the implementer.
+    `.claude/agents/` was removed from the shared `.git/info/exclude` (backup in the session
+    scratchpad); old worktrees now show their untracked local agent copies as `?? .claude/`.
+  - Skills: sharper trigger descriptions in `.agents/skills/*/SKILL.md`; thin wrappers in
+    `.claude/skills/` make them invocable by name; CLAUDE.md names the paths and says reading
+    the matching skill is mandatory.
+  - OD-13: `.codex/` and `.omp/` deleted, the `.omp` ignore lines removed, and the validator no
+    longer scans `.omp/AGENTS.md` (one test case removed). The agent-neutral plan and
+    verification, the architecture-audit plan, environment.md, omp-native.md and the paused
+    ui-ux audit moved to `docs/archive/workflow/` with corrected status headers; live links
+    were rewritten. The owner's e-mail address (environment.md, pending.md) and 14 native
+    session IDs (environment.md) are redacted.
+  - OD-21 (host action): memory entries ui-design-variants-first, state-push-status,
+    post-deploy-owner-checks and numbers-at-merge deleted, because main's repo text already
+    holds them; claude-code-only rewritten without the stale note; host-tooling-constraints
+    points to the repo copy; no-repeated-approval-gates stays until this branch is on `main`.
+    Undo: copies of all eight files are in
+    `~/.claude/projects/C--Users-danii-projects-ai-usage-app/memory-archive/2026-10-09/`.
+  - OD-22: no worktree qualifies under the strict conditions; see OD-33. Nothing was removed.
+  - Checks: C1 PASS (83/83); C2 PASS; C6 PASS.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
@@ -301,13 +342,34 @@ work continues on the recommended path unless it is marked as waiting.
   script at the final merge; until then `--final` also lists these placeholders.
   Not waiting.
 
+- **OD-33 — Worktree cleanup that the strict conditions block.** A fresh audit of the 33
+  worktrees besides this one: all branches are ancestors of `origin/main` and no stash refers
+  to them, but every worktree keeps ignored smoke evidence (`.ai-usage-local/`, up to 150 MB)
+  or local settings, and 20 of them belong to unarchived desktop sessions, whose folders would
+  disappear under them. *Recommendation:* (1) move each worktree's `.ai-usage-local/` into the
+  main checkout's `.ai-usage-local/worktree-archive/<worktree>/`; (2) archive the 20
+  session-owned worktrees through the desktop app (reversible with unarchive), after checking
+  on the first one that archiving keeps its branch; (3) remove the 13 subagent worktrees with
+  `git worktree remove` (no `--force`); (4) then enable the 7-day inactive archive. Waiting for
+  the owner.
+- **OD-34 — Archived nested instruction file.** `docs/archive/omp/.omp/AGENTS.md` says "OMP
+  remains the canonical full workflow" and may load as a nested instruction file when an agent
+  reads that folder (prompt-audit F7). The archive README promises byte-for-byte preservation.
+  *Recommendation:* rename it to `AGENTS.md.txt` and add one line to the archive README
+  recording the rename. Not waiting; until decided, AGENTS.md already limits archive reads to
+  historical questions.
+- **OD-35 — `R-` prefix collision.** OD-31 renames decisions `D-nnn` to `R-nnn`, but 17
+  specifications already use `R-01`…`R-xx` for requirements, and the T1 spec skeleton keeps
+  `R-xx`. Decision numbers have three digits and requirement numbers two, so they are
+  distinguishable but easy to confuse. *Recommendation:* keep OD-31 as decided and have the
+  validator accept only three-digit `R-nnn` decision IDs in the decision registers; or rename
+  spec requirements to `Q-xx`. Step 6 proceeds with the first option unless the owner picks
+  the second.
+
 ## Next action
 
-Stage 2, step 3: track the generalized reviewer and implementer agents under `.agents/` with
-thin `.claude/agents` wrappers (OD-12), add `.claude/skills` wrappers and the CLAUDE.md skill
-pointers (OD-11), do the OD-13 cleanup, prune memory (OD-21), and run the OD-22 worktree
-cleanup. Remaining order after that: step 3 agents and hygiene
-(OD-12, OD-13, OD-21, OD-22, CLAUDE.md pointers and `.claude/skills` wrappers); step 4 CI
-(OD-17, OD-26); step 5 tests and smoke (OD-23..OD-25, R14, R5); step 6 records and IDs
-(OD-19, OD-31, R13; re-check in-flight branches first); step 7 skills (OD-20, OD-7); step 8
-trials (OD-27..OD-29). Steps 1-4 are T3 and each gets a focused independent review.
+Stage 2, step 4: CI — the OD-17 product-input Preview filter and the OD-26 routing-spike
+removal, with a focused review (T3). Then step 5 tests and smoke
+(OD-23..OD-25, R14, R5); step 6 records and IDs (OD-19, OD-31, R13; re-check in-flight branches
+first); step 7 skills (OD-20, OD-7); step 8 trials (OD-27..OD-29). Steps 1-4 are T3 and each
+gets a focused independent review.

@@ -12,4 +12,4 @@ Development Windows packages and a console-verified Codex integration are record
 
 Follow [CONTRIBUTING](CONTRIBUTING.md) for review and authority. Repository guidance is not a security sandbox. Do not run untrusted code or grant it credentials based on textual rules. Keep authentication, model mappings and sessions user-local. Use synthetic fixtures and owned temporary storage for deterministic tests; live account use needs explicit authorization. Never expose secrets or mutate source CLI credential stores. Preserve owned-root cleanup and last-good recovery boundaries.
 
-The former executable OMP bridge is [retired](docs/workflow/omp-native.md); its historical tests do not enforce current permissions. Main protection remains deferred in AIU-026. No security-reporting configuration or remote protection was changed by this migration.
+The former executable OMP bridge is [retired](docs/archive/workflow/omp-native.md); its historical tests do not enforce current permissions. Main protection remains deferred in AIU-026. No security-reporting configuration or remote protection was changed by this migration.

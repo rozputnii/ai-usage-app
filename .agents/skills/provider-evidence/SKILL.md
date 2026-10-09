@@ -1,6 +1,6 @@
 ---
 name: provider-evidence
-description: Investigate or revise provider authentication and quota contracts using source and live evidence.
+description: Provider authentication and quota contracts with source and live evidence. Use before changing or researching how a provider (Codex, Claude, Copilot, Antigravity) signs in, refreshes, or reports quota, or when editing docs/providers.
 ---
 # provider-evidence
 

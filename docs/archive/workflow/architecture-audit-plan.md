@@ -1,6 +1,6 @@
 # Architecture and Clean-Code Audit Plan
 
-**Status:** Ready for execution when the owner requests it. This document is the task plan
+**Status:** Executed on 2026-09-20; the findings were remediated in [AIU-028](../../specs/AIU-028-architecture-remediation/spec.md). Archived on 2026-10-09 as a historical record. Original status line: ready for execution when the owner requests it. This document is the task plan
 for an analysis-only session. It does not start remediation, authorize code changes, or grant
 remote, installation, live-provider or credential authority.
 
@@ -14,7 +14,7 @@ the detail the prompt refers to; the prompt owns the goal and the stop condition
 owns the checklist. If the two disagree, the current owner request wins, then CONTRIBUTING.md,
 then this file.
 
-**Relation to AIU-027:** [AIU-027](../specs/AIU-027-architecture-refinement/spec.md) already
+**Relation to AIU-027:** [AIU-027](../../specs/AIU-027-architecture-refinement/spec.md) already
 refined Core, Infrastructure and Windows into feature-oriented boundaries and was closed with
 evidence on 2026-09-14. This audit measures the code as it stands today, including everything
 added by AIU-007, AIU-008, AIU-009 and AIU-010, and reports drift and newly accumulated debt.
@@ -24,14 +24,14 @@ Do not re-propose settled structure; cite the AIU-027 design when a finding argu
 
 The audit session is complete when all of the following hold:
 
-1. Every check selected from the [verification matrix](verification.md#checks-by-change) for a
+1. Every check selected from the [verification matrix](../../workflow/verification.md#checks-by-change) for a
    documentation change has been run, plus the deterministic regression suites, with actual
    PASS / FAIL / NOT_RUN / BLOCKED verdicts. A verdict is observed output, never inference.
 2. Every finding carries a stable ID, severity, category, concrete `path:line` evidence, the
    principle or guideline it violates with an authoritative source, the user-visible or
    maintenance impact, a proposed fix, effort, risk and blast radius.
 3. A backlog item and its spec folder exist and are valid under
-   [document formats](formats.md): `spec.md` with AC identifiers, `tasks.md` with `T-xx`
+   [document formats](../../workflow/formats.md): `spec.md` with AC identifiers, `tasks.md` with `T-xx`
    blocks, `design.md` when boundaries change, and `verification.md` holding the Phase 1
    results plus honest NOT_RUN placeholders for the remediation checks.
 4. `git status` shows changes under `docs/` only. No edits under `src/`, `tests/`, `tools/`.
@@ -57,14 +57,14 @@ The audit session is complete when all of the following hold:
 
 ## Required reading
 
-- `AGENTS.md`, `CONTRIBUTING.md`, [constitution](../constitution.md), [goals](../product/goals.md)
-- [verification policy](verification.md), [document formats](formats.md), `README.md#local-checks`
-- [backlog](../backlog.md) for status and the next free `AIU-` identifier
-- [AIU-027 spec](../specs/AIU-027-architecture-refinement/spec.md),
-  [design](../specs/AIU-027-architecture-refinement/design.md) and
-  [verification](../specs/AIU-027-architecture-refinement/verification.md)
-- [accepted decisions](../decisions/accepted.md) and the
-  [technical audit](../decisions/technical-audit.md). A finding that contradicts an accepted
+- `AGENTS.md`, `CONTRIBUTING.md`, [constitution](../../constitution.md), [goals](../../product/goals.md)
+- [verification policy](../../workflow/verification.md), [document formats](../../workflow/formats.md), `README.md#local-checks`
+- [backlog](../../backlog.md) for status and the next free `AIU-` identifier
+- [AIU-027 spec](../../specs/AIU-027-architecture-refinement/spec.md),
+  [design](../../specs/AIU-027-architecture-refinement/design.md) and
+  [verification](../../specs/AIU-027-architecture-refinement/verification.md)
+- [accepted decisions](../../decisions/accepted.md) and the
+  [technical audit](../../decisions/technical-audit.md). A finding that contradicts an accepted
   decision must cite it and argue explicitly rather than ignore it.
 - The security-lifecycle skill before reporting anything about credentials, storage, migration
   or recovery.
@@ -77,7 +77,7 @@ presentation and desktop lifetime. Audit all three, plus `tests/` and `tools/`.
 
 Run before analysis, from the repository root, and capture real output. Use the SDK selected by
 `global.json`; if `dotnet` is not on PATH use the existing user-local PowerShell form from
-[local checks](../../README.md#local-checks).
+[local checks](../../../README.md#local-checks).
 
 ```powershell
 dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo

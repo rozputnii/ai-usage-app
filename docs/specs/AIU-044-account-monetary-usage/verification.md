@@ -145,7 +145,7 @@ provider-evidence limitation, not an inferred personal/work classification.
 
 ## Post-done corrections (2026-10-06)
 
-Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-044, and its backlog status is unchanged. The synthetic UI audit that started from `383644c`, the source of the last published Preview `2026.10.404.0`, found the defects below in AIU-044 scope (AC-02 and AC-04, as mapped in ANL-06 of the AIU-045 [analysis record](../AIU-045-ui-audit-follow-up/analysis-2026-10-05.md)) after this task was done. As of 2026-10-06 the fixes are on `main`, but no published Preview contains them; shipping them is AIU-045 T-03. Defect descriptions and regression evidence are in the AIU-045 [verification record](../AIU-045-ui-audit-follow-up/verification.md) and the [audit report](../../workflow/ui-ux-audit-2026-10-04/report.md).
+Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen AIU-044, and its backlog status is unchanged. The synthetic UI audit that started from `383644c`, the source of the last published Preview `2026.10.404.0`, found the defects below in AIU-044 scope (AC-02 and AC-04, as mapped in ANL-06 of the AIU-045 [analysis record](../AIU-045-ui-audit-follow-up/analysis-2026-10-05.md)) after this task was done. As of 2026-10-06 the fixes are on `main`, but no published Preview contains them; shipping them is AIU-045 T-03. Defect descriptions and regression evidence are in the AIU-045 [verification record](../AIU-045-ui-audit-follow-up/verification.md) and the [audit report](../../archive/workflow/ui-ux-audit-2026-10-04/report.md).
 
 | FIX | Defect | Fixing commit | Regression evidence added with the fix |
 | --- | --- | --- | --- |

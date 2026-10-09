@@ -14,11 +14,6 @@
 # Local agent state and credentials.
 /.ai-usage-local/
 /artifacts/AIU-039/
-/.omp/sessions/
-/.omp/cache/
-/.omp/agent.db*
-/.omp/models.yml
-/.omp/config.local.yml
 .env
 .env.*
 *.pfx

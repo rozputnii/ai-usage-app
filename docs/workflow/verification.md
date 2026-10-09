@@ -21,7 +21,7 @@ PATH, use `& "$HOME/.dotnet/ai-usage-sdk/dotnet.exe"`. Evidence names checks by 
 | C7 | App build (Release, unpackaged) | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` |
 | C8 | Launch smoke | Publish the UI suite with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`, then run `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` against the C7 build under the [desktop lock](#desktop-smokes) |
 | C9 | Package build | `./tools/windows/Build-Package.ps1` (see README) |
-| C10 | Preview release script tests | `tests/release/Test-PreviewRelease.ps1`; CI runs it on every push |
+| C10 | Preview release script tests | `tests/release/Test-PreviewRelease.ps1`; CI runs it on pushes to `main` |
 
 In the inner loop, run one class with `-class "<Namespace.Class>"` after a single build, and
 pass `--no-build` to `dotnet run`; run the full suites once on the merged tree. A missing
@@ -48,7 +48,7 @@ failures or unresolved concerns.
 | Validator | C1, C2, C6. |
 | Core, provider, persistence or presentation behavior | C4, C5, C2, C6. |
 | Any edit under `src/windows` | Build both unit test projects (C4 and C5 compile them). |
-| Windows UI, activation, tray or lifetime | The relevant regressions, C7, C8 and the applicable smoke scenarios. |
+| Windows UI, activation, tray or lifetime | The relevant regressions, C7, C9, C8 and the applicable smoke scenarios. |
 | Authentication or durable-state boundaries (T3) | The relevant regressions plus focused independent review; live checks only when required and authorized. |
 | Scripts under `tools/` | The script's own test or dry run where one exists, C6; Windows PowerShell 5.1 compatibility. Preview or release scripts: C10. |
 | Tests or smoke harness only | The changed tests pass; the case count is unchanged or the difference is explained; a harness change runs the affected smoke. |
@@ -68,8 +68,9 @@ observations, not future gates.
 files at the repository root. The same definition decides when the launch smoke is
 required and when a push to `main` publishes a Preview.
 
-Work is **verified** when every required check is PASS. Only post-deploy owner checks
-may stay NOT_RUN: the owner's manual and live-provider checks run after deployment in the
+Work is **verified** when every required check is PASS, with two exceptions: a required
+smoke may stay BLOCKED only under the blocked-smoke rule in the
+[Git flow](../../CONTRIBUTING.md#git-flow), and post-deploy owner checks may stay NOT_RUN: the owner's manual and live-provider checks run after deployment in the
 installed app (D-190), and are recorded under "Pending owner checks" in the backlog.
 Before pushing to `main`:
 
@@ -107,7 +108,7 @@ try { <run the smoke exe with its -method filter> } finally { Remove-Item $lock 
 ```
 
 Set `AIU_SMOKE_EXE` to the app executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh
-local evidence directory; `AIU_SMOKE_MODE=demo` selects the demo path. Missing
+local evidence directory. The launch smoke covers the demo and product paths itself. Missing
 prerequisites fail; they never skip silently.
 
 ## Development environment
@@ -119,7 +120,7 @@ package install, update or uninstall, recovery with destructive fault injection,
 certificate trust changes. State the reason before using one. Those checks run when the
 affected behavior requires them; they are not deferred to the final release.
 
-MSIX build validation needs no installation or guest. Local unpackaged evidence does not
+A required MSIX build (C9) needs no installation or guest. Local unpackaged evidence does not
 establish package installation, packaged activation or update behavior. Keep development
 data isolated from installed-app data and preserve existing credentials. Host
 installation, trust changes and live authentication keep their authorization boundaries.

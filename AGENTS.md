@@ -26,8 +26,8 @@ the merge gate and evidence.
   need no variants.
 - Write authored prompts, specifications, handoffs and inter-agent briefs in
   English; conversational replies may use the user's language.
-- On interruption, record one exact next action in the task document, with blockers
-  and the relevant check results.
+- On interruption, when writing is authorized, record one exact next action in the task
+  document, with blockers and the relevant check results.
 
 ## When to ask
 

@@ -2,7 +2,7 @@ Historical record, frozen 2026-10-06 (AIU-045 AUD-10); not maintained.
 
 # Synthetic Windows UI/UX audit — paused
 
-**Owner stopped execution on 2026-10-04.** The follow-up is [AIU-045](../../specs/AIU-045-ui-audit-follow-up/spec.md); read its [findings/handoff](../../specs/AIU-045-ui-audit-follow-up/verification.md) before using the historical checkpoints below. The latest WIP annotation build failed before window creation in two native runs. It has no final verification or complete gallery. Preserve it for diagnosis; do not automatically resume the audit.
+**Owner stopped execution on 2026-10-04.** The follow-up is [AIU-045](../../../specs/AIU-045-ui-audit-follow-up/spec.md); read its [findings/handoff](../../../specs/AIU-045-ui-audit-follow-up/verification.md) before using the historical checkpoints below. The latest WIP annotation build failed before window creation in two native runs. It has no final verification or complete gallery. Preserve it for diagnosis; do not automatically resume the audit.
 
 **The requested comprehensive audit is not complete.** The latest full deterministic suites pass 1045/1045 (859 Infrastructure + 186 Presentation). All 235 parser/recorder/budget/projection corpus scenarios and six composite dashboards have passed native Used/Left checks in isolated, network-disabled Windows Sandbox runs. All four first-run sign-in buttons and duplicate-provider menu entries, all four visible/hidden and idle/in-flight tray variants, three calendar transitions and five production recovery/deletion/activation checks have passed physical input and observable outcomes. Final-build recapture, complete rendered inspection and remaining cap/history/hover/resize/keyboard variants are pending. The host stays locked; no host unlocking or real authentication was attempted.
 
@@ -75,7 +75,7 @@ Use PowerShell 7.5+ from the repository root. All provider data is generated fro
 $env:AIU_AUDIT_INPUT_DIRECTORY = Join-Path (Get-Location) '.ai-usage-local/ui-audit/inputs'
 dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -xml .ai-usage-local/ui-audit/infrastructure.xml
 dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -xml .ai-usage-local/ui-audit/presentation.xml
-./tools/windows/New-UiAuditPages.ps1 -InputDirectory .ai-usage-local/ui-audit/inputs -OutputDirectory .ai-usage-local/ui-audit/pages -CoverageDirectory docs/workflow/ui-ux-audit-2026-10-04
+./tools/windows/New-UiAuditPages.ps1 -InputDirectory .ai-usage-local/ui-audit/inputs -OutputDirectory .ai-usage-local/ui-audit/pages -CoverageDirectory docs/archive/workflow/ui-ux-audit-2026-10-04
 dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore
 dotnet build tests/windows/AiUsage.Windows.Tests -c Release --no-restore
 $env:AIU_SMOKE_EXE = Join-Path (Get-Location) 'src/windows/AiUsage.Windows/bin/x64/Debug/net10.0-windows10.0.26100.0/win-x64/AiUsage.exe'

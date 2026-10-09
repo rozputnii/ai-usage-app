@@ -62,7 +62,7 @@ removes the former provider-history clients and console command under D-184. Ope
 history makes no provider-history request; existing observations remain available.
 See [AIU-040 verification](docs/specs/AIU-040-remove-provider-history/verification.md).
 
-For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. Set `AIU_SMOKE_MODE=demo` to verify the demo path; the default smoke mode is product with an empty `AIU_DEVELOPMENT_STATE_DIRECTORY`. An unlocked interactive desktop is required. Reserve Windows Sandbox or a disposable VM for checks that need isolation or a clean machine; package builds alone do not need either.
+For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. The launch smoke covers the demo path and the product path with an empty `AIU_DEVELOPMENT_STATE_DIRECTORY`. An unlocked interactive desktop is required. Reserve Windows Sandbox or a disposable VM for checks that need isolation or a clean machine; package builds alone do not need either.
 
 ## Native Windows package
 
@@ -170,7 +170,7 @@ operational evidence: [AIU-014 verification](docs/specs/AIU-014-preview-updates/
 ## Project records
 
 - [Goals](docs/product/goals.md), [backlog](docs/backlog.md) and [accepted decisions](docs/decisions/accepted.md).
-- [Environment history](docs/workflow/environment.md) and [security reporting](SECURITY.md).
+- [Environment history](docs/archive/workflow/environment.md) and [security reporting](SECURITY.md).
 - [Historical bootstrap evidence](docs/specs/AIU-001-omp-bootstrap/verification.md).
 
 Consult each feature's verification record for observed CI, interactive and live-provider results. Git publication and integration authority are defined in CONTRIBUTING.md; host installation, trust changes and releases require their applicable authorization.

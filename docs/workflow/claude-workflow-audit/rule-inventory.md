@@ -49,7 +49,7 @@ Placeholders `D-NEW`…`D-NEW-8` are the new decision records in
 | A28 | D-190 post-deploy owner checks (:87-92) | kept | AGENTS, Git and completion; adds the "Pending owner checks" list (OD-20) |
 | A29 | Push status in every final reply, owner direction 2026-10-08 (:93-96) | kept | AGENTS, Git and completion; extended to branch pushes; provenance D-NEW-8 |
 | A30 | One primary agent by default; CONTRIBUTING for review and parallel work (:98-99) | moved | CONTRIBUTING, Parallel work; the primary may now start workers itself (OD-16) |
-| A31 | On interruption record one exact next action (:100-101) | kept | AGENTS, Working rules (was also in CONTRIBUTING; that copy removed) |
+| A31 | On interruption record one exact next action (:100-101) | kept | AGENTS, Working rules, with "when writing is authorized" (was also in CONTRIBUTING; that copy removed) |
 
 New in AGENTS: repo rules are the only process authority (from the constitution); the
 never-ask list, recommendation as default, owner-reported PASS, inherited prompt policy and
@@ -75,11 +75,11 @@ unattended runs (OD-4, OD-5); plugin precedence (OD-6); the Microsoft Learn MCP 
 | C13 | D-196 placeholder numbering at merge (:57-65) | kept | Git flow, Numbering; adds "keep placeholders out of commit subjects and source comments" (R13) |
 | C14 | Releases, tags, dispatch, settings need explicit authorization; old permission is not a grant (:67-69) | kept | Git flow, Remote authority; adds variables and secrets (KEEP list) |
 | C15 | Main protection deferred in AIU-026 (:71-72) | kept | Git flow, Remote authority |
-| C16 | "Native tool permissions are separate from these instructions" (:72) | merged | AGENTS deny-rule line (step 2, OD-9): prose rules stay authoritative, a missing deny rule is not permission |
+| C16 | "Native tool permissions are separate from these instructions" (:72) | merged | AGENTS deny-rule line and CONTRIBUTING, Agent permissions (step 2, OD-9): prose rules stay authoritative, a missing deny rule is not permission |
 | C17 | Records: small fixes plan plus evidence; features spec plus verification; tasks optional; design for real choices; ADR for durable decisions; state ownership (:76) | merged | Risk tiers table (records column) and Records |
 | C18 | The primary alone updates canonical state and integrates (:80) | merged | Review: the primary owns canonical state; workers may merge verified work (OD-5) |
 | C19 | Explicit parallel work: ownership, safe paths, isolated workers, integrated verification; review actual diffs (:80) | kept | Parallel work; Review |
-| C20 | Routine edits: primary review; credential, destructive-data or privilege changes: focused independent review; release or owner request: full review (:82) | merged | Risk tiers (T3 area list, OD-14) and Review |
+| C20 | Routine edits: primary review; credential, destructive-data or privilege changes: focused independent review; release or owner request: full review (:82) | merged | Risk tiers (T3 area list, OD-14) and Review. "Privilege" was missing from the report's area list; it is carried over as "privilege and capability changes" (step 1 review) |
 | C21 | Preview is not release approval (AIU045-D4) (:82) | kept | Review, last bullet |
 | C22 | Fresh evidence, read-only review, no prescribed vendor or model (:82) | kept | Review, intro |
 | C23 | Report unavailable review; zero findings valid; targeted checks after fixes, no loop; material findings block (:82) | kept | Review bullets; adds calibration and one-round rule (OD-14, OD-15) |
@@ -105,7 +105,7 @@ evidence once per wave (OD-18).
 | V4 | Matrix, five rows (:18-24) | kept | Checks by change, with check IDs and new rows: rule files and agent configuration (T3), any `src/windows` edit builds both test projects, scripts, tests or harness only, CI and dependencies (R14) |
 | V5 | Local unpackaged development default, owner direction 2026-09-16 (:28) | kept | Development environment |
 | V6 | Sandbox or VM only when isolation is needed; state the reason (:30) | kept | Development environment |
-| V7 | MSIX build needs no guest; unpackaged evidence is not package evidence; data isolation (:32) | kept | Development environment; "not Codex execution permissions" removed (retired tool) |
+| V7 | Required MSIX build needs no guest; unpackaged evidence is not package evidence; data isolation (:32) | kept | Development environment; the package build is C9 and stays required in the Windows UI row; "not Codex execution permissions" removed (retired tool) |
 | V8 | Layers: FlaUI scope; live smoke credentials; fixtures are not live proof (:34-36) | kept | Layers |
 | V9 | Output: verdict per AC with command, result, environment, timestamp, code ref (:38-39) | kept | Evidence; adds the check ID |
 | V10 | Golden fixtures (:41-42) | kept | Golden fixtures |

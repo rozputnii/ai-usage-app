@@ -1,6 +1,6 @@
 ---
 name: convergence-review
-description: Perform independent review when explicitly requested or required by CONTRIBUTING.md.
+description: Independent review of a diff against its acceptance criteria and safety boundaries. Use when CONTRIBUTING requires a per-task, whole-feature or T3 focused review, or when the owner asks for a review.
 ---
 # convergence-review
 

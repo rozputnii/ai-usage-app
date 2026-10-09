@@ -1,5 +1,7 @@
 # Agent-neutral migration verification
 
+Archived on 2026-10-09 as a historical record.
+
 Executed locally on 2026-09-14, completed checks at approximately 17:11 Europe/Lisbon. Scope: the owner-approved [migration plan](agent-neutral-migration-plan.md), executed sequentially by one integrator. No product feature was selected.
 
 ## Baseline and preservation

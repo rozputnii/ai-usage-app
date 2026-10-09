@@ -26,7 +26,7 @@ No product application code, real credential import, paid resources, production 
 - isolation: none
 - agent: primary
 - acceptance: ["AC-01", "AC-02"]
-- evidence: docs/workflow/environment.md; exact 25-document adoption comparison and D-001..D-176 sequence check
+- evidence: docs/archive/workflow/environment.md; exact 25-document adoption comparison and D-001..D-176 sequence check
 
 **Work:** Read the complete handoff. Inspect current directory, Git, stable OMP schema, .NET/Windows and model roles without authentication dumps. Adopt the English documentation without overwriting unrelated work; record real prerequisites and supersessions.
 
@@ -43,7 +43,7 @@ No product application code, real credential import, paid resources, production 
 - isolation: none
 - agent: primary
 - acceptance: ["AC-03", "AC-09", "AC-11"]
-- evidence: docs/workflow/environment.md; fresh native SDK project/skill discovery and explicit advisor tool inspection
+- evidence: docs/archive/workflow/environment.md; fresh native SDK project/skill discovery and explicit advisor tool inspection
 
 **Work:** Adopt the passive English seeds, create compact workflow skills and use actual supported stable configuration keys with profile-local model mappings. Restrict the advisor/reviewer explicitly. Do not install unrelated frameworks.
 
@@ -60,7 +60,7 @@ No product application code, real credential import, paid resources, production 
 - isolation: none
 - agent: primary
 - acceptance: ["AC-05", "AC-11"]
-- evidence: docs/workflow/environment.md; primary integrated the isolated test-first contribution and completed the validator after a worker timeout; 49 xUnit tests pass and canonical root validates
+- evidence: docs/archive/workflow/environment.md; primary integrated the isolated test-first contribution and completed the validator after a worker timeout; 49 xUnit tests pass and canonical root validates
 
 **Work:** Implement only the agreed structured-Markdown validator, test-first. Add positive/negative fixtures for IDs, references, dependency cycles, acceptance links, escaping paths, unsafe ownership and English-only authored prose. It must not access the network or mutate data.
 
@@ -77,7 +77,7 @@ No product application code, real credential import, paid resources, production 
 - isolation: none
 - agent: primary
 - acceptance: ["AC-04", "AC-06", "AC-10"]
-- evidence: docs/workflow/environment.md; native ranked selection and cancellation, isolated worker patches, primary integration, headless denial and live-grant mutation rejection; 11 Bun tests pass
+- evidence: docs/archive/workflow/environment.md; native ranked selection and cancellation, isolated worker patches, primary integration, headless denial and live-grant mutation rejection; 11 Bun tests pass
 
 **Work:** Verify the native command/extension API. Implement one thin entrypoint for ranked selection, status, authorized run/auto and pause. Wire the validator and native task batching; retain primary-only integration and configuration ownership.
 
@@ -88,13 +88,13 @@ No product application code, real credential import, paid resources, production 
 - status: done
 - depends_on: ["T-04"]
 - ownership: workflow-recovery
-- writes: ["tests/omp-workflow/**", "docs/workflow/environment.md"]
+- writes: ["tests/omp-workflow/**", "docs/archive/workflow/environment.md"]
 - shared: []
 - parallel: false
 - isolation: none
 - agent: primary
 - acceptance: ["AC-07", "AC-08", "AC-09", "AC-10"]
-- evidence: docs/workflow/environment.md; native feature handoff and final guarded fresh-session continuation preserve scope and consumption; live-worker pause, external-resume confirmation and budget stop pass; isolated reviewer setup accepts zero findings
+- evidence: docs/archive/workflow/environment.md; native feature handoff and final guarded fresh-session continuation preserve scope and consumption; live-worker pause, external-resume confirmation and budget stop pass; isolated reviewer setup accepts zero findings
 
 **Work:** Use a bounded disposable two-feature scenario: complete the first, checkpoint, hand off to fresh context, then exercise owner pause and budget stop. Preserve scope/usage and avoid duplicate work. Check that a zero-findings verdict is accepted without creating a repeated full-review loop.
 
@@ -122,4 +122,4 @@ No product application code, real credential import, paid resources, production 
 - completed: T-01, T-02, T-03, T-04, T-05, T-06.
 - next: Owner selection/authorization of AIU-002 for the runnable Windows package; AIU-003 supplies Codex feasibility evidence. No automatic next-goal start.
 - blocked_by: No unresolved local material finding. Remote CI is not executed; main protection and private reporting are absent. No push or merge is claimed.
-- verify: Validator 49/49 pass; canonical documents valid; Bun workflow/patch tests 11/11 pass with 74 assertions; direct formatting checks pass for both owned C-sharp projects. Review PASS; three MINORs are deferred in docs/backlog.md. Native evidence and recovery history are in docs/workflow/environment.md.
+- verify: Validator 49/49 pass; canonical documents valid; Bun workflow/patch tests 11/11 pass with 74 assertions; direct formatting checks pass for both owned C-sharp projects. Review PASS; three MINORs are deferred in docs/backlog.md. Native evidence and recovery history are in docs/archive/workflow/environment.md.

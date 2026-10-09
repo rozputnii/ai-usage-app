@@ -30,13 +30,13 @@ No fix has been proposed as confirmed for AUD-01; its repeated failure must rema
 
 ## Frozen audit records and opt-in follow-ups (2026-10-06)
 
-- **AUD-10 frozen (2026-10-06).** Under AIU045-D5(a) and D7(a), AUD-10 is frozen as historical: the audit records in `docs/workflow/ui-ux-audit-2026-10-04/` are no longer maintained or reconciled, and the [audit report](../../workflow/ui-ux-audit-2026-10-04/report.md) and [gallery](../../workflow/ui-ux-audit-2026-10-04/gallery.md) carry a first-line freeze banner. The AUD-10 row above is kept as the handoff state at the pause.
+- **AUD-10 frozen (2026-10-06).** Under AIU045-D5(a) and D7(a), AUD-10 is frozen as historical: the audit records in `docs/archive/workflow/ui-ux-audit-2026-10-04/` are no longer maintained or reconciled, and the [audit report](../../archive/workflow/ui-ux-audit-2026-10-04/report.md) and [gallery](../../archive/workflow/ui-ux-audit-2026-10-04/gallery.md) carry a first-line freeze banner. The AUD-10 row above is kept as the handoff state at the pause.
 - **AUD-05..AUD-09 opt-in (2026-10-06).** Under AIU045-D7(a), AUD-05, AUD-06, AUD-07, AUD-08 and AUD-09 are opt-in follow-ups: none runs unless the owner selects it, the comprehensive audit is not resumed, and each exact follow-up action in the table above is unchanged.
-- **Generated CSV destination (2026-10-06).** Generated CSVs from `tools/windows/New-UiAuditPages.ps1` now default to `.ai-usage-local/ui-audit/coverage/` (AIU-045 fix-run task F, T-04); writing them into `docs/workflow/ui-ux-audit-2026-10-04/` requires passing `-CoverageDirectory` explicitly.
+- **Generated CSV destination (2026-10-06).** Generated CSVs from `tools/windows/New-UiAuditPages.ps1` now default to `.ai-usage-local/ui-audit/coverage/` (AIU-045 fix-run task F, T-04); writing them into `docs/archive/workflow/ui-ux-audit-2026-10-04/` requires passing `-CoverageDirectory` explicitly.
 
 ## Product defects already repaired during the audit
 
-These fourteen baseline defects have fixes and regression evidence in the [audit report](../../workflow/ui-ux-audit-2026-10-04/report.md). Their final-build gallery and any remaining native variants are separate gates.
+These fourteen baseline defects have fixes and regression evidence in the [audit report](../../archive/workflow/ui-ux-audit-2026-10-04/report.md). Their final-build gallery and any remaining native variants are separate gates.
 
 | ID | Fixed defect |
 | --- | --- |
@@ -59,7 +59,7 @@ The later pending-read navigation correction belongs to FIX-13: asynchronous ref
 
 ## Independent-review findings already addressed
 
-See [review.md](../../workflow/ui-ux-audit-2026-10-04/review.md) for the original verdicts and targeted reruns. REV-01 input/point ownership; REV-02 constructor-failure cleanup; REV-03 runner argument quoting; REV-04 overstated control coverage; REV-05 cleanup after evidence-write failure; REV-06 stale shell point lookup; REV-07 pending history selection; REV-08 restarted-process identity proof; REV-09 diagnostic/deletion root mismatch. All have recorded dispositions. This does not constitute review of the latest uncommitted scope-annotation changes.
+See [review.md](../../archive/workflow/ui-ux-audit-2026-10-04/review.md) for the original verdicts and targeted reruns. REV-01 input/point ownership; REV-02 constructor-failure cleanup; REV-03 runner argument quoting; REV-04 overstated control coverage; REV-05 cleanup after evidence-write failure; REV-06 stale shell point lookup; REV-07 pending history selection; REV-08 restarted-process identity proof; REV-09 diagnostic/deletion root mismatch. All have recorded dispositions. This does not constitute review of the latest uncommitted scope-annotation changes.
 
 ## Fix run 2026-10-06: T-01 and T-02 integration evidence
 

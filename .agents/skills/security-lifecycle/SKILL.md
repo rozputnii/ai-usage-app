@@ -1,6 +1,6 @@
 ---
 name: security-lifecycle
-description: Change or review credential storage, token lifecycle, migrations, recovery, or owned-data cleanup.
+description: Credential storage, token lifecycle, persisted-data migrations, recovery and owned-data cleanup. Use before changing or reviewing DPAPI stores, grants, preferences or quota schemas, migrations, recovery screens or any delete of app-owned data.
 ---
 # security-lifecycle
 

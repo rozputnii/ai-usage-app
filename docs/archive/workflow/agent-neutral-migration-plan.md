@@ -1,6 +1,6 @@
 # Agent-Neutral Development Workflow Implementation Plan
 
-**Status:** Ready for execution when the owner requests implementation. This document does not start implementation or authorize remote actions.
+**Status:** Executed on 2026-09-14; see the [migration verification](agent-neutral-migration-verification.md). Archived on 2026-10-09 as a historical record; it is not current instruction.
 
 **Goal:** Make ordinary repository work simple, transparent, and independent of Codex, Claude, Copilot, OMP, or any workflow plugin.
 
@@ -106,7 +106,7 @@ Replace `.omp/AGENTS.md` with the same sentence. Do not keep executable project 
 
 **Files:**
 - Rewrite `AGENTS.md`, `CONTRIBUTING.md`, and the execution sections of `docs/constitution.md`.
-- Update `README.md`, `SECURITY.md`, `docs/workflow/formats.md`, `docs/workflow/verification.md`, `docs/workflow/omp-native.md`.
+- Update `README.md`, `SECURITY.md`, `docs/workflow/formats.md`, `docs/workflow/verification.md`, `docs/archive/workflow/omp-native.md`.
 - Update `docs/product/goals.md`, `docs/backlog.md`, `docs/decisions/accepted.md`, `docs/decisions/superseded.md`, and stale setup entries in `docs/decisions/pending.md`.
 - Update `docs/specs/AIU-004-codex-dashboard/spec.md`; reconcile any changed current claims against its tasks and verification, preserving historical evidence.
 - Create `CLAUDE.md` and `.github/copilot-instructions.md`; update `.omp/AGENTS.md`.
@@ -114,14 +114,14 @@ Replace `.omp/AGENTS.md` with the same sentence. Do not keep executable project 
 
 - [ ] Implement the target contract in AGENTS and CONTRIBUTING. Reference specialized guidance by path so native skill discovery is optional.
 - [ ] Remove `canonical_sha256` and the Codex-versus-OMP hierarchy from shared skills. Consolidate project-work and feature-delivery instructions around the simple cycle; preserve provider evidence, credential lifecycle, and scoped-review substance. Do not require another runtime to perform ordinary work.
-- [ ] Replace `docs/workflow/omp-native.md` with a short retirement notice linking to CONTRIBUTING and the archive. Keep this stable path so existing links do not need wholesale rewrites.
+- [ ] Replace `docs/archive/workflow/omp-native.md` with a short retirement notice linking to CONTRIBUTING and the archive. Keep this stable path so existing links do not need wholesale rewrites.
 - [ ] Amend affected execution decisions explicitly, including D-012 through D-049 where relevant, D-166, D-171, D-173, and D-178/179. Preserve unrelated product decisions. Move superseded text into the existing superseded register with clear historical labeling; do not leave two active Git policies.
 - [ ] Remove existing active repository-language mandates from AGENTS, constitution, CONTRIBUTING, formats, skills, and decision D-176. Retain D-176 only as a superseded historical decision, without adding a replacement mandate. Keep D-120 product localization and opaque-data safeguards intact.
 - [ ] Remove session permission chronology from goals. Preserve materially useful historical approvals in the existing superseded/history record, identified as past-task context rather than current grants. Keep G-002 as the recorded product direction; do not select AIU-005 or another feature.
 - [ ] Reconcile AIU-002/003/004 completion with their retained evidence. Remove AIU-004 `execution_status` and stale “still open” cache/tray prose. Do not claim packaged live sign-in, real-grant resume, or close-to-tray was verified by this migration.
 - [ ] Keep AIU-001/G-001 as completed historical work. Reword future AIU-017/025 automation scope without mandatory OMP; preserve IDs, deferred status, and lack of execution authorization. Retire CR-AIU-001-02 if its only affected runtime is removed, and CR-AIU-001-03 as obsolete language enforcement, with reasons rather than claims of fixed behavior.
 - [ ] Update README to the documented delivered dashboard and actual remaining limitations. Separate product build/test prerequisites from optional AI tools. Remove mandatory Bun, OMP profile, Advisor, and startup commands.
-- [ ] Update active links to moved files. Retain historical command text and source citations where clearly historical; do not globally replace every occurrence of OMP. Inspect references in `docs/workflow/environment.md`, `docs/decisions/technical-audit.md`, and AIU-001 records only for broken links or missing historical context.
+- [ ] Update active links to moved files. Retain historical command text and source citations where clearly historical; do not globally replace every occurrence of OMP. Inspect references in `docs/archive/workflow/environment.md`, `docs/decisions/technical-audit.md`, and AIU-001 records only for broken links or missing historical context.
 
 **Check:** A reader starting at AGENTS can find the procedure, current backlog, selected feature evidence, and test commands without visiting `.omp` or the archive. No mandatory plugin, tool mode, or language rule remains in active instructions.
 
@@ -195,7 +195,7 @@ public void SequentialTaskNeedsNoRuntimeMetadata()
 
 ## Task 5: Verify portability, review the result, and hand off
 
-**Create:** `docs/workflow/agent-neutral-migration-verification.md` after execution, containing actual command results, code reference, baseline comparison, and limitations. Do not create a filled PASS report from this plan.
+**Create:** `docs/archive/workflow/agent-neutral-migration-verification.md` after execution, containing actual command results, code reference, baseline comparison, and limitations. Do not create a filled PASS report from this plan.
 
 - [ ] Resolve the already installed .NET SDK. Use `dotnet` when it matches `global.json`; otherwise use the existing user-local SDK path documented in README. Do not install an SDK or restore packages from the network without authorization.
 - [ ] Execute the following with existing restored assets. A missing asset is BLOCKED for offline execution; do not silently remove `--no-restore`.

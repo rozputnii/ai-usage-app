@@ -78,7 +78,6 @@ public sealed class ValidatorTests
 
 
     [Theory]
-    [InlineData(".omp")]
     [InlineData(".agents")]
     [InlineData("docs/archive")]
     public void AuthoredScanRefusesAReparseAncestor(string directory)
@@ -252,7 +251,6 @@ public sealed class ValidatorTests
     [InlineData("AGENTS.md")]
     [InlineData("CLAUDE.md")]
     [InlineData(".github/copilot-instructions.md")]
-    [InlineData(".omp/AGENTS.md")]
     public void NamedInstructionsParticipateInLinkValidation(string file)
     {
         using var root = new Fixture();

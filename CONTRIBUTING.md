@@ -50,7 +50,9 @@ reviewer checks the diff against the T3 area list.
 
 T3 areas: authentication and provider contracts; credentials and DPAPI stores; persisted
 records, the preferences schema and migrations; destructive or owned-root cleanup;
-logging, diagnostics, crash data and exports; new network hosts; update, install,
+logging, diagnostics, crash data and exports; privilege and capability changes (package
+manifest capabilities, elevation, startup or protocol registration, certificate trust); new
+network hosts; update, install,
 signing and Preview scripts; CI workflows; dependencies; rule files (AGENTS.md,
 CONTRIBUTING.md, docs/workflow/verification.md, docs/constitution.md) and agent
 configuration (`.claude/`, `.agents/`, CLAUDE.md).
@@ -102,16 +104,18 @@ never stays on `main`. An item already numbered on `main` keeps its number.
 
 ## Agent permissions
 
-The committed `.claude/settings.json` holds deny rules only: force-push variants, `gh release`
-and `gh workflow run` in Bash and PowerShell, and reads or edits of source-CLI credential
-stores. It also disables plugins this project does not use. Deny rules apply in every
-permission mode, and a local allow cannot lift them. Changing this file is T3 and needs the
-owner's decision. Patterns can be bypassed (for example through `sh -c`), so the prose rules
-stay authoritative.
+The committed `.claude/settings.json` holds deny rules only: force-push variants (including
+`--mirror` and `+refspec`), `gh release` and `gh workflow run` in Bash and PowerShell, and
+reads or edits of source-CLI credential stores through the agent's file tools. It also
+disables plugins this project does not use. Deny rules apply in every permission mode, and a
+local allow cannot lift them. Changing this file is T3 and needs the owner's decision. The
+patterns are a backstop only: other spellings, scripts and shell reads such as `cat` or
+`Get-Content` are not blocked, so the prose rules stay authoritative.
 
 When the owner explicitly authorizes a provider-evidence read of a CLI credential store in the
 current request, the owner either performs the read or starts that one session with
-`claude --setting-sources user,local`, which skips the project settings; the next session
+`claude --setting-sources user,local`, which skips all project settings, including the other
+deny rules and plugin switches. That session does only the authorized read; the next session
 loads the deny rules again.
 
 ## Records
@@ -157,7 +161,8 @@ verification of the integrated result.
 - Worker briefs are self-contained. The tracked implementer agent holds the worker
   procedure: simple single-purpose commands, background tasks or Monitor instead of
   sleep, unit suites and builds per worker, reports returned as messages.
-- Workers may merge verified work into `main` and push it under the Git flow above.
+- Workers may merge verified work into `main` and push it under the Git flow above. Workers
+  do not add backlog items or decisions; the primary owns those and their numbering.
 - Desktop smokes run under the desktop lock in
   [verification](docs/workflow/verification.md#desktop-smokes); after integration the
   primary runs them once on the merged tree.

@@ -9,7 +9,7 @@ approval_basis: Derived within the owner's 2026-09-20 request to audit the repos
 # Architecture and clean-code remediation
 
 Derived from the analysis-only audit run on 2026-09-20 under
-[the audit plan](../../workflow/architecture-audit-plan.md). Every finding below cites
+[the audit plan](../../archive/workflow/architecture-audit-plan.md). Every finding below cites
 `path:line` evidence read in the code at commit `6681b7a`, the head of `main` at the
 time of the audit.
 

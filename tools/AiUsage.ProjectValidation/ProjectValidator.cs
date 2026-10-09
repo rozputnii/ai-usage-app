@@ -44,7 +44,7 @@ public static class ProjectValidator
         }
         Walk(Path.Combine(root, "docs"));
         Walk(Path.Combine(root, ".agents/skills"));
-        foreach (var relative in new[] { "AGENTS.md", "CLAUDE.md", "README.md", "CONTRIBUTING.md", "SECURITY.md", ".github/copilot-instructions.md", ".omp/AGENTS.md" })
+        foreach (var relative in new[] { "AGENTS.md", "CLAUDE.md", "README.md", "CONTRIBUTING.md", "SECURITY.md", ".github/copilot-instructions.md" })
         {
             var path = Path.Combine(root, relative);
             if (!File.Exists(path)) continue;
@@ -224,7 +224,7 @@ public static class ProjectValidator
     private static bool PrimaryPath(string path)
     {
         path = path.Replace('\\', '/').ToLowerInvariant();
-        return path.StartsWith(".omp/", StringComparison.Ordinal) || path.StartsWith(".agents/", StringComparison.Ordinal) || path.StartsWith(".github/", StringComparison.Ordinal) || path is "agents.md" or "claude.md" or "contributing.md" or "security.md" or "docs/constitution.md" or "docs/backlog.md" or "docs/product/goals.md" || path.EndsWith("/tasks.md", StringComparison.Ordinal);
+        return path.StartsWith(".agents/", StringComparison.Ordinal) || path.StartsWith(".github/", StringComparison.Ordinal) || path is "agents.md" or "claude.md" or "contributing.md" or "security.md" or "docs/constitution.md" or "docs/backlog.md" or "docs/product/goals.md" || path.EndsWith("/tasks.md", StringComparison.Ordinal);
     }
     private static bool Overlap(string a, string b)
     {
