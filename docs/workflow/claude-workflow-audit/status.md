@@ -138,6 +138,17 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   `*.md`).
   - The same "product inputs" definition drives the smoke gate.
   - The decision is logged in the job summary.
+- **2026-10-09, OD-18 = yes.** No separate `record T-xx` commits. Evidence is recorded in
+  verification.md once per wave or at feature end.
+  - The "controller pushes once per wave" part is dropped, because OD-5 lets workers push.
+- **2026-10-09, OD-19 = yes.** The R10 lean-records package:
+  - a backlog with live items plus a one-line done index;
+  - executed plans collapsed into a ledger with commits, review verdict, check IDs and the
+    grant;
+  - D-entries only for binding rules, with UI picks as one spec line;
+  - "Amended by" back-pointers;
+  - validator checks for D-ID uniqueness and AC coverage;
+  - spec and verification skeletons.
 
 ## Open owner decisions
 
