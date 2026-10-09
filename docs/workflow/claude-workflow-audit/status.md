@@ -59,6 +59,30 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 - **2026-10-09, OD-4 = yes.** The always-ask and never-ask lists from R7 go into AGENTS.md.
   Inside its authority the agent acts on its recommendation and records the reason. When
   the owner reports a result, it is recorded as owner-reported PASS without asking.
+- **2026-10-09, OD-5 = alternative 3.**
+  - Generated prompts for primary sessions inherit standing policy.
+  - Unattended runs skip always-ask work and list those questions at the checkpoint.
+  - Worker subagents may merge and push to `main` by default, without a per-run grant.
+  - Consequence to handle in OD-17, OD-18 and OD-23: worker pushes publish Previews mid-run
+    (A4c-F5).
+- **2026-10-09, OD-6 = yes.** AGENTS.md gets a precedence line over superpowers.
+  - Plugin skills are optional tools, and repo rules win.
+  - The spec-review, execution-mode and finish-branch prompts are pre-answered.
+  - No `.superpowers` or `docs/superpowers` artifacts outlive the session.
+- **2026-10-09, OD-7 = yes.** Phase 2 replaces superpowers with repo skills.
+  - New repo skills: planning-and-variants (a `/brainstorming` equivalent with rendered
+    mockups) and plan-execution.
+  - Vendored at a pinned upstream commit: systematic-debugging,
+    verification-before-completion and receiving-code-review.
+  - Every superpowers skill the owner used is first mapped to its replacement.
+  - Then superpowers is disabled for this repo only.
+- **2026-10-09, OD-8 = alternative 2.** ux-superpowers, design-superpowers,
+  desktop-commander and the Anthropic design plugin are disabled for this repo only, through
+  the project settings.
+  - The owner's account and other projects keep them.
+  - Personal connectors are not changed.
+  - Stage 2 must confirm the exact `enabledPlugins` key for the design plugin, whose install
+    location was not found (B2-F8).
 
 ## Open owner decisions
 
