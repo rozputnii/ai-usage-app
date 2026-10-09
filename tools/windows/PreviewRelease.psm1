@@ -71,7 +71,7 @@ function Test-PreviewInputsChanged {
     param([string[]]$ChangedPaths)
     foreach ($path in $ChangedPaths) {
         $normalized = $path.Replace([char]92, '/')
-        $nonProduct = $normalized -like 'docs/*' -or $normalized -like '.claude/*' -or $normalized -like '.agents/*' -or
+        $nonProduct = $normalized -clike 'docs/*' -or $normalized -clike '.claude/*' -or $normalized -clike '.agents/*' -or
             ($normalized -notlike '*/*' -and $normalized -like '*.md')
         if (!$nonProduct) { return $true }
     }

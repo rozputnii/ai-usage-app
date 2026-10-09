@@ -121,7 +121,7 @@ GitHub Pages, then enables `AIU_PREVIEW_ENABLED`. It never exports the existing 
 key or changes host certificate trust. Existing secrets/setup evidence stop a repeat;
 partial setup must be inspected, not overwritten or rotated automatically.
 
-A push to `main` publishes unless every path changed since the last published Preview is
+A push to `main` publishes unless every path changed since the Preview the feed serves is
 outside the product inputs (`docs/**`, `.claude/**`, `.agents/**` and root Markdown files);
 the run's job summary records the decision and its reason. The run validates and packages
 the pushed commit; only if both jobs pass does it publish a distinct development prerelease. It then replaces the feed

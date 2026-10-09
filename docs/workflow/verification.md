@@ -66,7 +66,8 @@ observations, not future gates.
 
 "Product inputs" are every path except `docs/**`, `.claude/**`, `.agents/**` and Markdown
 files at the repository root. The same definition decides when the launch smoke is
-required and when a push to `main` publishes a Preview.
+required and when a push to `main` publishes a Preview (compared with the Preview the feed
+serves).
 
 Work is **verified** when every required check is PASS, with two exceptions: a required
 smoke may stay BLOCKED only under the blocked-smoke rule in the

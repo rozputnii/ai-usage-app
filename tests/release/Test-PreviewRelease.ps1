@@ -130,7 +130,13 @@ foreach ($path in @('Directory.Packages.props', 'global.json', '.github/workflow
 $decide = [regex]::Match($workflow, '(?ms)^      - name: Decide Preview publication\r?\n.*?(?=^      - )').Value
 Equal ($decide -match 'Test-PreviewInputsChanged') $true
 Equal ($decide -match 'GITHUB_STEP_SUMMARY') $true
-Equal ($workflow -match "(?m)^        if: steps\.decide\.outputs\.publish == 'true'\r?$") $true
+$publishBlock = [regex]::Match($workflow, '(?ms)^      - name: Reserve, build, sign and publish development Preview\r?\n.*?(?=^      - )').Value
+Equal ($publishBlock -match "(?m)^        if: steps\.decide\.outputs\.publish == 'true'\r?$") $true
+Equal ($publishBlock -match 'Publish-Preview\.ps1') $true
+Equal ($decide -match 'git diff --no-renames --name-only') $true
+Equal ($decide -match 'release download feed-preview') $true
+Equal (Test-PreviewInputsChanged -ChangedPaths @('Docs/x.cs')) $true
+Equal (Test-PreviewInputsChanged -ChangedPaths @('NOTES.MD')) $false
 Equal ($workflow -match 'AIU-002-routing') $false
 Write-Output "PASS: $script:count release policy and source ancestry assertions"
 # Expected negative native Git checks are assertions, not the script's exit status.

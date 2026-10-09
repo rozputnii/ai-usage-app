@@ -357,6 +357,16 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   live plain-text pointers in pending.md, superseded.md and the AIU-001 tasks now name the
   archive; the archived audit plan's header notes that its startup failure was fixed. C2 PASS.
 
+- **2026-10-09 — step 4 review fixes.** The focused review (changes requested: 2 Important,
+  3 Minor; it parsed the YAML with Bun's parser: PASS) found that `git diff` rename detection
+  could hide a product file moved into `docs/`, and that the newest-release base let a re-run
+  skip after a run failed between making its release public and updating the feed. Fixed: the
+  base is now the source of the build the feed serves (`feed-preview`'s App Installer version →
+  its `preview-*` release), `--no-renames`, case-sensitive folder allowlist, tests anchored to
+  the publish step, and AGENTS/README/verification/D-NEW-9 say "since the served Preview".
+  Checks: C10 PASS (85); the revised decision script against the real feed: `origin/main` skip
+  (0 paths), `4206880` skip (31 docs paths), HEAD publish (PASS); C2 PASS; C6 PASS.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;

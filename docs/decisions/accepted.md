@@ -517,7 +517,7 @@ Owner amendment (2026-10-06, AIU045-D1): Previews publish only through an explic
 
 Owner amendment (2026-10-06, later the same day): reverses the AIU045-D1 amendment. Every green main push publishes a Preview automatically again; an owner dispatch with `PublishPreview=true` can republish.
 
-Amended by D-NEW-9 (2026-10-09): a push publishes only when product inputs changed since the last published Preview.
+Amended by D-NEW-9 (2026-10-09): a push publishes only when product inputs changed since the Preview the feed serves.
 
 ### D-158 - No downgrade on channel switch
 Switching Preview to Stable changes the feed but keeps the newer installed binary until Stable catches up. Keep ForceUpdateFromAnyVersion disabled.
@@ -707,4 +707,4 @@ Owner direction, 2026-10-07, recorded 2026-10-09. When a change visibly alters t
 Owner direction, 2026-10-08, recorded 2026-10-09. Every final reply that follows commits states the push status, so the owner never has to ask: after `git fetch` confirms the commits are in `origin/main`, "Pushed to `main`" with the hash or hashes; otherwise what is pushed where, what is not, and why.
 
 ### D-NEW-9 - Previews publish only for product changes
-Owner decision OD-17 of the workflow audit, 2026-10-09. A green push to `main` publishes a Preview unless every path changed since the last published Preview is on the non-product allowlist: `docs/**`, `.claude/**`, `.agents/**` and Markdown files at the repository root. Any other path, including an unknown kind of file, is a product input and publishes. The same "product inputs" definition decides when the launch smoke is required before a merge. The workflow records each decision and its reason in the job summary; an owner dispatch with `PublishPreview=true` always publishes, and `AIU_PREVIEW_ENABLED` stays the kill switch. This amends D-157.
+Owner decision OD-17 of the workflow audit, 2026-10-09. A green push to `main` publishes a Preview unless every path changed since the Preview the feed serves is on the non-product allowlist: `docs/**`, `.claude/**`, `.agents/**` and Markdown files at the repository root. Any other path, including an unknown kind of file, is a product input and publishes. The same "product inputs" definition decides when the launch smoke is required before a merge. The workflow records each decision and its reason in the job summary; an owner dispatch with `PublishPreview=true` always publishes, and `AIU_PREVIEW_ENABLED` stays the kill switch. This amends D-157.

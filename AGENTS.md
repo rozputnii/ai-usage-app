@@ -94,8 +94,8 @@ the [logging policy](docs/workflow/logging.md#logging-policy).
 
 - One task, one branch, normally the worktree branch. Commit save points and push
   them to `origin/<task-branch>` after each meaningful step and before going idle.
-- Only verified work merges into `main`. A push to `main` that changes product
-  inputs publishes a Preview to the owner's auto-updating app.
+- Only verified work merges into `main`. A push to `main` publishes a Preview to the
+  owner's auto-updating app when product inputs changed since the served Preview.
 - New items and decisions use placeholders until the merge (CONTRIBUTING, Numbering).
 - Report PASS, FAIL, NOT_RUN and BLOCKED accurately. Source inspection and
   compilation do not prove live-provider or interactive success.

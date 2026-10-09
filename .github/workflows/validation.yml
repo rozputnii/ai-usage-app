@@ -115,16 +115,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # OD-17: a push publishes unless every path changed since the last published Preview is
+          # OD-17: a push publishes unless every path changed since the build the feed serves is
           # non-product (docs/**, .claude/**, .agents/**, root *.md); an owner dispatch always publishes.
+          # The base is the served build, not the newest release, so a run that failed after its release
+          # went public still publishes on re-run. Any lookup failure publishes.
           Import-Module ./tools/windows/PreviewRelease.psm1 -Force
           $publish = $true
           $reason = 'owner dispatch'
           if ($env:GITHUB_EVENT_NAME -eq 'push') {
-            $releases = @(gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json | ForEach-Object { $_ } | ForEach-Object { $_ })
-            if ($LASTEXITCODE -ne 0) { throw 'Cannot list releases.' }
-            $last = @($releases | Where-Object { $_.tag_name.StartsWith('preview-') -and !$_.draft } | Sort-Object { [version]$_.tag_name.Substring(8) } -Descending | Select-Object -First 1)
-            $base = if ($last.Count) { [string]$last[0].target_commitish } else { '' }
+            $base = ''
+            $feedDir = Join-Path $env:RUNNER_TEMP 'aiu-served-feed'
+            New-Item -ItemType Directory -Force -Path $feedDir | Out-Null
+            gh release download feed-preview --repo $env:GITHUB_REPOSITORY --pattern AiUsage.appinstaller --dir $feedDir --clobber
+            if ($LASTEXITCODE -eq 0) {
+              [xml]$served = Get-Content -Raw -LiteralPath (Join-Path $feedDir 'AiUsage.appinstaller')
+              $base = [string](gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/preview-$($served.AppInstaller.Version)" --jq .target_commitish)
+              if ($LASTEXITCODE -ne 0) { $base = '' }
+            }
+            $global:LASTEXITCODE = 0
             $ancestor = $false
             if ($base -match '^[0-9a-f]{40}$') {
               git merge-base --is-ancestor $base $env:GITHUB_SHA
@@ -132,12 +140,12 @@ jobs:
               $global:LASTEXITCODE = 0
             }
             if (!$ancestor) {
-              $reason = "no published Preview source that is an ancestor of this commit ($base)"
+              $reason = "the served Preview's source is unknown or not an ancestor of this commit ($base)"
             } else {
-              $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+              $changed = @(git diff --no-renames --name-only $base $env:GITHUB_SHA)
               if ($LASTEXITCODE -ne 0) { throw 'Cannot list changed paths.' }
               $publish = Test-PreviewInputsChanged -ChangedPaths $changed
-              $reason = if ($publish) { "product inputs changed since $base" } else { "only non-product paths changed since $base ($($changed.Count) paths)" }
+              $reason = if ($publish) { "product inputs changed since the served Preview $base" } else { "only non-product paths changed since the served Preview $base ($($changed.Count) paths)" }
             }
           }
           "publish=$($publish.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
