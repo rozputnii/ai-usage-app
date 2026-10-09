@@ -78,7 +78,7 @@
                     AutomationProperties.Name="Show values: left" />
           </StackPanel>
         </Border>
-        <lc:LedgerButton x:Name="AddButton" Style="{StaticResource LedgerTitleIconButton}" AutomationProperties.Name="Add account" IsEnabled="{x:Bind ViewModel.CanUseAccounts, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Add account (Ctrl+N)')}">
+        <lc:LedgerButton x:Name="AddButton" Style="{StaticResource LedgerTitleIconButton}" AutomationProperties.Name="Add account" IsEnabled="{x:Bind ViewModel.CanUseAccounts, Mode=OneWay}">
           <Path Data="M8,3 V13 M3,8 H13" Stroke="{StaticResource LedgerInkBrush}" StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="16" Height="16" />
           <lc:LedgerButton.Flyout>
             <Flyout x:Name="ProviderFlyout" Placement="BottomEdgeAlignedRight">
@@ -117,7 +117,7 @@
           </lc:LedgerButton.Flyout>
         </lc:LedgerButton>
         <lc:LedgerButton x:Name="SettingsButton" Style="{StaticResource LedgerTitleIconButton}" Command="{x:Bind ViewModel.ToggleSettingsCommand}" AutomationProperties.Name="Settings"
-                ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Settings (Ctrl+,)')}" Background="{x:Bind SettingsBackground(ViewModel.IsSettingsOpen), Mode=OneWay}">
+                Background="{x:Bind SettingsBackground(ViewModel.IsSettingsOpen), Mode=OneWay}">
           <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;" FontSize="16" Foreground="{StaticResource LedgerInkBrush}" />
         </lc:LedgerButton>
       </StackPanel>
@@ -147,7 +147,7 @@
         <TextBlock Text="{x:Bind ViewModel.StripCode, Mode=OneWay}" FontFamily="{StaticResource LedgerMonoFont}" FontSize="20" CharacterSpacing="60"
                    Foreground="{StaticResource LedgerInkBrush}" IsTextSelectionEnabled="True" VerticalAlignment="Center" />
         <lc:LedgerButton x:Name="CopyCodeButton" Style="{StaticResource LedgerIconButton}" Click="OnCopyCodeClick" VerticalAlignment="Center"
-                AutomationProperties.Name="Copy code" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Copy code')}">
+                AutomationProperties.Name="Copy code">
           <FontIcon x:Name="CopyCodeIcon" FontFamily="Segoe Fluent Icons" Glyph="&#xE8C8;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
         </lc:LedgerButton>
       </StackPanel>
@@ -161,7 +161,7 @@
       <lc:LedgerButton Grid.Column="5" Content="{x:Bind ViewModel.StripAction, Mode=OneWay}" Command="{x:Bind ViewModel.StripActionCommand}" VerticalAlignment="Center"
               Style="{x:Bind StripActionStyle(ViewModel.StripActionIsPrimary), Mode=OneWay}" Visibility="{x:Bind ShowText(ViewModel.StripAction), Mode=OneWay}" />
       <lc:LedgerButton Grid.Column="6" Style="{StaticResource LedgerIconButton}" Command="{x:Bind ViewModel.DismissStripCommand}" Visibility="{x:Bind Hide(ViewModel.StripBusy), Mode=OneWay}"
-              VerticalAlignment="Center" AutomationProperties.Name="Close" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Close')}">
+              VerticalAlignment="Center" AutomationProperties.Name="Close">
         <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE711;" FontSize="10" Foreground="{StaticResource LedgerInk2Brush}" />
       </lc:LedgerButton>
     </Grid>
