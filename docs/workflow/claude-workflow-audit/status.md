@@ -123,6 +123,21 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   - Local `/code-review` for T1 and T2; `/security-review` inside T3 review.
   - Bug-fix tests must fail at the base commit.
   - Red-to-green is written into CONTRIBUTING.
+- **2026-10-09, OD-15 = yes.** Review in parallel runs:
+  - Code, test and harness tasks each get a per-task independent review.
+  - Docs tasks get a primary check; rule and agent-config edits count as T3.
+  - One whole-feature review always runs.
+  - One review round, then a re-check of the fixed lines only.
+- **2026-10-09, OD-16 = alternative 2.** The agent may start parallel worktree workers
+  itself when there are at least 3 independent tasks with non-overlapping write sets,
+  running at most about 4 at once.
+  - Combined with OD-5, workers push to `main` mid-run, which publishes Previews mid-run
+    (see OD-17 and OD-23).
+- **2026-10-09, OD-17 = yes.** A Preview publishes unless every path changed since the last
+  Preview is on the non-product allowlist (`docs/**`, `.claude/**`, `.agents/**`, root
+  `*.md`).
+  - The same "product inputs" definition drives the smoke gate.
+  - The decision is logged in the job summary.
 
 ## Open owner decisions
 
