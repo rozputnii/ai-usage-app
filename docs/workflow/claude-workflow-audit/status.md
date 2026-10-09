@@ -646,17 +646,19 @@ work continues on the recommended path unless it is marked as waiting.
   OD-23 implementation (`DesktopTestEnvironment` is a test-side class the app does not read).
   Accepted 2026-10-09.
 
+- **2026-10-10 — merge into `main`.** The owner approved the merge after the rule-inventory
+  summary. `origin/main` had not moved (`3724a17`); `Convert-IdScheme.ps1` converted nothing
+  new and was deleted; OD-30 applied (two code spans and a record note in the Stage 1 prompt);
+  `Set-ItemNumbers.ps1` numbered T-057, T-058 and R-208…R-220 (its default `-Root` failed under
+  Windows PowerShell 5.1 and now resolves in the script body). Merge gate at e740dd0 in a clean
+  worktree: C1 98/98, C2 PASS, C3 PASS (0 diagnostics), C4 917/917, C5 330/330, C7 0 warnings,
+  C8 3/3, C9 PASS (unsigned MSIX), C10 22 + 101, numbering 25; C6 failed on two
+  whitespace-only lines in Stage 1 lane reports, stripped, then PASS over `3724a17..HEAD`.
+
 ## Next action
 
-Stage 2 is implemented and verified, and every Stage 2 decision is taken. The branch waits
-for the owner: review [rule-inventory.md](rule-inventory.md) and say whether to merge. OD-10's
-one-week auto-mode trial starts when the owner picks Auto as the permission mode.
-
-At the merge, in order: merge fresh `origin/main`; re-run `tools/windows/Convert-IdScheme.ps1`
-for items `main` added and review its step references; wrap the two stage-1-prompt
-placeholder mentions in code spans (OD-30); run `tools/windows/Set-ItemNumbers.ps1` and C3;
-delete `Convert-IdScheme.ps1`; run the merge gate; after the merge, prune the
-no-repeated-approval-gates memory entry, back up and remove the untracked old
-`.claude/agents/aiu-*.md` in the main checkout (they block `git pull` there and load the
-removed simple implementer), remove the `s2-smoke` worktree and its branch, and watch the
-first CI run of the new Preview decision step.
+Stage 2 is merged into `main`. After the merge: watch the first CI run of the new Preview
+decision step; back up and remove the untracked old `.claude/agents/aiu-*.md` in the main
+checkout (they block `git pull` there); remove the `s2-smoke` worktree and its branch; prune
+the no-repeated-approval-gates memory entry. OD-10's one-week auto-mode trial starts when the
+owner picks Auto as the permission mode.
