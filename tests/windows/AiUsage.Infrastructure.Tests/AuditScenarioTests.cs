@@ -51,7 +51,11 @@ public sealed partial class AuditScenarioTests
     private static string Money(decimal? used, decimal? limit = 300, bool? enabled = true, string currency = "USD", int exponent = 2) =>
         JsonSerializer.Serialize(new { spend=new { enabled,used=new { amount_minor=used is { } u?(long?)(u*(decimal)Math.Pow(10,exponent)):null,currency,exponent },
             limit=limit is null?null:new { amount_minor=(long)(limit*(decimal)Math.Pow(10,exponent)),currency,exponent } } });
-    public static IEnumerable<object[]> Cases() => AllCases().Select(c => new object[] { c.Id });
+    // xUnit runs classes in parallel, so the corpus is split into AuditCorpusShards classes;
+    // every case belongs to exactly one shard by its position in AllCases.
+    internal const int CorpusShards = 4;
+    internal static IEnumerable<object[]> CorpusShard(int shard) =>
+        AllCases().Where((_, index) => index % CorpusShards == shard).Select(c => new object[] { c.Id });
     private static IEnumerable<Case> AllCases()
     {
         foreach (var provider in new[] { "claude", "codex", "antigravity" })
@@ -282,9 +286,7 @@ public sealed partial class AuditScenarioTests
         return new(now,item.Zone,[account],new() { [id.ToString("N")]= "SYNTHETIC · " + item.Id },observations.ToArray(),BudgetConfiguration.Default with { Caps=caps });
     }
 
-    [Theory]
-    [MemberData(nameof(Cases))]
-    public async Task ParserRecorderBudgetAndProjectionMatchIndependentExpectations(string id)
+    internal static async Task VerifyCorpusCaseAsync(string id)
     {
         var item=AllCases().Single(c=>c.Id==id);
         var number = AllCases().Select(c=>c.Id).ToList().IndexOf(item.Id)+1;
