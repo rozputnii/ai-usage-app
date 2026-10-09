@@ -42,6 +42,8 @@ Share requirements, provider semantics, research and sanitized fixtures. Do not 
 ### D-012 - Development harness
 Owner-approved agent-neutral amendment, 2026-09-14: Development is agent-neutral. Root AGENTS.md is the common entry point; specialized guidance has one active copy in .agents/skills. No workflow runtime or plugin is required.
 
+Amended by D-NEW-10 (2026-10-09): agent contracts in `.agents/agents/`, thin Claude Code pointers, and project-level plugin switches.
+
 ## AI workflow and autonomy
 
 ### D-013 - Method
@@ -109,6 +111,8 @@ Owner-approved agent-neutral amendment, 2026-09-14: Version authored instruction
 
 ### D-034 - Skills
 Owner-approved agent-neutral amendment, 2026-09-14: Keep essential instructions and the selective map in root AGENTS.md. Read specialized .agents/skills guidance on demand; native discovery is optional.
+
+Amended by D-NEW-10 (2026-10-09): thin native wrappers in `.claude/skills/` point to the canonical `.agents/skills/` copies.
 
 ### D-035 - AI infrastructure changes
 Owner-approved agent-neutral amendment, 2026-09-14: Respect current owner scope for workflow changes. Repository guidance does not grant native tool privileges.
@@ -708,3 +712,6 @@ Owner direction, 2026-10-08, recorded 2026-10-09. Every final reply that follows
 
 ### D-NEW-9 - Previews publish only for product changes
 Owner decision OD-17 of the workflow audit, 2026-10-09. A green push to `main` publishes a Preview unless every path changed since the Preview the feed serves is on the non-product allowlist: `docs/**`, `.claude/**`, `.agents/**` and Markdown files at the repository root. Any other path, including an unknown kind of file, is a product input and publishes. The same "product inputs" definition decides when the launch smoke is required before a merge. The workflow records each decision and its reason in the job summary; an owner dispatch with `PublishPreview=true` always publishes, and `AIU_PREVIEW_ENABLED` stays the kill switch. This amends D-157.
+
+### D-NEW-10 - Repository skills replace the superpowers plugin
+Owner decisions OD-7, OD-8, OD-11, OD-12 and OD-20 of the workflow audit, 2026-10-09. The project stays agent-neutral: AGENTS.md is the mandatory entry point, canonical skills live in `.agents/skills/` and agent contracts in `.agents/agents/`, and Claude Code files (`CLAUDE.md`, `.claude/skills/`, `.claude/agents/`) are thin pointers to them. One reviewer and one implementer contract are versioned; models are given as aliases. The repository skills planning-and-variants and plan-execution replace the superpowers planning and execution skills; systematic-debugging, verification-before-completion and receiving-code-review are vendored from superpowers v6.4.2 at a pinned commit; post-deploy-check runs only when the owner asks. Every superpowers skill is mapped to a replacement in the [mapping](../workflow/claude-workflow-audit/superpowers-mapping.md). The project settings disable superpowers, ux-superpowers, design-superpowers, desktop-commander and the design plugin for this repository only. This amends D-012 and D-034: discovery through thin native wrappers is now provided, while `.agents/skills` stays the only canonical copy.

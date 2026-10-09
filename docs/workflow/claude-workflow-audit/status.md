@@ -367,6 +367,26 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   Checks: C10 PASS (85); the revised decision script against the real feed: `origin/main` skip
   (0 paths), `4206880` skip (31 docs paths), HEAD publish (PASS); C2 PASS; C6 PASS.
 
+- **2026-10-09 — step 7, skills (OD-7, OD-20), done before steps 5-6 because it touches no
+  code.**
+  - Vendored from superpowers `v6.4.2` (commit `8ca22dba9a94f28898bbce59f2537ff4d87c747d`;
+    every copied file's blob hash matched upstream): systematic-debugging (with its four
+    technique files), verification-before-completion, receiving-code-review, plus the MIT
+    licence and `.agents/skills/VENDORED.md`. Only change: two cross-references in
+    systematic-debugging now point to repo equivalents.
+  - New repo skills: planning-and-variants (the `/brainstorming` replacement, invocable as
+    `/planning-and-variants`) and plan-execution; post-deploy-check (owner-invoked only,
+    `disable-model-invocation` in its Claude wrapper). Each has a thin `.claude/skills/`
+    wrapper; AGENTS.md lists them.
+  - Backlog: one "Pending owner checks" table with eight open post-deploy checks
+    (AIU-045, 048, 050-055).
+  - Mapping of all 15 superpowers skills to replacements: [superpowers-mapping.md](superpowers-mapping.md).
+    Then `"superpowers@synced": false` in `.claude/settings.json`. D-NEW-10 records the agent
+    and skill layout and amends D-012 and D-034.
+  - Checks: `claude plugin list` shows all five plugins disabled for the project (PASS); a
+    fresh headless session lists the eight model-invocable repo skills and no `superpowers:`
+    skill (PASS); C2 PASS; C6 PASS.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;

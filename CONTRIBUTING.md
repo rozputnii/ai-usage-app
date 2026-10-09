@@ -107,7 +107,8 @@ never stays on `main`. An item already numbered on `main` keeps its number.
 The committed `.claude/settings.json` holds deny rules only: force-push variants (including
 `--mirror` and `+refspec`), `gh release` and `gh workflow run` in Bash and PowerShell, and
 reads or edits of source-CLI credential stores through the agent's file tools. It also
-disables plugins this project does not use. Deny rules apply in every permission mode, and a
+disables plugins for this project: ux-superpowers, design-superpowers, desktop-commander and
+design (OD-8), and superpowers, whose used skills have repository replacements (OD-7). Deny rules apply in every permission mode, and a
 local allow cannot lift them. Changing this file is T3 and needs the owner's decision. The
 patterns are a backstop only: other spellings, scripts and shell reads such as `cat` or
 `Get-Content` are not blocked, so the prose rules stay authoritative.

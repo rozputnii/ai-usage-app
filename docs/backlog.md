@@ -605,6 +605,23 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - acceptance: A test or a bounded probe shows the process handle count stays flat over thousands of tray glyph updates; a recurring failure produces one detailed record plus a coalesced count; the Infrastructure and Presentation suites, the Release build without warnings and the demo startup smoke pass. The owner checks the installed app's logs after deployment (D-190).
 - registration-note: Found on 2026-10-09 in the installed app's logs (2026.10.837.0 and earlier): 5,778 TrayFailure errors (ExternalException, hResult -2147467259) from `TrayGlyph.Create` through `LedgerWindow.UpdateTrayGlyph` in three sessions. Each time they began 5.5 to 8 hours after launch, and every later attempt failed until the app restarted. `TrayGlyph.Create` returns `Icon.FromHandle(bitmap.GetHicon())`, and nothing destroys that handle or disposes the replaced icon, so every card rebuild probably leaks one icon handle until the process runs out; each failure is also logged, about three records a minute.
 
+## Pending owner checks
+
+Post-deploy owner checks (D-190): what the owner checks in the updated installed app. Each
+feature that leaves such a check adds one row; the post-deploy-check skill
+(`.agents/skills/post-deploy-check/SKILL.md`) records the verdicts and removes closed rows.
+
+| Item | Check in the installed app | Pending since |
+| --- | --- | --- |
+| AIU-045 | `ShellSmoke.PackagedLedgerLaunchesAndExits` against the installed package | 2026-10-06 |
+| AIU-048 | A paired card's one-window five-hour cell, its tooltip and its footer on live readings | 2026-10-07 |
+| AIU-050 | The live Copilot Business account as one card with hideable limit sections | 2026-10-07 |
+| AIU-051 | The single-column cards and the sliding settings sheet with live accounts | 2026-10-07 |
+| AIU-052 | The refresh status button and the minimum window size with live accounts | 2026-10-08 |
+| AIU-053 | Today's use by hand and Copilot credits in dollars with live Copilot Business and Claude spending | 2026-10-08 |
+| AIU-054 | Percent caps and the cap-as-full-bar on live weekly windows | 2026-10-08 |
+| AIU-055 | Tray flyout, provider-mark tooltips, the wrapped empty-tray text, click rename, grip drag and the refresh stepper with live accounts | 2026-10-08 |
+
 ## Deferred clarifications, not forgotten
 
 | Topic | Clarify when | Why not now |

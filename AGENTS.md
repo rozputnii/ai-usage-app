@@ -57,6 +57,15 @@ Read the skill before working in its area:
 - [security-lifecycle](.agents/skills/security-lifecycle/SKILL.md): credentials,
   storage, migrations, recovery or owned-data cleanup.
 - [convergence-review](.agents/skills/convergence-review/SKILL.md): independent review.
+- [planning-and-variants](.agents/skills/planning-and-variants/SKILL.md): planning a feature
+  or behavior change, and rendered variants for visible UI changes.
+- [plan-execution](.agents/skills/plan-execution/SKILL.md): multi-part or parallel work.
+- [systematic-debugging](.agents/skills/systematic-debugging/SKILL.md),
+  [verification-before-completion](.agents/skills/verification-before-completion/SKILL.md),
+  [receiving-code-review](.agents/skills/receiving-code-review/SKILL.md): bugs, completion
+  claims and review findings.
+- [post-deploy-check](.agents/skills/post-deploy-check/SKILL.md): only when the owner asks to
+  check the installed app.
 
 Plugin skills are optional tools; repository rules win. A plugin's spec-review,
 execution-mode and finish-branch prompts are answered in advance: the owner's
