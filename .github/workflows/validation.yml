@@ -117,39 +117,35 @@ jobs:
         run: |
           # OD-17: a push publishes unless every path changed since the build the feed serves is
           # non-product (docs/**, .claude/**, .agents/**, root *.md); an owner dispatch always publishes.
-          # The base is the served build, not the newest release, so a run that failed after its release
-          # went public still publishes on re-run. Any lookup failure publishes.
-          Import-Module ./tools/windows/PreviewRelease.psm1 -Force
-          $publish = $true
-          $reason = 'owner dispatch'
-          if ($env:GITHUB_EVENT_NAME -eq 'push') {
-            $base = ''
-            $feedDir = Join-Path $env:RUNNER_TEMP 'aiu-served-feed'
-            New-Item -ItemType Directory -Force -Path $feedDir | Out-Null
-            gh release download feed-preview --repo $env:GITHUB_REPOSITORY --pattern AiUsage.appinstaller --dir $feedDir --clobber
-            if ($LASTEXITCODE -eq 0) {
-              try {
-                [xml]$served = Get-Content -Raw -LiteralPath (Join-Path $feedDir 'AiUsage.appinstaller')
-                $base = [string](gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/preview-$($served.AppInstaller.Version)" --jq .target_commitish)
-                if ($LASTEXITCODE -ne 0) { $base = '' }
-              } catch { $base = '' }
-            }
-            $global:LASTEXITCODE = 0
-            $ancestor = $false
-            if ($base -match '^[0-9a-f]{40}$') {
+          # The base is the served build, not the newest release, so a run that failed before the feed
+          # upload still publishes on re-run. A re-run after a later failure (Pages upload or deploy) finds
+          # the feed already serving this commit and skips; republish with a PublishPreview=true dispatch.
+          # Any lookup or decision failure, including a failed module import, publishes.
+          try {
+            Import-Module ./tools/windows/PreviewRelease.psm1 -Force
+            $decision = Get-PreviewPublicationDecision -EventName $env:GITHUB_EVENT_NAME -GetServedCommit {
+              $feedDir = Join-Path $env:RUNNER_TEMP 'aiu-served-feed'
+              New-Item -ItemType Directory -Force -Path $feedDir | Out-Null
+              gh release download feed-preview --repo $env:GITHUB_REPOSITORY --pattern AiUsage.appinstaller --dir $feedDir --clobber | Out-Null
+              if ($LASTEXITCODE -ne 0) { return '' }
+              [xml]$served = Get-Content -Raw -LiteralPath (Join-Path $feedDir 'AiUsage.appinstaller')
+              $commit = [string](gh api "repos/$env:GITHUB_REPOSITORY/releases/tags/preview-$($served.AppInstaller.Version)" --jq .target_commitish)
+              if ($LASTEXITCODE -ne 0) { return '' }
+              return $commit
+            } -TestAncestor {
+              param($base)
               git merge-base --is-ancestor $base $env:GITHUB_SHA
-              $ancestor = $LASTEXITCODE -eq 0
-              $global:LASTEXITCODE = 0
-            }
-            if (!$ancestor) {
-              $reason = "the served Preview's source is unknown or not an ancestor of this commit ($base)"
-            } else {
-              $changed = @(git diff --no-renames --name-only $base $env:GITHUB_SHA)
+              return $LASTEXITCODE -eq 0
+            } -GetChangedPaths {
+              param($base)
+              $paths = @(git diff --no-renames --name-only $base $env:GITHUB_SHA)
               if ($LASTEXITCODE -ne 0) { throw 'Cannot list changed paths.' }
-              $publish = Test-PreviewInputsChanged -ChangedPaths $changed
-              $reason = if ($publish) { "product inputs changed since the served Preview $base" } else { "only non-product paths changed since the served Preview $base ($($changed.Count) paths)" }
+              return $paths
             }
-          }
+            $publish = $decision.Publish
+            $reason = $decision.Reason
+          } catch { $publish = $true; $reason = 'the publication decision failed; publish by default' }
+          $global:LASTEXITCODE = 0
           "publish=$($publish.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           "### Preview publication: $(if ($publish) { 'publish' } else { 'skip' })`n`nReason: $reason" >> $env:GITHUB_STEP_SUMMARY
           Write-Output "Preview publication: $publish ($reason)"

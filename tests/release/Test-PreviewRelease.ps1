@@ -127,8 +127,37 @@ Equal (Test-PreviewInputsChanged -ChangedPaths @('docs/backlog.md', 'src/windows
 foreach ($path in @('Directory.Packages.props', 'global.json', '.github/workflows/validation.yml', 'tools/windows/Build-Package.ps1', 'tests/windows/X.cs', 'LICENSE', 'src/README.md', 'docs', '.gitignore')) {
     Equal (Test-PreviewInputsChanged -ChangedPaths @($path)) $true
 }
+# The decide step fails open: a dispatch, a missing or unknown served build, a non-ancestor and any
+# lookup or diff failure publish; only a known ancestor with non-product changes skips. Reasons
+# never carry exception text.
+$sha = 'a' * 40
+$docsOnly = { @('docs/backlog.md') }
+$isAncestor = { param($base) $base -ceq $sha }
+function Decide([string]$eventName, [scriptblock]$served, [scriptblock]$ancestor, [scriptblock]$paths) {
+    Get-PreviewPublicationDecision -EventName $eventName -GetServedCommit $served -TestAncestor $ancestor -GetChangedPaths $paths
+}
+$decision = Decide 'workflow_dispatch' { throw 'unused' } $isAncestor $docsOnly
+Equal $decision.Publish $true
+Equal $decision.Reason 'owner dispatch'
+Equal (Decide 'push' { $sha } $isAncestor $docsOnly).Publish $false
+Equal (Decide 'push' { $sha } $isAncestor { @() }).Publish $false
+Equal (Decide 'push' { $sha } $isAncestor { @('docs/backlog.md', 'src/x.cs') }).Publish $true
+Equal (Decide 'push' { '' } $isAncestor $docsOnly).Publish $true
+Equal (Decide 'push' { 'main' } $isAncestor $docsOnly).Publish $true
+Equal (Decide 'push' { 'b' * 40 } $isAncestor $docsOnly).Publish $true
+foreach ($failing in @(
+    @({ throw 'secret-feed' }, $isAncestor, $docsOnly),
+    @({ $sha }, { throw 'secret-ancestry' }, $docsOnly),
+    @({ $sha }, $isAncestor, { throw 'secret-diff' }))) {
+    $decision = Decide 'push' $failing[0] $failing[1] $failing[2]
+    Equal $decision.Publish $true
+    Equal ($decision.Reason -match 'secret') $false
+}
 $decide = [regex]::Match($workflow, '(?ms)^      - name: Decide Preview publication\r?\n.*?(?=^      - )').Value
-Equal ($decide -match 'Test-PreviewInputsChanged') $true
+Equal ($decide -match 'Get-PreviewPublicationDecision') $true
+Equal ($decide -match '(?m)^\s+\} catch \{ \$publish = \$true; \$reason = ''[^'']+'' \}\r?$') $true
+$previewJob = [regex]::Match($workflow, '(?ms)^  preview:\r?\n.*?(?=^  [a-z]|\z)').Value
+Equal ($previewJob -match '(?m)^          fetch-depth: 0\r?$') $true
 Equal ($decide -match 'GITHUB_STEP_SUMMARY') $true
 $publishBlock = [regex]::Match($workflow, '(?ms)^      - name: Reserve, build, sign and publish development Preview\r?\n.*?(?=^      - )').Value
 Equal ($publishBlock -match "(?m)^        if: steps\.decide\.outputs\.publish == 'true'\r?$") $true
