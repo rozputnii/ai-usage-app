@@ -168,7 +168,7 @@ Then stop at the owner checkpoint (section 9).
 
 Each block is copied verbatim into a brief. "Writes" is the exclusive write-set; anything outside it is out of scope for that agent. Commands run from the worktree root unless stated.
 
-### A - Dispatch-only Preview publication and T-014 records (T-014.1, closes ANL-01, ANL-03 code side; D1a)
+### A - Dispatch-only Preview publication and T-014 records (T-045.1, closes ANL-01, ANL-03 code side; D1a)
 
 - agent: aiu-implementer; worktree
 - writes: `.github/workflows/validation.yml`, `tools/windows/PreviewRelease.psm1`, `tools/windows/Publish-Preview.ps1`, `tests/release/Test-PreviewRelease.ps1`, `README.md` (Preview section only), `docs/specs/T-014-preview-updates/spec.md`, `docs/specs/T-014-preview-updates/verification.md`, `docs/specs/T-014-preview-updates/bug-2026-10-04-installer-connection-aborted.md`, `docs/decisions/accepted.md` (R-157 entry only)
