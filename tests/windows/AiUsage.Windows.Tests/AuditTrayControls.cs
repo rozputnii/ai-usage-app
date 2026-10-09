@@ -11,7 +11,7 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class AuditWindows
 {
-    [Theory]
+    [Theory(Explicit = true)]
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(false, true)]

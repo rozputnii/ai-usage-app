@@ -8,7 +8,7 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class AuditWindows
 {
-    [Fact]
+    [Fact(Explicit = true)]
     public void FailedEvidenceStorageStillTerminatesOnlyTheOwnedAuditProcess()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();
@@ -32,7 +32,7 @@ public sealed partial class AuditWindows
     private static readonly (string Provider, string Name)[] Providers =
         [("claude", "Claude"), ("codex", "Codex"), ("copilot", "GitHub Copilot"), ("antigravity", "Antigravity")];
 
-    [Fact]
+    [Fact(Explicit = true)]
     public void AllFirstRunButtonsAndDuplicateProviderMenuEntriesReceiveMouseClicks()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();

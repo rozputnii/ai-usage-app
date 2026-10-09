@@ -11,8 +11,13 @@ using Xunit;
 namespace AiUsage.Windows.Tests;
 
 /// <summary>Ordinary desktop interaction on isolated synthetic state; no sign-in or real credentials.</summary>
-public sealed partial class LedgerSmoke
+public sealed partial class LedgerSmoke : IDisposable
 {
+    private readonly Stopwatch started = Stopwatch.StartNew();
+
+    /// <summary>R5: every LedgerSmoke result is appended to the local smoke history once the test has finished.</summary>
+    public void Dispose() => SmokeKit.RecordResult(started.Elapsed);
+
     [Fact]
     public void AccountSpendingUsesNestedContentHistoryCapsAndAccountActions()
     {
@@ -232,6 +237,8 @@ public sealed partial class LedgerSmoke
         var state = Path.Combine(Path.GetTempPath(), "aiu-ledger-smoke-" + Guid.NewGuid().ToString("N"));
         var start = new ProcessStartInfo(exe!, demo ? "--demo" : "") { UseShellExecute = false };
         start.Environment["AIU_DEVELOPMENT_STATE_DIRECTORY"] = state;
+        var trayId = SmokeKit.NewTrayId();
+        start.Environment[SmokeKit.TrayIdVariable] = trayId;
         using var app = Application.Launch(start);
         using var automation = new UIA3Automation();
         using var process = Process.GetProcessById(app.ProcessId);
@@ -323,7 +330,8 @@ public sealed partial class LedgerSmoke
             Assert.NotNull(Button("Cancel deleting stored data"));
             Button("Cancel deleting stored data").Invoke();
             Menu("Preview diagnostics");
-            Thread.Sleep(300);
+            Assert.True(Wait(() => Main().FindFirstDescendant(cf => cf.ByName("Preview diagnostics").And(cf.ByControlType(ControlType.MenuItem))) is null),
+                "The settings menu did not close");
             using (var screenshot = Main().Capture()) screenshot.Save(Path.Combine(evidence!, prefix + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             Button("Close settings").Invoke();
             if (demo)
@@ -334,70 +342,46 @@ public sealed partial class LedgerSmoke
                 Assert.True(Wait(() => !IsWindowVisible(handle)), "Close should hide the main window");
                 var desktop = automation.GetDesktop();
                 var taskbar = desktop.FindFirstChild(cf => cf.ByClassName("Shell_TrayWnd"));
-                AutomationElement[] Icons(AutomationElement? surface) => surface?
-                    .FindAllDescendants(cf => cf.ByName("AI Usage").And(cf.ByControlType(ControlType.Button)))
-                    .Where(icon => !icon.IsOffscreen).ToArray() ?? [];
-                AutomationElement? row = null;
-                AutomationElement? trayWindow = null;
-                var trayAttempts = new List<string>();
-                bool OpenOwnedTray(AutomationElement icon)
-                {
-                    icon.AsButton().Invoke();
-                    trayAttempts.Add("invoked " + icon.Properties.AutomationId.ValueOrDefault);
-                    // Explorer owns every tray button. Match the opened window to this test's
-                    // process before inspecting accounts; another AI Usage instance may be running.
-                    if (Wait(() =>
-                    {
-                        trayWindow = desktop.FindAllChildren().FirstOrDefault(w => w.Properties.NativeWindowHandle.ValueOrDefault != handle &&
-                            IsWindowVisible(w.Properties.NativeWindowHandle.ValueOrDefault) &&
-                            GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId &&
-                            w.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal)));
-                        row = trayWindow?.FindAllDescendants().FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal));
-                        return row is not null;
-                    }, TimeSpan.FromSeconds(5))) return true;
-                    Keyboard.Press(VirtualKeyShort.ESCAPE);
-                    return false;
-                }
-                foreach (var icon in Icons(taskbar))
-                    if (OpenOwnedTray(icon)) break;
+                // OD-23: this launch names its tray icon "AI Usage <id>", so no other AI Usage instance, such as the installed
+                // app, can match. The icon shows in the taskbar or, when Windows hides it, in the hidden-icons overflow.
+                var trayName = SmokeKit.TrayName(trayId);
+                AutomationElement? Icon(AutomationElement? surface) => surface?
+                    .FindAllDescendants(cf => cf.ByName(trayName).And(cf.ByControlType(ControlType.Button)))
+                    .FirstOrDefault(icon => !icon.IsOffscreen);
                 AutomationElement? Overflow() => desktop.FindFirstChild(cf => cf.ByClassName("TopLevelWindowForOverflowXamlIsland"));
-                void OpenOverflow()
+                AutomationElement? icon = null;
+                if (!Wait(() => (icon = Icon(taskbar)) is not null, TimeSpan.FromSeconds(2)))
                 {
                     // The chevron is a SystemTrayIcon button named "Show Hidden Icons", and "Show Hidden Icons Hide" while the
-                    // overflow is open (invoking it then closes it). Another AI Usage instance, such as the installed app, can
-                    // sort before this test's icon; its failed attempt leaves the overflow open. So open it only when closed.
-                    if (Overflow() is not null) return;
-                    var chevron = taskbar?.FindAllDescendants(cf => cf.ByAutomationId("SystemTrayIcon").And(cf.ByControlType(ControlType.Button)))
-                        .FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Show Hidden Icons", StringComparison.Ordinal));
-                    Assert.True(chevron is not null, "The taskbar has no Show Hidden Icons button; " + string.Join("; ", trayAttempts));
-                    chevron!.AsButton().Invoke();
+                    // overflow is open (invoking it then closes it), so it is invoked only while the overflow is closed.
+                    if (Overflow() is null)
+                        SmokeKit.Find(() => taskbar?.FindAllDescendants(cf => cf.ByAutomationId("SystemTrayIcon").And(cf.ByControlType(ControlType.Button)))
+                            .FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("Show Hidden Icons", StringComparison.Ordinal)),
+                            "Show Hidden Icons button").AsButton().Invoke();
+                    icon = SmokeKit.Find(() => Icon(Overflow()), "tray icon " + trayName);
                 }
-                if (row is null)
+                icon!.AsButton().Invoke();
+                AutomationElement? row = null;
+                AutomationElement? trayWindow = null;
+                // Explorer owns every tray button; the opened flyout must still belong to this test's process.
+                Assert.True(Wait(() =>
                 {
-                    for (var index = 0; ; index++)
-                    {
-                        OpenOverflow();
-                        AutomationElement? overflow = null;
-                        Assert.True(Wait(() =>
-                        {
-                            overflow = Overflow();
-                            return Icons(overflow).Length > 0;
-                        }));
-                        var icons = Icons(overflow);
-                        trayAttempts.Add("overflow icons=" + icons.Length);
-                        if (index >= icons.Length) { Keyboard.Press(VirtualKeyShort.ESCAPE); break; }
-                        if (OpenOwnedTray(icons[index])) break;
-                    }
-                }
-                Assert.True(row is not null, string.Join("; ", trayAttempts));
+                    trayWindow = desktop.FindAllChildren().FirstOrDefault(w => w.Properties.NativeWindowHandle.ValueOrDefault != handle &&
+                        IsWindowVisible(w.Properties.NativeWindowHandle.ValueOrDefault) &&
+                        GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == app.ProcessId &&
+                        w.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal)));
+                    row = trayWindow?.FindAllDescendants().FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro 2.", StringComparison.Ordinal));
+                    return row is not null;
+                }, TimeSpan.FromSeconds(10)), "The tray flyout of " + trayName + " did not open");
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 DesktopTestEnvironment.RequireUnlockedDesktop();
                 // AIU-055 R-08: the flyout content is 260 logical px wide. The window itself is wider by its invisible resize borders,
                 // so the width is measured on the content, not on the window.
                 var trayWidth = (int)(260 * GetDpiForWindow(trayWindow!.Properties.NativeWindowHandle.Value) / 96.0);
-                var trayContent = trayWindow.FindFirstDescendant(cf => cf.ByName("AI Usage tray"));
-                Assert.True(trayContent is not null && Math.Abs(trayContent.BoundingRectangle.Width - trayWidth) <= 2,
-                    $"Tray flyout content should be 260 px wide ({trayWidth} physical px), was {trayContent?.BoundingRectangle.Width}");
+                // The flyout content has no AutomationId, so it is found by its name.
+                var trayContent = SmokeKit.Find(() => trayWindow.FindFirstDescendant(cf => cf.ByName("AI Usage tray")), "tray flyout content");
+                Assert.True(Math.Abs(trayContent.BoundingRectangle.Width - trayWidth) <= 2,
+                    $"Tray flyout content should be 260 px wide ({trayWidth} physical px), was {trayContent.BoundingRectangle.Width}");
                 using (var capture = trayWindow.Capture()) capture.Save(Path.Combine(evidence!, comfortable ? "tray-icons-comfortable.png" : "tray-icons.png"), System.Drawing.Imaging.ImageFormat.Png);
                 // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
                 // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
@@ -427,9 +411,7 @@ public sealed partial class LedgerSmoke
             File.WriteAllText(Path.Combine(evidence!, prefix + ".json"), JsonSerializer.Serialize(new { passed, state, pid = app.ProcessId, exited = process.HasExited }));
             if (!process.HasExited)
             {
-                if (window is not null)
-                    try { DesktopTestEnvironment.RequireUnlockedDesktop(); using var screenshot = (Current() ?? window).Capture(); screenshot.Save(Path.Combine(evidence!, prefix + "-failure.png"), System.Drawing.Imaging.ImageFormat.Png); }
-                    catch (Exception) { }
+                SmokeKit.SaveFailure(evidence!, prefix, () => Current() ?? window);
                 process.Kill(); process.WaitForExit(5000);
             }
         }

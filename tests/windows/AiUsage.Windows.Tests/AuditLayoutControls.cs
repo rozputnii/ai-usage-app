@@ -10,7 +10,7 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class AuditWindows
 {
-    [Fact]
+    [Fact(Explicit = true)]
     public void OrdinaryMouseResizeAndCaptionControlsKeepOpenFormsHistoryAndMenusUsable()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();

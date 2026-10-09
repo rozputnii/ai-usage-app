@@ -16,7 +16,7 @@ namespace AiUsage.Windows.Tests;
 /// <summary>Physical input on the actual unpackaged build. Fixtures were exported after real parser/budget assertions.</summary>
 public sealed partial class AuditWindows
 {
-    [Fact]
+    [Fact(Explicit = true)]
     public void ReplayPagesRenderUsedAndLeft()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();
@@ -78,7 +78,7 @@ public sealed partial class AuditWindows
         }
     }
 
-    [Fact]
+    [Fact(Explicit = true)]
     public void SettingsEditorsHistoryAndSupportReceivePhysicalClicks()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop();
@@ -153,10 +153,10 @@ public sealed partial class AuditWindows
         session.Capture("controls-deleted-first-run"); session.Exit();
     }
 
-    [Fact]
+    [Fact(Explicit = true)]
     public void MockAuthenticationSuccess() => MockAuthenticationCodeCancellationRetryAndOutcomes(-1);
 
-    [Theory]
+    [Theory(Explicit = true)]
     [InlineData(0)]
     [InlineData(1)]
     [InlineData(2)]

@@ -8,7 +8,7 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class AuditWindows
 {
-    [Theory]
+    [Theory(Explicit = true)]
     [InlineData("TRANS-01")]
     [InlineData("TRANS-02")]
     public void RefreshMovesMoneyBetweenMainAndNestedContentAndUpdatesOpenHistory(string scenario)

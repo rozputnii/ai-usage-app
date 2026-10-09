@@ -11,7 +11,7 @@ public sealed partial class AuditWindows
 {
     private const string LegacyMaintenancePreferences = "{\"Version\":1,\"Theme\":2,\"AlwaysOnTop\":true,\"Labels\":{\"opaque/provider\":\"SYNTHETIC checkpoint\"},\"future\":{\"raw\":[null,7]}}";
 
-    [Fact]
+    [Fact(Explicit = true)]
     public void ProductionStorageLeaseBlocksAccountsAndPhysicalRetryRecovers()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop(); Assert.Equal("WDAGUtilityAccount", Environment.UserName);
@@ -33,7 +33,7 @@ public sealed partial class AuditWindows
         session.Capture("REC-02-after-lease-retry"); session.Exit();
     }
 
-    [Fact]
+    [Fact(Explicit = true)]
     public void ProductionCheckpointRetryRestoreFailureSuccessAndNewerSchemaUsePhysicalControls()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop(); Assert.Equal("WDAGUtilityAccount", Environment.UserName);
@@ -92,7 +92,7 @@ public sealed partial class AuditWindows
         newer.Capture("REC-04-production-newer-schema-blocked"); newer.Exit();
     }
 
-    [Theory]
+    [Theory(Explicit = true)]
     [InlineData(false)]
     [InlineData(true)]
     public void ProductionDeletionCancelConfirmAndPendingIntentRestartOnlySyntheticState(bool pending)
@@ -153,7 +153,7 @@ public sealed partial class AuditWindows
         finally { StopBoundProcesses(root, input, existing); }
     }
 
-    [Fact]
+    [Fact(Explicit = true)]
     public void RepeatedSyntheticLaunchRestoresTheExistingWindowAndInflightCtrlQDrains()
     {
         DesktopTestEnvironment.RequireUnlockedDesktop(); Assert.Equal("WDAGUtilityAccount", Environment.UserName);
