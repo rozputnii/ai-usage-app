@@ -4,8 +4,8 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 
 - **Branch:** `workflow-optimization`, a long-lived branch the owner requested. It is never
   merged into `main` or opened as a PR without an explicit owner decision.
-- **Current stage:** Stage 1 (analysis and recommendations) is complete and awaits owner
-  review. Stage 2 has not started.
+- **Current stage:** Stage 1 is complete, and all owner decisions OD-1 to OD-31 were taken
+  on 2026-10-09. Stage 2 (implementation) is ready to start.
 
 ## Done
 
@@ -205,11 +205,26 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 
   Note: the report's recommendation labels R1-R18 are audit-internal and unrelated to
   decision IDs.
+- **2026-10-09, OD-1 = yes.** The agent-may-do bundle is approved without further
+  questions:
+  - R9 rule consolidation, delivered with a rule-inventory diff that the owner reviews before
+    the branch merges;
+  - R13 numbering script, built for the OD-31 scheme;
+  - R14;
+  - R15, including the `/goal` trial;
+  - R5 harness-only changes;
+  - one `/doctor prompt-audit` run;
+  - the Microsoft Learn MCP guidance line;
+  - host facts in a repo doc.
+
+  Removed from the bundle under OD-11's agent-neutral principle: the Claude-only
+  path-scoped `.claude/rules/logging.md` trial. Logging policy stays in AGENTS.md and
+  logging.md.
 
 ## Open owner decisions
 
-OD-1 to OD-30 are listed in [report.md §8](report.md#8-owner-decisions-yesno). Each can be
-answered yes or no and carries a recommendation.
+None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The report's
+§8 recommendations are superseded where the answers above differ.
 
 ## Notes for later stages
 
@@ -222,6 +237,18 @@ answered yes or no and carries a recommendation.
 
 ## Next action
 
-The owner answers OD-1 to OD-30. A new session then starts Stage 2 with a prompt that cites
-the approved decision numbers. It begins with R1 + R7 + R6 phase 1 (OD-2..OD-6) as one change
-set on this branch.
+Start Stage 2 in a new session on this branch, with a prompt that cites OD-1 to OD-31 as
+recorded above. Suggested order:
+
+1. **Rule text.** AGENTS.md, CONTRIBUTING and the CLAUDE.md skill pointers for OD-2..OD-6,
+   OD-11, OD-14..OD-16 and OD-18, done as the R9 consolidation with its rule-inventory diff.
+2. **Project settings.** OD-9 deny rules and OD-8 plugin disables; then start the OD-10
+   one-week auto-mode trial.
+3. **Agents and repo hygiene.** OD-12 agents; OD-13 cleanup; OD-21 memory and host facts.
+4. **CI.** OD-17 Preview filter; OD-26 spike step removal.
+5. **Tests and smoke.** OD-23, OD-24 and OD-25, plus the R14 and R5 bundle items.
+6. **Records and IDs.** OD-19 records, OD-31 ID scheme and the R13 numbering script. Do this
+   at a quiet point with no unmerged worktree branches.
+7. **New skills.** OD-20 post-deploy skill; OD-7 phase 2 repo skills in `.agents/skills`,
+   with thin Claude wrappers.
+8. **Trials.** OD-27 (both language servers), OD-28 and OD-29, each with a written result.
