@@ -166,6 +166,11 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 - **2026-10-09, OD-23 = yes.** A test-only per-run tray identity: only the identity value
   changes, inside the existing `DesktopTestEnvironment` switch, and the reviewer confirms the
   production path is unchanged. Smokes run against the Release unpackaged build.
+- **2026-10-09, OD-24 = yes.** DiagnosticCrashTests keeps its 10 s bound, but counting
+  starts from an explicit probe-ready signal, so Defender's first-run delay is excluded.
+- **2026-10-09, OD-25 = yes.** The opt-in Sandbox UI audit suite (`Audit*.cs`) is frozen:
+  marked `Explicit`, with no edits required on UI changes. The package, upgrade and feed
+  smokes stay.
 
 ## Open owner decisions
 
