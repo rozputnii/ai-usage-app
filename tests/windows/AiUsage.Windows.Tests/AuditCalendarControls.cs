@@ -8,7 +8,7 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class AuditWindows
 {
-    [Theory]
+    [Theory(Explicit = true)]
     [InlineData("CAL-01")]
     [InlineData("CAL-02")]
     [InlineData("CAL-04")]

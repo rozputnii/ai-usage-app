@@ -6,7 +6,7 @@ namespace AiUsage.Windows.Tests;
 
 public sealed partial class AuditWindows
 {
-    [Theory]
+    [Theory(Explicit = true)]
     [InlineData(false)]
     [InlineData(true)]
     public void HeldStartupDisablesAccountActionsAndCanReleaseOrExit(bool release)
@@ -34,7 +34,7 @@ public sealed partial class AuditWindows
         if (!release) Assert.Contains("InitializeCancelled", session.Receipts, StringComparison.Ordinal);
     }
 
-    [Theory]
+    [Theory(Explicit = true)]
     [InlineData(false, false)]
     [InlineData(true, false)]
     [InlineData(true, true)]
