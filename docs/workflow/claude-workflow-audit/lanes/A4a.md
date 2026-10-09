@@ -114,7 +114,7 @@ Other totals (fact):
   - merging or pushing to main;
   - running reviews and checks;
   - choosing the minimal fix for a reported bug.
-  
+
   Batch spec review into one confirmation. Auto-memory "No repeated approval gates" already points this way. Promote it into the repo so every session sees it.
 - **KEEP:** AskUserQuestion with a "(Recommended)" option. The owner's preference for one question at a time with suggested answers (91777cf5).
 
