@@ -33,7 +33,8 @@ Hidden complexity found later upgrades the tier; say so and continue.
 ## 3. Ask once
 
 Collect every open question that the always-ask list in AGENTS.md covers and ask them in one
-batch, each with options and your recommendation first. Decide everything else yourself and
+batch, each with options and your recommendation first. When the owner asked to brainstorm, also
+offer 2-3 approaches for the main design choice, with trade-offs and your recommendation. Decide everything else yourself and
 record the reason. Never ask the owner to approve a spec, a plan or an execution mode
 separately: the owner's yes to the design covers the path to a verified merge.
 

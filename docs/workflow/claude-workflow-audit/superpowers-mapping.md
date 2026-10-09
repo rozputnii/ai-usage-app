@@ -2,12 +2,12 @@
 
 Owner decision OD-7 (2026-10-09): every superpowers skill is mapped to its replacement before
 the plugin is disabled for this repository. Plugin v6.4.2 (commit `8ca22dba`) had 15 skills.
-Use counts are from the Stage 1 transcript audit (lane A4c), across all transcripts up to
-2026-10-08.
+Use counts are from the Stage 1 transcript audit, lane A4c (worktree transcripts up to
+2026-10-08); lane A4b found four more owner brainstorming kickoffs in the main folder.
 
 | superpowers skill | Uses | Replacement in this repository |
 | --- | --- | --- |
-| brainstorming | 3 + 12 owner slash commands | `planning-and-variants` skill; invoke it as `/planning-and-variants`. Keeps the shared-understanding step, the path classification and batched design questions; adds rendered UI variants and treats bug reports as diagnosis. Its spec, plan and execution-mode approval gates are dropped (one owner yes covers the path, AGENTS.md). |
+| brainstorming | 3 + 12 owner slash commands | `planning-and-variants` skill; invoke it as `/planning-and-variants`. Keeps the shared-understanding step, the path classification and the approach options with a recommendation; asks its questions in one batch instead of one at a time; adds rendered UI variants and treats bug reports as diagnosis. Its spec, plan and execution-mode approval gates are dropped (one owner yes covers the path, AGENTS.md). |
 | writing-plans | 4 | `plan-execution` skill, Plan section (tasks.md only for parallel work; "Review focus" kept). |
 | executing-plans | 3 | `plan-execution` skill, Execute section. |
 | subagent-driven-development | 1 | `plan-execution` skill (parallel path) with the implementer and reviewer contracts in `.agents/agents/`. |

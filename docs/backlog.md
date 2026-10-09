@@ -230,13 +230,13 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 
 | Item | Check in the installed app | Pending since |
 | --- | --- | --- |
-| AIU-045 | `ShellSmoke.PackagedLedgerLaunchesAndExits` against the installed package | 2026-10-06 |
 | AIU-048 | A paired card's one-window five-hour cell, its tooltip and its footer on live readings | 2026-10-07 |
 | AIU-050 | The live Copilot Business account as one card with hideable limit sections | 2026-10-07 |
 | AIU-051 | The single-column cards and the sliding settings sheet with live accounts | 2026-10-07 |
 | AIU-052 | The refresh status button and the minimum window size with live accounts | 2026-10-08 |
 | AIU-053 | Today's use by hand and Copilot credits in dollars with live Copilot Business and Claude spending | 2026-10-08 |
 | AIU-054 | Percent caps and the cap-as-full-bar on live weekly windows | 2026-10-08 |
+| AIU-046 | AC-06: an in-app update of the installed app by itself to a later published Preview | 2026-10-07 |
 | AIU-055 | Tray flyout, provider-mark tooltips, the wrapped empty-tray text, click rename, grip drag and the refresh stepper with live accounts | 2026-10-08 |
 
 ## Deferred clarifications, not forgotten

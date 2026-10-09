@@ -11,7 +11,8 @@ they no longer change with plugin updates:
 
 - Source: <https://github.com/obra/superpowers>, tag `v6.4.2`, commit
   `8ca22dba9a94f28898bbce59f2537ff4d87c747d`. Each copied file's Git blob hash was checked
-  against that commit on 2026-10-09 and matched.
+  against that commit on 2026-10-09 and matched before the local change below (the upstream blob
+  of `systematic-debugging/SKILL.md` is `095d194`).
 - Licence: MIT, Copyright (c) 2025 Jesse Vincent; the full text is in
   [LICENSE-superpowers.txt](LICENSE-superpowers.txt).
 - Local changes, the only ones: in `systematic-debugging/SKILL.md`, phase 4, the reference to

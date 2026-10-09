@@ -370,7 +370,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
 - **2026-10-09 — step 7, skills (OD-7, OD-20), done before steps 5-6 because it touches no
   code.**
   - Vendored from superpowers `v6.4.2` (commit `8ca22dba9a94f28898bbce59f2537ff4d87c747d`;
-    every copied file's blob hash matched upstream): systematic-debugging (with its four
+    every copied file's blob hash matched upstream before the documented local change): systematic-debugging (with its four
     technique files), verification-before-completion, receiving-code-review, plus the MIT
     licence and `.agents/skills/VENDORED.md`. Only change: two cross-references in
     systematic-debugging now point to repo equivalents.
@@ -402,6 +402,14 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - Not yet done: collapsing the 26 executed tasks.md plans into ledgers (next, as parallel
     docs tasks).
   - Checks: C1 PASS (86); C2 PASS; C6 PASS.
+
+- **2026-10-09 — step 7 review fixes.** The focused review (changes requested: 2 Important,
+  5 Minor) found a stale AIU-045 row in "Pending owner checks" (that smoke is Sandbox-only and
+  was closed as not applicable) and that plan-execution required per-task review for sequential
+  work too. Fixed both, plus: the owner-requested parallel path and the `status` field in
+  plan-execution, precise provenance wording, the mapping's source and "one batch" wording,
+  approach options with a recommendation when the owner asks to brainstorm, and the missing
+  AIU-046 AC-06 owner check.
 
 ## New owner decisions (Stage 2)
 

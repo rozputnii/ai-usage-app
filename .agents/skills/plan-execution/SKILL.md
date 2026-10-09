@@ -14,7 +14,7 @@ this text seems to differ.
 - Sequential work needs no plan document: keep the task list in the session and the evidence
   in verification.md.
 - Parallel work needs `tasks.md` in the feature folder (docs/workflow/formats.md, Task blocks):
-  one `### T-xx` block per task with `depends_on`, `ownership`, `writes`, `shared`,
+  one `### T-xx` block per task with `status`, `depends_on`, `ownership`, `writes`, `shared`,
   `parallel`, `isolation`, `agent`, `acceptance` and `evidence`, plus an open "Next action".
   Write decisions and exact values into the blocks, not code. End with a "Review focus" list:
   the places most likely to go wrong.
@@ -23,8 +23,8 @@ this text seems to differ.
 
 - **Sequential:** one task at a time, red to green, the task's checks, commit, push the save
   point to the task branch.
-- **Parallel:** only for at least three independent tasks with non-overlapping write sets, at
-  most about four workers at once. Give each worker a self-contained brief and the implementer
+- **Parallel:** when the owner asks, or when there are at least three independent tasks with
+  non-overlapping write sets; at most about four workers at once. Give each worker a self-contained brief and the implementer
   contract (`.agents/agents/implementer.md`), in its own worktree created from the task branch.
   Workers do not add backlog items or decisions. Wait with background tasks or Monitor, never
   sleep loops; check CI once at the end, not in a foreground loop.
@@ -33,9 +33,10 @@ this text seems to differ.
 
 ## Review
 
-- Each code, test or harness task gets a per-task review by the reviewer contract
-  (`.agents/agents/reviewer.md`), dispatched by the primary. Docs tasks get a primary diff check;
-  rule and agent-configuration edits are T3.
+- In parallel runs, each code, test or harness task gets a per-task review by the reviewer
+  contract (`.agents/agents/reviewer.md`), dispatched by the primary. Docs tasks get a primary
+  diff check; rule and agent-configuration edits are T3. Sequential work gets the tier's review
+  of the integrated diff.
 - One whole-feature review runs before the merge, plus the focused T3 review when the tier
   requires it. One round, then a re-check of the fixed lines only.
 - Use the receiving-code-review skill to evaluate findings; unresolved material findings block
