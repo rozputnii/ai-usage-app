@@ -14,20 +14,9 @@ AI clients and plugins are optional. Start with [AGENTS](AGENTS.md) and [CONTRIB
 
 ## Local checks
 
-Select commands using the [change-based verification matrix](docs/workflow/verification.md#checks-by-change). Use the SDK selected by global.json. If it is not on PATH, the existing user-local PowerShell form replaces `dotnet` with `& "$HOME/.dotnet/ai-usage-sdk/dotnet.exe"`.
+The check commands, their IDs and the [change-based matrix](docs/workflow/verification.md#checks-by-change) that selects them are in the [verification policy](docs/workflow/verification.md#checks). A missing restored asset is BLOCKED offline; do not silently enable network restoration. Optional local formatting checks use `dotnet format <project.csproj> --no-restore --verify-no-changes` on the two validator projects.
 
-```powershell
-dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo
-dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json
-dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json --final
-dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo
-dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo
-git diff --check
-```
-
-A missing restored asset is BLOCKED offline; do not silently enable network restoration. The validator returns 0 for valid documents, 1 for diagnostics and 2 for invocation/read failures. It makes no network or model calls. `--final`, used by CI and right before merging into `main`, also refuses `AIU-NEW` and `D-NEW` placeholders (see CONTRIBUTING). Optional local formatting checks use `dotnet format <project.csproj> --no-restore --verify-no-changes` on the two validator projects.
-
-CI runs validator/document checks and deterministic product regressions on Windows, plus unsigned MSIX/routing builds and smoke-harness publication. Those builds do not prove interactive UI execution. Review requirements and Git authority are owned by CONTRIBUTING.
+CI runs validator/document checks and deterministic product regressions on Windows, plus unsigned MSIX builds and smoke-harness publication. Those builds do not prove interactive UI execution. Review requirements and Git authority are owned by CONTRIBUTING.
 
 ## Local Windows run/debug
 

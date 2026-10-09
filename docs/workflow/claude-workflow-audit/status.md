@@ -4,8 +4,9 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 
 - **Branch:** `workflow-optimization`, a long-lived branch the owner requested. It is never
   merged into `main` or opened as a PR without an explicit owner decision.
-- **Current stage:** Stage 1 is complete, and all owner decisions OD-1 to OD-31 were taken
-  on 2026-10-09. Stage 2 (implementation) is ready to start.
+- **Current stage:** Stage 2 (implementation) is in progress, started 2026-10-09 with the
+  prompt in [stage-2-prompt.md](stage-2-prompt.md). Stage 1 is complete, and all owner
+  decisions OD-1 to OD-31 were taken on 2026-10-09.
 
 ## Done
 
@@ -235,20 +236,50 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
 - **Lane scratch data:** the parser scripts and intermediate data stay in the Stage 1
   session's scratchpad and are not in Git. Those files contain private transcript extracts.
 
+## Stage 2 progress
+
+- **2026-10-09 — session start.** Switched to `workflow-optimization` (no other worktree held
+  it) and merged `origin/main` `3724a17` (merge `ae03f11`): backlog AIU-056 and a goals scope
+  line, no rule file touched. `git branch -a --no-merged origin/main` showed no in-flight work
+  branches besides this effort. The Stage 2 prompt is saved in `4878aa7`.
+- **2026-10-09 — step 1, rule text (R9; OD-2..OD-6, OD-11, OD-14..OD-16, OD-18).**
+  - `/doctor prompt-audit` ran once headless; its report is [prompt-audit.md](prompt-audit.md).
+  - AGENTS.md re-composed: ask lists, plugin precedence, skill paths, Git flow summary,
+    logging core with the secret-exclusion rule. CONTRIBUTING.md: tiers T0-T3 with the T3
+    area list, red-to-green and "fails at base", the task-branch Git flow, blocked-smoke rule,
+    worktree cleanup conditions, review calibration, parallel work. verification.md: check
+    IDs C1-C10, new matrix rows, merge gate with "product inputs", desktop lock, restore
+    one-liner (tested in a fresh worktree: restore, Release build and validator pass).
+  - logging.md gained the Logging policy; the ANL-11 lesson moved to architecture.md;
+    goals.md has a current direction paragraph; README's commands moved to verification.md;
+    host facts copied to [host-environment.md](../host-environment.md).
+  - Decisions D-NEW to D-NEW-8 added (Git flow, ask lists, tiers, plugin precedence, and four
+    back-filled directions); D-178 and D-179 marked superseded.
+  - Rule-inventory diff for the owner: [rule-inventory.md](rule-inventory.md).
+  - Checks: C2 PASS; C6 PASS; C3 FAIL with only `PLACEHOLDER_ID` diagnostics (the two known
+    stage-1-prompt mentions plus the new `D-NEW` records; see OD-32).
+  - CLAUDE.md is unchanged in this step; its skill pointers come with the `.claude` wrappers
+    in step 3.
+
+## New owner decisions (Stage 2)
+
+Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
+work continues on the recommended path unless it is marked as waiting.
+
+- **OD-32 — Placeholders under `--final` on this branch.** The prompt allows only the two
+  stage-1-prompt diagnostics under `--final`, but D-196 (standing policy) requires new
+  decisions on a branch to use placeholders until the merge, and step 1 adds `D-NEW` records.
+  Assigning numbers now would collide with parallel work merged meanwhile. *Recommendation:*
+  keep placeholders (converted to the OD-31 scheme in step 6) and number them with the R13
+  script at the final merge; until then `--final` also lists these placeholders.
+  Not waiting.
+
 ## Next action
 
-Start Stage 2 in a new session on this branch, with a prompt that cites OD-1 to OD-31 as
-recorded above. Suggested order:
-
-1. **Rule text.** AGENTS.md, CONTRIBUTING and the CLAUDE.md skill pointers for OD-2..OD-6,
-   OD-11, OD-14..OD-16 and OD-18, done as the R9 consolidation with its rule-inventory diff.
-2. **Project settings.** OD-9 deny rules and OD-8 plugin disables; then start the OD-10
-   one-week auto-mode trial.
-3. **Agents and repo hygiene.** OD-12 agents; OD-13 cleanup; OD-21 memory and host facts.
-4. **CI.** OD-17 Preview filter; OD-26 spike step removal.
-5. **Tests and smoke.** OD-23, OD-24 and OD-25, plus the R14 and R5 bundle items.
-6. **Records and IDs.** OD-19 records, OD-31 ID scheme and the R13 numbering script. Do this
-   at a quiet point with no unmerged worktree branches.
-7. **New skills.** OD-20 post-deploy skill; OD-7 phase 2 repo skills in `.agents/skills`,
-   with thin Claude wrappers.
-8. **Trials.** OD-27 (both language servers), OD-28 and OD-29, each with a written result.
+Stage 2, step 2: write the deny-only project `.claude/settings.json` (OD-9) with the OD-8
+plugin disables, test each deny rule with a harmless command, add the AGENTS deny-rule line,
+then start the OD-10 auto-mode trial. Remaining order after that: step 3 agents and hygiene
+(OD-12, OD-13, OD-21, OD-22, CLAUDE.md pointers and `.claude/skills` wrappers); step 4 CI
+(OD-17, OD-26); step 5 tests and smoke (OD-23..OD-25, R14, R5); step 6 records and IDs
+(OD-19, OD-31, R13; re-check in-flight branches first); step 7 skills (OD-20, OD-7); step 8
+trials (OD-27..OD-29). Steps 1-4 are T3 and each gets a focused independent review.

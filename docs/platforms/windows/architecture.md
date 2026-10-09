@@ -56,6 +56,8 @@ Single writer includes settings/accounts/history/pruning mutations; dedicated ma
 
 Queue capacity/backpressure is bounded independently of network concurrency; never silently drop critical data or create unbounded queued duplicates. Persist latest observation metadata even if historical value sample deduplicated. Startup must still know last successful fetch time.
 
+A source-generated `[JsonSerializable]` record overwrites every `init` initializer when the JSON omits the property (ANL-11, 2026-10-06). Give a persisted default through a constructor parameter, and cover each omitted-property case with a probe through the production context (see `PersistedRecordOmittedPropertyTests`).
+
 ## Quota semantics
 Account identity, grant identity, context identity and shared pool identity are related but not interchangeable. Do not duplicate one shared entitlement into multiple independent totals. Common fields nullable and dimensioned: kind/unit/used/remaining/limit/reset/window/group/source/fetchedAt/freshness. Percentage available only when provider semantics justify it. `unlimited` explicit. Freshness/outcome independent from last good data.
 

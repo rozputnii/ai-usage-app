@@ -135,7 +135,7 @@ Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescri
 Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
 
 ### D-043 - Git
-Owner-approved agent-neutral amendment, 2026-09-14: The sole current Git policy is [CONTRIBUTING](../../CONTRIBUTING.md#git-policy). This decision grants no remote action or main integration.
+Owner-approved agent-neutral amendment, 2026-09-14: The sole current Git policy is [CONTRIBUTING](../../CONTRIBUTING.md#git-flow). This decision grants no remote action or main integration.
 
 ### D-044 - Permissions
 Owner-approved agent-neutral amendment, 2026-09-14: The former execution prescription is superseded by the shared [development procedure](../../CONTRIBUTING.md). Its original text is retained in the superseded register as historical context, not an active instruction.
@@ -583,10 +583,14 @@ On 2026-09-14 a live console sign-in proved the owner's account carries a `chatg
 ## Branching
 
 ### D-178 - Direct main development until the first release
-Owner-approved agent-neutral amendment, 2026-09-14: The former direct-main default is superseded. Follow the sole Git policy in [CONTRIBUTING](../../CONTRIBUTING.md#git-policy); historical task permission is not current authority.
+Owner-approved agent-neutral amendment, 2026-09-14: The former direct-main default is superseded. Follow the sole Git policy in [CONTRIBUTING](../../CONTRIBUTING.md#git-flow); historical task permission is not current authority.
+
+Superseded by D-NEW (2026-10-09): task branches and verified merges into `main`.
 
 ### D-179 - Automatic publication of completed task branches
-Owner amendment after the agent-neutral migration, 2026-09-14: automatically commit and push each owner-selected task after completion, review and successful required verification. This is a standing task-branch publication instruction, not a direct-main or automatic task-selection grant. The sole operative Git policy and its boundaries are in [CONTRIBUTING](../../CONTRIBUTING.md#git-policy).
+Owner amendment after the agent-neutral migration, 2026-09-14: automatically commit and push each owner-selected task after completion, review and successful required verification. This is a standing task-branch publication instruction, not a direct-main or automatic task-selection grant. The sole operative Git policy and its boundaries are in [CONTRIBUTING](../../CONTRIBUTING.md#git-flow).
+
+Superseded by D-NEW (2026-10-09): task branches and verified merges into `main`.
 
 ## Owner UI amendments
 
@@ -639,7 +643,7 @@ Owner direction, 2026-10-08, in conversation. A personal cap may equal a known p
 Owner direction, 2026-10-08, in conversation (AIU-052, design B of three). The title-row clock is removed; a quiet refresh icon button right after the window title takes its place. It refreshes like F5, turns red while a connected account's data was not refreshed in time (a stale failed sync, an expired sign-in or a provider error) and its tooltip gives reading times without dates. The main window's minimum width is the title row's natural width including the caption buttons, so they never cover the title controls; the settings sheet does not raise it. The minimum height fits the title row, the sign-in strip when shown and the first card's header and primary limit. Both follow the current content. This amends the AIU-038 window and title-row description. See [AIU-052](../specs/AIU-052-refresh-status-minimum-window/spec.md).
 
 ### D-196 - Item and decision numbers are assigned at the merge into main
-Owner direction, 2026-10-08, in conversation. The owner runs tasks in parallel worktrees, and numbers taken from a stale `main` collided (AIU-048 and D-189 were renumbered on 2026-10-07, D-195 on 2026-10-08). Branch work names a new backlog item and its specification folder `AIU-NEW` and a new decision `D-NEW`, with `-2`, `-3` for more. Right before merging, the agent fetches and merges fresh `main`, replaces every placeholder with the next free number there, runs the document validation with `--final`, commits and pushes at once, and repeats if the push is rejected. The validator accepts placeholders for branch work, and its `--final` mode, which CI uses, refuses any placeholder outside code. The owner chose placeholders over provisional numbers. See the [Git policy](../../CONTRIBUTING.md#git-policy).
+Owner direction, 2026-10-08, in conversation. The owner runs tasks in parallel worktrees, and numbers taken from a stale `main` collided (AIU-048 and D-189 were renumbered on 2026-10-07, D-195 on 2026-10-08). Branch work names a new backlog item and its specification folder `AIU-NEW` and a new decision `D-NEW`, with `-2`, `-3` for more. Right before merging, the agent fetches and merges fresh `main`, replaces every placeholder with the next free number there, runs the document validation with `--final`, commits and pushes at once, and repeats if the push is rejected. The validator accepts placeholders for branch work, and its `--final` mode, which CI uses, refuses any placeholder outside code. The owner chose placeholders over provisional numbers. See the [numbering rule](../../CONTRIBUTING.md#numbering).
 
 ### D-197 - Settings drops down over the body; the window opens at its minimum width
 Owner direction, 2026-10-08, in conversation (settings at full width and the shortest history text, each the recommended variant of two or three). Settings is a sheet over the whole window body, below the title row and the sign-in strip, that rolls down from the top and back up; the cards stay where they are and leave the tab order while it covers them. Inline history shows only the account name, the period and the day count ("7d · 35 days") above the chart: the "use per local day · from this app's readings" text, the "← → day · Esc closes" hint and the legend paragraph are removed, and the keys still work. The main window opens at its content-based minimum width (D-195) instead of 760 px. This amends D-193's sheet that slides in from the right and narrows the cards, and AIU-038 S4's history header and legend.
@@ -673,3 +677,29 @@ Owner direction, 2026-10-08, in conversation (a stepper with a 1–60 min range,
 
 ### D-207 - Tooltips open only under the pointer
 Owner direction, 2026-10-09, in conversation. A tooltip opens only when the mouse pointer rests on its element; keyboard focus, including Tab, opens none, and the tooltip WinUI itself opens on keyboard focus closes before it shows. Controls whose look already says what they do carry no tooltip: the close crosses of the settings sheet and the sign-in strip, the Settings and Add account buttons, Copy code, Check for updates and the Edit and Remove buttons of Settings › Caps; Used/Left already had none. Tooltips that add information stay, such as the bar and pill details, the refresh status, the card icons, Rename, the grip and the update modes. Accessible names are unchanged. This amends D-186's rule that tooltips are also reachable by keyboard focus.
+
+## Workflow amendments
+
+### D-NEW - Task branches, save points on the branch, verified merges into main
+Owner decisions OD-2 and OD-3 of the [workflow audit](../workflow/claude-workflow-audit/status.md), 2026-10-09. Each task runs on its own branch, normally the desktop app's worktree branch. Save-point commits are pushed to `origin/<task-branch>`, which runs no CI and publishes nothing, after each meaningful step and before going idle. Only verified work merges into `main`, and the remote task branch is deleted after the merge. A Preview still publishes automatically from `main` after a verified merge. When a required smoke is BLOCKED, a change that touches Windows UI, tray, launch or lifetime code stays on its branch until the smoke passes or the owner approves that change; other product changes covered by unit tests may merge with the smoke recorded BLOCKED. This replaces the 2026-09-20 direct-main instruction ("do not create new branches; push work in progress to `main`"), D-178 and D-179. See the [Git flow](../../CONTRIBUTING.md#git-flow).
+
+### D-NEW-2 - When agents ask the owner
+Owner decisions OD-4 and OD-5 of the workflow audit, 2026-10-09. AGENTS.md holds an always-ask list (new scope or product intent, significant architecture or complexity, security boundaries, destructive or external authority, dependencies, visible UI variants) and a never-ask list. Inside that authority the agent's recommendation is the default and the agent records the reason. A result the owner reports is recorded as owner-reported PASS without asking. Prompts written for primary sessions inherit standing policy unless the owner narrows it in the current request. Unattended runs skip always-ask work and list those questions at the checkpoint. Worker subagents may merge verified work into `main` and push it without a per-run grant. This also records the 2026-10-07 direction that one owner approval covers the path from design to a verified merge, without repeated approval gates.
+
+### D-NEW-3 - Risk tiers and proportional review
+Owner decisions OD-14, OD-15, OD-16 and OD-18 of the workflow audit, 2026-10-09. CONTRIBUTING defines tiers T0 to T3; the tier is the highest one that any touched area triggers, from a published T3 area list that the reviewer checks against the diff. T1 and T2 get one fresh-context review of the integrated diff and local `/code-review`; T3 adds a blocking focused independent review with `/security-review`. A fresh-context read-only subagent counts as independent. Bug-fix tests must fail at the base commit, and red-to-green testing is part of CONTRIBUTING. In parallel runs each code, test or harness task gets a per-task review, docs tasks a primary check (rule and agent-configuration edits are T3), and one whole-feature review always runs; one round, then a re-check of the fixed lines. The primary may start parallel worktree workers itself for at least three independent tasks with non-overlapping write sets, at most about four at once. Evidence is recorded once per wave or at feature end, without separate per-task record commits.
+
+### D-NEW-4 - Plugin skills are optional tools
+Owner decision OD-6 of the workflow audit, 2026-10-09. Repository rules win over plugin process. A plugin's spec-review, execution-mode and finish-branch prompts are answered in advance by the standing rules, and no `.superpowers` or `docs/superpowers` artifacts outlive the session.
+
+### D-NEW-5 - Verification targets ordinary desktop use
+Owner direction, 2026-10-03, recorded 2026-10-09. AI Usage is a personal app for the owner's ordinary desktop use. Agents do not run or expand scope for screen-reader, contrast-theme, extreme zoom/DPI or unusual-display checks unless the owner asks for that work again, do not change host display or accessibility settings for a test matrix, and keep the native window and tray chrome instead of adding custom chrome for those cases. Normal launch, core interactions and relevant regressions stay required. This supersedes older accessibility and display-matrix requirements in task references.
+
+### D-NEW-6 - Minimum sufficient complexity
+Owner direction, 2026-10-03, recorded 2026-10-09. Implement the requested functionality with the least code and complexity that remains correct, readable and easy to change; add layers, interfaces, dependencies or configuration only for a concrete current requirement; ask the owner before materially increasing complexity. See [CONTRIBUTING](../../CONTRIBUTING.md#simplicity-and-architecture).
+
+### D-NEW-7 - UI design variants before implementation
+Owner direction, 2026-10-07, recorded 2026-10-09. When a change visibly alters the UI (layout, card structure, controls, copy placement), the agent first proposes 2-3 short rendered design variants with a recommendation in one question and implements the owner's pick. Bug fixes that restore already approved UI need no variants. The pick is recorded as one line in the feature's spec.
+
+### D-NEW-8 - Push status in every final reply
+Owner direction, 2026-10-08, recorded 2026-10-09. Every final reply that follows commits states the push status, so the owner never has to ask: after `git fetch` confirms the commits are in `origin/main`, "Pushed to `main`" with the hash or hashes; otherwise what is pushed where, what is not, and why.

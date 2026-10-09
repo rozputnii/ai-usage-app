@@ -80,3 +80,25 @@ codex|claude|copilot|antigravity <owned-provider-directory>`. It uses the produc
 session to refresh quota and prints status/cache flags only. It may renew and save
 that existing grant; it never signs in or imports CLI credentials. Missing sessions
 remain disconnected. Set `AIU_DEVELOPMENT_STATE_DIRECTORY` to isolate console logs.
+
+## Logging policy
+
+This section is for agents and contributors who add or change behavior. The secret
+exclusion rule is also in [AGENTS](../../AGENTS.md) so that it is always loaded.
+
+- Review diagnostic needs as part of implementation. Use the shared AIU-043 pipeline at
+  the boundary that owns the operation. Log meaningful outcomes, actionable failures,
+  state and recovery transitions, and the evidence needed to explain provider or
+  persistence problems.
+- Check existing events first. Keep one detailed record per failure and preserve the
+  operation and capture correlation. Add or update logging when it answers a concrete
+  debugging question; trivial pure helpers need none.
+- Do not log every method, loop iteration, animation frame, timer tick or routine
+  success. Keep verbose timing and breadcrumbs opt-in, coalesce recurring warnings with
+  counts, and use the right severity: expected cancellation is not an error.
+- Never pass credentials, private identities or paths, arbitrary exception text or raw
+  provider bodies to a generic logger. Extend the existing reviewed projection or policy
+  only when needed. Do not add a logging framework, wrapper, dependency or configuration
+  without a current requirement.
+- For a changed failure path, verify useful context, secret exclusion and bounded noise.
+  When debugging, use the existing logs before adding speculative instrumentation.

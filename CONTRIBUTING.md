@@ -2,8 +2,8 @@
 
 ## Simplicity and architecture
 
-Owner direction (2026-10-03): implement the requested functionality with the least
-code and complexity that remains correct, readable and easy to change.
+Implement the requested functionality with the least code and complexity that remains
+correct, readable and easy to change.
 
 - Prefer direct solutions, clear names and small, cohesive responsibilities. Minimize
   code to maintain, not line count at the expense of clarity.
@@ -20,69 +20,142 @@ code and complexity that remains correct, readable and easy to change.
 
 ## Development procedure
 
-1. Inspect the current request and Git state. Preserve unrelated tracked and untracked changes; read only relevant requirements and evidence.
-2. State the intended result and acceptance checks in a short written plan before substantial work. Available planning tools are optional.
-3. Implement and verify within the requested scope without repeated approval for internal steps. Ask only for missing decisions affecting scope, product intent, significant architecture, dependencies, security boundaries, or external/destructive authority. Complete independent preparation first.
-4. Keep one active feature unless the owner explicitly requests a bounded batch. A backlog status or historical permission never starts another task.
-5. Review the integrated diff against acceptance criteria, run relevant checks and record actual results and limitations. Never weaken requirements to hide a failure.
-6. Commit and push to `main` under the Git policy below as work progresses, not only at the end. After completion and successful required verification, report changes, evidence and remaining work. On interruption, record one exact next action in the selected task document, with blockers and relevant check results.
+1. Inspect the request and Git state. Preserve unrelated tracked and untracked changes;
+   read only the relevant requirements and evidence.
+2. Choose the tier (below) and state the intended result and acceptance checks in a short
+   plan. Planning tools are optional.
+3. Implement and verify within the requested scope without repeated approval for internal
+   steps. Ask only what the always-ask list in [AGENTS](AGENTS.md#when-to-ask) covers,
+   after completing the independent preparation.
+4. Keep one active feature unless the owner asks for a bounded batch. Backlog status or a
+   historical permission never starts another task.
+5. Test logic and bug fixes red to green: write the test, run it and see it fail for the
+   expected reason, implement the minimum, and run it green. A bug-fix test must fail at
+   the base commit.
+6. Review the integrated diff against the acceptance criteria, run the required checks and
+   record the actual results and limitations. Never weaken requirements to hide a failure.
+7. Merge under the Git flow below and report changes, evidence and remaining work.
 
-## Git policy
+## Risk tiers
 
-Work directly on `main` by default. Standing owner instruction (2026-09-20): do not
-create new branches; commit and push to `main` automatically and frequently so that no
-work is lost, without asking again. Push after each meaningful step, not only at task
-completion, and always before ending a session, going idle or handing off. This
-instruction replaces the earlier task-branch default and applies across sessions until
-the owner changes it. Create a branch only when the owner explicitly asks for one in the
-current request.
+The tier is the highest one that any touched area triggers; the owner may raise it. The
+reviewer checks the diff against the T3 area list.
 
-Because commits may capture incomplete work, a commit is a save point, not a completion
-claim. Never let an automatic commit or push upgrade a NOT_RUN, BLOCKED or FAIL result to
-PASS; record actual status in the task and verification documents as usual, and say in the
-commit message when the work is still in progress.
+| Tier | Typical change | Records | Review |
+| --- | --- | --- | --- |
+| T0 | A fix or small change in no T3 area | Plan and check evidence in the commit message | The primary reviews the diff |
+| T1 | A small feature or UI variant | A one-page spec (Problem, R-xx, AC-xx, Out of scope; a bug may use current, expected and unchanged behavior) and a verification record; the owner's UI pick is one spec line | One fresh-context review of the integrated diff against the ACs, plus local `/code-review` where available |
+| T2 | A multi-part feature | As T1; tasks.md only when parallel workers are used | As T1 |
+| T3 | Any change in a T3 area | As its size requires, plus a design note when there is a real choice; use the security-lifecycle skill | As T1, plus a blocking focused independent review with the convergence-review skill and `/security-review` where available |
 
-Owner decision (2026-10-06, AIU045-D1): save points run CI normally and never carry
-`[skip ci]`. Owner decision (2026-10-06, reverses AIU045-D1's dispatch-only rule): every
-green push to `main` publishes a development Preview automatically; an owner
-`workflow_dispatch` with `PublishPreview=true` can republish. A Preview is still an
-owner-test build, not a release.
+T3 areas: authentication and provider contracts; credentials and DPAPI stores; persisted
+records, the preferences schema and migrations; destructive or owned-root cleanup;
+logging, diagnostics, crash data and exports; new network hosts; update, install,
+signing and Preview scripts; CI workflows; dependencies; rule files (AGENTS.md,
+CONTRIBUTING.md, docs/workflow/verification.md, docs/constitution.md) and agent
+configuration (`.claude/`, `.agents/`, CLAUDE.md).
 
-Inspect outgoing commits and preserve unrelated tracked and untracked changes. Keep
-credentials, local sessions, private account data and generated output out of Git. Never
-force-push, rewrite published history, or bypass protection. If the remote has diverged,
-integrate it normally; if that is not possible or the target is ambiguous, stop and report.
-Do not reset, stash, stage or discard unrelated work automatically.
+## Git flow
 
-Owner direction (2026-10-08, D-196): the owner often runs tasks in parallel worktrees,
-so numbers for new items are assigned only when the work merges into `main`. Until then
-a new backlog item and its specification folder use `AIU-NEW` (`AIU-NEW-2` for a second
-one) and a new decision uses `D-NEW` (`D-NEW-2`, ...). Right before merging: fetch fresh
-`main` and merge it, replace every placeholder with the next free number there (the
-specification folder, frontmatter, backlog, goal scope, decisions and every reference),
-run the document validation with `--final`, commit and push at once. If the push is
-rejected because `main` moved, repeat these steps. CI validates with `--final`, so a
-placeholder never stays on `main`. An item already numbered on `main` keeps its number.
+- **Branches.** Each task runs on its own branch, normally the worktree branch that the
+  desktop app creates. Commit save points and push them to `origin/<task-branch>` after
+  each meaningful step and before ending a session, going idle or handing off. CI does
+  not run on task-branch pushes and nothing is published.
+- **Save points.** A commit is a save point, not a completion claim. It never upgrades a
+  NOT_RUN, BLOCKED or FAIL result to PASS; say in the message when work is in progress.
+  Never use `[skip ci]`.
+- **Merge.** Only verified work reaches `main` (see the
+  [merge gate](docs/workflow/verification.md#merge-gate)). At completion: fetch, merge
+  fresh `origin/main` into the branch (never rebase a published branch), assign numbers,
+  run the required checks and the validator with `--final` on the merged tree, and push
+  to `main`. Confirm with `git fetch` and `git merge-base --is-ancestor` that the commits
+  are in `origin/main`, then delete the remote task branch. If the push is rejected
+  because `main` moved, repeat these steps.
+- **Blocked smoke.** When a required smoke is BLOCKED, a change that touches Windows UI,
+  tray, launch or lifetime code stays on its branch until the smoke passes or the owner
+  approves that change. Other product changes covered by unit tests may merge with the
+  smoke recorded BLOCKED.
+- **Worktree cleanup.** Remove a worktree at the last merge step, and only when its
+  branch is an ancestor of `origin/main` after a fresh fetch, its status is clean
+  including ignored files, and no stash entry refers to it. Never use `--force` or
+  `git branch -D` for this.
+- **Safety.** Inspect outgoing commits. Keep credentials, local sessions, private account
+  data and generated output out of Git. Never force-push, rewrite published history or
+  bypass protection. If the remote has diverged, integrate it normally; if that is not
+  possible or the target is ambiguous, stop and report. Do not reset, stash, stage or
+  discard unrelated work automatically.
+- **Remote authority.** Releases, tags, workflow dispatch, repository settings,
+  variables, secrets and other remote actions beyond pushing branches and `main` require
+  explicit owner authorization. An old task-specific permission is not a new grant.
+  Main protection remains deferred in AIU-026; that waives no check or authority.
 
-Releases, tags, workflow dispatch, repository settings changes and other remote actions
-beyond committing and pushing `main` still require explicit owner authorization. An old
-task-specific permission is not a new grant.
+### Numbering
 
-Main protection remains deferred in AIU-026; this does not waive relevant checks or
-remote-action authority. Native tool permissions are separate from these instructions.
+Numbers for new items are assigned only when the work merges into `main`, because the
+owner runs tasks in parallel worktrees (D-196). Until then a new backlog item and its
+specification folder use `AIU-NEW` (`AIU-NEW-2` for a second one) and a new decision
+uses `D-NEW` (`D-NEW-2`, ...). Right before merging, after merging fresh `main`, replace
+every placeholder with the next free number there: the specification folder,
+frontmatter, backlog, goal scope, decisions and every reference. Keep placeholders out
+of commit subjects and source comments. CI validates with `--final`, so a placeholder
+never stays on `main`. An item already numbered on `main` keeps its number.
 
 ## Records
 
-Small fixes need a brief plan and check evidence in their completion/commit record, without a mandatory spec or backlog item. Features need a spec and verification; tasks are optional when decomposition adds no value. Add a design for meaningful architecture, authentication or data-lifecycle choices, and an ADR only for a durable decision. Follow [document formats](docs/workflow/formats.md). Goals own outcomes, backlog owns feature status, tasks own internal state and handoff, and verification owns observed evidence.
+Follow [document formats](docs/workflow/formats.md) and size records by tier. Goals own
+outcomes, the backlog owns feature status, tasks own internal state and handoff, and
+verification owns observed evidence. Add a design for meaningful architecture,
+authentication or data-lifecycle choices. Record a decision only for a rule that binds
+future work. In parallel runs, record evidence once per wave or at the end of the
+feature, not in separate per-task record commits.
 
-## Review and integration
+## Review
 
-The primary alone updates canonical state and integrates changes. Explicit parallel work requires declared ownership, safe paths, isolated write workers and verification of the integrated result. Review actual diffs; a worker claim is not completion.
+The primary alone updates canonical state: goals, backlog, decisions and the feature's
+verification record. Review actual diffs with fresh, relevant evidence; a worker's claim
+is not completion. No model vendor or family is prescribed.
 
-Routine edits require primary diff/acceptance review and relevant checks. Material credential, destructive-data or privilege changes require focused independent review; public release approval or an explicit owner request requires full independent review. Owner decision (2026-10-06, AIU045-D4): a Preview is an owner-test build, not public release approval; its gate is the [Preview gate](docs/workflow/verification.md#preview-gate) list, and full independent review stays for public release approval or an explicit owner request. Use fresh, relevant evidence and read-only review with appropriate scope, without a prescribed vendor or model family. Report unavailable required review honestly. Zero findings is valid; after fixes run targeted checks, without an automatic full-review loop. Unresolved material findings block integration.
+- Review by tier (above). A fresh-context, read-only subagent with no implementation
+  transcript counts as independent; use the tracked reviewer agent, or a general-purpose
+  agent given the same contract when the tracked one is not loaded.
+- In parallel runs, each code, test or harness task gets a per-task independent review.
+  Docs tasks get a primary diff check, except rule and agent-configuration edits, which
+  are T3. One whole-feature review always runs before the merge.
+- An Important finding violates an acceptance criterion, the spec, or a security or data
+  boundary, or is a reproducible defect; it needs file:line evidence and a failing test or
+  a reproduction. Report at most five Minor findings. Zero findings is a valid result.
+- One review round, then a re-check of the fixed lines only, without an automatic
+  full-review loop. Unresolved material findings block integration. Report an
+  unavailable required review honestly.
+- For a bug fix, the reviewer confirms in a temporary worktree outside the checkout that
+  the new test fails at the base commit.
+- A Preview is an owner-test build, not public release approval. Full independent review
+  is required for public release approval or when the owner asks for it.
+
+## Parallel work
+
+One primary agent works by default. The primary may start parallel worktree workers
+itself when there are at least three independent tasks with non-overlapping write sets,
+running at most about four at once; the owner may also ask for a parallel run. Explicit
+parallel work requires declared ownership, safe paths, isolated write workers and
+verification of the integrated result.
+
+- Worker briefs are self-contained. The tracked implementer agent holds the worker
+  procedure: simple single-purpose commands, background tasks or Monitor instead of
+  sleep, unit suites and builds per worker, reports returned as messages.
+- Workers may merge verified work into `main` and push it under the Git flow above.
+- Desktop smokes run under the desktop lock in
+  [verification](docs/workflow/verification.md#desktop-smokes); after integration the
+  primary runs them once on the merged tree.
 
 ## Contributions and checks
 
-External pull requests are welcome under MIT and the Developer Certificate of Origin. Sign off only with your real authorized identity; never fabricate identity or sign-off. Issues are intake, not execution authorization. Keep credentials, local sessions, private account data and generated output out of Git. Preserve opaque user/provider data.
+External pull requests are welcome under MIT and the Developer Certificate of Origin. Sign
+off only with your real authorized identity; never fabricate identity or sign-off. Issues
+are intake, not execution authorization. Preserve opaque user and provider data.
 
-Select required checks using the [change-based verification matrix](docs/workflow/verification.md#checks-by-change), with commands from [local checks](README.md#local-checks). After required checks pass, repeat or broaden them only for new changes, failures or unresolved concerns. Owned-code warnings are errors. Tests defend observable behavior and meaningful failure boundaries. UI changes require applicable actual Windows smoke evidence; compilation alone is insufficient. CI keeps document and product regressions, unsigned package/routing builds and smoke-harness publication; publication is not interactive test execution.
+Select required checks with the
+[change-based verification matrix](docs/workflow/verification.md#checks-by-change). Owned-code
+warnings are errors. Tests defend observable behavior and meaningful failure boundaries.
+UI changes require applicable actual Windows smoke evidence; compilation alone is
+insufficient.
