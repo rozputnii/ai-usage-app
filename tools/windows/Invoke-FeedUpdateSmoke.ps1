@@ -8,7 +8,7 @@ param(
     [string] $FeedUri = 'https://github.com/rozputnii/ai-usage-app/releases/download/feed-preview/AiUsage.appinstaller',
     [int] $UpdateTimeoutMinutes = 20
 )
-# Windows PowerShell 5.1 guest harness for the AIU-014 development Preview channel. Install
+# Windows PowerShell 5.1 guest harness for the T-014 development Preview channel. Install
 # trusts only the public CER in the guest, installs through the published App Installer feed
 # and seeds synthetic preferences. Update waits for the OS-managed feed update. No host use.
 $ErrorActionPreference = 'Stop'

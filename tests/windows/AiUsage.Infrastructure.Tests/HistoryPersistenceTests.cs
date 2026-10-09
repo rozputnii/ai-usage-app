@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AiUsage.Infrastructure.Tests;
 
-/// <summary>AIU-047: the history root outlives the package-owned state root.</summary>
+/// <summary>T-047: the history root outlives the package-owned state root.</summary>
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public sealed class HistoryPersistenceTests : IDisposable
 {

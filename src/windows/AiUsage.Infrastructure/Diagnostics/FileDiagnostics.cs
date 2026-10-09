@@ -109,7 +109,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         catch (Exception) { Interlocked.Increment(ref lost); }
     }
 
-    /// <summary>AIU-046 update outcomes: typed facts only, never feed bodies, URIs, paths or exception text.</summary>
+    /// <summary>T-046 update outcomes: typed facts only, never feed bodies, URIs, paths or exception text.</summary>
     public void Update(DiagnosticEvent eventCode, UpdateFacts facts)
     {
         if (eventCode is not (DiagnosticEvent.UpdateCheckFailed or DiagnosticEvent.UpdateInstallStarted or

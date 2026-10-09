@@ -1,11 +1,11 @@
 # Windows architecture baseline
 
-Status: accepted architecture. AIU-002 and AIU-004 delivered the three-project native baseline and Codex dashboard. AIU-027 refines its application/presentation boundaries. The later multi-account runtime and database sections remain intended requirements, not implemented services.
+Status: accepted architecture. T-002 and T-004 delivered the three-project native baseline and Codex dashboard. T-027 refines its application/presentation boundaries. The later multi-account runtime and database sections remain intended requirements, not implemented services.
 
 ## Stack
 Windows 11 24H2+, x64; .NET 10; WinUI 3 / Windows App SDK / MSIX; Generic Host; CommunityToolkit.Mvvm; MVVM-first routing (Uno.Extensions.Navigation candidate, first build gate); EF Core 10 SQLite; HttpClientFactory/typed clients/System.Text.Json/Http.Resilience; Serilog; LiveCharts2; H.NotifyIcon.WinUI; native AppNotificationManager; xUnit v3/FlaUI UIA3.
 
-Do not invent exact current package versions. AIU-002 resolves stable versions and proves restore, build, packaged launch and compatibility. Selecting a library does not require implementing its entire feature in the first build.
+Do not invent exact current package versions. T-002 resolves stable versions and proves restore, build, packaged launch and compatibility. Selecting a library does not require implementing its entire feature in the first build.
 
 ## Physical boundaries
 ```
@@ -24,12 +24,12 @@ The three production paths, Infrastructure regression project, independent workf
 
 Core references neither WinUI, EF nor Windows APIs. Provider transport DTOs and authentication endpoints belong in Infrastructure provider slices. Core may expose a typed normalized provider extension required by consumers, not arbitrary wire payloads. Windows composition may reference Core and Infrastructure. Do not introduce an Application project or use-case layer merely to satisfy an architecture label.
 
-AIU-027: Core's `DashboardWorkflow` owns cache/resume coordination, single-operation admission and cancellation/draining over `ICodexSession`. The contract exposes normalized state without credentials. Infrastructure's `CodexSession` retains token ownership, renewal/persistence order, HTTP clients and unchanged DPAPI/cache formats. Windows owns resources, awaited dispatcher access, view-model rendering and native lifetime. The Host owns one session and one workflow; App drains workflow and presentation continuations before disposing that Host. Closing hides the window; only explicit Exit stops these services. Dependency regressions and compilation of the actual dashboard sources without Infrastructure/WinUI enforce these boundaries.
+T-027: Core's `DashboardWorkflow` owns cache/resume coordination, single-operation admission and cancellation/draining over `ICodexSession`. The contract exposes normalized state without credentials. Infrastructure's `CodexSession` retains token ownership, renewal/persistence order, HTTP clients and unchanged DPAPI/cache formats. Windows owns resources, awaited dispatcher access, view-model rendering and native lifetime. The Host owns one session and one workflow; App drains workflow and presentation continuations before disposing that Host. Closing hides the window; only explicit Exit stops these services. Dependency regressions and compilation of the actual dashboard sources without Infrastructure/WinUI enforce these boundaries.
 
 ## Provider development sequence
 Owner amendment (2026-09-13): implement provider behavior behind a reusable UI-independent library boundary, first consumed by a console verification application and subsequently by WinUI. Reuse Core contracts and Infrastructure provider implementations; neither consumer duplicates authentication, quota parsing or refresh logic. The console host is a planned development surface, not an already implemented command or another production UI.
 
-Prove the selected provider's supported authentication, initial quota, refresh and reauthentication through that console surface before UI integration. Preserve provider-specific consent requirements, DPAPI-protected app-owned credentials, redacted output and read-only source CLI stores. Research and library/console work can proceed independently of AIU-002 UI readiness once explicitly selected. Later UI integration still requires separate dispatcher, cancellation, refresh and shutdown verification. Build only the first evidence-backed Codex slice before generalizing to other providers.
+Prove the selected provider's supported authentication, initial quota, refresh and reauthentication through that console surface before UI integration. Preserve provider-specific consent requirements, DPAPI-protected app-owned credentials, redacted output and read-only source CLI stores. Research and library/console work can proceed independently of T-002 UI readiness once explicitly selected. Later UI integration still requires separate dispatcher, cancellation, refresh and shutdown verification. Build only the first evidence-backed Codex slice before generalizing to other providers.
 
 ## Runtime
 ```

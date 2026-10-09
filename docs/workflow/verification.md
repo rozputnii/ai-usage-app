@@ -72,7 +72,7 @@ serves).
 Work is **verified** when every required check is PASS, with two exceptions: a required
 smoke may stay BLOCKED only under the blocked-smoke rule in the
 [Git flow](../../CONTRIBUTING.md#git-flow), and post-deploy owner checks may stay NOT_RUN: the
-owner's manual and live-provider checks run after deployment in the installed app (D-190),
+owner's manual and live-provider checks run after deployment in the installed app (R-190),
 and are recorded under "Pending owner checks" in the backlog.
 Before pushing to `main`:
 
@@ -173,5 +173,5 @@ with cold and warm runs separated; there is no universal 500 ms guarantee.
 
 Public release review follows CONTRIBUTING. Release acceptance needs actual CI and
 applicable interactive evidence, with no unresolved material defects. Missing evidence is
-NOT_RUN or BLOCKED. Deferred main protection in AIU-026 does not waive release authority or
+NOT_RUN or BLOCKED. Deferred main protection in T-026 does not waive release authority or
 protected signing and manifest operations.

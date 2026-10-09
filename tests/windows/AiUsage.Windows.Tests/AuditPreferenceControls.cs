@@ -33,7 +33,7 @@ public sealed partial class AuditWindows
             session.Key(VirtualKeyShort.ESCAPE);
             session.Chord(VirtualKeyShort.CONTROL, (VirtualKeyShort)188);
             Assert.True(Session.Wait(() => Visible(session, "Close settings")));
-            // Used/Left lives only in the title bar (D-193); the settings sheet stays open beside it.
+            // Used/Left lives only in the title bar (R-193); the settings sheet stays open beside it.
             var modes = session.Window.FindAllDescendants().Where(e => e.Properties.Name.ValueOrDefault == "Show values: left" &&
                 e.Properties.ControlType.ValueOrDefault == ControlType.Button).ToArray();
             Assert.Single(modes);

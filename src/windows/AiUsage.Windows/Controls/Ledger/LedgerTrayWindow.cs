@@ -15,10 +15,10 @@ using Path = Microsoft.UI.Xaml.Shapes.Path;
 namespace AiUsage.Controls.Ledger;
 
 /// <summary>
-/// The tray flyout as a miniature of the window (D-187, AIU-055 R-02 to R-08): 260 wide, a title row, then per account a
+/// The tray flyout as a miniature of the window (R-187, T-055 R-02 to R-08): 260 wide, a title row, then per account a
 /// 16 px provider mark in place of its name, its main limit's 14 px today bar and a five-hour ring, padded like a card in the
 /// current density. The mark's tooltip names the account. No pills, captions, period bars or buttons. A pointer-only surface
-/// (D-204): nothing in it is a tab stop or shows a focus frame, and opening it focuses nothing. A click on a row opens the
+/// (R-204): nothing in it is a tab stop or shows a focus frame, and opening it focuses nothing. A click on a row opens the
 /// window at that account, Esc closes when the window receives it, and the flyout closes on deactivation.
 /// </summary>
 internal sealed partial class LedgerTrayWindow : Window

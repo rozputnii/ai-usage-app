@@ -5,7 +5,7 @@ using Xunit;
 
 namespace AiUsage.Presentation.Tests;
 
-/// <summary>AIU-055 R-11: the refresh interval stepper in Settings, 1 to 60 whole minutes, each change saved at once.</summary>
+/// <summary>T-055 R-11: the refresh interval stepper in Settings, 1 to 60 whole minutes, each change saved at once.</summary>
 public sealed class RefreshIntervalSettingsTests
 {
     private static (LedgerSettingsViewModel Settings, DemoLedgerSource Source) Start()

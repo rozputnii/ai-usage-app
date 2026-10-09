@@ -33,7 +33,7 @@ public sealed partial class AuditWindows
         session.TrayIconClick(false);
         var popup = session.Find(e => e.Properties.Name.ValueOrDefault == "AI Usage tray");
         session.CaptureSurface(popup, "tray-miniature-" + hidden + "-" + inFlight);
-        // The flyout is a pointer-only miniature (D-204): no element of its content is a tab stop or holds focus.
+        // The flyout is a pointer-only miniature (R-204): no element of its content is a tab stop or holds focus.
         var elements = popup.FindAllDescendants();
         Assert.Contains(elements, e => (e.Properties.Name.ValueOrDefault ?? "").Contains("SYNTHETIC", StringComparison.Ordinal));
         Assert.DoesNotContain(elements, e => e.Properties.IsKeyboardFocusable.ValueOrDefault || e.Properties.HasKeyboardFocus.ValueOrDefault);

@@ -4,11 +4,11 @@ source_verified_at: 2026-09-14
 live_verified_at: 2026-09-15
 confidence: source-and-live-verified-private-unsupported
 classification: method-specific
-backlog: AIU-007
+backlog: T-007
 ---
 # Claude authentication and subscription quota evidence
 
-Source inspection on 2026-09-14; owner-led live account verification on 2026-09-15. The owner explicitly authorized a private, unsupported OMP-style implementation in the [scope amendment](../specs/AIU-007-claude-integration/spec.md). Successful live behavior does not establish provider approval. The scope excludes CLI credential discovery/import, inference calls and billing-API substitution.
+Source inspection on 2026-09-14; owner-led live account verification on 2026-09-15. The owner explicitly authorized a private, unsupported OMP-style implementation in the [scope amendment](../specs/T-007-claude-integration/spec.md). Successful live behavior does not establish provider approval. The scope excludes CLI credential discovery/import, inference calls and billing-API substitution.
 
 ## Official boundary
 
@@ -79,21 +79,21 @@ Quota retries are bounded to three attempts for supported transient failures and
 
 ## Fixture and verification requirements
 
-The implemented parser and protocol tests use explicitly synthetic fixtures. No real fixture has been captured. Coverage includes valid/missing/conflicting identity, legacy and generic shared limits, multiple scoped rows including `is_active: false`, unknown kinds and duplicate names, null/invalid/exhausted percentages, ISO offsets and malformed resets, enabled/disabled/unknown extra spend, currency/exponent mismatch, malformed JSON and secret-bearing error payloads. The [verification record](../specs/AIU-007-claude-integration/verification.md) records executed checks separately from live evidence.
+The implemented parser and protocol tests use explicitly synthetic fixtures. No real fixture has been captured. Coverage includes valid/missing/conflicting identity, legacy and generic shared limits, multiple scoped rows including `is_active: false`, unknown kinds and duplicate names, null/invalid/exhausted percentages, ISO offsets and malformed resets, enabled/disabled/unknown extra spend, currency/exponent mismatch, malformed JSON and secret-bearing error payloads. The [verification record](../specs/T-007-claude-integration/verification.md) records executed checks separately from live evidence.
 
-Live PASS on 2026-09-15: owner-led browser connection, identity validation through the shared client, initial grouped usage, manual refresh, renewal and durable resume after full process exit, local disconnect and disconnected state after another restart. The actual host development package was 2026.9.1416.0. The existing Codex connection remained usable. No credentials or raw provider payloads were captured. See the [live verification record](../specs/AIU-007-claude-integration/verification.md).
+Live PASS on 2026-09-15: owner-led browser connection, identity validation through the shared client, initial grouped usage, manual refresh, renewal and durable resume after full process exit, local disconnect and disconnected state after another restart. The actual host development package was 2026.9.1416.0. The existing Codex connection remained usable. No credentials or raw provider payloads were captured. See the [live verification record](../specs/T-007-claude-integration/verification.md).
 
 Live NOT_RUN: occupied-port callback fallback, isolated manual-code fallback, reduced/minimum scopes, server-side invalidation, throttling, malformed responses and transient-offline stale cache. Failure boundaries have synthetic regression coverage; no provider failures or billable inference were induced. The observed account does not prove every account type, quota group or entitlement. A source comment about OMP is not an AI Usage live result.
 
-## Provider history (AIU-011)
+## Provider history (T-011)
 
 Source assessment on 2026-09-22 found official credit-history UI descriptions but no
 established history transport compatible with the existing AI Usage grant. History therefore
 returns Unsupported without additional requests or authorization. This is a limitation of
 the verified integration, not proof that the provider has no history. No live history check
-was performed. See [research](../specs/AIU-011-provider-history/research.md).
+was performed. See [research](../specs/T-011-provider-history/research.md).
 
-## Limit data audit (AIU-034)
+## Limit data audit (T-034)
 
 - provider: claude
 - source_verified_at: 2026-09-26
@@ -101,7 +101,7 @@ was performed. See [research](../specs/AIU-011-provider-history/research.md).
 - live_scope: LC-01 personal Pro visible Usage rows only; no wire-field or other-plan verification
 - classification: quota undocumented OAuth schema; official plan/UI descriptions; authentication restriction unchanged
 - confidence: high for source projection; plan-specific payload coverage and monetary scope unresolved
-- sources: [AIU-034 source index C1-C11](../specs/AIU-034-limit-audit-design-brief/research.md#claude-sources-read-2026-09-26)
+- sources: [T-034 source index C1-C11](../specs/T-034-limit-audit-design-brief/research.md#claude-sources-read-2026-09-26)
 
 OMP v18.3.2, commit `7853b4e499936f9dcc13c9b64adb55f6b342aabf`, still supplies no
 money-period fields in `ClaudeExtraUsage`/`ClaudeSpend` or `buildClaudeExtraUsageLimit`.
@@ -112,7 +112,7 @@ Official Pro/Max/Team descriptions now explicitly identify a fixed account-assig
 reset. Enterprise must be divided into legacy seats with included windows and current
 consumption plans. Documented organization/member/group controls and prepaid balances do
 not establish the scope of OAuth `spend` or its reset clock. The detailed plan/field matrix,
-unknowns and LC-01 through LC-05 are in [research](../specs/AIU-034-limit-audit-design-brief/research.md).
+unknowns and LC-01 through LC-05 are in [research](../specs/T-034-limit-audit-design-brief/research.md).
 LC-01 on 2026-09-26 read the already signed-in personal Pro Usage page in Google Chrome.
 Session and weekly percentage-used rows were present, with time-of-day and weekday/time
 reset forms respectively. No model-scoped weekly row was displayed; hidden payload presence
@@ -124,4 +124,4 @@ A separate cloud-session included-credit balance was displayed with an expiry co
 time, GMT offset, month and day. It is CL-C in the UI matrix, not a recurring monthly
 allotment or proof of OAuth `spend`/`extra_usage` mapping. No amount, actual reset/expiry value,
 identity or screenshot is retained. All transport gaps and Max/Team/Enterprise evidence
-levels remain unchanged. See the [LC-01 UI matrix](../specs/AIU-034-limit-audit-design-brief/research.md#claude-pro-ui-observations-lc-01-2026-09-26).
+levels remain unchanged. See the [LC-01 UI matrix](../specs/T-034-limit-audit-design-brief/research.md#claude-pro-ui-observations-lc-01-2026-09-26).

@@ -1,6 +1,6 @@
 namespace AiUsage.Features.Ledger.Contract;
 
-// AIU-038 presentation contract (spec section 4). It owns the view-model data shape; a change is agreed with AIU-039.
+// T-038 presentation contract (spec section 4). It owns the view-model data shape; a change is agreed with T-039.
 // Every figure arrives computed and display-rounded by the source; the presentation formats and draws, never derives a budget.
 
 /// <summary>The whole presentation state at one moment; a source replaces it as a whole on every change.</summary>
@@ -48,7 +48,7 @@ internal enum SignInFailure { Duplicate, WrongAccount, Storage, AccessDenied, Ex
 
 internal enum SignInPhase { Waiting, Succeeded, Failed, Cancelled }
 
-/// <summary>One card per subscription limit group (D-186); a five-hour window belongs to its period card.</summary>
+/// <summary>One card per subscription limit group (R-186); a five-hour window belongs to its period card.</summary>
 internal sealed record LimitCardModel(
     string CardId,
     string? ScopeLabel,
@@ -69,11 +69,11 @@ internal sealed record LimitCardModel(
     public MonetaryDetails? Monetary { get; init; }
     /// <summary>A limit of one model within the subscription (Claude Fable or Opus, Codex additional limits); drawn as a section of the account card.</summary>
     public bool ModelScoped { get; init; }
-    /// <summary>The owner hid this section of the account card (D-191); its facts, tray strip and status stay.</summary>
+    /// <summary>The owner hid this section of the account card (R-191); its facts, tray strip and status stay.</summary>
     public bool Hidden { get; init; }
-    /// <summary>A credit pool the owner may show in US dollars (D-199); null for every other limit.</summary>
+    /// <summary>A credit pool the owner may show in US dollars (R-199); null for every other limit.</summary>
     public UnitModel? Units { get; init; }
-    /// <summary>A money or credit pool with a daily budget whose today's use the owner may set (D-199).</summary>
+    /// <summary>A money or credit pool with a daily budget whose today's use the owner may set (R-199).</summary>
     public TodayUseModel? TodayUse { get; init; }
 }
 
@@ -87,7 +87,7 @@ internal sealed record UnitModel(bool Usd, decimal Rate)
 /// <summary>Today's use as tracked from readings (in the card's scale), when tracking began after midnight, and whether the owner's figure applies.</summary>
 internal sealed record TodayUseModel(decimal? Tracked, DateTimeOffset? TrackedSince, bool Manual);
 
-/// <summary>D-191: one card per account. The primary limit heads it; every other limit is a section below it.</summary>
+/// <summary>R-191: one card per account. The primary limit heads it; every other limit is a section below it.</summary>
 internal static class AccountCard
 {
     /// <summary>The first shown card, preferring a subscription window over model, spending and note-only limits.</summary>
@@ -100,7 +100,7 @@ internal static class AccountCard
     /// <summary>Section order below the primary: limits with bars, then spending, then note-only limits.</summary>
     public static int SectionRank(LimitCardModel card) => card.Layout == CardLayout.Note ? 2 : card.Monetary is not null ? 1 : 0;
 
-    /// <summary>AIU-055 R-10: the account order after placing one account before another, or last when before is null;
+    /// <summary>T-055 R-10: the account order after placing one account before another, or last when before is null;
     /// null when either account is unknown or both are the same.</summary>
     public static string[]? Move(IReadOnlyList<string> order, string accountId, string? beforeAccountId)
     {
@@ -276,7 +276,7 @@ internal sealed record SettingsSummaries(TimeSpan RefreshInterval, UpdateStatus 
     public bool IsStarting { get; init; }
 }
 internal sealed record LedgerRecoveryModel(string Message, bool CanRetry, bool CanRestorePreferences);
-/// <summary>AIU-046 in-app update state; the version is the installed package version, never a feed target.</summary>
+/// <summary>T-046 in-app update state; the version is the installed package version, never a feed target.</summary>
 internal sealed record UpdateStatus(UpdateState State, string? Version, DateTimeOffset? CheckedAt = null, int? ErrorCode = null)
 {
     public static UpdateStatus NotPackaged { get; } = new(UpdateState.NotPackaged, null);
@@ -284,7 +284,7 @@ internal sealed record UpdateStatus(UpdateState State, string? Version, DateTime
 internal enum UpdateState { NotPackaged, NoFeed, Idle, Checking, UpToDate, Available, Ready, Installing, CheckFailed, InstallFailed, NotApplied }
 internal enum LedgerSupportAction { RetryRecovery, RestorePreferences, OpenDataFolder, OpenLogs, ExportRecovery }
 
-/// <param name="RefreshMinutes">AIU-055 R-11: the automatic refresh interval in whole minutes.</param>
+/// <param name="RefreshMinutes">T-055 R-11: the automatic refresh interval in whole minutes.</param>
 internal sealed record LedgerPreferences(ValueMode Mode, Density Density, bool ShowSignedOut, bool AlwaysOnTop, UpdateMode Updates = UpdateMode.Always,
     int RefreshMinutes = 5)
 {
@@ -296,12 +296,12 @@ internal enum ValueMode { Used, Left }
 
 internal enum Density { Compact, Comfortable }
 
-/// <summary>AIU-046: Always checks every 5 minutes, OnLaunch once per start, Off only on request.</summary>
+/// <summary>T-046: Always checks every 5 minutes, OnLaunch once per start, Off only on request.</summary>
 internal enum UpdateMode { Always, OnLaunch, Off }
 
 internal enum CommandOutcome { Done, Rejected, Unavailable }
 
-/// <summary>The only data port of the new presentation. The demo source implements it now; AIU-039 adds the live one.</summary>
+/// <summary>The only data port of the new presentation. The demo source implements it now; T-039 adds the live one.</summary>
 internal interface ILedgerSource
 {
     LedgerSnapshot Current { get; }
@@ -315,13 +315,13 @@ internal interface ILedgerSource
     Task<CommandOutcome> RenameAccountAsync(string accountId, string name, CancellationToken ct);
     Task<CommandOutcome> SetCapAsync(string capTargetId, decimal? amount, CancellationToken ct);
     Task<CommandOutcome> RemoveUnmatchedCapAsync(string capId, CancellationToken ct);
-    /// <summary>D-199: the owner's figure for today's use in the card's shown unit; null returns to the tracked figure.</summary>
+    /// <summary>R-199: the owner's figure for today's use in the card's shown unit; null returns to the tracked figure.</summary>
     Task<CommandOutcome> SetTodayUsedAsync(string cardId, decimal? amount, CancellationToken ct);
-    /// <summary>D-199: shows a credit pool natively or in US dollars at the rate per credit.</summary>
+    /// <summary>R-199: shows a credit pool natively or in US dollars at the rate per credit.</summary>
     Task<CommandOutcome> SetUnitsAsync(string cardId, bool usd, decimal rate, CancellationToken ct);
     Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct);
     Task MoveCardAsync(string cardId, int offset, CancellationToken ct);
-    /// <summary>AIU-055 R-10: places an account before another one, or last when before is null; the order is the owner's
+    /// <summary>T-055 R-10: places an account before another one, or last when before is null; the order is the owner's
     /// and applies to the window and the tray.</summary>
     Task<CommandOutcome> MoveAccountAsync(string accountId, string? beforeAccountId, CancellationToken ct);
     /// <summary>Hides or shows a section of its account card; the primary limit cannot be hidden.</summary>

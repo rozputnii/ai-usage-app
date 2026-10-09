@@ -130,7 +130,7 @@ internal sealed class AccountService(AccountRegistry registry, ProviderSessionFa
                     else
                     {
                         var previous = selected ?? match;
-                        // AIU-047: after a reinstall the registry is empty, but the history root still maps this exact identity.
+                        // T-047: after a reinstall the registry is empty, but the history root still maps this exact identity.
                         var restored = previous is null && identities is not null
                             ? await identities.FindAsync(active.Provider, identity, active.Cancel.Token).ConfigureAwait(false) : null;
                         if (restored is { } restoredId && state.Accounts.Any(a => a.Id == restoredId)) restored = null;

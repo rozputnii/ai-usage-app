@@ -8,7 +8,7 @@ using Path = Microsoft.UI.Xaml.Shapes.Path;
 namespace AiUsage.Controls.Ledger;
 
 /// <summary>
-/// The tray's five-hour indicator (AIU-055 R-04): a 16 px rail circle with an arc over it that starts at 12 o'clock and runs
+/// The tray's five-hour indicator (T-055 R-04): a 16 px rail circle with an arc over it that starts at 12 o'clock and runs
 /// clockwise for <see cref="Fraction"/> of the circle in <see cref="ArcBrush"/>. The caller decides what the share is and what
 /// colour says; the control only draws. The rail and the arc are paths on the same circle (stroke centred on radius 7), so
 /// they line up without relying on how a shape's stroke sits inside its box. The whole box is the hover target for a tooltip.

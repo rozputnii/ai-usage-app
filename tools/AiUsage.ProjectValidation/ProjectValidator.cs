@@ -15,11 +15,13 @@ public static class ProjectValidator
     private static string Value(Block block, string name) => block.Fields.GetValueOrDefault(name, "");
     private static string[] List(string value) => value.Trim().Trim('[', ']').Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim('"', '\'')).ToArray();
     private static string WithoutFences(string text) => Regex.Replace(text, @"(?ms)^```[^\n]*\n.*?^```[ \t]*$", "", RegexOptions.CultureInvariant, MatchTimeout);
-    // Branch work names a new item AIU-NEW and a new decision D-NEW (with -2, -3 for more); the final number is assigned
+    // Branch work names a new item T-NEW and a new decision R-NEW (with -2, -3 for more); the final number is assigned
     // from fresh main right before the merge, and the final check refuses any placeholder left outside code.
-    private static bool PlaceholderId(string id) => Regex.IsMatch(id, @"^AIU-NEW(?:-\d+)?$", RegexOptions.CultureInvariant, MatchTimeout);
+    // OD-31: work items T-nnn, steps inside an item T-nnn.k, decisions R-nnn (three digits; specifications keep R-xx requirements).
+    private const string ItemId = @"^T-(?:\d{3}|NEW(?:-\d+)?)$";
+    private const string StepId = @"^T-(?:\d{3}|NEW(?:-\d+)?)\.\d+$";
 
-    /// <param name="final">Refuse AIU-NEW and D-NEW placeholders, as on main.</param>
+    /// <param name="final">Refuse T-NEW and R-NEW placeholders, as on main.</param>
     public static IReadOnlyList<Diagnostic> Validate(string root, bool final = false)
     {
         root = Path.GetFullPath(root);
@@ -57,13 +59,13 @@ public static class ProjectValidator
         {
             if (file.EndsWith(".md", StringComparison.Ordinal)) CheckLinks(root, file, text, Error);
             if (final)
-                foreach (var id in Matches(Regex.Replace(WithoutFences(text), "`[^`\n]*`", "", RegexOptions.CultureInvariant, MatchTimeout), @"\b(?:AIU|D)-NEW(?:-\d+)?\b")
+                foreach (var id in Matches(Regex.Replace(WithoutFences(text), "`[^`\n]*`", "", RegexOptions.CultureInvariant, MatchTimeout), @"\b(?:T|R)-NEW(?:-\d+)?\b")
                     .Select(m => m.Value).Distinct())
                     Error(file, id, "PLACEHOLDER_ID", "Replace the placeholder with the next free number from fresh main before merging.");
         }
         CheckSkills(documents, Error);
-        var goals = Parse(documents.GetValueOrDefault("docs/product/goals.md", ""), "docs/product/goals.md", "##", "G", 3, Error);
-        var items = Parse(documents.GetValueOrDefault("docs/backlog.md", ""), "docs/backlog.md", "##", "AIU", 3, Error);
+        var goals = Parse(documents.GetValueOrDefault("docs/product/goals.md", ""), "docs/product/goals.md", "##", "G", @"^G-\d{3}$", Error);
+        var items = Parse(documents.GetValueOrDefault("docs/backlog.md", ""), "docs/backlog.md", "##", "T", ItemId, Error);
         var indexed = DoneIndex(documents.GetValueOrDefault("docs/backlog.md", ""), Error);
         foreach (var row in indexed)
         {
@@ -93,7 +95,7 @@ public static class ProjectValidator
             var id = metadata.GetValueOrDefault("id", "");
             var spec = new Block(id, file, text, metadata);
             CheckFields(spec, ["id", "type", "status", "goal", "scope_version", "approval_basis"], DocStates, Error);
-            if (!Regex.IsMatch(id, @"^AIU-\d{3}$") && !PlaceholderId(id)) Error(file, id, "INVALID_ID", "Specification ID must use AIU-NNN.");
+            if (!Regex.IsMatch(id, ItemId)) Error(file, id, "INVALID_ID", "Specification ID must use T-NNN.");
             var item = items.FirstOrDefault(i => i.Id == id);
             if (item is null) Error(file, id, "MISSING_REFERENCE", "Specification has no backlog item.");
             else
@@ -120,7 +122,7 @@ public static class ProjectValidator
             if (!documents.TryGetValue(taskFile, out var taskText)) continue;
             var taskMeta = Metadata(taskText);
             if (taskMeta.GetValueOrDefault("id") != id || taskMeta.GetValueOrDefault("schema_version") != "1") Error(taskFile, id, "REQUIRED_METADATA", "Task metadata must name the feature and schema version 1.");
-            var tasks = Parse(taskText, taskFile, "###", "T", 2, Error);
+            var tasks = Parse(taskText, taskFile, "###", "T", StepId, Error);
             CheckDependencies(tasks, Error);
             foreach (var task in tasks)
             {
@@ -164,10 +166,10 @@ public static class ProjectValidator
         var section = Regex.Match(WithoutFences(text), @"(?ms)^## Done index[ \t]*$(.*?)(?=^## |\z)", RegexOptions.None, MatchTimeout);
         var rows = new List<Block>();
         if (!section.Success) return rows;
-        foreach (Match row in Matches(section.Groups[1].Value, @"^\| *(AIU-[^ |]+) *\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|[ \t]*$"))
+        foreach (Match row in Matches(section.Groups[1].Value, @"^\| *(T-[^ |]+) *\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|[ \t]*$"))
         {
             var id = row.Groups[1].Value;
-            if (!Regex.IsMatch(id, @"^AIU-\d{3}$")) error("docs/backlog.md", id, "INVALID_ID", "ID must use AIU and 3 digits.");
+            if (!Regex.IsMatch(id, @"^T-\d{3}$")) error("docs/backlog.md", id, "INVALID_ID", "ID must use T and 3 digits.");
             if (rows.Any(b => b.Id == id)) error("docs/backlog.md", id, "DUPLICATE_ID", "Duplicate ID in document namespace.");
             rows.Add(new(id, "docs/backlog.md", row.Value, new() { ["status"] = row.Groups[3].Value.Trim(), ["goal"] = row.Groups[4].Value.Trim(), ["depends_on"] = "[]", ["evidence"] = row.Groups[5].Value.Trim() }));
         }
@@ -192,9 +194,10 @@ public static class ProjectValidator
     private static void CheckDecisions(string file, string text, Action<string, string, string, string> error)
     {
         text = WithoutFences(text);
-        var ids = Matches(text, @"^### (D-[^ ]+) - ").Select(m => m.Groups[1].Value).ToArray();
+        var ids = Matches(text, @"^### (R-[^ ]+) - ").Select(m => m.Groups[1].Value).ToArray();
+        foreach (var id in ids.Where(i => !Regex.IsMatch(i, @"^R-(?:\d{3}|NEW(?:-\d+)?)$"))) error(file, id, "INVALID_ID", "Decision ID must use R and 3 digits.");
         foreach (var id in ids.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key)) error(file, id, "DUPLICATE_ID", "Duplicate decision ID.");
-        foreach (var id in Matches(text, @"^(?:Amended|Superseded) by (D-(?:\d{3}|NEW(?:-\d+)?))\b").Select(m => m.Groups[1].Value).Distinct())
+        foreach (var id in Matches(text, @"^(?:Amended|Superseded) by (R-(?:\d{3}|NEW(?:-\d+)?))\b").Select(m => m.Groups[1].Value).Distinct())
             if (!ids.Contains(id)) error(file, id, "MISSING_REFERENCE", "Amendment pointer names a decision that does not exist.");
     }
 
@@ -235,7 +238,7 @@ public static class ProjectValidator
         var end = text.IndexOf("\n---", 4, StringComparison.Ordinal);
         return end < 0 ? [] : Matches(text[4..end], @"^([a-z_][a-z_0-9]*):[ \t]*(.*)$").GroupBy(m => m.Groups[1].Value).ToDictionary(g => g.Key, g => g.Last().Groups[2].Value.Trim());
     }
-    private static List<Block> Parse(string text, string file, string level, string prefix, int digits, Action<string, string, string, string> error)
+    private static List<Block> Parse(string text, string file, string level, string prefix, string idPattern, Action<string, string, string, string> error)
     {
         text = WithoutFences(text);
         var matches = Matches(text, $@"^{level} ({prefix}-[^ ]+) - (.+)$");
@@ -245,7 +248,7 @@ public static class ProjectValidator
             var id = matches[i].Groups[1].Value;
             var body = text[(matches[i].Index + matches[i].Length)..(i + 1 < matches.Count ? matches[i + 1].Index : text.Length)];
             var fields = Matches(body, @"^- ([a-z_]+): (.*)$").GroupBy(m => m.Groups[1].Value).ToDictionary(g => g.Key, g => g.First().Groups[2].Value.Trim());
-            if (!Regex.IsMatch(id, $@"^{prefix}-\d{{{digits}}}$") && !(prefix == "AIU" && PlaceholderId(id))) error(file, id, "INVALID_ID", $"ID must use {prefix} and {digits} digits.");
+            if (!Regex.IsMatch(id, idPattern)) error(file, id, "INVALID_ID", $"ID must match {idPattern}.");
             if (blocks.Any(b => b.Id == id)) error(file, id, "DUPLICATE_ID", "Duplicate ID in document namespace.");
             blocks.Add(new(id, file, body, fields));
         }

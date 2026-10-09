@@ -160,7 +160,7 @@ internal sealed class LedgerProductLifetime : IUpdateHost, IDisposable
         finally { gate.Release(); }
     }
 
-    /// <summary>AIU-046: starts in-app update checks once the window exists; demo and audit modes never call this.</summary>
+    /// <summary>T-046: starts in-app update checks once the window exists; demo and audit modes never call this.</summary>
     public void StartUpdates(LedgerShell window, UpdateLaunch launch)
     {
         shell = window;

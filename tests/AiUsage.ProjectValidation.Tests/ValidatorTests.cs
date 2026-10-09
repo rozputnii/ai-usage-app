@@ -30,13 +30,13 @@ public sealed class ValidatorTests
     }
 
     [Theory]
-    [InlineData("AIU-NEW")]
-    [InlineData("AIU-NEW-2")]
+    [InlineData("T-NEW")]
+    [InlineData("T-NEW-2")]
     public void BranchWorkMayUsePlaceholderIdsThatTheFinalCheckRefuses(string placeholder)
     {
         using var root = new Fixture();
-        foreach (var file in new[] { "docs/product/goals.md", "docs/backlog.md", "docs/specs/AIU-001/spec.md", "docs/specs/AIU-001/design.md", Fixture.Tasks })
-            root.Replace(file, "AIU-001", placeholder);
+        foreach (var file in new[] { "docs/product/goals.md", "docs/backlog.md", "docs/specs/T-001/spec.md", "docs/specs/T-001/design.md", Fixture.Tasks })
+            root.Replace(file, "T-001", placeholder);
         Assert.Empty(ProjectValidator.Validate(root.Path));
         Assert.Contains(ProjectValidator.Validate(root.Path, final: true), d => d.Code == "PLACEHOLDER_ID" && d.File == "docs/backlog.md");
     }
@@ -45,11 +45,11 @@ public sealed class ValidatorTests
     public void FinalCheckRefusesAPlaceholderDecisionButNotQuotedRuleText()
     {
         using var root = new Fixture();
-        root.Put("docs/decisions/accepted.md", "# Decisions\n\nUse `D-NEW` and `AIU-NEW` until the merge.\n\n```text\n### D-NEW - Example\n```\n");
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\nUse `R-NEW` and `T-NEW` until the merge.\n\n```text\n### R-NEW - Example\n```\n");
         Assert.Empty(ProjectValidator.Validate(root.Path, final: true));
-        root.Append("docs/decisions/accepted.md", "\n### D-NEW-1 - Owner direction\nText.\n");
+        root.Append("docs/decisions/accepted.md", "\n### R-NEW-1 - Owner direction\nText.\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
-        Assert.Contains(ProjectValidator.Validate(root.Path, final: true), d => d.Code == "PLACEHOLDER_ID" && d.Task == "D-NEW-1");
+        Assert.Contains(ProjectValidator.Validate(root.Path, final: true), d => d.Code == "PLACEHOLDER_ID" && d.Task == "R-NEW-1");
     }
 
     [Fact]
@@ -57,28 +57,28 @@ public sealed class ValidatorTests
     {
         using var root = new Fixture();
         root.Put("docs/evidence.md", "# Evidence\n");
-        root.Replace("docs/product/goals.md", "- scope: AIU-001", "- scope: AIU-001, AIU-002");
-        root.Replace("docs/backlog.md", "- depends_on: []", "- depends_on: [AIU-002]");
-        root.Append("docs/backlog.md", "\n## Done index\n\n| Item | Title | Status | Goal | Evidence |\n| --- | --- | --- | --- | --- |\n| AIU-002 | Earlier work | done | G-001 | docs/evidence.md |\n");
+        root.Replace("docs/product/goals.md", "- scope: T-001", "- scope: T-001, T-002");
+        root.Replace("docs/backlog.md", "- depends_on: []", "- depends_on: [T-002]");
+        root.Append("docs/backlog.md", "\n## Done index\n\n| Item | Title | Status | Goal | Evidence |\n| --- | --- | --- | --- | --- |\n| T-002 | Earlier work | done | G-001 | docs/evidence.md |\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
         root.Replace("docs/backlog.md", "| done | G-001 | docs/evidence.md |", "| done | G-001 | docs/missing.md |");
-        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AIU-002" && d.Code == "DONE_WITHOUT_EVIDENCE");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "T-002" && d.Code == "DONE_WITHOUT_EVIDENCE");
         root.Replace("docs/backlog.md", "| done | G-001 | docs/missing.md |", "| ready | G-001 | docs/evidence.md |");
-        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AIU-002" && d.Code == "INVALID_STATUS");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "T-002" && d.Code == "INVALID_STATUS");
     }
 
     [Fact]
     public void AcceptanceResultsMustCoverEverySpecCriterion()
     {
         using var root = new Fixture();
-        root.Append("docs/specs/AIU-001/spec.md", "- AC-02: Second behavior.\n");
-        root.Put("docs/specs/AIU-001/verification.md", "# Verification\n\nFree-form history mentioning AC-01 only.\n");
+        root.Append("docs/specs/T-001/spec.md", "- AC-02: Second behavior.\n");
+        root.Put("docs/specs/T-001/verification.md", "# Verification\n\nFree-form history mentioning AC-01 only.\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
-        root.Append("docs/specs/AIU-001/verification.md", "\n## Acceptance results\n\n| AC | Verdict | Evidence |\n| --- | --- | --- |\n| AC-01 | PASS | C4 |\n");
+        root.Append("docs/specs/T-001/verification.md", "\n## Acceptance results\n\n| AC | Verdict | Evidence |\n| --- | --- | --- |\n| AC-01 | PASS | C4 |\n");
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "AC-02" && d.Code == "AC_COVERAGE");
-        root.Append("docs/specs/AIU-001/verification.md", "| AC-02 | NOT_RUN (post-deploy owner check) | D-190 |\n");
+        root.Append("docs/specs/T-001/verification.md", "| AC-02 | NOT_RUN (post-deploy owner check) | R-190 |\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
-        root.Append("docs/specs/AIU-001/verification.md", "| AC-03 | maybe | none |\n");
+        root.Append("docs/specs/T-001/verification.md", "| AC-03 | maybe | none |\n");
         var errors = ProjectValidator.Validate(root.Path);
         Assert.Contains(errors, d => d.Task == "AC-03" && d.Code == "AC_REFERENCE");
         Assert.Contains(errors, d => d.Task == "AC-03" && d.Code == "INVALID_STATUS");
@@ -88,12 +88,12 @@ public sealed class ValidatorTests
     public void DecisionIdsAreUniqueAndAmendmentPointersResolve()
     {
         using var root = new Fixture();
-        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### D-001 - First\nText.\n\nAmended by D-002 (2026-10-09): changed.\n\n### D-002 - Second\nText.\n");
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### R-001 - First\nText.\n\nAmended by R-002 (2026-10-09): changed.\n\n### R-002 - Second\nText.\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
-        root.Append("docs/decisions/accepted.md", "\n### D-002 - Again\nText.\n");
-        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "D-002" && d.Code == "DUPLICATE_ID");
-        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### D-001 - First\nSuperseded by D-009 (2026-10-09): gone.\n");
-        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "D-009" && d.Code == "MISSING_REFERENCE");
+        root.Append("docs/decisions/accepted.md", "\n### R-002 - Again\nText.\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "R-002" && d.Code == "DUPLICATE_ID");
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### R-001 - First\nSuperseded by R-009 (2026-10-09): gone.\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "R-009" && d.Code == "MISSING_REFERENCE");
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public sealed class ValidatorTests
     public void SequentialTaskNeedsNoRuntimeMetadata()
     {
         using var root = new Fixture();
-        root.Put(Fixture.Tasks, "---\nid: AIU-001\nschema_version: 1\n---\n# Tasks\n### T-01 - Implement behavior\n- status: pending\n- depends_on: []\n- acceptance: [AC-01]\n- evidence: not-run\n");
+        root.Put(Fixture.Tasks, "---\nid: T-001\nschema_version: 1\n---\n# Tasks\n### T-001.1 - Implement behavior\n- status: pending\n- depends_on: []\n- acceptance: [AC-01]\n- evidence: not-run\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
     }
 
@@ -116,7 +116,7 @@ public sealed class ValidatorTests
     public void MinimalFullRootAcceptsSharedFeatureIdsDeferredWorkAndPlannedPaths()
     {
         using var root = new Fixture();
-        root.Append("docs/specs/AIU-001/spec.md", "\nPlanned output: `future/not-created.md`.\n");
+        root.Append("docs/specs/T-001/spec.md", "\nPlanned output: `future/not-created.md`.\n");
         Assert.Empty(ProjectValidator.Validate(root.Path));
     }
 
@@ -140,24 +140,24 @@ public sealed class ValidatorTests
 
     [Theory]
     [InlineData("docs/product/goals.md", "G-001 -", "G-1 -", "INVALID_ID")]
-    [InlineData("docs/backlog.md", "AIU-001 -", "AIU-1 -", "INVALID_ID")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "T-01 -", "T-1 -", "INVALID_ID")]
+    [InlineData("docs/backlog.md", "T-001 -", "T-1 -", "INVALID_ID")]
+    [InlineData("docs/specs/T-001/tasks.md", "T-001.1 -", "T-1 -", "INVALID_ID")]
     [InlineData("docs/backlog.md", "status: selected", "status: magic", "INVALID_STATUS")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "status: pending", "status: magic", "INVALID_STATUS")]
-    [InlineData("docs/specs/AIU-001/spec.md", "status: draft", "status: done", "INVALID_STATUS")]
+    [InlineData("docs/specs/T-001/tasks.md", "status: pending", "status: magic", "INVALID_STATUS")]
+    [InlineData("docs/specs/T-001/spec.md", "status: draft", "status: done", "INVALID_STATUS")]
     [InlineData("docs/backlog.md", "goal: G-001", "goal: G-999", "MISSING_GOAL")]
-    [InlineData("docs/product/goals.md", "scope: AIU-001", "scope: AIU-999", "MISSING_REFERENCE")]
-    [InlineData("docs/product/goals.md", "scope: AIU-001", "scope: []", "GOAL_SCOPE")]
-    [InlineData("docs/backlog.md", "depends_on: []", "depends_on: [AIU-999]", "MISSING_DEPENDENCY")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "depends_on: []", "depends_on: [T-99]", "MISSING_DEPENDENCY")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "depends_on: []", "depends_on: [T-01]", "DEPENDENCY_CYCLE")]
-    [InlineData("docs/backlog.md", "depends_on: []", "depends_on: [AIU-001]", "DEPENDENCY_CYCLE")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "AC-01", "AC-99", "AC_REFERENCE")]
-    [InlineData("docs/specs/AIU-001/spec.md", "scope_version: 1\n", "", "REQUIRED_METADATA")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "status: pending", "status: done", "DONE_WITHOUT_EVIDENCE")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "isolation: required", "isolation: none", "WORKER_ISOLATION")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "shared: []", "shared: [src/contracts]", "PRIMARY_SHARED")]
-    [InlineData("docs/specs/AIU-001/spec.md", "status: draft", "status: implemented", "LIFECYCLE_STATUS")]
+    [InlineData("docs/product/goals.md", "scope: T-001", "scope: T-999", "MISSING_REFERENCE")]
+    [InlineData("docs/product/goals.md", "scope: T-001", "scope: []", "GOAL_SCOPE")]
+    [InlineData("docs/backlog.md", "depends_on: []", "depends_on: [T-999]", "MISSING_DEPENDENCY")]
+    [InlineData("docs/specs/T-001/tasks.md", "depends_on: []", "depends_on: [T-001.99]", "MISSING_DEPENDENCY")]
+    [InlineData("docs/specs/T-001/tasks.md", "depends_on: []", "depends_on: [T-001.1]", "DEPENDENCY_CYCLE")]
+    [InlineData("docs/backlog.md", "depends_on: []", "depends_on: [T-001]", "DEPENDENCY_CYCLE")]
+    [InlineData("docs/specs/T-001/tasks.md", "AC-01", "AC-99", "AC_REFERENCE")]
+    [InlineData("docs/specs/T-001/spec.md", "scope_version: 1\n", "", "REQUIRED_METADATA")]
+    [InlineData("docs/specs/T-001/tasks.md", "status: pending", "status: done", "DONE_WITHOUT_EVIDENCE")]
+    [InlineData("docs/specs/T-001/tasks.md", "isolation: required", "isolation: none", "WORKER_ISOLATION")]
+    [InlineData("docs/specs/T-001/tasks.md", "shared: []", "shared: [src/contracts]", "PRIMARY_SHARED")]
+    [InlineData("docs/specs/T-001/spec.md", "status: draft", "status: implemented", "LIFECYCLE_STATUS")]
     public void CorruptionReportsStableContract(string file, string oldValue, string newValue, string code)
     {
         using var root = new Fixture();
@@ -182,7 +182,7 @@ public sealed class ValidatorTests
     {
         using var root = new Fixture();
         root.Replace(Fixture.Tasks, "src/one/**", path);
-        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Code == "UNSAFE_PATH" && d.Task == "T-01");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Code == "UNSAFE_PATH" && d.Task == "T-001.1");
     }
 
     [Theory]
@@ -192,7 +192,7 @@ public sealed class ValidatorTests
     public void ConcurrentOwnershipIsConservative(string writes, string ownership)
     {
         using var root = new Fixture();
-        root.Append(Fixture.Tasks, Fixture.Task("T-02", writes, ownership));
+        root.Append(Fixture.Tasks, Fixture.Task("T-001.2", writes, ownership));
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Code == "PARALLEL_OVERLAP");
     }
 
@@ -200,17 +200,17 @@ public sealed class ValidatorTests
     public void DependencyOrderingSerializesOverlappingWorkers()
     {
         using var root = new Fixture();
-        root.Append(Fixture.Tasks, Fixture.Task("T-02", "src/one/**", "domain-one").Replace("depends_on: []", "depends_on: [T-01]"));
+        root.Append(Fixture.Tasks, Fixture.Task("T-001.2", "src/one/**", "domain-one").Replace("depends_on: []", "depends_on: [T-001.1]"));
         Assert.Empty(ProjectValidator.Validate(root.Path));
     }
 
     [Theory]
-    [InlineData("docs/backlog.md", "\n## AIU-001 - Duplicate\n", "DUPLICATE_ID")]
+    [InlineData("docs/backlog.md", "\n## T-001 - Duplicate\n", "DUPLICATE_ID")]
     [InlineData("docs/product/goals.md", "\n## G-001 - Duplicate\n", "DUPLICATE_ID")]
-    [InlineData("docs/specs/AIU-001/spec.md", "\n- AC-01: Duplicate.\n", "DUPLICATE_ID")]
-    [InlineData("docs/specs/AIU-001/tasks.md", "\n### T-01 - Duplicate\n", "DUPLICATE_ID")]
-    [InlineData("docs/specs/AIU-001/spec.md", "\n[Missing](missing.md)\n", "BROKEN_LINK")]
-    [InlineData("docs/specs/AIU-001/spec.md", "\n[Missing][ref]\n[ref]: missing.md\n", "BROKEN_LINK")]
+    [InlineData("docs/specs/T-001/spec.md", "\n- AC-01: Duplicate.\n", "DUPLICATE_ID")]
+    [InlineData("docs/specs/T-001/tasks.md", "\n### T-001.1 - Duplicate\n", "DUPLICATE_ID")]
+    [InlineData("docs/specs/T-001/spec.md", "\n[Missing](missing.md)\n", "BROKEN_LINK")]
+    [InlineData("docs/specs/T-001/spec.md", "\n[Missing][ref]\n[ref]: missing.md\n", "BROKEN_LINK")]
     public void DocumentCorruptionsAreRejected(string file, string content, string code)
     {
         using var root = new Fixture();
@@ -325,7 +325,7 @@ public sealed class ValidatorTests
         using var root = new Fixture();
         File.Delete(Path.Combine(root.Path, Fixture.Tasks));
         root.Replace("docs/backlog.md", "status: selected", "status: done");
-        root.Replace("docs/specs/AIU-001/spec.md", "status: draft", "status: implemented");
+        root.Replace("docs/specs/T-001/spec.md", "status: draft", "status: implemented");
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Code == "DONE_WITHOUT_EVIDENCE");
         root.Append("docs/backlog.md", "- evidence: docs/check.txt\n");
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Code == "DONE_WITHOUT_EVIDENCE");
@@ -339,9 +339,9 @@ public sealed class ValidatorTests
     public void SequentialCompletionRequiresEvidenceAndCompletedDependencies()
     {
         using var root = new Fixture();
-        const string header = "---\nid: AIU-001\nschema_version: 1\n---\n# Tasks\n";
-        const string first = "### T-01 - First\n- status: pending\n- depends_on: []\n- acceptance: [AC-01]\n- evidence: docs/check.txt\n";
-        const string second = "### T-02 - Second\n- status: done\n- depends_on: [T-01]\n- acceptance: [AC-01]\n- evidence: not-run\n";
+        const string header = "---\nid: T-001\nschema_version: 1\n---\n# Tasks\n";
+        const string first = "### T-001.1 - First\n- status: pending\n- depends_on: []\n- acceptance: [AC-01]\n- evidence: docs/check.txt\n";
+        const string second = "### T-001.2 - Second\n- status: done\n- depends_on: [T-001.1]\n- acceptance: [AC-01]\n- evidence: not-run\n";
         root.Put(Fixture.Tasks, header + first + second);
         var errors = ProjectValidator.Validate(root.Path);
         Assert.Contains(errors, d => d.Code == "DONE_WITHOUT_EVIDENCE");
@@ -383,7 +383,7 @@ public sealed class ValidatorTests
     {
         using var root = new Fixture();
         File.Delete(Path.Combine(root.Path, Fixture.Tasks));
-        root.Replace("docs/specs/AIU-001/design.md", "id: AIU-001", "id: AIU-999");
+        root.Replace("docs/specs/T-001/design.md", "id: T-001", "id: T-999");
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Code == "MISSING_REFERENCE");
     }
 
@@ -406,22 +406,22 @@ public sealed class ValidatorTests
     public void SuppliedSequentialEnumsAreValidated(string field, string value)
     {
         using var root = new Fixture();
-        root.Put(Fixture.Tasks, "---\nid: AIU-001\nschema_version: 1\n---\n# Tasks\n### T-01 - Work\n- status: pending\n- depends_on: []\n- acceptance: [AC-01]\n- evidence: not-run\n- " + field + ": " + value + "\n");
+        root.Put(Fixture.Tasks, "---\nid: T-001\nschema_version: 1\n---\n# Tasks\n### T-001.1 - Work\n- status: pending\n- depends_on: []\n- acceptance: [AC-01]\n- evidence: not-run\n- " + field + ": " + value + "\n");
         Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Code == "INVALID_STATUS");
     }
 
     private sealed class Fixture : IDisposable
     {
-        public const string Tasks = "docs/specs/AIU-001/tasks.md";
+        public const string Tasks = "docs/specs/T-001/tasks.md";
         public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "aiu-validator-" + Guid.NewGuid().ToString("N"));
         public Fixture()
         {
-            Put("docs/product/goals.md", "---\nschema_version: 1\nactive_goal: G-001\n---\n# Goals\n## G-001 - Goal\n- status: selected\n- scope: AIU-001\n- outcome: Valid outcome.\n- success: Observable success.\n");
-            Put("docs/backlog.md", "---\nschema_version: 1\n---\n# Backlog\n## AIU-001 - Feature\n- goal: G-001\n- status: selected\n- depends_on: []\n- trigger: now\n- outcome: Valid outcome.\n");
-            var metadata = "---\nid: AIU-001\ntype: infrastructure\nstatus: draft\ngoal: G-001\nscope_version: 1\napproval_basis: derived-within-authorized-goal\n---\n";
-            Put("docs/specs/AIU-001/spec.md", metadata + "# Feature\n## Acceptance criteria\n- AC-01: Observable behavior.\n");
-            Put("docs/specs/AIU-001/design.md", metadata + "# Design\nSimple implementation.\n");
-            Put(Tasks, "---\nid: AIU-001\nschema_version: 1\n---\n# Tasks\n" + Task("T-01", "src/one/**", "domain-one"));
+            Put("docs/product/goals.md", "---\nschema_version: 1\nactive_goal: G-001\n---\n# Goals\n## G-001 - Goal\n- status: selected\n- scope: T-001\n- outcome: Valid outcome.\n- success: Observable success.\n");
+            Put("docs/backlog.md", "---\nschema_version: 1\n---\n# Backlog\n## T-001 - Feature\n- goal: G-001\n- status: selected\n- depends_on: []\n- trigger: now\n- outcome: Valid outcome.\n");
+            var metadata = "---\nid: T-001\ntype: infrastructure\nstatus: draft\ngoal: G-001\nscope_version: 1\napproval_basis: derived-within-authorized-goal\n---\n";
+            Put("docs/specs/T-001/spec.md", metadata + "# Feature\n## Acceptance criteria\n- AC-01: Observable behavior.\n");
+            Put("docs/specs/T-001/design.md", metadata + "# Design\nSimple implementation.\n");
+            Put(Tasks, "---\nid: T-001\nschema_version: 1\n---\n# Tasks\n" + Task("T-001.1", "src/one/**", "domain-one"));
         }
         public static string Task(string id, string writes, string ownership) => $"\n### {id} - Work\n- status: pending\n- depends_on: []\n- ownership: {ownership}\n- writes: [\"{writes}\"]\n- shared: []\n- parallel: true\n- isolation: required\n- agent: worker\n- acceptance: [AC-01]\n- evidence: not-run\n";
         public void Put(string file, string content)

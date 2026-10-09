@@ -28,7 +28,7 @@ internal interface IUpdateHost
     Task PublishAsync(UpdateStatus status);
 }
 
-/// <summary>AIU-043 update records; recurring failures arrive already coalesced.</summary>
+/// <summary>T-043 update records; recurring failures arrive already coalesced.</summary>
 internal interface IUpdateLog
 {
     void CheckFailed(int errorCode, int consecutive);
@@ -58,7 +58,7 @@ internal sealed record UpdateLaunch(bool Background, string? UpdatedFrom)
 }
 
 /// <summary>
-/// AIU-046 rules: when to check, when an available update installs, and failure and loop handling.
+/// T-046 rules: when to check, when an available update installs, and failure and loop handling.
 /// All calls arrive on the UI dispatcher, so the state needs no lock.
 /// </summary>
 internal sealed class UpdateCoordinator(IPackageUpdates package, IUpdateHost host, IUpdateLog log,

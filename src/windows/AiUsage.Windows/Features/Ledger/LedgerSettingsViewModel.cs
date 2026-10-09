@@ -75,7 +75,7 @@ internal sealed partial class CapRow : ObservableObject
 }
 
 /// <summary>
-/// The settings sheet (spec S5, D-193): work days with undo, personal caps, view (with the refresh interval), updates, and a
+/// The settings sheet (spec S5, R-193): work days with undo, personal caps, view (with the refresh interval), updates, and a
 /// footer with a status problem, the rare support actions and Delete stored data. Explanations are tooltips.
 /// </summary>
 internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILedgerSource source) : ObservableObject
@@ -87,7 +87,7 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
     public ObservableCollection<CapRow> Caps { get; } = [];
     [ObservableProperty] public partial bool IsCompact { get; private set; }
     [ObservableProperty] public partial bool AlwaysOnTop { get; private set; }
-    /// <summary>AIU-055 R-11: the saved refresh interval in whole minutes, 1 to 60; the buttons stop at the ends.</summary>
+    /// <summary>T-055 R-11: the saved refresh interval in whole minutes, 1 to 60; the buttons stop at the ends.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RefreshTip))]
     [NotifyCanExecuteChangedFor(nameof(DecreaseRefreshCommand), nameof(IncreaseRefreshCommand))]

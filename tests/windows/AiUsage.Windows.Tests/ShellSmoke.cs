@@ -54,7 +54,7 @@ public sealed partial class ShellSmoke
         window.FindFirstDescendant(cf => cf.ByAutomationId("AlwaysOnTopSwitch"))?.Patterns.Toggle.PatternOrDefault?.ToggleState.Value == ToggleState.On;
     private static AutomationElement Required(Window window, string name) =>
         window.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button))) ?? throw new InvalidOperationException("Missing UI action: " + name);
-    // Support actions sit in the settings footer menu (D-193).
+    // Support actions sit in the settings footer menu (R-193).
     private static void Menu(Window window, string name)
     {
         Required(window, "More settings").AsButton().Invoke();

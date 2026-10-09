@@ -449,7 +449,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             return false;
         if (amount is null && before is { } previous)
         {
-            // The removed amount is in the unit shown at removal; a credit pool may be shown otherwise by the time of undo (D-199).
+            // The removed amount is in the unit shown at removal; a credit pool may be shown otherwise by the time of undo (R-199).
             OfferUndo("Cap removed · " + label.Trim(), () => source.SetCapAsync(capTargetId, CreditDollars.Convert(previous, units, UnitsNow()), CancellationToken.None));
             announce("Cap removed");
         }
@@ -458,7 +458,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         return true;
     }
 
-    /// <summary>D-199: the owner's figure for today's use; null returns to the tracked figure.</summary>
+    /// <summary>R-199: the owner's figure for today's use; null returns to the tracked figure.</summary>
     public async Task<bool> SetTodayUsedAsync(string cardId, decimal? amount)
     {
         if (await source.SetTodayUsedAsync(cardId, amount, CancellationToken.None) != CommandOutcome.Done)
@@ -467,7 +467,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         return true;
     }
 
-    /// <summary>D-199: shows a credit pool natively or in US dollars.</summary>
+    /// <summary>R-199: shows a credit pool natively or in US dollars.</summary>
     public async Task<bool> SetUnitsAsync(string cardId, bool usd, decimal rate) =>
         await source.SetUnitsAsync(cardId, usd, rate, CancellationToken.None) == CommandOutcome.Done;
 

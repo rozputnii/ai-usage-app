@@ -10,7 +10,7 @@ using Xunit;
 
 namespace AiUsage.Windows.Tests;
 
-/// <summary>The refresh interval stepper in Settings (AIU-055 R-11), in the demo app; isolated synthetic state, no sign-in.</summary>
+/// <summary>The refresh interval stepper in Settings (T-055 R-11), in the demo app; isolated synthetic state, no sign-in.</summary>
 public sealed class RefreshIntervalSmoke
 {
     /// <summary>Clicking + shows 6; typing 1 and Enter shows 1 and stops the − button; letters are not accepted.</summary>

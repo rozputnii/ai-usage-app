@@ -102,15 +102,15 @@ internal sealed class LedgerPreferenceStore(Func<CancellationToken, Task<string?
         public LedgerPreferences Preferences { get; set; } = LedgerPreferences.Default;
         public Dictionary<string, string> Labels { get; set; } = [];
         public string[] Order { get; set; } = [];
-        /// <summary>AIU-055 R-10: the owner's account order; unlisted accounts follow in registry order.</summary>
+        /// <summary>T-055 R-10: the owner's account order; unlisted accounts follow in registry order.</summary>
         public string[] AccountOrder { get; set; } = [];
         public string[] Hidden { get; set; } = [];
-        /// <summary>D-199: per-card unit choice of a credit pool.</summary>
+        /// <summary>R-199: per-card unit choice of a credit pool.</summary>
         public Dictionary<string, UnitModel> Units { get; set; } = [];
-        /// <summary>D-199: the owner's day starts, one per card and local date.</summary>
+        /// <summary>R-199: the owner's day starts, one per card and local date.</summary>
         public TodayEntry[] Today { get; set; } = [];
         public DateOnly? WorkToday { get; set; }
-        // Written only by earlier versions that deferred work-day changes to the next midnight; applied once (D-198).
+        // Written only by earlier versions that deferred work-day changes to the next midnight; applied once (R-198).
         public DayOfWeek[]? PendingWorkDays { get; set; }
         public DateOnly? WorkDaysEffectiveOn { get; set; }
         [JsonExtensionData] public Dictionary<string, JsonElement>? ExtensionData { get; set; }

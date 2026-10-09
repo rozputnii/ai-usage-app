@@ -7,10 +7,10 @@ using Windows.System;
 
 namespace AiUsage.Features.Ledger.Views;
 
-/// <summary>One limit card (spec 6.2). The card is not a tab stop itself (D-200); from any control inside it F2 renames,
+/// <summary>One limit card (spec 6.2). The card is not a tab stop itself (R-200); from any control inside it F2 renames,
 /// C opens the limit settings with the cap field focused (the card has no cap editor of its own), Alt+Up/Down reorders. History and Sign out stay visible but quiet until pointed at.
-/// A click on the account name also renames (D-205); Enter, a click elsewhere or focus leaving the box saves, Esc cancels.
-/// The grip shown on hover drags the account card to another place (D-205); the window runs the drag.</summary>
+/// A click on the account name also renames (R-205); Enter, a click elsewhere or focus leaving the box saves, Esc cancels.
+/// The grip shown on hover drags the account card to another place (R-205); the window runs the drag.</summary>
 internal sealed partial class LedgerCardView : UserControl
 {
     public LedgerCardView() => InitializeComponent();
@@ -90,7 +90,7 @@ internal sealed partial class LedgerCardView : UserControl
             first.Focus(FocusState.Programmatic);
     }
 
-    // D-199: the limit settings popover is rebuilt from the card each time it opens.
+    // R-199: the limit settings popover is rebuilt from the card each time it opens.
     private void OnSettingsOpening(object? sender, object e) => ViewModel.OpenSettings();
 
     private bool focusCapOnOpen;
@@ -222,7 +222,7 @@ internal sealed partial class LedgerCardView : UserControl
         _ = ViewModel.CommitRenameAsync();
     }
 
-    /// <summary>A press on the grip; the window drags the card from there (D-205).</summary>
+    /// <summary>A press on the grip; the window drags the card from there (R-205).</summary>
     public event EventHandler<PointerRoutedEventArgs>? ReorderPressed;
 
     private void OnGripPressed(object sender, PointerRoutedEventArgs e)

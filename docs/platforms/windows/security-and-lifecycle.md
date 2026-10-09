@@ -28,7 +28,7 @@ Export plaintext documented versioned bundle without secrets; warn about private
 Reset settings preserves accounts/credentials/history/labels/order. Factory reset explicitly stops refresh/Host/logging, closes DB pools and all files, removes all mutable app-owned state and owned startup/notification state, then launches true first-run state. Same installed binaries remain. No deletion of original CLI logins/user-owned exports. OS-level preserved install/notification permissions and external remote grants are outside this local-reset contract; document actual limits rather than claim literal reinstall.
 
 ## Diagnostics
-Normal quota/history stores remain normalized only. AIU-043 adds a separate `logs`
+Normal quota/history stores remain normalized only. T-043 adds a separate `logs`
 namespace under the existing owned state root, with packaged/development/Demo/console
 isolation. Endpoint policies project bounded provider responses before any file or
 Serilog argument; unknown scalar values and unsafe/dynamic names are withheld. Bodies,
@@ -50,7 +50,7 @@ must stop writers before DiagnosticFiles.DeleteOwned; deferred reset UI is uncha
 Logs are excluded from migration checkpoints, quota storage, automatic exports and Git.
 Same-user path-substitution races remain outside these path checks' guarantee. No
 telemetry or host trust/WER changes are introduced. Delivery and independent-review
-limits are recorded in [AIU-043 verification](../../specs/AIU-043-file-logging/verification.md).
+limits are recorded in [T-043 verification](../../specs/T-043-file-logging/verification.md).
 
 ## Security tests before relevant features merge
 - Cross-account token/grant mismatch rejected; rotating refresh pair preserved through quota cancellation.
@@ -62,10 +62,10 @@ limits are recorded in [AIU-043 verification](../../specs/AIU-043-file-logging/v
 - Cleanup with malicious relative path/reparse points does not delete outside roots.
 - Same package upgrade retains credentials; local remove/reset cleans owned records under tested Windows settings.
 
-## AIU-036 budget data
+## T-036 budget data
 
 `budget` is an additive, credential-free owned namespace, separate from provider files and
-the preferences-only AIU-006 checkpoint. Version 1 has no predecessor to migrate. Older
+the preferences-only T-006 checkpoint. Version 1 has no predecessor to migrate. Older
 installations begin with an empty series and Monday-Friday configuration; future versions
 must supply a tested forward conversion, or preserve unsupported bytes and restart tracking.
 No credential generation or layout manifest is changed, and restoring the appearance
@@ -96,7 +96,7 @@ cleanup reports failure while retaining that recovery file. Whole-store cleanup 
 recognized active, staged and quarantined files, retaining the operation lock. The owner
 explicitly deferred product delete/reset button wiring on 2026-10-02.
 
-## AIU-047 history root outside the package
+## T-047 history root outside the package
 
 Packaged runs keep the `budget` namespace and the identity map `accounts.identities` in
 `%LOCALAPPDATA%\AiUsage\History`, which the manifest excludes from file-system write
@@ -117,7 +117,7 @@ root once by a same-volume rename, keeps both copies when both exist, and commit
 older builds refuse the state. Other Windows users and reinstalled Windows cannot decrypt
 the map, and same-user processes can read or change the history root as they can LocalState.
 
-## AIU-037 provider quota format 2
+## T-037 provider quota format 2
 
 The three protected provider states and the separate Codex quota cache now have a
 forward v1-to-v2 conversion. Provider state filenames and DPAPI purpose bytes stay
@@ -132,15 +132,15 @@ format staging. Both stages are flushed and validated before promotion. An
 interruption retries from the committed generation; a checkpoint mismatch fails
 closed. The checkpoint never restores/replays a predecessor grant after token rotation.
 Sign-out deletes these exact provider artifacts after normal path/reparse checks.
-The independent budget namespace remains retained under AIU-036.
+The independent budget namespace remains retained under T-036.
 
 Codex uses codex.quota.json.v1.bak and .v1.bak.new for its credential-free checkpoint
 and the existing .new quota stage. A failed replace preserves the old reading and
 checkpoint for retry. Existing byte limits apply. These operations are per provider,
 not atomic across all providers. No install, trust or portable-backup policy changes.
 
-Local fixture evidence is in [AIU-037 verification](../../specs/AIU-037-provider-limits-v2/verification.md).
+Local fixture evidence is in [T-037 verification](../../specs/T-037-provider-limits-v2/verification.md).
 Independent review findings have been corrected and verified; the record distinguishes the original verdict from primary correction verification.
 
 ## Deferred security scope
-Manifest PKI/expiry/replay and actual signing legal-identity eligibility are AIU-015/014, not bootstrap code. No custom crypto framework or secret manager server before needed.
+Manifest PKI/expiry/replay and actual signing legal-identity eligibility are T-015/014, not bootstrap code. No custom crypto framework or secret manager server before needed.

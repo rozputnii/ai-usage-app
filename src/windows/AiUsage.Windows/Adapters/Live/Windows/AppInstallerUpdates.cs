@@ -6,7 +6,7 @@ using Windows.Management.Deployment;
 namespace AiUsage.Composition;
 
 /// <summary>
-/// AIU-046 Windows App Installer calls against the feed this package was installed from. Windows downloads, replaces
+/// T-046 Windows App Installer calls against the feed this package was installed from. Windows downloads, replaces
 /// and relaunches; this class only asks and reports HRESULTs, never feed contents, URIs or exception text.
 /// </summary>
 internal sealed partial class AppInstallerUpdates : IPackageUpdates

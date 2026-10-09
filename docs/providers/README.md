@@ -9,7 +9,7 @@ Required record per auth/quota method: official/undocumented/reverse-engineered;
 No provider config/client secret copied from a chat example as production source of truth. No inference request just to collect quota headers, model policy changes, account onboarding or quota-reset purchases in a read-only monitor.
 
 ## Codex console
-See [source contracts and permission boundaries](codex.md) and [executed verification](../specs/AIU-003-codex-console/verification.md).
+See [source contracts and permission boundaries](codex.md) and [executed verification](../specs/T-003-codex-console/verification.md).
 
 From the repository root, with the verified .NET 10 SDK available:
 

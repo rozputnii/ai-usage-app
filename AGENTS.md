@@ -77,7 +77,7 @@ Learn MCP; never put payloads, credentials or identifiers into a query.
 ## Read by task
 
 - Existing behavior: the affected code, tests and spec.
-- Feature scope and status: docs/backlog.md and docs/specs/<AIU-ID>-<slug>/;
+- Feature scope and status: docs/backlog.md and docs/specs/<T-nnn>-<slug>/;
   direction in docs/product/goals.md; principles in docs/constitution.md.
 - Decisions: search docs/decisions/accepted.md and follow "Amended by" pointers.
   Read superseded.md and docs/archive only for historical questions.
@@ -94,7 +94,7 @@ bodies to a generic logger. The deny rules in `.claude/settings.json` are only a
 these rules stay authoritative, and a missing deny rule is not permission.
 
 When adding or changing behavior, review its diagnostic needs and use the shared
-AIU-043 pipeline at the boundary that owns the operation: one detailed record per
+T-043 pipeline at the boundary that owns the operation: one detailed record per
 failure with its operation correlation, no logging of routine success, loops or
 timer ticks, and no new logging framework, wrapper or dependency. Details are in
 the [logging policy](docs/workflow/logging.md#logging-policy).
@@ -105,11 +105,12 @@ the [logging policy](docs/workflow/logging.md#logging-policy).
   them to `origin/<task-branch>` after each meaningful step and before going idle.
 - Only verified work merges into `main`. A push to `main` publishes a Preview to the
   owner's auto-updating app when product inputs changed since the served Preview.
-- New items and decisions use placeholders until the merge (CONTRIBUTING, Numbering).
+- Work items are `T-nnn`, steps inside an item `T-nnn.k`, decisions `R-nnn`. New items
+  and decisions use `T-NEW` / `R-NEW` placeholders until the merge (CONTRIBUTING, Numbering).
 - Report PASS, FAIL, NOT_RUN and BLOCKED accurately. Source inspection and
   compilation do not prove live-provider or interactive success.
 - The owner's manual and live-provider checks happen after deployment, in the
-  installed app (D-190). Never ask the owner to sign in to a development build or
+  installed app (R-190). Never ask the owner to sign in to a development build or
   hold the merge for such a check; record it NOT_RUN under "Pending owner checks".
 - Verify for the owner's ordinary desktop use only; no accessibility or display
   test matrices unless asked (verification.md).

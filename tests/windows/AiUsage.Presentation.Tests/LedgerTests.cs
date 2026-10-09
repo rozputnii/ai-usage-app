@@ -38,7 +38,7 @@ internal sealed class ManualScheduler : ILedgerScheduler
     }
 }
 
-/// <summary>AIU-038 contract, demo scenarios and the card drawing rules (spec sections 4 to 6, AC-01 to AC-03).</summary>
+/// <summary>T-038 contract, demo scenarios and the card drawing rules (spec sections 4 to 6, AC-01 to AC-03).</summary>
 public sealed class LedgerCardTests
 {
     private static readonly LedgerSnapshot BriefScenario = DemoLedgerScenarios.Build(DemoLedgerScenarios.Brief);
@@ -425,7 +425,7 @@ public sealed class LedgerCardTests
     {
         var left = Assert.Single(Case("h2", ValueMode.Left).Cells);
         Assert.Equal("60 % left", left.Tip[1]);
-        // D-186: the unfilled track sits right of the solid fill in both modes.
+        // R-186: the unfilled track sits right of the solid fill in both modes.
         Assert.Equal([60.0, 40.0], left.Parts.Select(p => p.Weight));
         Assert.Equal([new Paint("OkM"), new Paint(Paint.Transparent)], left.Parts.Select(p => p.Paint));
 
@@ -575,7 +575,7 @@ public sealed class LedgerInteractionTests
         var (window, _, _, _) = Start();
         Assert.Equal("Version 2026.10.604.0", window.Settings.UpdateVersionText);
         Assert.Matches(@"^Up to date · checked \d\d:\d\d$", window.Settings.UpdatesText);
-        Assert.False(window.Settings.IsUpdateNotable); // up to date stays a tooltip (D-193)
+        Assert.False(window.Settings.IsUpdateNotable); // up to date stays a tooltip (R-193)
         Assert.True(window.Settings.CanCheckUpdates);
         Assert.False(window.Settings.CanInstallUpdate);
         Assert.True(window.Settings.IsUpdateAlways);
@@ -1056,7 +1056,7 @@ public sealed class LedgerInteractionTests
     }
 }
 
-/// <summary>D-199: the limit settings popover.</summary>
+/// <summary>R-199: the limit settings popover.</summary>
 public sealed class LimitSettingsTests
 {
     private static readonly DateTimeOffset TrackedFrom = new(2026, 10, 14, 10, 43, 0, TimeSpan.FromHours(1));

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace AiUsage.Windows.Tests;
 
-/// <summary>Editing account cards with the mouse in the demo app (AIU-055); isolated synthetic state, no sign-in.</summary>
+/// <summary>Editing account cards with the mouse in the demo app (T-055); isolated synthetic state, no sign-in.</summary>
 public sealed partial class CardEditingSmoke
 {
     /// <summary>R-09: a click on the name starts the rename; Enter, a click elsewhere and a click on another name save; Esc cancels.</summary>

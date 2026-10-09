@@ -462,7 +462,7 @@ public sealed partial class AuditWindows
         public AutomationElement ById(string id) => Find(e => e.Properties.AutomationId.ValueOrDefault == id);
         public void Click(string name) => Click(Find(e => e.Properties.Name.ValueOrDefault == name &&
             e.Properties.ControlType.ValueOrDefault is ControlType.Button or ControlType.CheckBox));
-        /// <summary>Opens the settings footer menu (D-193) and clicks one of its items.</summary>
+        /// <summary>Opens the settings footer menu (R-193) and clicks one of its items.</summary>
         public void Menu(string item)
         {
             Click("More settings");
@@ -556,7 +556,7 @@ public sealed partial class AuditWindows
             Show(element); element.Focus();
             Assert.True(Wait(() => element.Properties.HasKeyboardFocus.ValueOrDefault));
         }
-        /// <summary>Cards are not tab stops (D-200); their keys work from any control inside, here the History button.</summary>
+        /// <summary>Cards are not tab stops (R-200); their keys work from any control inside, here the History button.</summary>
         public void FocusCard(AutomationElement card) => Focus(card.FindAllDescendants().First(e => e.Properties.ControlType.ValueOrDefault == ControlType.Button &&
             (e.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)));
         public void Type(AutomationElement element, string value)

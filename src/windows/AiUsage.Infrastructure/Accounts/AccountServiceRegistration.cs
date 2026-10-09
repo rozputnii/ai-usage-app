@@ -13,7 +13,7 @@ namespace AiUsage.Infrastructure.Accounts;
 [System.Runtime.Versioning.SupportedOSPlatform("windows")]
 public static class AccountServiceRegistration
 {
-    /// <param name="historyRoot">AIU-047 root for reading history and the identity map; defaults to <paramref name="ownedRoot"/>.</param>
+    /// <param name="historyRoot">T-047 root for reading history and the identity map; defaults to <paramref name="ownedRoot"/>.</param>
     public static IServiceCollection AddAccountServices(this IServiceCollection services, string ownedRoot, string? historyRoot = null)
     {
         historyRoot ??= ownedRoot;

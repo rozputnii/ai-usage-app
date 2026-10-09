@@ -18,7 +18,7 @@ public sealed class StateMaintenance : IStateMaintenance, IDisposable
     private readonly Func<string, bool>? validatePreferences;
     private readonly Func<CancellationToken, Task>? accountMigration;
     private readonly Func<CancellationToken, Task>? historyMigration;
-    // Layout 2 adopts per-account grants; layout 3 (AIU-047) keeps reading history in a separate history root.
+    // Layout 2 adopts per-account grants; layout 3 (T-047) keeps reading history in a separate history root.
     private int TargetLayout => accountMigration is null ? 1 : historyMigration is null ? 2 : 3;
     private readonly SemaphoreSlim gate = new(1, 1);
     private FileStream? lease;

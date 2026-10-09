@@ -5,7 +5,7 @@ using Xunit;
 
 namespace AiUsage.Presentation.Tests;
 
-/// <summary>D-191: one card per account, with sections the owner can hide and show again.</summary>
+/// <summary>R-191: one card per account, with sections the owner can hide and show again.</summary>
 public sealed class AccountCardTests
 {
     private static CancellationToken Token => TestContext.Current.CancellationToken;

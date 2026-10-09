@@ -36,7 +36,7 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
 
     private void Publish(LedgerSnapshot snapshot)
     {
-        // AIU-055 R-14: the settings summary shows the chosen refresh interval in every scenario.
+        // T-055 R-14: the settings summary shows the chosen refresh interval in every scenario.
         Current = snapshot with { Summaries = snapshot.Summaries with { RefreshInterval = TimeSpan.FromMinutes(Preferences.RefreshMinutes) } };
         foreach (var card in snapshot.Accounts.SelectMany(a => a.Cards).Where(c => c.CapTargetId is not null))
             originals.TryAdd(card.CapTargetId!, card);
@@ -96,7 +96,7 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         var card = account.Cards.First(c => c.CapTargetId == capTargetId);
         if (amount is { } requested && !card.Figures.ProviderLimit.AllowsCap(requested))
             return Task.FromResult(CommandOutcome.Rejected);
-        // D-199: a credit pool keeps its cap in credits; one entered in dollars is converted first.
+        // R-199: a credit pool keeps its cap in credits; one entered in dollars is converted first.
         var native = natives.GetValueOrDefault(card.CardId) ?? (card.Units is not null ? card : null);
         var original = native ?? originals.GetValueOrDefault(capTargetId, card);
         var credits = native?.Units is { Usd: true, Rate: var rate } && amount is { } dollars ? CreditDollars.CapCredits(dollars, rate) : amount;
@@ -202,7 +202,7 @@ internal sealed class DemoLedgerSource(ILedgerScheduler scheduler) : ILedgerSour
         return Task.FromResult(CommandOutcome.Done);
     }
 
-    /// <summary>Publishes a card from its native figures; a credit pool keeps them and shows its chosen unit (D-199).</summary>
+    /// <summary>Publishes a card from its native figures; a credit pool keeps them and shows its chosen unit (R-199).</summary>
     private void Replace(LimitCardModel native)
     {
         if (native.Units is not null)

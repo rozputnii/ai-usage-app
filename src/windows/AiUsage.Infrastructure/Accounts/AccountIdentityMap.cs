@@ -29,7 +29,7 @@ internal static class AccountIdentityFiles
 }
 
 /// <summary>
-/// AIU-047: provider-verified identity to app account ID, kept beside the reading series in the
+/// T-047: provider-verified identity to app account ID, kept beside the reading series in the
 /// history root so a reinstalled package re-attaches history. Holds no credential or storage reference.
 /// Failures never block sign-in or startup: an unreadable map is set aside and rebuilt from the registry.
 /// </summary>

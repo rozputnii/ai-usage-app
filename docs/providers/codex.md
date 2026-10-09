@@ -4,7 +4,7 @@ source_verified_at: 2026-09-13
 live_verified_at: 2026-09-14
 confidence: source-verified-live-verified
 classification: source-observed-internal-endpoints
-backlog: AIU-003
+backlog: T-003
 ---
 # Codex integration evidence
 
@@ -34,9 +34,9 @@ Official latest stable release observed through GitHub releases/latest: rust-v0.
 - 401 means authentication required; 403 access denied (not device pending); 429 carries rate-limited status and Retry-After when present; 5xx provider unavailable. Unknown response values remain unknown or an explicit invalid-response outcome, never fabricated PASS. The endpoint is source-observed internal subscription infrastructure, not an established public monitoring API/SLA.
 
 ## Implemented conservative behavior and known limits
-- The current memory-only implementation treats a usage-endpoint 401 as a terminal local session condition. This is stricter than the source meaning of authentication-required: it disables the still-held refresh grant and requires a fresh console login. It does not prove that the provider revoked that grant. Current console guidance becomes explicit when `refresh-auth` is attempted; immediate quota-path guidance is tracked in CR-AIU-003-03.
-- Account-context claims are not read, per D-177: neither residency nor a FedRAMP flag is parsed, and no residency header is sent, matching the inspected client which extracts only the workspace identity. Conflicting workspace claims between access and id tokens are still rejected, and a workspace change on refresh still fails closed. A live session on 2026-09-14 read real quota for an account carrying `chatgpt_compute_residency` without declaring any region.
-- The console obtains internal clients through AddCodexIntegration using explicit friend-assembly access; redirects, cookies and HTTP factory logging are disabled. Ordinary consumers use AddCodexProductSession and cannot construct clients or sessions with a caller-supplied HttpClient. CR-AIU-003-01 is resolved by this accessibility boundary; see [T-11 verification](../specs/AIU-028-architecture-remediation/verification.md#t-11-library-boundary---2026-09-22). No untrusted endpoint is accepted by the console.
+- The current memory-only implementation treats a usage-endpoint 401 as a terminal local session condition. This is stricter than the source meaning of authentication-required: it disables the still-held refresh grant and requires a fresh console login. It does not prove that the provider revoked that grant. Current console guidance becomes explicit when `refresh-auth` is attempted; immediate quota-path guidance is tracked in CR-T-003-03.
+- Account-context claims are not read, per R-177: neither residency nor a FedRAMP flag is parsed, and no residency header is sent, matching the inspected client which extracts only the workspace identity. Conflicting workspace claims between access and id tokens are still rejected, and a workspace change on refresh still fails closed. A live session on 2026-09-14 read real quota for an account carrying `chatgpt_compute_residency` without declaring any region.
+- The console obtains internal clients through AddCodexIntegration using explicit friend-assembly access; redirects, cookies and HTTP factory logging are disabled. Ordinary consumers use AddCodexProductSession and cannot construct clients or sessions with a caller-supplied HttpClient. CR-T-003-01 is resolved by this accessibility boundary; see [T-11 verification](../specs/T-028-architecture-remediation/verification.md#t-11-library-boundary---2026-09-22). No untrusted endpoint is accepted by the console.
 
 ## Evidence sources
 - [Official release](https://github.com/openai/codex/releases/tag/rust-v0.154.0)
@@ -52,10 +52,10 @@ Official latest stable release observed through GitHub releases/latest: rust-v0.
 ## Live verification boundary
 Live-verified on 2026-09-14 through the console with a locally cloned OMP reference: browser sign-in, real subscription quota read, explicit in-memory refresh, second real quota read, clean exit. The observed account returned a five-hour primary window, a seven-day secondary window, explicit non-unlimited credits with a zero balance and two available reset credits. Still NOT_RUN: device-code login availability, multi-workspace switching, exhausted-quota and rate-limited responses, long-term refresh rotation and coexistence with a personal CLI session. Third-party reuse of the public Codex client remains permission-unknown; a successful request is not provider approval. No token or raw payload was persisted.
 
-## Provider history (AIU-011)
+## Provider history (T-011)
 
-Historical source evidence only: [AIU-040](../specs/AIU-040-remove-provider-history/spec.md)
-removes this retrieval under D-184. These routes are no longer application capabilities;
+Historical source evidence only: [T-040](../specs/T-040-remove-provider-history/spec.md)
+removes this retrieval under R-184. These routes are no longer application capabilities;
 authentication and current quota methods remain unchanged. Dates below describe earlier evidence.
 
 - source_verified_at: 2026-09-22
@@ -65,7 +65,7 @@ authentication and current quota methods remain unchanged. Dates below describe 
 
 The implementation follows official Codex development commit
 `2c2a42e65de077c5518ea5b4c3999633ef6a12fc`, not the stable release contract.
-The [pinned research](../specs/AIU-011-provider-history/research.md) links the analytics
+The [pinned research](../specs/T-011-provider-history/research.md) links the analytics
 client, models and account-bound session. OMP's history is local collection and is not used.
 
 Existing ChatGPT bearer/account headers target fixed `/backend-api/wham/` routes for
@@ -93,7 +93,7 @@ quota session. Individual report failures remain visible; 401/429 stop further r
 and Retry-After prevents immediate retries. Results are memory-only.
 
 The quota live date above does not verify analytics. No eligible stored Codex grant was
-available for the AIU-011 run; see [verification](../specs/AIU-011-provider-history/verification.md).
+available for the T-011 run; see [verification](../specs/T-011-provider-history/verification.md).
 
 ### Live history result - 2026-09-22
 
@@ -105,16 +105,16 @@ skill dated rows, with no unknown values; credit events were empty. Plugin/skill
 and enterprise credit variants returned HTTP 403. No universal retention or plan support
 is inferred. History `live_verified_at` is now 2026-09-22 for the successful routes only;
 earlier null statements describe the pre-login implementation stage. See the detailed
-[verification](../specs/AIU-011-provider-history/verification.md).
+[verification](../specs/T-011-provider-history/verification.md).
 
-## Limit data audit (AIU-034)
+## Limit data audit (T-034)
 
 - provider: codex
 - source_verified_at: 2026-09-26
 - live_verified_at: 2026-09-28 (LC-07 personal Pro credit UI only; no transport verification)
 - classification: quota official client internal schema and official UI documentation; authentication reuse permission unchanged
 - confidence: high for schema; plan-specific payload presence, units and workspace allotment transport unresolved
-- sources: [AIU-034 O1-O8](../specs/AIU-034-limit-audit-design-brief/research.md#codex-sources-read-2026-09-26)
+- sources: [T-034 O1-O8](../specs/T-034-limit-audit-design-brief/research.md#codex-sources-read-2026-09-26)
 
 The pinned official `SpendControlLimitDetails` contains string `limit`, `used`, `remaining`,
 percentages, optional `source`, and absolute/relative reset seconds under
@@ -126,8 +126,8 @@ Official UI documentation establishes credit allocations and controls, including
 Enterprise billing models and selectable usage periods; it does not prove current-grant
 access to an allocation endpoint. `credits.balance` remains a balance, not a limit. Personal
 credit documentation allows negative settled balances, which the current parser drops to
-unknown. Window duration remains response-driven. AIU-011 HTTP 400/403 causes stay unresolved.
-See the [matrix and LC-06 through LC-11](../specs/AIU-034-limit-audit-design-brief/research.md).
+unknown. Window duration remains response-driven. T-011 HTTP 400/403 causes stay unresolved.
+See the [matrix and LC-06 through LC-11](../specs/T-034-limit-audit-design-brief/research.md).
 The 2026-09-28 LC-07 observation in Google Chrome confirmed ChatGPT Pro on Billing and
 a credit-native current balance on Usage Overview. The credit text names Work and Codex
 continuation after usage limits; automatic reload is disabled. No separate allowance/cap,

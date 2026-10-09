@@ -3,7 +3,7 @@ using Xunit;
 
 namespace AiUsage.Presentation.Tests;
 
-/// <summary>AIU-055 R-04 / AC-03: the five-hour ring draws the arc from 12 o'clock clockwise; the control only places it.</summary>
+/// <summary>T-055 R-04 / AC-03: the five-hour ring draws the arc from 12 o'clock clockwise; the control only places it.</summary>
 public sealed class FiveHourRingTests
 {
     private const double Tolerance = 1e-9;

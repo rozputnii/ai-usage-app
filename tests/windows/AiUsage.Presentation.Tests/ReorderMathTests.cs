@@ -4,7 +4,7 @@ using Xunit;
 
 namespace AiUsage.Presentation.Tests;
 
-/// <summary>AIU-055 R-10: dragging an account card by its grip places it among the other account cards.</summary>
+/// <summary>T-055 R-10: dragging an account card by its grip places it among the other account cards.</summary>
 public sealed class ReorderMathTests
 {
     [Fact]

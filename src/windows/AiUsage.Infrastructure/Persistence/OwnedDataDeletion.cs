@@ -24,7 +24,7 @@ public sealed class OwnedDataDeletion
         _ => new[] { name, name + ".pending", name + ".v1.bak", name + ".v1.bak.new", name + ".v2.new", name + ".lock" }
     }).ToArray();
 
-    /// <param name="historyRoot">AIU-047 history root outside the package; defaults to the state root.</param>
+    /// <param name="historyRoot">T-047 history root outside the package; defaults to the state root.</param>
     public OwnedDataDeletion(string ownedRoot, string? historyRoot = null) : this(ownedRoot, historyRoot, null) { }
     internal OwnedDataDeletion(string ownedRoot, Action<string>? boundary) : this(ownedRoot, null, boundary) { }
     internal OwnedDataDeletion(string ownedRoot, string? historyRoot, Action<string>? boundary)

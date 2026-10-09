@@ -2,7 +2,7 @@
 
 Windows-first native WinUI/.NET 10 subscription-quota dashboard with Codex and Claude integrations. Shared provider libraries handle connection, refresh and disconnect; app-owned grants are protected with DPAPI CurrentUser. The dashboard displays quota and explicitly stale cached readings, with close-to-tray, restoration and explicit Exit.
 
-[AIU-002](docs/specs/AIU-002-windows-msix/verification.md) records clean-guest installation and offline UI evidence; [AIU-003](docs/specs/AIU-003-codex-console/verification.md) records real Codex console sign-in, quota and in-memory refresh; [AIU-004](docs/specs/AIU-004-codex-dashboard/verification.md) records Codex dashboard/storage and guest UI/tray evidence. [CR-AIU-004-01](docs/specs/AIU-004-codex-dashboard/close-to-tray-verification.md) verifies close-to-tray, restoration and explicit Exit. [AIU-027](docs/specs/AIU-027-architecture-refinement/verification.md) records workflow and presentation boundaries. [AIU-007](docs/specs/AIU-007-claude-integration/verification.md) records Claude regressions, packaged Windows checks and owner-led live connection, refresh, renewal, resume and disconnect. Provider-specific limitations remain in those records: Claude is a private, unsupported integration, and successful testing does not establish provider approval or complete lifecycle coverage.
+[T-002](docs/specs/T-002-windows-msix/verification.md) records clean-guest installation and offline UI evidence; [T-003](docs/specs/T-003-codex-console/verification.md) records real Codex console sign-in, quota and in-memory refresh; [T-004](docs/specs/T-004-codex-dashboard/verification.md) records Codex dashboard/storage and guest UI/tray evidence. [CR-T-004-01](docs/specs/T-004-codex-dashboard/close-to-tray-verification.md) verifies close-to-tray, restoration and explicit Exit. [T-027](docs/specs/T-027-architecture-refinement/verification.md) records workflow and presentation boundaries. [T-007](docs/specs/T-007-claude-integration/verification.md) records Claude regressions, packaged Windows checks and owner-led live connection, refresh, renewal, resume and disconnect. Provider-specific limitations remain in those records: Claude is a private, unsupported integration, and successful testing does not establish provider approval or complete lifecycle coverage.
 
 ## Development prerequisites
 
@@ -31,7 +31,7 @@ The Antigravity provider ships without an OAuth client registration, because the
 
 Product startup uses live adapters. Pass `--demo` for the isolated synthetic frontend. Unpackaged product data lives under `%LOCALAPPDATA%/AiUsage/Development`; `AIU_DEVELOPMENT_STATE_DIRECTORY` can select an empty directory for offline development checks. Packaged startup keeps its existing package-local provider store. Never point smoke checks at a credential-bearing directory without authorization.
 
-AIU-006 adds an exclusive startup lease and layout manifest. On the first upgrade,
+T-006 adds an exclusive startup lease and layout manifest. On the first upgrade,
 `appearance.v1.json` moves to `preferences/appearance.v1.json`, preserving its contents.
 A DPAPI CurrentUser checkpoint covers presentation preferences only; provider credentials
 retain their existing location and rotation journal and are never rolled back by restore.
@@ -40,27 +40,27 @@ Retry completes the pending operation; confirmed Restore replaces preferences fr
 verified checkpoint. Newer layouts refuse downgrade. Recovery diagnostics export contains
 fixed status fields only and is saved as `recovery-diagnostics.txt` in the owned data folder.
 
-AIU-036 records normalized local observations after successful live quota refreshes under
+T-036 records normalized local observations after successful live quota refreshes under
 the separate `budget` directory. It keeps at least 35 days for daily budgets and five-hour
-session estimates; the new display is connected in AIU-039. Cached startup readings are not
+session estimates; the new display is connected in T-039. Cached startup readings are not
 new observations, and sign-out preserves this history. Work days and personal caps have a
 separate versioned configuration file. Corrupt or unsupported files are retained as recovery
 copies and tracking restarts; estimates need fresh samples again. Storage capacity failure is
 reported without discarding retained readings. This item supplies cleanup for these stores;
 the currently unavailable product delete-data/factory-reset buttons are not enabled by it.
 
-AIU-037 adds native normalized limit facts and forward quota-storage v2 migrations.
+T-037 adds native normalized limit facts and forward quota-storage v2 migrations.
 Compatible existing reading keys continue through an explicit alias; ambiguous old
 scoped histories remain separate. Protected migrations preserve grants and generation
 identities and retain encrypted v1 checkpoints, without automatic grant rollback.
-The existing presentation continues to use its compatibility fields until AIU-039.
-AIU-037's local checks pass, but its required independent security review is currently
-blocked; see [verification and handoff](docs/specs/AIU-037-provider-limits-v2/verification.md).
+The existing presentation continues to use its compatibility fields until T-039.
+T-037's local checks pass, but its required independent security review is currently
+blocked; see [verification and handoff](docs/specs/T-037-provider-limits-v2/verification.md).
 
-Ledger's inline history uses only local quota readings recorded by AIU-036. AIU-040
-removes the former provider-history clients and console command under D-184. Opening
+Ledger's inline history uses only local quota readings recorded by T-036. T-040
+removes the former provider-history clients and console command under R-184. Opening
 history makes no provider-history request; existing observations remain available.
-See [AIU-040 verification](docs/specs/AIU-040-remove-provider-history/verification.md).
+See [T-040 verification](docs/specs/T-040-remove-provider-history/verification.md).
 
 For local interactive smoke, set `AIU_SMOKE_EXE` to the absolute path of that executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. The launch smoke covers the demo path and the product path with an empty `AIU_DEVELOPMENT_STATE_DIRECTORY`. An unlocked interactive desktop is required. Reserve Windows Sandbox or a disposable VM for checks that need isolation or a clean machine; package builds alone do not need either.
 
@@ -95,7 +95,7 @@ only those artifacts mapped read-only and an empty evidence folder mapped writab
 
 The separate executable UI suite publishes with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`. It accepts `AIU_SMOKE_EXE` for local unpackaged checks or an installed `AIU_SMOKE_AUMID` for packaged checks, and requires an unlocked interactive desktop and `AIU_SMOKE_EVIDENCE_DIRECTORY`; missing prerequisites fail, never silently skip. Do not run it as part of platform-neutral checks.
 
-`tools/windows/Invoke-PackageSmoke.ps1` is a disposable-guest harness, not a host installer. It requires package, public CER, official offline dependencies, .NET runtime installer, published smoke executable and empty evidence directory. It changes trust only inside Sandbox or a disposable VM explicitly confirmed with `-ConfirmDisposableGuest`; an inherited environment variable does not authorize it. Retained AIU-002 and AIU-004 evidence records successful disposable-guest runs and inspected screenshots.
+`tools/windows/Invoke-PackageSmoke.ps1` is a disposable-guest harness, not a host installer. It requires package, public CER, official offline dependencies, .NET runtime installer, published smoke executable and empty evidence directory. It changes trust only inside Sandbox or a disposable VM explicitly confirmed with `-ConfirmDisposableGuest`; an inherited environment variable does not authorize it. Retained T-002 and T-004 evidence records successful disposable-guest runs and inspected screenshots.
 
 The default `-VerificationMode ProductUi` provisions the offline dependencies before the first app activation, so ordinary UI checks do not show missing-runtime dialogs. Missing-prerequisite negative checks are reported as NOT_RUN. Use `-VerificationMode InstallationContract` explicitly when testing installation failures; that mode deliberately activates without the runtime and can display the native missing-runtime dialog. ProductUi success does not claim the installation-negative contract passed.
 
@@ -110,7 +110,7 @@ The guest needs networking to reach the feed.
 
 ## Development Preview updates
 
-The owner-selected AIU-014 test channel uses a dedicated self-signed CI certificate.
+The owner-selected T-014 test channel uses a dedicated self-signed CI certificate.
 It is for the owner and anyone who explicitly chooses to trust its public certificate;
 publicly trusted signing is deferred. Provisioning is
 separate from ordinary build/push authority: review
@@ -157,7 +157,7 @@ to register the update source; directly installing an MSIX is not equivalent.
 Windows checks on launch and every eight hours in the background without blocking
 launch or forcing restart.
 
-The in-app Updates section (AIU-046) also checks the same feed. You can switch it to
+The in-app Updates section (T-046) also checks the same feed. You can switch it to
 Off, On launch or Always (every 5 minutes). It installs with **Install and restart**, or
 automatically while the window is closed to the tray, and Windows relaunches the app.
 There is no separate downloader or Stable channel switch.
@@ -166,12 +166,12 @@ Unpackaged development runs use separate data and do not update through this cha
 Nothing copies provider credentials into the installed app. The test certificate
 expires after two years; renewal needs a deliberate trust/rotation procedure. Stable,
 publicly trusted signing and automatic release pruning remain deferred. Current
-operational evidence: [AIU-014 verification](docs/specs/AIU-014-preview-updates/verification.md).
+operational evidence: [T-014 verification](docs/specs/T-014-preview-updates/verification.md).
 
 ## Project records
 
 - [Goals](docs/product/goals.md), [backlog](docs/backlog.md) and [accepted decisions](docs/decisions/accepted.md).
 - [Environment history](docs/archive/workflow/environment.md) and [security reporting](SECURITY.md).
-- [Historical bootstrap evidence](docs/specs/AIU-001-omp-bootstrap/verification.md).
+- [Historical bootstrap evidence](docs/specs/T-001-omp-bootstrap/verification.md).
 
 Consult each feature's verification record for observed CI, interactive and live-provider results. Git publication and integration authority are defined in CONTRIBUTING.md; host installation, trust changes and releases require their applicable authorization.

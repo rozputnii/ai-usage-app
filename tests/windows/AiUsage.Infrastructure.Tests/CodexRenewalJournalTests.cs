@@ -69,7 +69,7 @@ public sealed class CodexRenewalJournalTests : IDisposable
         {
             using var document = JsonDocument.Parse(plaintext);
             Assert.Equal(new[] { "Ciphertext", "ParentRevision", "Version" }, document.RootElement.EnumerateObject().Select(p => p.Name).Order());
-            // The unchanged pre-AIU-042 reader requires Length > 0 before decoding a successor.
+            // The unchanged pre-T-042 reader requires Length > 0 before decoding a successor.
             Assert.Empty(document.RootElement.GetProperty("Ciphertext").GetBytesFromBase64());
         }
         finally { CryptographicOperations.ZeroMemory(plaintext); }

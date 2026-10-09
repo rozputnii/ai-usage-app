@@ -658,7 +658,7 @@ public sealed class LiveLedgerSourceTests
         Assert.Equal(before, accounts.Refreshed.Count);
     }
 
-    // ---- AIU-055 R-12 to R-14: the refresh interval ----
+    // ---- T-055 R-12 to R-14: the refresh interval ----
 
     [Fact]
     public async Task RefreshIntervalDrivesTheScheduleWithTickSlack()
@@ -780,7 +780,7 @@ public sealed class LiveLedgerSourceTests
         finally { await source.StopAsync(); }
     }
 
-    // ---- D-199: units and today's use ----
+    // ---- R-199: units and today's use ----
 
     private static readonly DateTimeOffset TrackedFrom = new(2026, 10, 5, 10, 43, 0, TimeSpan.Zero);
     private static readonly LimitKey Premium = new("copilot", "GH-P", "premium");

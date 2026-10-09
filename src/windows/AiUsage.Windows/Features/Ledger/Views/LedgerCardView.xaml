@@ -19,7 +19,7 @@
           <ColumnDefinition Width="Auto" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <!-- D-205: the grip drags the account to another place. It shows on card hover in the card's left padding, so the name
+        <!-- R-205: the grip drags the account to another place. It shows on card hover in the card's left padding, so the name
              keeps its place; quiet like the card icons, opaque while pointed at. -->
         <lc:LedgerClickRow x:Name="Grip" IsTabStop="False" Width="12" Height="24" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Margin="{x:Bind GripMargin(ViewModel.IsCompact), Mode=OneWay}" Opacity="0" Visibility="{x:Bind Show(ViewModel.CanReorder), Mode=OneWay}"
@@ -35,7 +35,7 @@
         </lc:LedgerClickRow>
         <lc:ShrinkFirstPanel>
           <Grid>
-          <!-- D-205: a click on the name renames the account, as F2 does; on hover it is underlined like the hidden count. -->
+          <!-- R-205: a click on the name renames the account, as F2 does; on hover it is underlined like the hidden count. -->
           <lc:LedgerClickRow x:Name="NameRow" IsTabStop="False" Background="Transparent" Tapped="OnNameTapped" PointerEntered="OnNamePointerEntered" PointerExited="OnNamePointerExited"
                              Visibility="{x:Bind NameVisibility(ViewModel.IsRenaming, ViewModel.IsAccountSection), Mode=OneWay}"
                              ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Rename')}">
@@ -55,7 +55,7 @@
           </Grid>
           <TextBlock Text="{x:Bind ViewModel.Tag, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center"
                    Visibility="{x:Bind Show(ViewModel.HasTag), Mode=OneWay}" />
-          <!-- D-191: hidden sections are counted on the account card; the dot keeps their most urgent colour. -->
+          <!-- R-191: hidden sections are counted on the account card; the dot keeps their most urgent colour. -->
           <lc:LedgerButton Style="{StaticResource LedgerFooterButton}" Command="{x:Bind ViewModel.ShowHiddenCommand}" VerticalAlignment="Center"
                   Visibility="{x:Bind Show(ViewModel.HasHidden), Mode=OneWay}" AutomationProperties.Name="{x:Bind ViewModel.HiddenName, Mode=OneWay}"
                   ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.HiddenTip), Mode=OneWay}">
@@ -85,7 +85,7 @@
                   AutomationProperties.Name="{x:Bind ViewModel.HideName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Hide')}">
             <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xED1A;" FontSize="14" Foreground="{StaticResource LedgerInk2Brush}" />
           </lc:LedgerButton>
-          <!-- D-199: units, today's use and the cap of this limit. -->
+          <!-- R-199: units, today's use and the cap of this limit. -->
           <lc:LedgerButton x:Name="SettingsButton" Style="{StaticResource LedgerQuietIconButton}" PointerEntered="OnIconPointerEntered" PointerExited="OnIconPointerExited"
                   Visibility="{x:Bind Show(ViewModel.HasSettings), Mode=OneWay}"
                   AutomationProperties.Name="{x:Bind ViewModel.SettingsName, Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Limit settings')}">

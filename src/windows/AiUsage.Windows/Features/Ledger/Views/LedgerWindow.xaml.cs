@@ -19,13 +19,13 @@ using Windows.System;
 namespace AiUsage.Features.Ledger.Views;
 
 /// <summary>
-/// The redesigned main window (AIU-038): title row with Work today, Used/Left, + and Settings; the sign-in strip; the card
+/// The redesigned main window (T-038): title row with Work today, Used/Left, + and Settings; the sign-in strip; the card
 /// grid with inline history; the inline settings panel; the undo bar; and the tray icon whose flyout is the miniature.
 /// Closing hides to the tray; Exit is in the tray menu.
 /// </summary>
 internal sealed partial class LedgerWindow : Window
 {
-    /// <summary>Until the content loads; then the window opens at its content-based minimum width (D-197).</summary>
+    /// <summary>Until the content loads; then the window opens at its content-based minimum width (R-197).</summary>
     private const int InitialWidth = 560;
     private const int DefaultHeight = 600;
     /// <summary>The shortest body without a card (first run, recovery, starting).</summary>
@@ -69,7 +69,7 @@ internal sealed partial class LedgerWindow : Window
         DayGroup.SizeChanged += (_, _) => UpdateTitleBarRegions();
         CardGrid.SizeChanged += (_, _) => UpdateMinimumSize();
         Body.SizeChanged += (_, e) => SettingsPanel.Height = e.NewSize.Height;
-        // D-205: a click anywhere outside an open rename box saves that name; buttons and the box handle their own releases.
+        // R-205: a click anywhere outside an open rename box saves that name; buttons and the box handle their own releases.
         Root.AddHandler(UIElement.PointerReleasedEvent, new PointerEventHandler(OnRootPointerReleased), handledEventsToo: true);
         CardGrid.PointerMoved += OnDragMoved;
         CardGrid.PointerReleased += OnDragReleased;
@@ -244,7 +244,7 @@ internal sealed partial class LedgerWindow : Window
     }
 
     /// <summary>
-    /// The settings sheet drops down over the body and rolls back up, leaving the cards in place (D-197). While it covers
+    /// The settings sheet drops down over the body and rolls back up, leaving the cards in place (R-197). While it covers
     /// them, the cards behind leave the tab order.
     /// </summary>
     private void SlideSettings()
@@ -293,7 +293,7 @@ internal sealed partial class LedgerWindow : Window
                 view.ReorderPressed += OnReorderPressed;
             }
         }
-        // One account is one card (D-191): its primary limit hosts every shown section; hidden sections are left out.
+        // One account is one card (R-191): its primary limit hosts every shown section; hidden sections are left out.
         foreach (var card in ViewModel.Cards.Where(c => !c.IsAccountSection))
         {
             var view = views[card];
@@ -327,7 +327,7 @@ internal sealed partial class LedgerWindow : Window
             view.CommitRenameOutside(e.OriginalSource as DependencyObject);
     }
 
-    // ---- Drag to reorder (D-205) ----
+    // ---- Drag to reorder (R-205) ----
 
     private void OnReorderPressed(object? sender, PointerRoutedEventArgs e)
     {
@@ -448,7 +448,7 @@ internal sealed partial class LedgerWindow : Window
         return true;
     }
 
-    /// <summary>True while the window is closed to the tray or not yet shown; AIU-046 installs updates only then.</summary>
+    /// <summary>True while the window is closed to the tray or not yet shown; T-046 installs updates only then.</summary>
     public bool IsHidden { get; private set; } = true;
     public event EventHandler? TrayVisibilityChanged;
 

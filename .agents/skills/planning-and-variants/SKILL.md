@@ -24,7 +24,7 @@ unsure:
 - **Spike:** a feasibility question. State the question and the cheapest probe, run it, and
   report a recommendation; anything built is throwaway.
 - **Change:** pick the tier (T0-T3) from CONTRIBUTING, Risk tiers. The tier sets the records:
-  T0 has no spec; T1 and T2 get a one-page spec in `docs/specs/<AIU-NEW>-<slug>/`; T2 with
+  T0 has no spec; T1 and T2 get a one-page spec in `docs/specs/<T-NEW>-<slug>/`; T2 with
   parallel workers also gets tasks.md (see the plan-execution skill); T3 adds a design note when
   there is a real choice.
 

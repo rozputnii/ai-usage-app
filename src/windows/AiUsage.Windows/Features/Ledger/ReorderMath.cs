@@ -1,6 +1,6 @@
 namespace AiUsage.Features.Ledger;
 
-/// <summary>Where a card dragged by its grip lands among the other account cards (AIU-055 R-10).</summary>
+/// <summary>Where a card dragged by its grip lands among the other account cards (T-055 R-10).</summary>
 internal static class ReorderMath
 {
     /// <summary>The dragged card's place among the others: how many of their midpoints lie above the pointer.</summary>

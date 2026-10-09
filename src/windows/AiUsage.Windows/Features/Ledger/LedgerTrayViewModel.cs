@@ -11,7 +11,7 @@ internal enum TrayMark { None, Rush, ExtraUsage }
 internal sealed record TrayStrip(string CardId, TrayStripKind Kind, IReadOnlyList<StripCell> Cells, double Opacity, TrayMark Mark,
     IReadOnlyList<string> Tip, IReadOnlyList<string> MarkTip, string AccessibleName);
 
-/// <summary>The five-hour ring (AIU-055 R-04): the share of the current window used, or left in Left mode, from 0 to 1.</summary>
+/// <summary>The five-hour ring (T-055 R-04): the share of the current window used, or left in Left mode, from 0 to 1.</summary>
 internal sealed record TrayRing(double Fraction, Tone Tone, IReadOnlyList<string> Tip);
 
 /// <summary>One tray row. <paramref name="Provider"/> picks the mark that replaces the name (R-07). <paramref name="Tip"/> is the
@@ -20,7 +20,7 @@ internal sealed record TrayRow(string AccountId, string Name, bool IsError, IRea
     TrayStrip? Strip, TrayRing? Ring, string AccessibleName, ProviderKind Provider, IReadOnlyList<string> Tip);
 
 /// <summary>
-/// The tray flyout as a miniature of the window (D-187, AIU-055 R-02 to R-07): per account its provider mark, its main limit's
+/// The tray flyout as a miniature of the window (R-187, T-055 R-02 to R-07): per account its provider mark, its main limit's
 /// one today cell in the value mode and, for a limit with a five-hour window, a ring. No pills, captions, period bars or buttons.
 /// </summary>
 internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposable

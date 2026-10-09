@@ -4,7 +4,7 @@ namespace AiUsage.Features.Ledger.Demo;
 
 /// <summary>
 /// Synthetic scenarios for the new presentation (spec section 5). Every account, figure and time is invented and follows the
-/// AIU-034 design reference: the design-brief section 4 scenario as the reference draws it, every Provider States card, the
+/// T-034 design reference: the design-brief section 4 scenario as the reference draws it, every Provider States card, the
 /// last work day, a day off with and without Work today, first run and sign-in. Figures stand for engine output; nothing
 /// here computes a budget.
 /// </summary>
@@ -64,10 +64,10 @@ internal static class DemoLedgerScenarios
         {
             Monetary = new(new(2966, 2, "USD"), new(200000, 2, "USD"), LimitValueKind.Known, null, true,
                 "Monthly work budget · provider period unknown · calendar month assumed", null),
-            // D-199: the app started at 11:05, so nothing used earlier today is counted yet.
+            // R-199: the app started at 11:05, so nothing used earlier today is counted yet.
             TodayUse = new(0, At(10, 14, 11, 5), false),
         };
-        // D-199: the Copilot Business AI-credit pool, tracked since 10:43 today.
+        // R-199: the Copilot Business AI-credit pool, tracked since 10:43 today.
         var credits = Requests("copilot-business-premium", "Premium requests", CardState.OnTrack, 3120, 3240, 4217, 17500, 795, 14260) with
         {
             Scale = ScaleModel.Count("credits"), Units = new(false, UnitModel.DefaultRate), TodayUse = new(120, At(10, 14, 10, 43), false),

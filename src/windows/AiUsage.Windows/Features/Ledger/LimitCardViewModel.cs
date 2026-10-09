@@ -13,7 +13,7 @@ internal interface ILedgerScheduler
 }
 
 /// <summary>Inline amount editor for a personal cap (spec S3, S5): Enter saves, Esc cancels, empty + Enter removes.
-/// The limit settings popover reuses it for today's use (D-199) with its own label and copy.</summary>
+/// The limit settings popover reuses it for today's use (R-199) with its own label and copy.</summary>
 internal sealed partial class CapEditorViewModel : ObservableObject
 {
     private readonly LimitValue providerLimit;
@@ -130,7 +130,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     /// <summary>R-10: an account card shows a grip to drag the account when another account is shown.</summary>
     [ObservableProperty] public partial bool CanReorder { get; set; }
 
-    /// <summary>Every limit other than the account's primary one is drawn inside the primary card, so one account is one card (D-191).</summary>
+    /// <summary>Every limit other than the account's primary one is drawn inside the primary card, so one account is one card (R-191).</summary>
     public bool IsAccountSection => AccountCard.Primary(Account)?.CardId != CardId;
     /// <summary>A section the owner hid; the window leaves it out and the primary card counts it.</summary>
     public bool IsHiddenSection => IsAccountSection && Model.Hidden;
@@ -147,7 +147,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public string? Tag => Model.ScopeLabel;
     public bool HasTag => !string.IsNullOrEmpty(Model.ScopeLabel);
     public bool CanEditCap => Model.CapTargetId is not null;
-    /// <summary>D-199: the limit has a cap, today's use or units to set in its popover.</summary>
+    /// <summary>R-199: the limit has a cap, today's use or units to set in its popover.</summary>
     public bool HasSettings => CanEditCap || Model.TodayUse is not null || Model.Units is not null;
     public string SettingsName => "Limit settings, " + Account.DisplayName + " " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
     [ObservableProperty] public partial LimitSettingsViewModel? Settings { get; private set; }
@@ -247,7 +247,7 @@ internal sealed partial class LimitCardViewModel : ObservableObject
             await owner.SetHiddenAsync(card.CardId, false);
     }
 
-    /// <summary>A section moves within its account; the account card moves the whole account (AIU-055 R-10).</summary>
+    /// <summary>A section moves within its account; the account card moves the whole account (T-055 R-10).</summary>
     [RelayCommand]
     public Task MoveUpAsync() => Move(-1);
 

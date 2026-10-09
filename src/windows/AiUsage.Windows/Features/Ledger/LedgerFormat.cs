@@ -6,7 +6,7 @@ using AiUsage.Features.Ledger.Contract;
 namespace AiUsage.Features.Ledger;
 
 /// <summary>
-/// Display formatting for the new presentation (spec 4.6). Interface text is English. Percentages are whole numbers (D-186),
+/// Display formatting for the new presentation (spec 4.6). Interface text is English. Percentages are whole numbers (R-186),
 /// counts use thousands separators and money keeps its currency's minor units. Local times are shown as given: the source
 /// supplies each time with its own local offset, so a reset after a daylight-saving change still reads as its local clock.
 /// </summary>
@@ -107,7 +107,7 @@ internal static class LedgerFormat
         return past ? text + " ago" : "in " + text;
     }
 
-    /// <summary>AIU-046 Settings status line. A target version is never shown: Windows does not report it.</summary>
+    /// <summary>T-046 Settings status line. A target version is never shown: Windows does not report it.</summary>
     public static string UpdateText(UpdateStatus status) => status.State switch
     {
         UpdateState.NotPackaged => "Updates unavailable in development build",

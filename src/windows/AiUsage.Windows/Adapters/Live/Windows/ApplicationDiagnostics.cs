@@ -107,7 +107,7 @@ internal static class ApplicationStateDirectory
     }
 
     /// <summary>
-    /// AIU-047: reading history and the identity map. Packaged runs use a fixed folder that the manifest
+    /// T-047: reading history and the identity map. Packaged runs use a fixed folder that the manifest
     /// excludes from write virtualization, so it survives uninstall; other runs keep it in their state root.
     /// </summary>
     public static string History(bool demo = false) => !demo && ApplicationDiagnostics.Packaged()

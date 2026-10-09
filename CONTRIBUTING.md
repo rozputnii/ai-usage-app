@@ -88,18 +88,20 @@ configuration (`.claude/`, `.agents/`, CLAUDE.md).
 - **Remote authority.** Releases, tags, workflow dispatch, repository settings,
   variables, secrets and other remote actions beyond pushing branches and `main` require
   explicit owner authorization. An old task-specific permission is not a new grant.
-  Main protection remains deferred in AIU-026; that waives no check or authority.
+  Main protection remains deferred in T-026; that waives no check or authority.
 
 ### Numbering
 
 Numbers for new items are assigned only when the work merges into `main`, because the
-owner runs tasks in parallel worktrees (D-196). Until then a new backlog item and its
-specification folder use `AIU-NEW` (`AIU-NEW-2` for a second one) and a new decision
-uses `D-NEW` (`D-NEW-2`, ...). Right before merging, after merging fresh `main`, replace
+owner runs tasks in parallel worktrees (R-196). Until then a new backlog item and its
+specification folder use `T-NEW` (`T-NEW-2` for a second one) and a new decision
+uses `R-NEW` (`R-NEW-2`, ...). Right before merging, after merging fresh `main`, replace
 every placeholder with the next free number there: the specification folder,
 frontmatter, backlog, goal scope, decisions and every reference. Keep placeholders out
-of commit subjects and source comments. CI validates with `--final`, so a placeholder
-never stays on `main`. An item already numbered on `main` keeps its number.
+of commit subjects and source comments. `tools/windows/Set-ItemNumbers.ps1` does the
+replacement, renames the folder and runs the `--final` validation; review its diff before
+committing. CI validates with `--final`, so a placeholder never stays on `main`. An item
+already numbered on `main` keeps its number.
 
 ## Agent permissions
 

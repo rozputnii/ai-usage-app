@@ -60,7 +60,7 @@ internal sealed record CardVisual(
 }
 
 /// <summary>
-/// Ports the accepted reference's drawing rules (Provider States and Surfaces handoff pages, D-186, D-187) to plain numbers.
+/// Ports the accepted reference's drawing rules (Provider States and Surfaces handoff pages, R-186, R-187) to plain numbers.
 /// Inputs are contract values; outputs are geometry, token keys and words. No budget figure is derived here.
 /// </summary>
 internal static class CardVisuals
@@ -205,7 +205,7 @@ internal static class CardVisuals
         return card.State switch
         {
             CardState.OnTrack or CardState.Rush => Tone.Ok,
-            // D-192: reaching a limit is attention; only exceeding or exhausting one is critical.
+            // R-192: reaching a limit is attention; only exceeding or exhausting one is critical.
             CardState.TodayLow or CardState.TodayShort or CardState.CapClose or CardState.FiveHourLow or CardState.TodayUsed or CardState.CapReached => Tone.Attention,
             CardState.OverToday or CardState.OverCap or CardState.UsedUp or CardState.FiveHourFull => Tone.Critical,
             _ => Tone.Neutral,
@@ -435,7 +435,7 @@ internal static class CardVisuals
     {
         var f = card.Figures;
         var used = f.Used ?? 0;
-        // D-202: an applied cap is the whole bar, as if the provider's limit were the cap.
+        // R-202: an applied cap is the whole bar, as if the provider's limit were the cap.
         if (AppliedCap(card) is { } cap)
             return cap;
         if (card.Scale.Kind == ScaleKind.Percent)
@@ -489,7 +489,7 @@ internal static class CardVisuals
     private static BarRing Ring(double left, double width, Tone tone, bool mirror) =>
         mirror ? new BarRing(100 - left - width, width, tone) : new BarRing(left, width, tone);
 
-    // The one-window track stays right of the solid fill in both modes (D-186).
+    // The one-window track stays right of the solid fill in both modes (R-186).
     private static int Rank(Part part, bool left) => part == Part.Track ? 4 : part is Part.Gray or Part.CritRest ? (left ? 0 : 4) : (left ? part == Part.Allow : part != Part.Allow) ? 1 : 2;
 
     private static StripCell Cell(double weight, IEnumerable<(Part Part, double Weight)> parts, (string M, string P) tone, bool left, bool off, bool label, IReadOnlyList<string> tip)
@@ -500,7 +500,7 @@ internal static class CardVisuals
     }
 
     /// <summary>
-    /// AIU-055 R-03: the one today cell the tray draws for every layout, which is the cell <see cref="Build"/> draws for the
+    /// T-055 R-03: the one today cell the tray draws for every layout, which is the cell <see cref="Build"/> draws for the
     /// same limit laid out as a period limit. The caller draws a used-up limit as a solid strip instead.
     /// </summary>
     public static StripCell TodayOnlyCell(LimitCardModel card, AccountModel account, ValueMode mode, DateTimeOffset now) => TodayCell(card, mode == ValueMode.Left);
@@ -542,7 +542,7 @@ internal static class CardVisuals
             lines.Add(used > t ? "More than a work day’s share · the next work days shrink evenly" : "No colours on a day off · Work today colours it");
         if (rush)
             lines.Add("Whole remainder · nothing carries past " + ResetPlain(card.Reset));
-        // D-199: say where today's figure comes from when it is not a full tracked day.
+        // R-199: say where today's figure comes from when it is not a full tracked day.
         if (card.TodayUse is { Manual: true })
             lines.Add("Set by you");
         else if (card.TodayUse?.TrackedSince is { } since)
@@ -550,7 +550,7 @@ internal static class CardVisuals
         return Cell(1, parts, tone, left, off, false, lines);
     }
 
-    /// <summary>AIU-048 R-01: before a window count exists, today is the current 5h window over a neutral track.</summary>
+    /// <summary>T-048 R-01: before a window count exists, today is the current 5h window over a neutral track.</summary>
     private static StripCell OneWindowCell(FiveHourModel five, (string M, string P) tone, bool left, bool off)
     {
         var cwU = (double)five.CurrentWindowUsed;
@@ -652,7 +652,7 @@ internal static class CardVisuals
         if (cap is { } c)
         {
             var capValue = c;
-            // D-202: a percent cap keeps its five-hour count, which the projection counts against the cap.
+            // R-202: a percent cap keeps its five-hour count, which the projection counts against the cap.
             var text = (estimate ? "≈ " : string.Empty) + (left
                 ? used <= capValue ? fm(capValue - used) + " left to cap" : fm(used - capValue) + " over cap"
                 : fm(used) + " of " + fm(capValue) + " cap") + windows;

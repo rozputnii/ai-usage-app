@@ -1,0 +1,786 @@
+# T-028 verification
+
+Date: 2026-09-20. This record holds the Phase 1 evidence from the analysis-only audit session
+that produced [spec.md](spec.md), plus NOT_RUN placeholders for the remediation checks. It is an
+evidence record, not a status mirror. The session that wrote it started no planned task (see the
+[execution ledger](#execution-ledger)) and changed no file outside `docs/`; remediation evidence is appended per
+task as tasks are executed, starting with [T-028.8 and T-028.9](#t-08-and-t-09---2026-09-20).
+
+## Environment and base
+
+Windows 11 Pro 10.0.26200, x64. .NET SDK 10.0.401, which is the SDK selected by
+[global.json](../../../global.json) (`rollForward: latestPatch`, `allowPrerelease: false`);
+`dotnet --version` reported `10.0.401` and `dotnet --list-sdks` showed that as the only installed
+SDK, so no roll-forward occurred.
+
+The session ran in a Git worktree at `.claude/worktrees/architecture-audit-plan-2be087`. It began
+at `1464405`, and `main` advanced to `6681b7a` (T-009 closure) during the session. `main` was
+merged in at `c2b6dd4` before the evidence below was captured, and every `path:line` citation in
+the specification was then re-checked against that tree. Four citations had drifted in files the
+T-009 commits touched and were corrected: `AntigravityHttp.cs` 45 to 64,
+`AntigravityQuotaClient.cs` 197 to 196, and `CopilotException.cs` / `AntigravityException.cs` 7
+to 6. All 93 file-and-line code citations in the specification were confirmed to resolve to the
+construct they are cited for on `c2b6dd4`.
+
+## Restore
+
+The worktree had no restored NuGet assets, so the first run of every `--no-restore` command
+failed with `NETSDK1004` (missing `project.assets.json`). Rather than report that as BLOCKED, the
+projects were restored **offline** against the existing local package cache: each `dotnet restore`
+was passed a `--configfile` pointing at a NuGet configuration whose `<packageSources>` contains
+only `<clear />`, so no remote source was reachable and no package could be downloaded. Every
+project restored from the existing cache in under a second. No network restoration was enabled,
+no package version changed, and no NuGet configuration was added to the repository — the file
+lives in the session scratchpad only.
+
+## Executed local checks
+
+Run from the repository root against `c2b6dd4`, 2026-09-20 17:14:44Z to 17:15:39Z for the
+deterministic suites and 17:15 to 17:16Z for the desktop build. Verdicts are read from observed
+command output and exit codes.
+
+| Check | Command | Verdict | Observation |
+| --- | --- | --- | --- |
+| Project validator regressions | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS | 78 tests; 0 errors, 0 failed, 0 skipped, 0 not run; exit 0 |
+| Canonical document validation | `dotnet run --project tools/AiUsage.ProjectValidation --root . --json` | PASS on re-run | See below: the first run correctly rejected the documents this session was writing |
+| Infrastructure Release regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 226 tests; 0 errors, 0 failed, 0 skipped, 0 not run; exit 0 |
+| Presentation Release regressions | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 125 tests; 0 errors, 0 failed, 0 skipped, 0 not run; exit 0 |
+| Diff whitespace check | `git diff --check` | PASS | No output, exit 0 |
+| Warnings-visible desktop build | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS | Build succeeded, **0 Warning(s), 0 Error(s)**, 47.06s; Core, Infrastructure and Windows assemblies emitted |
+
+At the earlier base `1464405`, before the merge, the same four suites also passed, with the
+Infrastructure suite at 215 tests. The count rose to 226 because the merge brought T-009's new
+Antigravity tests, not because anything in this session changed a test.
+
+### Document validation, both runs
+
+The first run of the validator against the written documents returned `valid: false` with four
+diagnostics, all caused by these new documents. That is recorded rather than hidden, because it
+is the check doing its job:
+
+- `docs/product/goals.md` / `G-003` / `GOAL_SCOPE`: "Goal scope omits one of its backlog items."
+  T-028 declares `goal: G-003` but was not yet listed in the G-003 scope.
+- `docs/specs/T-028-architecture-remediation/spec.md` / `BROKEN_LINK`, twice, and
+  `docs/specs/T-028-architecture-remediation/tasks.md` / `BROKEN_LINK`, once. All three were
+  links to this file, which had not been written at the time of the run.
+
+Both causes were corrected — T-028 added to the G-003 scope, and this file written — and the
+validator re-run. The re-run result is recorded in the table above.
+
+### Warnings as audit input
+
+The warnings-visible build produced zero warnings. That is reported as a fact about the build,
+not as a conclusion about the code: finding F-09 in [spec.md](spec.md) records that no project
+sets `AnalysisMode`, `AnalysisLevel` or `EnforceCodeStyleInBuild`, so the build ran with the SDK
+default analysis mode, in which only a small number of rules are enabled as warnings, and with
+code-style analysis disabled on build. A clean result at that level is not evidence that a
+`Recommended` or `All` level would also be clean. Task T-028.7 exists to find out.
+
+## Not run in this session
+
+Each of the following is NOT_RUN by the design of an analysis-only session, and none may be read
+as passing. The audit plan states this explicitly and the reason is recorded for each.
+
+| Check | Status | Reason |
+| --- | --- | --- |
+| Interactive Windows UI smoke | NOT_RUN | An analysis session performs no interactive run. Required before AC-12 (F-13, the tray-hidden clock) can be accepted; compilation is not sufficient evidence for that task. |
+| Packaged MSIX build and packaged activation | NOT_RUN | Packaging, signing and release actions were outside the session's authority. |
+| Disposable-guest lifecycle verification | NOT_RUN | Requires a package and a guest; neither was built or provisioned. |
+| Live provider connect, refresh, resume, disconnect | NOT_RUN | No live provider call, credential-store read or host trust change was authorized or attempted. |
+| `tests/windows/AiUsage.Windows.Tests` (FlaUI UIA3) | NOT_RUN | Needs an unlocked interactive desktop and a published smoke executable; neither was prepared. |
+| `tools/AiUsage.ProviderConsole` Release build | NOT_RUN | Not selected by the change-based verification matrix for a documentation change. It becomes required for T-028.3 and T-028.11, which both touch it. |
+| `dotnet format --verify-no-changes` | NOT_RUN | Optional read-only inspection; skipped. Formatting remains local-only under the 2026-09-13 owner amendment recorded as CR-T-001-01. |
+| Independent review | NOT_RUN | Not required for a documentation-only change under CONTRIBUTING.md. T-028.2 and T-028.4 will require focused independent review, because they change credential storage and the diagnostics boundary. |
+
+## Security and data lifecycle
+
+The credential and storage findings (F-02, F-14) and the diagnostics finding (F-05) were prepared
+using the security-lifecycle skill and read against
+[security and lifecycle](../../platforms/windows/security-and-lifecycle.md). The session read
+source files only. No credential store was opened, no source CLI credential was read, no
+provider was contacted, no host trust was changed and no stored data was written or removed. No
+token, opaque provider identifier or user data appears in these documents; the two provider
+constants quoted in the findings are endpoint and entropy strings already present in the
+repository, not secrets.
+
+## Remediation check index
+
+All task-specific required checks have passing evidence below. Historical NOT_RUN and BLOCKED
+entries retain their original scope and are superseded only by explicitly recorded later evidence.
+
+| Task | Acceptance | Required check | Status |
+| --- | --- | --- | --- |
+| T-028.1 | AC-01, AC-02 | Infrastructure Release suite, no reduction in test count | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
+| T-028.2 | AC-02 | Infrastructure Release suite; new per-provider reparse-point refusal test; Codex record forward-compatibility test; focused independent review | PASS regressions/compatibility and independent review; final-code Infrastructure 254/254 |
+| T-028.3 | AC-03 | Infrastructure and Presentation Release suites; `tools/AiUsage.ProviderConsole` Release build | PASS, see T-028.3 closure below |
+| T-028.4 | AC-04, AC-05 | Presentation Release suite with a non-provider exception test; redaction test over nested unknown fields, a token-shaped value and an opaque provider identifier | PASS; see task-specific closure evidence below |
+| T-028.5 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | PASS; see task-specific closure evidence below |
+| T-028.6 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | PASS, see T-028.6 closure below |
+| T-028.7 | AC-08 | Warnings-visible desktop build at the raised analysis level with zero warnings; all four suites | PASS |
+| T-028.8 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-028.8 and T-028.9](#t-08-and-t-09---2026-09-20) |
+| T-028.9 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-028.8 and T-028.9](#t-08-and-t-09---2026-09-20) |
+| T-028.10 | AC-12 | Presentation visibility-gate test **and** interactive Windows smoke | PASS; see task-specific closure evidence below |
+| T-028.11 | AC-01 | Infrastructure Release suite; `tools/AiUsage.ProviderConsole` Release build | PASS; see T-028.11 library-boundary evidence below |
+| T-028.12 | AC-01 | Infrastructure Release suite | PASS; see task-specific closure evidence below |
+
+## T-028.8 and T-028.9 - 2026-09-20
+
+A second session implemented T-028.8 (F-10, F-11) and T-028.9 (F-12) and nothing else. It ran on `main`
+at base `5c415d6`, in the repository working tree rather than a worktree, on the same machine and
+SDK as the Phase 1 record above. NuGet assets were already restored, so no restore was needed and
+no NuGet configuration was added; no dependency, analyzer or SDK version changed.
+
+### Changes
+
+- `src/windows/AiUsage.Core/Dashboard/DashboardWorkflow.cs`: `Dispose` no longer throws when work
+  is outstanding. It is idempotent behind a `disposed` flag, cancels the lifetime outside the lock
+  and then releases it. "Await `StopAsync` first" stays a documented precondition on `Dispose`; it
+  is not a debug assertion, because a `Debug.Assert` would still break the shutdown path the
+  finding is about. `RunAsync` now reads `lifetime.Token` under the lock and passes it to
+  `ExecuteAsync`, so an operation that starts after disposal observes cancellation rather than an
+  `ObjectDisposedException`, and `DrainAsync` tolerates an already-released lifetime.
+- `src/windows/AiUsage.Windows/Adapters/Live/LiveUsageSource.cs`: `Publish` assigns the snapshot
+  and its revision under `sync` and returns the subscriber array to invoke; each caller delivers
+  after leaving the lock. No subscriber is called while the lock is held.
+- `src/windows/AiUsage.Windows/Adapters/Live/LivePreferenceStore.cs`: both call sites use the new
+  source-generated `PreferenceStateJson` context. `[JsonExtensionData]` is kept and
+  `UnmappedMemberHandling.Disallow` was **not** added. The `State` members changed from `init` to
+  `set` because the source generator turns init-only members into constructor parameters: extension
+  data cannot bind to one, and members absent from a file would have arrived as `null` instead of
+  their declared defaults. With settable members the generator emits a parameterless
+  `ObjectCreator`, which preserves the previous reflection-based behavior. This was observed, not
+  assumed: the init-only version failed three existing preference tests with
+  `ExtensionDataCannotBindToCtorParam`.
+
+### Executed local checks
+
+Run from the repository root, 2026-09-20, against the working tree described above. Verdicts are
+read from observed command output and exit codes.
+
+| Check | Command | Verdict | Observation |
+| --- | --- | --- | --- |
+| Project validator regressions | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo` | PASS | 78 tests; 0 errors, 0 failed, 0 skipped, 0 not run |
+| Canonical document validation | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS | `{"valid":true,"diagnostics":[]}`; exit 0 |
+| Infrastructure Release regressions | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 226 tests; 0 errors, 0 failed, 0 skipped, 0 not run; unchanged from the Phase 1 count |
+| Presentation Release regressions | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 129 tests; 0 errors, 0 failed, 0 skipped, 0 not run; 125 before, plus the four new tests |
+| Warnings-visible desktop build | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS | Build succeeded, 0 Warning(s), 0 Error(s), 36.72s |
+| Diff whitespace check | `git diff --check` | PASS | No output, exit 0 |
+
+### New tests and what they would have caught
+
+Four tests were added. Three of them were run against the pre-change code to confirm they fail for
+the reason claimed, rather than passing vacuously:
+
+| Test | File | Covers | Observed against pre-change code |
+| --- | --- | --- | --- |
+| `DisposeWithOutstandingWorkCancelsItInsteadOfThrowing` | `tests/windows/AiUsage.Presentation.Tests/DashboardWorkflowTests.cs` | AC-09, F-10 | FAIL: `InvalidOperationException : Await StopAsync before disposing dashboard work` from `Dispose` |
+| `DisposingTwiceIsIdempotentAfterDrain` | `tests/windows/AiUsage.Presentation.Tests/DashboardWorkflowTests.cs` | AC-09 | Not re-run against the old code; the old `Dispose` already tolerated a second call after a drain, so this test defends the new guard rather than reproducing a past failure |
+| `ReentrantSubscriberIsInvokedWithoutTheSourceLockAndSeesIncreasingRevisions` | `tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs` | AC-10, F-11 | FAIL: a non-publishing thread could not enter the source for 10s while a subscriber ran |
+| `PreferenceFileWithUnknownMembersRoundTripsUnchanged` | `tests/windows/AiUsage.Presentation.Tests/LiveAdapterTests.cs` | AC-11, F-12 | Round-trips a file with two unknown members and a nested unknown object; both survive a write, and the known values reload correctly |
+
+### Not run for these two tasks
+
+| Check | Status | Reason |
+| --- | --- | --- |
+| Interactive Windows UI smoke | NOT_RUN | No interactive run was performed in this session. Neither AC-09, AC-10 nor AC-11 requires it: the changes are a disposal contract, a lock boundary and a serializer binding, all covered by the deterministic suites. It remains required for AC-12 (T-028.10) |
+| `tests/windows/AiUsage.Windows.Tests` (FlaUI UIA3) | NOT_RUN | Needs an unlocked interactive desktop and a published smoke executable; neither was prepared |
+| Packaged MSIX build, live provider calls, credential-store reads | NOT_RUN | Outside this session's authority and not selected by the change-based matrix for these tasks |
+| Independent review | NOT_RUN | Not required under CONTRIBUTING.md: neither task changes credential storage, destructive data handling or a privilege boundary |
+| `dotnet format --verify-no-changes` | NOT_RUN | Optional read-only inspection; formatting remains local-only under CR-T-001-01 |
+
+No other task in the [execution ledger](#execution-ledger) was started, and no provider, transport, exception or
+state-lease file was touched: that work belongs to T-028.1.
+
+## Limitations
+
+The original audit established findings, not fixes. Later remediation evidence is recorded in
+the task-specific sections; the owner selected T-028.1 and T-028.2 on 2026-09-22. Remaining pending
+tasks require separate selection under CONTRIBUTING.md.
+
+Severity and cost in [spec.md](spec.md) are the auditor's judgement from static reading, not
+measured. Three findings say so explicitly rather than implying evidence that does not exist:
+F-03 and F-14 are latent, with no currently reachable failure; F-11 is structural, with no
+observed misbehaviour in the present subscribers; and F-13's battery and CPU claim follows from
+the code path but was not profiled, which is one reason T-028.10 requires interactive evidence.
+
+## T-028.1 / T-028.2 work in progress - 2026-09-22
+
+Owner-selected scope: T-028.1 and T-028.2 only, base `cfb9ceb`. The security-lifecycle skill and
+Windows lifecycle policy were read before implementation; the design records the boundaries.
+T-028.1 extracts the common state lease, transport/status translator and handler policy, replaces
+the three duplicate exceptions and Claude's duplicate failure enum, and retains a temporary
+explicit Codex transport adapter until T-028.3. Provider URLs, flow, quota parsing, transport logger
+suppression, protected record shapes and entropy remain unchanged. No dependency versions change.
+
+Observed: pre-change Infrastructure 226/226 PASS; post-extraction Infrastructure 226/226 PASS;
+Presentation 129/129 PASS; ProviderConsole Release build PASS (zero warnings/errors).
+The new compatibility test initially used a nonnumeric synthetic Copilot identity and correctly
+failed validation; corrected to a numeric synthetic identity. Final expanded checks and focused
+independent review are pending. This checkpoint is not task completion.
+
+### T-028.2 candidate for focused review
+
+Codex now holds the shared exclusive lease over the entire read/renew/persist operation; a
+storage failure invalidates its in-memory credentials. Its original committed payload and
+entropy are preserved. A DPAPI-protected pending journal holds the predecessor's content identity
+and the successor ciphertext. Recovery handles interruption before and after promotion, refuses
+torn/unrelated/legacy unjournaled records, and keeps evidence until explicit disconnect. The
+truncated SHA-256 content identity stays inside encrypted state and is not an authentication
+primitive. It does not promise server-side rotation rollback or eliminate same-user filesystem
+check/use races. The cache retains its JSON format and now uses checked paths, exclusive access,
+asynchronous I/O and flushed writes. Synchronous compatibility entry points remain until T-028.3;
+product operations run off the UI dispatcher. Existing recovery presentation is reused.
+
+Observed candidate checks: Infrastructure 252/252 PASS, Presentation 129/129 PASS, Windows Debug
+unpackaged build PASS with zero warnings/errors. One added recovery test initially used an invalid
+empty quota response and failed; using a valid synthetic quota response made it pass. Old tests
+expecting silent absence for corrupt Codex data now assert recovery and no overwrite, as required
+by the hardened lifecycle. Old single-file assertions now explicitly permit the empty lock file.
+A final targeted regression additionally checks failed deletion retains a pending successor.
+Focused independent review, final check recording and task closure remain pending.
+
+### Additional observed acceptance evidence - 2026-09-22
+
+- Infrastructure Release at `5462057`: PASS, 253 tests, 0 failed/errors/skipped/not-run.
+  Includes 27 additional cases over the 226-test baseline: three frozen record-shape cases,
+  twenty storage safety/recovery cases and four session boundary cases. The failed-disconnect
+  case proves a pending successor survives when Windows refuses to delete the predecessor.
+- Presentation Release: PASS, 129 tests, 0 failed/errors/skipped/not-run. Existing recovery
+  rendering is reused; no view, activation, clock or tray code changed.
+- ProviderConsole Release at `5462057`: PASS, zero warnings/errors.
+- Canonical document validation: PASS, valid=true and diagnostics=[] at the candidate checkpoint.
+- `git diff --check`: PASS.
+
+A separate compatibility harness was built from the actual pre-change source archived by
+`git archive cfb9ceb src/windows/AiUsage.Core src/windows/AiUsage.Infrastructure`. It restored
+only from the local package cache using a configuration with all package sources cleared.
+The original Claude/Copilot/Antigravity state stores and original Codex grant/cache writers
+created synthetic records in an isolated temporary directory. A second harness referencing
+candidate Infrastructure read and rewrote all four protected records and the quota cache,
+checking their synthetic identities, grants and cached quota values: PASS, exit 0. This is
+observed cross-version code execution, in addition to the committed frozen-shape regression
+cases. Harnesses and encrypted synthetic output remain outside Git under
+`%TEMP%/aiu028-compat-cfb9ceb`; no actual user credential store was read.
+
+Live-provider requests, real credential reads, packaged install/update/recovery and interactive
+Windows smoke: NOT_RUN. They are not established by these deterministic persistence checks.
+The selected tasks change no Windows UI/lifetime behavior and require the relevant regression,
+build, compatibility and focused-review evidence, not T-028.10's interactive clock acceptance.
+
+The final warnings-visible unpackaged Windows Debug build at `5462057` also passed, with
+zero warnings/errors (30.41 seconds). Primary diff/acceptance inspection confirmed one shared
+transport/status map and handler configuration, unchanged provider-specific requests/parsers,
+and all eight `RemoveAllLoggers()` registrations retained. Independent review is still pending.
+
+### Primary review follow-up: cancellation after disconnect commit
+
+Primary inspection found a new cancellation window between successful grant deletion and cache
+cleanup: a cancelled cleanup could leave live credentials in memory after `stored` was cleared.
+The new `CancellationAfterGrantDeletionFinishesDisconnectAndCannotReuseLiveCredentials` case
+was run before the correction and failed with TaskCanceledException at that boundary (1 test,
+1 failed). Disconnect now clears in-memory credentials immediately after durable grant deletion
+and completes secondary cache cleanup with CancellationToken.None. The targeted CodexSessionTests
+class then passed 15/15, including no further provider traffic after the cancelled disconnect.
+The quota-cache internal constructor supplies a synthetic cancellation hook; the public
+constructor and normal runtime behavior have no injected callback. This is a T-028.2 correction,
+not a new feature or authentication flow. Independent review was notified of the finding.
+
+### Earlier focused independent review attempts - BLOCKED (superseded below)
+
+CONTRIBUTING.md requires focused independent review for material credential changes. The
+convergence-review skill was read and applied; it instructs: "Report unavailable required review
+honestly." Two fresh read-only Codex review agents were requested with GPT-5.6 Luna and reasoning
+max, as required by AGENTS.md. The first received frozen `5462057` against `cfb9ceb`, then the
+bounded cancellation correction `2ddcc7f`; it returned no progress, findings or verdict despite
+status requests and a resumed request for its accumulated result. It was interrupted after about
+20 minutes. A replacement received final code `2ddcc7f` against `cfb9ceb`, the same evidence and
+a focused storage-only boundary, with an approximately ten-minute limit; it also returned no
+progress or verdict before interruption. Tool acceptance established dispatch, not a completed
+review. This record does not infer that the model itself is unavailable, only that no review
+result was obtainable in these attempts. No substitute model was used.
+
+Verdict: BLOCKED, not PASS or FAIL. No independent findings were delivered. Primary inspection,
+regressions and cross-version compatibility checks are successful but do not replace independent
+review. T-028.1 and T-028.2 remain blocked rather than done, and T-028 remains incomplete. The code
+and evidence are committed and pushed under the standing save-point policy; publication does not
+claim completion. Exact next action is a focused read-only review of `cfb9ceb..2ddcc7f`, followed
+by targeted fixes/checks if needed and actual review evidence before task closure.
+
+### Independent review and T-028.1 / T-028.2 closure - 2026-09-22
+
+Verdict: **PASS**, no actionable findings in the selected diff. The earlier BLOCKED result
+describes unavailable review attempts, not a code defect, and is superseded by this completed
+review. T-028.1 and T-028.2 are done; this does not close the remaining T-028 tasks.
+
+Reviewer independence: the owner requested a new independent review and prohibited subagents.
+This separate primary Codex session did not implement the changes and had no implementation
+conversation transcript. It applied convergence-review and security-lifecycle, inspected the
+frozen source diff and relevant repository specifications/evidence, and made no production or
+test source changes. No subagent, delegated task or external browser reviewer was used. After
+completing the read-only code review, the primary updated only the canonical closure records.
+
+Frozen base: `cfb9ceb6324051823d42dbd36c15d9136f853ec9`.
+Frozen candidate: `2ddcc7fc8be25cf7e7003a190a07987a30eb43dc`.
+Checkout at review start: `4ff6a69f5f9e85b19245794519f5f76643cff3ab`, clean `main`.
+`git diff --exit-code 2ddcc7f HEAD -- src tests tools` returned 0, establishing that the
+locally executed source/tests match the frozen candidate. Review completed on local Windows,
+2026-09-22 (Europe/Lisbon), with the repository-pinned SDK and existing restored packages.
+
+| Boundary | Reviewed evidence and result |
+| --- | --- |
+| AC-01 transport and exceptions | `ProviderTransport.SendAsync`, `Failure`, `ConfigureClient` and `CreateHandler` own the shared translation and handler policy. The retained `CodexHttp.Translate` adapts only the legacy enum. All eight `RemoveAllLoggers()` registrations remain; timeout, redirects, cookies, pooled lifetime, status codes and retry-after retain their prior meaning. PASS. |
+| Provider behavior and scope | Auth/quota clients and parsers were compared with the base; the changed files are identical after substituting shared exception/transport names and imports. The corresponding changed protocol/parser/auth/store regression files also retain their assertions after those substitutions. No endpoint, scope, parser, dependency or Windows UI/lifetime change was introduced. PASS. |
+| AC-02 protected records | `ProviderStatePolicy`, each provider's policy/validation, `CodexGrantStore.Record`/`Revision` and the unchanged serialized types retain file names, entropy, CurrentUser protection and committed shapes. Frozen-shape tests passed for all four providers. The previously observed actual original-writer/current-reader harness remains separate compatibility evidence and was not rerun in this review. PASS. |
+| Exclusive ownership and paths | `ProviderStatePaths.Acquire`/`CheckDirectory`/`CheckFile` and `ProviderStateLease.CheckPaths` reject redirected roots, ancestors, lock files and owned data paths. The lease spans Codex load/renew/persist; revisions reject stale writes. Actual Windows junction tests cover all four provider roots and Codex grant/cache paths, with outside sentinels preserved. PASS. |
+| Interrupted state and cleanup | `ProviderStateLease.SaveAsync`, `RecoverJournalAsync`, `PromoteJournalAsync` and `DeleteAsync` were inspected for staged, promoted, torn, unrelated and failed-delete states. The protected Codex journal retains a recoverable successor; ambiguous evidence blocks replay; deletion removes the predecessor first and touches only named owned files. The recovery and failed-deletion regressions passed. PASS. |
+| Cancellation and session boundary | `CodexSession.PersistAsync` saves a returned rotating grant without request cancellation. Storage failures clear usable in-memory credentials, and a changed durable record invalidates them before provider traffic. `DisconnectAsync` clears them after durable deletion and completes cache cleanup without request cancellation. The full final-code suite includes both cancellation regressions. Existing recovery enum names map through `CodexDashboardSession.Map` to the existing presentation surface. PASS. |
+
+Fresh observed checks (no source edits between these checks and the verdict):
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 254 tests, 0 errors/failed/skipped/not-run; 5.441 seconds test execution. This is 28 above the recorded 226 baseline and includes the final disconnect correction. |
+| `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 129 tests, 0 errors/failed/skipped/not-run; 0.664 seconds test execution. |
+| `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` | PASS | Closure records validated: valid=true, diagnostics=[]. |
+| `git diff --check` | PASS | No whitespace errors in the closure diff. |
+| New live-provider/browser-account check | NOT_RUN | Not required by T-028.1/T-028.2 acceptance or the change-based matrix; browser-account permission was available but unused. No source CLI credentials or existing account stores were read. |
+| New interactive Windows or packaged lifecycle check | NOT_RUN | No UI/lifetime change in this scope; previous build results are retained above, not recast as interactive or packaged execution. |
+
+Commands used the README-documented user-local SDK executable. Synthetic DPAPI records and
+junctions were confined to the test suites' temporary directories. The review does not claim
+rollback of server-side token rotation, atomicity across grant/cache/provider state, or protection
+against all same-user filesystem check/use races; those are explicit existing design limits.
+T-028.3's legacy-contract removal and other unselected remediation remain outside this closure.
+
+## T-028.3 closure - 2026-09-22
+
+Base: `11902a7`. Implementation: `13d45a7`, committed and pushed to `main`. The owner selected
+T-028.3 and prohibited subagents. This session implemented and reviewed T-028.3 only; T-028 remains
+incomplete. Commands ran on local Windows with the README-documented user-local .NET SDK and
+existing restored packages. No existing account store or source CLI credentials were read.
+
+`CodexSession` now implements `IProviderSession` directly and returns `ProviderSessionState`.
+The old interface, state/status/failure types and `CodexDashboardSession` are removed. The
+composition root and dashboard resolve the same concrete singleton, matching the other provider
+registrations. ProviderConsole and Codex protocol code use `ProviderFailureKind` directly.
+`CodexException` retains its allowlisted OAuth error metadata and distinct transport exception
+identity; its wrapper forwards the shared failure kind without an enum conversion.
+
+Browser-launch `InvalidOperationException` and `Win32Exception` classification moved from the
+removed adapter into the session. Cached reads expose the asynchronous, cancellable shared port.
+The existing session `Task.Run` boundary still covers lock acquisition, cache access and browser
+launch; the shared state lease still performs asynchronous I/O. The synchronous cache convenience
+reader remains inside that worker boundary, never on the dispatcher. No fully asynchronous cache
+internals or interactive responsiveness measurement is claimed.
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| New tests before implementation | PASS (expected red) | Targeted Codex session run: 18 cases, 3 failed. Direct shared-port assignment failed; both browser-launch failures escaped the original direct session. The existing 15 cases passed. |
+| Targeted Codex session tests after implementation | PASS | 18/18, no errors, failures, skips or not-run cases. New cases cover the shared cache port, pre-cancelled reads preserving state, unsupported manual code, both browser-launch failure types and absence of provider traffic. |
+| `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 257/257, 0 errors/failed/skipped/not-run; 6.511 seconds test execution. Existing renewal, stale-cache, recovery, exclusive-lease and cancellation regressions remain present. |
+| `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 129/129, 0 errors/failed/skipped/not-run; 0.649 seconds test execution. |
+| `dotnet build tools/AiUsage.ProviderConsole -c Release --no-restore` | PASS | Zero warnings/errors; 2.52 seconds. |
+| `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` | PASS | Zero warnings/errors; 37.31 seconds. Verifies the actual Windows composition source, which the neutral Presentation suite does not compile. |
+| Removed-contract and enum-bridge scan | PASS | No legacy session/failure type references in src/tests/tools and no `Enum.Parse` in Infrastructure. |
+| Primary integrated acceptance/diff review | PASS | No actionable findings. Compared with the base, auth, credentials, exception metadata, quota clients/parsers, related protocol tests and ProviderConsole differ only in failure type/imports. Session changes preserve the existing persistence/rotation/cancellation branches and transfer adapter browser handling. DI resolves one Codex singleton for both consumers. |
+| `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` and `git diff --check` | PASS | Document validator returned valid=true with no diagnostics; diff check passed. Rechecked after the closure documentation edits. |
+| Independent review | NOT_RUN | No subagents, per owner instruction. This is primary self-review. No material credential-storage, destructive-data, privilege or authentication-boundary change was introduced, so focused independent review is not required by CONTRIBUTING for T-028.3. |
+| Live provider, interactive Windows and package lifecycle checks | NOT_RUN | No live sign-in or UI/package execution in this task. T-028.3 acceptance requires deterministic suites and the console build; Windows build evidence is not recast as interactive evidence. |
+
+No dependency versions, provider URLs/scopes, serialized formats, state-store implementation,
+quota meanings or close-to-tray behavior changed. T-028.4 and all other pending remediation tasks
+remain outside this closure.
+
+## T-028.4 implementation and verification - 2026-09-22
+
+Base: `56d6315`; production implementation: `9bbf13e`. The final evidence commit also adds
+three classified-provider regression cases; it does not change production bytes. The owner
+requested T-028.4 without subagents. Work used the local Windows desktop, the README-documented
+user-local .NET SDK and existing restored packages. No source CLI credentials or existing
+account state was read. Test data and package/smoke output stayed in synthetic temporary roots
+and `.ai-usage-local/AIU-028/`.
+
+Unclassified operation exceptions now produce `InternalError` and dedicated full/short resource
+keys. The failure view model offers no retry/reconnect even when a preceding provider state
+required reauthentication. Existing classified provider states retain their meaning. The Core
+diagnostic port accepts only event/category enums; exception projection reads no payload fields.
+Infrastructure owns the local 64 KiB file, seven-day pruning and strict reconstruction of retained
+records. Windows wires the pre-host/post-disposal sink to startup, shutdown, disposal and live
+operation catches. All eight auth/quota HTTP registrations retain `RemoveAllLoggers()`.
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| Regression before fix | PASS (expected red) | Non-provider exception returned ProviderUnavailable instead of InternalError. Redaction-through-operation test recorded no event before wiring. Three sink tests failed against the no-op contract skeleton: no file/retention and unknown fields left intact. ReauthRequired presentation offered Reconnect before the priority fix. |
+| Infrastructure Release suite | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261, 0 failed/errors/skipped; 5.403 s. New tests exercise actual file output, undefined enums, nested unknown fields, token-shaped data, opaque identifier, expiry on restart, size eviction, exclusive-handle contention, invalid root and junction refusal. |
+| Presentation Release suite | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: final 136/136, 0 failed/errors/skipped; 0.626 s. Includes exception projection, non-recoverable UI, full/short resource keys and preservation of three existing provider-failure kinds without internal-error records. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: 0 warnings/errors; 40.16 s. Compiles real composition and all App catches. |
+| Actual local product Windows smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-build --no-restore -- -noLogo`: 7/7, 0 failed/errors/skipped; 50.885 s. Launch, navigation, themes, close/restore through tray, tray Exit, repeated Exit and unavailable capabilities all passed. Each process exited with code 0. |
+| Unsigned MSIX build | PASS | VS MSBuild Release/x64 with GenerateAppxPackageOnBuild=true, signing disabled, generated manifest and no restore. Produced AiUsage.Dev 2026.9.2201.0 x64. One tooling warning: `mspdbcmf.exe` missing, so no symbols package was generated; no owned-code warnings or errors. |
+| Primary integrated acceptance/diff review | PASS | Reviewed the complete implementation against AC-04/AC-05, data allowlist, retention/size, path checks, failure containment, DI lifetime and failure presentation. No actionable findings. Provider authentication, grant/cache formats, dependencies and quota semantics are unchanged. |
+| Document validation and diff check | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` returns valid=true; `git diff --check` passes. Rechecked after final evidence edits. |
+| Focused independent review | NOT_RUN | Required for the diagnostics boundary by CONTRIBUTING and the existing T-028.4 verification plan. The owner prohibited subagents; the implementation author cannot provide a fresh independent review. T-028.4 remains blocked on this requirement, not on a failing implementation check. |
+| Live provider, packaged install/update and desktop fault injection | NOT_RUN | No sign-in, provider traffic or package installation requested. The normal desktop smoke does not prove injected startup/shutdown/disposal failures; their wiring is inspected and compiled, and sink/projection behavior is covered by deterministic tests. |
+
+Smoke used `AIU_SMOKE_MODE=product`, `AIU_SMOKE_EXE` pointing at the current Debug executable,
+`AIU_SMOKE_EVIDENCE_DIRECTORY=.ai-usage-local/AIU-028/t04-product-smoke` (absolute at runtime),
+and a fresh `state` subdirectory through `AIU_DEVELOPMENT_STATE_DIRECTORY`. The actual
+`launch.png` was inspected: the product empty state, disabled CLI import and expected navigation
+are visible. Scenario JSON records and screenshots remain in that local evidence directory.
+
+The package is retained under `.ai-usage-local/AIU-028/t04-package/2026.9.2201.0/`.
+Its SHA-256 is `655C94335E3001A2EF1ED53690A32783B7A99CD012D4C026D42D6777D5D6C3C1`.
+The package identity/version/architecture were read back from its embedded manifest. A first
+inspection selected dependency packages as well as the product and failed; filtering to the
+single AiUsage package corrected that inspection without rebuilding or modifying the package.
+
+Retention runs on startup/write, not while the app is closed. Diagnostics are best effort:
+storage failure or a torn write may lose records. Path checks do not promise protection against
+all same-user check/use races. No generic exception/payload logging, export, network telemetry,
+recursive deletion, credential migration or live-provider success is claimed. The next action
+is fresh independent review of the frozen implementation and final regression tests.
+
+### Independent review and T-028.4 closure - 2026-09-22
+
+Verdict: **PASS**, no actionable findings in `56d6315..55bb169`. AC-04 and AC-05 are
+satisfied. This completed review supersedes the earlier unavailable-review blocker; it does
+not close T-028 or select another task.
+
+Reviewer independence: this fresh primary Codex session did not author the implementation or
+its tests and had no implementation conversation transcript. It used convergence-review and
+security-lifecycle, reviewed the entire frozen range and relevant callers read-only, and
+recorded its verdict before editing these closure documents. No subagents were used. No
+production or test fixes were necessary or authored; subsequent changes are documentation only.
+
+Frozen base: `56d6315e8fc2c44749618100bb7eb836763342d5`.
+Production implementation: `9bbf13e2e47980884507eeb003a7a3c0f650c488`.
+Frozen candidate and clean `main` at review start:
+`55bb169fa5b0d799e2ce5a32a25a64fd821bb550`.
+Review and fresh checks ran on local Windows on 2026-09-22, approximately 14:00 Europe/Lisbon,
+using the README-documented user-local SDK and existing restored assets.
+
+Paths in the boundary table are relative to `src/windows/` unless stated otherwise.
+
+| Boundary | Independent assessment |
+| --- | --- |
+| AC-04 classification | `AiUsage.Windows/Adapters/Live/LiveUsageSource.ExecuteCoreAsync` maps unclassified operation exceptions to `InternalError` in both the command result and snapshot, while preserving cancellation. The concrete provider sessions classify failures into `ProviderSessionState.Failure` before the live adapter receives them; returned classifications pass through unchanged. The actual connection flow uses `ConnectWithChallengeAsync`, including Copilot. `LiveMapping.Failure` supplies the dedicated message and sets Recoverable=false. PASS. |
+| Internal-error presentation | `AiUsage.Windows/Features/Presentation/ViewModelSupport.cs`, `FailureViewModel.Update`, resets ActionEnabled and handles InternalError before reauthentication, clearing action, label and wait text. Overview and account-detail XAML bind action visibility/enabled state to this model. Dedicated full/short English resources exist. The distinct-kind/message, connected/reauthentication and classified-failure regressions exercise these boundaries. PASS. |
+| AC-05 lifetime wiring | `AiUsage.Windows/App.xaml.cs` initializes diagnostics before host construction and records all three existing startup/shutdown/disposal catches. `Adapters/Live/Windows/ApplicationDiagnostics` owns the sink outside host disposal, registers that same wrapper for operations, and resolves the existing owned state root with isolated demo/override behavior. The adapter records OperationFailure before presenting InternalError. PASS by source inspection; desktop fault injection remains NOT_RUN. |
+| Allowlist and layer boundaries | `AiUsage.Core/Diagnostics/IDiagnosticSink` accepts only event/category enums. `DiagnosticProjection.Category` uses fixed type patterns, without reading messages, runtime names, stacks, inner exceptions or Data. `AiUsage.Infrastructure/Persistence/LocalDiagnosticSink.Record` rejects undefined codes. File records contain only UTC time and enum names, with no arbitrary fields, nested payloads, token values or provider/account identifiers. Synthetic nested-data tests cover projection and retained-file rejection. Core stays credential-free, Infrastructure owns I/O, and Windows owns desktop wiring. PASS. |
+| Retention and bounds | `LocalDiagnosticSink.Rewrite` bounds input to 64 KiB, validates exactly three fields, time range and defined codes, then reconstructs canonical ASCII records. Oversized input is discarded rather than read; generated output evicts earliest queued records to remain within 64 KiB. Startup and writes remove records older than seven days and reject future dates. Closed-app pruning and crash durability are not promised. PASS. |
+| Paths, concurrency and failure containment | `LocalDiagnosticSink.CheckPath` checks existing ancestors and the fixed file for reparse points before access and again after directory creation; the file check also handles dangling links. No provider-supplied filename or recursive cleanup is used. FileShare.None covers the complete read/prune/write operation; contention drops output rather than interleaving writes. Rewrite catches storage failures. Existing tests exercise actual Windows junction refusal, exclusive-handle contention, invalid storage, retention and size. Other reparse variants are source-inspected, not separately executed. Same-user check/use races and torn-write record loss remain explicit limitations. PASS. |
+| Provider logging and scope | All eight auth/quota registrations retain `RemoveAllLoggers()`; host defaults remain disabled. No provider transport, authentication, credential format, dependency, telemetry or export change is present. PASS. |
+
+Fresh verification on the unchanged candidate:
+
+| Check | Status | Observed result |
+| --- | --- | --- |
+| `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo` | PASS | 261/261; 0 errors, failures, skips or not-run cases; 6.860 seconds test execution. |
+| `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo` | PASS | 136/136; 0 errors, failures, skips or not-run cases; 0.632 seconds test execution. |
+| Windows unpackaged build, actual product smoke and unsigned MSIX | PASS (existing evidence reused) | No production changes since 9bbf13e. Inspected the retained seven scenario JSON results: all passed, exited=true, exitCode=0; inspected launch.png. Recomputed the retained 2026.9.2201.0 package SHA-256, matching the value above. Existing build evidence and its single missing-mspdbcmf.exe tooling warning remain applicable; no new build or UI execution is claimed. |
+| Live providers, desktop fault injection, packaged install/update | NOT_RUN | Neither executed nor inferred from deterministic tests or normal desktop smoke. No existing credentials were read, no sign-in or trust change occurred, and no packages were installed. |
+
+The closure changes only verification, tasks, backlog and the obsolete review-blocker note in
+design. `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`
+returned `valid=true, diagnostics=[]`: PASS. `git diff --check`: PASS. Final closure diff and
+links inspected; T-028.4 is done, T-028 remains incomplete, and no other task was selected.
+
+## T-028.5 provider descriptor catalog - 2026-09-22
+
+Base: `d90e90d` on `main`; implementation and tests: `fc402dd`. The owner selected T-028.5 only. The immutable Windows-owned
+`ProviderCatalog` now supplies composition, live mapping, live/demo connection lists, all
+presentation identity lookups and the neutral/brand/high-contrast tile projection. The table
+preserves the full and compact Copilot names and the demo-only method/origin differences.
+Provider IDs remain ordinal opaque values. Session registrations remain in live composition;
+non-owning keyed factories avoid registering another disposal owner for concrete sessions.
+Manual-code submission delegates to the session port without a provider-name check.
+
+Regression evidence: the new Codex-ID manual-code case failed at `Assert.True` against the
+original Claude-only condition. With the catalog contract introduced but consumers still using
+their old lookups, the fifth-descriptor test failed because the account label was the raw
+`Fifth/opaque:ID` instead of `Fifth Provider`. Both now pass. Fifth-descriptor coverage exercises
+session resolution, direct mapping and publication, live/demo connection choices, Overview,
+account list/detail, tray, appearance, status, monitoring provider/window-type/account rules,
+CLI candidate glyphs and the tile style projection. Manual-code coverage also connects a fifth
+descriptor, tests unsupported/unknown/stopped sessions, and retains cancellation/drain regressions.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 142/142, 0 failed/errors/skipped/not-run; includes `DependencyBoundaryTests`. |
+| Infrastructure Release | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261, 0 failed/errors/skipped/not-run. No Infrastructure or Core source changed. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: 0 warnings/errors. |
+| Actual product Windows smoke | PASS | Final `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7; all launched processes exited with code 0. Provider choices, availability and browser/manual methods are asserted without starting authorization. |
+| Actual demo Windows smoke | PASS | Same smoke command with `--no-build` and `AIU_SMOKE_MODE=demo`: 7/7, 0 failed/errors/skipped/not-run; all launched processes exited with code 0. Existing demo-specific provider names, availability and methods are preserved. |
+| Unsigned MSIX | PASS | VS MSBuild Release/x64 with signing disabled and no restore; embedded manifest confirms AiUsage.Dev 2026.9.2202.0 x64. One tooling warning for missing `mspdbcmf.exe` (no symbols package), no owned-code warnings/errors. |
+| Primary integrated review | PASS | Reviewed AC-06, every former identity registry and caller, ordinal IDs/fallbacks, existing labels/methods/colors, dependency boundaries, DI ownership and complete test diff. No actionable findings. Routine primary review applies under CONTRIBUTING; no credential, durable-state or privilege boundary changes. |
+| Document validation and diff check | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`: valid=true, diagnostics=[]; `git diff --check` passes. Closure links/statuses inspected. |
+| Live provider and packaged install/update | NOT_RUN | Not needed for this metadata/refactoring task. No source CLI credentials, sign-in, host trust changes or package installation. |
+
+The first product smoke run was 6/7: the newly added assertion targeted an `ItemsRepeater`
+automation ID, but that container has no UIA peer. Its screenshot shows all four provider
+buttons correctly. The test now inspects actual buttons/radio buttons; the final 7/7 run is
+retained separately. Product evidence: `.ai-usage-local/AIU-028/t05-product-smoke-final/`, with
+an empty isolated `state` directory selected through `AIU_DEVELOPMENT_STATE_DIRECTORY`.
+Package and build log: `.ai-usage-local/AIU-028/t05-package/2026.9.2202.0/`.
+
+Demo evidence: `.ai-usage-local/AIU-028/t05-demo-smoke/`. Inspected the actual product and demo
+connection-dialog screenshots and all fourteen final scenario JSON results. The MSIX SHA-256 is
+`798D31869DCFF57F2449B6EC35888A5CACF77739D2BB40E22286FEEAAECB20E0`.
+High-contrast/brand projections are covered by deterministic tests; smoke verifies ordinary
+light/dark UI, not an interactive system-high-contrast toggle. No live-provider success or
+packaged installation is inferred. AC-06 is PASS and T-028.5 is complete; other tasks remain open.
+
+## T-028.6 - Shared build and package roots - 2026-09-22
+
+Base `34ee90b`; implementation `97f0ef9` on `main`. Windows 10.0.26200.0 x64, SDK
+10.0.401. Restore/test/build evidence was collected at 14:21-14:26 UTC; logs, baseline
+MSBuild evaluations and isolated original-project restore are retained under
+`.ai-usage-local/AIU-028/t06/`. Primary integrated review covers `34ee90b..97f0ef9` plus
+these closure records. No production source, test behavior, SDK or analyzer policy changed.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Pre-restore diff and version mapping | PASS | Inspected the full project diff and both new root files before restore/build. All 18 existing references in ten projects map to the same ten package IDs and exact version strings; no dependency added or removed. Includes the routing spike. |
+| Evaluated MSBuild properties | PASS | Before/after `dotnet msbuild <project> -getProperty:ImplicitUsings,Nullable,TreatWarningsAsErrors,TargetFramework,RuntimeIdentifier,AnalysisMode,AnalysisLevel,EnforceCodeStyleInBuild` comparisons match for all ten projects. Central management evaluates to true everywhere. Shared property copies and local package Version attributes are gone. |
+| Full offline restore | PASS | For every tracked csproj: `dotnet restore <project> --configfile <local NuGet.offline.config> --force --no-http-cache -p:NuGetAudit=false`; ten exits 0. The scratch configuration clears package and audit sources. All assets use the local cache, have central management enabled and contain no package sources. Audit disabled for this offline command only. |
+| Resolved package graphs | PASS | Nine graphs match the pre-change assets exactly. ProviderConsole matches a fresh offline restore of the original `34ee90b` project files; see the cache discrepancy below. |
+| Validator regressions | PASS | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo`: 78/78. |
+| Infrastructure Release | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261. |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 142/142. |
+| Actual Windows product smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7 on the fresh unpackaged Debug build, 14:25:08-14:25:48 UTC. All seven scenario JSON records report passed=true, exited=true and exitCode=0. All four suites report zero errors, failures, skipped or not-run tests. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: zero warnings/errors. |
+| Routing Debug unpackaged build | PASS | Same build options for `spikes/windows/T-002-routing/AiUsage.RoutingSpike.csproj`: zero warnings/errors. |
+| ProviderConsole Release build | PASS | `dotnet build tools/AiUsage.ProviderConsole/AiUsage.ProviderConsole.csproj -c Release --no-restore`: zero warnings/errors. |
+| Document validation and diff checks | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`: valid=true, diagnostics=[]; `git diff --check` and implementation-range whitespace check pass. Closure references and status inspected. |
+| Primary integrated review | PASS | AC-07 checked against the complete diff, project membership, exact package values, effective shared properties, SDK/target settings and unchanged analyzer policy. No actionable findings. Routine primary review applies under CONTRIBUTING; independent review is not required for this relocation. |
+| MSIX, packaged lifecycle and live-provider checks | NOT_RUN | Outside this build-configuration relocation; no package install, host trust changes or provider authorization was performed. |
+
+The first scratch source check incorrectly counted an absent JSON member as one PowerShell
+array element; explicit null handling corrected the check. The graph comparison then exposed
+stale ProviderConsole assets lacking `System.Security.Cryptography.ProtectedData/10.0.12`.
+Restoring the original console, Infrastructure and Core csproj files in an isolated scratch
+root with empty build/package props reproduced the current graph exactly. No repository fix
+or dependency change was needed for either verification issue; neither was a suite failure.
+
+Smoke used `AIU_SMOKE_EXE` pointing to the rebuilt local executable and fresh
+`AIU_SMOKE_EVIDENCE_DIRECTORY` at `.ai-usage-local/AIU-028/t06/product-smoke/`, with
+`AIU_DEVELOPMENT_STATE_DIRECTORY` set to its initially empty `state` subdirectory. Inspected
+all seven final scenario records and the actual provider-choice screenshot. No source CLI
+credentials were read and no sign-in was started. AC-07 is PASS; T-028.7 remains a separate task.
+
+## T-028.7 - Explicit analyzer and style policy - 2026-09-22
+
+Base `0cd297b`, implementation `c9cdd6a` on `main`; SDK 10.0.401 on Windows 10.0.26200.0 x64. Evidence collected
+at 14:54-15:06 UTC is retained under `.ai-usage-local/AIU-028/t07/`. Triage completed
+within the primary-selected 30-minute limit. No SDK, analyzer package or dependency changed.
+
+The shared props now set `AnalysisLevel=10.0`, `AnalysisMode=Recommended` and
+`EnforceCodeStyleInBuild=true`, retaining `TreatWarningsAsErrors=true`. EditorConfig
+enforces file-scoped namespaces (IDE0161) and using directives outside namespaces
+(IDE0065). Qualification and intrinsic-type preferences remain explicit editor suggestions:
+the bundled build analyzer does not emit IDE0003/IDE0049, so build enforcement is not claimed.
+
+The initial ten-project inventory used command-line `TreatWarningsAsErrors=false` only
+to collect all diagnostics without stopping at the first referenced project. It found
+77 distinct source-location diagnostics across 13 rules (90 when linked-source project
+instances are counted). No reduced warning setting was written into the repository.
+The first ordinary raised-level build failed on CA1822 as expected.
+
+Adopted fixes keep private stateless helpers static, seal three internal generated-JSON
+context declarations, replace collection enumeration with equivalent indexed/existence
+checks, parse fixed test timestamps invariantly, and compare validator path markers
+ordinally. Both new soft-hyphen path cases failed with PRIMARY_SHARED before the ordinal
+fix and pass afterward; existing path/ownership tests remain green. Provider protocols,
+credential lifecycle, serialized data and UI behavior are unchanged.
+
+Explicit rule choices are documented beside their severities in `.editorconfig`:
+
+| Rule | Scope and reason for suggestion severity |
+| --- | --- |
+| CA1822 | Windows presentation/desktop source, routing view models and the Codex challenge instance retain instance binding, formatter and public challenge contracts. Core/Infrastructure private helpers and test helpers are fixed instead. |
+| CA1859 | Preserve interface/read-only contracts and command Task signatures; concrete-type specialization requires a measured benefit. |
+| CA1716 | Only HostAbstractions.cs: the C# text-resource port intentionally uses Get; cross-language override naming is not a product requirement. |
+| CA1001 | Only DialogService, LivePreferenceStore and the two account view models. Async-only app-lifetime semaphores never expose AvailableWaitHandle; safe disposal needs a drain/late-caller contract. Sparkline cancellation-source replacement and view removal still lack deterministic disposal and are explicit deferred lifetime debt, not declared false positives. |
+| CA1707, CA1861 | Test sources only: threshold-bearing scenario names and independent local expected arrays remain readable and isolated. |
+| CA2201 | Only LiveAdapterTests.cs: System.Exception deliberately exercises the unknown-failure boundary. |
+| CA1838 | Only ShellSmoke.cs: retain the existing bounded GetWindowText smoke buffer; marshalling optimization remains an editor suggestion. |
+
+These are rule-specific adoption decisions, not a claim that every Recommended rule is a
+build warning. CA1001 remains enabled outside the four named files. Resolving the deferred
+sparkline lifetime debt requires a separately selected task covering cancellation, completion,
+replacement and view removal; changing it here would expand the behavior scope of T-028.7.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Effective shared properties | PASS | `dotnet msbuild <project> -getProperty:AnalysisLevel,AnalysisMode,EnforceCodeStyleInBuild,TreatWarningsAsErrors` returned 10.0/Recommended/true/true for all ten tracked projects. |
+| Analyzer/style enforcement probe | PASS | An isolated ignored net10.0 project inheriting the shared policy failed with CA1822, IDE0161 and IDE0065 on deliberate violations; correcting them produced zero warnings/errors. Offline restore used cleared package/audit sources. The probe also confirmed IDE0003/IDE0049 are not emitted during build. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: zero warnings/errors, with the final policy and no command-line warning override. |
+| Validator regressions | PASS | `dotnet run --project tests/AiUsage.ProjectValidation.Tests --no-restore -- -noLogo`: 80/80, including both new cases observed failing before the fix. |
+| Infrastructure Release | PASS | `dotnet run --project tests/windows/AiUsage.Infrastructure.Tests -c Release --no-restore -- -noLogo`: 261/261. |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 142/142. |
+| Actual Windows product smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7; all seven scenario JSON records report passed=true, exited=true and exitCode=0. Inspected the actual provider-choice screenshot. |
+| Routing and ProviderConsole builds | PASS | `dotnet build <project> -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore` for the routing spike and ProviderConsole: zero warnings/errors. |
+| MSIX, packaged lifecycle and live-provider checks | NOT_RUN | No UI, activation, packaging or provider-contract behavior changed. No source CLI credentials, sign-in, host trust change or package installation was needed or performed. |
+
+All four suites report zero errors, failures, skips and not-run tests. Smoke used the local
+unpackaged Debug executable, a fresh `product-smoke/` evidence directory, and its initially
+empty `state/` subdirectory through `AIU_DEVELOPMENT_STATE_DIRECTORY`. The final desktop rebuild
+followed only an editor-suggestion clarification; no product source changed after smoke.
+
+Primary integrated review of `0cd297b..c9cdd6a` against AC-08: PASS. Checked shared-property
+coverage, rule-specific exception scopes and reasons, unchanged dependency/SDK versions,
+equivalence of collection and static-helper edits, preserved public/binding contracts,
+invariant fixtures, ordinal ownership regression evidence and the complete authored diff.
+No additional actionable finding; the four CA1001 exceptions retain the explicitly documented
+lifetime debt above. CONTRIBUTING requires primary review for this task; no material
+credential, destructive-data or privilege behavior changed, and no independent review is claimed.
+Document validation returned `valid=true, diagnostics=[]`; `git diff --check` passed.
+Closure links and task/acceptance status were inspected. AC-08 is PASS; T-028.7 is complete.
+
+## T-028.10 - Visibility-gated presentation clock - 2026-09-22
+
+Base `bf811fb`; production implementation `829d38b` on `main`. Windows
+10.0.26200.0 x64, .NET SDK 10.0.401. Evidence is retained under
+`.ai-usage-local/AIU-028/t10/`. No subagents were used.
+
+`LiveClock` retires its timer when `WindowVisible` becomes false, creates a new
+30-second timer on restore, and sends one immediate change notification on the UI
+thread. Each timer captures its visibility generation, so callbacks queued before hiding,
+callbacks that start after restoration, and callbacks after disposal cannot reapply stale
+work. Duplicate motion notifications are ignored. Snapshot delivery remains active.
+The tray popup refreshes its own current snapshot on opening and every 30 seconds while
+open; hiding or exiting stops its timer. Passing a reset time never invents a new quota.
+
+| Check | Verdict | Observed evidence |
+| --- | --- | --- |
+| Regression red/green | PASS | Four clock cases failed after introducing only the TimeProvider injection seam, before the visibility gate. The tray refresh case separately failed with stale `2 h 14 m` instead of `1 h 14 m`. A late retired callback then failed with two notifications instead of one, prompting a timer per visibility generation. All five cases now pass. `red-clock.log`, `red-tray.log`, `red-late-callback.log`. |
+| Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 147/147, zero failed/skipped/not-run. Includes initially hidden startup, reduced motion, duplicate signals, queued and late callbacks, disposal, actual relative text, hidden quota changes and independent tray refresh. `presentation.log`. |
+| Infrastructure Release | PASS | Corresponding Infrastructure command: 261/261, zero failed/skipped/not-run. `infrastructure.log`. |
+| Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: zero warnings/errors before the probe and after removing its import. Confirmed final assembly has no ClockSmokeProbe type. `windows-build.log`, `windows-final-build.log`. |
+| Interactive clock/tray observation | PASS | Actual WinUI window, close button, notification-area icon and tray popup driven by FlaUI on the unlocked local desktop. The phase observations below prove visible ticks, hidden silence, popup-only time updates and one restore notification. Synthetic data only; no provider calls or credentials. |
+| Targeted restore screen/exit smoke | PASS | Corrected restore-only probe: 1/1, zero failures/skips/not-run; actual displayed summary matches updated view-model text, one restore event, process exit code 0. `restore-smoke.log` and `restore-smoke/close-to-tray.json`. |
+| Ordinary product/demo smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo` on the final build without the observer: product 7/7, demo 7/7, zero errors/failures/skips/not-run. Inspected all fourteen scenario records: passed=true, exited=true, exitCode=0. `product-smoke.log`, `demo-smoke.log` and matching evidence directories. |
+| Unsigned MSIX | PASS | Offline Visual Studio MSBuild with existing restored assets, Release/x64, GenerateAppxPackageOnBuild=true, AppxBundle=Never, UapAppxPackageBuildMode=SideloadOnly and AppxPackageSigningEnabled=false. Version 2026.9.2203.0, identity AiUsage.Dev, Authenticode NotSigned. No owned-code warnings; existing optional `mspdbcmf.exe` symbols-tool warning. `package-build.log`, `package-inspection.json`. |
+| Primary integrated review | PASS | Reviewed actual production/test diff against AC-12, construction/disposal on the UI thread, MotionSettings notifications, generation capture, unchanged provider/snapshot delivery, popup open/hide/exit ownership and disposed-view-model guards. No actionable findings. Routine primary review applies under CONTRIBUTING; no material credential, destructive-data or privilege change requires independent review. |
+| Live providers, installed-package lifecycle, CPU/allocation profiling | NOT_RUN | Outside this acceptance: no sign-in, source CLI credential access, package installation or host trust changes. Clock-event observations do not claim a CPU/allocations benchmark. |
+
+The local observation build adds an ignored compile-time probe after product startup,
+publishes one synthetic 37% quota with a reset ten minutes ahead, subscribes to the real
+`LiveClock.Changed`, and samples view-model text without triggering updates. It uses the
+unchanged production clock, lifetime, snapshot/view-model and popup code. The only shadowed
+product file is App.xaml.cs with one probe attachment call. Its sources and MSBuild import
+are in `probe/`; they are not part of ordinary builds or Git. Probe-only analyzer execution
+was disabled; ordinary builds retain the repository analyzer policy. Each activation uses
+its own empty `AIU_DEVELOPMENT_STATE_DIRECTORY` under its smoke evidence directory.
+
+Observed phases from `clock-smoke-final/` (UTC):
+
+| Phase | Clock events so far | Main reset text | Tray reset text |
+| --- | --- | --- | --- |
+| Visible, before hiding | 2 | in 9 m | Resets in 9 m |
+| Hidden start, 15:31:22 | 2 | in 9 m | Resets in 9 m |
+| Hidden end, 15:32:27 (65 seconds later) | 2 | in 9 m | Resets in 9 m |
+| Popup opened, 15:32:30 | 2 | in 9 m | Resets in 8 m |
+| Popup still open, 15:33:36 (65 seconds later) | 2 | in 9 m | Resets in 7 m |
+| Restored, 15:33:37 | 3 | in 7 m | Resets in 7 m |
+
+Quota remained 37% throughout. The popup's accessible row text matched the observed reset
+text both on opening and after its timer update. The restored screenshot also displays
+37% and `in 7 m`. The first probe run failed because its 35-second observation occurred
+after only one tick just before the formatter's minute-rounding boundary; the observation
+was extended to 65 seconds. The longer run passed every clock/tray assertion and failed
+only in its final UIA name lookup on an element that does not support Name. The targeted
+restore rerun uses the optional Name property when inspecting descendants and passes after
+another 65-second hidden interval, with zero hidden clock events and one restore event. Both original
+failed runs remain in the evidence, not relabeled as passing suites.
+
+The MSIX SHA-256 is
+`CD89C2A3EAED976F81B07E07815FA9DDE7CE837922440FB9C8187650EEC4BC39`.
+Its AiUsage.dll metadata contains no ClockSmokeProbe type. Package build success is not
+installation evidence. The final ordinary Debug build also excludes the probe and restores
+the original smoke harness. The targeted restore screenshot was inspected; it displays
+the updated `in 9 m` summary and unchanged 37% quota. Primary review includes the final
+hidden-quota regression refinement. AC-12 is PASS and T-028.10 is complete. Final document
+validation and diff checks are recorded with the closure commit.
+
+## T-028.11 library boundary - 2026-09-22
+
+Implementation 9f4d347. Relevance at base 72cc323: all eight auth/quota clients exposed constructors accepting arbitrary
+HttpClient instances. T-028.1 centralized handler policy but left the public bypass intact; T-028.3
+completed the prerequisite session contract. T-028.11 therefore remained necessary.
+
+The eight clients, credential/authorization models, parsers, stores and provider exceptions are
+now internal. The four sessions remain public for existing Windows resolution, with internal
+constructors invoked by explicit singleton DI factories. The only ten exported top-level types
+are those sessions, four product-registration extension classes and the two Windows-consumed
+persistence services. ProviderConsole receives explicit friend access; Windows does not.
+All eight pipelines retain disabled redirects, cookies and logging, and five-minute pooling.
+No HTTP, OAuth, serialization or session-operation body changed.
+
+| Check | Verdict | Observed result |
+| --- | --- | --- |
+| New public-construction regression before implementation | PASS (expected RED) | Targeted boundary run: 10 tests, exactly 1 failure, because exported constructors accepted HttpClient. The eight handler-policy cases and session-resolution case already passed. |
+| Infrastructure Release suite | PASS | Standard README command: 271 tests, 0 failed, skipped or not run; includes all ten boundary/registration cases. |
+| Presentation Release suite | PASS | Standard README command: 147 tests, 0 failed, skipped or not run. |
+| ProviderConsole Release build | PASS | `dotnet build tools/AiUsage.ProviderConsole -c Release --no-restore`; 0 warnings/errors. |
+| Windows unpackaged Debug build | PASS | Standard README x64/WindowsPackageType=None command; 0 warnings/errors. Confirms the non-friend desktop consumer still compiles. |
+| Canonical document validation / diff check | PASS | Standard README validator command and `git diff --check`; valid with no diagnostics and no whitespace errors. |
+| Primary integrated acceptance review | PASS | Reviewed accessibility diff, unchanged transport and data-operation bodies, friend assembly scope, factory dependencies, singleton ownership and consumer compatibility. No actionable findings. |
+| Independent review / live providers / interactive UI / package build | NOT_RUN | Primary-only as requested. This task reduces compile-time accessibility within Infrastructure; authentication, credential lifecycle, durable-data, privilege and UI behavior are unchanged. No independent review, live account or interactive Windows success is inferred from these checks. |
+
+The regression catches a future public raw-pipeline constructor; registration tests exercise
+real DI and all eight actual handler configurations without network requests or state-file
+access. This closes F-14 / CR-T-003-01. Friend access is an intentional internal testing/console
+escape hatch, not a security sandbox against arbitrary code or reflection in the same process.
+
+## T-028.12 transport options - 2026-09-22
+
+Relevance was assessed at 9f4d347 after T-028.11 was completed and pushed. T-028.1 had centralized
+the 15-second request deadline and five-minute pooling lifetime, but ClaudeQuotaClient,
+CopilotQuotaClient and AntigravityQuotaClient still each declared the one-minute fallback.
+The task's single-call-site drop condition was false, so T-028.12 was implemented at 5095a1d.
+
+ProviderTransportOptions owns the unchanged 15-second, five-minute and one-minute defaults.
+The four DI extensions bind one shared instance using TryAddSingleton. All eight client
+constructors and their transport calls receive it; non-DI internal construction uses the same
+default instance. Pooling and quota-throttle fallback read its properties. Explicit Retry-After
+values still take precedence. The existing linked deadline still covers headers and response
+body reading, and caller cancellation retains its original classification. Loopback, host/UI,
+onboarding and provider-directed polling timers remain outside these transport options.
+
+| Check | Verdict | Observed result |
+| --- | --- | --- |
+| Options regressions before wiring | PASS (expected RED) | With only the options data type added, 15 tests ran: 12 failed as expected (all eight deadline consumers, three fallback consumers and pooling); three explicit-header precedence cases passed. |
+| Infrastructure Release suite | PASS | README command, 286/286; zero errors, failures, skipped or not-run tests. Covers real DI pooling for all eight names, configured deadline cancellation for all eight clients, each fallback's exact expiration boundary and Retry-After precedence. |
+| Presentation Release suite | PASS | README command, 147/147; zero errors, failures, skipped or not-run tests. |
+| ProviderConsole Release build | PASS | `dotnet build tools/AiUsage.ProviderConsole -c Release --no-restore`: zero warnings/errors. |
+| Windows unpackaged Debug build | PASS | README x64/WindowsPackageType=None command: zero warnings/errors. |
+| Document validation / diff check | PASS | README validator command: valid=true, diagnostics=[]; `git diff --check` returned exit 0. |
+| Primary integrated review of both tasks | PASS | Reviewed 72cc323..5095a1d against T-028.11/T-028.12 and AC-01: limited public surface, DI singleton ownership, only two friend assemblies, all transport forwarding sites, unchanged defaults and cancellation/body-read scope, explicit-header precedence, tests and consumer compatibility. No actionable findings. Self-review, not independent review. |
+| Independent review / live-provider calls / interactive UI / package build | NOT_RUN | No subagents used. No protocol, credential lifecycle, durable-data, privilege or UI behavior changed; earlier task-specific independent reviews and interactive evidence retain their recorded scope. |
+
+## T-028 closure - 2026-09-22
+
+All twelve tasks are complete. AC-01 is supported by the shared transport work and the final
+T-028.11/T-028.12 evidence; AC-02 through AC-12 retain their task-specific passing evidence above,
+including the fresh independent reviews for T-028.1/T-028.2 and T-028.4 and actual T-028.10 Windows smoke.
+The final suites cover the integrated product changes. The check index's stale T-028.4, T-028.5 and
+T-028.10 placeholders now point to their already-recorded results; those checks were not rerun or
+newly claimed by this session. This closes the selected remediation feature, not a release or
+any previously unverified live-provider/packaged lifecycle scenario.
+
+## Execution ledger
+
+Collapsed from tasks.md on 2026-10-09 (OD-19); the full plan is in Git history at 7d0bf06.
+
+- T-028.1 Shared provider transport, exception and state lease: done; commits 5462057, 2ddcc7f (range cfb9ceb..2ddcc7f); review independent PASS, 2026-09-22; checks C2, C4 (254/254), C5 (129/129), C6, original-writer compatibility harness, ProviderConsole Release build; grant owner, 2026-09-22.
+- T-028.2 Codex grant store onto the hardened lease: done; commits 5462057, 2ddcc7f (range cfb9ceb..2ddcc7f); review focused independent PASS, 2026-09-22; checks C2, C4 (254/254), C5 (129/129), C6, reparse and forward-compatibility tests, Windows Debug unpackaged build; grant owner, 2026-09-22.
+- T-028.3 Retire the Codex-only session contract: done; commits 13d45a7; review primary check; checks C2, C4 (257/257), C5 (129/129), C6, ProviderConsole Release build, Windows Debug unpackaged build; grant owner, 2026-09-22.
+- T-028.4 Classify unclassified failures and add redacted diagnostics: done; commits 9bbf13e, 55bb169 (range 56d6315..55bb169); review independent PASS, 2026-09-22; checks C2, C4 (261/261), C5 (136/136), C6, Windows Debug unpackaged build, product Windows smoke 7/7, unsigned MSIX build; grant owner, 2026-09-22.
+- T-028.5 One provider descriptor table: done; commits fc402dd; review primary check; checks C2, C4 (261/261), C5 (142/142), C6, Windows Debug unpackaged build, product and demo Windows smoke 7/7 each, unsigned MSIX build; grant owner, 2026-09-22.
+- T-028.6 Shared MSBuild and central package version roots: done; commits 97f0ef9; review primary check; checks C1 (78/78), C2, C4 (261/261), C5 (142/142), C6, offline restore 10/10, product Windows smoke 7/7, Windows, routing and ProviderConsole builds; grant not recorded.
+- T-028.7 Explicit analyzer level and code-style enforcement: done; commits c9cdd6a; review primary check; checks C1 (80/80), C2, C4 (261/261), C5 (142/142), C6, analyzer probe, product Windows smoke 7/7, Windows, routing and ProviderConsole builds; grant not recorded.
+- T-028.8 Non-throwing disposal and lock-free publication: done; commits not recorded (base 5c415d6); review not recorded (independent review not required); checks C1 (78/78), C2, C4 (226/226), C5 (129/129), C6, Windows Debug unpackaged build; grant not recorded.
+- T-028.9 Source-generated preference serialization: done; commits not recorded (base 5c415d6); review not recorded (independent review not required); checks C1 (78/78), C2, C4 (226/226), C5 (129/129), C6, Windows Debug unpackaged build; grant not recorded.
+- T-028.10 Gate the UI clock on window visibility: done; commits 829d38b; review primary check; checks C4 (261/261), C5 (147/147), Windows Debug unpackaged build, interactive clock/tray observation, targeted restore smoke, product and demo Windows smoke 7/7 each, unsigned MSIX build; grant not recorded.
+- T-028.11 Close CR-T-003-01: hardening at the library boundary: done; commits 9f4d347; review primary check; checks C2, C4 (271/271), C5 (147/147), C6, ProviderConsole Release build, Windows Debug unpackaged build; grant owner, 2026-09-22 (main, no subagents).
+- T-028.12 Transport options: done; commits 5095a1d; review primary check; checks C2, C4 (286/286), C5 (147/147), C6, ProviderConsole Release build, Windows Debug unpackaged build; grant owner, 2026-09-22 (with T-028.11).

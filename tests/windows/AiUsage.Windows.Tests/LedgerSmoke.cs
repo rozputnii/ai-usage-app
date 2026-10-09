@@ -221,7 +221,7 @@ public sealed partial class LedgerSmoke : IDisposable
         }
     }
 
-    // AIU-055 R-06: the comfortable run switches density in settings first, so its tray capture shows Comfortable.
+    // T-055 R-06: the comfortable run switches density in settings first, so its tray capture shows Comfortable.
     [Theory]
     [InlineData(true, false)]
     [InlineData(true, true)]
@@ -277,7 +277,7 @@ public sealed partial class LedgerSmoke : IDisposable
                 Assert.True(Wait(() => (button = Current()?.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is { IsEnabled: true }), "Missing or disabled button: " + name);
                 return button!;
             }
-            // Support actions and Delete stored data sit in the settings footer menu (D-193).
+            // Support actions and Delete stored data sit in the settings footer menu (R-193).
             void Menu(string name)
             {
                 Button("More settings").Invoke();
@@ -375,7 +375,7 @@ public sealed partial class LedgerSmoke : IDisposable
                 }, TimeSpan.FromSeconds(10)), "The tray flyout of " + trayName + " did not open");
                 Assert.True(GetWindowThreadProcessId(GetForegroundWindow(), out var activeOwner) != 0 && activeOwner == app.ProcessId);
                 DesktopTestEnvironment.RequireUnlockedDesktop();
-                // AIU-055 R-08: the flyout content is 260 logical px wide. The window itself is wider by its invisible resize borders,
+                // T-055 R-08: the flyout content is 260 logical px wide. The window itself is wider by its invisible resize borders,
                 // so the width is measured on the content, not on the window.
                 var trayWidth = (int)(260 * GetDpiForWindow(trayWindow!.Properties.NativeWindowHandle.Value) / 96.0);
                 // The flyout content has no AutomationId, so it is found by its name.
@@ -383,12 +383,12 @@ public sealed partial class LedgerSmoke : IDisposable
                 Assert.True(Math.Abs(trayContent.BoundingRectangle.Width - trayWidth) <= 2,
                     $"Tray flyout content should be 260 px wide ({trayWidth} physical px), was {trayContent.BoundingRectangle.Width}");
                 using (var capture = trayWindow.Capture()) capture.Save(Path.Combine(evidence!, comfortable ? "tray-icons-comfortable.png" : "tray-icons.png"), System.Drawing.Imaging.ImageFormat.Png);
-                // The flyout is a pointer-only miniature (D-204): no element of its XAML content is a tab stop, so no focus frame
+                // The flyout is a pointer-only miniature (R-204): no element of its XAML content is a tab stop, so no focus frame
                 // can show. The popup host panes of an open tooltip and the native title bar are Win32 chrome, not its content.
                 var focusable = trayWindow.FindAllDescendants().Where(e => e.Properties.FrameworkId.ValueOrDefault == "XAML" && e.Properties.IsKeyboardFocusable.ValueOrDefault)
                     .Select(e => $"{e.Properties.FrameworkId.ValueOrDefault}/{e.Properties.ControlType.ValueOrDefault}/{e.Properties.Name.ValueOrDefault}").ToArray();
                 Assert.True(focusable.Length == 0, "Tray flyout elements must not be keyboard-focusable: " + string.Join("; ", focusable));
-                // AIU-055 R-07: a provider mark replaces the account name, so no element of the flyout shows it as text.
+                // T-055 R-07: a provider mark replaces the account name, so no element of the flyout shows it as text.
                 Assert.DoesNotContain(trayWindow.FindAllDescendants(), e => e.Properties.Name.ValueOrDefault == "Claude Pro 2");
                 row!.Click();
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Selecting the tray account should restore the main window");
@@ -430,7 +430,7 @@ public sealed partial class LedgerSmoke : IDisposable
         return false;
     }
 
-    /// <summary>Cards are not tab stops (D-200); their keys work from any control inside, here the History button.</summary>
+    /// <summary>Cards are not tab stops (R-200); their keys work from any control inside, here the History button.</summary>
     private static void FocusIn(AutomationElement card) => card.FindAllDescendants(cf => cf.ByControlType(ControlType.Button))
         .First(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)).Focus();
 

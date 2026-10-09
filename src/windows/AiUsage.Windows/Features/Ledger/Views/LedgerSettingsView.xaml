@@ -19,7 +19,7 @@
     </Storyboard>
   </UserControl.Resources>
   <!--
-    S5 (D-193, D-197): a floating sheet over the window body, lighter than the page and the cards, inset from the window edges. Tiny labels name the
+    S5 (R-193, R-197): a floating sheet over the window body, lighter than the page and the cards, inset from the window edges. Tiny labels name the
     groups; explanations are tooltips. Rare support actions and Delete stored data sit in the footer's ⋯ menu.
   -->
   <Grid Padding="8">
@@ -128,7 +128,7 @@
                   </StackPanel>
                 </lc:LedgerButton>
               </Grid>
-              <!-- AIU-055 R-11: [−] N min [+], 1 to 60 whole minutes, each change saved at once; the box takes digits and saves on Enter or when focus leaves it. -->
+              <!-- T-055 R-11: [−] N min [+], 1 to 60 whole minutes, each change saved at once; the box takes digits and saves on Enter or when focus leaves it. -->
               <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*" />

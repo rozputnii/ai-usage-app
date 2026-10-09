@@ -15,7 +15,7 @@ public sealed record SessionEstimate(SessionEstimateLevel Level, decimal? Cost, 
 public sealed record SessionCount(decimal WholeSessions, bool LessThanOne, decimal? UpTo = null);
 public sealed record SessionFigures(SessionCount? Weekly, SessionCount? Today);
 
-// AIU-048 design.md: every pair of integer readings inside one part bounds the cost; parts are pooled newest first.
+// T-048 design.md: every pair of integer readings inside one part bounds the cost; parts are pooled newest first.
 public static class SessionEstimator
 {
     public static SessionEstimate Estimate(IEnumerable<ReadingRun> readings, SessionPair pair, DateTimeOffset now)

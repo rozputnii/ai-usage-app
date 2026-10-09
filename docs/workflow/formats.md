@@ -4,7 +4,7 @@ Project document format v1. Follow [CONTRIBUTING](../../CONTRIBUTING.md) for the
 
 ## Sources of truth
 - goals.md: product outcomes and goal membership; no session permissions or budgets.
-- backlog.md: canonical AIU status, references and dependencies: live items in full, a one-row "Done index" for done and dropped items, and one "Pending owner checks" table.
+- backlog.md: canonical item status, references and dependencies: live items in full, a one-row "Done index" for done and dropped items, and one "Pending owner checks" table.
 - spec.md: accepted intended behavior, acceptance criteria and document lifecycle.
 - design.md: optional implementation alternatives and boundaries.
 - tasks.md, only for parallel work: internal task state and concise handoff, not feature-level status or an authorization ledger. Once executed, it collapses into the execution ledger.
@@ -18,7 +18,7 @@ YAML frontmatter includes id, type, status, goal and scope_version. Document sta
 Acceptance criteria use AC-01 and subsequent identifiers with testable conditions. Golden fixtures do not replace targeted semantic assertions.
 
 ## Task blocks
-Task decomposition is optional. Each `### T-xx - title` requires only `status`, `depends_on`, `acceptance` and `evidence`. Other fields below are optional for sequential primary work, but complete ownership metadata is required for explicitly parallel work:
+Task decomposition is optional. Each `### T-nnn.k - title` (step k of item T-nnn) requires only `status`, `depends_on`, `acceptance` and `evidence`. Other fields below are optional for sequential primary work, but complete ownership metadata is required for explicitly parallel work:
 - status: pending | ready | in-progress | blocked | done | dropped
 - depends_on: local T identifiers
 - ownership: a concise semantic domain
@@ -33,7 +33,7 @@ Task decomposition is optional. Each `### T-xx - title` requires only `status`, 
 Handoff records completed facts, the exact next action, blockers, tested commands/results, base reference and pending worker artifacts. Never store secrets or raw transcripts. Evaluate dependencies before marking a task executable. A write-worker task is done only after evidence and integration, not simply a successful yield message.
 
 ## Backlog
-A live item keeps its block (`## AIU-nnn - title` with goal, status, depends_on, trigger, outcome and the fields it needs). When an item is done or dropped, replace its block with one row in the "Done index" table: `| AIU-nnn | Title | done or dropped | G-nnn | evidence path |`; its history stays in its specification, verification record and Git history. A post-deploy owner check (D-190) is one row in "Pending owner checks" until the post-deploy-check skill closes it.
+A live item keeps its block (`## T-nnn - title` with goal, status, depends_on, trigger, outcome and the fields it needs). When an item is done or dropped, replace its block with one row in the "Done index" table: `| AIU-nnn | Title | done or dropped | G-nnn | evidence path |`; its history stays in its specification, verification record and Git history. A post-deploy owner check (R-190) is one row in "Pending owner checks" until the post-deploy-check skill closes it.
 
 ## Decisions
 Add a decision record only for a rule that binds future work; an owner's pick among UI variants is one line in the feature's spec. When a decision changes an earlier one, add a line to the earlier entry: `Amended by D-nnn (date): what changed.` or `Superseded by D-nnn (date): what replaces it.` The validator checks that decision IDs are unique and that these pointers name an existing decision.
@@ -47,7 +47,7 @@ A T1 specification:
 
 ```markdown
 ---
-id: AIU-NEW
+id: T-NEW
 type: feature
 status: approved
 goal: G-003
@@ -91,7 +91,7 @@ Code reference: <commit>. Environment: <OS build, SDK, Release/Debug, desktop lo
 ## Not run
 | Item | Reason |
 | --- | --- |
-| <owner check in the installed app> | Post-deploy owner check (D-190) |
+| <owner check in the installed app> | Post-deploy owner check (R-190) |
 
 ## Review
 <Reviewer, scope, verdict, findings and their resolution.>
@@ -103,13 +103,13 @@ Use canonical relative paths. Reject traversal, absolute/home paths and .git acc
 Serialize shared resources such as migration ledgers, schema changes, central registries, interactive UI test desktops, signing and release feeds. Nonoverlapping files do not by themselves establish independent behavior.
 
 ## Pending decisions
-Include ID, affected AIU/goal, precise question/options/recommendation/impact, evidence and when needed. Move durable resolved decisions to the appropriate spec or ADR. Do not turn the inbox into another full decision register.
+Include ID, affected item/goal, precise question/options/recommendation/impact, evidence and when needed. Move durable resolved decisions to the appropriate spec or ADR. Do not turn the inbox into another full decision register.
 
 ## Research
 Use provider, source_verified_at, live_verified_at, classification, confidence and source references. Verification dates may be null. A generic verified_at must not imply live success. Classify authentication and quota methods separately when they differ.
 
 ## Validator tests
-Reject duplicate IDs, dependency cycles, missing references, invalid statuses, broken AC references, escaping paths, unsafe concurrent ownership and done-without-evidence. Treat Done index rows as backlog items. Reject a verification "Acceptance results" table that omits or invents a specification criterion or uses another verdict than PASS, FAIL, NOT_RUN or BLOCKED; reject duplicate decision IDs and "Amended by" or "Superseded by" pointers to a missing decision. Accept `AIU-NEW` and `D-NEW` placeholders for branch work, and with `--final` reject any placeholder outside code; numbers are assigned at the merge into `main` under the [numbering rule](../../CONTRIBUTING.md#numbering). Accept explicit deferred unknowns without falsely marking the work ready. The validator must not make network/model calls or rewrite documents. Report file/task/error code.
+Reject duplicate IDs, dependency cycles, missing references, invalid statuses, broken AC references, escaping paths, unsafe concurrent ownership and done-without-evidence. Treat Done index rows as backlog items. Reject a verification "Acceptance results" table that omits or invents a specification criterion or uses another verdict than PASS, FAIL, NOT_RUN or BLOCKED; reject duplicate decision IDs and "Amended by" or "Superseded by" pointers to a missing decision. Accept `T-NEW` and `R-NEW` placeholders for branch work, and with `--final` reject any placeholder outside code; numbers are assigned at the merge into `main` under the [numbering rule](../../CONTRIBUTING.md#numbering). Accept explicit deferred unknowns without falsely marking the work ready. The validator must not make network/model calls or rewrite documents. Report file/task/error code.
 
 ## Authored scan and evidence
 The validator reads docs except docs/archive, .agents/skills, and named root/adapter Markdown files. It does not scan local authentication or runtime directories. Archive reparse boundaries are rejected before contents are skipped. Shared skills require name/description metadata, unique names and matching paths.

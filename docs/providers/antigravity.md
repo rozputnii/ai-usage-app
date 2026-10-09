@@ -4,7 +4,7 @@ source_verified_at: 2026-09-20
 live_verified_at: 2026-09-20
 confidence: source-and-live-verified-private-unsupported
 classification: method-specific
-backlog: AIU-009
+backlog: T-009
 ---
 # Antigravity implementation evidence
 
@@ -98,24 +98,24 @@ Two consequences follow. The provider deliberately closes this surface to client
 
 Live PASS on 2026-09-20 with that identity: connect, quota reading, refresh with renewal, durable resume in a new process, the Windows product UI and local disconnect. The reading contained two provider groups, `gemini-weekly` and the shared `3p-weekly`, each a seven-day window, and no five-hour bucket, which matches the published plans page for an account below AI Pro. One observed quirk: an untouched bucket reports its reset exactly seven days after each request, so that timestamp moves between readings and carries no information.
 
-Live NOT_RUN: five-hour buckets and paid tiers, AI credits, disabled or exhausted buckets, `remainingAmount` values, rate limiting, revocation, refresh-token rotation, loopback port fallback and reconnect after denial. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data. See the [verification record](../specs/AIU-009-antigravity-integration/verification.md).
+Live NOT_RUN: five-hour buckets and paid tiers, AI credits, disabled or exhausted buckets, `remainingAmount` values, rate limiting, revocation, refresh-token rotation, loopback port fallback and reconnect after denial. No sanitized live fixture exists; the synthetic fixtures in the Infrastructure suite carry no account data. See the [verification record](../specs/T-009-antigravity-integration/verification.md).
 
-## Provider history (AIU-011)
+## Provider history (T-011)
 
 Source assessment on 2026-09-22 found official credit-history UI descriptions but no
 established history transport compatible with the existing AI Usage grant. History therefore
 returns Unsupported without additional requests or authorization. This is a limitation of
 the verified integration, not proof that the provider has no history. No live history check
-was performed. See [research](../specs/AIU-011-provider-history/research.md).
+was performed. See [research](../specs/T-011-provider-history/research.md).
 
-## Limit data audit (AIU-034)
+## Limit data audit (T-034)
 
 - provider: antigravity
 - source_verified_at: 2026-09-26
 - live_verified_at: 2026-09-29 (evidence recorded from owner-supplied Google AI Plus quota UI image only; capture time unknown, no agent live-session or transport verification)
 - classification: quota undocumented internal summary and official plan/UI descriptions; authentication restriction unchanged
 - confidence: high for source fields; amount unit, paid live coverage and credit transport unresolved
-- sources: [AIU-034 A1-A6](../specs/AIU-034-limit-audit-design-brief/research.md#antigravity-sources-read-2026-09-26)
+- sources: [T-034 A1-A6](../specs/T-034-limit-audit-design-brief/research.md#antigravity-sources-read-2026-09-26)
 
 The pinned OMP summary adapter itself assigns `remainingAmount` an unknown unit. No inspected
 official source establishes a credit/token/request meaning. AI Usage retains it separately
@@ -127,7 +127,7 @@ and acquisition-dependent expiry. Monthly Flow credits belong to another product
 evidence of an Antigravity monthly allotment. The documented CLI credit panel supplies no
 reusable HTTP contract. No CLI or provider call was executed for this audit.
 
-The [matrix and LC-18 through LC-21](../specs/AIU-034-limit-audit-design-brief/research.md)
+The [matrix and LC-18 through LC-21](../specs/T-034-limit-audit-design-brief/research.md)
 preserve these gaps. A moving reset on the previously observed untouched Free bucket remains
 a warning against inferring period start or paid-plan behavior.
 

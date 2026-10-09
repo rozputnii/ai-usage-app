@@ -1,7 +1,7 @@
 namespace AiUsage.Features.Ledger;
 
 /// <summary>
-/// The five-hour ring's arc maths (AIU-055 R-04): a 16 px box, centre (8, 8), radius 7, y down. The arc starts at
+/// The five-hour ring's arc maths (T-055 R-04): a 16 px box, centre (8, 8), radius 7, y down. The arc starts at
 /// 12 o'clock and runs clockwise, so a quarter ends at 3 o'clock.
 /// </summary>
 internal static class RingGeometry

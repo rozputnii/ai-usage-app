@@ -177,10 +177,10 @@
       <ScrollViewer x:Name="CardScroller" Grid.Row="1" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
                     Visibility="{x:Bind Hide(ViewModel.IsFirstRun), Mode=OneWay}" IsTabStop="False">
         <Grid>
-          <!-- S1 (D-193): one column of full-width cards; inline history follows its card. -->
+          <!-- S1 (R-193): one column of full-width cards; inline history follows its card. -->
           <StackPanel x:Name="CardGrid" Spacing="{x:Bind GridGap(ViewModel.IsCompact), Mode=OneWay}" Padding="{x:Bind BodyPadding(ViewModel.IsCompact, ViewModel.HasUndo), Mode=OneWay}"
                       XYFocusKeyboardNavigation="Enabled" />
-          <!-- D-205: while a card is dragged by its grip, a line marks the gap it would drop into. -->
+          <!-- R-205: while a card is dragged by its grip, a line marks the gap it would drop into. -->
           <Canvas x:Name="DragLayer" IsHitTestVisible="False">
             <Rectangle x:Name="InsertionLine" Height="2" RadiusX="1" RadiusY="1" Fill="{StaticResource LedgerFocusBrush}" Visibility="Collapsed" />
           </Canvas>
@@ -216,7 +216,7 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- S5 (D-197): the sheet covers the whole body and leaves the cards in place. It keeps the body's height while the
+      <!-- S5 (R-197): the sheet covers the whole body and leaves the cards in place. It keeps the body's height while the
            host's height slides open and shut, so it rolls down from under the title row and back up. -->
       <Grid x:Name="SettingsHost" Grid.RowSpan="2" Height="0" VerticalAlignment="Top" Background="{StaticResource LedgerBgPageBrush}" Visibility="Collapsed">
         <views:LedgerSettingsView x:Name="SettingsPanel" ViewModel="{x:Bind ViewModel.Settings}" />

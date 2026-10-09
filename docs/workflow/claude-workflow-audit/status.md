@@ -35,11 +35,11 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   owner asked for main's unrelated bug fixes. A rebase was not used because the branch is
   published and CONTRIBUTING forbids force-push.
   - The merge brought six commits: a five-hour window fix, hover-only tooltips, the interval
-    field fix and D-207.
+    field fix and R-207.
   - None of them touches AGENTS.md, CONTRIBUTING.md, `docs/workflow/verification.md`,
     `docs/workflow/formats.md`, `.claude`, `.agents` or `.github`, so no finding is
     invalidated.
-  - D-207 is one more UI-preference decision, which supports A5-F9.
+  - R-207 is one more UI-preference decision, which supports A5-F9.
   - `LocalBudgetStoreTests` gained tests, so re-measure A6-F1's timings before acting on R14.
   - Normal-mode validation passes.
 
@@ -93,7 +93,7 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   OD-9 deny rules land. Revert to bypass at the first false block of a routine action.
 - **2026-10-09, OD-11 = owner variant.** The project stays agent-neutral, because
   non-Claude agents may also work on it.
-  - Skills stay in `.agents/skills`; D-034's location clause stands and the validator is
+  - Skills stay in `.agents/skills`; R-034's location clause stands and the validator is
     unchanged.
   - AGENTS.md stays the canonical, mandatory entry point.
   - CLAUDE.md gets explicit paths to each skill with a mandatory instruction to read it when
@@ -172,8 +172,8 @@ Living log for the workflow-optimization effort. Read this first in every sessio
 - **2026-10-09, OD-25 = yes.** The opt-in Sandbox UI audit suite (`Audit*.cs`) is frozen:
   marked `Explicit`, with no edits required on UI changes. The package, upgrade and feed
   smokes stay.
-- **2026-10-09, OD-26 = yes.** The AIU-002 routing spike build step is removed from CI. The
-  `spikes/windows/AIU-002-routing` folder stays.
+- **2026-10-09, OD-26 = yes.** The T-002 routing spike build step is removed from CI. The
+  `spikes/windows/T-002-routing` folder stays.
 - **2026-10-09, OD-27 = owner variant: trial both.** Two language servers, compared on the
   same task:
   - the `csharp-lsp` plugin with a pinned `csharp-ls`;
@@ -190,15 +190,15 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   mentions are wrapped in code spans, with a note that this is the only change.
   - The owner also asked to simplify the ID scheme; that becomes new decision OD-31.
 - **2026-10-09, OD-31 = yes (new, owner-raised).** A simpler ID scheme:
-  - Work items (features and bugs) become `T-nnn` and keep their numbers (AIU-055 →
+  - Work items (features and bugs) become `T-nnn` and keep their numbers (T-055 →
     T-055).
   - Steps inside an item become `T-nnn.k`.
-  - Decisions become `R-nnn` and keep their numbers (D-207 → R-207).
+  - Decisions become `R-nnn` and keep their numbers (R-207 → R-207).
   - Branch placeholders become `T-NEW` / `R-NEW`.
   - Git history keeps the old prefixes, with the same numbers.
 
   Stage 2 work:
-  - update the validator, formats.md, CONTRIBUTING (D-196 text), the backlog, spec folder
+  - update the validator, formats.md, CONTRIBUTING (R-196 text), the backlog, spec folder
     names, the decision registers, docs references and source comments;
   - run the rename only when no unmerged worktree branches are in flight, or migrate them
     in the same pass;
@@ -239,7 +239,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
 ## Stage 2 progress
 
 - **2026-10-09 — session start.** Switched to `workflow-optimization` (no other worktree held
-  it) and merged `origin/main` `3724a17` (merge `ae03f11`): backlog AIU-056 and a goals scope
+  it) and merged `origin/main` `3724a17` (merge `ae03f11`): backlog T-056 and a goals scope
   line, no rule file touched. `git branch -a --no-merged origin/main` showed no in-flight work
   branches besides this effort. The Stage 2 prompt is saved in `4878aa7`.
 - **2026-10-09 — step 1, rule text (R9; OD-2..OD-6, OD-11, OD-14..OD-16, OD-18).**
@@ -253,11 +253,11 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - logging.md gained the Logging policy; the ANL-11 lesson moved to architecture.md;
     goals.md has a current direction paragraph; README's commands moved to verification.md;
     host facts copied to [host-environment.md](../host-environment.md).
-  - Decisions D-NEW to D-NEW-8 added (Git flow, ask lists, tiers, plugin precedence, and four
-    back-filled directions); D-178 and D-179 marked superseded.
+  - Decisions R-NEW to R-NEW-8 added (Git flow, ask lists, tiers, plugin precedence, and four
+    back-filled directions); R-178 and R-179 marked superseded.
   - Rule-inventory diff for the owner: [rule-inventory.md](rule-inventory.md).
   - Checks: C2 PASS; C6 PASS; C3 FAIL with only `PLACEHOLDER_ID` diagnostics (the two known
-    stage-1-prompt mentions plus the new `D-NEW` records; see OD-32).
+    stage-1-prompt mentions plus the new `R-NEW` records; see OD-32).
   - CLAUDE.md is unchanged in this step; its skill pointers come with the `.claude` wrappers
     in step 3.
 
@@ -338,9 +338,9 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     decision is `publish`; the Pages steps already follow its `promote` output.
   - `tools/windows/PreviewRelease.psm1`: `Test-PreviewInputsChanged` (allowlist `docs/**`,
     `.claude/**`, `.agents/**`, root `*.md`; unknown paths publish).
-  - OD-26: the AIU-002 routing-spike build step is removed; `spikes/windows/AIU-002-routing`
+  - OD-26: the T-002 routing-spike build step is removed; `spikes/windows/T-002-routing`
     stays.
-  - README's Preview paragraph and D-NEW-9 (amends D-157, with an "Amended by" line there).
+  - README's Preview paragraph and R-NEW-9 (amends R-157, with an "Amended by" line there).
   - Checks: C10 red first (`Test-PreviewInputsChanged` not found), then PASS (80 assertions,
     Windows PowerShell 5.1; CI runs it under pwsh). The decision script, extracted from the
     workflow and run locally against the real release list with simulated push variables:
@@ -353,8 +353,8 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   it now runs the merge gate on the merged tree including C3, and the primary integrates a
   worker that cannot be resumed. Also fixed: the reviewer deletes the added test before
   removing its temporary worktree; historical plain-text paths in the archived migration plan
-  and the AIU-045 analysis and orchestration prompt are restored (only links were updated);
-  live plain-text pointers in pending.md, superseded.md and the AIU-001 tasks now name the
+  and the T-045 analysis and orchestration prompt are restored (only links were updated);
+  live plain-text pointers in pending.md, superseded.md and the T-001 tasks now name the
   archive; the archived audit plan's header notes that its startup failure was fixed. C2 PASS.
 
 - **2026-10-09 — step 4 review fixes.** The focused review (changes requested: 2 Important,
@@ -363,7 +363,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   skip after a run failed between making its release public and updating the feed. Fixed: the
   base is now the source of the build the feed serves (`feed-preview`'s App Installer version →
   its `preview-*` release), `--no-renames`, case-sensitive folder allowlist, tests anchored to
-  the publish step, and AGENTS/README/verification/D-NEW-9 say "since the served Preview".
+  the publish step, and AGENTS/README/verification/R-NEW-9 say "since the served Preview".
   Checks: C10 PASS (85); the revised decision script against the real feed: `origin/main` skip
   (0 paths), `4206880` skip (31 docs paths), HEAD publish (PASS); C2 PASS; C6 PASS.
 
@@ -379,10 +379,10 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     `disable-model-invocation` in its Claude wrapper). Each has a thin `.claude/skills/`
     wrapper; AGENTS.md lists them.
   - Backlog: one "Pending owner checks" table with eight open post-deploy checks
-    (AIU-045, 048, 050-055).
+    (T-045, 048, 050-055).
   - Mapping of all 15 superpowers skills to replacements: [superpowers-mapping.md](superpowers-mapping.md).
-    Then `"superpowers@synced": false` in `.claude/settings.json`. D-NEW-10 records the agent
-    and skill layout and amends D-012 and D-034.
+    Then `"superpowers@synced": false` in `.claude/settings.json`. R-NEW-10 records the agent
+    and skill layout and amends R-012 and R-034.
   - Checks: `claude plugin list` shows all five plugins disabled for the project (PASS); a
     fresh headless session lists the eight model-invocable repo skills and no `superpowers:`
     skill (PASS); C2 PASS; C6 PASS.
@@ -404,12 +404,12 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - Checks: C1 PASS (86); C2 PASS; C6 PASS.
 
 - **2026-10-09 — step 7 review fixes.** The focused review (changes requested: 2 Important,
-  5 Minor) found a stale AIU-045 row in "Pending owner checks" (that smoke is Sandbox-only and
+  5 Minor) found a stale T-045 row in "Pending owner checks" (that smoke is Sandbox-only and
   was closed as not applicable) and that plan-execution required per-task review for sequential
   work too. Fixed both, plus: the owner-requested parallel path and the `status` field in
   plan-execution, precise provenance wording, the mapping's source and "one batch" wording,
   approach options with a recommendation when the owner asks to brainstorm, and the missing
-  AIU-046 AC-06 owner check.
+  T-046 AC-06 owner check.
 
 - **2026-10-09 — step 6a, lean records (OD-19), part 2.** Three parallel docs workers
   collapsed the 25 executed `tasks.md` plans of done items into an "Execution ledger" section
@@ -417,8 +417,8 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   facts found only in a plan kept under "Kept from the plan"; open next actions kept verbatim)
   and deleted the plans (4,621 lines removed, 322 added; Git history keeps them). Missing
   per-task commits, reviews or grants are written as "not recorded", never invented. Live or
-  unfinished plans stay: AIU-046 (review), AIU-014 (paused), AIU-011 (dropped). Primary diff
-  check: AIU-034, AIU-048 and AIU-055 ledgers read against their plans; C2 PASS.
+  unfinished plans stay: T-046 (review), T-014 (paused), T-011 (dropped). Primary diff
+  check: T-034, T-048 and T-055 ledgers read against their plans; C2 PASS.
 
 - **2026-10-09 — re-check of the fixed lines (steps 1-4, 7).** One fresh reviewer re-checked
   only the fixes: all 10 Important findings RESOLVED (C10 PASS, 85). Five new Minor items:
@@ -459,14 +459,38 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     `BusyStorageExplainsTheBlockAndRetryEnablesSignIn`) fail the same way at base `27a14b0`;
     see OD-37.
 
+- **2026-10-09 — step 6b, ID scheme (OD-31) and numbering script (R13).**
+  - Precondition checked after `git fetch`: `origin/main` was still `3724a17` (nothing to
+    merge) and `git branch -a --no-merged origin/main` listed no in-flight work branches, only
+    this effort's own merged `stage2/*` branches and the session's starting branch.
+  - `tools/windows/Convert-IdScheme.ps1` (one-time, re-runnable) converted 193 files and
+    renamed 38 spec folders: `AIU-nnn` → `T-nnn`, `T-xx` steps in a spec folder → `T-nnn.k`,
+    `D-nnn` → `R-nnn`, `AIU-NEW`/`D-NEW` → `T-NEW`/`R-NEW`; Markdown in full, C#, PowerShell
+    and YAML in comments only; XAML and manifest comments plus the theme generator's string
+    by a follow-up pass. Kept on purpose: the archive, the Stage 1 audit inputs (report,
+    lanes, both prompts, prompt-audit), `.ai-usage-local/AIU-nnn` evidence paths, the
+    `spikes/windows/AIU-002-routing` folder and CI artifact paths.
+  - Validator: item `T-nnn`, step `T-nnn.k`, decision `R-nnn` with three digits (OD-35
+    interim), placeholders `T-NEW`/`R-NEW`; its tests converted (86/86 PASS).
+  - `tools/windows/Set-ItemNumbers.ps1` (R13) numbers `T-NEW`/`R-NEW` from fresh `main`,
+    skips code spans and fences, renames `T-NEW*` folders and runs `--final`;
+    `tests/tools/Test-ItemNumbers.ps1` PASS (12). CONTRIBUTING, AGENTS, formats.md and the
+    backlog intro describe the scheme; R-NEW-11 (scheme, amends R-196) and R-NEW-12 (lean
+    records) added.
+  - OD-30 is now moot: `--final` matches only `T-NEW`/`R-NEW`, so the Stage 1 prompt's
+    old-prefix mentions no longer fail; the prompt stays verbatim. `--final` lists only this
+    branch's `R-NEW` placeholders (OD-32), which `Set-ItemNumbers.ps1` numbers at the merge.
+  - Checks: C1 86/86, C2 PASS, C4 917/917, C5 330/330, C7 0 warnings, UI test build
+    0 warnings, C10 85, numbering test 12, C6 PASS.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
 work continues on the recommended path unless it is marked as waiting.
 
 - **OD-32 — Placeholders under `--final` on this branch.** The prompt allows only the two
-  stage-1-prompt diagnostics under `--final`, but D-196 (standing policy) requires new
-  decisions on a branch to use placeholders until the merge, and step 1 adds `D-NEW` records.
+  stage-1-prompt diagnostics under `--final`, but R-196 (standing policy) requires new
+  decisions on a branch to use placeholders until the merge, and step 1 adds `R-NEW` records.
   Assigning numbers now would collide with parallel work merged meanwhile. *Recommendation:*
   keep placeholders (converted to the OD-31 scheme in step 6) and number them with the R13
   script at the final merge; until then `--final` also lists these placeholders.
@@ -512,7 +536,6 @@ work continues on the recommended path unless it is marked as waiting.
 
 ## Next action
 
-Stage 2, step 5: tests and smoke — OD-23 per-run tray identity and Release-build smokes,
-OD-24 probe-ready signal, OD-25 `Explicit` audit suite, R14 and R5 harness items. Then step 6 records and IDs (OD-19, OD-31, R13; re-check in-flight branches
-first); step 7 skills (OD-20, OD-7); step 8 trials (OD-27..OD-29). Steps 1-4 are T3 and each
+Stage 2, step 8: finish the trial write-up (OD-27 done: keep csharp-ls; OD-29 done; OD-28
+Stryker run in progress), then the step-6 focused review of the rename and records. Steps 1-4 are T3 and each
 gets a focused independent review.

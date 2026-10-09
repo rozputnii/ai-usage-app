@@ -4,7 +4,7 @@ source_verified_at: 2026-09-18
 live_verified_at: 2026-09-18
 confidence: source-and-live-verified-private-unsupported
 classification: method-specific
-backlog: AIU-008
+backlog: T-008
 ---
 # Copilot implementation evidence
 
@@ -26,7 +26,7 @@ The local read-only clone was clean at `becbf82cb2c0b598e27cf0bf10453065645d915e
 
 [GitHub's own-app setup](https://docs.github.com/en/copilot/how-tos/copilot-sdk/setup/github-oauth) supports application-owned OAuth/GitHub App user authorization for Copilot SDK clients and assigns token lifecycle responsibility to the application. This does not prove direct internal-quota access with an AI Usage registration.
 
-OMP uses OpenCode public client ID `Ov23li8tweQw6odWQebz` on github.com and `read:user`; its enterprise path selects Copilot CLI ID `Ov23ctDVkRmgkPke0Mmm`. These are source-observed public identifiers, not secrets or approved AI Usage registrations. OMP stores the same GitHub token in access/refresh fields and assigns a synthetic ten-year expiry; its refresh helper makes no renewal request. AI Usage must preserve actual provider lifecycle semantics. Registration reuse permission is unknown. On 2026-09-18 the owner explicitly selected only OMP, resolving [PD-008-01](../specs/AIU-008-copilot-integration/spec.md) for a private unsupported implementation. No own-app registration or SDK is selected.
+OMP uses OpenCode public client ID `Ov23li8tweQw6odWQebz` on github.com and `read:user`; its enterprise path selects Copilot CLI ID `Ov23ctDVkRmgkPke0Mmm`. These are source-observed public identifiers, not secrets or approved AI Usage registrations. OMP stores the same GitHub token in access/refresh fields and assigns a synthetic ten-year expiry; its refresh helper makes no renewal request. AI Usage must preserve actual provider lifecycle semantics. Registration reuse permission is unknown. On 2026-09-18 the owner explicitly selected only OMP, resolving [PD-008-01](../specs/T-008-copilot-integration/spec.md) for a private unsupported implementation. No own-app registration or SDK is selected.
 
 ## Quota: undocumented direct endpoint
 
@@ -42,7 +42,7 @@ OMP also has a personal billing branch for API-key credentials. That branch is n
 
 ## Side effects and open proof
 
-OMP login discovers inference endpoints and enables models with policy POSTs. A quota monitor omits both inference setup and model-policy changes. Never imitate another application's identity to overcome a provider rejection. That rule still holds for Copilot and is unchanged here; the owner authorized one recorded exception for Antigravity on 2026-09-20, after that provider refused a truthfully identified client outright, and [its record](antigravity.md) states the scope and the cost. No automatic billing fallback, inference request, model enablement, token import or organization-policy change is authorized by selecting AIU-008.
+OMP login discovers inference endpoints and enables models with policy POSTs. A quota monitor omits both inference setup and model-policy changes. Never imitate another application's identity to overcome a provider rejection. That rule still holds for Copilot and is unchanged here; the owner authorized one recorded exception for Antigravity on 2026-09-20, after that provider refused a truthfully identified client outright, and [its record](antigravity.md) states the scope and the cost. No automatic billing fallback, inference request, model enablement, token import or organization-policy change is authorized by selecting T-008.
 
 Live requirements: chosen client's endpoint eligibility, stable numeric account identity, exact quota units/context and reset semantics, nullable/malformed groups, access denial versus expired auth, Retry-After, cancellation, applicable rotation, resume and local disconnect. No sanitized live fixture exists. Enterprise host trust/context switching and organization-paid parity remain unverified.
 
@@ -52,12 +52,12 @@ Authorized native Chrome/Windows checks on 2026-09-18 passed device authorizatio
 
 The account's GitHub settings page identifies Copilot Free and shows Inline suggestions and Included credits, both 0% used. The OMP endpoint reports plan `individual` and separate request snapshots, including a zero-entitlement premium pool. These are different metrics: this implementation does not claim parity with Included credits or derive credit balances from requests. A zero entitlement has no meaningful consumed fraction and is presented as unknown with its explicit native amount. Known pools use OMP's premium/chat/completions order. Nullable quota identifiers, remaining and overage details are retained independently; no provider restriction is inferred from exhaustion.
 
-Paid plans, organization contexts, enterprise hosts, live rate limits, revoked/expired grants and credits parity were not exercised. Synthetic tests cover the relevant failure semantics. Registration reuse permission remains unknown; successful access is not provider approval. See [verification](../specs/AIU-008-copilot-integration/verification.md).
+Paid plans, organization contexts, enterprise hosts, live rate limits, revoked/expired grants and credits parity were not exercised. Synthetic tests cover the relevant failure semantics. Registration reuse permission remains unknown; successful access is not provider approval. See [verification](../specs/T-008-copilot-integration/verification.md).
 
-## Provider history (AIU-011)
+## Provider history (T-011)
 
-Historical source evidence only: [AIU-040](../specs/AIU-040-remove-provider-history/spec.md)
-removes this retrieval under D-184. These routes are no longer application capabilities;
+Historical source evidence only: [T-040](../specs/T-040-remove-provider-history/spec.md)
+removes this retrieval under R-184. These routes are no longer application capabilities;
 authentication and current quota methods remain unchanged. Dates below describe earlier evidence.
 
 - source_verified_at: 2026-09-22
@@ -67,7 +67,7 @@ authentication and current quota methods remain unchanged. Dates below describe 
 
 GitHub documents `/users/{username}/settings/billing/ai_credit/usage` and
 `/users/{username}/settings/billing/premium_request/usage` with year/month/day filters and
-up to 24 months of personal paid-plan history. The [pinned research](../specs/AIU-011-provider-history/research.md)
+up to 24 months of personal paid-plan history. The [pinned research](../specs/T-011-provider-history/research.md)
 links the official endpoint documentation and its fine-grained authorization requirements.
 The existing device grant has read:user; no PAT, billing permission or additional login is
 introduced. Whether that grant can read either report remains unverified.
@@ -87,7 +87,7 @@ Partial-month ranges can require many requests; cancellation and per-response li
 and incomplete or top-limited coverage is never promised as complete.
 
 Earlier live quota checks do not verify historical billing access. No stored Copilot grant
-was available for this run; see [verification](../specs/AIU-011-provider-history/verification.md).
+was available for this run; see [verification](../specs/T-011-provider-history/verification.md).
 
 ### Live history access attempt - 2026-09-22
 
@@ -98,16 +98,16 @@ app-owned grant; `/user` returned HTTP 200. Product History showed failed report
 rows. The cause of 404 is not established and must not be asserted as definitely a plan
 restriction or definitely an OAuth limitation. History transport was live-attempted on
 2026-09-22, but successful history `live_verified_at` remains null. See the detailed
-[verification](../specs/AIU-011-provider-history/verification.md).
+[verification](../specs/T-011-provider-history/verification.md).
 
-## Limit data audit (AIU-034)
+## Limit data audit (T-034)
 
 - provider: copilot
 - source_verified_at: 2026-09-26
 - live_verified_at: null
 - classification: quota undocumented request snapshot; official credit/billing descriptions and reporting API; authentication unchanged
 - confidence: high for source semantics; paid-plan response parity and current-grant report access unresolved
-- sources: [AIU-034 G1-G7](../specs/AIU-034-limit-audit-design-brief/research.md#copilot-sources-read-2026-09-26)
+- sources: [T-034 G1-G7](../specs/T-034-limit-audit-design-brief/research.md#copilot-sources-read-2026-09-26)
 
 Current GitHub documentation distinguishes AI-credit billing from retained annual Pro/Pro+
 premium-request billing. Business included credits form a billing-entity pool; a seat's
@@ -119,5 +119,5 @@ it establishes no credit equivalence. AI Usage preserves explicit unlimited and 
 flags separately. `quota_reset_date` is a string contract; the app accepts dates/instants
 and assumes UTC for zone-less input, so original precision is lost. Published reset semantics
 do not prove every internal pool's clock. Prior Free evidence does not validate paid plans.
-The [matrix and LC-12 through LC-17](../specs/AIU-034-limit-audit-design-brief/research.md)
+The [matrix and LC-12 through LC-17](../specs/T-034-limit-audit-design-brief/research.md)
 retain those gaps and the unresolved earlier report HTTP 404s. No new live check ran.

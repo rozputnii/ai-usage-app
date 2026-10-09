@@ -66,14 +66,14 @@ means an incomplete session, not proof of an exception.
 
 Sign-out/settings reset do not restart retention. Future explicit stored-data/factory
 reset must stop writers before calling `DiagnosticFiles.DeleteOwned`; reset UI remains
-AIU-013. Cleanup recognizes only versioned names and the old `diagnostics.v1.log`.
+T-013. Cleanup recognizes only versioned names and the old `diagnostics.v1.log`.
 
 For parser development, locate the successful quota request/capture and its operation
 outcome. Inspect the endpoint policy and redactions before drawing conclusions. Use
 separately authorized live evidence to classify missing fields; never guess withheld
 values. Create a synthetic fixture and review privacy again before committing or
 exporting anything. Never commit runtime logs or copy them into a chat automatically.
-Coverage and unverified cases are in [AIU-043 verification](../specs/AIU-043-file-logging/verification.md).
+Coverage and unverified cases are in [T-043 verification](../specs/T-043-file-logging/verification.md).
 
 For an explicitly authorized live check, run `AiUsage.ProviderConsole quota
 codex|claude|copilot|antigravity <owned-provider-directory>`. It uses the product
@@ -86,7 +86,7 @@ remain disconnected. Set `AIU_DEVELOPMENT_STATE_DIRECTORY` to isolate console lo
 This section is for agents and contributors who add or change behavior. The secret
 exclusion rule is also in [AGENTS](../../AGENTS.md) so that it is always loaded.
 
-- Review diagnostic needs as part of implementation. Use the shared AIU-043 pipeline at
+- Review diagnostic needs as part of implementation. Use the shared T-043 pipeline at
   the boundary that owns the operation. Log meaningful outcomes, actionable failures,
   state and recovery transitions, and the evidence needed to explain provider or
   persistence problems.

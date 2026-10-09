@@ -4,7 +4,7 @@ using AiUsage.Infrastructure.Providers;
 namespace AiUsage.Infrastructure.Accounts;
 
 /// <summary>
-/// AIU-047 startup step under the maintenance root lease, after the account migration: moves the
+/// T-047 startup step under the maintenance root lease, after the account migration: moves the
 /// state root's reading store to the history root once (one same-volume rename, never a copy or
 /// delete) and refreshes the identity map from the registry. A failed move leaves both roots as
 /// they were and surfaces as interrupted maintenance.

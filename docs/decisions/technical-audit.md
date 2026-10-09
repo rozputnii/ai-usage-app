@@ -11,7 +11,7 @@ S identifiers refer to `../research/sources.md`. This English revision preserves
 
 **Correction:** The earlier /work, /auto, /status, /pause and /resume examples described desired UX, not implemented commands. Native built-ins take precedence.
 
-**Implementation consequence:** AIU-001 must implement the thin command/extension surface and test discovery/collisions. Documentation alone is not a working dispatcher.
+**Implementation consequence:** T-001 must implement the thin command/extension surface and test discovery/collisions. Documentation alone is not a working dispatcher.
 
 ## TA-02 - The project DAG is not the native scheduler
 **Basis:** S-004.
@@ -39,7 +39,7 @@ S identifiers refer to `../research/sources.md`. This English revision preserves
 
 **Correction:** Ordinary goal resume can pause the goal. Aggregate worker/advisor budget preservation across arbitrary new sessions has not been proven.
 
-**Implementation consequence:** Test scoped authorization, handoff, accounting and pause in AIU-001. Never reset consumption by creating a new goal or replace the selected lifecycle with an unbounded loop. Report unavailable primitives honestly.
+**Implementation consequence:** Test scoped authorization, handoff, accounting and pause in T-001. Never reset consumption by creating a new goal or replace the selected lifecycle with an unbounded loop. Report unavailable primitives honestly.
 
 ## TA-06 - Native todo is not concurrent project state
 **Basis:** S-004.
@@ -116,14 +116,14 @@ S identifiers refer to `../research/sources.md`. This English revision preserves
 
 **Correction:** Earlier discussion conflated .NET framework-dependent deployment with Windows App SDK framework packages.
 
-**Implementation consequence:** Test both prerequisites on a clean machine in AIU-002/014. Do not describe App Installer as a universal installer for every .NET runtime prerequisite.
+**Implementation consequence:** Test both prerequisites on a clean machine in T-002/014. Do not describe App Installer as a universal installer for every .NET runtime prerequisite.
 
 ## TA-17 - Exact versions and routing remain untested
 **Basis:** S-018.
 
 **Correction:** The chat contained inconsistent claims about current Windows App SDK versions. Standalone WinUI integration of the selected navigation candidate has not been proven in this application.
 
-**Implementation consequence:** Resolve actual stable versions and prove restore/build/launch in AIU-002. Preserve selected candidates; substantiate and escalate necessary substitution instead of silently changing to cross-platform Uno UI.
+**Implementation consequence:** Resolve actual stable versions and prove restore/build/launch in T-002. Preserve selected candidates; substantiate and escalate necessary substitution instead of silently changing to cross-platform Uno UI.
 
 ## TA-18 - Production signing eligibility is not automatic
 **Basis:** S-013.
@@ -186,14 +186,14 @@ S identifiers refer to `../research/sources.md`. This English revision preserves
 
 **Correction:** MIT-licensed upstream code does not grant provider permission. The source record reports Anthropic restrictions; a quota-only exception was not established.
 
-**Implementation consequence:** Do not restart a product-policy questionnaire during bootstrap. Record the concrete release risk in AIU-007 and recheck current terms. Existing OMP or iOS apps do not prove approval.
+**Implementation consequence:** Do not restart a product-policy questionnaire during bootstrap. Record the concrete release risk in T-007 and recheck current terms. Existing OMP or iOS apps do not prove approval.
 
 ## TA-27 - Manifest trust still needs a complete threat model
 **Basis:** Implementation reasoning.
 
 **Correction:** An offline root does not prevent abuse by a compromised delegated signer authorized to disable capabilities. Expiry, offline behavior and replay after reset involve availability/security trade-offs.
 
-**Implementation consequence:** Define delegation, revocation, version floors, expiry, offline and first-run behavior in AIU-015. Do not build a custom remote safety platform during bootstrap.
+**Implementation consequence:** Define delegation, revocation, version floors, expiry, offline and first-run behavior in T-015. Do not build a custom remote safety platform during bootstrap.
 
 ## TA-28 - 500 ms is a measurement target
 **Basis:** Implementation reasoning.

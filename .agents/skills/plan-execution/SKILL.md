@@ -14,7 +14,7 @@ this text seems to differ.
 - Sequential work needs no plan document: keep the task list in the session and the evidence
   in verification.md.
 - Parallel work needs `tasks.md` in the feature folder (docs/workflow/formats.md, Task blocks):
-  one `### T-xx` block per task with `status`, `depends_on`, `ownership`, `writes`, `shared`,
+  one `### T-nnn.k` block per task with `status`, `depends_on`, `ownership`, `writes`, `shared`,
   `parallel`, `isolation`, `agent`, `acceptance` and `evidence`, plus an open "Next action".
   Write decisions and exact values into the blocks, not code. End with a "Review focus" list:
   the places most likely to go wrong.

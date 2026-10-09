@@ -5,7 +5,7 @@ using Xunit;
 
 namespace AiUsage.Presentation.Tests;
 
-/// <summary>AIU-055 R-10: the owner orders subscriptions; the order applies to the window and the tray.</summary>
+/// <summary>T-055 R-10: the owner orders subscriptions; the order applies to the window and the tray.</summary>
 public sealed class AccountOrderTests
 {
     private static (LedgerViewModel Window, DemoLedgerSource Source) Start()

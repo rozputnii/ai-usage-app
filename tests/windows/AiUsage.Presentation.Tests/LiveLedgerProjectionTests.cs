@@ -304,7 +304,7 @@ public sealed class LiveLedgerProjectionTests
         Assert.Contains(model.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed && m.Since == Now);
     }
 
-    // ---- AIU-055 R-13: the continuity tolerance of the refresh interval ----
+    // ---- T-055 R-13: the continuity tolerance of the refresh interval ----
 
     [Fact]
     public void StaleFollowsTheTolerance()

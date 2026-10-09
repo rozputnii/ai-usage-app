@@ -11,7 +11,7 @@ namespace AiUsage.Adapters.Live;
 internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
 {
     internal static readonly TimeSpan DefaultRefreshInterval = TimeSpan.FromMinutes(5);
-    // AIU-055 R-12: refreshes are checked by a one-minute tick, so an account is due this much before a full interval.
+    // T-055 R-12: refreshes are checked by a one-minute tick, so an account is due this much before a full interval.
     private static readonly TimeSpan TickSlack = TimeSpan.FromSeconds(30);
     private readonly IAccountService accounts;
     private readonly IReadingSeriesStore readings;
@@ -199,7 +199,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     {
         var now = time.GetUtcNow();
         var date = WorkCalendar.Date(now, zone);
-        // D-198: work days an earlier version deferred to the next midnight apply at once. Clearing them first means a
+        // R-198: work days an earlier version deferred to the next midnight apply at once. Clearing them first means a
         // failed preference save can never reapply them over a newer change.
         if (preferences.Current.PendingWorkDays is { } pending && configurationWritable &&
             await preferences.ChangeAsync(s => s with { PendingWorkDays = null, WorkDaysEffectiveOn = null }, token) == CommandOutcome.Done)
@@ -254,7 +254,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             var card = models.SelectMany(a => a.Cards).FirstOrDefault(c => c.CardId == id);
             var name = models.FirstOrDefault(a => a.AccountId == cap.Series.AccountTarget)?.DisplayName ?? "Unassigned legacy account";
             var facts = limits.GetValueOrDefault(id)?.Facts;
-            // A credit pool lists its cap in the unit its card shows (D-199).
+            // A credit pool lists its cap in the unit its card shows (R-199).
             var shown = card is { Units: not null, Cap: not null } ? card : null;
             return new CapSettingModel(id, card?.CapTargetId, name, card?.ScopeLabel,
                 shown?.Scale ?? cap.Cap.Amount switch
@@ -264,7 +264,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
                     var count => ScaleModel.Count(((CountQuantity)count).Unit)
                 },
                 shown?.Cap!.Amount ?? LiveLedgerProjection.Amount(cap.Cap.Amount) ?? 0,
-                // D-202: a percent cap left on a window that no longer takes one can only be removed.
+                // R-202: a percent cap left on a window that no longer takes one can only be removed.
                 card?.Cap is null || facts?.Kind == LimitKind.PercentWindow && card.CapTargetId is null ? CapStatus.Unmatched : card.Cap.Status,
                 card?.Cap?.Binding ?? false, card?.Figures.ProviderLimit ?? AiUsage.Features.Ledger.Contract.LimitValue.Unknown,
                 facts?.Kind == LimitKind.MonetaryPool ? facts.Unit : null, card?.Figures.Tracking);
@@ -327,7 +327,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await ChangeAsync(token => preferences.ChangeAsync(s => s with { Preferences = value }, token), ct);
     public async Task SetWorkTodayAsync(bool on, CancellationToken ct) => await ChangeAsync(token =>
         preferences.ChangeAsync(s => s with { WorkToday = on ? WorkCalendar.Date(time.GetUtcNow(), zone) : null }, token), ct);
-    // D-198: a work-day change applies at once; the rebuild recalculates today's share and day kind.
+    // R-198: a work-day change applies at once; the rebuild recalculates today's share and day kind.
     public Task<CommandOutcome> SetWorkDaysAsync(IReadOnlySet<DayOfWeek> days, CancellationToken ct) => ChangeAsync(async token =>
     {
         if (!configurationWritable) return CommandOutcome.Unavailable;
@@ -366,7 +366,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         Quantity? quantity = null;
         if (amount is { } value)
         {
-            // D-199: a cap entered in dollars is kept in whole credits of the provider's unit.
+            // R-199: a cap entered in dollars is kept in whole credits of the provider's unit.
             if (card.Units is { Usd: true, Rate: var rate }) quantity = new CountQuantity(CreditDollars.CapCredits(value, rate), limit.Facts.Unit);
             else if (card.Scale.Kind == ScaleKind.Money && card.Scale is { Currency: { } currency, Exponent: >= 0 and <= 18 })
             {
