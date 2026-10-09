@@ -4,7 +4,7 @@ type: feature
 status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: The owner stopped the audit on 2026-10-04 and requested a preserved findings register and a follow-up task for fixes and discussion in later sessions. On 2026-10-06 the owner accepted decisions AIU045-D1..D9 (analysis record, section 7) and resumed execution with the bounded fix run T-045.1..T-04.
+approval_basis: The owner stopped the audit on 2026-10-04 and requested a preserved findings register and a follow-up task for fixes and discussion in later sessions. On 2026-10-06 the owner accepted decisions AIU045-D1..D9 (analysis record, section 7) and resumed execution with the bounded fix run T-045.1..T-045.4.
 ---
 
 # Synthetic Windows audit follow-up
@@ -33,7 +33,7 @@ Do not rerun the full audit or expand the harness automatically. On resumption, 
 
 ## Exact next action after resumption
 
-None (2026-10-06). The fix run is complete: T-045.1..T-04 are done, Preview 2026.10.602.0 was published from `4ea9667` (owner dispatch, run 37475616318) and installed by the owner, and the installed-build checks passed (see the [verification record](verification.md), section "Post-install verification 2026-10-06"). The final status of every AUD, FIX, ANL and T item is in the [analysis record](analysis-2026-10-05.md), section "Final status (2026-10-06, before the owner checkpoint)".
+None (2026-10-06). The fix run is complete: T-045.1..T-045.4 are done, Preview 2026.10.602.0 was published from `4ea9667` (owner dispatch, run 37475616318) and installed by the owner, and the installed-build checks passed (see the [verification record](verification.md), section "Post-install verification 2026-10-06"). The final status of every AUD, FIX, ANL and T item is in the [analysis record](analysis-2026-10-05.md), section "Final status (2026-10-06, before the owner checkpoint)".
 
 Opt-in follow-ups, each needing a separate owner selection (none is started):
 
