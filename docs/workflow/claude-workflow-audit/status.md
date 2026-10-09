@@ -483,6 +483,17 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - Checks: C1 86/86, C2 PASS, C4 917/917, C5 330/330, C7 0 warnings, UI test build
     0 warnings, C10 85, numbering test 12, C6 PASS.
 
+- **2026-10-09 — step 8, trials (OD-27, OD-29; OD-28 running).** Results in
+  [trials.md](trials.md): csharp-ls kept (projects discovered, cross-project references,
+  XAML-generated members, diagnostics within 1 s, no WinUI false positives), roslyn
+  prerelease removed (no project loaded); `winapp ui` read-only verbs useful (found a shared
+  `SettingsButton` AutomationId). Host changes, each with its undo in trials.md: `csharp-ls`
+  0.28.0 kept, `roslyn-language-server` installed then uninstalled, `winapp` 0.7.1 and the
+  user variable `WINAPP_CLI_TELEMETRY_OPTOUT=1`, `dotnet-stryker` 5.0.0. R15: the Sandbox
+  audit runner now writes a `STARTED` liveness marker, and verification.md says how to wait
+  and when to stop (Sandbox run NOT_RUN: running it needs the owner, always-ask). The `/goal`
+  trial is NOT_RUN until the next multi-part feature.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
@@ -533,6 +544,13 @@ work continues on the recommended path unless it is marked as waiting.
 - **OD-37 — Five activation smokes already fail on `main`.** See step 5. *Recommendation:*
   register a backlog bug item for them (owner selection decides when it is fixed); until then a
   change that needs these smokes records them FAIL with this note. Waiting for the owner.
+
+- **OD-38 — Enable the C# language server for this project.** The OD-27 trial recommends
+  csharp-ls (see [trials.md](trials.md)). Enabling `csharp-lsp@claude-plugins-official` in the
+  committed `.claude/settings.json` gives every session diagnostics after edits, but needs
+  `csharp-ls` installed on each machine (a session without it just has no LSP) and is an
+  agent-configuration change (T3). *Recommendation:* enable it at project scope and keep the
+  pinned tool in the host environment notes. Waiting for the owner.
 
 ## Next action
 

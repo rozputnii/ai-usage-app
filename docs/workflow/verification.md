@@ -131,6 +131,11 @@ package install, update or uninstall, recovery with destructive fault injection,
 certificate trust changes. State the reason before using one. Those checks run when the
 affected behavior requires them; they are not deferred to the final release.
 
+Wait for a Sandbox run with a background task, not foreground sleeps. The audit runner's guest
+writes `run.json` with `STARTED` as soon as it begins and replaces it with the final status;
+if the run exceeds an explicit bound stated beforehand, stop it with `wsb stop` and record
+BLOCKED with the last status.
+
 A required MSIX build (C9) needs no installation or guest. Local unpackaged evidence does not
 establish package installation, packaged activation or update behavior. Keep development
 data isolated from installed-app data and preserve existing credentials. Host

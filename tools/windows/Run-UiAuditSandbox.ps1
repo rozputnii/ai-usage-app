@@ -50,6 +50,8 @@ param([string]$FirstPage)
 $ErrorActionPreference = 'Stop'
 if ($env:USERNAME -ne 'WDAGUtilityAccount') { throw 'Synthetic audit requires Windows Sandbox.' }
 $report = [ordered]@{ Synthetic = $true; StartedAt = [DateTimeOffset]::UtcNow.ToString('o'); Status = 'STARTED'; Network = 'Disabled' }
+# Liveness marker for the host: STARTED is replaced by the final status in the finally block.
+$report | ConvertTo-Json | Set-Content C:/AIU-Evidence/run.json
 try {
     New-Item -ItemType Directory -Path C:/AIU-Work -Force | Out-Null
     Copy-Item -LiteralPath C:/AIU-Input/app,C:/AIU-Input/smoke,C:/AIU-Input/pages -Destination C:/AIU-Work -Recurse -Force

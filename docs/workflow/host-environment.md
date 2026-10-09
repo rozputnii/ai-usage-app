@@ -14,6 +14,10 @@ cost time to rediscover. Check them before planning tooling or desktop work. Las
 - Node.js is not installed.
 - The .NET SDK from global.json is on PATH; the user-local fallback is
   `$HOME/.dotnet/ai-usage-sdk/dotnet.exe`.
+- Optional tools installed for the Stage 2 trials (2026-10-09): `csharp-ls` 0.28.0 as a
+  global .NET tool (C# language server), and the Microsoft `winapp` CLI 0.7.1 through winget
+  with `WINAPP_CLI_TELEMETRY_OPTOUT=1` set for the user. See
+  [the trials](claude-workflow-audit/trials.md) for use and removal.
 - Long paths fail: a worktree under a deep temporary directory can push build outputs past
   the Windows path limit ("The filename or extension is too long"). Keep worktrees under
   `.claude/worktrees/` of the main checkout.
