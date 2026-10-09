@@ -62,22 +62,22 @@ internal static class SmokeKit
         File.WriteAllText(Path.Combine(evidence, prefix + "-failure-tree.txt"), tree.ToString());
     }
 
-    /// <summary>Appends this test's result to the ignored .ai-usage-local/smoke-history.csv; call it while the test class is disposed.</summary>
+    /// <summary>Appends this test's result to one host-wide history next to the desktop smoke lock,
+    /// %LOCALAPPDATA%\AiUsage-smoke-history.csv, so it survives worktree removal; call it while the test class is disposed.</summary>
     internal static void RecordResult(TimeSpan duration)
     {
         var root = RepositoryRoot();
-        if (root is null) return;
         var context = TestContext.Current;
-        var file = Path.Combine(root, ".ai-usage-local", "smoke-history.csv");
-        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AiUsage-smoke-history.csv");
         static string Field(string? value) => "\"" + (value ?? string.Empty).Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
         var row = string.Join(',',
             DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture),
             Field(context.Test?.TestDisplayName),
             context.TestState?.Result.ToString() ?? "Unknown",
             duration.TotalSeconds.ToString("0.0", CultureInfo.InvariantCulture),
-            Commit.Value);
-        if (!File.Exists(file)) File.WriteAllText(file, "utc,test,outcome,duration_s,commit" + Environment.NewLine);
+            Commit.Value,
+            Field(root is null ? null : Path.GetFileName(root)));
+        if (!File.Exists(file)) File.WriteAllText(file, "utc,test,outcome,duration_s,commit,worktree" + Environment.NewLine);
         File.AppendAllText(file, row + Environment.NewLine);
     }
 
@@ -92,7 +92,7 @@ internal static class SmokeKit
     {
         try
         {
-            using var git = Process.Start(new ProcessStartInfo("git", "rev-parse --short HEAD")
+            using var git = Process.Start(new ProcessStartInfo("git", "describe --always --dirty")
             {
                 UseShellExecute = false, RedirectStandardOutput = true, CreateNoWindow = true, WorkingDirectory = RepositoryRoot() ?? AppContext.BaseDirectory,
             });

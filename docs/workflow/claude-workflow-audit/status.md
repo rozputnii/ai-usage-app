@@ -429,6 +429,36 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   after the feed upload but before the Pages deploy, a re-run skips and the install page stays
   one build behind until the next product push; App Installer updates are unaffected.
 
+- **2026-10-09 — step 5, tests and smoke (OD-23, OD-24, OD-25, R14, R5).** Three parallel
+  workers in worktrees from this branch (`stage2/s2-diag`, `s2-suite`, `s2-smoke`), each with a
+  per-task review, merged here with `--no-ff`:
+  - OD-24 (`01217c7`): the diagnostics probe prints `AIU_PROBE_READY` after its log is flushed;
+    both DiagnosticCrashTests wait for it (120 s startup bound), then apply the unchanged 10 s
+    and 20 s bounds. Red 2/2 against the old probe, green 2/2. Review: PASS, 2 Minor.
+  - R14 (`4183444`, `24c481b`, `38b4e48`, plus `804096a`): the 235-case audit corpus runs in
+    four parallel shard classes (917 tests, names identical before and after, export
+    byte-identical; warm wall time 28.5 s → 17.4 s per the reviewer); xUnit1004 is an error in
+    all four test projects (`.editorconfig`); `tools/windows/Test-Erosion.ps1` reports deleted
+    tests, new skips (now including `Assert.Skip`), fewer asserts and changed fixtures, and
+    exits 0. The 256-file cap test was not cheapened: that needs a product change (OD-36).
+    Review: approve, 4 Minor.
+  - OD-25, OD-23, R5 (`fc1bb2f`, `2ff314b`, `4f1daab`, plus a history fix): the `Audit*`
+    suite is `Explicit` (35 tests, none run by default); an unpackaged app with a valid
+    `AIU_SMOKE_TRAY_ID` names its tray icon `AI Usage <id>` and the harness matches that exact
+    name (red: two "AI Usage" icons with the installed app running; green: one each); a
+    re-find helper, failure screenshot plus UI-tree dump, and one host-wide result history
+    `%LOCALAPPDATA%\AiUsage-smoke-history.csv`. Review: PASS, production path unchanged,
+    3 Minor (two fixed: the history now survives worktree removal and marks dirty trees).
+  - Worker friction to note for R15: a session guard refuses Edit/Write outside the session's
+    own worktree, so workers had to switch into their worktree (EnterWorktree) or use shell
+    edits.
+  - Integrated checks on this branch: C4 917/917, C5 330/330, C1 86/86, C7 0 warnings, C8 3/3
+    (Release build, desktop lock, tray identity), C10 85, C2 PASS, C6 PASS.
+  - Found, not caused by this branch: five LedgerActivationSmoke cases
+    (`FirstRunSignInButtonsRespondToMouseClicksWithSettingsOpen` ×4,
+    `BusyStorageExplainsTheBlockAndRetryEnablesSignIn`) fail the same way at base `27a14b0`;
+    see OD-37.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
@@ -475,6 +505,10 @@ work continues on the recommended path unless it is marked as waiting.
   the test to 1-2 s and also speed real writes, but it is product code on the reparse-point
   safety boundary (T3, security-lifecycle review). *Recommendation:* approve it as a separate
   T3 item after this branch merges. Until then the test stays unchanged. Waiting for the owner.
+
+- **OD-37 — Five activation smokes already fail on `main`.** See step 5. *Recommendation:*
+  register a backlog bug item for them (owner selection decides when it is fixed); until then a
+  change that needs these smokes records them FAIL with this note. Waiting for the owner.
 
 ## Next action
 

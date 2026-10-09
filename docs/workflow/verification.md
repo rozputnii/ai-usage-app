@@ -50,8 +50,8 @@ failures or unresolved concerns.
 | Any edit under `src/windows` | Build both unit test projects (C4 and C5 compile them). |
 | Windows UI, activation, tray or lifetime | The relevant regressions, C7, C9, C8 and the applicable smoke scenarios. |
 | Authentication or durable-state boundaries (T3) | The relevant regressions plus focused independent review; live checks only when required and authorized. |
-| Scripts under `tools/` | The script's own test or dry run where one exists, C6; Windows PowerShell 5.1 compatibility. Preview or release scripts: C10. |
-| Tests or smoke harness only | The changed tests pass; the case count is unchanged or the difference is explained; a harness change runs the affected smoke. |
+| Scripts under `tools/` | The script's own test or dry run where one exists (`tests/tools/Test-ItemNumbers.ps1` for the numbering script), C6; Windows PowerShell 5.1 compatibility. Preview or release scripts: C10. |
+| Tests or smoke harness only | The changed tests pass; the case count is unchanged or the difference is explained; run `tools/windows/Test-Erosion.ps1` and justify each item it lists; a harness change runs the affected smoke. |
 | CI workflow or dependencies (T3) | C2, C4, C5, C7; check the CI run after the merge. |
 
 Verification targets the owner's ordinary desktop use of this personal app. Do not run
@@ -90,7 +90,7 @@ A BLOCKED required smoke follows the blocked-smoke rule in the
 [Git flow](../../CONTRIBUTING.md#git-flow). After two failed reruns of a smoke, record FAIL
 or BLOCKED with a diagnosis and stop; never skip the smoke.
 
-Opt-in checks: the Sandbox UI audit suite (frozen); package, upgrade and feed smokes for
+Opt-in checks: the Sandbox UI audit suite (frozen: its tests are `Explicit` and need no edits for UI changes); package, upgrade and feed smokes for
 manifest, packaging, update or migration changes; live-provider checks for provider or
 authentication changes, with authorization.
 
@@ -109,9 +109,18 @@ while ($true) {
 try { <run the smoke exe with its -method filter> } finally { Remove-Item $lock -Recurse -Force }
 ```
 
-Set `AIU_SMOKE_EXE` to the app executable and `AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh
-local evidence directory. The launch smoke covers the demo and product paths itself. Missing
-prerequisites fail; they never skip silently.
+Set `AIU_SMOKE_EXE` to the Release unpackaged app executable (C7) and
+`AIU_SMOKE_EVIDENCE_DIRECTORY` to a fresh local evidence directory. The launch smoke covers the
+demo and product paths itself. Missing prerequisites fail; they never skip silently.
+
+- Each launched test app gets its own tray identity: the harness sets `AIU_SMOKE_TRAY_ID` and
+  finds the icon named `AI Usage <id>`, so a smoke never touches the installed app's icon. A
+  packaged app ignores the variable.
+- Find elements through the re-find helper in `SmokeKit.cs`, by AutomationId where one exists;
+  do not hold UIA references across UI changes or wait with fixed sleeps.
+- A failing smoke saves a screenshot and a UI-tree dump into the evidence directory. Every
+  smoke result is appended to `%LOCALAPPDATA%\AiUsage-smoke-history.csv` (test, outcome,
+  duration, commit, worktree), which shows flaky tests across worktrees.
 
 ## Development environment
 
