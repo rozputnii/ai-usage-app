@@ -3,9 +3,10 @@
 Reports possible test erosion between a base ref and HEAD. Informational only: always exits 0.
 
 .DESCRIPTION
-Looks at changed C# files under tests/ and lists removed [Fact]/[Theory] methods, newly added
-Skip = or Explicit = true, files whose Assert. count dropped, and changed files under fixture or
-expected-data folders. Each listed item needs a justification in the change description.
+Looks at changed C# files under tests/ and lists removed [Fact]/[Theory] methods, methods moved
+to a renamed or split class, newly added Skip = or Explicit = true, files whose Assert. count
+dropped, and changed files under fixture or expected-data folders. Each listed item needs a
+justification in the change description.
 
 .EXAMPLE
 powershell -NoProfile -File tools/windows/Test-Erosion.ps1
@@ -64,8 +65,15 @@ try {
         if ($countAfter -lt $countBefore) { $asserts += "  $(if ($change.New) { $change.New } else { $change.Old }): $countBefore -> $countAfter" }
     }
     # Compare across all changed files so a test moved between files of one class is not reported.
+    # A method that reappears under the same name in a class without tests at the base (a renamed or
+    # split class) is listed as moved instead of deleted; check that its cases are unchanged.
+    $baseClasses = @($baseTests.Keys | ForEach-Object { $_.Split('.')[0] })
+    $newClassMethods = @($headTests.Keys | Where-Object { $baseClasses -notcontains $_.Split('.')[0] } | ForEach-Object { $_.Split('.')[1] })
+    $moved = @()
     foreach ($name in $baseTests.Keys | Sort-Object) {
-        if (!$headTests.ContainsKey($name)) { $deleted += "  $name ($($baseTests[$name]))" }
+        if ($headTests.ContainsKey($name)) { continue }
+        if ($newClassMethods -contains $name.Split('.')[1]) { $moved += "  $name ($($baseTests[$name]))" }
+        else { $deleted += "  $name ($($baseTests[$name]))" }
     }
 
     $skips = @(); $file = ''
@@ -80,6 +88,7 @@ try {
     Write-Output "Test-erosion report for $Base...HEAD ($($csharp.Count) changed C# test files)"
     $sections = [ordered]@{
         'Deleted [Fact]/[Theory] methods' = $deleted
+        'Test methods moved to a new class (same method name)' = $moved
         'Newly added Skip = / Explicit = true' = $skips
         'Files with fewer Assert. calls' = $asserts
         'Changed fixture or expected-data files' = $fixtures
