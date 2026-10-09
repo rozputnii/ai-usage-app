@@ -121,9 +121,10 @@ GitHub Pages, then enables `AIU_PREVIEW_ENABLED`. It never exports the existing 
 key or changes host certificate trust. Existing secrets/setup evidence stop a repeat;
 partial setup must be inspected, not overwritten or rotated automatically.
 
-Every push to `main` publishes (owner decision 2026-10-06, reversing AIU045-D1's
-dispatch-only rule). The run validates and packages the pushed commit; only if both jobs
-pass does it publish a distinct development prerelease. It then replaces the feed
+A push to `main` publishes unless every path changed since the last published Preview is
+outside the product inputs (`docs/**`, `.claude/**`, `.agents/**` and root Markdown files);
+the run's job summary records the decision and its reason. The run validates and packages
+the pushed commit; only if both jobs pass does it publish a distinct development prerelease. It then replaces the feed
 `https://github.com/rozputnii/ai-usage-app/releases/download/feed-preview/AiUsage.appinstaller`
 and deploys the install page at `https://rozputnii.github.io/ai-usage-app/`. The owner
 can republish the current commit with

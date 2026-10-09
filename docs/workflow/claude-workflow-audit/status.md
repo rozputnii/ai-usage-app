@@ -329,6 +329,25 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   - OD-22: no worktree qualifies under the strict conditions; see OD-33. Nothing was removed.
   - Checks: C1 PASS (83/83); C2 PASS; C6 PASS.
 
+- **2026-10-09 — step 4, CI (OD-17, OD-26).**
+  - `.github/workflows/validation.yml`: a new "Decide Preview publication" step in the
+    `preview` job diffs the pushed commit against the source of the last published
+    (non-draft) Preview and publishes only when `Test-PreviewInputsChanged` finds a product
+    input; an owner dispatch always publishes; no ancestor Preview means publish. The decision
+    and its reason go to the job summary. The signing and publishing step runs only when the
+    decision is `publish`; the Pages steps already follow its `promote` output.
+  - `tools/windows/PreviewRelease.psm1`: `Test-PreviewInputsChanged` (allowlist `docs/**`,
+    `.claude/**`, `.agents/**`, root `*.md`; unknown paths publish).
+  - OD-26: the AIU-002 routing-spike build step is removed; `spikes/windows/AIU-002-routing`
+    stays.
+  - README's Preview paragraph and D-NEW-9 (amends D-157, with an "Amended by" line there).
+  - Checks: C10 red first (`Test-PreviewInputsChanged` not found), then PASS (80 assertions,
+    Windows PowerShell 5.1; CI runs it under pwsh). The decision script, extracted from the
+    workflow and run locally against the real release list with simulated push variables:
+    `origin/main` → skip (0 paths), the step-1 commit `4206880` → skip (31 docs paths), this
+    branch's HEAD → publish (PASS). The workflow YAML itself was not parsed by a YAML tool
+    offline (NOT_RUN); CI first runs it after the merge into `main`. C2 PASS; C6 PASS.
+
 ## New owner decisions (Stage 2)
 
 Raised during Stage 2 for things no approved decision covers. Each has a recommendation;
@@ -368,8 +387,7 @@ work continues on the recommended path unless it is marked as waiting.
 
 ## Next action
 
-Stage 2, step 4: CI — the OD-17 product-input Preview filter and the OD-26 routing-spike
-removal, with a focused review (T3). Then step 5 tests and smoke
-(OD-23..OD-25, R14, R5); step 6 records and IDs (OD-19, OD-31, R13; re-check in-flight branches
+Stage 2, step 5: tests and smoke — OD-23 per-run tray identity and Release-build smokes,
+OD-24 probe-ready signal, OD-25 `Explicit` audit suite, R14 and R5 harness items. Then step 6 records and IDs (OD-19, OD-31, R13; re-check in-flight branches
 first); step 7 skills (OD-20, OD-7); step 8 trials (OD-27..OD-29). Steps 1-4 are T3 and each
 gets a focused independent review.

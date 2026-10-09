@@ -66,14 +66,6 @@ jobs:
           [xml]$manifest = Get-Content src/windows/AiUsage.Windows/Package.appxmanifest
           $version = if ($env:REQUESTED_MSIX_VERSION) { $env:REQUESTED_MSIX_VERSION } else { [string]$manifest.Package.Identity.Version }
           ./tools/windows/Build-Package.ps1 -MsixVersion $version -OutputDirectory .ai-usage-local/AIU-002/ci-packages
-      - name: Build standalone native routing reproduction
-        shell: pwsh
-        run: |
-          $vswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
-          $msbuild = & $vswhere -latest -products '*' -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe'
-          if (!$msbuild) { throw 'VS MSBuild is required.' }
-          & $msbuild spikes/windows/AIU-002-routing/AiUsage.RoutingSpike.csproj /restore /v:minimal /p:Configuration=Release /p:Platform=x64 /p:RuntimeIdentifier=win-x64 /p:AppxPackageSigningEnabled=false
-          if ($LASTEXITCODE -ne 0) { throw 'Native routing build failed.' }
       - name: Publish isolated desktop smoke harness without running UI tests
         run: dotnet publish tests/windows/AiUsage.Windows.Tests/AiUsage.Windows.Tests.csproj -c Release -r win-x64 --self-contained true -o .ai-usage-local/AIU-002/ci-smoke
       - name: Record desktop evidence boundary
@@ -117,7 +109,42 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      - name: Decide Preview publication
+        id: decide
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # OD-17: a push publishes unless every path changed since the last published Preview is
+          # non-product (docs/**, .claude/**, .agents/**, root *.md); an owner dispatch always publishes.
+          Import-Module ./tools/windows/PreviewRelease.psm1 -Force
+          $publish = $true
+          $reason = 'owner dispatch'
+          if ($env:GITHUB_EVENT_NAME -eq 'push') {
+            $releases = @(gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" | ConvertFrom-Json | ForEach-Object { $_ } | ForEach-Object { $_ })
+            if ($LASTEXITCODE -ne 0) { throw 'Cannot list releases.' }
+            $last = @($releases | Where-Object { $_.tag_name.StartsWith('preview-') -and !$_.draft } | Sort-Object { [version]$_.tag_name.Substring(8) } -Descending | Select-Object -First 1)
+            $base = if ($last.Count) { [string]$last[0].target_commitish } else { '' }
+            $ancestor = $false
+            if ($base -match '^[0-9a-f]{40}$') {
+              git merge-base --is-ancestor $base $env:GITHUB_SHA
+              $ancestor = $LASTEXITCODE -eq 0
+              $global:LASTEXITCODE = 0
+            }
+            if (!$ancestor) {
+              $reason = "no published Preview source that is an ancestor of this commit ($base)"
+            } else {
+              $changed = @(git diff --name-only $base $env:GITHUB_SHA)
+              if ($LASTEXITCODE -ne 0) { throw 'Cannot list changed paths.' }
+              $publish = Test-PreviewInputsChanged -ChangedPaths $changed
+              $reason = if ($publish) { "product inputs changed since $base" } else { "only non-product paths changed since $base ($($changed.Count) paths)" }
+            }
+          }
+          "publish=$($publish.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "### Preview publication: $(if ($publish) { 'publish' } else { 'skip' })`n`nReason: $reason" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "Preview publication: $publish ($reason)"
       - name: Reserve, build, sign and publish development Preview
+        if: steps.decide.outputs.publish == 'true'
         id: publish
         shell: pwsh
         env:

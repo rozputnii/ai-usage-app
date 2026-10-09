@@ -65,6 +65,18 @@ function Test-PreviewPromotion {
     }
     return $true
 }
+# OD-17 (2026-10-09): product inputs are every path except docs/**, .claude/**, .agents/** and root
+# Markdown files. An unknown path counts as a product input, so a new kind of file still publishes.
+function Test-PreviewInputsChanged {
+    param([string[]]$ChangedPaths)
+    foreach ($path in $ChangedPaths) {
+        $normalized = $path.Replace([char]92, '/')
+        $nonProduct = $normalized -like 'docs/*' -or $normalized -like '.claude/*' -or $normalized -like '.agents/*' -or
+            ($normalized -notlike '*/*' -and $normalized -like '*.md')
+        if (!$nonProduct) { return $true }
+    }
+    return $false
+}
 function Assert-PreviewPublicationRunner {
     if ($env:GITHUB_ACTIONS -ne 'true' -or $env:GITHUB_EVENT_NAME -notin 'push', 'workflow_dispatch' -or $env:GITHUB_REF -ne 'refs/heads/main' -or $env:GITHUB_JOB -ne 'preview' -or
         $env:RUNNER_ENVIRONMENT -ne 'github-hosted' -or $env:GITHUB_REPOSITORY -ne 'rozputnii/ai-usage-app') { throw 'Preview publication requires the owned hosted main push or owner dispatch.' }
@@ -99,4 +111,4 @@ function Remove-PreviewRunnerTrust {
         if ($store.Certificates.Find('FindByThumbprint', $Thumbprint, $false).Count) { throw 'Development root trust was not removed.' }
     } finally { $store.Dispose() }
 }
-Export-ModuleMember -Function Get-NextPreviewVersion, New-PreviewFeed, Test-PreviewPromotion, Assert-PreviewPublicationRunner, Add-PreviewRunnerTrust, Remove-PreviewRunnerTrust
+Export-ModuleMember -Function Get-NextPreviewVersion, New-PreviewFeed, Test-PreviewPromotion, Test-PreviewInputsChanged, Assert-PreviewPublicationRunner, Add-PreviewRunnerTrust, Remove-PreviewRunnerTrust

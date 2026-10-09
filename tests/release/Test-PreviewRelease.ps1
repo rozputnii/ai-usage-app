@@ -92,7 +92,7 @@ Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($parent)) $tru
 Equal (Test-PreviewPromotion -Candidate $parent -PublishedCommits @($head, $parent)) $false
 Equal (Test-PreviewPromotion -Candidate $head -PublishedCommits @($head)) $true
 Reject { Test-PreviewPromotion -Candidate ('0' * 40) -PublishedCommits @($head) }
-# Every green main push publishes; an owner dispatch can republish (owner decision 2026-10-06, reverses AIU045-D1).
+# A green main push can publish (filtered by OD-17 below); an owner dispatch can republish (owner decision 2026-10-06, reverses AIU045-D1).
 $runnerNames = 'GITHUB_ACTIONS', 'GITHUB_EVENT_NAME', 'GITHUB_REF', 'GITHUB_JOB', 'RUNNER_ENVIRONMENT', 'GITHUB_REPOSITORY'
 $savedRunner = @{}
 foreach ($name in $runnerNames) { $savedRunner[$name] = [Environment]::GetEnvironmentVariable($name) }
@@ -119,6 +119,19 @@ Equal ($publishInput -match '(?m)^        type: boolean\r?$') $true
 Equal ($publishInput -match '(?m)^        default: false\r?$') $true
 $versionInput = [regex]::Match($dispatch, '(?m)^      MsixVersion:\r?\n(?:        [^\r\n]*\r?\n)+').Value
 Equal ($versionInput -match '(?m)^        required: false\r?$') $true
+# OD-17 (2026-10-09): a main push publishes unless every path changed since the last published
+# Preview is on the non-product allowlist; the same "product inputs" decide the launch-smoke gate.
+Equal (Test-PreviewInputsChanged -ChangedPaths @('docs/backlog.md', '.claude/settings.json', '.agents/skills/x/SKILL.md', 'AGENTS.md', 'README.md')) $false
+Equal (Test-PreviewInputsChanged -ChangedPaths @()) $false
+Equal (Test-PreviewInputsChanged -ChangedPaths @('docs/backlog.md', 'src/windows/AiUsage.Windows/App.xaml')) $true
+foreach ($path in @('Directory.Packages.props', 'global.json', '.github/workflows/validation.yml', 'tools/windows/Build-Package.ps1', 'tests/windows/X.cs', 'LICENSE', 'src/README.md', 'docs', '.gitignore')) {
+    Equal (Test-PreviewInputsChanged -ChangedPaths @($path)) $true
+}
+$decide = [regex]::Match($workflow, '(?ms)^      - name: Decide Preview publication\r?\n.*?(?=^      - )').Value
+Equal ($decide -match 'Test-PreviewInputsChanged') $true
+Equal ($decide -match 'GITHUB_STEP_SUMMARY') $true
+Equal ($workflow -match "(?m)^        if: steps\.decide\.outputs\.publish == 'true'\r?$") $true
+Equal ($workflow -match 'AIU-002-routing') $false
 Write-Output "PASS: $script:count release policy and source ancestry assertions"
 # Expected negative native Git checks are assertions, not the script's exit status.
 exit 0
