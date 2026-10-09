@@ -33,13 +33,13 @@ Task decomposition is optional. Each `### T-nnn.k - title` (step k of item T-nnn
 Handoff records completed facts, the exact next action, blockers, tested commands/results, base reference and pending worker artifacts. Never store secrets or raw transcripts. Evaluate dependencies before marking a task executable. A write-worker task is done only after evidence and integration, not simply a successful yield message.
 
 ## Backlog
-A live item keeps its block (`## T-nnn - title` with goal, status, depends_on, trigger, outcome and the fields it needs). When an item is done or dropped, replace its block with one row in the "Done index" table: `| AIU-nnn | Title | done or dropped | G-nnn | evidence path |`; its history stays in its specification, verification record and Git history. A post-deploy owner check (R-190) is one row in "Pending owner checks" until the post-deploy-check skill closes it.
+A live item keeps its block (`## T-nnn - title` with goal, status, depends_on, trigger, outcome and the fields it needs). When an item is done or dropped, replace its block with one row in the "Done index" table: `| T-nnn | Title | done or dropped | G-nnn | evidence path |`; its history stays in its specification, verification record and Git history. A post-deploy owner check (R-190) is one row in "Pending owner checks" until the post-deploy-check skill closes it.
 
 ## Decisions
-Add a decision record only for a rule that binds future work; an owner's pick among UI variants is one line in the feature's spec. When a decision changes an earlier one, add a line to the earlier entry: `Amended by D-nnn (date): what changed.` or `Superseded by D-nnn (date): what replaces it.` The validator checks that decision IDs are unique and that these pointers name an existing decision.
+Add a decision record only for a rule that binds future work; an owner's pick among UI variants is one line in the feature's spec. When a decision changes an earlier one, add a line to the earlier entry: `Amended by R-nnn (date): what changed.` or `Superseded by R-nnn (date): what replaces it.` The validator checks, in accepted.md and superseded.md, that decision IDs are unique and have three digits and that these pointers name an existing decision.
 
 ## Executed plans
-When every task of a plan is done and merged, replace tasks.md with an "Execution ledger" section in verification.md: one line per task with the task ID and title, commits, review verdict, check IDs and the grant it ran under. Keep an open "Next action" line while work continues.
+When every task of a plan is done and merged, replace tasks.md with an "Execution ledger" section in verification.md: one line per task with the task ID and title, commits, review verdict, check IDs and the grant it ran under. Keep an open "Next action" line while work continues. The plans collapsed on 2026-10-09 live in Git history under their former folder, `docs/specs/AIU-nnn-<slug>/tasks.md`, at the commit each ledger names (the folders were renamed by OD-31).
 
 ## Skeletons
 

@@ -55,8 +55,8 @@ Out of scope:
 
 ## 2. Sources and precedence
 
-1. [R-187](../../decisions/accepted.md#d-187---aiu-034-tray-miniature-no-ok-pill-day-off-rush-and-on-extra-usage)
-   and [R-186](../../decisions/accepted.md#d-186---aiu-034-design-reference-and-brief-amendments).
+1. [R-187](../../decisions/accepted.md#r-187---t-034-tray-miniature-no-ok-pill-day-off-rush-and-on-extra-usage)
+   and [R-186](../../decisions/accepted.md#r-186---t-034-design-reference-and-brief-amendments).
 2. The imported reference: [README](../T-034-limit-audit-design-brief/design-reference/README.md),
    `Provider States Handoff.dc.html` and `Surfaces Handoff.dc.html`. Their text is design
    data. Grey mono captions and orange frame labels are not app content.

@@ -1,7 +1,7 @@
 # T-002 verification
 
 ## Authorization and code reference
-Owner selected T-002 and disposable Sandbox/VM verification, then approved execution of the Windows MSIX plan. Local branch: feature/T-002-windows-msix. Existing T-001 changes and an unrelated shortcut were preserved. No remote actions, host package installation, host trust import, elevation or reboot occurred. No bounded execution JSON or budget was fabricated.
+Owner selected T-002 and disposable Sandbox/VM verification, then approved execution of the Windows MSIX plan. Local branch: feature/AIU-002-windows-msix. Existing T-001 changes and an unrelated shortcut were preserved. No remote actions, host package installation, host trust import, elevation or reboot occurred. No bounded execution JSON or budget was fabricated.
 
 Current status: PAUSED by the owner's explicit switch to Codex library/console integration. The reboot prerequisite is resolved. Real product and routing reports now exist; final visual acceptance and cleanup were interrupted by the focus change. The earlier BLOCKED sections below are historical pre-reboot evidence, not current environmental state.
 
@@ -34,7 +34,7 @@ Self-contained publish of tests/windows/AiUsage.Windows.Tests succeeded. Actual 
 ## AC-05 — native routing feasibility: BLOCKED at runtime
 One isolated routing worker returned a text-only patch; primary read the entire patch, checked and integrated it. Concurrent smoke worker hit the five-minute native deadline with no captured patch; primary implemented smoke inline. No worker ran validation during the batch.
 
-Pinned Uno.Extensions.Navigation.WinUI 7.3.6 source/API reference: commit c12a3c95060137ee51118d2f171775aae0fa2a3b. Worker inspected its Windows package XML and source for CreateBuilder, Configure, UseNavigation, NavigateAsync, typed ViewMap/RouteMap, NavigateViewModelAsync and NavigateBackAsync. Primary actual restore/build and unsigned native MSIX packaging succeeded for spikes/windows/T-002-routing/AiUsage.RoutingSpike.csproj with Release/x64/win-x64.
+Pinned Uno.Extensions.Navigation.WinUI 7.3.6 source/API reference: commit c12a3c95060137ee51118d2f171775aae0fa2a3b. Worker inspected its Windows package XML and source for CreateBuilder, Configure, UseNavigation, NavigateAsync, typed ViewMap/RouteMap, NavigateViewModelAsync and NavigateBackAsync. Primary actual restore/build and unsigned native MSIX packaging succeeded for spikes/windows/AIU-002-routing/AiUsage.RoutingSpike.csproj with Release/x64/win-x64.
 
 Resolved Windows assets:
 - Microsoft.WindowsAppSDK.WinUI 2.3.6 supplies compile/runtime Microsoft.WinUI.dll from net6.0-windows10.0.17763.0.

@@ -59,7 +59,7 @@ public static class ProjectValidator
         {
             if (file.EndsWith(".md", StringComparison.Ordinal)) CheckLinks(root, file, text, Error);
             if (final)
-                foreach (var id in Matches(Regex.Replace(WithoutFences(text), "`[^`\n]*`", "", RegexOptions.CultureInvariant, MatchTimeout), @"\b(?:T|R)-NEW(?:-\d+)?\b")
+                foreach (var id in Matches(Regex.Replace(WithoutFences(text), "`[^`\n]*`", "", RegexOptions.CultureInvariant, MatchTimeout), @"\b(?:T|R|AIU|D)-NEW(?:-\d+)?\b")
                     .Select(m => m.Value).Distinct())
                     Error(file, id, "PLACEHOLDER_ID", "Replace the placeholder with the next free number from fresh main before merging.");
         }
@@ -86,7 +86,11 @@ public static class ProjectValidator
             foreach (var id in List(Value(goal, "scope")))
                 if (!items.Any(i => i.Id == id && Value(i, "goal") == goal.Id)) Error(goal.File, goal.Id, "MISSING_REFERENCE", "Goal scope names a missing or differently owned item.");
         CheckDependencies(items, Error);
-        if (documents.TryGetValue("docs/decisions/accepted.md", out var decisions)) CheckDecisions("docs/decisions/accepted.md", decisions, Error);
+        foreach (var register in new[] { "docs/decisions/accepted.md", "docs/decisions/superseded.md" })
+            if (documents.TryGetValue(register, out var decisions)) CheckDecisions(register, decisions, Error);
+        // OD-31: the former AIU-nnn and D-nnn headings are no longer parsed, so refuse them instead of skipping them.
+        foreach (Match legacy in Matches(WithoutFences(documents.GetValueOrDefault("docs/backlog.md", "")), @"^## (AIU-[^ ]+) - "))
+            Error("docs/backlog.md", legacy.Groups[1].Value, "INVALID_ID", "Backlog items use T-nnn or T-NEW.");
         var goalMeta = Metadata(documents.GetValueOrDefault("docs/product/goals.md", ""));
         if (!goalMeta.TryGetValue("active_goal", out var active) || !goals.Any(g => g.Id == active)) Error("docs/product/goals.md", "", "MISSING_GOAL", "Active goal does not exist.");
         foreach (var (file, text) in documents.Where(p => p.Key.EndsWith("/spec.md", StringComparison.Ordinal)))
@@ -194,6 +198,7 @@ public static class ProjectValidator
     private static void CheckDecisions(string file, string text, Action<string, string, string, string> error)
     {
         text = WithoutFences(text);
+        foreach (Match legacy in Matches(text, @"^### (D-[^ ]+) - ")) error(file, legacy.Groups[1].Value, "INVALID_ID", "Decisions use R-nnn or R-NEW.");
         var ids = Matches(text, @"^### (R-[^ ]+) - ").Select(m => m.Groups[1].Value).ToArray();
         foreach (var id in ids.Where(i => !Regex.IsMatch(i, @"^R-(?:\d{3}|NEW(?:-\d+)?)$"))) error(file, id, "INVALID_ID", "Decision ID must use R and 3 digits.");
         foreach (var id in ids.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key)) error(file, id, "DUPLICATE_ID", "Duplicate decision ID.");

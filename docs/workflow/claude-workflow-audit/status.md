@@ -173,7 +173,7 @@ Living log for the workflow-optimization effort. Read this first in every sessio
   marked `Explicit`, with no edits required on UI changes. The package, upgrade and feed
   smokes stay.
 - **2026-10-09, OD-26 = yes.** The T-002 routing spike build step is removed from CI. The
-  `spikes/windows/T-002-routing` folder stays.
+  `spikes/windows/AIU-002-routing` folder stays.
 - **2026-10-09, OD-27 = owner variant: trial both.** Two language servers, compared on the
   same task:
   - the `csharp-lsp` plugin with a pinned `csharp-ls`;
@@ -338,7 +338,7 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     decision is `publish`; the Pages steps already follow its `promote` output.
   - `tools/windows/PreviewRelease.psm1`: `Test-PreviewInputsChanged` (allowlist `docs/**`,
     `.claude/**`, `.agents/**`, root `*.md`; unknown paths publish).
-  - OD-26: the T-002 routing-spike build step is removed; `spikes/windows/T-002-routing`
+  - OD-26: the T-002 routing-spike build step is removed; `spikes/windows/AIU-002-routing`
     stays.
   - README's Preview paragraph and R-NEW-9 (amends R-157, with an "Amended by" line there).
   - Checks: C10 red first (`Test-PreviewInputsChanged` not found), then PASS (80 assertions,
@@ -477,9 +477,9 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
     `tests/tools/Test-ItemNumbers.ps1` PASS (12). CONTRIBUTING, AGENTS, formats.md and the
     backlog intro describe the scheme; R-NEW-11 (scheme, amends R-196) and R-NEW-12 (lean
     records) added.
-  - OD-30 is now moot: `--final` matches only `T-NEW`/`R-NEW`, so the Stage 1 prompt's
-    old-prefix mentions no longer fail; the prompt stays verbatim. `--final` lists only this
-    branch's `R-NEW` placeholders (OD-32), which `Set-ItemNumbers.ps1` numbers at the merge.
+  - `--final` lists this branch's `R-NEW` placeholders (OD-32), which `Set-ItemNumbers.ps1`
+    numbers at the merge, and the two known stage-1-prompt mentions (OD-30 still applies: the
+    step 6 review made `--final` refuse leftover `AIU-NEW`/`D-NEW` placeholders too).
   - Checks: C1 86/86, C2 PASS, C4 917/917, C5 330/330, C7 0 warnings, UI test build
     0 warnings, C10 85, numbering test 12, C6 PASS.
 
@@ -493,6 +493,25 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   audit runner now writes a `STARTED` liveness marker, and verification.md says how to wait
   and when to stop (Sandbox run NOT_RUN: running it needs the owner, always-ask). The `/goal`
   trial is NOT_RUN until the next multi-part feature.
+
+- **2026-10-09 — step 6 review fixes.** The focused review (changes requested: 4 Important,
+  5 Minor; all 35 Done index rows and every added back-pointer verified) found that the
+  migration gave other items' steps the folder's item (for example "T-045 T-039.3" for
+  AIU-045 T-03), rewrote real paths and a branch name (`spikes/windows/AIU-002-routing`,
+  `.ai-usage-local\AIU-...` with a backslash, `feature/AIU-002-...`), left two `AIU-nnn` /
+  `D-nnn` forms in formats.md, and let leftover `AIU-NEW`/`D-NEW` pass `--final`.
+  Fixed at the source: `Convert-IdScheme.ps1` now takes a step's item from the last item named
+  earlier on the same line, converts lowercase heading anchors, and excludes those paths and
+  branch names; re-run on a pre-rename copy, its output replaced 18 migration-only files, and
+  a re-run on the converted tree changes nothing. The validator refuses legacy placeholders
+  under `--final` and legacy `## AIU-`/`### D-` headings, and checks both decision registers
+  (3 new tests, 89/89). `Set-ItemNumbers.ps1` fetches first, uses one code-skipping routine for
+  finding and replacing (CRLF-safe), never writes an empty replacement, refuses an unmatched
+  `T-NEW` folder and moves untracked folders (test 15/15, covering suffix order 2 < 9 < 10, a
+  maximum taken from a spec folder and `T-NEW-1` = `T-NEW`). Also: "Amended by R-181" on
+  R-116, R-118 and R-122; formats.md names where the collapsed plans live in Git history. A
+  slug check finds no broken heading link except one that predates this branch (T-048).
+  Not done (Minor): tying a step ID `T-nnn.k` to its owning item in the validator.
 
 ## New owner decisions (Stage 2)
 

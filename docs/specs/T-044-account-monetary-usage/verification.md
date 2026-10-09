@@ -9,7 +9,7 @@ Base: `0e5d13d`. This is a documentation-only preparation step, not implemented 
 - PASS (source inspection): `ClaudeQuotaParser.ParseExtraUsage` prefers `spend` over
   `extra_usage`; `QuotaLimitMapping.FromLegacy` emits the same CL-X family. The parser
   returns null PlanType. These facts do not classify personal versus work subscriptions.
-- PASS (record inspection): T-034's Claude (T-044.2) source matrix describes CL-X/CL-D as alternative
+- PASS (record inspection): T-034's Claude (T-034.2) source matrix describes CL-X/CL-D as alternative
   extra-spend representations and leaves Team/Enterprise scope and wire period unknown.
   The imported Provider States reference has Claude Work D1-D6 with a finite monthly
   monetary pool, and A8 with spending since a window filled.
@@ -145,7 +145,7 @@ provider-evidence limitation, not an inferred personal/work classification.
 
 ## Post-done corrections (2026-10-06)
 
-Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen T-044, and its backlog status is unchanged. The synthetic UI audit that started from `383644c`, the source of the last published Preview `2026.10.404.0`, found the defects below in T-044 scope (AC-02 and AC-04, as mapped in ANL-06 of the T-045 [analysis record](../T-045-ui-audit-follow-up/analysis-2026-10-05.md)) after this task was done. As of 2026-10-06 the fixes are on `main`, but no published Preview contains them; shipping them is T-045 T-044.3. Defect descriptions and regression evidence are in the T-045 [verification record](../T-045-ui-audit-follow-up/verification.md) and the [audit report](../../archive/workflow/ui-ux-audit-2026-10-04/report.md).
+Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen T-044, and its backlog status is unchanged. The synthetic UI audit that started from `383644c`, the source of the last published Preview `2026.10.404.0`, found the defects below in T-044 scope (AC-02 and AC-04, as mapped in ANL-06 of the T-045 [analysis record](../T-045-ui-audit-follow-up/analysis-2026-10-05.md)) after this task was done. As of 2026-10-06 the fixes are on `main`, but no published Preview contains them; shipping them is T-045 T-045.3. Defect descriptions and regression evidence are in the T-045 [verification record](../T-045-ui-audit-follow-up/verification.md) and the [audit report](../../archive/workflow/ui-ux-audit-2026-10-04/report.md).
 
 | FIX | Defect | Fixing commit | Regression evidence added with the fix |
 | --- | --- | --- | --- |
@@ -153,13 +153,13 @@ Recorded 2026-10-06 under AIU045-D6(a). This annotation does not reopen T-044, a
 | FIX-04 | Cap input accepted incompatible currency symbols and malformed separators. | `2942e6f` | `AuditFormattingTests.InvalidOrForeignCapAmountsAreRejected` and `AbstractCreditsCannotAcceptACurrencySymbol` |
 | FIX-05 | Double conversion lost money cents and small overflow on large amounts. | `2942e6f` | `AuditFormattingTests.CardTextKeepsNativeMoneyPrecisionWhenGeometryNeedsDoubles` and `SmallOverageOnALargeMoneyAmountKeepsItsOverflowLabel` |
 | FIX-06 | Provider overage increased the displayed provider-limit denominator. | `ed092f0` | `AuditFormattingTests.ProviderOverageDoesNotInflateTheDisplayedLimit` |
-| FIX-11 | Tab skipped Save in the inline cap editor. | `2e50e69` | Native red/green evidence only, with no deterministic test (see audit report); the final native rerun is part of T-045 T-044.3. |
+| FIX-11 | Tab skipped Save in the inline cap editor. | `2e50e69` | Native red/green evidence only, with no deterministic test (see audit report); the final native rerun is part of T-045 T-045.3. |
 | FIX-12 | Uncapped or nonbinding today tooltips blamed a personal cap. | `2e50e69` | `LedgerCardTests.TodayTooltipNamesTheBindingLimit` |
 
-The fixing commits are `[skip ci]` WIP save points in `git log 383644c..b84bf7c`. Each row's commit is the one that added its regression test (for FIX-11, its cap-editor Tab-navigation change) and changed the fixed source file; the audit report gives no per-commit mapping. The native smoke passes recorded above predate these changes and do not carry over to current `main` (ANL-07); T-045 T-044.3 reruns them.
+The fixing commits are `[skip ci]` WIP save points in `git log 383644c..b84bf7c`. Each row's commit is the one that added its regression test (for FIX-11, its cap-editor Tab-navigation change) and changed the fixed source file; the audit report gives no per-commit mapping. The native smoke passes recorded above predate these changes and do not carry over to current `main` (ANL-07); T-045 T-045.3 reruns them.
 
 AC-03 scope note (2026-10-06, T-045 ANL-21 #4): the on-extra-usage mark was verified at fixture and projection level only; live mode cannot reach it by design (`LiveLedgerProjection` adds the mark only for `MonetaryScope.Account` spending, and live readings stay `MonetaryScope.Unknown` because current wire mappings do not establish scope), and after the AIU045-D3(a) revert of the audit scope annotations no native or gallery evidence of that projected mark can exist on the final build.
 
 Never-accepted gap (ANL-13), as of 2026-10-06:
 
-- The installed-app repeat-launch and storage-lease fault (a second process reporting LeaseUnavailable after close-to-tray; see the [UX corrections record](ux-corrections-verification.md)) was fixed with unpackaged evidence only; host package installation and packaged activation were NOT_RUN. Status: installed-app repeat launch and lease PASS 2026-10-06 (2026.10.602.0): close-to-tray, then relaunch from Start, restored the window without LeaseUnavailable (T-045 T-044.3).
+- The installed-app repeat-launch and storage-lease fault (a second process reporting LeaseUnavailable after close-to-tray; see the [UX corrections record](ux-corrections-verification.md)) was fixed with unpackaged evidence only; host package installation and packaged activation were NOT_RUN. Status: installed-app repeat launch and lease PASS 2026-10-06 (2026.10.602.0): close-to-tray, then relaunch from Start, restored the window without LeaseUnavailable (T-045 T-045.3).

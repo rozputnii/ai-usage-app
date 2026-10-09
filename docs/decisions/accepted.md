@@ -391,11 +391,15 @@ Amended by R-181 (2026-09-24): Compact usage view and daily pace colors.
 ### R-116 - Cards
 Use account cards with nested primary windows and quota groups. Primary limits remain visible; groups default collapsed and expand for warning/critical states while respecting manual preference.
 
+Amended by R-181 (2026-09-24): Compact usage view and daily pace colors.
+
 ### R-117 - Visibility
 Hiding a group or limit does not stop monitoring/history. Ask Hide only or Hide and mute alerts. Do not override an explicit hide merely because auto-expansion would otherwise apply.
 
 ### R-118 - Reset display
 Show relative reset time and the exact local timestamp. Reaching a reset time triggers observation, not an invented 100% remaining value.
+
+Amended by R-181 (2026-09-24): Compact usage view and daily pace colors.
 
 ### R-119 - Appearance and accessibility
 Offer System, Light and Dark themes, default System. Use Fluent styling, DPI support, keyboard navigation, accessible labels and high contrast. Status cannot rely on color alone.
@@ -410,6 +414,8 @@ Use official provider assets only after brand/license review; use neutral fallba
 
 ### R-122 - History UI
 Provide main-dashboard sparklines and a dedicated History view. Forecasting is Experimental, explicitly labeled Estimate and cannot change factual quota or notification behavior.
+
+Amended by R-181 (2026-09-24): Compact usage view and daily pace colors.
 
 ### R-123 - Thresholds
 Default remaining thresholds are 25%, 10% and 0%, with global -> provider -> account -> limit overrides and reset notices.

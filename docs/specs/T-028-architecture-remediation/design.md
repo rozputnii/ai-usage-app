@@ -139,7 +139,7 @@ access occurs. Future factory reset removes it as app-owned mutable state.
 
 Required independent review covers the frozen implementation and tests against this lifecycle
 boundary. The separate fresh primary review of `56d6315..55bb169`, performed without subagents,
-is recorded in [verification.md](verification.md#independent-review-and-t-04-closure---2026-09-22).
+is recorded in [verification.md](verification.md#independent-review-and-t-0284-closure---2026-09-22).
 
 ## Build policy
 

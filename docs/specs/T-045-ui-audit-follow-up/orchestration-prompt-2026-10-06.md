@@ -1,6 +1,6 @@
 # T-045 fix run: orchestration prompt
 
-**Status:** owner-requested execution prompt, authored 2026-10-06. It turns the accepted decisions AIU045-D1..D9 and tasks T-045.1..T-045.4 of the [analysis record](analysis-2026-10-05.md) into one long primary session with parallel subagents. It grants nothing by itself; authority comes from the record's accepted decisions, CONTRIBUTING.md and the owner's kickoff answers in section 2.
+**Status:** owner-requested execution prompt, authored 2026-10-06. It turns the accepted decisions AIU045-D1..D9 and tasks T-045.1..T-04 of the [analysis record](analysis-2026-10-05.md) into one long primary session with parallel subagents. It grants nothing by itself; authority comes from the record's accepted decisions, CONTRIBUTING.md and the owner's kickoff answers in section 2.
 
 **How the owner starts it.** Open a new Claude Code session in the repository root on `main` and send:
 
@@ -16,7 +16,7 @@ You are the primary session: a senior .NET/WinUI engineer, the architect and the
 
 Binding inputs, read in this order before anything else:
 
-1. [analysis-2026-10-05.md](analysis-2026-10-05.md): sections 3 (root cause), 5 (findings), 6 (P0 and gates), 7 (decisions, all accepted 2026-10-06), 8 (T-045.1..T-045.4), 11 (next action).
+1. [analysis-2026-10-05.md](analysis-2026-10-05.md): sections 3 (root cause), 5 (findings), 6 (P0 and gates), 7 (decisions, all accepted 2026-10-06), 8 (T-045.1..T-04), 11 (next action).
 2. [spec.md](spec.md) (AC-01..AC-05, boundaries) and [verification.md](verification.md) (AUD-01..AUD-10, FIX-01..FIX-14).
 3. [CONTRIBUTING.md](../../../CONTRIBUTING.md), [AGENTS.md](../../../AGENTS.md), [formats.md](../../workflow/formats.md), [verification policy](../../workflow/verification.md), [logging guide](../../workflow/logging.md).
 4. The project review skill `.agents/skills/convergence-review/SKILL.md`, and the superpowers skills `subagent-driven-development`, `dispatching-parallel-agents`, `systematic-debugging`, `test-driven-development`, `verification-before-completion`.
@@ -128,7 +128,7 @@ Owner checkpoint: dispatch Preview, installed-build checks; then N post-install 
 
 1. Verify: `git status` clean; `git rev-parse HEAD` equals `origin/main`; `gh variable get AIU_PREVIEW_ENABLED` prints `false`; no other agent session is writing to this repository; `wsb list --raw` returns no running Sandbox.
 2. Create the agent definitions (section 4) and the workspace and ledger (section 5). Record `BASE=<sha>`.
-3. Write `tasks.md`, run `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` (expect `{"valid":true,...}`), commit `docs(T-045): register fix-run tasks T-045.1..T-045.4 with parallel ownership`, push, watch CI.
+3. Write `tasks.md`, run `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json` (expect `{"valid":true,...}`), commit `docs(T-045): register fix-run tasks T-045.1..T-04 with parallel ownership`, push, watch CI.
 4. Write the pre-flight conflict table into the ledger.
 
 ### Wave 1 (parallel)
@@ -168,7 +168,7 @@ Then stop at the owner checkpoint (section 9).
 
 Each block is copied verbatim into a brief. "Writes" is the exclusive write-set; anything outside it is out of scope for that agent. Commands run from the worktree root unless stated.
 
-### A - Dispatch-only Preview publication and T-014 records (T-045.1, closes ANL-01, ANL-03 code side; D1a)
+### A - Dispatch-only Preview publication and T-014 records (T-014.1, closes ANL-01, ANL-03 code side; D1a)
 
 - agent: aiu-implementer; worktree
 - writes: `.github/workflows/validation.yml`, `tools/windows/PreviewRelease.psm1`, `tools/windows/Publish-Preview.ps1`, `tests/release/Test-PreviewRelease.ps1`, `README.md` (Preview section only), `docs/specs/T-014-preview-updates/spec.md`, `docs/specs/T-014-preview-updates/verification.md`, `docs/specs/T-014-preview-updates/bug-2026-10-04-installer-connection-aborted.md`, `docs/decisions/accepted.md` (R-157 entry only)

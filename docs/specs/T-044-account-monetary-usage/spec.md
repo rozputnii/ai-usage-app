@@ -48,8 +48,8 @@ and preserve the separate `on extra usage` mark. The user must not need to class
 an account as personal or work to recover its available readings.
 
 Sources: [T-034 reference](../T-034-limit-audit-design-brief/design-reference/README.md),
-[Claude source matrix](../T-034-limit-audit-design-brief/research.md#claude-t-02),
-[R-185 through R-187](../../decisions/accepted.md#d-185---limit-model-and-budget-rules-accepted-at-gate-a),
+[Claude source matrix](../T-034-limit-audit-design-brief/research.md#claude-t-0342),
+[R-185 through R-187](../../decisions/accepted.md#r-185---limit-model-and-budget-rules-accepted-at-gate-a),
 and [T-039 temporary suppression](../T-039-multi-account-ledger/spec.md).
 
 ## Evidence and classification rules

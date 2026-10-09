@@ -2,7 +2,7 @@
 
 Owner pause: 2026-10-04. **The audit is not complete.** This task preserves work for discussion and fixes in later sessions. No new product fix or audit run is authorized by this handoff itself.
 
-**Health analysis, 2026-10-05:** the [analysis record](analysis-2026-10-05.md) holds the observed AUD-01 root cause, the ANL findings register, the owner decisions AIU045-D1..D9 and the proposed tasks T-045.1..T-045.4. It supersedes the read-only diagnosis step below; the exact next action is in its section 11. The AUD-01..AUD-10 rows below remain the preserved handoff state at the pause.
+**Health analysis, 2026-10-05:** the [analysis record](analysis-2026-10-05.md) holds the observed AUD-01 root cause, the ANL findings register, the owner decisions AIU045-D1..D9 and the proposed tasks T-045.1..T-04. It supersedes the read-only diagnosis step below; the exact next action is in its section 11. The AUD-01..AUD-10 rows below remain the preserved handoff state at the pause.
 
 ## Saved code and execution boundary
 
@@ -233,7 +233,7 @@ Recorded 2026-10-06 after the owner installed Preview 2026.10.602.0 on the owner
 | ANL-23 (new finding, P3, product layout) | OPEN, deferred to a later bounded UI batch | Not a regression of this run. At the narrow resized window width, the history panel header's account title overlaps the hint text and the cap editor's Save button is clipped ("Sa"). Evidence: the LIFE-04 resized captures of Sandbox batch 2 (local, `.ai-usage-local/ui-audit/candidate-2026-10-06c/`) |
 | T-043 device-code display delay | NOT_RUN | Not exercised; no sign-in was performed. It stays open as a separate follow-up |
 
-Closure (2026-10-06): AUD-03, ANL-06, ANL-07, ANL-12, ANL-16 (for this install), the T-043 AC-13 and T-044 packaged repeat-launch gaps (ANL-13) and FIX-01..FIX-14 are recorded in the analysis record's final status; T-045.3 and T-045.4 are done and T-045 is closed. Opt-in follow-ups that need a separate owner selection: AUD-05..AUD-09, ANL-20, ANL-23 and the T-043 device-code delay.
+Closure (2026-10-06): AUD-03, ANL-06, ANL-07, ANL-12, ANL-16 (for this install), the T-043 AC-13 and T-044 packaged repeat-launch gaps (ANL-13) and FIX-01..FIX-14 are recorded in the analysis record's final status; T-044.3 and T-044.4 are done and T-045 is closed. Opt-in follow-ups that need a separate owner selection: AUD-05..AUD-09, ANL-20, ANL-23 and the T-043 device-code delay.
 
 ## Execution ledger
 

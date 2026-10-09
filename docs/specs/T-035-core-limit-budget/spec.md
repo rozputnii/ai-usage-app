@@ -14,7 +14,7 @@ approval_basis: Derived from the owner-selected T-035 and the current owner inst
 Implement credential-free normalized facts and pure calculations in AiUsage.Core.
 The normative sources are [research sections 5-9](../T-034-limit-audit-design-brief/research.md),
 [design brief section 4](../T-034-limit-audit-design-brief/design-brief.md), and
-[R-187](../../decisions/accepted.md#d-187---aiu-034-tray-miniature-no-ok-pill-day-off-rush-and-on-extra-usage).
+[R-187](../../decisions/accepted.md#r-187---t-034-tray-miniature-no-ok-pill-day-off-rush-and-on-extra-usage).
 Provider parsing, storage, UI, source credentials and live integration are excluded.
 
 ## Contracts and behavior

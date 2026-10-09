@@ -8,7 +8,7 @@ approval_basis: The owner selected provider-supplied history on 2026-09-22, exis
 ---
 # Provider-supplied usage history
 
-Superseded by [R-184](../../decisions/accepted.md#d-184---local-only-usage-history).
+Superseded by [R-184](../../decisions/accepted.md#r-184---local-only-usage-history).
 [T-040](../T-040-remove-provider-history/spec.md) removes the implementation after
 T-039 switched to local Ledger history. The requirements and evidence below are historical.
 

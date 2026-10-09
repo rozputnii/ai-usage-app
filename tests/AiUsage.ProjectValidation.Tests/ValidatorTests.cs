@@ -97,6 +97,40 @@ public sealed class ValidatorTests
     }
 
     [Fact]
+    public void LegacyPlaceholdersAndHeadingsAreRefused()
+    {
+        using var root = new Fixture();
+        root.Put("docs/decisions/accepted.md", "# Decisions\n\n### R-001 - First\nText.\n");
+        root.Append("docs/backlog.md", "\n## AIU-NEW - Old-style item\n- goal: G-001\n");
+        root.Append("docs/decisions/accepted.md", "\n### D-NEW - Old-style decision\nText.\n");
+        var errors = ProjectValidator.Validate(root.Path);
+        Assert.Contains(errors, d => d.Task == "AIU-NEW" && d.Code == "INVALID_ID");
+        Assert.Contains(errors, d => d.Task == "D-NEW" && d.Code == "INVALID_ID");
+        var final = ProjectValidator.Validate(root.Path, final: true);
+        Assert.Contains(final, d => d.Task == "AIU-NEW" && d.Code == "PLACEHOLDER_ID");
+        Assert.Contains(final, d => d.Task == "D-NEW" && d.Code == "PLACEHOLDER_ID");
+    }
+
+    [Fact]
+    public void DecisionChecksCoverBothRegistersAndThreeDigitIds()
+    {
+        using var root = new Fixture();
+        root.Put("docs/decisions/superseded.md", "# Superseded\n\n### R-01 - Two digits\nText.\nAmended by R-404 (2026-10-09): x.\n");
+        var errors = ProjectValidator.Validate(root.Path);
+        Assert.Contains(errors, d => d.File == "docs/decisions/superseded.md" && d.Task == "R-01" && d.Code == "INVALID_ID");
+        Assert.Contains(errors, d => d.File == "docs/decisions/superseded.md" && d.Task == "R-404" && d.Code == "MISSING_REFERENCE");
+    }
+
+    [Fact]
+    public void DoneIndexRowMayNotRepeatALiveItem()
+    {
+        using var root = new Fixture();
+        root.Put("docs/evidence.md", "# Evidence\n");
+        root.Append("docs/backlog.md", "\n## Done index\n\n| Item | Title | Status | Goal | Evidence |\n| --- | --- | --- | --- | --- |\n| T-001 | Feature | done | G-001 | docs/evidence.md |\n");
+        Assert.Contains(ProjectValidator.Validate(root.Path), d => d.Task == "T-001" && d.Code == "DUPLICATE_ID");
+    }
+
+    [Fact]
     public void FeatureMayOmitInternalTasks()
     {
         using var root = new Fixture();

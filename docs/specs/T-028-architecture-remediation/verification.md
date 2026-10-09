@@ -4,7 +4,7 @@ Date: 2026-09-20. This record holds the Phase 1 evidence from the analysis-only 
 that produced [spec.md](spec.md), plus NOT_RUN placeholders for the remediation checks. It is an
 evidence record, not a status mirror. The session that wrote it started no planned task (see the
 [execution ledger](#execution-ledger)) and changed no file outside `docs/`; remediation evidence is appended per
-task as tasks are executed, starting with [T-028.8 and T-028.9](#t-08-and-t-09---2026-09-20).
+task as tasks are executed, starting with [T-028.8 and T-028.9](#t-0288-and-t-0289---2026-09-20).
 
 ## Environment and base
 
@@ -117,8 +117,8 @@ entries retain their original scope and are superseded only by explicitly record
 | T-028.5 | AC-06 | Presentation Release suite including `DependencyBoundaryTests`; synthetic fifth-descriptor test | PASS; see task-specific closure evidence below |
 | T-028.6 | AC-07 | Full offline restore; all four suites; `git diff --check`; diff inspection confirming no version string changed | PASS, see T-028.6 closure below |
 | T-028.7 | AC-08 | Warnings-visible desktop build at the raised analysis level with zero warnings; all four suites | PASS |
-| T-028.8 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-028.8 and T-028.9](#t-08-and-t-09---2026-09-20) |
-| T-028.9 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-028.8 and T-028.9](#t-08-and-t-09---2026-09-20) |
+| T-028.8 | AC-09, AC-10 | Core disposal test (outstanding work, double dispose); Presentation re-entrant subscriber test | PASS, see [T-028.8 and T-028.9](#t-0288-and-t-0289---2026-09-20) |
+| T-028.9 | AC-11 | Presentation Release suite; preference round-trip including unknown members | PASS, see [T-028.8 and T-028.9](#t-0288-and-t-0289---2026-09-20) |
 | T-028.10 | AC-12 | Presentation visibility-gate test **and** interactive Windows smoke | PASS; see task-specific closure evidence below |
 | T-028.11 | AC-01 | Infrastructure Release suite; `tools/AiUsage.ProviderConsole` Release build | PASS; see T-028.11 library-boundary evidence below |
 | T-028.12 | AC-01 | Infrastructure Release suite | PASS; see task-specific closure evidence below |
@@ -548,7 +548,7 @@ these closure records. No production source, test behavior, SDK or analyzer poli
 | Presentation Release | PASS | `dotnet run --project tests/windows/AiUsage.Presentation.Tests -c Release --no-restore -- -noLogo`: 142/142. |
 | Actual Windows product smoke | PASS | `dotnet run --project tests/windows/AiUsage.Windows.Tests -c Release --no-restore -- -noLogo`: 7/7 on the fresh unpackaged Debug build, 14:25:08-14:25:48 UTC. All seven scenario JSON records report passed=true, exited=true and exitCode=0. All four suites report zero errors, failures, skipped or not-run tests. |
 | Windows Debug unpackaged build | PASS | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Debug -p:Platform=x64 -p:WindowsPackageType=None --no-restore`: zero warnings/errors. |
-| Routing Debug unpackaged build | PASS | Same build options for `spikes/windows/T-002-routing/AiUsage.RoutingSpike.csproj`: zero warnings/errors. |
+| Routing Debug unpackaged build | PASS | Same build options for `spikes/windows/AIU-002-routing/AiUsage.RoutingSpike.csproj`: zero warnings/errors. |
 | ProviderConsole Release build | PASS | `dotnet build tools/AiUsage.ProviderConsole/AiUsage.ProviderConsole.csproj -c Release --no-restore`: zero warnings/errors. |
 | Document validation and diff checks | PASS | `dotnet run --project tools/AiUsage.ProjectValidation --no-restore -- --root . --json`: valid=true, diagnostics=[]; `git diff --check` and implementation-range whitespace check pass. Closure references and status inspected. |
 | Primary integrated review | PASS | AC-07 checked against the complete diff, project membership, exact package values, effective shared properties, SDK/target settings and unchanged analyzer policy. No actionable findings. Routine primary review applies under CONTRIBUTING; independent review is not required for this relocation. |

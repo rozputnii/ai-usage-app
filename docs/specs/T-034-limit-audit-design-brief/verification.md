@@ -1529,7 +1529,7 @@ Gate A review or Phase B work is included.
 Base e5013fa. The owner directed that usage history comes only from local tracking, never
 from provider-supplied history, and that history is kept rather than removed. Recorded as
 R-184 in the decision register, an owner amendment in spec.md, direction notes on T-011
-and T-029 in the backlog, and a new T-034.10 Step 2 check. Research sections 6.3, 6.4 and 7.6
+and T-029 in the backlog, and a new T-029.10 Step 2 check. Research sections 6.3, 6.4 and 7.6
 replace the two-day day-start records and separate estimator records with one local reading
 series (runs of unchanged values, gaps kept, at least 35 days). Section 5 references were
 aligned. No rule or figure of sections 8 and 9 changes: `U0` rules 1 to 4 are unchanged in

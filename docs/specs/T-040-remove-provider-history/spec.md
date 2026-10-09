@@ -13,7 +13,7 @@ approval_basis: Owner selected implementation of T-040 on 2026-10-03. This speci
 
 Remove the retired T-011 remote history capability after T-039 switched the
 product to Ledger. Local T-036 readings remain the sole history source under
-[R-184](../../decisions/accepted.md#d-184---local-only-usage-history).
+[R-184](../../decisions/accepted.md#r-184---local-only-usage-history).
 
 Delete the Core history contracts, Codex/Copilot history clients, parsers and session
 methods, their composition dependencies, console command and obsolete tests/resources.
