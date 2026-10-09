@@ -490,7 +490,8 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   prerelease removed (no project loaded); `winapp ui` read-only verbs useful (found a shared
   `SettingsButton` AutomationId). Host changes, each with its undo in trials.md: `csharp-ls`
   0.28.0 kept, `roslyn-language-server` installed then uninstalled, `winapp` 0.7.1 and the
-  user variable `WINAPP_CLI_TELEMETRY_OPTOUT=1`, `dotnet-stryker` 5.0.0. R15: the Sandbox
+  user variable `WINAPP_CLI_TELEMETRY_OPTOUT=1`, `dotnet-stryker` 5.0.0 (uninstalled after the
+  OD-28 spike; see the verification round). R15: the Sandbox
   audit runner now writes a `STARTED` liveness marker, and verification.md says how to wait
   and when to stop (Sandbox run NOT_RUN: running it needs the owner, always-ask). The `/goal`
   trial is NOT_RUN until the next multi-part feature.
@@ -514,6 +515,44 @@ None. All decisions OD-1 to OD-31 were answered on 2026-10-09 (see above). The r
   R-116, R-118 and R-122; formats.md names where the collapsed plans live in Git history. A
   slug check finds no broken heading link except one that predates this branch (T-048).
   Not done (Minor): tying a step ID `T-nnn.k` to its owning item in the validator.
+
+- **2026-10-09 — OD-28 Stryker spike.** Results in [trials.md](trials.md): mutation score
+  4.45 % on Core budget code (33 killed, 708 survived, 259 min), a setup artifact rather than a
+  test weakness: every kill came from one load-sensitive diagnostic test and no budget test
+  saw an active mutant. Not adopted; the parsers run is skipped; `dotnet-stryker` uninstalled
+  and the throwaway worktree `zz-lsp` removed.
+
+- **2026-10-09 — verification round (owner-requested).** Because Stage 2 ran in one long
+  session, the owner asked for parallel fresh-context verification of the whole stage.
+  - Six read-only lanes (rules, agent config, CI, tests, records, checks and process) plus
+    the whole-branch review: 0 Critical, 15 Important (two found by two lanes each), 30 Minor. Confirmed done:
+    24 of OD-1..OD-31; the process rules (prompt in the first commit, merges never rebases,
+    branch pushed, `main` untouched, no PR); all 56 backlog items and 25 ledgers kept.
+  - Corrected claims of this log: the step 2 deny rules left `git -C <path> push <flag>` open;
+    the step 6 converter fix gave 16 step references the wrong item; `dotnet-stryker` had no
+    undo; C9 was never recorded; C4 and C8 each failed once on a rerun under Stryker load.
+  - Fixed by three parallel workers and integrated (fa9a657, 1552ba3, f0a2445), then 5be6537,
+    1f49d6d, 6fe8e3a: `git -C` force forms and `~/.omp` denied (live headless probes: 8 force
+    forms per shell reached git before, all denied after; routine pushes still run); the
+    parallel-run wording aligned with OD-5/OD-15/OD-16 (whole-feature review after the tasks
+    land, workers branch from `main`, C8 before a worker's own push); the Sandbox audit runner
+    passes `-explicit on`; the Preview decision moved into `Get-PreviewPublicationDecision`,
+    failing open on every lookup, diff or import error (C10 85 → 101); R-NEW-13 records OD-26
+    and amends R-154; the 16 step references, 10 half-converted ranges and 9 archive links
+    fixed by hand; the validator accepts `T-NEW` Done rows and dated "owner-reported" verdicts,
+    resolves pointers across both registers and reports malformed Done rows (C1 89 → 98);
+    `Set-ItemNumbers.ps1` covers `.claude/` and `.github/`, code-span folder paths and BOMs
+    (numbering test 15 → 25); `Test-Erosion.ps1` reports moved tests; the rule inventory
+    corrected and extended.
+  - Re-check of the fixed lines (OD-15): approve, 0 Critical, 0 Important; three of its five
+    Minor fixed (dated verdict, parallel-run exception, worker worktree command). Left as
+    residue: a few rare force-push spellings (`push -vf`, PowerShell `-fu` after the refspec)
+    stay outside the backstop, which AGENTS.md says is not the authority.
+  - Checks at 6fe8e3a in a clean worktree, all on the first run: C1 98/98, C2 PASS, C4
+    917/917, C5 330/330, C6 PASS, C7 0 warnings, C8 3/3, C9 PASS (unsigned MSIX), C10 22 + 101,
+    numbering 25. C3 lists only placeholders: the two stage-1-prompt mentions (OD-30) and this
+    branch's `R-NEW`…`R-NEW-13` (OD-32), all inside the files `Set-ItemNumbers.ps1` numbers.
+  - Host: the stale `D-NEW-2` in the memory index now reads `R-NEW-2`.
 
 ## New owner decisions (Stage 2)
 
@@ -583,6 +622,15 @@ work continues on the recommended path unless it is marked as waiting.
 
 ## Next action
 
-Stage 2, step 8: finish the trial write-up (OD-27 done: keep csharp-ls; OD-29 done; OD-28
-Stryker run in progress), then the step-6 focused review of the rename and records. Steps 1-4 are T3 and each
-gets a focused independent review.
+Stage 2 is implemented and verified; the branch waits for the owner. Owner: review
+[rule-inventory.md](rule-inventory.md) and decide OD-10 (start the auto-mode trial),
+OD-33, OD-34, OD-35, OD-36, OD-37, OD-38 and OD-39, then say whether to merge.
+
+At the merge, in order: merge fresh `origin/main`; re-run `tools/windows/Convert-IdScheme.ps1`
+for items `main` added and review its step references; wrap the two stage-1-prompt
+placeholder mentions in code spans (OD-30); run `tools/windows/Set-ItemNumbers.ps1` and C3;
+delete `Convert-IdScheme.ps1`; run the merge gate; after the merge, prune the
+no-repeated-approval-gates memory entry, back up and remove the untracked old
+`.claude/agents/aiu-*.md` in the main checkout (they block `git pull` there and load the
+removed simple implementer), remove the `s2-smoke` worktree and its branch, and watch the
+first CI run of the new Preview decision step.

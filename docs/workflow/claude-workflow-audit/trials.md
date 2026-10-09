@@ -59,7 +59,43 @@ optional local tool. It is exploratory only and never replaces FlaUI smoke evide
 
 ## OD-28: Stryker.NET spike
 
-In progress; see the status log for the result.
+**Setup.** `dotnet tool install -g dotnet-stryker --version 5.0.0`. Stryker 5 does not support
+Microsoft.Testing.Platform, which the xUnit v3 test projects use, so the run needed a throwaway
+detached worktree (`zz-lsp`, commit 804096a) with uncommitted changes: the VSTest adapter
+packages `xunit.runner.visualstudio` 3.1.5 and `Microsoft.NET.Test.Sdk` 18.10.1, and a direct
+Core `ProjectReference` in `AiUsage.Infrastructure.Tests` (without it Stryker reported "No
+project found"). Run from `src/windows/AiUsage.Core` with Infrastructure.Tests as
+`--test-project`, `--mutate **/Budget/*.cs --concurrency 4 --configuration Release`.
+
+**Run.** 975 mutants created; 112 compile errors and 122 ignored left 741 tested: 33 killed,
+708 survived, 0 timeouts, score 4.45 %. Coverage capture failed, so every mutant ran all 917
+tests. Wall time 259 min, past the half-day box, so the Infrastructure parsers run was not done.
+
+**The score is a setup artifact, not a test weakness.** Infrastructure.Tests is the main home
+of the budget tests (`BudgetEngineTests`, `SessionEstimateTests`, `ReadingBudgetTests`,
+`ReadingContinuityTests` and seven more files; Presentation.Tests adds four ledger files), so
+the right project ran. The mutants were not active in the code those tests executed:
+- All 33 kills are attributed to one unrelated test,
+  `DiagnosticCrashTests.ManagedChildCrashLeavesCriticalStackBeforeTermination`, which waits on a
+  child probe process with time bounds. No budget test killed a mutant; the kills are failures
+  of that test under load.
+- Survivors include mutants an existing assertion cannot miss: `ReadingContinuity.cs:15`,
+  `refreshInterval * 3` to `/ 3`, survived although
+  `ToleranceIsThreeIntervalsWithAFifteenMinuteFloor` asserts that 30 minutes gives 90.
+
+The likely cause is that the xUnit v3 adapter runs tests in the test executable's own process,
+which Stryker's mutant switch and coverage capture do not reach. No genuine weak spot can be
+established from this run.
+
+**Recommendation.** Not adopted. Do not run the parsers spike now: it would meet the same
+activation failure. Revisit when Stryker.NET supports Microsoft.Testing.Platform, and then
+rerun the budget scope first, with no project changes. Do not keep the tool.
+
+**Host changes and undo.** `dotnet-stryker` 5.0.0 as a global .NET tool; undo `dotnet tool
+uninstall -g dotnet-stryker`, run on 2026-10-09 (done; not kept). The throwaway worktree
+`zz-lsp`, with its uncommitted package and reference changes, was removed (done); nothing from
+it was committed.
+The spike changed no repository files.
 
 ## `/goal` trial (R15, OD-1)
 
