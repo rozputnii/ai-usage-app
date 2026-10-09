@@ -71,7 +71,7 @@ try {
     $skips = @(); $file = ''
     foreach ($line in git -C $root diff -U0 -M $range -- 'tests/*.cs') {
         if ($line -match '^\+\+\+ (?:b/)?(.*)$') { $file = $Matches[1]; continue }
-        if ($line -match '^\+' -and $line -match '\bSkip\s*=|\bExplicit\s*=\s*true') { $skips += "  ${file}: $($line.Substring(1).Trim())" }
+        if ($line -match '^\+' -and $line -match '\bSkip\s*=|\bExplicit\s*=\s*true|\bAssert\.Skip') { $skips += "  ${file}: $($line.Substring(1).Trim())" }
     }
 
     $fixtures = @($changes | Where-Object { ($_.New, $_.Old | Where-Object { $_ }) -match '(?i)/(fixtures?|expected|golden|snapshots?|testdata)/' } |
