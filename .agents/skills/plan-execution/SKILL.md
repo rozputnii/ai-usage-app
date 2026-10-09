@@ -26,11 +26,13 @@ this text seems to differ.
 - **Parallel:** when the owner asks, or when there are at least three independent tasks with
   non-overlapping write sets; at most about four workers at once. Give each worker a
   self-contained brief and the implementer contract (`.agents/agents/implementer.md`), in its
-  own worktree created from the task branch.
+  own worktree branched from up-to-date `main`, not from the primary's task branch, because
+  workers merge into `main` themselves.
   Workers do not add backlog items or decisions. Wait with background tasks or Monitor, never
   sleep loops; check CI once at the end, not in a foreground loop.
-- Run desktop smokes under the desktop lock; after integration, run them once on the merged
-  tree.
+- Run desktop smokes under the desktop lock. A worker whose change has product inputs runs the
+  launch smoke (C8) before its own push to `main`; after the tasks have landed, the primary
+  runs the required smokes once more on the merged tree.
 
 ## Review
 
@@ -38,10 +40,11 @@ this text seems to differ.
   contract (`.agents/agents/reviewer.md`), dispatched by the primary. Docs tasks get a primary
   diff check; rule and agent-configuration edits are T3. Sequential work gets the tier's review
   of the integrated diff.
-- One whole-feature review runs before the merge, plus the focused T3 review when the tier
-  requires it. One round, then a re-check of the fixed lines only.
+- One whole-feature review runs, plus the focused T3 review when the tier requires it. In a
+  parallel run it runs after the tasks have landed and before the run is reported done, and
+  its findings are fixed as follow-ups. One round, then a re-check of the fixed lines only.
 - Use the receiving-code-review skill to evaluate findings; unresolved material findings block
-  the merge.
+  the merge, or in a parallel run, reporting the run done.
 
 ## Record and merge
 

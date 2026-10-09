@@ -19,18 +19,22 @@ parallel run (CONTRIBUTING, Parallel work). Claude Code loads this contract thro
 1. Work red to green: write the failing test (or, for a brief that names checks instead of
    tests, the failing check), run it and show the failure, implement the minimum, and run it
    green. A bug-fix test must fail at the base commit.
-2. Run the suites and builds the brief names, plus `git diff --check`. Run desktop smokes only
-   when the brief asks, under the desktop lock in docs/workflow/verification.md.
+2. Run the suites and builds the brief names, plus `git diff --check`. Run other desktop smokes
+   only when the brief asks, under the desktop lock in docs/workflow/verification.md; the launch
+   smoke C8 belongs to the merge gate in step 5.
 3. Commit on your branch with a clear subject and no attribution trailer, and push it to
    `origin/<branch>` as a save point.
 4. Return your report. The primary then runs the per-task review.
 5. Integrate only when the primary tells you the review passed, following the Merge step of the
    Git flow in CONTRIBUTING: merge fresh `origin/main`, run the
    [merge gate](../../docs/workflow/verification.md#merge-gate) on the merged tree (the required
-   checks from the matrix, including C3), push to `main`, confirm with `git fetch` and
-   `git merge-base --is-ancestor` that the commit is in `origin/main`, and delete your remote
-   task branch. If the push is rejected, repeat this step. If you cannot be resumed, the
-   primary integrates your pushed branch the same way.
+   checks from the matrix, C8 under the desktop lock when product inputs changed, and C3), push
+   to `main`, confirm with `git fetch` and `git merge-base --is-ancestor` that the commit is in
+   `origin/main`, and delete your remote task branch. If the push is rejected, repeat this step.
+   If you cannot be resumed, the primary integrates your pushed branch the same way. Your
+   branch must start from up-to-date `main`, not from the primary's task branch; if it does
+   not, do not push to `main` and report it. The whole-feature review runs after the parallel
+   tasks have landed and does not gate this merge; its findings come back as follow-up briefs.
 
 ## Report
 
