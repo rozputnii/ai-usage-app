@@ -172,6 +172,71 @@ public sealed class FileDiagnosticsTests : IDisposable
     }
 
     [Fact]
+    public async Task RepeatedFailureWritesOneDetailedRecordAndACountedSummaryOnRecovery()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        var first = clock.Now;
+        for (var i = 0; i < 5; i++)
+        {
+            log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+            clock.Now += TimeSpan.FromSeconds(20);
+        }
+        log.Recovered(DiagnosticEvent.TrayFailure);
+        Assert.True(await log.FlushAsync());
+
+        var tray = Records(log).Where(e => e.GetProperty("eventId").GetString() == "TrayFailure").ToArray();
+        Assert.Equal(2, tray.Length);
+        var detailed =Assert.Single(tray, e => e.TryGetProperty("exception", out var exception) && exception.ValueKind == JsonValueKind.Object);
+        Assert.Equal("Error", detailed.GetProperty("severity").GetString());
+        Assert.Equal(unchecked((int)0x80004005), detailed.GetProperty("exception").GetProperty("hResult").GetInt32());
+        var summary = Assert.Single(tray, e => e.GetProperty("severity").GetString() == "Warning");
+        Assert.Equal(4, summary.GetProperty("context").GetProperty("suppressedCount").GetInt64());
+        Assert.Equal(first, summary.GetProperty("context").GetProperty("firstAt").GetDateTimeOffset());
+        Assert.Equal(first + TimeSpan.FromSeconds(80), summary.GetProperty("context").GetProperty("lastAt").GetDateTimeOffset());
+    }
+
+    [Fact]
+    public async Task AFailureAfterRecoveryIsLoggedInDetailAgain()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        log.Recovered(DiagnosticEvent.TrayFailure);
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        log.Recovered(DiagnosticEvent.TrayFailure);
+        log.Recovered(DiagnosticEvent.TrayFailure);
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        Assert.True(await log.FlushAsync());
+
+        var tray = Records(log).Where(e => e.GetProperty("eventId").GetString() == "TrayFailure").ToArray();
+        Assert.Equal(2, tray.Length);
+        Assert.All(tray, e => Assert.Equal("Error", e.GetProperty("severity").GetString()));
+    }
+
+    [Fact]
+    public async Task APendingRepeatedFailureSummaryIsWrittenAtStop()
+    {
+        var log = new FileDiagnostics(root, clock: clock);
+        for (var i = 0; i < 3; i++) log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        await log.StopAsync();
+
+        var tray = Records(log).Where(e => e.GetProperty("eventId").GetString() == "TrayFailure").ToArray();
+        Assert.Equal(2, tray.Length);
+        var summary = Assert.Single(tray, e => e.GetProperty("severity").GetString() == "Warning");
+        Assert.Equal(2, summary.GetProperty("context").GetProperty("suppressedCount").GetInt64());
+    }
+
+    private static Exception PlatformFailure()
+    {
+        // The GDI+ failure the tray saw: E_FAIL from the platform.
+        try { throw System.Runtime.InteropServices.Marshal.GetExceptionForHR(unchecked((int)0x80004005))!; }
+        catch (Exception error) { return error; }
+    }
+
+    private static JsonElement[] Records(FileDiagnostics log) => Directory.GetFiles(log.DirectoryPath, "application-*.jsonl")
+        .SelectMany(p => ReadShared(p).Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        .Select(line => JsonDocument.Parse(line).RootElement.Clone()).ToArray();
+
+    [Fact]
     public void CleanupRejectsRedirectedNamespace()
     {
         Directory.CreateDirectory(root);
