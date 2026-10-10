@@ -13,5 +13,6 @@
     <PackageReference Include="FlaUI.UIA3" />
     <!-- T-056: handle-count regression for the tray mark, no desktop needed; System.Drawing.Common arrives through FlaUI. -->
     <Compile Include="../../../src/windows/AiUsage.Windows/Platform/TrayGlyph.cs" Link="Platform/TrayGlyph.cs" />
+    <Compile Include="../../../src/windows/AiUsage.Windows/Platform/TrayIconOwner.cs" Link="Platform/TrayIconOwner.cs" />
   </ItemGroup>
 </Project>

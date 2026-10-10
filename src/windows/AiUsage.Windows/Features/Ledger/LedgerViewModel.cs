@@ -90,6 +90,11 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial bool ShowSignedOut { get; private set; }
     [ObservableProperty] public partial bool NeedsRecovery { get; private set; }
     [ObservableProperty] public partial string RecoveryText { get; private set; } = string.Empty;
+    /// <summary>
+    /// T-061 R-01: the tray mark's tone, the most urgent card tone (Critical, Attention or Ok; Neutral counts as Ok). Set at
+    /// the end of a rebuild, after the cards are updated, so the tray follows the cards of the same change.
+    /// </summary>
+    [ObservableProperty] public partial Tone TrayTone { get; private set; }
 
     public string ValueModeName => "Show values: " + (IsLeft ? "left" : "used");
 
@@ -162,6 +167,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         Sync(Providers, snapshot.Providers.Select(p => new ProviderItem(p.Provider, LedgerFormat.ProviderName(p.Provider), Describe(p.Provider), p.Added, p.SigningIn, CanUseAccounts)).ToList());
         UpdateStrip(snapshot.SignInStrip);
         Settings.Rebuild(snapshot, prefs);
+        // Card visuals change only above (Update or a new card), so the tray tone is final here.
+        var tones = ordered.Select(c => c.Visual.Tone).ToArray();
+        TrayTone = tones.Contains(Tone.Critical) ? Tone.Critical : tones.Contains(Tone.Attention) ? Tone.Attention : Tone.Ok;
     }
 
     private static void Sync<T>(ObservableCollection<T> target, IReadOnlyList<T> items) where T : class
