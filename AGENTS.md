@@ -80,6 +80,7 @@ Learn MCP; never put payloads, credentials or identifiers into a query.
 ## Read by task
 
 - Existing behavior: the affected code, tests and spec.
+- Unripe ideas: docs/ideas.md, an owner inbox, not backlog; never select work from it.
 - Feature scope and status: docs/backlog.md and docs/specs/<T-nnn>-<slug>/;
   direction in docs/product/goals.md; principles in docs/constitution.md.
 - Decisions: search docs/decisions/accepted.md and follow "Amended by" pointers.
