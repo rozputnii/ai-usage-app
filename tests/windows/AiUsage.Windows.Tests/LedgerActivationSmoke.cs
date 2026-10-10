@@ -186,18 +186,18 @@ public sealed partial class LedgerSmoke
         try
         {
             Focus((Window)SmokeKit.Find(Current, "Ledger window"));
-            SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton")), "Settings").AsButton().Click();
+            ClickOwned(SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton")), "Settings"), app.ProcessId);
             // R-197: the settings sheet covers the whole body, and the first-run buttons behind it leave the tab order.
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Sign in to " + provider)) is { IsEnabled: false }),
                 "Open settings must cover the first-run sign-in buttons");
-            Named("Close settings").AsButton().Click();
-            Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Close settings")) is null), "The settings sheet did not roll up");
+            ClickOwned(Named("Close settings"), app.ProcessId);
+            Assert.True(Wait(() => Current() is { } current && current.FindFirstDescendant(cf => cf.ByName("Close settings")) is null), "The settings sheet did not roll up");
             var button = Named("Sign in to " + provider).AsButton();
             button.Patterns.ScrollItem.PatternOrDefault?.ScrollIntoView();
             Assert.True(button.IsEnabled);
             Assert.False(button.IsOffscreen);
             Assert.True(Current()!.BoundingRectangle.Contains(button.BoundingRectangle));
-            button.Click();
+            ClickOwned(button, app.ProcessId);
             // The one-line sign-in strip names the account and then says "added · N limits" for a few seconds.
             Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e =>
                 (e.Properties.Name.ValueOrDefault ?? "").StartsWith("added", StringComparison.Ordinal)) == true), "The sign-in click must add a synthetic account");
@@ -243,15 +243,15 @@ public sealed partial class LedgerSmoke
             Assert.Null(Current()!.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")));
             Assert.False(Named("Add account").IsEnabled);
             Focus((Window)SmokeKit.Find(Current, "Ledger window"));
-            Named("Recovery and diagnostics").AsButton().Click();
+            ClickOwned(Named("Recovery and diagnostics"), app.ProcessId);
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Retry recovery")) is { IsOffscreen: false }));
             Assert.False(Named("Restore legacy preferences").IsEnabled);
             lease.Dispose();
-            Named("Retry recovery").AsButton().Click();
+            ClickOwned(Named("Retry recovery"), app.ProcessId);
             // The first-run sign-in replaces the recovery notice behind the settings sheet (R-197), and is usable once the sheet closes.
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")) is not null), "Retry did not finish recovery");
             Assert.Null(Current()!.FindFirstDescendant(cf => cf.ByName("Recovery and diagnostics")));
-            Named("Close settings").AsButton().Click();
+            ClickOwned(Named("Close settings"), app.ProcessId);
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")) is { IsEnabled: true }), "Sign-in stayed disabled after recovery");
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000));
@@ -266,6 +266,16 @@ public sealed partial class LedgerSmoke
                 process.Kill(); process.WaitForExit(5000);
             }
         }
+    }
+
+    /// <summary>Clicks the element by mouse after checking that this app owns the point, so a window that covers it reports
+    /// BLOCKED instead of a misleading failure.</summary>
+    private static void ClickOwned(AutomationElement element, int processId)
+    {
+        var bounds = element.BoundingRectangle;
+        var point = element.TryGetClickablePoint(out var clickable) ? clickable : new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
+        DesktopTestEnvironment.RequireOwnedPoint(processId, point);
+        Mouse.Click(point);
     }
 
     [Fact]

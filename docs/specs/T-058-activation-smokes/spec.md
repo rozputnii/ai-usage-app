@@ -1,7 +1,7 @@
 ---
 id: T-058
 type: feature
-status: implemented
+status: implementing
 goal: G-003
 scope_version: 1
 approval_basis: owner selection, 2026-10-10
@@ -38,7 +38,8 @@ Unchanged: the app. The cases still click by mouse, keep their assertions, and k
 - R-03: The recovery case checks that Retry replaces the recovery notice with first-run sign-in, closes
   Settings, and then waits for "Sign in to Codex" to be enabled.
 - R-04: Both cases look up elements again on each query (`SmokeKit.Find` and a fresh window), and save a
-  screenshot plus a UI-tree dump when they fail.
+  screenshot plus a UI-tree dump when they fail. Before each mouse click they check that the app owns the
+  point, so a covering window reports BLOCKED instead of a misleading failure.
 
 ## Acceptance criteria
 - AC-01: The root cause is found before the fix and named here and in the report.
