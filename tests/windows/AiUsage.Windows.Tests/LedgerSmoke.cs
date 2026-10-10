@@ -447,8 +447,10 @@ public sealed partial class LedgerSmoke : IDisposable
         window.SetForeground();
         if (GetForegroundWindow() != handle)
         {
-            var bounds = window.BoundingRectangle;
-            Mouse.Click(new System.Drawing.Point(bounds.Left + 120, bounds.Top + 18));
+            // Windows refuses SetForegroundWindow to a process that did not send the last input. A click on the window could
+            // land on another window that overlaps it, or on a title-row button; an injected Alt tap lifts the lock instead.
+            Keyboard.Type(VirtualKeyShort.ALT);
+            window.SetForeground();
         }
         Assert.True(Wait(() => GetForegroundWindow() == handle), "Test window must own keyboard input");
     }
