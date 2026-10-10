@@ -18,7 +18,8 @@ change; a change of shape is asked first.
 
 No provider exposes whether peak applies now. The Claude OAuth usage payload has only
 per-limit utilization and reset times (see [Claude](claude.md)); the OMP Claude adapter at
-`main` commit `d45ba77ee6a5efa389ab1fcde4711276e805c8dd`, checked 2026-10-10, has no peak field. The `anthropic-ratelimit-unified-*` headers
+`main` commit `d45ba77ee6a5efa389ab1fcde4711276e805c8dd`, checked 2026-10-10, has no peak
+field. The `anthropic-ratelimit-unified-*` headers
 come only with inference responses, which this monitor never makes. No provider publishes
 load by hour.
 

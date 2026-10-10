@@ -35,7 +35,12 @@ provider endpoint was used.
 
 ## Review
 
-Pending.
+Focused independent review (`aiu-reviewer`, T3 because of the AGENTS.md rule) of `8eaf1f7`:
+one blocking finding (the missing verification record) and five should-fix findings: the
+title-bar regions were not refreshed when the hint changed, the review rule was too broad,
+the tooltip schedule was a separate literal, two evidence details, and layout nits. All were
+fixed in `9e0b115` and the re-check approved it; `/security-review` found nothing. Accepted
+as is: the extra title-row column adds a permanent 10 px gap to the row and its minimum width.
 
 ## Pending owner checks
 
