@@ -76,3 +76,13 @@ accepted this as recorded in the spec.
 | Item | Reason |
 | --- | --- |
 | The installed app's logs after days of uptime show no TrayFailure flood, and the tray colour keeps updating | Post-deploy owner check (R-190) |
+
+## Whole-run review
+
+After all three parallel items had landed, `aiu-reviewer` reviewed the integrated diff `1ce4a39..eab3fea` in a temporary worktree at `eab3fea`. Verdict: approve, with 0 Critical, 0 Important and 1 Minor finding.
+
+- C4 passed 922/922, C5 330/330 and C7 with 0 warnings. `TrayGlyphHandleTests` passed 2/2, both through `dotnet run` and from the self-contained published UI suite. C6 passed.
+- The merges needed no hand-resolved hunks.
+- The UI test project changes from T-056 and T-058 build together, and the suite runs one test at a time, so the handle reading is not disturbed by the other tests.
+- No item breaks another item's assumption. The reviewer confirmed from the H.NotifyIcon 2.4.1 IL that `TaskbarIcon.OnIconChanged` disposes the old icon itself.
+- Minor 1, open: a pending tray-failure count is also lost when an auto-update forcibly ends the app (`ForceTargetAppShutdown`). This extends M3. A possible follow-up is to write the count during the worker's hourly sweep or in `Fatal`.

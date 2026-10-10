@@ -78,3 +78,7 @@ evidence instead.
 | Item | Reason |
 | --- | --- |
 | Owner check in the installed app | None needed: only tests changed. |
+
+## Whole-run review
+
+The whole-run review of the three parallel items (T-056, T-057, T-058) on `1ce4a39..eab3fea` approved the integrated result, with no Critical or Important findings. Its record is in the [T-056 verification](../T-056-tray-handle-leak/verification.md#whole-run-review).
