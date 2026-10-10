@@ -58,7 +58,9 @@ Local switches, set before launching the process:
 captures when the event queue is available. Check these before concluding that an
 absent response means no request ran. Storage failures do not replace application
 faults. Repeated binding/dispatch warnings are summarized with count and first/last
-times. Normal output is bounded to 4,096 pending entries and 16 MiB; critical output
+times. A recurring tray failure is logged once in detail; its later attempts are counted
+and written as one Warning summary of the same event when a redraw succeeds or the app
+stops. Normal output is bounded to 4,096 pending entries and 16 MiB; critical output
 bypasses that queue and forces the file to disk before a two-second best-effort drain.
 Normal writes run off the UI thread. Forced kill, power loss, native corruption and
 unavailable/stalled storage cannot guarantee a final event; `PreviousExitUnknown`

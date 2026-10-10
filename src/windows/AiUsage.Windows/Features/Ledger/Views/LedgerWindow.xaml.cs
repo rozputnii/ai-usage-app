@@ -602,9 +602,9 @@ internal sealed partial class LedgerWindow : Window
         !Composition.ApplicationDiagnostics.Packaged() ? "AI Usage " + id : null;
 
     /// <summary>
-    /// The tray mark takes the most urgent card colour; drawn synchronously as in the current tray (D9). T-056: the icon it
-    /// replaces is disposed once the tray shows the new one, so redraws over days of uptime keep the handle count flat. A
-    /// failure that repeats is logged once in detail and counted until a redraw succeeds again.
+    /// The tray mark takes the most urgent card colour; drawn synchronously as in the current tray (D9). T-056: each mark owns
+    /// its handle, and H.NotifyIcon disposes the icon it replaces when Icon changes, so redraws over days of uptime keep the
+    /// handle count flat. A failure that repeats is logged once in detail and counted until a redraw succeeds again.
     /// </summary>
     private void UpdateTrayGlyph()
     {
@@ -612,11 +612,10 @@ internal sealed partial class LedgerWindow : Window
         var key = tones.Contains(Tone.Critical) ? "CritM" : tones.Contains(Tone.Attention) ? "AttM" : "OkM";
         try
         {
-            var replaced = TrayIcon.Icon;
             var next = TrayGlyph.Create(LedgerTheme.Color(key));
             try { TrayIcon.Icon = next; }
-            // The icon the tray no longer holds is released, also when the assignment fails.
-            finally { (ReferenceEquals(TrayIcon.Icon, next) ? replaced : next)?.Dispose(); }
+            // The window releases the new mark only when the assignment fails before the tray holds it.
+            catch { if (!ReferenceEquals(TrayIcon.Icon, next)) next.Dispose(); throw; }
             Composition.ApplicationDiagnostics.Current?.TrayRecovered();
         }
         catch (Exception error) when (error is System.Runtime.InteropServices.ExternalException or InvalidOperationException or ArgumentException or OutOfMemoryException)
