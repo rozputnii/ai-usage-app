@@ -20,7 +20,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     private readonly object gate = new();
     private readonly LinkedList<Pending> pending = new();
     private readonly Dictionary<DiagnosticEvent, (DateTimeOffset First, DateTimeOffset Last, long Count)> suppressed = [];
-    private readonly Dictionary<DiagnosticEvent, (DateTimeOffset First, DateTimeOffset Last, long Count)> repeating = [];
+    private readonly Dictionary<(DiagnosticEvent Event, string Signature), (Guid IncidentId, DateTimeOffset First, DateTimeOffset Last, long Count)> repeating = [];
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Exception, object> failures = new();
     private readonly SemaphoreSlim wake = new(0, 1);
     private readonly Task worker;
@@ -91,7 +91,9 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         Event(eventCode, severity, context: new { category = category.ToString() });
     }
 
-    public void Failure(DiagnosticEvent eventCode, Exception exception)
+    public void Failure(DiagnosticEvent eventCode, Exception exception) => Failure(eventCode, exception, Guid.NewGuid());
+
+    private void Failure(DiagnosticEvent eventCode, Exception exception, Guid incidentId)
     {
         try
         {
@@ -105,32 +107,46 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             var severity = exception is OperationCanceledException ? DiagnosticSeverity.Information :
                 kind is AiUsage.Core.Usage.ProviderFailureKind.AuthenticationRequired or AiUsage.Core.Usage.ProviderFailureKind.RateLimited or
                     AiUsage.Core.Usage.ProviderFailureKind.Timeout or AiUsage.Core.Usage.ProviderFailureKind.NetworkFailure ? DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
-            Event(eventCode, severity, exception: SafeException.Project(exception), context: new { incidentId = Guid.NewGuid(), failureCategory = kind?.ToString() });
+            Event(eventCode, severity, exception: SafeException.Project(exception), context: new { incidentId, failureCategory = kind?.ToString() });
         }
         catch (Exception) { Interlocked.Increment(ref lost); }
     }
 
     /// <summary>
-    /// T-056: a failure that recurs on every attempt (the tray redraw) gets one detailed record; later attempts are only
-    /// counted until <see cref="Recovered"/> or stop writes the count, so a later failure is again logged in detail.
+    /// T-056, T-062: a failure that recurs on every attempt (the tray redraw) gets one detailed record per signature
+    /// (exception type and HResult, never the message); later attempts are only counted. The count is written with the
+    /// detailed record's incidentId hourly, before an update install and on a fatal incident (the streak stays open),
+    /// and on <see cref="Recovered"/> or stop (the streak closes, so a later failure is again logged in detail).
     /// </summary>
     public void RepeatedFailure(DiagnosticEvent eventCode, Exception exception)
     {
+        var key = (eventCode, exception.GetType().FullName + ":" + exception.HResult);
+        Guid incidentId;
         lock (gate)
         {
             var now = clock.GetUtcNow();
-            if (repeating.TryGetValue(eventCode, out var previous))
-            { repeating[eventCode] = (previous.First, now, previous.Count + 1); return; }
-            repeating[eventCode] = (now, now, 0);
+            if (repeating.TryGetValue(key, out var streak))
+            {
+                // After a checkpoint the next window starts at the first counted attempt.
+                repeating[key] = (streak.IncidentId, streak.First == default ? now : streak.First, now, streak.Count + 1);
+                return;
+            }
+            incidentId = Guid.NewGuid();
+            repeating[key] = (incidentId, now, now, 0);
         }
-        Failure(eventCode, exception);
+        Failure(eventCode, exception, incidentId);
     }
 
     public void Recovered(DiagnosticEvent eventCode)
     {
         lock (gate)
         {
-            if (repeating.Remove(eventCode, out var summary)) Summarize(eventCode, summary);
+            foreach (var (key, streak) in repeating.ToArray())
+            {
+                if (key.Event != eventCode) continue;
+                repeating.Remove(key);
+                Summarize(key.Event, streak);
+            }
         }
     }
 
@@ -139,6 +155,8 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     {
         if (eventCode is not (DiagnosticEvent.UpdateCheckFailed or DiagnosticEvent.UpdateInstallStarted or
             DiagnosticEvent.UpdateInstallFailed or DiagnosticEvent.UpdateApplied)) return;
+        // An install can force-close the app (ForceTargetAppShutdown) before stop writes pending counts.
+        if (eventCode == DiagnosticEvent.UpdateInstallStarted) Checkpoint();
         var severity = eventCode switch
         {
             DiagnosticEvent.UpdateCheckFailed => DiagnosticSeverity.Warning,
@@ -204,8 +222,8 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
         try
         {
             // Acquiring the ordinary queue lock must not hold this fatal thread indefinitely.
-            // The outer deadline also bounds a worker that cannot acquire it.
-            Task.Run(() => FlushAsync(TimeSpan.FromSeconds(2))).Wait(TimeSpan.FromSeconds(2));
+            // The outer deadline also bounds a worker that cannot acquire it. Pending summaries join the same drain.
+            Task.Run(() => { FlushSuppressed(force: true); return FlushAsync(TimeSpan.FromSeconds(2)); }).Wait(TimeSpan.FromSeconds(2));
         }
         catch (Exception) { Interlocked.Increment(ref lost); }
     }
@@ -273,6 +291,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             }
             if (clock.GetElapsedTime(sweep) >= TimeSpan.FromHours(1))
             {
+                Checkpoint();
                 try { CloseWriters(); DiagnosticFiles.Prune(DirectoryPath, clock.GetUtcNow(), options); }
                 catch (Exception) { Interlocked.Increment(ref lost); }
                 sweep = clock.GetTimestamp();
@@ -312,9 +331,21 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
                 suppressed.Remove(id);
                 Summarize(id, summary);
             }
-            if (!force) return;
-            foreach (var (id, summary) in repeating) Summarize(id, summary);
-            repeating.Clear();
+            if (force) Checkpoint();
+        }
+    }
+
+    /// <summary>Writes every pending repeated-failure count and keeps its streak and incidentId open.</summary>
+    private void Checkpoint()
+    {
+        lock (gate)
+        {
+            foreach (var (key, streak) in repeating.ToArray())
+            {
+                if (streak.Count == 0) continue;
+                Summarize(key.Event, streak);
+                repeating[key] = (streak.IncidentId, default, default, 0);
+            }
         }
     }
 
@@ -322,6 +353,12 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     {
         if (summary.Count > 0) Event(id, DiagnosticSeverity.Warning,
             context: new { suppressedCount = summary.Count, firstAt = summary.First, lastAt = summary.Last });
+    }
+
+    private void Summarize(DiagnosticEvent id, (Guid IncidentId, DateTimeOffset First, DateTimeOffset Last, long Count) streak)
+    {
+        if (streak.Count > 0) Event(id, DiagnosticSeverity.Warning,
+            context: new { incidentId = streak.IncidentId, suppressedCount = streak.Count, firstAt = streak.First, lastAt = streak.Last });
     }
 
     private void TryInitialize()
@@ -454,6 +491,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             if (stopped == 0)
             {
                 FlushSuppressed(force: true);
+                repeating.Clear();
                 Event(DiagnosticEvent.SessionExited, DiagnosticSeverity.Information);
                 Volatile.Write(ref stopped, 1);
                 Signal();

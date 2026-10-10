@@ -225,6 +225,100 @@ public sealed class FileDiagnosticsTests : IDisposable
         Assert.Equal(2, summary.GetProperty("context").GetProperty("suppressedCount").GetInt64());
     }
 
+    [Fact]
+    public async Task APendingRepeatedFailureCountIsWrittenOnAFatalIncident()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        for (var i = 0; i < 3; i++) log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        Assert.True(await log.FlushAsync());
+        log.Fatal(DiagnosticEvent.UnhandledFailure, null, terminating: true);
+
+        // No stop and no further flush: the process exits right after Fatal.
+        var tray = Records(log).Where(e => e.GetProperty("eventId").GetString() == "TrayFailure").ToArray();
+        var detailed = Assert.Single(tray, e => e.GetProperty("severity").GetString() == "Error");
+        var summary = Assert.Single(tray, e => e.GetProperty("severity").GetString() == "Warning");
+        Assert.Equal(2, summary.GetProperty("context").GetProperty("suppressedCount").GetInt64());
+        Assert.Equal(IncidentId(detailed), IncidentId(summary));
+    }
+
+    [Fact]
+    public async Task TheHourlySweepWritesPendingCountsAndKeepsTheStreakOpen()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        var first = clock.Now;
+        for (var i = 0; i < 3; i++) log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        Assert.True(await log.FlushAsync());
+        clock.Now += TimeSpan.FromMinutes(61);
+        Assert.True(await log.FlushAsync());
+
+        var tray = Records(log).Where(e => e.GetProperty("eventId").GetString() == "TrayFailure").ToArray();
+        var detailed = Assert.Single(tray, e => e.GetProperty("severity").GetString() == "Error");
+        var hourly = Assert.Single(tray, e => e.GetProperty("severity").GetString() == "Warning");
+        Assert.Equal(2, hourly.GetProperty("context").GetProperty("suppressedCount").GetInt64());
+        Assert.Equal(first, hourly.GetProperty("context").GetProperty("firstAt").GetDateTimeOffset());
+        Assert.Equal(IncidentId(detailed), IncidentId(hourly));
+
+        var later = clock.Now;
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        log.Recovered(DiagnosticEvent.TrayFailure);
+        Assert.True(await log.FlushAsync());
+
+        tray = Records(log).Where(e => e.GetProperty("eventId").GetString() == "TrayFailure").ToArray();
+        Assert.Single(tray, e => e.GetProperty("severity").GetString() == "Error");
+        var summaries = tray.Where(e => e.GetProperty("severity").GetString() == "Warning").OrderBy(e => e.GetProperty("sequence").GetInt64()).ToArray();
+        Assert.Equal(2, summaries.Length);
+        var recovered = summaries[1];
+        Assert.Equal(1, recovered.GetProperty("context").GetProperty("suppressedCount").GetInt64());
+        Assert.Equal(later, recovered.GetProperty("context").GetProperty("firstAt").GetDateTimeOffset());
+        Assert.Equal(IncidentId(detailed), IncidentId(recovered));
+    }
+
+    [Fact]
+    public async Task APendingRepeatedFailureCountIsWrittenBeforeAnUpdateInstallStarts()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        for (var i = 0; i < 3; i++) log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        log.Update(DiagnosticEvent.UpdateInstallStarted, new(Automatic: true));
+        Assert.True(await log.FlushAsync());
+
+        var records = Records(log);
+        var summary = Assert.Single(records, e => e.GetProperty("eventId").GetString() == "TrayFailure" && e.GetProperty("severity").GetString() == "Warning");
+        Assert.Equal(2, summary.GetProperty("context").GetProperty("suppressedCount").GetInt64());
+        var started = Assert.Single(records, e => e.GetProperty("eventId").GetString() == "UpdateInstallStarted");
+        Assert.True(summary.GetProperty("sequence").GetInt64() < started.GetProperty("sequence").GetInt64());
+    }
+
+    [Fact]
+    public async Task EachDistinctFailureInAStreakIsLoggedInDetailAndSummarizedWithItsIncident()
+    {
+        using var log = new FileDiagnostics(root, clock: clock);
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, PlatformFailure());
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, OtherFailure());
+        log.RepeatedFailure(DiagnosticEvent.TrayFailure, OtherFailure());
+        log.Recovered(DiagnosticEvent.TrayFailure);
+        Assert.True(await log.FlushAsync());
+
+        var tray = Records(log).Where(e => e.GetProperty("eventId").GetString() == "TrayFailure").ToArray();
+        var detailed = tray.Where(e => e.GetProperty("severity").GetString() == "Error").ToArray();
+        Assert.Equal(2, detailed.Length);
+        Assert.Equal(["System.InvalidOperationException", "System.Runtime.InteropServices.COMException"],
+            detailed.Select(e => e.GetProperty("exception").GetProperty("type").GetString()).Order(StringComparer.Ordinal));
+        var summaries = tray.Where(e => e.GetProperty("severity").GetString() == "Warning").OrderBy(e => e.GetProperty("sequence").GetInt64()).ToArray();
+        Assert.Equal(2, summaries.Length);
+        Assert.All(summaries, e => Assert.Equal(1, e.GetProperty("context").GetProperty("suppressedCount").GetInt64()));
+        Assert.Equal(detailed.Select(IncidentId).Order(), summaries.Select(IncidentId).Order());
+        Assert.NotEqual(IncidentId(detailed[0]), IncidentId(detailed[1]));
+    }
+
+    private static Guid IncidentId(JsonElement record) => record.GetProperty("context").GetProperty("incidentId").GetGuid();
+
+    private static Exception OtherFailure()
+    {
+        try { throw new InvalidOperationException("canary"); }
+        catch (Exception error) { return error; }
+    }
+
     private static Exception PlatformFailure()
     {
         // The GDI+ failure the tray saw: E_FAIL from the platform.
