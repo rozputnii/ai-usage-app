@@ -238,6 +238,7 @@ internal sealed partial class LedgerWindow : Window
                 if (ViewModel.HasUndo) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(UndoBar, 150));
                 break;
             case nameof(LedgerViewModel.IsDayOff):
+            case nameof(LedgerViewModel.Peak):
                 DispatcherQueue.TryEnqueue(UpdateTitleBarRegions);
                 break;
             case nameof(LedgerViewModel.IsLeft):

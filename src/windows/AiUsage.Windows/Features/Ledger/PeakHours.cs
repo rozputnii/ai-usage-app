@@ -35,7 +35,7 @@ internal static class PeakHours
         var (start, end) = window;
         var until = LedgerFormat.Clock(end);
         return new("Peak · until " + until,
-            ["Peak hours", "Weekdays 05:00–11:00 Pacific (" + LedgerFormat.Clock(start) + "–" + until + " here)",
+            ["Peak hours", $"Weekdays {Start:hh\\:mm}–{End:hh\\:mm} Pacific ({LedgerFormat.Clock(start)}–{until} here)",
              "Requests may be slower or use more of a limit", "An announced schedule, not your account's data"],
             "Peak hours until " + until);
     }

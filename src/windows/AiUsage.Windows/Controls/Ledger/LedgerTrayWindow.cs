@@ -50,6 +50,7 @@ internal sealed partial class LedgerTrayWindow : Window
             LineHeight = 18,
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = LedgerTheme.Solid("Ink"),
+            VerticalAlignment = VerticalAlignment.Center,
         };
         // The shared peak hint sits at the right of the title, as in the window's title row.
         peakChip = new Border
