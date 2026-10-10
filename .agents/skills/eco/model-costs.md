@@ -44,11 +44,13 @@ per Index task. They come from a general test mix, not this repository's workloa
 
 ## Reading
 
-- Haiku 5.5 at xhigh or max beats Sonnet 5.5 at low and medium on both scores for less
-  money, so Sonnet below high is never the pick. Anthropic positions Haiku for subagents and
-  summaries, not complex agentic coding, so the map uses it for exploration and check runs.
-- Opus 5.5 at medium costs about 2.8 times Sonnet 5.5 at medium per task, but matches Sonnet
-  at xhigh on the Index for less. It is the default for implementation and ordinary reviews.
+- Haiku 5.5 at max beats Sonnet 5.5 at low and medium on both scores for less money, and
+  Haiku at xhigh roughly ties Sonnet at medium for a quarter of the cost, so Sonnet below high
+  is never the pick. Anthropic positions Haiku for subagents and summaries, not complex agentic
+  coding, so the map uses it for exploration and check runs.
+- Opus 5.5 at medium costs about 2.8 times Sonnet 5.5 at medium per task, but comes within a
+  point of Sonnet at xhigh on the Index (51 against 52) for two thirds of the cost, though
+  lower on TB4. It is the default for implementation and ordinary reviews.
 - Sonnet 5.5 at high is the cheapest step near that level and suits small, fully specified
   briefs.
 - Opus 5.5 at high stays the gate for T3 reviews.
