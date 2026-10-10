@@ -130,7 +130,6 @@ public sealed class BudgetStorageSafetyTests : IDisposable
         var outside = Path.Combine(root, "outside");
         Directory.CreateDirectory(Path.Combine(outside, "budget"));
         var link = Path.Combine(root, "app");
-        Directory.CreateDirectory(root);
         await Junction(link, outside);
         try
         {

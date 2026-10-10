@@ -1,7 +1,7 @@
 ---
 id: T-057
 type: feature
-status: implemented
+status: implementing
 goal: G-003
 scope_version: 1
 approval_basis: owner selection, 2026-10-10
@@ -55,17 +55,18 @@ The reparse-point boundary is not weakened, for these reasons:
   repeated the same check of the same directories while the scan was running.
 - The single walk still covers every directory the old walks covered: the owned directory
   and all its ancestors, starting at the scan, before any entry is read. No layout that was
-  refused before is now accepted. A redirected owned directory or ancestor still fails at the
-  scan, and the new ancestor test pins this for `BudgetJsonFile` directly, without the store's
-  lease (which checks the chain too).
+  refused before is now accepted. A redirected owned directory or ancestor still fails the
+  write. The new ancestor test pins this for `BudgetJsonFile` directly, without the store's
+  lease (which checks the chain too); it proves that the write is refused, by the scan or by
+  the chain check in `WriteAsync`, not which of the two fires first.
 - Every mutation keeps its own checks. `WriteAsync` checks the directory chain, the target
   and the stage file again right before it creates the stage, before the replacing move and
   before it deletes a stage. A redirection that appears during the scan is refused there,
   exactly as before.
 - Each entry is still checked: the attribute query that reads its length also supplies the
   reparse-point and directory bits. This is the same Windows query, with the same answer,
-  that `ProviderStatePaths.CheckFile` makes, so an entry that was refused before is still
-  refused.
+  that `ProviderStatePaths.CheckFile` makes, and both apply the same rule,
+  `ProviderStatePaths.CheckAttributes`, so an entry that was refused before is still refused.
 
 ## Measurement
 

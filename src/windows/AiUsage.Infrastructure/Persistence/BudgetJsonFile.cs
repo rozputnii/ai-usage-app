@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AiUsage.Core.Budget;
-using AiUsage.Core.Usage;
 using AiUsage.Infrastructure.Providers;
 
 namespace AiUsage.Infrastructure.Persistence;
@@ -82,18 +81,15 @@ internal sealed class BudgetJsonFile(string directory)
     private void EnsureCapacity(string name, int incomingBytes)
     {
         // The owned directory and its ancestors are checked once per scan, and each entry once
-        // with the same attribute query that reads its length (as ProviderStatePaths.CheckFile
-        // does). The scan only reads metadata; WriteAsync re-checks the directory chain before it
-        // creates, replaces or deletes anything.
+        // with the attribute query that also reads its length. The scan only reads metadata;
+        // WriteAsync re-checks the directory chain before it creates, replaces or deletes anything.
         ProviderStatePaths.CheckDirectory(directory);
         long total = incomingBytes; // Includes staging alongside the previous committed file.
         var series = new HashSet<string>(StringComparer.Ordinal);
         foreach (var path in Directory.EnumerateFileSystemEntries(directory))
         {
             var entry = new FileInfo(path);
-            var attributes = entry.Attributes; // -1 when the entry no longer exists.
-            if (attributes != (FileAttributes)(-1) && (attributes & (FileAttributes.ReparsePoint | FileAttributes.Directory)) != 0)
-                throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+            ProviderStatePaths.CheckAttributes(entry.Attributes); // -1 when the entry no longer exists.
             total = checked(total + entry.Length);
             var file = Path.GetFileName(path);
             if (file.StartsWith("series-", StringComparison.Ordinal))

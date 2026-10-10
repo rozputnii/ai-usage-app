@@ -22,13 +22,17 @@ internal static class ProviderStatePaths
 
     internal static void CheckFile(string path)
     {
-        try
-        {
-            if ((File.GetAttributes(path) & (FileAttributes.ReparsePoint | FileAttributes.Directory)) != 0)
-                throw new ProviderException(ProviderFailureKind.RecoveryRequired);
-        }
+        try { CheckAttributes(File.GetAttributes(path)); }
         catch (FileNotFoundException) { }
         catch (DirectoryNotFoundException) { }
+    }
+
+    /// <summary>Refuse an exact owned path whose attributes show a reparse point or a directory.
+    /// -1 (FileSystemInfo.Attributes of a missing entry) passes, as a missing path does in CheckFile.</summary>
+    internal static void CheckAttributes(FileAttributes attributes)
+    {
+        if (attributes != (FileAttributes)(-1) && (attributes & (FileAttributes.ReparsePoint | FileAttributes.Directory)) != 0)
+            throw new ProviderException(ProviderFailureKind.RecoveryRequired);
     }
 
     internal static FileStream Acquire(string directory, string lockName)
