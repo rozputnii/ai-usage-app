@@ -67,6 +67,7 @@ Read the skill before working in its area:
   [verification-before-completion](.agents/skills/verification-before-completion/SKILL.md),
   [receiving-code-review](.agents/skills/receiving-code-review/SKILL.md): bugs, completion
   claims and review findings.
+- [eco](.agents/skills/eco/SKILL.md): only when the owner turns on economy mode (`/eco`).
 - [post-deploy-check](.agents/skills/post-deploy-check/SKILL.md): only when the owner asks to
   check the installed app.
 
