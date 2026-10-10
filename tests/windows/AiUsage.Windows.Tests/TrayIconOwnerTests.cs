@@ -11,7 +11,7 @@ namespace AiUsage.Windows.Tests;
 /// new one; the shown icon is released only after a successful update. H.NotifyIcon's own order (dispose the shown icon,
 /// then update and ignore the result) leaves the tray holding a destroyed handle. No desktop needed.
 /// </summary>
-public sealed class TrayMarkTests
+public sealed class TrayIconOwnerTests
 {
     private const uint GdiObjects = 0;
     private const uint UserObjects = 1;
@@ -26,24 +26,24 @@ public sealed class TrayMarkTests
     [Fact]
     public void AFailedUpdateKeepsTheShownIconAndReleasesTheNewOne()
     {
-        using var mark = new TrayMark();
+        using var owner = new TrayIconOwner();
         var shown = TrayGlyph.Create(Colors[0]);
         var shownHandle = shown.Handle;
-        Assert.True(mark.Show(shown, _ => true));
+        Assert.True(owner.Show(shown, _ => true));
 
         var rejected = TrayGlyph.Create(Colors[1]);
-        Assert.False(mark.Show(rejected, _ => false));
+        Assert.False(owner.Show(rejected, _ => false));
 
         Assert.True(IsLiveIcon(shownHandle), "The shown icon's handle was destroyed by a failed update.");
         Assert.Throws<ObjectDisposedException>(() => rejected.Handle);
 
         var broken = TrayGlyph.Create(Colors[2]);
-        Assert.Throws<InvalidOperationException>(() => mark.Show(broken, _ => throw new InvalidOperationException("shell")));
+        Assert.Throws<InvalidOperationException>(() => owner.Show(broken, _ => throw new InvalidOperationException("shell")));
         Assert.True(IsLiveIcon(shownHandle), "The shown icon's handle was destroyed by an update that threw.");
         Assert.Throws<ObjectDisposedException>(() => broken.Handle);
 
         var next = TrayGlyph.Create(Colors[2]);
-        Assert.True(mark.Show(next, _ => true));
+        Assert.True(owner.Show(next, _ => true));
         Assert.Throws<ObjectDisposedException>(() => shown.Handle);
         Assert.True(IsLiveIcon(next.Handle));
     }
@@ -55,12 +55,12 @@ public sealed class TrayMarkTests
         var process = Process.GetCurrentProcess().Handle;
         var gdiBefore = NativeMethods.GetGuiResources(process, GdiObjects);
         var userBefore = NativeMethods.GetGuiResources(process, UserObjects);
-        using (var mark = new TrayMark())
+        using (var owner = new TrayIconOwner())
         {
             for (var i = 0; i < 3000; i++)
             {
                 var succeed = i % 2 == 0;
-                mark.Show(TrayGlyph.Create(Colors[i % Colors.Length]), _ => succeed);
+                owner.Show(TrayGlyph.Create(Colors[i % Colors.Length]), _ => succeed);
             }
         }
         var gdiGrowth = (long)NativeMethods.GetGuiResources(process, GdiObjects) - gdiBefore;

@@ -8,7 +8,7 @@ namespace AiUsage.Platform;
 /// restarts. Here the shown icon stays alive until a new one is in the tray: a failed or throwing update releases the new
 /// icon, a successful one releases the previous icon.
 /// </summary>
-internal sealed class TrayMark : IDisposable
+internal sealed class TrayIconOwner : IDisposable
 {
     private Icon? current;
 

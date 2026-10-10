@@ -11,8 +11,6 @@ using Windows.Graphics;
 using Windows.System;
 
 using Path = Microsoft.UI.Xaml.Shapes.Path;
-// The miniature's rush and extra-usage mark kind, not AiUsage.Platform.TrayMark (the tray icon the window owns).
-using TrayMark = AiUsage.Features.Ledger.TrayMark;
 
 namespace AiUsage.Controls.Ledger;
 

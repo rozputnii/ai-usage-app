@@ -23,7 +23,7 @@ namespace AiUsage.Features.Ledger.Views;
 /// grid with inline history; the inline settings panel; the undo bar; and the tray icon whose flyout is the miniature.
 /// Closing hides to the tray; Exit is in the tray menu.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "WinUI owns the window's lifetime; CloseForExit releases the tray mark after the tray icon.")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "WinUI owns the window's lifetime; CloseForExit releases the shown tray icon after the tray.")]
 internal sealed partial class LedgerWindow : Window
 {
     /// <summary>Until the content loads; then the window opens at its content-based minimum width (R-197).</summary>
@@ -33,8 +33,8 @@ internal sealed partial class LedgerWindow : Window
     private const double EmptyBodyMinHeight = 160;
     private readonly Dictionary<LimitCardViewModel, LedgerCardView> views = [];
     private readonly HistoryPanel historyPanel = new();
-    /// <summary>The tray icon the shell shows; Platform.TrayMark, since Features.Ledger.TrayMark is the miniature's mark kind.</summary>
-    private readonly Platform.TrayMark trayMark = new();
+    /// <summary>Owns the icon the tray shows (T-062 R-01).</summary>
+    private readonly TrayIconOwner shownIcon = new();
     /// <summary>The tray tone last drawn successfully; null until the first draw.</summary>
     private Tone? drawnTone;
     private readonly Func<Task> exit;
@@ -620,7 +620,7 @@ internal sealed partial class LedgerWindow : Window
     /// The tray mark takes the most urgent card colour; drawn synchronously as in the current tray (D9). T-061 R-01: it is
     /// redrawn only when the view model's tray tone differs from the tone last drawn successfully, so an unchanged source
     /// change does no native work and a failed redraw is retried on the next change. T-062 R-01: the window owns the shown
-    /// icon (TrayMark) and updates the shell through TaskbarIcon.UpdateIcon, never through the Icon property, so the library
+    /// icon (TrayIconOwner) and updates the shell through TaskbarIcon.UpdateIcon, never through the Icon property, so the library
     /// never disposes it: a failed or throwing update releases the new icon and keeps the shown one, a successful update
     /// releases the previous one, and handles stay flat over days of uptime. A failed update writes no record and does not
     /// report recovery; a throwing one is logged once in detail and counted until a redraw succeeds again.
@@ -633,7 +633,7 @@ internal sealed partial class LedgerWindow : Window
         var key = tone switch { Tone.Critical => "CritM", Tone.Attention => "AttM", _ => "OkM" };
         try
         {
-            if (trayMark.Show(TrayGlyph.Create(LedgerTheme.Color(key)), TrayIcon.UpdateIcon))
+            if (shownIcon.Show(TrayGlyph.Create(LedgerTheme.Color(key)), TrayIcon.UpdateIcon))
             {
                 drawnTone = tone;
                 Composition.ApplicationDiagnostics.Current?.TrayRecovered();
@@ -666,8 +666,8 @@ internal sealed partial class LedgerWindow : Window
     {
         finalClose = true;
         TrayIcon.Dispose();
-        // The tray no longer shows the mark, so its icon can go.
-        trayMark.Dispose();
+        // The tray no longer shows the icon, so it can go.
+        shownIcon.Dispose();
         Close();
     }
 
