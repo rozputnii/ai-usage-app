@@ -1,7 +1,7 @@
 ---
 id: T-057
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: owner selection, 2026-10-10
