@@ -19,7 +19,7 @@ active_goal: G-002
 
 ## G-003 - Unified Windows v1
 - status: idea
-- scope: T-005, T-007, T-008, T-009, T-010, T-011, T-012, T-013, T-016, T-027, T-028, T-029, T-030, T-031, T-032, T-033, T-034, T-035, T-036, T-037, T-038, T-039, T-040, T-042, T-043, T-044, T-045, T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056, T-057, T-058, T-NEW, T-NEW-2, T-NEW-3, T-NEW-4
+- scope: T-005, T-007, T-008, T-009, T-010, T-011, T-012, T-013, T-016, T-027, T-028, T-029, T-030, T-031, T-032, T-033, T-034, T-035, T-036, T-037, T-038, T-039, T-040, T-042, T-043, T-044, T-045, T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056, T-057, T-058, T-059, T-060, T-061, T-062
 - outcome: Four providers with required contexts/groups, multiple accounts, history, notifications, diagnostics and data lifecycle.
 - success: Every completed provider has source evidence, deterministic tests and live verification. Record unavailable access as a blocker, not a completed provider. Advanced features must not displace core reliability.
 

@@ -1,12 +1,12 @@
 ---
-id: T-NEW-4
+id: T-062
 schema_version: 1
 ---
 # Tray icon lifetime and lost repeated-failure counts: tasks
 
-The worker plan is in [T-NEW tasks](../T-NEW-stale-ui-smokes/tasks.md).
+The worker plan is in [T-059 tasks](../T-059-stale-ui-smokes/tasks.md).
 
-### T-NEW-4.1 - The window owns the shown tray icon
+### T-062.1 - The window owns the shown tray icon
 - status: ready
 - depends_on: []
 - ownership: tray-icon-lifetime
@@ -18,13 +18,13 @@ The worker plan is in [T-NEW tasks](../T-NEW-stale-ui-smokes/tasks.md).
 - acceptance: ["AC-01", "AC-04"]
 - evidence: not-run
 
-W2, together with T-NEW-3.2, which owns LedgerWindow.xaml.cs: R-01.
+W2, together with T-061.2, which owns LedgerWindow.xaml.cs: R-01.
 
-### T-NEW-4.2 - Repeated-failure streaks: signature, incident and flush
+### T-062.2 - Repeated-failure streaks: signature, incident and flush
 - status: ready
 - depends_on: []
 - ownership: diagnostics
-- writes: ["src/windows/AiUsage.Infrastructure/Diagnostics/FileDiagnostics.cs", "tests/windows/AiUsage.Infrastructure.Tests/FileDiagnosticsTests.cs", "docs/workflow/logging.md", "docs/specs/T-NEW-4-native-lifetime-lost-diagnostics/spec.md"]
+- writes: ["src/windows/AiUsage.Infrastructure/Diagnostics/FileDiagnostics.cs", "tests/windows/AiUsage.Infrastructure.Tests/FileDiagnosticsTests.cs", "docs/workflow/logging.md", "docs/specs/T-062-native-lifetime-lost-diagnostics/spec.md"]
 - shared: []
 - parallel: true
 - isolation: required
