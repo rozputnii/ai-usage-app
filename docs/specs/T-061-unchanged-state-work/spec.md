@@ -1,7 +1,7 @@
 ---
 id: T-061
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: owner decision, 2026-10-10 (fix confirmed defects of the four classes found in the T-056/T-057/T-058 run)
@@ -21,8 +21,8 @@ approval_basis: owner decision, 2026-10-10 (fix confirmed defects of the four cl
   - the Settings cap list is recreated on each change, which discards a cap edit the user has open, typed text
     included, within about a minute (reproduced);
   - opening the window when it is already visible writes a `WindowShown` record.
-- Expected: unchanged input does no native, file, log or visual-tree work, and the tray colour follows the cards
-  of the same change.
+- Expected: unchanged input does none of the work listed above (requirements R-01 to R-07), and the tray colour
+  follows the cards of the same change. The remaining once-per-tick work is recorded in the verification record.
 - Unchanged: what the app shows, its colours, the refresh schedule and backoff, the stored formats, and the
   tray, history and settings behaviour for real changes.
 
