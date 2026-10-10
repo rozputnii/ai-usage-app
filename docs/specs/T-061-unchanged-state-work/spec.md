@@ -1,7 +1,7 @@
 ---
 id: T-061
 type: feature
-status: approved
+status: implementing
 goal: G-003
 scope_version: 1
 approval_basis: owner decision, 2026-10-10 (fix confirmed defects of the four classes found in the T-056/T-057/T-058 run)

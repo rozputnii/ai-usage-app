@@ -311,11 +311,13 @@ public sealed class LiveLedgerSourceTests
         public ReadingRun[] Runs = [];
         public TaskCompletionSource? HoldRead;
         public TaskCompletionSource? ReadEntered;
+        public int Reads;
         public Task RecordAsync(string accountTarget, string provider, ProviderSessionState state, CancellationToken token)
         { if (FailCapture) throw new IOException(); Captured.Add(accountTarget); return Task.CompletedTask; }
         public Task<StoreWrite> AppendAsync(IReadOnlyList<ReadingObservation> observations, CancellationToken token) => throw new NotSupportedException();
         public async Task<StoreRead<IReadOnlyList<ReadingRun>>> ReadAsync(ReadingSeriesKey series, CancellationToken token)
         {
+            Interlocked.Increment(ref Reads);
             if (HoldRead is { } hold) { ReadEntered?.TrySetResult(); await hold.Task.WaitAsync(token); }
             return new(Runs.Where(r => r.Series == series).ToArray());
         }
@@ -776,6 +778,57 @@ public sealed class LiveLedgerSourceTests
             await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 30 }, Token);
             Assert.Equal(AccountHealth.SyncFailedFresh, source.Current.Accounts[0].Health);
             Assert.False(source.Current.Accounts[0].Cards[0].Freshness.IsStale);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    // ---- T-061 R-02: a tick with nothing due builds once ----
+
+    [Fact]
+    public async Task ATickWithNoAccountDueBuildsOnceAndReadsEachSeriesOnce()
+    {
+        var clock = new Clock(); var store = new Store();
+        var accounts = new Accounts { Current = [Account(Guid.NewGuid(), clock.Now)] };
+        using var source = Source(accounts, store, clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            var changes = 0;
+            source.Changed += (_, _) => changes++;
+            Volatile.Write(ref store.Reads, 0);
+            // One minute after the last fetch, at the default five-minute interval, nothing is due.
+            clock.Now = clock.Now.AddMinutes(1);
+            await source.TickAsync(Token);
+            Assert.Empty(accounts.Refreshed);
+            Assert.Equal(1, changes);
+            Assert.Equal(1, Volatile.Read(ref store.Reads));
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
+    public async Task ATickWithAnAccountDueShowsTheRefreshedReading()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var accounts = new Accounts { Current = [Account(id, clock.Now)] };
+        // The refresh changes the reading without raising Changed, so only the rebuild after the refresh can show it.
+        accounts.Refresh = refreshed =>
+        {
+            var account = Account(refreshed, clock.Now);
+            var quota = account.Session.Quota!;
+            var facts = quota.Limits!.Limits[0] with { Used = new CountQuantity(35, "requests") };
+            accounts.Current = [account with { Session = account.Session with { Quota = quota with { Limits = quota.Limits with { Limits = [facts] } } } }];
+            return new(AccountOutcome.Done, refreshed);
+        };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            Assert.Equal(20m, source.Current.Accounts.Single().Cards.Single().Figures.Used);
+            clock.Now = clock.Now.AddMinutes(5);
+            await source.TickAsync(Token);
+            Assert.Equal([id], accounts.Refreshed);
+            Assert.Equal(35m, source.Current.Accounts.Single().Cards.Single().Figures.Used);
         }
         finally { await source.StopAsync(); }
     }

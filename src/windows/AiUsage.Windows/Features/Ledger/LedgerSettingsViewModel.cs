@@ -37,6 +37,8 @@ internal sealed partial class CapRow : ObservableObject
     public bool IsWarning => Model.Status != CapStatus.Applied;
     public string ActionText => Model.Status == CapStatus.Unmatched ? "Remove" : "Edit";
     public bool CanAct => Model.Status == CapStatus.Unmatched || Model.CapTargetId is not null && owner.HasCard(Model.CapTargetId);
+    /// <summary>A kept row re-reads what depends on the cards rather than on its cap (T-061 R-06).</summary>
+    public void Refresh() => OnPropertyChanged(nameof(CanAct));
     public string AccessibleName => "Cap for " + Label + ", " + AmountText + ", " + Note;
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEditing))]
@@ -169,9 +171,16 @@ internal sealed partial class LedgerSettingsViewModel(LedgerViewModel owner, ILe
         foreach (var toggle in WorkDays)
             toggle.ToggleCommand.NotifyCanExecuteChanged();
 
-        Caps.Clear();
-        foreach (var cap in current.Budget.Caps)
-            Caps.Add(new CapRow(this, cap));
+        // T-061 R-06: equal caps keep their rows, so an open cap editor and its text survive; only card-dependent state refreshes.
+        if (Caps.Select(c => c.Model).SequenceEqual(current.Budget.Caps))
+            foreach (var row in Caps)
+                row.Refresh();
+        else
+        {
+            Caps.Clear();
+            foreach (var cap in current.Budget.Caps)
+                Caps.Add(new CapRow(this, cap));
+        }
         HasCaps = Caps.Count > 0;
     }
 
