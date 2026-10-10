@@ -5,9 +5,13 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PlatformTarget>x64</PlatformTarget>
     <IsTestProject>true</IsTestProject>
+    <!-- T-056: the linked tray glyph source releases its icon handle through LibraryImport. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="FlaUI.UIA3" />
+    <!-- T-056: handle-count regression for the tray mark, no desktop needed; System.Drawing.Common arrives through FlaUI. -->
+    <Compile Include="../../../src/windows/AiUsage.Windows/Platform/TrayGlyph.cs" Link="Platform/TrayGlyph.cs" />
   </ItemGroup>
 </Project>

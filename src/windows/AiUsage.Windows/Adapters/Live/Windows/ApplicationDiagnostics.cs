@@ -54,7 +54,9 @@ internal sealed class ApplicationDiagnostics : IDiagnosticSink, IUpdateLog, IDis
     public void StartupFailure(Exception error) => sink?.Fatal(DiagnosticEvent.StartupFailure, error, true);
     public void ShutdownFailure(Exception error) => sink?.Fatal(DiagnosticEvent.ShutdownFailure, error, true);
     public void DisposalFailure(Exception error) => sink?.Fatal(DiagnosticEvent.DisposalFailure, error, true);
-    public void TrayFailure(Exception error) => sink?.Failure(DiagnosticEvent.TrayFailure, error);
+    // T-056: a tray redraw that keeps failing is logged once in detail and then counted until a redraw succeeds.
+    public void TrayFailure(Exception error) => sink?.RepeatedFailure(DiagnosticEvent.TrayFailure, error);
+    public void TrayRecovered() => sink?.Recovered(DiagnosticEvent.TrayFailure);
     public void UnhandledFailure(Exception? error) => sink?.Fatal(DiagnosticEvent.UnhandledFailure, error, true);
     public void Record(DiagnosticEvent eventCode, DiagnosticCategory category) => sink?.Record(eventCode, category);
     public void Failure(DiagnosticEvent eventCode, Exception exception) => sink?.Failure(eventCode, exception);

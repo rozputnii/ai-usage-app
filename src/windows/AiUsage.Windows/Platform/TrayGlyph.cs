@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace AiUsage.Platform;
 
@@ -9,12 +10,16 @@ namespace AiUsage.Platform;
 /// display DPI, so above 100 % scaling the line outgrows the 128 px icon and GDI+ drops it, leaving a transparent slot.
 /// The mark is drawn as a path in pixels instead and fitted to the icon, which keeps it identical at every scale.
 /// </summary>
-internal static class TrayGlyph
+internal static partial class TrayGlyph
 {
     private const int Size = 128;
     private const float Inset = 8;
 
-    public static Icon Create(Windows.UI.Color color)
+    /// <summary>
+    /// T-056: the caller owns the returned icon and disposes it once the tray no longer shows it, which releases its handle.
+    /// The mark is redrawn on every card change, so a handle left behind per redraw exhausts the process quota within hours.
+    /// </summary>
+    public static Icon Create(global::Windows.UI.Color color)
     {
         using var bitmap = new Bitmap(Size, Size, PixelFormat.Format32bppArgb);
         using (var graphics = Graphics.FromImage(bitmap))
@@ -33,6 +38,20 @@ internal static class TrayGlyph
             path.Transform(fit);
             graphics.FillPath(brush, path);
         }
-        return Icon.FromHandle(bitmap.GetHicon());
+        // Icon.FromHandle never destroys the handle GetHicon creates; the clone owns its own copy, released by Dispose.
+        var handle = bitmap.GetHicon();
+        try
+        {
+            using var borrowed = Icon.FromHandle(handle);
+            return (Icon)borrowed.Clone();
+        }
+        finally
+        {
+            DestroyIcon(handle);
+        }
     }
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool DestroyIcon(nint icon);
 }

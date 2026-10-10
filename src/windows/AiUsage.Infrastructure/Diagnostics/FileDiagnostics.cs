@@ -20,6 +20,7 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     private readonly object gate = new();
     private readonly LinkedList<Pending> pending = new();
     private readonly Dictionary<DiagnosticEvent, (DateTimeOffset First, DateTimeOffset Last, long Count)> suppressed = [];
+    private readonly Dictionary<DiagnosticEvent, (DateTimeOffset First, DateTimeOffset Last, long Count)> repeating = [];
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Exception, object> failures = new();
     private readonly SemaphoreSlim wake = new(0, 1);
     private readonly Task worker;
@@ -107,6 +108,30 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             Event(eventCode, severity, exception: SafeException.Project(exception), context: new { incidentId = Guid.NewGuid(), failureCategory = kind?.ToString() });
         }
         catch (Exception) { Interlocked.Increment(ref lost); }
+    }
+
+    /// <summary>
+    /// T-056: a failure that recurs on every attempt (the tray redraw) gets one detailed record; later attempts are only
+    /// counted until <see cref="Recovered"/> or stop writes the count, so a later failure is again logged in detail.
+    /// </summary>
+    public void RepeatedFailure(DiagnosticEvent eventCode, Exception exception)
+    {
+        lock (gate)
+        {
+            var now = clock.GetUtcNow();
+            if (repeating.TryGetValue(eventCode, out var previous))
+            { repeating[eventCode] = (previous.First, now, previous.Count + 1); return; }
+            repeating[eventCode] = (now, now, 0);
+        }
+        Failure(eventCode, exception);
+    }
+
+    public void Recovered(DiagnosticEvent eventCode)
+    {
+        lock (gate)
+        {
+            if (repeating.Remove(eventCode, out var summary)) Summarize(eventCode, summary);
+        }
     }
 
     /// <summary>T-046 update outcomes: typed facts only, never feed bodies, URIs, paths or exception text.</summary>
@@ -285,10 +310,18 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
             {
                 if (!force && stopped == 0 && clock.GetUtcNow() - summary.First < TimeSpan.FromSeconds(10)) continue;
                 suppressed.Remove(id);
-                if (summary.Count > 0) Event(id, DiagnosticSeverity.Warning,
-                    context: new { suppressedCount = summary.Count, firstAt = summary.First, lastAt = summary.Last });
+                Summarize(id, summary);
             }
+            if (!force) return;
+            foreach (var (id, summary) in repeating) Summarize(id, summary);
+            repeating.Clear();
         }
+    }
+
+    private void Summarize(DiagnosticEvent id, (DateTimeOffset First, DateTimeOffset Last, long Count) summary)
+    {
+        if (summary.Count > 0) Event(id, DiagnosticSeverity.Warning,
+            context: new { suppressedCount = summary.Count, firstAt = summary.First, lastAt = summary.Last });
     }
 
     private void TryInitialize()
