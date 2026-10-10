@@ -171,6 +171,46 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - open-questions: The definition of the accuracy percentage. Recommended: the share of measured windows whose own bounds agree with the pooled estimate, which directly measures how often the constant-cost assumption holds; the alternative is the relative tightness of the bounds. Whether the per-window figures are derived on demand from the stored reading series, which needs no new persistence, or kept as their own records.
 - registration-note: Owner proposed this on 2026-10-07 after the T-048 review noted that its bounds are guaranteed only while the window cost stays constant. Not selected for implementation yet.
 
+## T-NEW - Stale UI smokes
+- goal: G-003
+- status: in-progress
+- depends_on: []
+- trigger: owner-selection
+- outcome: Every ordinary UI smoke matches the app as the accepted decisions shape it; the one stale test, the spending smoke's cap-field lookup (R-203 moved the cap field into the limit-settings popover), finds the field where the app puts it.
+- acceptance: The test fails at base and passes twice under the desktop lock; every ordinary UI test class passes together with T-NEW-2; C8, C6 and C2 pass.
+- specification: docs/specs/T-NEW-stale-ui-smokes/spec.md
+- registration-note: Defect-class sweep requested and authorized by the owner on 2026-10-10 after the T-056/T-057/T-058 run. Lane A ran every ordinary UI test class on `17c79c7` under the desktop lock; only this test is stale, and the other failures came from the harness focus fallback (T-NEW-2).
+
+## T-NEW-2 - Fragile smoke-harness input
+- goal: G-003
+- status: in-progress
+- depends_on: []
+- trigger: owner-selection
+- outcome: The ordinary smoke classes focus with the Alt-tap helper, guard every mouse click and hover with the owned-point check, wait on conditions instead of fixed sleeps, re-find elements after UI changes, search only the app's own windows, have waits that can fail, and find elements by AutomationId where one exists.
+- acceptance: The checks in the specification: a grep shows no remaining instance in the ordinary classes; the History wait that could not fail is shown to fail when it should; every ordinary class passes twice under the desktop lock with an unchanged case count; C8, C6 and C2 pass.
+- specification: docs/specs/T-NEW-2-smoke-harness-input/spec.md
+- registration-note: Lane B of the 2026-10-10 sweep found the instances by code on `17c79c7`; lane A's runs showed the fixed-point focus fallback failing two classes and clicking into the window that covered the test window.
+
+## T-NEW-3 - Redundant work on unchanged state
+- goal: G-003
+- status: in-progress
+- depends_on: []
+- trigger: owner-selection
+- outcome: Unchanged input does no native, file, log or visual-tree work: the tray glyph is redrawn only when its tone changes (and no longer lags one change behind), an idle tick rebuilds once, a card notifies once per update, the hidden tray miniature does not rebuild, open history does not rebuild the grid, an open cap edit survives an unchanged change, and WindowShown is logged only on a real show.
+- acceptance: Presentation tests for the tray tone, the tick, the card notification and the cap rows fail at base and pass; the window changes are reviewed and covered by C8; C4, C5, C7 with 0 warnings, C6 and C2 pass.
+- specification: docs/specs/T-NEW-3-unchanged-state-work/spec.md
+- registration-note: Lane C of the 2026-10-10 sweep measured on `17c79c7` three tray redraws and two card notifications per identical source change, and at least two source changes a minute; it reproduced the lost cap edit and the tray colour lag. The T-056 follow-up "skip the tray redraw when the colour has not changed" is part of this item.
+
+## T-NEW-4 - Tray icon lifetime and lost repeated-failure counts
+- goal: G-003
+- status: in-progress
+- depends_on: []
+- trigger: owner-selection
+- outcome: The tray never holds a destroyed icon after a failed shell update, a pending repeated-failure count reaches the log on a fatal exit and at least hourly, and each distinct failure in a streak is logged in detail with summaries naming their incident.
+- acceptance: A Windows-TFM test drives the icon ownership with a failing update and keeps handle counts flat; FileDiagnostics tests for the fatal and hourly flush and the per-signature detail fail at base and pass; focused T3 review; C4, C5, C7 with 0 warnings, C6, C2 and C8 pass.
+- specification: docs/specs/T-NEW-4-native-lifetime-lost-diagnostics/spec.md
+- registration-note: Lane D of the 2026-10-10 sweep confirmed the T-056 review findings M1 (from the H.NotifyIcon 2.4.1 IL), M3 with the whole-run Minor 1, and M2 (both reproduced) on `17c79c7`, and found no other native, disposable or subscription leak.
+
 ## Done index
 
 Done and dropped items, one row each (OD-19). Their history is in each item's specification and verification records and in Git history.
