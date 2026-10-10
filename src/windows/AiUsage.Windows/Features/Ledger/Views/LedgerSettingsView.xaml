@@ -88,7 +88,7 @@
                                   Visibility="{x:Bind views:LedgerSettingsView.Present(IsWarning)}" />
                         <TextBlock Grid.Column="2" Text="{x:Bind AmountText}" Style="{StaticResource LedgerStrongText}" VerticalAlignment="Center"
                                    Foreground="{x:Bind views:LedgerSettingsView.AmountBrush(IsApplied)}" />
-                        <lc:LedgerButton Grid.Column="3" Style="{StaticResource LedgerIconButton}" Command="{x:Bind ActCommand}" IsEnabled="{x:Bind CanAct}"
+                        <lc:LedgerButton Grid.Column="3" Style="{StaticResource LedgerIconButton}" Command="{x:Bind ActCommand}" IsEnabled="{x:Bind CanAct, Mode=OneWay}"
                                 AutomationProperties.Name="{x:Bind ActionText}">
                           <FontIcon FontFamily="Segoe Fluent Icons" Glyph="{x:Bind views:LedgerSettingsView.ActionGlyph(ActionText)}" FontSize="12" Foreground="{StaticResource LedgerInk2Brush}" />
                         </lc:LedgerButton>
