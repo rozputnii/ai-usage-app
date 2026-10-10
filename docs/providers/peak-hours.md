@@ -2,13 +2,13 @@
 topic: peak-hours
 checked_at: 2026-10-10
 classification: official announcements and plan pages; no machine-readable signal
-backlog: T-NEW
+backlog: T-063
 ---
 # Provider peak hours
 
-The app's peak hint (T-NEW) uses one shared schedule: **weekdays 05:00 to 11:00 Pacific time**.
+The app's peak hint (T-063) uses one shared schedule: **weekdays 05:00 to 11:00 Pacific time**.
 It is a hint that requests may be slower or use more of a limit, not account data. Review it
-under R-NEW: when `checked_at` is more than a month old, the session's primary agent spends a
+under R-221: when `checked_at` is more than a month old, the session's primary agent spends a
 short pass on the public sources below (no signed-in pages, provider APIs, inference requests
 or credentials) and updates this file and its review log. A window change then goes into
 `src/windows/AiUsage.Windows/Features/Ledger/PeakHours.cs` and its tests as its own verified

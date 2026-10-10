@@ -219,7 +219,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-060 | Fragile smoke-harness input | done | G-003 | docs/specs/T-060-smoke-harness-input/verification.md |
 | T-061 | Redundant work on unchanged state | done | G-003 | docs/specs/T-061-unchanged-state-work/verification.md |
 | T-062 | Tray icon lifetime and lost repeated-failure counts | done | G-003 | docs/specs/T-062-native-lifetime-lost-diagnostics/verification.md |
-| T-NEW | Peak hours hint | done | G-003 | docs/specs/T-NEW-peak-hours-hint/verification.md |
+| T-063 | Peak hours hint | done | G-003 | docs/specs/T-063-peak-hours-hint/verification.md |
 
 ## Pending owner checks
 
@@ -241,7 +241,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-056 | After days of uptime the tray colour keeps updating and the logs show no TrayFailure flood (at most one detailed record plus a counted summary) | 2026-10-10 |
 | T-061 | The tray colour follows a card change at once, the tray miniature shows current rows when opened, history stays open across a refresh, and a cap edit opened in Settings survives the next refresh | 2026-10-10 |
 | T-062 | After Explorer restarts, the tray icon still shows the current colour; the logs show at most hourly TrayFailure summaries, each with its incidentId | 2026-10-10 |
-| T-NEW | During weekday peak hours the title row and the tray header show the Peak pill with its end time and tooltip, and it disappears after the window | 2026-10-10 |
+| T-063 | During weekday peak hours the title row and the tray header show the Peak pill with its end time and tooltip, and it disappears after the window | 2026-10-10 |
 
 ## Deferred clarifications, not forgotten
 

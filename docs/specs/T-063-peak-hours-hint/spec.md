@@ -1,10 +1,10 @@
 ---
-id: T-NEW
+id: T-063
 type: feature
 status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: owner decision, 2026-10-10, in conversation. The owner asked to research whether the app can tell when provider peak hours apply, then chose a schedule-only informational hint for every account, without naming a provider, in the window title row and the tray header, and a short monthly review of the schedule by an agent inside other work. Recorded as R-NEW.
+approval_basis: owner decision, 2026-10-10, in conversation. The owner asked to research whether the app can tell when provider peak hours apply, then chose a schedule-only informational hint for every account, without naming a provider, in the window title row and the tray header, and a short monthly review of the schedule by an agent inside other work. Recorded as R-221.
 ---
 
 # Peak hours hint
@@ -31,7 +31,7 @@ this window may be slower or use more of a limit.
 - **R-05 Updates.** The hint follows the snapshot's local time, so it appears and disappears
   within a minute of the window edges. It is replaced only when its text changes.
 - **R-06 Monthly review.** The schedule is reviewed at most monthly by an agent as a short
-  research pass inside other work, never by a trigger (R-NEW).
+  research pass inside other work, never by a trigger (R-221).
 
 Variant A (attention pill shown only during peak), owner, 2026-10-10; the owner removed the
 provider name from the label.

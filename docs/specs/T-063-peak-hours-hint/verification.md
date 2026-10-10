@@ -1,4 +1,4 @@
-# T-NEW verification
+# T-063 verification
 
 Evidence for [the specification](spec.md). Host: the owner's Windows 11 Pro 10.0.26200
 desktop, .NET 10, branch `worktree-bridge-cse_01KeFmzVCvJyzw8wHm21rYdo` from `main` at

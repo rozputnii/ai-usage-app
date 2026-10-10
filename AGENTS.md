@@ -30,7 +30,7 @@ the merge gate and evidence.
   document, with blockers and the relevant check results.
 - The primary agent of a session, when `checked_at` in [peak hours](docs/providers/peak-hours.md)
   is more than a month old, adds a short public-sources research pass that updates that file;
-  a schedule change is its own verified change (R-NEW). It is never started by a schedule.
+  a schedule change is its own verified change (R-221). It is never started by a schedule.
 
 ## When to ask
 
