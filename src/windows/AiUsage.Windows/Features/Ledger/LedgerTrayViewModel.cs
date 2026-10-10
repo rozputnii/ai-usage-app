@@ -39,6 +39,8 @@ internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposabl
     [ObservableProperty] public partial bool IsEmpty { get; private set; }
     /// <summary>R-06: rows and the title row use the card's padding for the density.</summary>
     [ObservableProperty] public partial bool IsCompact { get; private set; }
+    /// <summary>The shared peak hint in the header, or null outside the window; replaced only when its text changes.</summary>
+    [ObservableProperty] public partial PeakHint? Peak { get; private set; }
     public string EmptyText => "No accounts yet · open the window to sign in";
 
     /// <summary>A row click: open the window at that account.</summary>
@@ -126,6 +128,8 @@ internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposabl
     {
         IsLeft = source.Preferences.Mode == ValueMode.Left;
         IsCompact = source.Preferences.Density == Density.Compact;
+        if (PeakHours.Hint(source.Current.LocalNow) is var peak && peak?.Text != Peak?.Text)
+            Peak = peak;
         Rows.Clear();
         foreach (var row in Project(source.Current, source.Preferences))
             Rows.Add(row);

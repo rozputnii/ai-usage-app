@@ -28,6 +28,8 @@ the merge gate and evidence.
   English; conversational replies may use the user's language.
 - On interruption, when writing is authorized, record one exact next action in the task
   document, with blockers and the relevant check results.
+- When `checked_at` in [peak hours](docs/providers/peak-hours.md) is more than a month old,
+  add a short research pass that updates it to the session's work; never a trigger (R-NEW).
 
 ## When to ask
 

@@ -59,7 +59,7 @@ public sealed class TrayToneTests
     }
 
     /// <summary>A test source that publishes the snapshots it is given; commands are not used here.</summary>
-    private sealed class SnapshotSource(LedgerSnapshot current) : ILedgerSource
+    internal sealed class SnapshotSource(LedgerSnapshot current) : ILedgerSource
     {
         public LedgerSnapshot Current { get; private set; } = current;
         public LedgerPreferences Preferences { get; } = LedgerPreferences.Default;

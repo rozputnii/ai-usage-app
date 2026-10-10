@@ -773,3 +773,6 @@ Owner decision OD-19 of the workflow audit, 2026-10-09. The backlog keeps live i
 
 ### R-220 - CI no longer builds the routing spike
 Owner decision OD-26 of the workflow audit, 2026-10-09. CI no longer builds the T-002 standalone native routing reproduction; the `spikes/windows/AIU-002-routing` folder stays in the repository. The rest of the R-154 CI scope is unchanged. This amends R-154.
+
+### R-NEW - Monthly peak-hours review
+Owner direction, 2026-10-10, in conversation. The app shows one shared peak-hours hint from an announced schedule, not from account data, and names no provider. The schedule and its evidence live in [peak hours](../providers/peak-hours.md). When its `checked_at` date is more than a month old, an agent already doing other work in a session spends a short research pass on provider announcements, updates that file and, when the window changes, the schedule in code and its tests. The review is never started by a trigger or schedule, and it does not select work on its own.

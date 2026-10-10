@@ -72,6 +72,7 @@ internal sealed partial class LedgerWindow : Window
         Root.SizeChanged += (_, _) => UpdateTitleBarRegions();
         TitleControls.SizeChanged += (_, _) => UpdateTitleBarRegions();
         DayGroup.SizeChanged += (_, _) => UpdateTitleBarRegions();
+        PeakChip.SizeChanged += (_, _) => UpdateTitleBarRegions();
         CardGrid.SizeChanged += (_, _) => UpdateMinimumSize();
         Body.SizeChanged += (_, e) => SettingsPanel.Height = e.NewSize.Height;
         // R-205: a click anywhere outside an open rename box saves that name; buttons and the box handle their own releases.
@@ -150,7 +151,8 @@ internal sealed partial class LedgerWindow : Window
         if (TitleRow.Padding != padding)
             TitleRow.Padding = padding;
         var rects = new List<RectInt32>();
-        foreach (var element in new FrameworkElement[] { RefreshButton, TitleControls, DayGroup })
+        // The peak chip passes the pointer through so its tooltip shows.
+        foreach (var element in new FrameworkElement[] { RefreshButton, TitleControls, DayGroup, PeakChip })
         {
             if (element.Visibility != Visibility.Visible || element.ActualWidth <= 0)
                 continue;
@@ -693,4 +695,11 @@ internal sealed partial class LedgerWindow : Window
     private double GridGap(bool compact) => compact ? 8 : 12;
     private Thickness BodyPadding(bool compact, bool undo) => new(compact ? 12 : 14, compact ? 12 : 14, compact ? 12 : 14, undo ? 66 : compact ? 12 : 14);
     private string UndoName(string text) => "Undo: " + text;
+    private Visibility ShowPeak(PeakHint? peak) => Show(peak is not null);
+    private string PeakText(PeakHint? peak) => peak?.Text ?? string.Empty;
+    private ToolTip? PeakTip(PeakHint? peak) => LedgerViews.Tip(peak?.Tip);
+    private string PeakName(PeakHint? peak) => peak?.AccessibleName ?? string.Empty;
+    private Brush PeakBackground => LedgerTheme.TonePill(Tone.Attention);
+    private Brush PeakDot => LedgerTheme.ToneMark(Tone.Attention);
+    private Brush PeakForeground => LedgerTheme.ToneText(Tone.Attention);
 }

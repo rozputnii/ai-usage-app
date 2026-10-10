@@ -68,6 +68,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     [ObservableProperty] public partial string SectionLayout { get; private set; } = string.Empty;
     [ObservableProperty] public partial bool WorkTodayOn { get; private set; }
     [ObservableProperty] public partial string DayText { get; private set; } = string.Empty;
+    /// <summary>The shared peak hint, or null outside the window; replaced only when its text changes.</summary>
+    [ObservableProperty] public partial PeakHint? Peak { get; private set; }
     [ObservableProperty] public partial bool IsLeft { get; private set; }
     [ObservableProperty] public partial bool IsCompact { get; private set; } = true;
     [ObservableProperty] public partial bool IsSettingsOpen { get; private set; }
@@ -128,6 +130,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         IsDayOff = snapshot.Day.Kind == DayKind.DayOff;
         WorkTodayOn = IsDayOff && snapshot.Day.WorkTodayOn;
         DayText = !IsDayOff ? string.Empty : WorkTodayOn ? "Extra work day · until midnight" : "Day off";
+        if (PeakHours.Hint(now) is var peak && peak?.Text != Peak?.Text)
+            Peak = peak;
         OnPropertyChanged(nameof(ValueModeName));
 
         var visible = snapshot.Accounts.Where(a => prefs.ShowSignedOut || a.Health != AccountHealth.SignedOut).ToArray();

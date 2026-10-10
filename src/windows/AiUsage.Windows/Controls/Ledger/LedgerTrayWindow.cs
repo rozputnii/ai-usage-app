@@ -15,9 +15,9 @@ using Path = Microsoft.UI.Xaml.Shapes.Path;
 namespace AiUsage.Controls.Ledger;
 
 /// <summary>
-/// The tray flyout as a miniature of the window (R-187, T-055 R-02 to R-08): 260 wide, a title row, then per account a
+/// The tray flyout as a miniature of the window (R-187, T-055 R-02 to R-08): 260 wide, a title row with the peak hint, then per account a
 /// 16 px provider mark in place of its name, its main limit's 14 px today bar and a five-hour ring, padded like a card in the
-/// current density. The mark's tooltip names the account. No pills, captions, period bars or buttons. A pointer-only surface
+/// current density. The mark's tooltip names the account. No other pills, captions, period bars or buttons. A pointer-only surface
 /// (R-204): nothing in it is a tab stop or shows a focus frame, and opening it focuses nothing. A click on a row opens the
 /// window at that account, Esc closes when the window receives it, and the flyout closes on deactivation.
 /// </summary>
@@ -30,6 +30,8 @@ internal sealed partial class LedgerTrayWindow : Window
     private readonly Action<string> openAccount;
     private readonly StackPanel rows = new();
     private readonly Border header;
+    private readonly Border peakChip;
+    private readonly TextBlock peakText = new();
     private readonly Grid root;
     private bool closing;
     /// <summary>T-061 R-04: the rows changed while the miniature was hidden; it rebuilds once before it is shown.</summary>
@@ -49,7 +51,27 @@ internal sealed partial class LedgerTrayWindow : Window
             FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
             Foreground = LedgerTheme.Solid("Ink"),
         };
-        header = new Border { BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1), Child = title };
+        // The shared peak hint sits at the right of the title, as in the window's title row.
+        peakChip = new Border
+        {
+            Style = (Style)LedgerTheme.Find("LedgerPill")!,
+            Background = LedgerTheme.TonePill(Tone.Attention),
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Child = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 5,
+                Children =
+                {
+                    new Ellipse { Width = 6, Height = 6, Fill = LedgerTheme.ToneMark(Tone.Attention), VerticalAlignment = VerticalAlignment.Center },
+                    peakText,
+                },
+            },
+        };
+        peakText.Style = (Style)LedgerTheme.Find("LedgerStrongText")!;
+        peakText.Foreground = LedgerTheme.ToneText(Tone.Attention);
+        peakText.VerticalAlignment = VerticalAlignment.Center;
+        header = new Border { BorderBrush = LedgerTheme.Solid("Line"), BorderThickness = new Thickness(0, 0, 0, 1), Child = new Grid { Children = { title, peakChip } } };
         var stack = new StackPanel();
         stack.Children.Add(header);
         stack.Children.Add(rows);
@@ -107,6 +129,10 @@ internal sealed partial class LedgerTrayWindow : Window
     {
         stale = false;
         header.Padding = RowPadding;
+        peakChip.Visibility = tray.Peak is null ? Visibility.Collapsed : Visibility.Visible;
+        peakText.Text = tray.Peak?.Text ?? string.Empty;
+        ToolTipService.SetToolTip(peakChip, tray.Peak is { } peak ? LedgerTheme.Tip(peak.Tip) : null);
+        AutomationProperties.SetName(peakChip, tray.Peak?.AccessibleName ?? string.Empty);
         rows.Children.Clear();
         if (tray.IsEmpty)
         {

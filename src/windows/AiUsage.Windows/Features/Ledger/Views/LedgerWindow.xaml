@@ -43,9 +43,10 @@
       </tray:TaskbarIcon.ContextFlyout>
     </tray:TaskbarIcon>
 
-    <!-- Title row (38): name, refresh status, day off and Work today, then Used/Left, +, Settings. The rest drags the window. -->
+    <!-- Title row (38): name, refresh status, day off and Work today, the peak hint, then Used/Left, +, Settings. The rest drags the window. -->
     <Grid x:Name="TitleRow" Padding="16,0,8,0" ColumnSpacing="10" BorderBrush="{StaticResource LedgerLineBrush}" BorderThickness="0,0,0,1">
       <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
         <ColumnDefinition Width="Auto" />
@@ -65,7 +66,15 @@
                 Style="{x:Bind WorkTodayStyle(ViewModel.WorkTodayOn), Mode=OneWay}"
                 AutomationProperties.Name="{x:Bind WorkTodayName(ViewModel.WorkTodayOn), Mode=OneWay}" />
       </StackPanel>
-      <StackPanel x:Name="TitleControls" Grid.Column="4" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+      <!-- The shared peak hint: an announced schedule for every account, shown only inside the window. -->
+      <Border x:Name="PeakChip" Grid.Column="3" Style="{StaticResource LedgerPill}" Background="{x:Bind PeakBackground}" Visibility="{x:Bind ShowPeak(ViewModel.Peak), Mode=OneWay}"
+              ToolTipService.ToolTip="{x:Bind PeakTip(ViewModel.Peak), Mode=OneWay}" AutomationProperties.Name="{x:Bind PeakName(ViewModel.Peak), Mode=OneWay}">
+        <StackPanel Orientation="Horizontal" Spacing="5">
+          <Ellipse Width="6" Height="6" Fill="{x:Bind PeakDot}" VerticalAlignment="Center" />
+          <TextBlock Text="{x:Bind PeakText(ViewModel.Peak), Mode=OneWay}" Style="{StaticResource LedgerStrongText}" Foreground="{x:Bind PeakForeground}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Border>
+      <StackPanel x:Name="TitleControls" Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
         <lc:LedgerButton x:Name="DemoButton" Style="{StaticResource LedgerOutlineButton}" Content="Demo" Margin="0,0,6,0" Visibility="{x:Bind Show(ViewModel.IsDemo)}"
                 AutomationProperties.Name="Demo scenarios" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip('Demo scenarios (demo build only)')}" Click="OnDemoClick" />
         <Border Background="{StaticResource LedgerControlBrush}" CornerRadius="{StaticResource LedgerSegmentRadius}" Padding="2" Margin="0,0,4,0">
