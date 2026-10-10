@@ -43,9 +43,9 @@ See what you have used, what is left for today, and when each limit resets.
 
 <table>
   <tr>
-    <td align="center" width="33%"><img src="docs/images/readme/history.png" alt="Daily usage history for a Claude weekly limit"><br><sub><b>History</b>: daily use over the last weeks</sub></td>
-    <td align="center" width="33%"><img src="docs/images/readme/cap.png" alt="Editing a personal monthly cap for Claude extra usage"><br><sub><b>Caps</b>: your own limit for extra usage</sub></td>
-    <td align="center" width="33%"><img src="docs/images/readme/settings.png" alt="Settings with work days, caps, view, refresh and updates"><br><sub><b>Settings</b>: work days, refresh and updates</sub></td>
+    <td align="center" valign="top" width="33%"><img src="docs/images/readme/history.png" alt="Daily usage history for a Claude weekly limit"><br><sub><b>History</b>: daily use over the last weeks</sub></td>
+    <td align="center" valign="top" width="33%"><img src="docs/images/readme/cap.png" alt="Editing a personal monthly cap for Claude extra usage"><br><sub><b>Caps</b>: your own limit for extra usage</sub></td>
+    <td align="center" valign="top" width="33%"><img src="docs/images/readme/settings.png" alt="Settings with work days, caps, view, refresh and updates"><br><sub><b>Settings</b>: work days, refresh and updates</sub></td>
   </tr>
 </table>
 
