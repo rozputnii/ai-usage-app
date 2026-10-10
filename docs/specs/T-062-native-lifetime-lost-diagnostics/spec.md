@@ -1,7 +1,7 @@
 ---
 id: T-062
 type: feature
-status: approved
+status: implementing
 goal: G-003
 scope_version: 1
 approval_basis: owner decision, 2026-10-10 (fix confirmed defects of the four classes found in the T-056/T-057/T-058 run)
@@ -35,9 +35,9 @@ approval_basis: owner decision, 2026-10-10 (fix confirmed defects of the four cl
   message). A new signature in a streak gets its own detailed record with a fresh `incidentId`.
 - R-03: Each summary carries the `incidentId` of its detailed record, with `suppressedCount`, `firstAt` and
   `lastAt` as today; it is written only when the count is above zero.
-- R-04: Pending counts are written as summaries, with the streak kept open, by the hourly maintenance sweep and by
-  `Fatal` inside its existing two-second drain; recovery and stop keep their behaviour. A kill can lose at most the
-  counts since the last sweep.
+- R-04: Pending counts are written as summaries, with the streak kept open, by the hourly maintenance sweep, before
+  the `UpdateInstallStarted` record (an install can force-close the app), and by `Fatal` inside its existing
+  two-second drain; recovery and stop keep their behaviour. A kill can lose at most the counts since the last sweep.
 - R-05: docs/workflow/logging.md describes the summary's `incidentId`, the per-signature detail and the hourly and
   fatal flush.
 
