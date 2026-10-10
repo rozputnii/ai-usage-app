@@ -37,8 +37,6 @@ internal sealed partial class LedgerWindow : Window
     private readonly TrayIconOwner shownIcon = new();
     /// <summary>The tray tone last drawn successfully; null until the first draw.</summary>
     private Tone? drawnTone;
-    /// <summary>A redraw threw since the last successful one, so a tray failure streak is open.</summary>
-    private bool trayFailing;
     private readonly Func<Task> exit;
     private readonly Action showTray;
     private bool finalClose;
@@ -625,34 +623,24 @@ internal sealed partial class LedgerWindow : Window
     /// icon (TrayIconOwner) and updates the shell through TaskbarIcon.UpdateIcon, never through the Icon property, so the library
     /// never disposes it: a failed or throwing update releases the new icon and keeps the shown one, a successful update
     /// releases the previous one, and handles stay flat over days of uptime. A failed update writes no record and does not
-    /// report recovery; a throwing one is logged once in detail and counted until a redraw succeeds again, or until the
-    /// tone returns to the one the tray already shows, which ends the failure as well.
+    /// report recovery; a throwing one is logged once in detail and counted until a redraw succeeds again.
     /// </summary>
     private void UpdateTrayGlyph()
     {
         var tone = ViewModel.TrayTone;
         if (tone == drawnTone)
-        {
-            if (trayFailing)
-            {
-                trayFailing = false;
-                Composition.ApplicationDiagnostics.Current?.TrayRecovered();
-            }
             return;
-        }
         var key = tone switch { Tone.Critical => "CritM", Tone.Attention => "AttM", _ => "OkM" };
         try
         {
             if (shownIcon.Show(TrayGlyph.Create(LedgerTheme.Color(key)), TrayIcon.UpdateIcon))
             {
                 drawnTone = tone;
-                trayFailing = false;
                 Composition.ApplicationDiagnostics.Current?.TrayRecovered();
             }
         }
         catch (Exception error) when (error is System.Runtime.InteropServices.ExternalException or InvalidOperationException or ArgumentException or OutOfMemoryException)
         {
-            trayFailing = true;
             Composition.ApplicationDiagnostics.Current?.TrayFailure(error);
         }
     }
