@@ -28,7 +28,7 @@ public sealed partial class LedgerSmoke
         {
             Assert.True(Wait(() => OwnedWindow(automation, app.ProcessId) is not null));
             var window = OwnedWindow(automation, app.ProcessId)!;
-            Focus(window);
+            SmokeKit.Focus(window);
             Assert.NotNull(window.FindFirstDescendant(cf => cf.ByName("Claude Work")));
             Assert.NotNull(window.FindFirstDescendant(cf => cf.ByName("Codex subscription")));
             Assert.NotNull(window.FindFirstDescendant(cf => cf.ByName("month")));
@@ -36,7 +36,8 @@ public sealed partial class LedgerSmoke
             Assert.Null(window.FindFirstDescendant(cf => cf.ByName("Credits")));
             Directory.CreateDirectory(evidence!);
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "work-budget-used.png"), System.Drawing.Imaging.ImageFormat.Png);
-            window.FindFirstDescendant(cf => cf.ByName("Show values: left"))!.AsButton().Click();
+            // This test is about the work-budget bars, not mouse input, so the toggle is invoked.
+            SmokeKit.Find(() => OwnedWindow(automation, app.ProcessId)?.FindFirstDescendant(cf => cf.ByAutomationId("LeftButton")), "Left").AsButton().Invoke();
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = window.Capture()) capture.Save(Path.Combine(evidence!, "work-budget-left.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000));
@@ -63,20 +64,21 @@ public sealed partial class LedgerSmoke
         try
         {
             Assert.True(Wait(() => OwnedWindow(automation, app.ProcessId) is not null));
-            var window = OwnedWindow(automation, app.ProcessId)!;
-            Focus(window);
+            // The popover replaces elements, so every query resolves the window afresh.
+            Window Main() => (Window)SmokeKit.Find(() => OwnedWindow(automation, app.ProcessId), "Ledger window");
+            SmokeKit.Focus(Main());
             Directory.CreateDirectory(evidence!);
-            void Capture(string name) { DesktopTestEnvironment.RequireUnlockedDesktop(); using var image = window.Capture(); image.Save(Path.Combine(evidence!, name), System.Drawing.Imaging.ImageFormat.Png); }
-            // A WinUI flyout can be its own popup window, so names are looked up in the window and then on the desktop.
-            AutomationElement? Named(string name) => window.FindFirstDescendant(cf => cf.ByName(name)) ?? automation.GetDesktop().FindFirstDescendant(cf => cf.ByName(name));
-            bool Shows(string text) => window.FindAllDescendants().Concat(automation.GetDesktop().FindAllChildren())
+            void Capture(string name) { DesktopTestEnvironment.RequireUnlockedDesktop(); using var image = Main().Capture(); image.Save(Path.Combine(evidence!, name), System.Drawing.Imaging.ImageFormat.Png); }
+            // A WinUI flyout can be its own popup window, so names are looked up in all of this app's windows, and only there.
+            AutomationElement? Named(string name) => SmokeKit.FindOwned(automation.GetDesktop(), app.ProcessId, cf => cf.ByName(name));
+            bool Shows(string text) => SmokeKit.OwnedWindows(automation.GetDesktop(), app.ProcessId).SelectMany(w => w.FindAllDescendants().Prepend(w))
                 .Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains(text, StringComparison.Ordinal));
             void Open() { Named("Limit settings, Copilot Business Premium requests")!.AsButton().Invoke(); Assert.True(Wait(() => Named("Show as US dollars") is not null)); }
 
             Assert.True(Wait(() => Shows("3,240 of 17,500 used")));
             // R-202: a weekly percent window takes a percent cap, and the bar then spans the cap.
             // R-203: the card has no cap editor or cap caption of its own; C opens the limit settings at the cap field.
-            Assert.DoesNotContain(window.FindAllDescendants(), e => e.Properties.ControlType.ValueOrDefault == FlaUI.Core.Definitions.ControlType.Button &&
+            Assert.DoesNotContain(Main().FindAllDescendants(), e => e.Properties.ControlType.ValueOrDefault == FlaUI.Core.Definitions.ControlType.Button &&
                 ((e.Properties.Name.ValueOrDefault ?? "").Contains("edit the cap", StringComparison.Ordinal) || e.Properties.Name.ValueOrDefault == "Set cap"));
             Named("Limit settings, Codex subscription 7 day")!.Focus();
             Keyboard.Type(VirtualKeyShort.KEY_C);
@@ -126,7 +128,7 @@ public sealed partial class LedgerSmoke
         {
             Assert.True(Wait(() => OwnedWindow(automation, app.ProcessId) is not null));
             var window = OwnedWindow(automation, app.ProcessId)!;
-            Focus(window);
+            SmokeKit.Focus(window);
             if (hidden) window.TitleBar!.CloseButton!.Invoke();
             var desktop = automation.GetDesktop();
             AutomationElement? taskbar = null;
@@ -148,7 +150,8 @@ public sealed partial class LedgerSmoke
                 }
                 Assert.True(Wait(() => (icon = Icon(Overflow())) is not null), "No tray icon named " + trayName);
             }
-            icon!.RightClick();
+            // Explorer (the taskbar or its overflow host) owns the icon, so the point must belong to the icon's own process.
+            SmokeKit.RightClickOwned(icon!, icon!.Properties.ProcessId.Value);
             AutomationElement? exitItem = null;
             Assert.True(Wait(() =>
             {
@@ -156,7 +159,7 @@ public sealed partial class LedgerSmoke
                     .Select(w => w.FindFirstDescendant(cf => cf.ByName("Exit"))).FirstOrDefault(e => e is not null);
                 return exitItem is not null;
             }, TimeSpan.FromSeconds(5)), "The tray menu of " + trayName + " did not open");
-            exitItem!.Click();
+            SmokeKit.ClickOwned(exitItem!, app.ProcessId);
             Assert.True(process.WaitForExit(10000), "Clicking the native tray Exit item must drain and exit");
             Assert.Equal(0, process.ExitCode);
         }
@@ -185,19 +188,19 @@ public sealed partial class LedgerSmoke
         AutomationElement Named(string name) => SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByName(name)), name);
         try
         {
-            Focus((Window)SmokeKit.Find(Current, "Ledger window"));
-            ClickOwned(SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton")), "Settings"), app.ProcessId);
+            SmokeKit.Focus((Window)SmokeKit.Find(Current, "Ledger window"));
+            SmokeKit.ClickOwned(SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton")), "Settings"), app.ProcessId);
             // R-197: the settings sheet covers the whole body, and the first-run buttons behind it leave the tab order.
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Sign in to " + provider)) is { IsEnabled: false }),
                 "Open settings must cover the first-run sign-in buttons");
-            ClickOwned(Named("Close settings"), app.ProcessId);
+            SmokeKit.ClickOwned(Named("Close settings"), app.ProcessId);
             Assert.True(Wait(() => Current() is { } current && current.FindFirstDescendant(cf => cf.ByName("Close settings")) is null), "The settings sheet did not roll up");
             var button = Named("Sign in to " + provider).AsButton();
             button.Patterns.ScrollItem.PatternOrDefault?.ScrollIntoView();
             Assert.True(button.IsEnabled);
             Assert.False(button.IsOffscreen);
             Assert.True(Current()!.BoundingRectangle.Contains(button.BoundingRectangle));
-            ClickOwned(button, app.ProcessId);
+            SmokeKit.ClickOwned(button, app.ProcessId);
             // The one-line sign-in strip names the account and then says "added · N limits" for a few seconds.
             Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e =>
                 (e.Properties.Name.ValueOrDefault ?? "").StartsWith("added", StringComparison.Ordinal)) == true), "The sign-in click must add a synthetic account");
@@ -241,17 +244,17 @@ public sealed partial class LedgerSmoke
         {
             _ = Named("Recovery and diagnostics");
             Assert.Null(Current()!.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")));
-            Assert.False(Named("Add account").IsEnabled);
-            Focus((Window)SmokeKit.Find(Current, "Ledger window"));
-            ClickOwned(Named("Recovery and diagnostics"), app.ProcessId);
+            Assert.False(SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByAutomationId("AddButton")), "Add account").IsEnabled);
+            SmokeKit.Focus((Window)SmokeKit.Find(Current, "Ledger window"));
+            SmokeKit.ClickOwned(Named("Recovery and diagnostics"), app.ProcessId);
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Retry recovery")) is { IsOffscreen: false }));
             Assert.False(Named("Restore legacy preferences").IsEnabled);
             lease.Dispose();
-            ClickOwned(Named("Retry recovery"), app.ProcessId);
+            SmokeKit.ClickOwned(Named("Retry recovery"), app.ProcessId);
             // The first-run sign-in replaces the recovery notice behind the settings sheet (R-197), and is usable once the sheet closes.
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")) is not null), "Retry did not finish recovery");
             Assert.Null(Current()!.FindFirstDescendant(cf => cf.ByName("Recovery and diagnostics")));
-            ClickOwned(Named("Close settings"), app.ProcessId);
+            SmokeKit.ClickOwned(Named("Close settings"), app.ProcessId);
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Sign in to Codex")) is { IsEnabled: true }), "Sign-in stayed disabled after recovery");
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000));
@@ -266,16 +269,6 @@ public sealed partial class LedgerSmoke
                 process.Kill(); process.WaitForExit(5000);
             }
         }
-    }
-
-    /// <summary>Clicks the element by mouse after checking that this app owns the point, so a window that covers it reports
-    /// BLOCKED instead of a misleading failure.</summary>
-    private static void ClickOwned(AutomationElement element, int processId)
-    {
-        var bounds = element.BoundingRectangle;
-        var point = element.TryGetClickablePoint(out var clickable) ? clickable : new System.Drawing.Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
-        DesktopTestEnvironment.RequireOwnedPoint(processId, point);
-        Mouse.Click(point);
     }
 
     [Fact]
@@ -307,9 +300,11 @@ public sealed partial class LedgerSmoke
                 Assert.True(secondProcess.WaitForExit(10000), "Repeated launch must redirect and exit, not open recovery");
                 Assert.Equal(0, secondProcess.ExitCode);
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Repeated launch must restore the hidden window");
-                Assert.Null(window.FindFirstDescendant(cf => cf.ByName("Recovery and diagnostics")));
-                Assert.True(window.FindFirstDescendant(cf => cf.ByName("Sign in to Codex"))!.IsEnabled);
-                Focus(window);
+                // The element held across hide and restore may be stale, so the restored window is looked up afresh.
+                Window Restored() => (Window)SmokeKit.Find(() => OwnedWindow(automation, first.ProcessId), "restored Ledger window");
+                Assert.Null(Restored().FindFirstDescendant(cf => cf.ByName("Recovery and diagnostics")));
+                Assert.True(Restored().FindFirstDescendant(cf => cf.ByName("Sign in to Codex"))!.IsEnabled);
+                SmokeKit.Focus(Restored());
                 Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
                 Assert.True(process.WaitForExit(10000));
                 Assert.Equal(0, process.ExitCode);

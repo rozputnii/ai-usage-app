@@ -25,15 +25,15 @@ public sealed partial class CardEditingSmoke
         var stage = "launch";
         try
         {
-            Focus(app.Main());
+            SmokeKit.Focus(app.Main());
             stage = "hover";
             // The hovered name shows the dotted underline and the Rename tooltip (Codex: the Refresh tooltip covers Claude at launch).
-            Hover(app.Name("codex-week", "Codex Pro").GetClickablePoint());
-            Thread.Sleep(1500);
+            SmokeKit.HoverOwned(app.Name("codex-week", "Codex Pro").GetClickablePoint(), app.ProcessId);
+            Assert.True(Wait(app.ShowsToolTip, TimeSpan.FromSeconds(5)), "Hovering the name opened no tooltip");
             Save(app, evidence, "rename-hover.png");
 
             stage = "click, type, Enter";
-            app.Name("claude-week", "Claude Pro").Click();
+            SmokeKit.ClickOwned(app.Name("claude-week", "Claude Pro"), app.ProcessId);
             Assert.Equal("Claude Pro", app.Box("claude-week").Text);
             Keyboard.Type("Claude Work");
             Keyboard.Press(VirtualKeyShort.RETURN);
@@ -41,7 +41,7 @@ public sealed partial class CardEditingSmoke
             Assert.True(Wait(app.NoBox), "Enter left the rename box open");
 
             stage = "focus leaving saves";
-            app.Name("claude-week", "Claude Work").Click();
+            SmokeKit.ClickOwned(app.Name("claude-week", "Claude Work"), app.ProcessId);
             app.Box("claude-week");
             Keyboard.Type("Claude Tab");
             Keyboard.Press(VirtualKeyShort.TAB);
@@ -49,30 +49,28 @@ public sealed partial class CardEditingSmoke
             Assert.True(Wait(app.NoBox), "Tab left the rename box open");
 
             stage = "click outside saves";
-            app.Name("claude-week", "Claude Tab").Click();
+            SmokeKit.ClickOwned(app.Name("claude-week", "Claude Tab"), app.ProcessId);
             app.Box("claude-week");
             Keyboard.Type("Claude Home");
             var codex = app.Card("codex-week").BoundingRectangle;
             // The card's top padding, clear of the name, the icons and the pill.
-            var empty = new System.Drawing.Point(codex.Left + codex.Width / 2, codex.Top + 4);
-            DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, empty);
-            Mouse.Click(empty);
+            SmokeKit.ClickOwned(new System.Drawing.Point(codex.Left + codex.Width / 2, codex.Top + 4), app.ProcessId);
             app.Name("claude-week", "Claude Home");
             Assert.True(Wait(app.NoBox), "A click outside left the rename box open");
 
             stage = "another name saves the first";
-            app.Name("claude-week", "Claude Home").Click();
+            SmokeKit.ClickOwned(app.Name("claude-week", "Claude Home"), app.ProcessId);
             app.Box("claude-week");
             Keyboard.Type("First");
-            app.Name("codex-week", "Codex Pro").Click();
+            SmokeKit.ClickOwned(app.Name("codex-week", "Codex Pro"), app.ProcessId);
             app.Name("claude-week", "First");
             Assert.Equal("Codex Pro", app.Box("codex-week").Text);
-            Assert.Null(app.Card("claude-week").FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))));
+            Assert.Null(app.Card("claude-week").FindFirstDescendant(cf => cf.ByAutomationId("RenameBox").And(cf.ByControlType(ControlType.Edit))));
 
             stage = "context menu keeps the rename";
             // Focus moves into the box's own menu; that is not leaving the box.
-            app.Box("codex-week").RightClick();
-            Thread.Sleep(800);
+            SmokeKit.RightClickOwned(app.Box("codex-week"), app.ProcessId);
+            Assert.True(Wait(app.ShowsMenu, TimeSpan.FromSeconds(5)), "The rename box opened no context menu");
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             Assert.Equal("Codex Pro", app.Box("codex-week").Text);
 
@@ -111,11 +109,11 @@ public sealed partial class CardEditingSmoke
         }
         try
         {
-            Focus(app.Main());
+            SmokeKit.Focus(app.Main());
             Assert.True(Wait(() => Order() is ["Claude Pro", "Codex Pro", ..]), "Unexpected demo order: " + string.Join(", ", Order()));
 
             stage = "a drag saves the open rename";
-            app.Name("codex-week", "Codex Pro").Click();
+            SmokeKit.ClickOwned(app.Name("codex-week", "Codex Pro"), app.ProcessId);
             app.Box("codex-week");
             Keyboard.Type("Codex Work");
             var grip = PointAtGrip(app, "claude-week", "Reorder Claude Pro");
@@ -181,12 +179,11 @@ public sealed partial class CardEditingSmoke
         var stage = "launch";
         try
         {
-            Focus(app.Main());
+            SmokeKit.Focus(app.Main());
             // The pointer rests in the Codex card's top padding, over no control.
             var codex = app.Card("codex-week").BoundingRectangle;
             var empty = new System.Drawing.Point(codex.Left + codex.Width / 2, codex.Top + 4);
-            DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, empty);
-            Hover(empty);
+            SmokeKit.HoverOwned(empty, app.ProcessId);
             Assert.True(Wait(() => !app.ShowsToolTip()), "A tooltip stayed open before Tab");
 
             stage = "Tab";
@@ -202,12 +199,12 @@ public sealed partial class CardEditingSmoke
 
             stage = "hover";
             var refresh = app.Main().FindFirstDescendant(cf => cf.ByAutomationId("RefreshButton"))!.BoundingRectangle;
-            Hover(new System.Drawing.Point(refresh.Left + refresh.Width / 2, refresh.Top + refresh.Height / 2));
+            SmokeKit.HoverOwned(new System.Drawing.Point(refresh.Left + refresh.Width / 2, refresh.Top + refresh.Height / 2), app.ProcessId);
             Assert.True(Wait(app.ShowsToolTip, TimeSpan.FromSeconds(5)), "Hovering the refresh icon opened no tooltip");
             Save(app, evidence, "tooltip-hover.png");
 
             stage = "exit";
-            Hover(empty);
+            SmokeKit.HoverOwned(empty, app.ProcessId);
             app.Exit();
             passed = true;
         }
@@ -236,13 +233,12 @@ public sealed partial class CardEditingSmoke
     private static System.Drawing.Point PointAtGrip(DemoApp app, string cardId, string gripName)
     {
         var card = app.Card(cardId).BoundingRectangle;
-        Hover(new System.Drawing.Point(card.Left + card.Width / 2, card.Top + 4));
+        SmokeKit.HoverOwned(new System.Drawing.Point(card.Left + card.Width / 2, card.Top + 4), app.ProcessId);
         AutomationElement? grip = null;
-        Assert.True(Wait(() => (grip = app.Card(cardId).FindFirstDescendant(cf => cf.ByName(gripName))) is not null), "Missing " + gripName);
+        Assert.True(Wait(() => (grip = app.Card(cardId).FindFirstDescendant(cf => cf.ByAutomationId("Grip"))) is not null), "Missing " + gripName);
         var bounds = grip!.BoundingRectangle;
         var point = new System.Drawing.Point(bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height / 2);
-        DesktopTestEnvironment.RequireOwnedPoint(app.ProcessId, point);
-        Hover(point);
+        SmokeKit.HoverOwned(point, app.ProcessId);
         return point;
     }
 
@@ -292,21 +288,26 @@ public sealed partial class CardEditingSmoke
         public TextBox Box(string cardId)
         {
             AutomationElement? box = null;
-            Assert.True(Wait(() => (box = Card(cardId).FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))) is not null &&
+            Assert.True(Wait(() => (box = Card(cardId).FindFirstDescendant(cf => cf.ByAutomationId("RenameBox").And(cf.ByControlType(ControlType.Edit)))) is not null &&
                 box.Properties.HasKeyboardFocus.ValueOrDefault), $"No focused rename box in {cardId}");
             return box!.AsTextBox();
         }
 
-        public bool NoBox() => Main().FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit))) is null;
+        /// <summary>No card shows a rename box.</summary>
+        public bool NoBox() => Main().FindFirstDescendant(cf => cf.ByAutomationId("RenameBox").And(cf.ByControlType(ControlType.Edit))) is null;
 
         /// <summary>An open tooltip, inside the window or in a popup window of the app.</summary>
-        public bool ShowsToolTip() => automation.GetDesktop().FindAllChildren().Any(w =>
-            w.Properties.ProcessId.ValueOrDefault == app.ProcessId &&
-            (w.Properties.ControlType.ValueOrDefault == ControlType.ToolTip || w.FindFirstDescendant(cf => cf.ByControlType(ControlType.ToolTip)) is not null));
+        public bool ShowsToolTip() => Shows(ControlType.ToolTip);
+
+        /// <summary>An open context menu, inside the window or in a popup window of the app.</summary>
+        public bool ShowsMenu() => Shows(ControlType.Menu);
+
+        private bool Shows(ControlType type) => SmokeKit.OwnedWindows(automation.GetDesktop(), app.ProcessId).Any(w =>
+            w.Properties.ControlType.ValueOrDefault == type || w.FindFirstDescendant(cf => cf.ByControlType(type)) is not null);
 
         public void Exit()
         {
-            Focus(Main());
+            SmokeKit.Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "Exit did not terminate the launched process");
             Assert.Equal(0, process.ExitCode);
@@ -356,66 +357,16 @@ public sealed partial class CardEditingSmoke
             w.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) is not null;
     })?.AsWindow();
 
-    private static void Focus(Window window)
-    {
-        var handle = window.Properties.NativeWindowHandle.Value;
-        window.SetForeground();
-        if (GetForegroundWindow() != handle)
-        {
-            var bounds = window.BoundingRectangle;
-            Mouse.Click(new System.Drawing.Point(bounds.Left + 120, bounds.Top + 18));
-        }
-        Assert.True(Wait(() => GetForegroundWindow() == handle), "Test window must own keyboard input");
-    }
-
-    /// <summary>
-    /// FlaUI places the cursor with SetCursorPos, which WinUI does not take as pointer movement. SendInput moves it from a
-    /// few pixels to the left onto the point, so the element there sees the pointer enter.
-    /// </summary>
-    private static void Hover(System.Drawing.Point point)
-    {
-        Input[] moves = [new(point.X - 6, point.Y), new(point.X, point.Y)];
-        Assert.Equal((uint)moves.Length, SendInput((uint)moves.Length, moves, System.Runtime.InteropServices.Marshal.SizeOf<Input>()));
-        Thread.Sleep(100);
-    }
-
     /// <summary>Moves the cursor in SendInput steps, which WinUI takes as pointer movement (FlaUI's Mouse.MoveTo is not).</summary>
     private static void MoveInSteps(System.Drawing.Point from, System.Drawing.Point to, int steps = 12)
     {
         for (var i = 1; i <= steps; i++)
         {
-            Input[] move = [new(from.X + (to.X - from.X) * i / steps, from.Y + (to.Y - from.Y) * i / steps)];
-            Assert.Equal(1u, SendInput(1, move, System.Runtime.InteropServices.Marshal.SizeOf<Input>()));
+            SmokeKit.MoveTo(new System.Drawing.Point(from.X + (to.X - from.X) * i / steps, from.Y + (to.Y - from.Y) * i / steps));
             Thread.Sleep(20);
         }
         Thread.Sleep(100);
     }
-
-    // INPUT with an absolute MOUSEINPUT move over the virtual desktop (MOVE | ABSOLUTE | VIRTUALDESK).
-    private struct Input(int x, int y)
-    {
-        public uint Type = 0;
-        public MouseInput Mouse = new(x, y);
-    }
-
-    private struct MouseInput(int x, int y)
-    {
-        public int Dx = (int)Math.Round((x - GetSystemMetrics(76)) * 65535.0 / (GetSystemMetrics(78) - 1));
-        public int Dy = (int)Math.Round((y - GetSystemMetrics(77)) * 65535.0 / (GetSystemMetrics(79) - 1));
-        public uint Data = 0;
-        public uint Flags = 0x0001 | 0x8000 | 0x4000;
-        public uint Time = 0;
-        public IntPtr ExtraInfo = IntPtr.Zero;
-    }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern int GetSystemMetrics(int index);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern uint SendInput(uint count, Input[] inputs, int size);
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);

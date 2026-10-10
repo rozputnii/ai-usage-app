@@ -47,9 +47,9 @@ public sealed partial class LedgerSmoke : IDisposable
         try
         {
             Assert.True(Wait(() => (window = OwnedWindow(automation, app.ProcessId)) is not null));
-            Focus(window!);
+            SmokeKit.Focus(window!);
             stage = "select scenario";
-            Main().FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
+            Main().FindFirstDescendant(cf => cf.ByAutomationId("DemoButton"))!.AsButton().Invoke();
             AutomationElement? scenario = null;
             Assert.True(Wait(() =>
             {
@@ -77,18 +77,21 @@ public sealed partial class LedgerSmoke : IDisposable
             money = Main().FindFirstDescendant(cf => cf.ByAutomationId("money-mixed"))!;
             stage = "cap";
             FocusIn(money); Keyboard.Press(VirtualKeyShort.KEY_C);
-            Assert.True(Wait(() => money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).Any(e => !e.IsOffscreen)));
-            var amount = money.FindAllDescendants(cf => cf.ByControlType(ControlType.Edit)).First(e => !e.IsOffscreen).AsTextBox();
+            // R-203: C opens the limit settings, a flyout outside the card's tree, at the cap field; it is looked up in this app's windows.
+            TextBox? Amount() => SmokeKit.FindOwned(automation.GetDesktop(), app.ProcessId,
+                cf => cf.ByName("Cap amount in USD").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox();
+            Assert.True(Wait(() => Amount() is { IsOffscreen: false }));
             // Only digits and two decimals are typed, and never above the $500.00 provider limit.
-            amount.Focus(); Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A); Keyboard.Type("6005-x.25");
-            Assert.True(Wait(() => amount.Text == "60.25"), "Cap input kept " + amount.Text);
+            Amount()!.Focus(); Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A); Keyboard.Type("6005-x.25");
+            Assert.True(Wait(() => Amount()?.Text == "60.25"), "Cap input kept " + Amount()?.Text);
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-cap.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.ESCAPE);
             parent = Main().FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))!;
             FocusIn(parent); Keyboard.Press(VirtualKeyShort.F2);
             stage = "rename";
             TextBox? rename = null;
-            Assert.True(Wait(() => (rename = Current()?.FindFirstDescendant(cf => cf.ByName("Account name").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox()) is not null));
+            Assert.True(Wait(() => (rename = Current()?.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"))?
+                .FindFirstDescendant(cf => cf.ByAutomationId("RenameBox").And(cf.ByControlType(ControlType.Edit)))?.AsTextBox()) is not null));
             rename!.Text = "Renamed account";
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-rename.png"), System.Drawing.Imaging.ImageFormat.Png);
             Keyboard.Press(VirtualKeyShort.RETURN);
@@ -101,7 +104,7 @@ public sealed partial class LedgerSmoke : IDisposable
             DesktopTestEnvironment.RequireUnlockedDesktop(); using (var capture = Main().Capture()) capture.Save(Path.Combine(evidence!, "money-account.png"), System.Drawing.Imaging.ImageFormat.Png);
             void SelectScenario(string name)
             {
-                Main().FindFirstDescendant(cf => cf.ByName("Demo scenarios"))!.AsButton().Invoke();
+                Main().FindFirstDescendant(cf => cf.ByAutomationId("DemoButton"))!.AsButton().Invoke();
                 AutomationElement? item = null;
                 Assert.True(Wait(() =>
                 {
@@ -127,7 +130,7 @@ public sealed partial class LedgerSmoke : IDisposable
             Assert.True(Wait(() => Current() is { } current && current.FindFirstDescendant(cf => cf.ByAutomationId("money-only")) is null &&
                 current.FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")) is not null));
             Assert.NotNull(Main().FindFirstDescendant(cf => cf.ByAutomationId("money-mixed")));
-            Focus(Main());
+            SmokeKit.Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000));
             Assert.Equal(0, process.ExitCode);
@@ -171,19 +174,22 @@ public sealed partial class LedgerSmoke : IDisposable
         _ = original.Handle;
         using var automation = new UIA3Automation();
         Process? restarted = null;
-        Window? window = null;
         var passed = false;
+        // The settings sheet, its menu and the restart replace elements, so each query resolves its window afresh.
+        Window? Original() => OwnedWindow(automation, original.Id);
+        Window? Restarted() => OwnedWindow(automation, restarted!.Id);
         try
         {
             if (!pending)
             {
-                Assert.True(Wait(() => (window = OwnedWindow(automation, original.Id)) is not null));
-                window!.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button)))!.AsButton().Invoke();
-                Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("More settings").And(cf.ByControlType(ControlType.Button))) is not null));
-                window.FindFirstDescendant(cf => cf.ByName("More settings").And(cf.ByControlType(ControlType.Button)))!.AsButton().Invoke();
-                Assert.True(Wait(() => window.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.MenuItem))) is not null));
-                window.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.MenuItem)))!.Patterns.Invoke.Pattern.Invoke();
-                window.FindFirstDescendant(cf => cf.ByName("Confirm deleting stored data"))!.AsButton().Invoke();
+                Assert.True(Wait(() => Original() is not null));
+                Original()!.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button)))!.AsButton().Invoke();
+                Assert.True(Wait(() => Original()?.FindFirstDescendant(cf => cf.ByAutomationId("MoreButton")) is not null));
+                SmokeKit.Find(() => Original()?.FindFirstDescendant(cf => cf.ByAutomationId("MoreButton")), "More settings").AsButton().Invoke();
+                Assert.True(Wait(() => Original()?.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.MenuItem))) is not null));
+                SmokeKit.Find(() => Original()?.FindFirstDescendant(cf => cf.ByName("Delete stored data").And(cf.ByControlType(ControlType.MenuItem))), "Delete stored data")
+                    .Patterns.Invoke.Pattern.Invoke();
+                SmokeKit.Find(() => Original()?.FindFirstDescendant(cf => cf.ByAutomationId("ConfirmButton")), "Confirm deleting stored data").AsButton().Invoke();
             }
             Assert.True(original.WaitForExit(30000), "Deletion did not restart the original process");
             Assert.True(Wait(() =>
@@ -197,16 +203,16 @@ public sealed partial class LedgerSmoke : IDisposable
                 return false;
             }), "Restarted process was not found");
             _ = restarted!.Handle;
-            Assert.True(Wait(() => (window = OwnedWindow(automation, restarted.Id)) is not null));
-            Assert.True(Wait(() => window!.FindFirstDescendant(cf => cf.ByName("Sign in to Codex").And(cf.ByControlType(ControlType.Button))) is not null));
+            Assert.True(Wait(() => Restarted() is not null));
+            Assert.True(Wait(() => Restarted()?.FindFirstDescendant(cf => cf.ByName("Sign in to Codex").And(cf.ByControlType(ControlType.Button))) is not null));
             Assert.False(File.Exists(Path.Combine(root, "providers", "claude.state")));
             Assert.False(File.Exists(Path.Combine(root, "delete-local-data.v1.json")));
             Assert.Equal("owner export", File.ReadAllText(Path.Combine(root, "preserved-export.txt")));
             using (var layout = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "layout.v1.json"))))
                 Assert.Equal(3, layout.RootElement.GetProperty("Layout").GetInt32());
             Directory.CreateDirectory(evidence!);
-            using (var capture = window!.Capture()) capture.Save(Path.Combine(evidence!, $"delete-{pending}.png"), System.Drawing.Imaging.ImageFormat.Png);
-            Focus(window!);
+            using (var capture = SmokeKit.Find(Restarted, "restarted Ledger window").Capture()) capture.Save(Path.Combine(evidence!, $"delete-{pending}.png"), System.Drawing.Imaging.ImageFormat.Png);
+            SmokeKit.Focus((Window)SmokeKit.Find(Restarted, "restarted Ledger window"));
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(restarted.WaitForExit(10000));
             Assert.Equal(0, restarted.ExitCode);
@@ -268,7 +274,7 @@ public sealed partial class LedgerSmoke : IDisposable
                 return window is not null;
             }), "Ledger window did not appear");
             Assert.NotNull(window);
-            Focus(window);
+            SmokeKit.Focus(window);
             // Used/Left and account actions are disabled by design while startup shows "Opening local data..."
             // (CanUseAccounts is false while IsStarting); live startup takes long enough to be visible. Invoke only enabled buttons.
             Button Button(string name)
@@ -277,31 +283,37 @@ public sealed partial class LedgerSmoke : IDisposable
                 Assert.True(Wait(() => (button = Current()?.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is { IsEnabled: true }), "Missing or disabled button: " + name);
                 return button!;
             }
+            // The same for a button with a unique AutomationId.
+            Button ButtonById(string id)
+            {
+                Button? button = null;
+                Assert.True(Wait(() => (button = Current()?.FindFirstDescendant(cf => cf.ByAutomationId(id).And(cf.ByControlType(ControlType.Button)))?.AsButton()) is { IsEnabled: true }), "Missing or disabled button: " + id);
+                return button!;
+            }
             // Support actions and Delete stored data sit in the settings footer menu (R-193).
             void Menu(string name)
             {
-                Button("More settings").Invoke();
+                ButtonById("MoreButton").Invoke();
                 AutomationElement? item = null;
                 Assert.True(Wait(() => (item = Current()?.FindFirstDescendant(cf => cf.ByName(name).And(cf.ByControlType(ControlType.MenuItem)))) is not null), "Missing menu item: " + name);
                 item!.Patterns.Invoke.Pattern.Invoke();
             }
             Assert.NotNull(Button("Settings"));
-            Button("Show values: left").Invoke(); Button("Show values: used").Invoke();
+            ButtonById("LeftButton").Invoke(); ButtonById("UsedButton").Invoke();
             if (demo)
             {
                 AutomationElement? history = null;
                 Assert.True(Wait(() =>
                 {
-                    var current = Current();
-                    var card = current?.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"));
-                    if (card is null) return false;
-                    history = current!.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).FirstOrDefault(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History, Claude", StringComparison.Ordinal));
+                    var card = Current()?.FindFirstDescendant(cf => cf.ByAutomationId("claude-week"));
+                    history = card?.FindFirstDescendant(cf => cf.ByAutomationId("HistoryButton"));
                     return history is not null;
                 }));
                 history!.AsButton().Invoke();
-                Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains("History", StringComparison.Ordinal)) == true), "History did not open");
+                // The history panel names itself "<account> history, ..."; every card's History button is named "History, ...".
+                Assert.True(Wait(() => Current()?.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith("Claude Pro history, ", StringComparison.Ordinal)) == true), "History did not open");
                 Keyboard.Press(VirtualKeyShort.ESCAPE);
-                Button("Add account").Invoke();
+                ButtonById("AddButton").Invoke();
                 AutomationElement? signIn = null;
                 Assert.True(Wait(() =>
                 {
@@ -327,8 +339,8 @@ public sealed partial class LedgerSmoke : IDisposable
             if (comfortable)
                 Button("Density: comfortable").Invoke();
             Menu("Delete stored data");
-            Assert.NotNull(Button("Cancel deleting stored data"));
-            Button("Cancel deleting stored data").Invoke();
+            Assert.NotNull(ButtonById("CancelButton"));
+            ButtonById("CancelButton").Invoke();
             Menu("Preview diagnostics");
             Assert.True(Wait(() => Main().FindFirstDescendant(cf => cf.ByName("Preview diagnostics").And(cf.ByControlType(ControlType.MenuItem))) is null),
                 "The settings menu did not close");
@@ -390,7 +402,7 @@ public sealed partial class LedgerSmoke : IDisposable
                 Assert.True(focusable.Length == 0, "Tray flyout elements must not be keyboard-focusable: " + string.Join("; ", focusable));
                 // T-055 R-07: a provider mark replaces the account name, so no element of the flyout shows it as text.
                 Assert.DoesNotContain(trayWindow.FindAllDescendants(), e => e.Properties.Name.ValueOrDefault == "Claude Pro 2");
-                row!.Click();
+                SmokeKit.ClickOwned(row!, app.ProcessId);
                 Assert.True(Wait(() => IsWindowVisible(handle)), "Selecting the tray account should restore the main window");
                 bool InCard(AutomationElement? element)
                 {
@@ -400,7 +412,7 @@ public sealed partial class LedgerSmoke : IDisposable
                 }
                 Assert.True(Wait(() => InCard(automation.FocusedElement())), "Tray account selection should focus a control in that account's card");
             }
-            Focus(Main());
+            SmokeKit.Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "Exit did not drain and terminate the launched process");
             Assert.Equal(0, process.ExitCode);
@@ -431,8 +443,7 @@ public sealed partial class LedgerSmoke : IDisposable
     }
 
     /// <summary>Cards are not tab stops (R-200); their keys work from any control inside, here the History button.</summary>
-    private static void FocusIn(AutomationElement card) => card.FindAllDescendants(cf => cf.ByControlType(ControlType.Button))
-        .First(b => (b.Properties.Name.ValueOrDefault ?? "").StartsWith("History,", StringComparison.Ordinal)).Focus();
+    private static void FocusIn(AutomationElement card) => card.FindFirstDescendant(cf => cf.ByAutomationId("HistoryButton"))!.Focus();
 
     private static Window? OwnedWindow(UIA3Automation automation, int pid) => automation.GetDesktop().FindAllChildren().FirstOrDefault(w =>
     {
@@ -440,20 +451,6 @@ public sealed partial class LedgerSmoke : IDisposable
         return handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == pid &&
             w.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) is not null;
     })?.AsWindow();
-
-    private static void Focus(Window window)
-    {
-        var handle = window.Properties.NativeWindowHandle.Value;
-        window.SetForeground();
-        if (GetForegroundWindow() != handle)
-        {
-            // Windows refuses SetForegroundWindow to a process that did not send the last input. A click on the window could
-            // land on another window that overlaps it, or on a title-row button; an injected Alt tap lifts the lock instead.
-            Keyboard.Type(VirtualKeyShort.ALT);
-            window.SetForeground();
-        }
-        Assert.True(Wait(() => GetForegroundWindow() == handle), "Test window must own keyboard input");
-    }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();

@@ -1,8 +1,12 @@
 using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Conditions;
+using FlaUI.Core.Input;
+using FlaUI.Core.WindowsAPI;
 using Xunit;
 
 namespace AiUsage.Windows.Tests;
@@ -33,6 +37,98 @@ internal static class SmokeKit
             Assert.True(elapsed.Elapsed < (bound ?? TimeSpan.FromSeconds(30)), "Not found: " + what);
             Thread.Sleep(100);
         }
+    }
+
+    /// <summary>Re-runs the check until it holds or the bound expires; a replaced UIA element only repeats the check.</summary>
+    internal static bool Wait(Func<bool> check, TimeSpan? bound = null)
+    {
+        var elapsed = Stopwatch.StartNew();
+        while (elapsed.Elapsed < (bound ?? TimeSpan.FromSeconds(30)))
+        {
+            TestContext.Current.CancellationToken.ThrowIfCancellationRequested();
+            try { if (check()) return true; }
+            catch (COMException) { /* A published snapshot may replace a UIA element. */ }
+            Thread.Sleep(100);
+        }
+        return false;
+    }
+
+    /// <summary>The visible top-level windows of one process: the main window and its popups (flyouts, menus, tooltips).</summary>
+    internal static IEnumerable<AutomationElement> OwnedWindows(AutomationElement desktop, int processId) =>
+        desktop.FindAllChildren().Where(w => GetWindowThreadProcessId(w.Properties.NativeWindowHandle.ValueOrDefault, out var owner) != 0 && owner == processId);
+
+    /// <summary>The first element that matches in the windows of one process, so another application's element never matches.</summary>
+    internal static AutomationElement? FindOwned(AutomationElement desktop, int processId, Func<ConditionFactory, ConditionBase> condition) =>
+        OwnedWindows(desktop, processId).Select(w => w.FindFirstDescendant(condition)).FirstOrDefault(e => e is not null);
+
+    /// <summary>
+    /// Gives the window keyboard input. Windows refuses SetForegroundWindow to a process that did not send the last input. A
+    /// click on the window could land on another window that overlaps it, or on a title-row button; an injected Alt tap lifts
+    /// the lock instead.
+    /// </summary>
+    internal static void Focus(Window window)
+    {
+        var handle = window.Properties.NativeWindowHandle.Value;
+        window.SetForeground();
+        if (GetForegroundWindow() != handle)
+        {
+            Keyboard.Type(VirtualKeyShort.ALT);
+            window.SetForeground();
+        }
+        Assert.True(Wait(() => GetForegroundWindow() == handle), "Test window must own keyboard input");
+    }
+
+    /// <summary>Clicks the element by mouse after checking that the process owns the point, so a window that covers it
+    /// reports BLOCKED instead of a misleading failure or a click into another application.</summary>
+    internal static void ClickOwned(AutomationElement element, int processId) => ClickOwned(PointOf(element), processId);
+
+    internal static void ClickOwned(Point point, int processId)
+    {
+        DesktopTestEnvironment.RequireOwnedPoint(processId, point);
+        Mouse.Click(point);
+        // As FlaUI's element Click does: the app handles the click before the next input, such as a typed key.
+        FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+    }
+
+    /// <summary>Right-clicks the element after the same ownership check as <see cref="ClickOwned(AutomationElement, int)"/>.</summary>
+    internal static void RightClickOwned(AutomationElement element, int processId)
+    {
+        var point = PointOf(element);
+        DesktopTestEnvironment.RequireOwnedPoint(processId, point);
+        Mouse.RightClick(point);
+        FlaUI.Core.Input.Wait.UntilInputIsProcessed();
+    }
+
+    /// <summary>Hovers the point after the same ownership check; see <see cref="Hover"/>.</summary>
+    internal static void HoverOwned(Point point, int processId)
+    {
+        DesktopTestEnvironment.RequireOwnedPoint(processId, point);
+        Hover(point);
+    }
+
+    /// <summary>
+    /// FlaUI places the cursor with SetCursorPos, which WinUI does not take as pointer movement. SendInput moves it from a
+    /// few pixels to the left onto the point, so the element there sees the pointer enter. Unguarded: callers use
+    /// <see cref="HoverOwned"/>.
+    /// </summary>
+    private static void Hover(Point point)
+    {
+        MoveTo(new Point(point.X - 6, point.Y));
+        MoveTo(point);
+        Thread.Sleep(100);
+    }
+
+    /// <summary>Moves the cursor with one SendInput step, which WinUI takes as pointer movement (FlaUI's Mouse.MoveTo is not).</summary>
+    internal static void MoveTo(Point point)
+    {
+        Input[] move = [new(point.X, point.Y)];
+        Assert.Equal(1u, SendInput(1, move, Marshal.SizeOf<Input>()));
+    }
+
+    private static Point PointOf(AutomationElement element)
+    {
+        var bounds = element.BoundingRectangle;
+        return element.TryGetClickablePoint(out var clickable) ? clickable : new Point(bounds.X + bounds.Width / 2, bounds.Y + bounds.Height / 2);
     }
 
     /// <summary>Saves a screenshot and a UI-tree dump (control type, automation id, name, bounds) of the failed window.</summary>
@@ -101,4 +197,33 @@ internal static class SmokeKit
         }
         catch (System.ComponentModel.Win32Exception) { return string.Empty; }
     });
+
+    // INPUT with an absolute MOUSEINPUT move over the virtual desktop (MOVE | ABSOLUTE | VIRTUALDESK).
+    private struct Input(int x, int y)
+    {
+        public uint Type = 0;
+        public MouseInput Mouse = new(x, y);
+    }
+
+    private struct MouseInput(int x, int y)
+    {
+        public int Dx = (int)Math.Round((x - GetSystemMetrics(76)) * 65535.0 / (GetSystemMetrics(78) - 1));
+        public int Dy = (int)Math.Round((y - GetSystemMetrics(77)) * 65535.0 / (GetSystemMetrics(79) - 1));
+        public uint Data = 0;
+        public uint Flags = 0x0001 | 0x8000 | 0x4000;
+        public uint Time = 0;
+        public IntPtr ExtraInfo = IntPtr.Zero;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern int GetSystemMetrics(int index);
+
+    [DllImport("user32.dll")]
+    private static extern uint SendInput(uint count, Input[] inputs, int size);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
 }

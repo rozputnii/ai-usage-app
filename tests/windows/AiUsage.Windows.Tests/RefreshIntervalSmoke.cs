@@ -44,20 +44,25 @@ public sealed class RefreshIntervalSmoke
             return element!;
         }
         AutomationElement Button(string name) => Named(name, ControlType.Button);
-        TextBox Box() => Named("Refresh interval in minutes", ControlType.Edit).AsTextBox();
+        TextBox Box() => SmokeKit.Find(() => Main().FindFirstDescendant(cf => cf.ByAutomationId("RefreshBox").And(cf.ByControlType(ControlType.Edit))),
+            "Refresh interval in minutes").AsTextBox();
+        // The box's context menu, in the window or in a popup window of the app.
+        bool ShowsMenu() => SmokeKit.OwnedWindows(automation.GetDesktop(), app.ProcessId).Any(w =>
+            w.Properties.ControlType.ValueOrDefault == ControlType.Menu || w.FindFirstDescendant(cf => cf.ByControlType(ControlType.Menu)) is not null);
         try
         {
-            Focus(Main());
+            SmokeKit.Focus(Main());
             stage = "open settings";
             Button("Settings").AsButton().Invoke();
             Assert.Equal("5", Box().Text);
 
             stage = "click +";
-            Button("Longer refresh interval").Click();
+            SmokeKit.ClickOwned(Button("Longer refresh interval"), app.ProcessId);
             Assert.True(Wait(() => Box().Text == "6"), "+ left the box at " + Box().Text);
 
             stage = "type 1, Enter";
-            Box().Click();
+            SmokeKit.ClickOwned(Box(), app.ProcessId);
+            Assert.True(Wait(() => Box().Properties.HasKeyboardFocus.ValueOrDefault), "The click did not focus the box");
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
             Keyboard.Type("1a");
             Keyboard.Press(VirtualKeyShort.RETURN);
@@ -76,10 +81,10 @@ public sealed class RefreshIntervalSmoke
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
             Keyboard.Press(VirtualKeyShort.DELETE);
             Assert.True(Wait(() => Box().Text == ""), "The box was not emptied");
-            Box().RightClick();
-            Thread.Sleep(800);
+            SmokeKit.RightClickOwned(Box(), app.ProcessId);
+            Assert.True(Wait(ShowsMenu, TimeSpan.FromSeconds(5)), "The box opened no context menu");
             Keyboard.Press(VirtualKeyShort.ESCAPE);
-            Thread.Sleep(300);
+            Assert.True(Wait(() => !ShowsMenu(), TimeSpan.FromSeconds(5)), "Esc left the context menu open");
             Assert.Equal("", Box().Text);
 
             stage = "Tab saves";
@@ -89,7 +94,7 @@ public sealed class RefreshIntervalSmoke
 
             stage = "exit";
             // Ctrl+Q does not reach the window while any text box (the rename box too) holds the focus; here it has left the box.
-            Focus(Main());
+            SmokeKit.Focus(Main());
             Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_Q);
             Assert.True(process.WaitForExit(10000), "Exit did not terminate the launched process");
             Assert.Equal(0, process.ExitCode);
@@ -130,21 +135,6 @@ public sealed class RefreshIntervalSmoke
         return handle != IntPtr.Zero && GetWindowThreadProcessId(handle, out var owner) != 0 && owner == pid &&
             w.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(ControlType.Button))) is not null;
     })?.AsWindow();
-
-    private static void Focus(Window window)
-    {
-        var handle = window.Properties.NativeWindowHandle.Value;
-        window.SetForeground();
-        if (GetForegroundWindow() != handle)
-        {
-            var bounds = window.BoundingRectangle;
-            Mouse.Click(new System.Drawing.Point(bounds.Left + 120, bounds.Top + 18));
-        }
-        Assert.True(Wait(() => GetForegroundWindow() == handle), "Test window must own keyboard input");
-    }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
