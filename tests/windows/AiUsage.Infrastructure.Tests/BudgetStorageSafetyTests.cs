@@ -102,6 +102,45 @@ public sealed class BudgetStorageSafetyTests : IDisposable
     }
 
     [Fact]
+    public async Task RedirectedEntryCountedByTheCapRefusesWritesToOtherSeries()
+    {
+        using var store = new LocalBudgetStore(root);
+        await store.AppendAsync([Observation], Token);
+        var outside = Path.Combine(root, "outside");
+        Directory.CreateDirectory(outside);
+        await File.WriteAllTextAsync(Path.Combine(outside, "sentinel"), "preserve", Token);
+        var link = Path.Combine(root, "budget", "series-redirected.v1.json");
+        await Junction(link, outside);
+        try
+        {
+            var other = Observation with { Series = Key with { AccountTarget = "other" } };
+            await Assert.ThrowsAsync<ProviderException>(() => store.AppendAsync([other], Token));
+            await Assert.ThrowsAsync<ProviderException>(() => store.SaveConfigurationAsync(BudgetConfiguration.Default, Token));
+            Assert.Single(Directory.GetFiles(Path.Combine(root, "budget"), "series-*.json"));
+            Assert.Empty(Directory.GetFiles(Path.Combine(root, "budget"), "*.stage-*"));
+            Assert.False(File.Exists(Path.Combine(root, "budget", "configuration.v1.json")));
+            Assert.Single(Directory.GetFileSystemEntries(outside));
+        }
+        finally { Directory.Delete(link); }
+    }
+
+    [Fact]
+    public async Task RedirectedAncestorOfTheOwnedDirectoryRefusesWrites()
+    {
+        var outside = Path.Combine(root, "outside");
+        Directory.CreateDirectory(Path.Combine(outside, "budget"));
+        var link = Path.Combine(root, "app");
+        await Junction(link, outside);
+        try
+        {
+            var files = new BudgetJsonFile(Path.Combine(link, "budget"));
+            await Assert.ThrowsAsync<ProviderException>(() => files.WriteAsync("configuration.v1.json", "value", 100, Token));
+            Assert.Empty(Directory.GetFileSystemEntries(Path.Combine(outside, "budget")));
+        }
+        finally { Directory.Delete(link); }
+    }
+
+    [Fact]
     public async Task OversizedWriteAndConcurrentProcessLeaseCannotReplaceCommittedState()
     {
         Directory.CreateDirectory(Path.Combine(root, "budget"));

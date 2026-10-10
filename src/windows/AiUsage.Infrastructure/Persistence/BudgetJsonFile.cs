@@ -80,13 +80,17 @@ internal sealed class BudgetJsonFile(string directory)
 
     private void EnsureCapacity(string name, int incomingBytes)
     {
+        // The owned directory and its ancestors are checked once per scan, and each entry once
+        // with the attribute query that also reads its length. The scan only reads metadata;
+        // WriteAsync re-checks the directory chain before it creates, replaces or deletes anything.
         ProviderStatePaths.CheckDirectory(directory);
         long total = incomingBytes; // Includes staging alongside the previous committed file.
         var series = new HashSet<string>(StringComparer.Ordinal);
         foreach (var path in Directory.EnumerateFileSystemEntries(directory))
         {
-            Check(path);
-            total = checked(total + new FileInfo(path).Length);
+            var entry = new FileInfo(path);
+            ProviderStatePaths.CheckAttributes(entry.Attributes); // -1 when the entry no longer exists.
+            total = checked(total + entry.Length);
             var file = Path.GetFileName(path);
             if (file.StartsWith("series-", StringComparison.Ordinal))
             {
