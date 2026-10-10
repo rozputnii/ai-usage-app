@@ -171,15 +171,6 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - open-questions: The definition of the accuracy percentage. Recommended: the share of measured windows whose own bounds agree with the pooled estimate, which directly measures how often the constant-cost assumption holds; the alternative is the relative tightness of the bounds. Whether the per-window figures are derived on demand from the stored reading series, which needs no new persistence, or kept as their own records.
 - registration-note: Owner proposed this on 2026-10-07 after the T-048 review noted that its bounds are guaranteed only while the window cost stays constant. Not selected for implementation yet.
 
-## T-056 - Tray icon handle leak and TrayFailure log flood
-- goal: G-003
-- status: ready
-- depends_on: []
-- trigger: owner-selection
-- outcome: The tray icon keeps updating its colour for days of uptime: each redraw releases the icon handle it replaces, and a tray failure that repeats is logged once with a count instead of on every attempt.
-- acceptance: A test or a bounded probe shows the process handle count stays flat over thousands of tray glyph updates; a recurring failure produces one detailed record plus a coalesced count; the Infrastructure and Presentation suites, the Release build without warnings and the demo startup smoke pass. The owner checks the installed app's logs after deployment (R-190).
-- registration-note: Found on 2026-10-09 in the installed app's logs (2026.10.837.0 and earlier): 5,778 TrayFailure errors (ExternalException, hResult -2147467259) from `TrayGlyph.Create` through `LedgerWindow.UpdateTrayGlyph` in three sessions. Each time they began 5.5 to 8 hours after launch, and every later attempt failed until the app restarted. `TrayGlyph.Create` returns `Icon.FromHandle(bitmap.GetHicon())`, and nothing destroys that handle or disposes the replaced icon, so every card rebuild probably leaks one icon handle until the process runs out; each failure is also logged, about three records a minute.
-
 ## Done index
 
 Done and dropped items, one row each (OD-19). Their history is in each item's specification and verification records and in Git history.
@@ -221,6 +212,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-053 | Today's use by hand and Copilot credits in dollars | done | G-003 | docs/specs/T-053-today-use-and-credit-dollars/verification.md |
 | T-054 | Percent caps and the cap as the full bar | done | G-003 | docs/specs/T-054-percent-cap-and-cap-bar/verification.md |
 | T-055 | Tray miniature, subscription order, click rename and refresh interval | done | G-003 | docs/specs/T-055-tray-miniature-order-refresh/verification.md |
+| T-056 | Tray icon handle leak and TrayFailure log flood | done | G-003 | docs/specs/T-056-tray-handle-leak/verification.md |
 | T-057 | Cheaper store-growth cap check | done | G-003 | docs/specs/T-057-cheaper-cap-check/verification.md |
 | T-058 | Five activation smokes fail | done | G-003 | docs/specs/T-058-activation-smokes/verification.md |
 
@@ -241,6 +233,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-053 | Today's use by hand and Copilot credits in dollars with live Copilot Business and Claude spending | 2026-10-08 |
 | T-054 | Percent caps and the cap-as-full-bar on live weekly windows | 2026-10-08 |
 | T-055 | Tray flyout, provider-mark tooltips, the wrapped empty-tray text, click rename, grip drag and the refresh stepper with live accounts | 2026-10-08 |
+| T-056 | After days of uptime the tray colour keeps updating and the logs show no TrayFailure flood (at most one detailed record plus a counted summary) | 2026-10-10 |
 
 ## Deferred clarifications, not forgotten
 
