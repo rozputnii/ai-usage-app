@@ -66,8 +66,8 @@ public sealed partial class LedgerSmoke
         {
             var handle = Main().Properties.NativeWindowHandle.Value;
             Assert.True(SetWindowPos(handle, IntPtr.Zero, 0, 0, 200, 120, 0x0002 | 0x0004), "SetWindowPos failed");
-            // The assertions below report a window that does not shrink.
-            Wait(() => Main().BoundingRectangle.Height < launched.Height, TimeSpan.FromSeconds(5));
+            // Without SWP_ASYNCWINDOWPOS, SetWindowPos returns once the window has taken its new size, clamped to its minimum;
+            // AssertClear waits for the title row's relayout.
             var bounds = Main().BoundingRectangle;
             Assert.True(bounds.Width >= launched.Width && bounds.Height < launched.Height, $"The window did not shrink to its minimum: {bounds} from {launched}");
             Assert.True(bounds.Height > 120, $"No minimum height: {bounds}");

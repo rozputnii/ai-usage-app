@@ -29,7 +29,7 @@ public sealed partial class CardEditingSmoke
             stage = "hover";
             // The hovered name shows the dotted underline and the Rename tooltip (Codex: the Refresh tooltip covers Claude at launch).
             SmokeKit.HoverOwned(app.Name("codex-week", "Codex Pro").GetClickablePoint(), app.ProcessId);
-            Assert.True(Wait(app.ShowsToolTip, TimeSpan.FromSeconds(5)), "Hovering the name opened no tooltip");
+            Assert.True(Wait(() => app.ShowsToolTip("Rename"), TimeSpan.FromSeconds(5)), "Hovering the name opened no Rename tooltip");
             Save(app, evidence, "rename-hover.png");
 
             stage = "click, type, Enter";
@@ -298,6 +298,12 @@ public sealed partial class CardEditingSmoke
 
         /// <summary>An open tooltip, inside the window or in a popup window of the app.</summary>
         public bool ShowsToolTip() => Shows(ControlType.ToolTip);
+
+        /// <summary>An open tooltip that reads the text, named by it or holding it.</summary>
+        public bool ShowsToolTip(string text) => SmokeKit.OwnedWindows(automation.GetDesktop(), app.ProcessId)
+            .SelectMany(w => w.FindAllDescendants(cf => cf.ByControlType(ControlType.ToolTip)).Prepend(w))
+            .Where(e => e.Properties.ControlType.ValueOrDefault == ControlType.ToolTip)
+            .Any(tip => tip.Properties.Name.ValueOrDefault == text || tip.FindFirstDescendant(cf => cf.ByName(text)) is not null);
 
         /// <summary>An open context menu, inside the window or in a popup window of the app.</summary>
         public bool ShowsMenu() => Shows(ControlType.Menu);

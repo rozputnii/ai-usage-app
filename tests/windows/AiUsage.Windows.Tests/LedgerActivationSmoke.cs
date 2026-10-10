@@ -189,7 +189,7 @@ public sealed partial class LedgerSmoke
         try
         {
             SmokeKit.Focus((Window)SmokeKit.Find(Current, "Ledger window"));
-            SmokeKit.ClickOwned(SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByAutomationId("SettingsButton")), "Settings"), app.ProcessId);
+            SmokeKit.ClickOwned(SmokeKit.Find(() => Current()?.FindFirstDescendant(cf => cf.ByName("Settings").And(cf.ByControlType(FlaUI.Core.Definitions.ControlType.Button))), "Settings"), app.ProcessId);
             // R-197: the settings sheet covers the whole body, and the first-run buttons behind it leave the tab order.
             Assert.True(Wait(() => Current()?.FindFirstDescendant(cf => cf.ByName("Sign in to " + provider)) is { IsEnabled: false }),
                 "Open settings must cover the first-run sign-in buttons");
