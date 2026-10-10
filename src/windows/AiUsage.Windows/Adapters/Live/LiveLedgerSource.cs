@@ -524,6 +524,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             a.Session.Failure is not (ProviderFailureKind.AccountMismatch or ProviderFailureKind.RegistrationUnavailable or ProviderFailureKind.ProjectUnavailable or ProviderFailureKind.InternalError) &&
             (NextRetry(a) is not { } retry || retry <= now) &&
             (a.Session.Quota is null || a.Session.Failure is not null || now - a.Session.Quota.FetchedAt >= interval - TickSlack)).ToArray();
+        // T-061 R-02: with nothing due the first build is current; a second one would only re-read every series.
+        if (due.Length == 0) return;
         var results = await Task.WhenAll(due.Select(a => accounts.RefreshAsync(a.AccountId, token)));
         lock (sync)
             for (int i = 0; i < results.Length; i++)

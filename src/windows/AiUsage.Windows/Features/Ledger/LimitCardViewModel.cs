@@ -121,7 +121,11 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public LimitCardModel Model { get; private set; }
     public AccountModel Account { get; private set; }
     public string CardId => Model.CardId;
-    [ObservableProperty] public partial CardVisual Visual { get; private set; }
+    /// <summary>
+    /// Set only with <see cref="Model"/>, like <see cref="HiddenCount"/> and <see cref="HiddenTone"/>; the single all-properties
+    /// notification of <see cref="Update"/> refreshes them (T-061 R-03).
+    /// </summary>
+    public CardVisual Visual { get; private set; }
     [ObservableProperty] public partial bool IsRenaming { get; private set; }
     [ObservableProperty] public partial string RenameText { get; set; } = string.Empty;
     [ObservableProperty] public partial bool IsNew { get; set; }
@@ -136,8 +140,8 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public bool IsHiddenSection => IsAccountSection && Model.Hidden;
     public bool CanHide => IsAccountSection;
     public string HideName => "Hide " + (Model.ScopeLabel ?? LedgerFormat.PeriodWords(Model.Period));
-    [ObservableProperty] public partial int HiddenCount { get; private set; }
-    [ObservableProperty] public partial Tone HiddenTone { get; private set; }
+    public int HiddenCount { get; private set; }
+    public Tone HiddenTone { get; private set; }
     public bool HasHidden => HiddenCount > 0;
     public string HiddenText => HiddenCount + " hidden";
     public string HiddenName => "Show " + HiddenCount + " hidden " + (HiddenCount == 1 ? "limit" : "limits");
