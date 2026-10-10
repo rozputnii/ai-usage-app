@@ -11,6 +11,8 @@ using Windows.Graphics;
 using Windows.System;
 
 using Path = Microsoft.UI.Xaml.Shapes.Path;
+// The miniature's rush and extra-usage mark kind, not AiUsage.Platform.TrayMark (the tray icon the window owns).
+using TrayMark = AiUsage.Features.Ledger.TrayMark;
 
 namespace AiUsage.Controls.Ledger;
 
@@ -32,6 +34,8 @@ internal sealed partial class LedgerTrayWindow : Window
     private readonly Border header;
     private readonly Grid root;
     private bool closing;
+    /// <summary>T-061 R-04: the rows changed while the miniature was hidden; it rebuilds once before it is shown.</summary>
+    private bool stale = true;
 
     public LedgerTrayWindow(LedgerTrayViewModel tray, Action<string> openAccount)
     {
@@ -85,9 +89,17 @@ internal sealed partial class LedgerTrayWindow : Window
             args.Cancel = true;
             HidePopup();
         };
-        tray.Rows.CollectionChanged += (_, _) => Rebuild();
-        tray.PropertyChanged += (_, _) => Rebuild();
-        Rebuild();
+        tray.Rows.CollectionChanged += (_, _) => RebuildIfShown();
+        tray.PropertyChanged += (_, _) => RebuildIfShown();
+    }
+
+    /// <summary>A shown miniature follows every change; a hidden one only notes that it is out of date.</summary>
+    private void RebuildIfShown()
+    {
+        if (AppWindow.IsVisible)
+            Rebuild();
+        else
+            stale = true;
     }
 
     /// <summary>R-06: the card's padding in the current density.</summary>
@@ -95,6 +107,7 @@ internal sealed partial class LedgerTrayWindow : Window
 
     private void Rebuild()
     {
+        stale = false;
         header.Padding = RowPadding;
         rows.Children.Clear();
         if (tray.IsEmpty)
@@ -193,6 +206,9 @@ internal sealed partial class LedgerTrayWindow : Window
     {
         if (closing)
             return;
+        // Rows first, so the popup is sized and shown with the current content.
+        if (stale)
+            Rebuild();
         AppWindow.Show();
         Activate();
         // XamlRoot's actual monitor scale is available only after the first show.
