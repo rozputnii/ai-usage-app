@@ -120,6 +120,8 @@ public sealed class FileDiagnostics : IDiagnosticSink, IDisposable
     /// </summary>
     public void RepeatedFailure(DiagnosticEvent eventCode, Exception exception)
     {
+        // Fail safe like Failure: a missing exception never throws into the caller.
+        if (exception is null) { Interlocked.Increment(ref lost); return; }
         var key = (eventCode, exception.GetType().FullName + ":" + exception.HResult);
         Guid incidentId;
         lock (gate)
