@@ -20,7 +20,7 @@ PATH, use `& "$HOME/.dotnet/ai-usage-sdk/dotnet.exe"`. Evidence names checks by 
 | C6 | Diff check | `git diff --check` |
 | C7 | App build (Release, unpackaged) | `dotnet build src/windows/AiUsage.Windows/AiUsage.Windows.csproj -c Release -p:Platform=x64 -p:WindowsPackageType=None --no-restore` |
 | C8 | Launch smoke | Publish the UI suite with `dotnet publish tests/windows/AiUsage.Windows.Tests -c Release -r win-x64 --self-contained true`, then run `AiUsage.Windows.Tests.exe -method "*LedgerLaunchSettingsHistoryAndExit*"` against the C7 build under the [desktop lock](#desktop-smokes) |
-| C9 | Package build | `./tools/windows/Build-Package.ps1` (see README) |
+| C9 | Package build | `./tools/windows/Build-Package.ps1` (see [development](../development.md#native-windows-package)) |
 | C10 | Preview release script tests | `tests/release/Test-PreviewRelease.ps1`; CI runs it in `validate` |
 
 In the inner loop, run one class with `-class "<Namespace.Class>"` after a single build, and
