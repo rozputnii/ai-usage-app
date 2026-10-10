@@ -1,6 +1,6 @@
 # Model costs
 
-Evidence for the eco role map (decision R-NEW).
+Evidence for the eco role map (decision R-222).
 
 - checked_at: 2026-10-10
 - sources: [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing),

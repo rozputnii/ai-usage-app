@@ -4,7 +4,7 @@ description: Owner-invoked economy mode. The primary keeps a thin context and de
 ---
 # eco
 
-Owner-invoked mode (decision R-NEW). It changes who does the work and on which model, never
+Owner-invoked mode (decision R-222). It changes who does the work and on which model, never
 what the rules require: tiers, red to green, reviews, the merge gate and the always-ask list
 stay as AGENTS.md and CONTRIBUTING.md define them, and they win wherever this text seems to
 differ. The mode lasts until the session ends or the owner turns it off. The evidence behind
