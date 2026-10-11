@@ -21,7 +21,8 @@ model-costs.md); they are a proxy for the subscription limit, not a bill.
 param(
     [string[]] $SessionId,
     [switch] $Baseline,
-    [string] $ProjectsRoot = (Join-Path $HOME '.claude\projects'),
+    # Follows CLAUDE_CONFIG_DIR, which keeps each subscription account's sessions in its own folder.
+    [string] $ProjectsRoot = (Join-Path $(if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $HOME '.claude' }) 'projects'),
     [string] $ProjectFilter = '*',
     [string] $OutFile
 )

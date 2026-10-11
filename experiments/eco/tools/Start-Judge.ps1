@@ -27,7 +27,13 @@ function Get-Report([string] $run) {
     $raw = Get-Content (Join-Path $RunRoot "results\$run\claude.json") -Raw
     try { ($raw | ConvertFrom-Json).result } catch { $raw }
 }
-$base = (Get-Content (Join-Path $RunRoot "results\$RunA\run.json") -Raw | ConvertFrom-Json).base
+$runA = Get-Content (Join-Path $RunRoot "results\$RunA\run.json") -Raw | ConvertFrom-Json
+$runB = Get-Content (Join-Path $RunRoot "results\$RunB\run.json") -Raw | ConvertFrom-Json
+$base = $runA.base
+if ($runB.base -ne $base) { throw "The runs start from different bases ($base, $($runB.base)); they are not a pair." }
+if ($runA.account -ne $runB.account) {
+    Write-Warning "The runs used different accounts ($($runA.account), $($runB.account)); connectors and cache differ, so the pair's cost comparison is invalid (plan.md, Accounts)."
+}
 $id = 'j' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
 $dir = Join-Path $RunRoot "judgments\$id"
 New-Item -ItemType Directory -Force $dir | Out-Null
@@ -73,5 +79,5 @@ foreach ($run in $x, $y) {
     if ($dirty) { Write-Warning "The judge changed tracked files in $run; the judgment is invalid." }
 }
 & (Join-Path $here 'Measure-Run.ps1') -SessionId $sessionId -OutFile (Join-Path $dir 'metrics.json')
-[ordered]@{ judgment = $id; X = $x; Y = $y; sessionId = $sessionId } | ConvertTo-Json | Set-Content (Join-Path $dir 'mapping.json')
+[ordered]@{ judgment = $id; X = $x; Y = $y; sessionId = $sessionId; account = $env:AIU_EXP_ACCOUNT } | ConvertTo-Json | Set-Content (Join-Path $dir 'mapping.json')
 "$id X=$x Y=$y -> $dir"

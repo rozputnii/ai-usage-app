@@ -33,12 +33,17 @@ param(
     [string] $AppendPromptFile,
     [string] $AgentsFile,
     [string] $RunRoot = 'C:\aiu-exp',
+    # A short label of the subscription account the run uses (for example main or second; never
+    # an email). Runs compared with each other must use the same account (plan.md, Accounts).
+    [string] $Account = $env:AIU_EXP_ACCOUNT,
     [hashtable] $Vars = @{},
     [string[]] $Appendix = @(),
     [int] $TimeoutMinutes = 360,
     [switch] $NoRun
 )
 $ErrorActionPreference = 'Stop'
+if (-not $Account) { throw 'Set -Account or AIU_EXP_ACCOUNT to the account label (for example main or second).' }
+if ($Account -match '@') { throw 'The account label must not be an email address.' }
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $arms = Join-Path (Split-Path -Parent $here) 'arms'
 
@@ -110,7 +115,7 @@ if ($AppendPromptFile) { $cliArgs += @('--append-system-prompt-file', (Resolve-P
 if ($AgentsFile) { $cliArgs += @('--agents', (Resolve-Path $AgentsFile).Path) }
 
 $run = [ordered]@{ runId = $runId; task = $Task; brief = $Brief
-    vars = (($Vars.Keys | Sort-Object | ForEach-Object { "$_=$($Vars[$_])" }) -join '; '); arm = $Arm; model = $Model; effort = $Effort
+    vars = (($Vars.Keys | Sort-Object | ForEach-Object { "$_=$($Vars[$_])" }) -join '; '); account = $Account; arm = $Arm; model = $Model; effort = $Effort
     base = $baseSha; sessionId = $sessionId; clone = $clone; appendPrompt = $AppendPromptFile; agents = $AgentsFile
     cli = (& claude --version | Out-String).Trim(); started = (Get-Date).ToString('o') }
 if ($NoRun) { $run | ConvertTo-Json; return }
@@ -142,6 +147,6 @@ $run.subagents = $metrics.total.subagents
 $run.commits = @(Get-Content (Join-Path $results 'commits.txt') | Where-Object { $_ }).Count
 $run | ConvertTo-Json | Set-Content (Join-Path $results 'run.json')
 $csv = Join-Path $RunRoot 'runs.csv'
-[pscustomobject]$run | Select-Object runId, started, task, vars, arm, model, effort, base, sessionId, exitCode, wallMinutes, costUsd, calls, subagents, commits, uncommitted |
+[pscustomobject]$run | Select-Object runId, started, task, vars, account, arm, model, effort, base, sessionId, exitCode, wallMinutes, costUsd, calls, subagents, commits, uncommitted |
     Export-Csv $csv -Append -NoTypeInformation
 "$runId $Task arm=$Arm exit=$($run.exitCode) wall=$($run.wallMinutes)m cost=`$$($run.costUsd) calls=$($run.calls) subagents=$($run.subagents)"

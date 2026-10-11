@@ -32,6 +32,8 @@ there, and record the results in `results/S1.md`.
 The operator is the interactive Claude Code session on the new PC that runs the harness.
 
 - Run one run at a time, in the background, and wait for its completion notice.
+- Switch subscription accounts only between runs, and keep compared runs on one account
+  ([plan](plan.md#accounts)).
 - Record `/usage` (ask the owner for the number if the CLI cannot show it) before and after
   each stage in that stage's results file.
 - Commit results to this branch and push `origin/exp/eco-roles` after each stage.

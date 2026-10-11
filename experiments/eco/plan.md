@@ -94,6 +94,25 @@ Branch `t061-tray-failure-recovery` is untouched until S4-local (owner decision 
 - Rough API-equivalent estimates: S1 $60, S2 $130, S3 $180, S4 about $800 paired.
 - A run that hits a usage limit or fails for environmental reasons is invalid and reruns.
 
+## Accounts
+
+The owner may use a second subscription and switch between the two (2026-10-11). Nothing in
+the experiment depends on one account: the plan, briefs and harness are in Git, no step uses
+Claude Code memory, and the cost metric is computed from local transcripts. Rules:
+
+- Each account gets its own Claude Code configuration folder through `CLAUDE_CONFIG_DIR`
+  (settings, sign-in, session history and plugins live there), and a short label in
+  `AIU_EXP_ACCOUNT` (`main`, `second`; never an email). Switch by opening a shell with the
+  other pair of variables, never with `/login` while a run is active: the harness runs inherit
+  the shell's variables, and `Measure-Run.ps1` reads the same folder.
+- Switch only between runs, never during one.
+- Runs that are compared (a pair A/E, the variants of one micro-trial question, the arms of one
+  replay) use the same account: accounts can differ in connectors (which change subagent
+  cold starts), prompt cache and plan limits. `Start-Judge.ps1` warns when a pair mixes them.
+- Budget gates and the `/usage` calibration are per account; record the label with every
+  `/usage` reading. If the second subscription is a different plan, check in S1 that it has the
+  models the arms use (opus, sonnet, haiku) before giving it any compared runs.
+
 ## Metrics
 
 Collected by [Measure-Run.ps1](tools/Measure-Run.ps1) from the run's transcripts (the primary

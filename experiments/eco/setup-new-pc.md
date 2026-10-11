@@ -25,6 +25,14 @@ docs/workflow/host-environment.md and may not apply here.
    checkout's `main` fetched.
 7. Desktop smokes (C8 and others) need an unlocked desktop. A locked desktop gives BLOCKED in
    every arm alike; note it.
+8. Accounts (plan.md, Accounts): one configuration folder per subscription account, for
+   example `C:\claude\main` and `C:\claude\second`. For each, open a PowerShell window with
+   `$env:CLAUDE_CONFIG_DIR = 'C:\claude\main'; $env:AIU_EXP_ACCOUNT = 'main'`, run `claude` once
+   to sign in to that account, and confirm the `csharp-lsp` plugin is installed there
+   (`claude plugin install csharp-lsp@claude-plugins-official` if it is missing). Run the
+   harness and the operator session from a window with the variables of the account you want.
+   Without these variables everything uses `%USERPROFILE%\.claude`, which is fine for a single
+   account, but the label is still required.
 
 Record in `results/S1.md`: OS build, CPU, RAM, CLI version, SDK version, whether `pwsh` exists,
 which MCP servers and connectors the account brings (they change subagent cold starts), and
