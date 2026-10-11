@@ -19,6 +19,40 @@ Statuses: new / discussing / moved (to T-nnn) / dropped.
 
 -->
 
+## Legal, ban-safe auth and usage-limit sources per provider
+- status: new
+- added: 2026-10-11
+- idea: Перевірити, які ще можливі способи авторизації та отримання usage limits провайдерів,
+  які були б легальними і точно не забанили акаунт. Ідеї можна взяти з більш зрілого
+  монітора https://github.com/onllm-dev/onwatch.
+- notes: Desk research only (2026-10-10, Haiku subagents, claims not independently verified,
+  nothing run live). Direction: read limits through each provider's own official local tool
+  instead of reusing another app's OAuth client against internal endpoints.
+  Claude: Claude Code statusline JSON `rate_limits` (5h/7d %, resets_at), written by an
+  opt-in user script to a local file; data only while a session runs; changes the owner's
+  Claude Code settings. Current own-login with the Claude Code client is restricted by the
+  Anthropic legal page (high risk).
+  Codex: local `codex app-server` child, `account/rateLimits/read` + `account/rateLimits/updated`
+  (primary/secondary usedPercent, resetsAt, plan, credits); protocol experimental; OpenAI
+  allows app-server auth for local/open-source, not commercial/hosted. Fallback: `token_count`
+  rate_limits in `~/.codex/sessions` rollouts (stale, files hold prompts). Subscription off
+  since 2026-10-05, so no live check now.
+  Copilot: own GitHub App (device flow, Plan read) + documented billing REST
+  (`/users/{u}/settings/billing/premium_request/usage`, `/ai_credit/usage`); consumed only,
+  remaining derived from plan allowance, reset 1st 00:00 UTC. Alternative: Copilot SDK
+  `account.getQuota` (remaining %, resetDate; new dependency). `copilot_internal/user` with the
+  OpenCode client is undocumented (medium risk, may already break).
+  Antigravity: FAQ and Terms s.6 name third-party credential use as suspension grounds; the
+  current v1internal method is high risk. Only clean route found: manual entry from Settings or
+  `agy /usage`. Local language-server GetUserStatus (used by onwatch, quota extensions) is
+  undocumented and likely covered by s.6.
+  onwatch (v2.14.11, ea66113): reads and writes back CLI credential files, spoofs a claude-cli
+  User-Agent, advertises "rate limit bypass via token rotation", reads Antigravity CSRF token
+  from process args. Not a model to copy; only the "local sources" idea is useful.
+  Not useful: Anthropic/OpenAI Admin usage APIs (API orgs only), OTel and JSONL logs (tokens,
+  no limits), rate-limit headers (need inference), scraping usage pages.
+  Any switch is its own task with provider-evidence and owner approval.
+
 ## Kanban board instead of in-repo task tracking
 - status: discussing
 - added: 2026-10-11
