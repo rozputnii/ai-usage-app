@@ -12,6 +12,8 @@ docs/workflow/host-environment.md and may not apply here.
    Warm the NuGet cache once: the restore one-liner in docs/workflow/verification.md is offline
    (`--source "$HOME/.nuget/packages"`), so on a fresh PC run the same restore without
    `--source` first, for every project it lists. Runs then restore offline as the rules say.
+   If the user NuGet configuration lists more than one source, that restore fails with NU1507;
+   pass `--source https://api.nuget.org/v3/index.json` instead of changing the configuration.
 3. Claude Code CLI signed in to the owner's Max account. S0 used CLI 2.1.296; record the
    version you have. Set the user environment variable `DISABLE_AUTOUPDATER=1` for the whole
    experiment so the CLI version stays fixed.
@@ -23,7 +25,8 @@ docs/workflow/host-environment.md and may not apply here.
    clones go under `C:\aiu-exp`. Deep paths break builds ("The filename or extension is too
    long").
 6. The experiment branch in its own worktree:
-   `git -C C:\src\ai-usage-app worktree add C:\src\aiu-eco exp/eco-roles`. Run the harness
+   `git -C C:\src\ai-usage-app worktree add C:\src\aiu-eco exp/eco-roles` (switch that checkout
+   to `main` first if it is on the experiment branch). Run the harness
    from `C:\src\aiu-eco\experiments\eco\tools` with `-Repo C:\src\ai-usage-app`, and keep that
    checkout's `main` fetched.
 7. Desktop smokes (C8 and others) need an unlocked desktop. A locked desktop gives BLOCKED in
