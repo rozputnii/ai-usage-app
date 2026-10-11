@@ -1,0 +1,91 @@
+{
+    "sessions":  101,
+    "subagents":  180,
+    "primaryUsd":  1354,
+    "subagentUsd":  580,
+    "primarySharePct":  {
+                            "cacheWrite":  20,
+                            "cacheRead":  67,
+                            "output":  13
+                        },
+    "subagentSharePct":  {
+                             "cacheWrite":  27,
+                             "cacheRead":  60,
+                             "output":  14
+                         },
+    "thinkingShareOfOutputPct":  {
+                                     "primary":  33,
+                                     "subagents":  45
+                                 },
+    "medianPrimaryUsd":  4.2,
+    "medianPrimaryCalls":  48,
+    "top3PrimarySharePct":  29,
+    "top3":  [
+                 {
+                     "usd":  171,
+                     "calls":  696,
+                     "maxContext":  962173
+                 },
+                 {
+                     "usd":  120,
+                     "calls":  535,
+                     "maxContext":  922566
+                 },
+                 {
+                     "usd":  101,
+                     "calls":  461,
+                     "maxContext":  821863
+                 }
+             ],
+    "byAgentType":  [
+                        {
+                            "agentType":  "general-purpose",
+                            "count":  111,
+                            "medianColdStart":  55433,
+                            "meanUsd":  3.39,
+                            "meanCalls":  38
+                        },
+                        {
+                            "agentType":  "aiu-reviewer",
+                            "count":  49,
+                            "medianColdStart":  23854,
+                            "meanUsd":  1.9,
+                            "meanCalls":  30
+                        },
+                        {
+                            "agentType":  "aiu-implementer",
+                            "count":  12,
+                            "medianColdStart":  43021.5,
+                            "meanUsd":  8.36,
+                            "meanCalls":  81
+                        },
+                        {
+                            "agentType":  "Explore",
+                            "count":  3,
+                            "medianColdStart":  42882,
+                            "meanUsd":  2.55,
+                            "meanCalls":  27
+                        },
+                        {
+                            "agentType":  "aiu-simple-implementer",
+                            "count":  3,
+                            "medianColdStart":  53275,
+                            "meanUsd":  0.74,
+                            "meanCalls":  23
+                        },
+                        {
+                            "agentType":  "Plan",
+                            "count":  1,
+                            "medianColdStart":  36965,
+                            "meanUsd":  0.81,
+                            "meanCalls":  5
+                        },
+                        {
+                            "agentType":  "claude-code-guide",
+                            "count":  1,
+                            "medianColdStart":  29330,
+                            "meanUsd":  0.02,
+                            "meanCalls":  17
+                        }
+                    ]
+}
