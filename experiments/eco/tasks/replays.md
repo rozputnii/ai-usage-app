@@ -3,7 +3,8 @@
 Three past tasks, rerun from their base commits in arms A, B, C and D (one run each, plus a
 repeat of the two cheapest arms on RP3). Never merged. The reference solution on `main` and its
 review give the ground truth; judge each pair against arm A with `Start-Judge.ps1` and the
-defect key below (`-DefectKey replays.md` works: the judge reads the matching section).
+defect key below (pass the section to both: `-Brief replays.md#rpN -DefectKey replays.md#rpN`; the
+judge then sees only that replay, not the arms or the other replays).
 
 After S3 the operator freezes arm E: the better of C and D by the plan's decision rules, with at
 most one round of tuning (record every change to `arms/E-*.md` and its reason in

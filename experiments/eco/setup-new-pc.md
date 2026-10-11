@@ -56,7 +56,8 @@ docs/workflow/host-environment.md as a separate, normal change.
 2. **Calibration**: ask the owner to pause other Claude use, record the weekly `/usage`
    percent, run replay RP3 in arm A, record `/usage` again, and compute API-equivalent dollars
    per percent. Repeat once with RP3 in arm C.
-3. **Pilot**: judge RP3 A against RP3 C with `Start-Judge.ps1 -DefectKey ..\tasks\replays.md`.
+3. **Pilot**: judge RP3 A against RP3 C with `Start-Judge.ps1 -Brief ..\tasks\replays.md#rp3
+   -DefectKey ..\tasks\replays.md#rp3`.
    Check that the judge's verdict, the metrics and the run reports are consistent.
 4. Write `results/S1.md` (environment, self-test, calibration, pilot, problems found and fixed),
    commit on `exp/eco-roles`, push `origin/exp/eco-roles`, and update the README status and next

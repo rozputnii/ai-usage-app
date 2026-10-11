@@ -38,8 +38,19 @@ $id = 'j' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
 $dir = Join-Path $RunRoot "judgments\$id"
 New-Item -ItemType Directory -Force $dir | Out-Null
 
-$briefPath, $anchor = $Brief -split '#', 2
-$briefText = [IO.File]::ReadAllText((Resolve-Path $briefPath))
+# A "<file>#<anchor>" spec gives only that "## <title> {#anchor}" section, operator notes included
+# (the judge needs them: defect key, held-out tests). The rest of the file names arms and other
+# tasks, which would unblind the judge.
+function Get-Section([string] $spec) {
+    $path, $name = $spec -split '#', 2
+    $text = [IO.File]::ReadAllText((Resolve-Path $path))
+    if (-not $name) { return $text }
+    $m = [regex]::Match($text, "(?ms)^## [^\n]*\{#$([regex]::Escape($name))\}.*?(?=^## |\z)")
+    if (-not $m.Success) { throw "No section {#$name} in $path" }
+    $m.Value
+}
+$anchor = ($Brief -split '#', 2)[1]
+$briefText = Get-Section $Brief
 $prompt = [IO.File]::ReadAllText((Join-Path (Split-Path -Parent $here) 'judge.md')) + @"
 
 
@@ -62,7 +73,7 @@ $(Get-Report $x)
 
 $(Get-Report $y)
 "@
-if ($DefectKey) { $prompt += "`n`n## Defect key`n`n" + [IO.File]::ReadAllText((Resolve-Path $DefectKey)) }
+if ($DefectKey) { $prompt += "`n`n## Defect key`n`n" + (Get-Section $DefectKey) }
 $promptFile = Join-Path $dir 'prompt.md'
 [IO.File]::WriteAllText($promptFile, $prompt, (New-Object Text.UTF8Encoding $false))
 
