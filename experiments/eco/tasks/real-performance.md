@@ -4,8 +4,8 @@ Owner answer 2026-10-11: Q3 yes (whole app, no visible change). Two runs:
 
 1. **S4d-0, measurement tool** (single run, arm A, merged first as its own T1 change), so that
    both arms of the pair measure with the same neutral instrument.
-2. **S4d, the pair** (arms A and E) from `main` after S4d-0, with the S4-local log digest
-   (`results/S4-local-log-digest.md`) appended with `-Appendix`.
+2. **S4d, the pair** (arms A and E) from `main` after S4d-0, with the installed-app log digest
+   appended: `-Appendix ../results/S4-local-log-digest.md`.
 
 ## Measurement tool {#tool}
 

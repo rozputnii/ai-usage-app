@@ -8,6 +8,7 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | Stage | State | Notes |
 | --- | --- | --- |
 | S0 | done 2026-10-11 | plan, briefs, baseline, harness, arms, roles; self-tests in [results/S0.md](results/S0.md) |
+| S4-local | done 2026-10-11 | [installed-app log digest](results/S4-local-log-digest.md); nothing else needs the current PC |
 | S1 | next | on the new PC |
 | S2-S5 | waiting | see the plan |
 

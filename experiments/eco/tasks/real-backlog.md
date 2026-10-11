@@ -1,23 +1,27 @@
-# Real tasks S4-local: backlog items on the owner's current PC
+# Real tasks S4a: backlog items
 
-Run on the owner's current PC after S3 (so arm E is final), because these tasks may read the
-installed app's logs, which exist only there. Owner answers 2026-10-11: Q10 yes (all three, in
-one small stage on this PC), Q11 yes (re-sign-in guidance in the style of existing sign-in
-messages, no layout change). Each item is a pair (arms A and E) except the digest.
+Run on the new PC after S3 (so arm E is final). Owner answers 2026-10-11: Q10 yes (all three),
+Q11 yes (re-sign-in guidance in the style of existing sign-in messages, no layout change).
+Owner decision 2026-10-11: only the log digest needed the current PC (done:
+[digest](../results/S4-local-log-digest.md)); the three items moved to the new PC and use the
+digest through `-Appendix ../results/S4-local-log-digest.md` where they need it (BL3). Each
+item is a pair (arms A and E).
 
 Operator notes:
-- Close the installed app before any C8 run (it blocked C8 on 2026-10-10).
+- Close any installed AI Usage app on the machine before a C8 run (an open one blocked C8 on
+  2026-10-10).
 - `t061-tray-failure-recovery` stays untouched until the owner has looked at it (owner,
-  2026-10-11). If the owner resolved it before S4-local, drop BL2.
+  2026-10-11). If the owner resolved it before S4a, drop BL2.
 - For BL2 the harness clone keeps only its base, so the operator first creates a local branch
   `exp/bl2-base` in the real repository: `main` merged into `t061-tray-failure-recovery`
   (no push), and uses it as `-Base`. If that merge conflicts, BL2 is BLOCKED; report it.
-- In S4-local, CR-T-002-01 looked obsolete on 2026-10-11 (the routing spike build was dropped in
+- CR-T-002-01 looked obsolete on 2026-10-11 (the routing spike build was dropped in
   `27a14b0`, and no routing scenario exists in the UI tests), so BL1 starts with that check.
 
 ## Log digest {#digest}
 
-Single operator task, not paired. Its output is appended to the performance pair (S4d).
+Done 2026-10-11 on the owner's current PC; kept for a later refresh there. Single operator
+task, not paired.
 
 > Read the installed AI Usage app's own log files on this PC (find their location in
 > docs/workflow/logging.md). Write `results/S4-local-log-digest.md` in the experiment folder with
@@ -61,8 +65,8 @@ Single operator task, not paired. Its output is appended to the performance pair
 >    fails closed.
 > 3. Show the re-sign-in guidance in the existing sign-in state message style (owner,
 >    2026-10-11: same style as current sign-in messages, no layout change, no new controls).
-> 4. Use the installed app's log digest (counts only) as evidence of how often usage 401 and
->    refresh failures occur; never copy log text.
+> 4. The installed app's log digest (appended below; counts only) is the evidence of how
+>    often usage 401 and refresh failures occur.
 > 5. Diagnostics follow the logging policy: one detailed record per failure, no logging of
 >    routine success.
 >
