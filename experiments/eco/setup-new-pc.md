@@ -9,6 +9,9 @@ docs/workflow/host-environment.md and may not apply here.
 1. Git, `gh` (signed in: `gh auth login`), Windows PowerShell 5.1.
 2. The .NET SDK that `global.json` names; `dotnet tool install --global csharp-ls --version
    0.28.0` (the repository enables the `csharp-lsp` plugin; without it there is no LSP tool).
+   Warm the NuGet cache once: the restore one-liner in docs/workflow/verification.md is offline
+   (`--source "$HOME/.nuget/packages"`), so on a fresh PC run the same restore without
+   `--source` first, for every project it lists. Runs then restore offline as the rules say.
 3. Claude Code CLI signed in to the owner's Max account. S0 used CLI 2.1.296; record the
    version you have. Set the user environment variable `DISABLE_AUTOUPDATER=1` for the whole
    experiment so the CLI version stays fixed.
