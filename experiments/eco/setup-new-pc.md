@@ -19,8 +19,9 @@ docs/workflow/host-environment.md and may not apply here.
    experiment so the CLI version stays fixed.
 4. graphify, only for the S2 exploration trial: `uv tool install graphifyy` (or
    `pipx install graphifyy`). Do not run `graphify install`: it registers a skill in the Claude
-   configuration, which would change every arm. Use only the `graphify` command inside trial
-   clones; its output never enters Git.
+   configuration, which would change every arm. Build the graph outside the measured run with
+   `graphify extract <clean clone> --code-only --out C:\aiu-exp\graphify\<base>` and pass that
+   folder to `Start-Run.ps1 -CopyIntoClone`; its output never enters Git.
 5. Short paths: clone the repository to a short folder (for example `C:\src\ai-usage-app`); run
    clones go under `C:\aiu-exp`. Deep paths break builds ("The filename or extension is too
    long").

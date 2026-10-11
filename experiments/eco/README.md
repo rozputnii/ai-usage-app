@@ -10,15 +10,15 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | S0 | done 2026-10-11 | plan, briefs, baseline, harness, arms, roles; self-tests in [results/S0.md](results/S0.md) |
 | S4-local | done 2026-10-11 | [installed-app log digest](results/S4-local-log-digest.md); nothing else needs the current PC |
 | S1 | done 2026-10-11 | new PC, account `second`: self-tests, calibration, pilot in [results/S1.md](results/S1.md) |
-| S2 | next | waits for the owner's go |
+| S2 | running | owner's go 2026-10-11; partial results in [results/S2.md](results/S2.md) |
 | S3-S5 | waiting | see the plan |
 
 ## Next action
 
-S2 micro-trials on the new PC, account `second`, after the owner's go. Before each batch, ask
-the owner for the session and weekly `/usage` percents: a five-hour window holds about $26 of
-opus spend ([S1 calibration](results/S1.md#calibration)), so S2 spans several windows.
-Re-measure dollars per weekly percent over S2.
+Continue S2 in batches of at most $20 (`tools/Start-Batch.ps1`): exploration (all six scout variants,
+including graphify), then review, then implementation. Before each batch check the owner's latest
+session and weekly `/usage` reading: a five-hour window holds about $26 of opus spend
+([S1 calibration](results/S1.md#calibration)). Re-measure dollars per weekly percent over S2.
 
 ## Layout
 

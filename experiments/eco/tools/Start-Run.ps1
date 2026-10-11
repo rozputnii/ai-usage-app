@@ -39,6 +39,9 @@ param(
     [hashtable] $Vars = @{},
     [string[]] $Appendix = @(),
     [int] $TimeoutMinutes = 360,
+    # A prepared folder (for example a graphify-out built outside the measured run) whose contents
+    # are copied into the clone root before the run, git-excluded so they never reach a diff.
+    [string] $CopyIntoClone,
     [switch] $NoRun
 )
 $ErrorActionPreference = 'Stop'
@@ -85,6 +88,15 @@ Invoke-Git $clone gc --prune=now --quiet | Out-Null
 $visible = [int](Invoke-Git $clone rev-list --all --count)
 $expected = [int](Invoke-Git $clone rev-list --count run)
 if ($visible -ne $expected) { throw "Isolation failed: $visible commits visible, $expected expected." }
+if ($CopyIntoClone) {
+    foreach ($item in Get-ChildItem -Force (Resolve-Path $CopyIntoClone)) {
+        Copy-Item -Recurse -Force $item.FullName $clone
+        Add-Content (Join-Path $clone '.git\info\exclude') "/$($item.Name)/"
+    }
+    # graphify records the absolute root it was built from; point it at this clone.
+    $root = Join-Path $clone 'graphify-out\.graphify_root'
+    if (Test-Path $root) { [IO.File]::WriteAllText($root, $clone) }
+}
 
 # 2. Prompt.
 $briefPath, $anchor = $Brief -split '#', 2
@@ -116,7 +128,7 @@ if ($AgentsFile) { $cliArgs += @('--agents', (Resolve-Path $AgentsFile).Path) }
 
 $run = [ordered]@{ runId = $runId; task = $Task; brief = $Brief
     vars = (($Vars.Keys | Sort-Object | ForEach-Object { "$_=$($Vars[$_])" }) -join '; '); account = $Account; arm = $Arm; model = $Model; effort = $Effort
-    base = $baseSha; sessionId = $sessionId; clone = $clone; appendPrompt = $AppendPromptFile; agents = $AgentsFile
+    base = $baseSha; sessionId = $sessionId; clone = $clone; appendPrompt = $AppendPromptFile; agents = $AgentsFile; copied = $CopyIntoClone
     cli = (& claude --version | Out-String).Trim(); started = (Get-Date).ToString('o') }
 if ($NoRun) { $run | ConvertTo-Json; return }
 

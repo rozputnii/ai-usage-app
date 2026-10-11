@@ -17,9 +17,9 @@ Variants: `scout-grep` (Read, Grep, Glob), `scout-lsp` (+ LSP), `scout-graphify`
 `scout-claudemd` (as scout-lsp but with CLAUDE.md), `scout-sonnet` (scout-lsp on sonnet), and
 the built-in `Explore` on haiku (pass model haiku on the call).
 
-Run `scout-graphify` only after `graphify .` in the trial clone; record the build time and
-whether its semantic pass was skipped (code-only, no LLM use). The graph output stays out of
-Git (clone only).
+Run `scout-graphify` with `-CopyIntoClone C:\aiu-exp\graphify\<base>`, a graph built once with
+`graphify extract <clean clone> --code-only --out C:\aiu-exp\graphify\<base>` (code-only, no LLM
+use); record the build time. The graph output stays out of Git (git-excluded in the clone).
 
 ## Probe {#probe}
 
