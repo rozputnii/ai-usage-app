@@ -55,8 +55,10 @@ public sealed class ClaudeQuotaClientTests
         await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
         var deferred = await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
         Assert.Equal(ProviderFailureKind.RateLimited, deferred.Kind);
+        clock.Current = clock.Current.AddSeconds(59);
+        await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
         Assert.Equal(1, server.Calls);
-        clock.Current = clock.Current.AddSeconds(61);
+        clock.Current = clock.Current.AddSeconds(2);
         await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
         Assert.Equal(2, server.Calls);
     }
