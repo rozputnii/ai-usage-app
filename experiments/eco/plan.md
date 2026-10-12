@@ -75,7 +75,7 @@ effect is measured, not hidden. Arm B gets the current eco skill injected throug
 | S2 | new PC | micro-trials |
 | S3 | new PC | replays; freeze arm E |
 | S4-local | owner's current PC | done 2026-10-11: the [installed-app log digest](results/S4-local-log-digest.md), the only step that needs that PC |
-| S4a | new PC, after S3 | [backlog items](tasks/real-backlog.md) CR-T-002-01, WR-T-061-M1, CR-T-003-03, using the digest (owner decision 2026-10-11: moved from the current PC); runs on account `second` (owner decision 2026-10-12: limit left there), both arms of each pair on it |
+| S4a | new PC, after S3 | [backlog items](tasks/real-backlog.md) CR-T-002-01, WR-T-061-M1, CR-T-003-03, using the digest (owner decision 2026-10-11: moved from the current PC); runs on account `main` within its weekly limit that resets 2026-10-13 12:00 (owner decision 2026-10-12, replacing `second`); WR-T-061-M1 (BL2) is out of S4a: deferred to normal work, outside the eco scope (owner, 2026-10-12) |
 | S4b | new PC | [OMP review](tasks/real-omp-review.md) |
 | S4c | new PC | [UI/UX and motion](tasks/real-ui-motion.md) |
 | S4d | new PC | [performance and memory](tasks/real-performance.md) |

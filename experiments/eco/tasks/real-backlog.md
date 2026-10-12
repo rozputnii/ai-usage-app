@@ -42,6 +42,10 @@ task, not paired.
 
 ## BL2 - WR-T-061-M1 tray failure streak fix (T1) {#bl2}
 
+Out of S4a (owner, 2026-10-12): deferred to normal work, outside the eco scope. The owner updated
+the Visual Studio Build Tools the same day (C9 had failed with MSB4236 in every S3 run); C9 is not
+re-checked here.
+
 > Backlog finding WR-T-061-M1: the reviewed fix "end a tray failure streak when the tone
 > returns to the shown one" (commit `ed2de85`, already merged with current `main` in this
 > clone's base) waits only for the launch smoke C8. Verify it on the merged tree: C4, C5, C7,

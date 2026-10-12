@@ -16,10 +16,27 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 
 ## Next action
 
-S4a (real tasks, arm A against the frozen arm E on account `main`) needs the owner's go. Arm E and the
-S3 evidence behind it are in [results/S3.md](results/S3.md#arm-e-frozen-2026-10-12). Before S4a, the operator
-proposed one E validation run on RP1 and RP2 (about $12) to check the tuning; run it only on the owner's
-answer. Both eco-skill defects (the unread PASS from S2, the missing `/code-review` from S3) are fixed in `main`
+S4a has the owner's go (2026-10-12) and runs in a new operator session on account `main`, all of it
+before the weekly reset on 2026-10-13 12:00 (owner: finish within the 14% left, about $190). Two
+pairs, A against the frozen E, in this order; every pair's first run before anything else:
+
+1. BL1 ([CR-T-002-01](tasks/real-backlog.md#bl1), T0, about $2 a pair) and BL3
+   ([CR-T-003-03](tasks/real-backlog.md#bl3), T3, about $20-25 a pair, with
+   `-Appendix ..\results\S4-local-log-digest.md`). Base: current `main`, the same commit for both
+   arms. Arm E: `-Arm E -Effort medium -AppendPromptFile ..\arms\E-eco.md -AgentsFile ..\arms\E-agents.json`.
+2. One judge per pair (`Start-Judge.ps1 -Brief ..\tasks\real-backlog.md#blN`), then the operator
+   merges the better result into `main` under CONTRIBUTING (a T3 merge needs the run's focused
+   review; never merge a result with a Major finding).
+3. Gate: about $35-45 in all. Read `/usage` with `claude -p "/usage"` (a local command, $0) before
+   each run; one weekly percent is about $13.5 and a five-hour window about $100. Start BL3's arm
+   A only when the window has $20 free.
+
+Operator notes: set `$env:AIU_EXP_ACCOUNT='main'` and `$env:DISABLE_AUTOUPDATER='1'` in every
+command that starts a run; launch batches as a detached process (`Start-Process powershell`), not
+as a tool background task (2-hour limit), and watch the UTF-8 batch log, not the redirected output;
+close any installed AI Usage app before a run (C8); write files with `[IO.File]` and absolute paths
+(relative paths resolve against the process directory). BL2 is out of S4a (owner, 2026-10-12).
+Both eco-skill defects (the unread PASS from S2, the missing `/code-review` from S3) are fixed in `main`
 (`504526a`, merged 2026-10-12 on the owner's request; T3 review APPROVE, C2/C3/C6 PASS).
 
 Account switch (owner decision 2026-10-12): S3 and later run on account `main` (Max x5, $100) on the
