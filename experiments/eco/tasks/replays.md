@@ -18,7 +18,7 @@ operator adapts only namespaces or member names the brief left open, and records
 Brief: the approved specification as the owner and the primary wrote it before
 implementation (as of `8eaf1f7`, status implementing), appended with
 `-Appendix tasks/rp1-spec.md`. The appendix holds only the fenced specification: Start-Run
-appends it verbatim, so an operator note there would reach the run. The run adds it as
+appends it verbatim, so an operator note there would reach the run. The run adds it as a spec (the path below is the reference's, not named in the brief; a different folder name is not a finding):
 `docs/specs/T-NEW-peak-hours-hint/spec.md` (status implementing), implements it, and keeps
 records per CONTRIBUTING.
 
