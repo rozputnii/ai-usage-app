@@ -23,8 +23,9 @@ the role map is in [model costs](model-costs.md).
   never replace the reads a contract requires.
 - Ask for the contract's short report; full output goes to a log file. On a failure, read only
   the log's failing part. A reported PASS is a claim: before it counts as evidence at the
-  merge gate, confirm it yourself from the log's summary line (exit code, totals), never
-  from the report alone.
+  merge gate, confirm it yourself from the log's last lines (the `exit=<code>` line the
+  runner brief adds, and the totals where the check prints them), never from the report
+  alone.
 - Run independent read-only subagents (exploration, check runs) in parallel. Parallel write
   workers follow CONTRIBUTING, Parallel work, unchanged.
 - One task per session; start a fresh session for the next task.
@@ -49,9 +50,12 @@ numbering, records and merge under CONTRIBUTING, Git flow. In a parallel run the
 applies unchanged.
 
 The review a tier requires is the whole set in CONTRIBUTING, Risk tiers, never a part of it:
-the review brief tells the reviewer to run local `/code-review` on the diff (reviewer
-contract) and, for T3, `/security-review` where available. Do not run `/code-review` yourself
-as well; once per change meets the rule.
+for T1 and up, the review brief tells the reviewer to run local `/code-review` on the
+integrated diff where available (reviewer contract); for T3 it also asks for the blocking
+focused review with the convergence-review skill and `/security-review` where available. Do
+not run `/code-review` yourself as well, unless the reviewer reports it unavailable or not
+run; then run it yourself on the integrated diff. Per-task reviews in a parallel run do not
+replace it.
 
 ## Escalation
 
@@ -72,7 +76,8 @@ as well; once per change meets the rule.
 
 > Work in `<worktree>`. Run these commands one at a time: `<commands with check IDs>`. For a
 > desktop smoke, follow the desktop lock in docs/workflow/verification.md. Write each command's
-> full output to `<log dir>/<check ID>.log`. Do not edit, commit, push or fix anything. Return
+> full output to `<log dir>/<check ID>.log`, then append a last line `exit=<code>` to that log.
+> Do not edit, commit, push or fix anything. Return
 > one line per check: ID, PASS, FAIL or BLOCKED, exit code, log path, and for FAIL or BLOCKED
 > at most 20 first error lines.
 
