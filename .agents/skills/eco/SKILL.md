@@ -4,7 +4,7 @@ description: Owner-invoked economy mode. The primary works lean and mostly alone
 ---
 # eco
 
-Owner-invoked mode (decisions R-222, R-NEW). It changes who does the work, on which model, and
+Owner-invoked mode (decisions R-222, R-225). It changes who does the work, on which model, and
 how the details are tracked, never what the rules require: tiers, red to green, reviews, the
 merge gate and the always-ask list stay as AGENTS.md and CONTRIBUTING.md define them, and they
 win wherever this text seems to differ. The mode lasts until the session ends or the owner
@@ -115,9 +115,9 @@ with their check IDs and the log directory; the runner contract holds the rest.
 - NEEDS_CONTEXT calls for a better brief, and an environmental BLOCKED (a locked desktop, a
   missing restore) for fixing the cause, not a bigger model.
 - When a subagent fails the same step twice, or reports something the state contradicts,
-  rerun that step one level up: haiku high, then sonnet high, then opus medium, then opus high. Do
-  not retry the same level unchanged. When opus high fails too, take the step over or report it
-  BLOCKED.
+  rerun that step one level up: haiku high, then sonnet high, then opus medium, then opus
+  high. Do not retry the same level unchanged. When opus high fails too, take the step over or
+  report it BLOCKED.
 - A failing check found by a runner goes to you or an opus medium implementer for diagnosis
   (systematic-debugging); the runner never fixes anything.
 - Never review below the table.
