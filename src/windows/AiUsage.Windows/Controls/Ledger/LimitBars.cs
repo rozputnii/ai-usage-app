@@ -8,32 +8,152 @@ using Microsoft.UI.Xaml.Shapes;
 namespace AiUsage.Controls.Ledger;
 
 /// <summary>
+/// Runs a usage bar's fill (<see cref="BarSweep"/>): it remembers the edges on screen, so the next fill starts from them,
+/// or from empty when the bar has not been shown yet or is shown again. Apply draws a frame's edges; Finish restores the
+/// bar's own layout once the edges are in place.
+/// </summary>
+internal sealed class BarFill(Action<double[]> apply, Action finish)
+{
+    private double[]? shown;
+    private Action? stop;
+
+    public bool HasShown => shown is not null;
+
+    public void Show(double[] target)
+    {
+        stop?.Invoke();
+        stop = null;
+        var sweep = new BarSweep(shown ?? [], target);
+        if (!LedgerTheme.AnimationsEnabled || sweep.Duration <= 0)
+        {
+            Snap(target);
+            return;
+        }
+        // The first frame is drawn now, so the bar never shows its end state before the fill starts.
+        Step(sweep.At(0));
+        stop = LedgerMotion.Frames(sweep.Duration, elapsed =>
+        {
+            Step(sweep.At(elapsed));
+            if (elapsed < sweep.Duration)
+                return;
+            stop = null;
+            finish();
+        });
+
+        void Step(double[] edges)
+        {
+            shown = edges;
+            apply(edges);
+        }
+    }
+
+    /// <summary>Shows the target at once, stopping a running fill (a resize, or no system animations).</summary>
+    public void Snap(double[] target)
+    {
+        stop?.Invoke();
+        stop = null;
+        shown = target;
+        finish();
+    }
+
+    /// <summary>The next fill starts from empty.</summary>
+    public void Forget()
+    {
+        stop?.Invoke();
+        stop = null;
+        shown = null;
+    }
+
+    /// <summary>Fills every usage bar under the root from empty, as when the window or the tray opens.</summary>
+    public static void Replay(DependencyObject root)
+    {
+        if (root is TodayStrip strip)
+            strip.ReplayFill();
+        else if (root is PeriodBar bar)
+            bar.ReplayFill();
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            Replay(VisualTreeHelper.GetChild(root, i));
+    }
+}
+
+/// <summary>
 /// The today strip (spec 6.3): one rounded cell per 5h window, or one cell, each split into used, allowed and grey parts.
-/// Each cell is a keyboard stop with its tooltip; arrow keys move between cells inside the card.
+/// Each cell is a keyboard stop with its tooltip; arrow keys move between cells inside the card. The parts fill as one
+/// strip from the left (<see cref="BarFill"/>): while they move, their star columns become pixel widths.
 /// </summary>
 internal sealed partial class TodayStrip : Grid
 {
-    private IReadOnlyList<StripCell> displayedCells = [];
+    /// <summary>Each part's column with its star weight, its cell and its part of the fill.</summary>
+    private readonly List<(ColumnDefinition Column, double Weight, int Cell, int Part)> partColumns = [];
+    private readonly BarFill fill;
     public static readonly DependencyProperty CellsProperty = DependencyProperty.Register(nameof(Cells), typeof(IReadOnlyList<StripCell>), typeof(TodayStrip), new PropertyMetadata(null, (d, _) => ((TodayStrip)d).Rebuild()));
     public static readonly DependencyProperty CellHeightProperty = DependencyProperty.Register(nameof(CellHeight), typeof(double), typeof(TodayStrip), new PropertyMetadata(14.0, (d, _) => ((TodayStrip)d).Rebuild()));
     public static readonly DependencyProperty FocusableCellsProperty = DependencyProperty.Register(nameof(FocusableCells), typeof(bool), typeof(TodayStrip), new PropertyMetadata(true, (d, _) => ((TodayStrip)d).Rebuild()));
+
+    public TodayStrip()
+    {
+        fill = new BarFill(Apply, Finish);
+        // The first size shows the strip: it fills from empty. Later sizes keep the fill where it ends.
+        SizeChanged += (_, _) =>
+        {
+            if (fill.HasShown) fill.Snap(Edges());
+            else Fill();
+        };
+    }
 
     public IReadOnlyList<StripCell>? Cells { get => (IReadOnlyList<StripCell>?)GetValue(CellsProperty); set => SetValue(CellsProperty, value); }
     public double CellHeight { get => (double)GetValue(CellHeightProperty); set => SetValue(CellHeightProperty, value); }
     public bool FocusableCells { get => (bool)GetValue(FocusableCellsProperty); set => SetValue(FocusableCellsProperty, value); }
 
+    public void ReplayFill()
+    {
+        fill.Forget();
+        Fill();
+    }
+
+    private void Fill()
+    {
+        if (ActualWidth > 0)
+            fill.Show(Edges());
+    }
+
+    private double[] Edges()
+    {
+        var cells = Cells ?? [];
+        return BarSweep.StripEdges([.. cells.Select(c => Math.Max(0.001, c.Weight))], [.. cells.Select(c => c.Parts.Select(p => p.Weight).ToArray())], ActualWidth, ColumnSpacing);
+    }
+
+    /// <summary>Each part's column takes its stretch of the moving edges, cut to its cell.</summary>
+    private void Apply(double[] edges)
+    {
+        var target = Edges();
+        var cells = Cells ?? [];
+        var gap = ActualWidth > 0 ? ColumnSpacing / ActualWidth : 0;
+        foreach (var (column, _, cell, part) in partColumns)
+        {
+            var first = cells.Take(cell).Sum(c => c.Parts.Count + 1);
+            var cellLeft = first == 0 ? 0 : target[first - 1];
+            var filler = first + cells[cell].Parts.Count;
+            var cellRight = cell < cells.Count - 1 ? target[filler] - gap : 1;
+            var k = first + part;
+            var left = Math.Max(k == 0 ? 0 : edges[k - 1], cellLeft);
+            var right = Math.Min(edges[k], cellRight);
+            column.Width = new GridLength(Math.Max(0, right - left) * ActualWidth);
+        }
+    }
+
+    private void Finish()
+    {
+        foreach (var (column, weight, _, _) in partColumns)
+            column.Width = new GridLength(weight, GridUnitType.Star);
+    }
+
     private void Rebuild()
     {
-        var oldWidths = displayedCells.Select((cell, i) =>
-        {
-            var width = i < Children.Count && Children[i] is FrameworkElement element ? element.ActualWidth : 0;
-            var total = cell.Parts.Sum(p => p.Weight);
-            return cell.Parts.Select(p => total > 0 ? (double?)(width * p.Weight / total) : null).ToArray();
-        }).ToArray();
         Children.Clear();
         ColumnDefinitions.Clear();
+        partColumns.Clear();
         var cells = Cells ?? [];
-        displayedCells = cells;
         var small = CellHeight <= 10;
         ColumnSpacing = small ? 3 : 4;
         Height = CellHeight;
@@ -41,24 +161,27 @@ internal sealed partial class TodayStrip : Grid
         {
             var cell = cells[i];
             ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(Math.Max(0.001, cell.Weight), GridUnitType.Star) });
-            var element = BuildCell(cell, small, i < oldWidths.Length ? oldWidths[i] : []);
+            var element = BuildCell(cell, i, small);
             SetColumn(element, i);
             Children.Add(element);
         }
+        // A changed value moves from the edges on screen to the new ones.
+        Fill();
     }
 
-    private FrameworkElement BuildCell(StripCell cell, bool small, double?[] oldWidths)
+    private FrameworkElement BuildCell(StripCell cell, int index, bool small)
     {
         var radius = small ? 4 : 6;
         var parts = new Grid();
         for (var i = 0; i < cell.Parts.Count; i++)
         {
             var part = cell.Parts[i];
-            parts.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(part.Weight, GridUnitType.Star) });
+            var column = new ColumnDefinition { Width = new GridLength(part.Weight, GridUnitType.Star) };
+            parts.ColumnDefinitions.Add(column);
+            partColumns.Add((column, part.Weight, index, i));
             var fill = LedgerTheme.Surface(part.Paint);
             SetColumn(fill, i);
             parts.Children.Add(fill);
-            LedgerMotion.WidthOnLoad(fill, i < oldWidths.Length ? oldWidths[i] : null);
             if (part.OverEdge)
             {
                 var edge = new Rectangle { Width = 2, HorizontalAlignment = HorizontalAlignment.Left, Fill = LedgerTheme.Solid("Ink") };
@@ -109,6 +232,7 @@ internal sealed partial class TodayStrip : Grid
             FocusVisualPrimaryThickness = new Thickness(2),
             FocusVisualMargin = new Thickness(-2),
         };
+        AutomationProperties.SetAutomationId(stop, "TodayCell");
         LedgerTheme.AttachTip(stop, cell.Tip);
         return stop;
     }
@@ -116,24 +240,67 @@ internal sealed partial class TodayStrip : Grid
 
 /// <summary>
 /// The 7d or month bar (spec 6.3): an 8 px track with prior use, today's span, the over part, a ring around today's span,
-/// cap and over ticks and 5h dividers. Positions are percent of the width and arrive mirrored for Left mode.
+/// cap and over ticks and 5h dividers. Positions are percent of the width and arrive mirrored for Left mode. The painted
+/// parts fill as one strip from the left (<see cref="BarFill"/>); the track, ring, ticks and dividers stay in place.
 /// </summary>
 internal sealed partial class PeriodBar : Canvas
 {
-    private double[] previousWidths = [];
-    public static readonly DependencyProperty VisualProperty = DependencyProperty.Register(nameof(Visual), typeof(CardVisual), typeof(PeriodBar), new PropertyMetadata(null, (d, _) => ((PeriodBar)d).Rebuild()));
+    /// <summary>Each painted part with its final left and width in pixels and its part of the fill.</summary>
+    private readonly List<(FrameworkElement Rect, double Left, double Width, int Part)> painted = [];
+    private double[] edges = [];
+    private readonly BarFill fill;
+    public static readonly DependencyProperty VisualProperty = DependencyProperty.Register(nameof(Visual), typeof(CardVisual), typeof(PeriodBar), new PropertyMetadata(null, (d, _) => ((PeriodBar)d).Show(true)));
 
     public PeriodBar()
     {
         Height = 20;
-        SizeChanged += (_, _) => Rebuild();
+        fill = new BarFill(Apply, Finish);
+        // A resize redraws the bar where its fill ends; the first size fills it from empty.
+        SizeChanged += (_, _) => Show(!fill.HasShown);
     }
 
     public CardVisual? Visual { get => (CardVisual?)GetValue(VisualProperty); set => SetValue(VisualProperty, value); }
 
+    public void ReplayFill()
+    {
+        fill.Forget();
+        Show(true);
+    }
+
+    private void Show(bool move)
+    {
+        Rebuild();
+        if (ActualWidth <= 0 || Visual is null)
+            return;
+        if (move)
+            fill.Show(edges);
+        else
+            fill.Snap(edges);
+    }
+
+    private void Apply(double[] shown)
+    {
+        foreach (var (rect, _, _, part) in painted)
+        {
+            var left = part == 0 ? 0 : shown[part - 1];
+            SetLeft(rect, left * ActualWidth);
+            rect.Width = Math.Max(0, shown[part] - left) * ActualWidth;
+        }
+    }
+
+    private void Finish()
+    {
+        foreach (var (rect, left, width, _) in painted)
+        {
+            SetLeft(rect, left);
+            rect.Width = width;
+        }
+    }
+
     private void Rebuild()
     {
         Children.Clear();
+        painted.Clear();
         var visual = Visual;
         var width = ActualWidth;
         if (visual is null || width <= 0)
@@ -145,6 +312,7 @@ internal sealed partial class PeriodBar : Canvas
         SetTop(trackBorder, 6);
         Children.Add(trackBorder);
         var segments = visual.Segments.Where(s => s.Width > 0.001).ToArray();
+        (edges, var parts) = BarSweep.BarEdges([.. segments.Select(s => (s.Left, s.Width))]);
         for (var i = 0; i < segments.Length; i++)
         {
             var segment = segments[i];
@@ -153,9 +321,8 @@ internal sealed partial class PeriodBar : Canvas
             rect.Height = 8;
             SetLeft(rect, X(segment.Left));
             track.Children.Add(rect);
-            LedgerMotion.WidthOnLoad(rect, i < previousWidths.Length ? previousWidths[i] : null);
+            painted.Add((rect, X(segment.Left), rect.Width, parts[i]));
         }
-        previousWidths = [.. segments.Select(s => Math.Max(0, X(s.Width)))];
         foreach (var divider in visual.Dividers)
         {
             var rect = new Rectangle { Width = 2, Height = 8, Fill = LedgerTheme.Solid("Card") };

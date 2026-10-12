@@ -242,6 +242,9 @@ internal sealed partial class LedgerCardView : UserControl
         ToolTipService.SetToolTip(Grip, null);
     }
 
+    /// <summary>The lifted card's shadow, from 0 (resting) to 1 (lifted).</summary>
+    public void Lift(double amount) => Surface.Lift(amount);
+
     /// <summary>The drag is over: the grip hides until the pointer moves on the card again, and its tooltip returns.</summary>
     public void EndReorder()
     {

@@ -135,6 +135,8 @@ public sealed partial class CardEditingSmoke
             Mouse.Up(MouseButton.Left);
             held = false;
             Assert.True(Wait(() => Order() is ["Codex Work", "Claude Pro", ..]), "The drop did not move Claude Pro below Codex: " + string.Join(", ", Order()));
+            // The settle: the dropped card moves into its new place below Codex, and Codex back to the top.
+            Assert.True(Wait(() => app.Card("claude-week").BoundingRectangle.Top > app.Card("codex-week").BoundingRectangle.Bottom), "Claude Pro did not settle below Codex");
 
             stage = "Esc cancels a drag";
             grip = PointAtGrip(app, "claude-week", "Reorder Claude Pro");
@@ -166,6 +168,132 @@ public sealed partial class CardEditingSmoke
                 Mouse.Up(MouseButton.Left);
             app.Finish(evidence, "drag", passed, stage);
         }
+    }
+
+    /// <summary>
+    /// The usage bars' fill ends where their layout is (owner picks 2026-10-11): after two animated value changes (Left,
+    /// then Used) the bars match the bars the opening fill drew, pixel for pixel, and the tray miniature's bars match
+    /// between two openings. The demo's clock is fixed, so the values do not drift.
+    /// </summary>
+    [Fact]
+    public void UsageBarsFillToTheirLayout()
+    {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
+        var evidence = EvidenceDirectory();
+        using var app = new DemoApp("aiu-bars-smoke-");
+        var passed = false;
+        var stage = "launch";
+        try
+        {
+            SmokeKit.Focus(app.Main());
+            // The pointer rests on the title, away from the bars and their tooltips.
+            var title = app.Main().FindFirstDescendant(cf => cf.ByName("AI Usage").And(cf.ByControlType(ControlType.Text)))!.BoundingRectangle;
+            SmokeKit.HoverOwned(new System.Drawing.Point(title.Left + title.Width / 2, title.Top + title.Height / 2), app.ProcessId);
+            byte[] Bars()
+            {
+                var card = app.Card("claude-week");
+                var bars = card.FindAllDescendants(cf => cf.ByAutomationId("TodayCell")).Append(card.FindFirstDescendant(cf => cf.ByAutomationId("PeriodBar"))!).ToArray();
+                Assert.True(bars.Length >= 2, "The Claude card shows no today strip");
+                return [.. bars.SelectMany(Pixels)];
+            }
+
+            stage = "open";
+            var opened = Steady(Bars, null);
+            Save(app, evidence, "bars-open.png");
+
+            stage = "Left";
+            Invoke(app, "LeftButton");
+            var left = Steady(Bars, opened);
+            Assert.False(Same(left, opened), "Left mode did not redraw the bars");
+
+            stage = "Used";
+            Invoke(app, "UsedButton");
+            var used = Steady(Bars, left);
+            if (!Same(used, opened))
+            {
+                // The captures are kept as consecutive bitmaps: today's cells, then the period bar.
+                File.WriteAllBytes(Path.Combine(evidence, "bars-opened.bin"), opened);
+                File.WriteAllBytes(Path.Combine(evidence, "bars-used.bin"), used);
+            }
+            Assert.True(Same(used, opened), "After two value changes the bars did not end where the opening fill ended");
+            Save(app, evidence, "bars-used.png");
+
+            stage = "tray";
+            byte[] Tray() => Pixels(SmokeKit.Find(() => SmokeKit.OwnedWindows(app.Automation.GetDesktop(), app.ProcessId)
+                .Select(w => w.FindFirstDescendant(cf => cf.ByName("AI Usage tray"))).FirstOrDefault(content => content is { IsOffscreen: false }), "tray miniature"));
+            OpenTrayMiniature(app);
+            var firstTray = Steady(Tray, null);
+            // Activating the window hides the miniature; the next opening fills its bars from empty again.
+            SmokeKit.Focus(app.Main());
+            Assert.True(Wait(() => SmokeKit.OwnedWindows(app.Automation.GetDesktop(), app.ProcessId)
+                .All(w => w.FindFirstDescendant(cf => cf.ByName("AI Usage tray")) is not { IsOffscreen: false })), "The tray miniature did not close");
+            OpenTrayMiniature(app);
+            var secondTray = Steady(Tray, null);
+            Assert.True(Same(secondTray, firstTray), "The tray miniature's bars did not end where they ended at its first opening");
+
+            stage = "exit";
+            app.Exit();
+            passed = true;
+        }
+        finally
+        {
+            app.Finish(evidence, "bars", passed, stage);
+        }
+    }
+
+    /// <summary>The screen pixels of an element.</summary>
+    private static byte[] Pixels(AutomationElement element)
+    {
+        using var capture = element.Capture();
+        using var stream = new MemoryStream();
+        capture.Save(stream, ImageFormat.Bmp);
+        return stream.ToArray();
+    }
+
+    /// <summary>
+    /// The same captures: every colour channel within 24 of the other. The anti-aliased edges of the rounded cells and of
+    /// the "5h" label over them differ by up to about 12 between two renderings of the same layout; a part edge even a
+    /// fraction of a pixel off differs by far more (the green fill against the dark hatch is about 140 apart).
+    /// </summary>
+    private static bool Same(byte[] a, byte[] b) => a.Length == b.Length && a.Zip(b).All(pair => Math.Abs(pair.First - pair.Second) <= 24);
+
+    /// <summary>
+    /// The pixels once they change from the earlier ones (when given) and then hold still: two captures 300 ms apart,
+    /// longer than a fill's last frames, are the same.
+    /// </summary>
+    private static byte[] Steady(Func<byte[]> capture, byte[]? earlier)
+    {
+        byte[]? steady = null;
+        Assert.True(Wait(() =>
+        {
+            var first = capture();
+            if (earlier is not null && Same(first, earlier))
+                return false;
+            Thread.Sleep(300);
+            var second = capture();
+            steady = second;
+            return Same(first, second);
+        }, TimeSpan.FromSeconds(15)), "The bars did not hold still");
+        return steady!;
+    }
+
+    private static void Invoke(DemoApp app, string automationId)
+    {
+        AutomationElement? button = null;
+        Assert.True(Wait(() => (button = app.Main().FindFirstDescendant(cf => cf.ByAutomationId(automationId).And(cf.ByControlType(ControlType.Button)))) is { IsEnabled: true }),
+            "Missing or disabled button: " + automationId);
+        button!.AsButton().Invoke();
+    }
+
+    /// <summary>The demo build opens the tray miniature from its Demo menu.</summary>
+    private static void OpenTrayMiniature(DemoApp app)
+    {
+        Invoke(app, "DemoButton");
+        AutomationElement? item = null;
+        Assert.True(Wait(() => (item = SmokeKit.OwnedWindows(app.Automation.GetDesktop(), app.ProcessId)
+            .Select(w => w.FindFirstDescendant(cf => cf.ByName("Tray miniature").And(cf.ByControlType(ControlType.MenuItem)))).FirstOrDefault(i => i is not null)) is not null),
+            "The Demo menu has no Tray miniature item");
+        item!.Patterns.Invoke.Pattern.Invoke();
     }
 
     /// <summary>Tooltips open only under the pointer: Tab through the window opens none, hovering the refresh icon opens its tooltip.</summary>
@@ -248,6 +376,8 @@ public sealed partial class CardEditingSmoke
         private readonly Application app;
         private readonly Process process;
         private readonly UIA3Automation automation = new();
+
+        public UIA3Automation Automation => automation;
 
         public DemoApp(string statePrefix)
         {

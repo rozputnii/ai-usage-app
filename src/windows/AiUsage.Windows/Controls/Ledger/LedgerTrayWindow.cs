@@ -137,7 +137,7 @@ internal sealed partial class LedgerTrayWindow : Window
         rows.Children.Clear();
         if (tray.IsEmpty)
         {
-            rows.Children.Add(new TextBlock { Text = tray.EmptyText, Margin = new Thickness(14, 12, 14, 12), FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = LedgerTheme.Solid("Ink3") });
+            rows.Children.Add(new TextBlock { Text = tray.EmptyText, Margin = RowPadding, FontSize = 12, TextWrapping = TextWrapping.Wrap, Foreground = LedgerTheme.Solid("Ink3") });
             return;
         }
         foreach (var row in tray.Rows)
@@ -236,6 +236,8 @@ internal sealed partial class LedgerTrayWindow : Window
             Rebuild();
         AppWindow.Show();
         Activate();
+        // The today bars fill from empty each time the miniature opens.
+        BarFill.Replay(root);
         // XamlRoot's actual monitor scale is available only after the first show.
         DispatcherQueue.TryEnqueue(PositionPopup);
     }

@@ -50,6 +50,13 @@ internal sealed partial class LedgerWindow : Window
     private bool dragging;
     /// <summary>Released over a new place: the card waits there until the grid shows the saved order.</summary>
     private bool dropping;
+    /// <summary>The dragged card's place among the others that the live gap shows; null while the order would not change.</summary>
+    private int? gap;
+    /// <summary>Elements shown away from their place: the dragged card, the cards the gap slid, and cards settling back.</summary>
+    private readonly Dictionary<UIElement, Tween> slides = [];
+    /// <summary>The lifted card's lift (0 resting, 1 lifted), until it has come down again.</summary>
+    private Tween? lift;
+    private LedgerCardView? liftedCard;
 
     public LedgerWindow(LedgerViewModel viewModel, Func<Task> exit, Action showTray)
     {
@@ -211,7 +218,7 @@ internal sealed partial class LedgerWindow : Window
                     {
                         historyPanel.StartBringIntoView();
                         historyPanel.Focus(FocusState.Programmatic);
-                        LedgerMotion.FadeIn(historyPanel, 250);
+                        LedgerMotion.FadeIn(historyPanel, LedgerMotion.Panel);
                     });
                 break;
             case nameof(LedgerViewModel.SectionLayout):
@@ -221,7 +228,7 @@ internal sealed partial class LedgerWindow : Window
                 DispatcherQueue.TryEnqueue(SlideSettings);
                 break;
             case nameof(LedgerViewModel.HasStrip):
-                if (ViewModel.HasStrip) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(SignInStrip, 150));
+                if (ViewModel.HasStrip) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(SignInStrip, LedgerMotion.Small));
                 DispatcherQueue.TryEnqueue(UpdateMinimumSize);
                 UpdateStripWave();
                 break;
@@ -235,7 +242,7 @@ internal sealed partial class LedgerWindow : Window
                 ResetCopyIcon();
                 break;
             case nameof(LedgerViewModel.HasUndo):
-                if (ViewModel.HasUndo) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(UndoBar, 150));
+                if (ViewModel.HasUndo) DispatcherQueue.TryEnqueue(() => LedgerMotion.FadeIn(UndoBar, LedgerMotion.Small));
                 break;
             case nameof(LedgerViewModel.IsDayOff):
             case nameof(LedgerViewModel.Peak):
@@ -328,8 +335,25 @@ internal sealed partial class LedgerWindow : Window
             wanted.Insert(openIndex + 1, historyPanel);
         if (CardGrid.Children.SequenceEqual(wanted))
             return;
-        // The places a drag measures against are about to change.
-        CancelDrag();
+        if (dragged is null && slides.Count == 0)
+        {
+            Fill(wanted);
+            return;
+        }
+        // A drop's saved order, or a change during a drag: the places a drag measures against change. Each card keeps the
+        // place it shows now and settles from there into its new one.
+        var shown = CardGrid.Children.ToDictionary(element => element, element => LayoutTop(element) + (slides.TryGetValue(element, out var slide) ? slide.Value : 0));
+        Fill(wanted);
+        CardGrid.UpdateLayout();
+        foreach (var element in CardGrid.Children)
+            if (shown.TryGetValue(element, out var top))
+                Slide(element).Set(top - LayoutTop(element));
+        if (!CancelDrag())
+            Settle();
+    }
+
+    private void Fill(List<UIElement> wanted)
+    {
         CardGrid.Children.Clear();
         foreach (var element in wanted)
             CardGrid.Children.Add(element);
@@ -341,14 +365,18 @@ internal sealed partial class LedgerWindow : Window
             view.CommitRenameOutside(e.OriginalSource as DependencyObject);
     }
 
-    // ---- Drag to reorder (R-205) ----
+    // ---- Drag to reorder (R-205, variant C: lift, live gap, settle) ----
 
     private void OnReorderPressed(object? sender, PointerRoutedEventArgs e)
     {
         if (dragged is not null || sender is not LedgerCardView view || !CardGrid.CapturePointer(e.Pointer))
             return;
+        // A card still settling from the last drag is put in place, so this drag starts from the cards' places.
+        foreach (var slide in slides.Values.ToArray())
+            slide.Set(0);
+        lift?.Set(0);
         dragged = view;
-        dragFrom = e.GetCurrentPoint(DragLayer).Position;
+        dragFrom = e.GetCurrentPoint(CardGrid).Position;
         view.BeginReorder();
     }
 
@@ -356,7 +384,7 @@ internal sealed partial class LedgerWindow : Window
     {
         if (dragged is null || dropping)
             return;
-        var at = e.GetCurrentPoint(DragLayer).Position;
+        var at = e.GetCurrentPoint(CardGrid).Position;
         if (!dragging)
         {
             if (Math.Abs(at.X - dragFrom.X) < 4 && Math.Abs(at.Y - dragFrom.Y) < 4)
@@ -368,33 +396,47 @@ internal sealed partial class LedgerWindow : Window
             // The cards the pointer passes show no hover or tooltips; the grid keeps the captured pointer.
             foreach (var card in CardGrid.Children.OfType<LedgerCardView>())
                 card.IsHitTestVisible = false;
+            // The lift: the card rises over the others, scales to 1.02 around its centre and casts a soft shadow.
             Canvas.SetZIndex(dragged, 1);
-            dragged.Opacity = 0.92;
-            dragged.RenderTransform = new TranslateTransform();
+            dragged.RenderTransformOrigin = new Windows.Foundation.Point(0.5, 0.5);
+            var lifted = liftedCard = dragged;
+            lift = new Tween(amount =>
+            {
+                Transform(lifted).ScaleX = Transform(lifted).ScaleY = 1 + 0.02 * amount;
+                lifted.Lift(amount);
+                if (amount == 0)
+                    Rest(lifted);
+            }, 0);
+            lift.To(1, LedgerMotion.Drag);
+            gap = null;
         }
-        ((TranslateTransform)dragged.RenderTransform).Y = at.Y - dragFrom.Y;
-        var drop = DropAt(at.Y);
-        InsertionLine.Visibility = drop is null ? Visibility.Collapsed : Visibility.Visible;
-        if (drop is { } place)
-        {
-            Canvas.SetLeft(InsertionLine, place.Line.X);
-            Canvas.SetTop(InsertionLine, place.Line.Y - InsertionLine.Height / 2);
-            InsertionLine.Width = place.Line.Width;
-        }
+        Slide(dragged).Set(at.Y - dragFrom.Y);
+        // The live gap: the other cards slide to open the place the card would land in, or back to their own places.
+        var index = DropAt(at.Y)?.Index;
+        if (index == gap)
+            return;
+        gap = index;
+        var children = CardGrid.Children.ToList();
+        var offsets = index is { } place
+            ? ReorderMath.Offsets([.. children.Select(LayoutHeight)], CardGrid.Spacing,
+                ReorderMath.LandingOrder([.. children.Select(child => child is LedgerCardView)], children.IndexOf(dragged), place))
+            : new double[children.Count];
+        for (var i = 0; i < children.Count; i++)
+            if (children[i] != dragged)
+                Slide(children[i]).To(offsets[i], LedgerMotion.Drag);
     }
 
     private void OnDragReleased(object sender, PointerRoutedEventArgs e)
     {
         if (dragged is not { } view || dropping)
             return;
-        if ((dragging ? DropAt(e.GetCurrentPoint(DragLayer).Position.Y) : null) is not { } place)
+        if ((dragging ? DropAt(e.GetCurrentPoint(CardGrid).Position.Y) : null) is not { } place)
         {
             CancelDrag();
             return;
         }
-        // The card stays where it was dropped while the order is saved; the rebuilt grid ends the drag (RebuildGrid).
+        // The card stays where it was dropped while the order is saved; the rebuilt grid settles it (RebuildGrid).
         dropping = true;
-        InsertionLine.Visibility = Visibility.Collapsed;
         _ = DropAsync(view, place.Before);
     }
 
@@ -406,7 +448,10 @@ internal sealed partial class LedgerWindow : Window
             CancelDrag();
     }
 
-    /// <summary>Puts the dragged card back in its place; true when a grip was pressed. Esc and a lost capture cancel this way.</summary>
+    /// <summary>
+    /// Ends a drag and settles every card into its place; true when a grip was pressed. Esc, a lost capture and a drop that
+    /// changes nothing move the dragged card back this way; after a drop the rebuilt grid has already moved the places.
+    /// </summary>
     private bool CancelDrag()
     {
         if (dragged is not { } view)
@@ -414,34 +459,80 @@ internal sealed partial class LedgerWindow : Window
         dragged = null;
         dragging = false;
         dropping = false;
-        foreach (var card in CardGrid.Children.OfType<LedgerCardView>())
+        gap = null;
+        foreach (var card in views.Values)
             card.ClearValue(UIElement.IsHitTestVisibleProperty);
-        view.ClearValue(Canvas.ZIndexProperty);
-        view.ClearValue(UIElement.OpacityProperty);
-        view.RenderTransform = null;
         view.EndReorder();
-        InsertionLine.Visibility = Visibility.Collapsed;
         CardGrid.ReleasePointerCaptures();
+        Settle();
         return true;
     }
 
+    /// <summary>The settle: every slid card moves back to its place and the lifted one comes down.</summary>
+    private void Settle()
+    {
+        lift?.To(0, LedgerMotion.Drag);
+        foreach (var slide in slides.Values.ToArray())
+            slide.To(0, LedgerMotion.Drag);
+    }
+
+    /// <summary>The vertical offset an element shows over its place.</summary>
+    private Tween Slide(UIElement element)
+    {
+        if (slides.TryGetValue(element, out var slide))
+            return slide;
+        slide = new Tween(y =>
+        {
+            Transform(element).TranslateY = y;
+            if (y == 0)
+                Rest(element);
+        }, 0);
+        slides[element] = slide;
+        return slide;
+    }
+
+    /// <summary>An element back in its place, not dragged and not lifted, returns to the grid's plain layout.</summary>
+    private void Rest(UIElement element)
+    {
+        if (element == dragged || slides.TryGetValue(element, out var slide) && slide.Value != 0 || element == liftedCard && lift?.Value != 0)
+            return;
+        slides.Remove(element);
+        if (element == liftedCard)
+        {
+            lift = null;
+            liftedCard = null;
+        }
+        element.RenderTransform = null;
+        element.ClearValue(UIElement.RenderTransformOriginProperty);
+        element.ClearValue(Canvas.ZIndexProperty);
+    }
+
+    private static CompositeTransform Transform(UIElement element)
+    {
+        if (element.RenderTransform is not CompositeTransform transform)
+            element.RenderTransform = transform = new CompositeTransform();
+        return transform;
+    }
+
+    private double LayoutTop(UIElement element) => LayoutInformation.GetLayoutSlot((FrameworkElement)element).Y;
+
+    private static double LayoutHeight(UIElement element) => LayoutInformation.GetLayoutSlot((FrameworkElement)element).Height;
+
     /// <summary>
-    /// Where a release at this height would put the dragged account, and the gap that shows it; null when the order would
-    /// stay as it is. Only the account cards count, not the history panel between them.
+    /// Where a release at this height would put the dragged account, as its place among the other cards; null when the
+    /// order would stay as it is. Only the account cards count, not the history panel between them, and each card counts
+    /// at its own place in the layout, not where the live gap has slid it.
     /// </summary>
-    private (string? Before, Windows.Foundation.Rect Line)? DropAt(double y)
+    private (string? Before, int Index)? DropAt(double y)
     {
         var cards = CardGrid.Children.OfType<LedgerCardView>().ToList();
         var order = cards.Select(card => card.ViewModel.Account.AccountId).ToList();
         var moved = dragged!.ViewModel.Account.AccountId;
-        var others = cards.Where(card => card != dragged)
-            .Select(card => card.TransformToVisual(DragLayer).TransformBounds(new Windows.Foundation.Rect(0, 0, card.ActualWidth, card.ActualHeight))).ToList();
+        var others = cards.Where(card => card != dragged).Select(card => LayoutInformation.GetLayoutSlot(card)).ToList();
         var index = ReorderMath.InsertionIndex([.. others.Select(bounds => bounds.Y + bounds.Height / 2)], y);
         if (others.Count == 0 || index == order.IndexOf(moved))
             return null;
-        var gap = CardGrid.Spacing / 2;
-        var lineY = index < others.Count ? others[index].Top - gap : others[^1].Bottom + gap;
-        return (ReorderMath.BeforeId(order, moved, index), new Windows.Foundation.Rect(others[0].X, lineY, others[0].Width, 0));
+        return (ReorderMath.BeforeId(order, moved, index), index);
     }
 
     private void FocusCard(string cardId)
@@ -483,7 +574,11 @@ internal sealed partial class LedgerWindow : Window
         var wasVisible = AppWindow.IsVisible;
         AppWindow.Show();
         if (!wasVisible)
+        {
             AiUsage.Composition.ApplicationDiagnostics.Current?.WindowVisibility(false);
+            // The usage bars fill from empty each time the window opens.
+            BarFill.Replay(Root);
+        }
         SetHidden(false);
         if (AppWindow.Presenter is OverlappedPresenter { State: OverlappedPresenterState.Minimized } presenter)
             presenter.Restore();

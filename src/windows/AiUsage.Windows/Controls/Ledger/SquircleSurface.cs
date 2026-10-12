@@ -1,5 +1,8 @@
+using System.Numerics;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.Foundation;
@@ -17,9 +20,14 @@ internal sealed partial class SquircleSurface : Grid
     private const int Samples = 10;
     private readonly Path shape = new() { IsHitTestVisible = false };
     private readonly Canvas layer = new() { IsHitTestVisible = false };
+    /// <summary>Holds the drop shadow's visual behind the shape; created on the first lift.</summary>
+    private readonly Canvas shadowHost = new() { IsHitTestVisible = false };
+    private SpriteVisual? shadowVisual;
+    private DropShadow? shadow;
 
     public SquircleSurface()
     {
+        layer.Children.Add(shadowHost);
         layer.Children.Add(shape);
         Children.Add(layer);
         SetRowSpan(layer, 64);
@@ -36,6 +44,27 @@ internal sealed partial class SquircleSurface : Grid
     public Brush? Fill { get => (Brush?)GetValue(FillProperty); set => SetValue(FillProperty, value); }
     public Brush? Stroke { get => (Brush?)GetValue(StrokeProperty); set => SetValue(StrokeProperty, value); }
     public double StrokeThickness { get => (double)GetValue(StrokeThicknessProperty); set => SetValue(StrokeThicknessProperty, value); }
+
+    /// <summary>A soft shadow in the surface's squircle outline, from 0 (none) to 1 (a lifted card, R-205 variant C).</summary>
+    public void Lift(double amount)
+    {
+        if (shadowVisual is null)
+        {
+            if (amount <= 0)
+                return;
+            var compositor = ElementCompositionPreview.GetElementVisual(this).Compositor;
+            shadow = compositor.CreateDropShadow();
+            shadow.BlurRadius = 18;
+            shadow.Offset = new Vector3(0, 6, 0);
+            shadow.Color = Microsoft.UI.Colors.Black;
+            shadow.Mask = shape.GetAlphaMask();
+            shadowVisual = compositor.CreateSpriteVisual();
+            shadowVisual.Shadow = shadow;
+            ElementCompositionPreview.SetElementChildVisual(shadowHost, shadowVisual);
+        }
+        shadowVisual.Size = new Vector2((float)ActualWidth, (float)ActualHeight);
+        shadow!.Opacity = (float)(0.5 * amount);
+    }
 
     private static void OnShapeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) => ((SquircleSurface)d).Redraw();
 

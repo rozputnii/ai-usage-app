@@ -67,7 +67,7 @@
               </ItemsControl>
             </StackPanel>
 
-            <StackPanel Spacing="4" Margin="0,0,6,0" Visibility="{x:Bind Show(ViewModel.HasCaps), Mode=OneWay}">
+            <StackPanel Spacing="6" Margin="0,0,6,0" Visibility="{x:Bind Show(ViewModel.HasCaps), Mode=OneWay}">
               <TextBlock Text="Caps" Style="{StaticResource LedgerCaptionText}" HorizontalAlignment="Left" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.TextTip(ViewModel.CapsNote)}" />
               <ItemsControl ItemsSource="{x:Bind ViewModel.Caps}" IsEnabled="{x:Bind ViewModel.Owner.CanUseAccounts, Mode=OneWay}" IsTabStop="False">
                 <ItemsControl.ItemsPanel>
