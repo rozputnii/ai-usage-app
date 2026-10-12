@@ -53,6 +53,8 @@ Login maps `account.uuid`/`account.email_address` and `organization.uuid`/`organ
 
 Refresh does not remap organization fields; the generic mapping returns only mapped optional fields and expects callers to merge existing identity. A monitor must preserve its verified account/organization binding explicitly and reject conflicting replacements. The OMP refresh engine also checks cancellation after receiving the token response: do not copy that as proof that cancellation is safe around a rotating grant. Likewise, upstream error helpers can include response excerpts; AI Usage must not echo provider bodies or credential-bearing values.
 
+After a usage 401 the session renews the stored grant once, behind the same durable pre-renewal marker, and reads usage once more (T-NEW). `invalid_grant`, any other failed renewal, a second 401 in that refresh or an identity mismatch leaves the marker set and requires a new sign-in; a refresh that already renewed or just signed in does not renew again.
+
 Authorization creates a grant; refresh can rotate/revoke its previous token. Those are side effects even when quota retrieval is read-only. Requesting `org:create_api_key` does not mean this monitor should create an API key. No inference, file/session/MCP mutation, key creation, organization creation, billing change or quota purchase is included in this scope. No supported device flow was established for this monitor.
 
 ## Quota method: undocumented OAuth API

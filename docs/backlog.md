@@ -220,6 +220,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-061 | Redundant work on unchanged state | done | G-003 | docs/specs/T-061-unchanged-state-work/verification.md |
 | T-062 | Tray icon lifetime and lost repeated-failure counts | done | G-003 | docs/specs/T-062-native-lifetime-lost-diagnostics/verification.md |
 | T-063 | Peak hours hint | done | G-003 | docs/specs/T-063-peak-hours-hint/verification.md |
+| T-NEW | Renew once after a usage 401 | done | G-003 | docs/specs/T-NEW-usage-401-renewal/verification.md |
 
 ## Pending owner checks
 
@@ -242,6 +243,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-061 | The tray colour follows a card change at once, the tray miniature shows current rows when opened, history stays open across a refresh, and a cap edit opened in Settings survives the next refresh | 2026-10-10 |
 | T-062 | After Explorer restarts, the tray icon still shows the current colour; the logs show at most hourly TrayFailure summaries, each with its incidentId | 2026-10-10 |
 | T-063 | During weekday peak hours the title row and the tray header show the Peak pill with its end time and tooltip, and it disappears after the window | 2026-10-10 |
+| T-NEW | When a provider rejects a usage request but the stored sign-in still renews, the account keeps refreshing without a new sign-in; a refused sign-in shows "Sign-in expired" with the Sign-in action at once | 2026-10-12 |
 
 ## Deferred clarifications, not forgotten
 
@@ -271,5 +273,5 @@ Sources: the T-001 independent review of frozen commit `9afa9d5` ([outcome](spec
 | CR-T-003-02 | Superseded by R-177: provider-issued context is recorded, not locally refused. Remaining scope is opaque non-JWT refresh responses that carry no usable identity claims, and adding a region header only if a real provider rejection proves it necessary. | Region comes only from the presented token and is never inherited. Workspace mismatch between tokens or across refresh still fails closed. |
 | CR-T-004-01 | Make window close hide to tray per R-108, with Exit as the only path that stops the Host. | Resolved 2026-09-14: close hides, tray activation restores the same window, Minimize remains normal, and explicit Exit terminates. All five UI scenarios passed in a fresh guest; see [verification](specs/T-004-codex-dashboard/close-to-tray-verification.md). |
 | CR-T-002-01 | Capture routing scenario screenshots after the navigated route repaints, as the product smoke already does with its settling interval. | Routing acceptance rests on the UIA-observed `Main` to `Second` to `Main` sequence and a clean exit; `back.png` in the retained run shows the pre-repaint Second frame. Main and Second screenshots are correct. |
-| CR-T-003-03 | Refine usage-401 versus terminal-refresh handling and surface immediate reauthentication guidance in console/UI. | Current memory-only slice conservatively invalidates the session after usage 401; refresh-auth then requires a new login, even when the old refresh grant might still work. No automatic auth retry or grant replay occurs. |
+| CR-T-003-03 | Resolved by T-NEW: after a usage 401 the Codex, Claude and Antigravity sessions renew the stored grant once and read usage once more; a refused renewal shows the existing "Sign-in expired" state. Retired for Copilot, which has no refresh grant. | [Verification](specs/T-NEW-usage-401-renewal/verification.md). The memory-only Codex console still never retries authentication by itself; it now reports a usage rejection at once. |
 | WR-T-061-M1 | Merge branch `t061-tray-failure-recovery` (whole-run review M1 of the T-059 to T-062 sweep: end a tray failure streak when the tone returns to the shown one) after the launch smoke C8 passes on it. | The fix is reviewed and passes C7, C4 and C5; C8 was BLOCKED on 2026-10-10 by the owner's open installed-app window. Until it merges, a tray failure whose tone returns unchanged keeps its streak open until the app stops; the hourly summary still reports its count. [Verification](specs/T-061-unchanged-state-work/verification.md#follow-up-fix). |
