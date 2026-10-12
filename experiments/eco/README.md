@@ -22,6 +22,11 @@ first if the estimate is unclear (propose it; it is S3 work). Gate: one weekly p
 holds about $18 ([S2 calibration](results/S2.md#summary)); start only when the remaining weekly
 limit covers the estimate plus 10%. Run in batches that fit the current window.
 
+Account switch (owner decision 2026-10-12): S3 and later run on account `main` (Max x5, $100) on the
+same PC; S1 and S2 ran on `second` ($20). Limits are taken as five times `second`'s until
+measured: one weekly percent about $11, a five-hour window about $90. Recalibrate from the first
+S3 batch, and compare runs only within one account.
+
 ## Layout
 
 - [plan.md](plan.md): goals, hypotheses, arms, stages, metrics, decision rules, safety.
