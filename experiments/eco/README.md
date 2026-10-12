@@ -16,12 +16,10 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 
 ## Next action
 
-S3 (replays RP1-RP3 x arms A-D, then freeze arm E) needs the owner's go. Before asking, read
-[results/S2.md](results/S2.md#summary) (its decisions feed arm E) and estimate S3 from data: the
-S1 RP3 runs cost $0.60-0.65, so the plan's $180 may be far too high; run one replay per arm
-first if the estimate is unclear (propose it; it is S3 work). Gate: one weekly percent is about $2.2 and a five-hour window
-holds about $18 ([S2 calibration](results/S2.md#summary)); start only when the remaining weekly
-limit covers the estimate plus 10%. Run in batches that fit the current window.
+S3 is running (owner's go 2026-10-12): finish the first runs (batch 2: RP1 B, RP3 D, RP2 A-D), judge
+B, C and D against A per replay with `Start-Judge.ps1 -Brief ..\tasks\replays.md#rpN -DefectKey
+..\tasks\replays.md#rpN`, run the held-out tests in a copy of each clone, repeat the two cheapest
+arms on RP3, then freeze arm E. State and plan in [results/S3.md](results/S3.md).
 
 Account switch (owner decision 2026-10-12): S3 and later run on account `main` (Max x5, $100) on the
 same PC; S1 and S2 ran on `second` ($20). Measured on `main` over S3 batch 1
