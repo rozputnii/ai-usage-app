@@ -209,6 +209,79 @@ public sealed class ClaudeSessionTests : IDisposable
         Assert.Equal(2, server.Calls);
     }
 
+    [Theory]
+    [InlineData("renewed")]
+    [InlineData("terminal")]
+    [InlineData("mismatch")]
+    public async Task AUsageRejectionRenewsTheStoredGrantOnceBeforeAskingForSignIn(string renewal)
+    {
+        var store = new ClaudeStateStore(directory);
+        await SeedAsync(store);
+        var sent = new List<string>();
+        var quotaReads = 0;
+        var reject = false;
+        using var server = new CodexTestServer(async (request, token) =>
+        {
+            if (request.Method == HttpMethod.Get)
+            {
+                quotaReads++;
+                if (reject)
+                {
+                    reject = false;
+                    return CodexTestServer.Json("{}", HttpStatusCode.Unauthorized);
+                }
+                return CodexTestServer.Json(Usage);
+            }
+            sent.Add(JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token)).RootElement.GetProperty("refresh_token").GetString()!);
+            var rotated = ClaudeAuthClientTests.Tokens().Replace("synthetic-refresh", "synthetic-rotated-" + sent.Count, StringComparison.Ordinal);
+            return sent.Count == 1 || renewal == "renewed" ? CodexTestServer.Json(rotated)
+                : renewal == "terminal" ? CodexTestServer.Json("{\"error\":{\"type\":\"invalid_grant\"}}", HttpStatusCode.BadRequest)
+                : CodexTestServer.Json(ClaudeAuthClientTests.Tokens(organization: "other-organization"));
+        });
+        using var http = new HttpClient(server);
+        using (var session = Session(http, store))
+        {
+            await session.ResumeAsync(TestContext.Current.CancellationToken);
+            reject = true;
+            var state = await session.RefreshAsync(TestContext.Current.CancellationToken);
+
+            Assert.Equal(["synthetic-refresh", "synthetic-rotated-1"], sent);
+            Assert.Equal(renewal == "renewed" ? 3 : 2, quotaReads);
+            Assert.Equal(renewal == "renewed" ? ProviderSessionStatus.QuotaAvailable : ProviderSessionStatus.ReauthenticationRequired, state.Status);
+            Assert.Equal(renewal switch { "renewed" => null, "terminal" => ProviderFailureKind.AuthenticationRequired, _ => (ProviderFailureKind?)ProviderFailureKind.AccountMismatch }, state.Failure);
+        }
+        await using (var lease = await store.AcquireAsync(TestContext.Current.CancellationToken))
+        {
+            var saved = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
+            Assert.Equal(renewal != "renewed", saved.NeedsReauthentication);
+            Assert.Equal("synthetic-organization", saved.Identity.OrganizationId);
+            Assert.Equal(renewal == "renewed" ? "synthetic-rotated-2" : "synthetic-rotated-1", saved.RefreshToken);
+        }
+        // A refused grant stays refused across a restart, without another provider request.
+        var calls = server.Calls;
+        using var restarted = Session(http, store);
+        Assert.Equal(renewal == "renewed" ? ProviderSessionStatus.QuotaAvailable : ProviderSessionStatus.ReauthenticationRequired,
+            (await restarted.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(renewal == "renewed" ? calls + 2 : calls, server.Calls);
+    }
+
+    [Fact]
+    public async Task AUsageRejectionAfterARenewalInTheSameRefreshDoesNotRenewAgain()
+    {
+        var store = new ClaudeStateStore(directory);
+        await SeedAsync(store);
+        using var server = new CodexTestServer((request, _) => Task.FromResult(request.Method == HttpMethod.Post
+            ? CodexTestServer.Json(ClaudeAuthClientTests.Tokens()) : CodexTestServer.Json("{}", HttpStatusCode.Unauthorized)));
+        using var http = new HttpClient(server);
+        using var session = Session(http, store);
+
+        var state = await session.ResumeAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, state.Failure);
+        Assert.Equal(2, server.Calls);
+    }
+
     [Fact]
     public async Task FailedDeletionKeepsARecoverableConnectedState()
     {

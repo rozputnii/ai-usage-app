@@ -119,7 +119,7 @@ public sealed class AntigravitySessionTests : IDisposable
     }
 
     [Fact]
-    public async Task UnauthorizedQuotaRequiresReconnectWithoutAnotherProviderRequest()
+    public async Task AnUnauthorizedRenewedQuotaRequiresReconnectWithoutAnotherProviderRequest()
     {
         using var server = new CodexTestServer((request, _) => Task.FromResult(Respond(request)));
         using var http = new HttpClient(server);
@@ -132,6 +132,88 @@ public sealed class AntigravitySessionTests : IDisposable
         var calls = server.Calls;
         Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, (await session.RefreshAsync(TestContext.Current.CancellationToken)).Status);
         Assert.Equal(calls, server.Calls);
+    }
+
+    [Theory]
+    [InlineData("renewed")]
+    [InlineData("terminal")]
+    [InlineData("mismatch")]
+    public async Task AUsageRejectionRenewsTheStoredGrantOnceBeforeAskingForSignIn(string renewal)
+    {
+        var sent = new List<string>();
+        var quotaReads = 0;
+        var reject = false;
+        var renewing = false;
+        using var server = new CodexTestServer(async (request, token) =>
+        {
+            var path = request.RequestUri!.AbsolutePath;
+            if (path == "/v1internal:retrieveUserQuotaSummary")
+            {
+                quotaReads++;
+                if (reject)
+                {
+                    reject = false;
+                    return CodexTestServer.Json("{}", HttpStatusCode.Unauthorized);
+                }
+            }
+            if (path == "/token" && renewing)
+            {
+                sent.Add(HttpUtility.ParseQueryString(await request.Content!.ReadAsStringAsync(token))["refresh_token"]!);
+                if (renewal == "terminal")
+                    return CodexTestServer.Json("{\"error\":\"invalid_grant\"}", HttpStatusCode.BadRequest);
+                if (renewal == "mismatch")
+                    identity = "999";
+            }
+            return Respond(request);
+        });
+        using var http = new HttpClient(server);
+        using (var session = Session(http))
+        {
+            await session.ConnectAsync(Redirect, TestContext.Current.CancellationToken);
+            reject = true;
+            renewing = true;
+            var state = await session.RefreshAsync(TestContext.Current.CancellationToken);
+
+            Assert.Equal(["synthetic-refresh"], sent);
+            Assert.Equal(renewal == "renewed" ? 3 : 2, quotaReads);
+            Assert.Equal(renewal == "renewed" ? ProviderSessionStatus.QuotaAvailable : ProviderSessionStatus.ReauthenticationRequired, state.Status);
+            Assert.Equal(renewal switch { "renewed" => null, "terminal" => ProviderFailureKind.AuthenticationRequired, _ => (ProviderFailureKind?)ProviderFailureKind.AccountMismatch }, state.Failure);
+        }
+        await using (var lease = await new AntigravityStateStore(directory).AcquireAsync(TestContext.Current.CancellationToken))
+        {
+            var stored = (await lease.LoadAsync(TestContext.Current.CancellationToken))!;
+            Assert.Equal(renewal != "renewed", stored.NeedsReauthentication);
+            Assert.Equal("104729", stored.AccountId);
+        }
+        // A refused grant is not replayed by a later refresh or a restart.
+        var calls = server.Calls;
+        using var restarted = Session(http);
+        Assert.Equal(renewal == "renewed" ? ProviderSessionStatus.QuotaAvailable : ProviderSessionStatus.ReauthenticationRequired,
+            (await restarted.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(renewal == "renewed" ? calls + 3 : calls, server.Calls);
+    }
+
+    [Fact]
+    public async Task AUsageRejectionAfterARenewalInTheSameRefreshDoesNotRenewAgain()
+    {
+        var renewals = 0;
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (request.RequestUri!.AbsolutePath == "/token")
+                renewals++;
+            return Task.FromResult(Respond(request));
+        });
+        using var http = new HttpClient(server);
+        using (var initial = Session(http))
+            await initial.ConnectAsync(Redirect, TestContext.Current.CancellationToken);
+        summaryStatus = HttpStatusCode.Unauthorized;
+        using var resumed = Session(http);
+
+        var state = await resumed.ResumeAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, state.Failure);
+        Assert.Equal(2, renewals); // The sign-in exchange and the one renewal of this refresh.
     }
 
     [Fact]

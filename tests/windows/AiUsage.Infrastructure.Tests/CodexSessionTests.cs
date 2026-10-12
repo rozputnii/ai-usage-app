@@ -469,6 +469,85 @@ public sealed class CodexSessionTests : IDisposable
         Assert.Equal(calls, server.Calls);
     }
 
+    [Theory]
+    [InlineData("renewed")]
+    [InlineData("terminal")]
+    [InlineData("mismatch")]
+    public async Task AUsageRejectionRenewsTheStoredGrantOnceBeforeAskingForSignIn(string renewal)
+    {
+        var sent = new List<string>();
+        var quotaReads = 0;
+        var reject = false;
+        using var server = new CodexTestServer(async (request, token) =>
+        {
+            if (request.Method == HttpMethod.Get)
+            {
+                quotaReads++;
+                if (reject)
+                {
+                    reject = false;
+                    return CodexTestServer.Json("{}", HttpStatusCode.Unauthorized);
+                }
+                return CodexTestServer.Json("""{"plan_type":"synthetic"}""");
+            }
+            sent.Add(System.Text.Json.JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token)).RootElement.GetProperty("refresh_token").GetString()!);
+            return sent.Count == 1 || renewal == "renewed" ? CodexTestServer.Json(CodexTestServer.Tokens(refresh: "synthetic-rotated-" + sent.Count))
+                : renewal == "terminal" ? CodexTestServer.Json("""{"error":"invalid_grant"}""", HttpStatusCode.BadRequest)
+                : CodexTestServer.Json(CodexTestServer.Tokens(account: "other-workspace"));
+        });
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-stored"));
+        await session.ResumeAsync(TestContext.Current.CancellationToken);
+
+        reject = true;
+        var state = await session.RefreshAsync(TestContext.Current.CancellationToken);
+
+        // One renewal with the stored successor grant, never the consumed predecessor.
+        Assert.Equal(["synthetic-stored", "synthetic-rotated-1"], sent);
+        switch (renewal)
+        {
+            case "renewed":
+                Assert.Equal(ProviderSessionStatus.QuotaAvailable, state.Status);
+                Assert.Null(state.Failure);
+                Assert.Equal(3, quotaReads);
+                Assert.Equal("synthetic-rotated-2", store.Read()!.RefreshToken);
+                break;
+            case "terminal":
+                Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
+                Assert.Equal(ProviderFailureKind.AuthenticationRequired, state.Failure);
+                Assert.Equal(2, quotaReads);
+                break;
+            default:
+                Assert.Equal(ProviderSessionStatus.RecoveryRequired, state.Status);
+                Assert.Equal(2, quotaReads);
+                break;
+        }
+    }
+
+    [Fact]
+    public async Task AUsageRejectionAfterARenewalInTheSameRefreshDoesNotRenewAgain()
+    {
+        var renewals = 0;
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (request.Method != HttpMethod.Get)
+                renewals++;
+            return Task.FromResult(request.Method == HttpMethod.Get
+                ? CodexTestServer.Json("{}", HttpStatusCode.Unauthorized)
+                : CodexTestServer.Json(CodexTestServer.Tokens()));
+        });
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-stored"));
+
+        var state = await session.ResumeAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, state.Failure);
+        Assert.Equal(1, renewals);
+        Assert.Equal(2, server.Calls);
+        Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
+    }
+
     private CodexSession Session(CodexTestServer server, out CodexGrantStore store)
     {
         var http = new HttpClient(server);

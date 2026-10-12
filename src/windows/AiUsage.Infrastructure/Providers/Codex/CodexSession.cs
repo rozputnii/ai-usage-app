@@ -64,19 +64,23 @@ public sealed class CodexSession : IProviderSession, IDisposable
             var signedIn = await auth.CompleteBrowserLoginAsync(authorization, token).ConfigureAwait(false);
             Adopt(signedIn);
             await PersistAsync(lease).ConfigureAwait(false);
-            return await ReadQuotaAsync(token).ConfigureAwait(false);
+            return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
         }, cancellationToken, forFreshAuthorization: true);
     }
 
-    /// <summary>Reads quota again, refreshing the grant first when the access token has expired.</summary>
+    /// <summary>
+    /// Reads quota again, refreshing the grant first when the access token has expired, or once
+    /// after the provider rejects a live access token.
+    /// </summary>
     public Task<ProviderSessionState> RefreshAsync(CancellationToken cancellationToken = default) =>
         RunAsync(async (lease, token) =>
         {
             if (credentials is null)
                 return await ResumeCoreAsync(lease, token).ConfigureAwait(false);
-            if (credentials.ExpiresAt <= DateTimeOffset.UtcNow)
+            var expired = credentials.ExpiresAt <= DateTimeOffset.UtcNow;
+            if (expired)
                 await RenewAsync(lease, token).ConfigureAwait(false);
-            return await ReadQuotaAsync(token).ConfigureAwait(false);
+            return await ReadQuotaAsync(lease, renewed: expired, token).ConfigureAwait(false);
         }, cancellationToken);
 
     /// <summary>
@@ -104,7 +108,7 @@ public sealed class CodexSession : IProviderSession, IDisposable
         credentials?.Dispose();
         credentials = null;
         await RenewAsync(lease, token).ConfigureAwait(false);
-        return await ReadQuotaAsync(token).ConfigureAwait(false);
+        return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
     }
 
     private async Task RenewAsync(ProviderStateLease<CodexGrantStore.StoredRecord> lease, CancellationToken token)
@@ -141,13 +145,22 @@ public sealed class CodexSession : IProviderSession, IDisposable
         await PersistAsync(lease).ConfigureAwait(false);
     }
 
-    private async Task<ProviderSessionState> ReadQuotaAsync(CancellationToken token)
+    private async Task<ProviderSessionState> ReadQuotaAsync(ProviderStateLease<CodexGrantStore.StoredRecord> lease, bool renewed, CancellationToken token)
     {
         try
         {
             var snapshot = await quota.GetQuotaAsync(credentials!, token).ConfigureAwait(false);
             await cache.WriteAsync(new CachedQuota(snapshot, snapshot.FetchedAt), token).ConfigureAwait(false);
             return new ProviderSessionState(ProviderSessionStatus.QuotaAvailable, snapshot, RetrievedAt: snapshot.FetchedAt);
+        }
+        catch (CodexException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired && !renewed)
+        {
+            // A rejected access token does not prove the stored grant is refused: renew it once from
+            // storage and read once more. A second rejection or a refused renewal needs a new sign-in.
+            credentials?.Dispose();
+            credentials = null;
+            await RenewAsync(lease, token).ConfigureAwait(false);
+            return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
         }
         catch (CodexException error) when (error.Kind != ProviderFailureKind.AuthenticationRequired)
         {

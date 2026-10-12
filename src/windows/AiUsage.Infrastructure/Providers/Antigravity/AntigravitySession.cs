@@ -45,20 +45,35 @@ public sealed class AntigravitySession : IProviderSession, IDisposable
             return ProviderSessionState.NotConnected;
         if (stored.NeedsReauthentication)
             return Cached(ProviderFailureKind.AuthenticationRequired);
-        if (credentials is null || credentials.AccountId != stored.AccountId ||
-            credentials.ProjectId != stored.ProjectId || credentials.RefreshAt <= clock.GetUtcNow())
-        {
-            token.ThrowIfCancellationRequested();
-            // Renewal revalidates the account binding through userinfo before the grant is adopted.
-            var renewed = await auth.RefreshAsync(stored.RefreshToken, stored.AccountId, token).ConfigureAwait(false);
-            // Google normally returns no replacement refresh token. A returned one must be durable
-            // before it is used, because the previous value may already have been invalidated.
-            if (renewed.RefreshToken != stored.RefreshToken)
-                stored = await lease.SaveAsync(stored with { RefreshToken = renewed.RefreshToken }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
-            credentials = new(renewed.AccessToken, renewed.RefreshToken, renewed.AccountId, stored.ProjectId, stored.Tier, renewed.RefreshAt);
-        }
-        return await ReadQuotaAsync(lease, token).ConfigureAwait(false);
+        var renew = credentials is null || credentials.AccountId != stored.AccountId ||
+            credentials.ProjectId != stored.ProjectId || credentials.RefreshAt <= clock.GetUtcNow();
+        if (renew)
+            await RenewAsync(lease, token).ConfigureAwait(false);
+        return await ReadQuotaAsync(lease, renewed: renew, token).ConfigureAwait(false);
     }, cancellationToken);
+
+    private async Task RenewAsync(ProviderStateLease<AntigravityStoredState> lease, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        AntigravityGrant renewed;
+        try
+        {
+            // Renewal revalidates the account binding through userinfo before the grant is adopted.
+            renewed = await auth.RefreshAsync(stored!.RefreshToken, stored.AccountId, token).ConfigureAwait(false);
+        }
+        catch (ProviderException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
+        {
+            // A refused grant or another account needs a new sign-in; it is never sent again.
+            credentials = null;
+            stored = await lease.SaveAsync(stored! with { NeedsReauthentication = true }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
+            throw;
+        }
+        // Google normally returns no replacement refresh token. A returned one must be durable
+        // before it is used, because the previous value may already have been invalidated.
+        if (renewed.RefreshToken != stored.RefreshToken)
+            stored = await lease.SaveAsync(stored with { RefreshToken = renewed.RefreshToken }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
+        credentials = new(renewed.AccessToken, renewed.RefreshToken, renewed.AccountId, stored.ProjectId, stored.Tier, renewed.RefreshAt);
+    }
 
     public Task<ProviderSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default) =>
         RunAsync(async (lease, token) =>
@@ -87,7 +102,7 @@ public sealed class AntigravitySession : IProviderSession, IDisposable
             stored = await lease.SaveAsync(Record(connected, null), null, CancellationToken.None).ConfigureAwait(false);
             credentials = connected;
             HasStoredGrant = true;
-            return await ReadQuotaAsync(lease, token).ConfigureAwait(false);
+            return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
         }, cancellationToken);
 
     public Task<ProviderSessionState> DisconnectAsync(CancellationToken cancellationToken = default) => RunAsync(async (lease, token) =>
@@ -105,7 +120,7 @@ public sealed class AntigravitySession : IProviderSession, IDisposable
         Tier = next.Tier, CachedQuota = reading
     };
 
-    private async Task<ProviderSessionState> ReadQuotaAsync(ProviderStateLease<AntigravityStoredState> lease, CancellationToken token)
+    private async Task<ProviderSessionState> ReadQuotaAsync(ProviderStateLease<AntigravityStoredState> lease, bool renewed, CancellationToken token)
     {
         try
         {
@@ -113,6 +128,14 @@ public sealed class AntigravitySession : IProviderSession, IDisposable
             token.ThrowIfCancellationRequested();
             stored = await lease.SaveAsync(stored! with { CachedQuota = reading }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
             return Available(reading);
+        }
+        catch (ProviderException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired && !renewed)
+        {
+            // A rejected access token does not prove the stored grant is refused: renew it once and
+            // read once more. A second rejection or a refused renewal needs a new sign-in.
+            credentials = null;
+            await RenewAsync(lease, token).ConfigureAwait(false);
+            return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
         }
         catch (ProviderException error) when (error.Kind is ProviderFailureKind.AuthenticationRequired or ProviderFailureKind.AccountMismatch)
         {

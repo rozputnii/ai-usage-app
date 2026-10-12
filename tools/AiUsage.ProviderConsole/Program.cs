@@ -78,6 +78,13 @@ internal static class Program
             await ShowQuotaAsync(quota, credentials, cancellation.Token);
             while (!cancellation.IsCancellationRequested)
             {
+                // A usage rejection makes this in-memory session unusable; say so at once rather than
+                // after the next refresh-auth attempt.
+                if (credentials.RequiresReauthentication)
+                {
+                    Console.WriteLine("A new login is required; this session will not replay its refresh token.");
+                    return 3;
+                }
                 Console.Write("usage | refresh-auth | exit > ");
                 var command = Console.ReadLine();
                 if (command is null || command.Equals("exit", StringComparison.OrdinalIgnoreCase))

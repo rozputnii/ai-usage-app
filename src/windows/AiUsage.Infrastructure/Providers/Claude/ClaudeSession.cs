@@ -44,17 +44,10 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
             return ProviderSessionState.NotConnected;
         if (stored.NeedsReauthentication)
             return Cached(ProviderFailureKind.AuthenticationRequired);
-        if (credentials is null || credentials.Identity != stored.Identity || credentials.RefreshAt <= clock.GetUtcNow())
-        {
-            token.ThrowIfCancellationRequested();
-            var previous = credentials ?? new ClaudeCredentials("", stored.RefreshToken, stored.Identity, DateTimeOffset.MinValue);
-            // This durable marker prevents replay after a crash, cancellation or ambiguous response.
-            stored = await lease.SaveAsync(stored with { NeedsReauthentication = true }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
-            credentials = null;
-            var renewed = await auth.RefreshAsync(previous, token).ConfigureAwait(false);
-            await PromoteAsync(lease, renewed).ConfigureAwait(false);
-        }
-        return await ReadQuotaAsync(lease, token).ConfigureAwait(false);
+        var renew = credentials is null || credentials.Identity != stored.Identity || credentials.RefreshAt <= clock.GetUtcNow();
+        if (renew)
+            await RenewAsync(lease, token).ConfigureAwait(false);
+        return await ReadQuotaAsync(lease, renewed: renew, token).ConfigureAwait(false);
     }, cancellationToken);
 
     public Task<ProviderSessionState> ConnectAsync(Action<Uri> openAuthorizationUrl, CancellationToken cancellationToken = default) => RunAsync(async (lease, token) =>
@@ -84,7 +77,7 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
                     RetrievedAt: initialQuota.Quota.FetchedAt, ExtraUsage: initialQuota.ExtraUsage);
             }
             await PromoteAsync(lease, connected).ConfigureAwait(false);
-            return await ReadQuotaAsync(lease, token).ConfigureAwait(false);
+            return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
         }
         finally { Volatile.Write(ref authorization, null); }
     }, cancellationToken);
@@ -100,6 +93,17 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
         return ProviderSessionState.NotConnected;
     }, cancellationToken, load: false);
 
+    private async Task RenewAsync(ProviderStateLease<ClaudeStoredState> lease, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var previous = credentials ?? new ClaudeCredentials("", stored!.RefreshToken, stored.Identity, DateTimeOffset.MinValue);
+        // This durable marker prevents replay after a crash, cancellation or ambiguous response.
+        stored = await lease.SaveAsync(stored! with { NeedsReauthentication = true }, stored.Revision, CancellationToken.None).ConfigureAwait(false);
+        credentials = null;
+        var renewed = await auth.RefreshAsync(previous, token).ConfigureAwait(false);
+        await PromoteAsync(lease, renewed).ConfigureAwait(false);
+    }
+
     private async Task PromoteAsync(ProviderStateLease<ClaudeStoredState> lease, ClaudeCredentials next)
     {
         var record = new ClaudeStoredState
@@ -114,7 +118,7 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
         HasStoredGrant = true;
     }
 
-    private async Task<ProviderSessionState> ReadQuotaAsync(ProviderStateLease<ClaudeStoredState> lease, CancellationToken token)
+    private async Task<ProviderSessionState> ReadQuotaAsync(ProviderStateLease<ClaudeStoredState> lease, bool renewed, CancellationToken token)
     {
         try
         {
@@ -122,6 +126,14 @@ public sealed class ClaudeSession : IProviderSession, IDisposable
             token.ThrowIfCancellationRequested();
             stored = await lease.SaveAsync(stored! with { CachedQuota = reading }, stored!.Revision, CancellationToken.None).ConfigureAwait(false);
             return new(ProviderSessionStatus.QuotaAvailable, reading.Quota, RetrievedAt: reading.Quota.FetchedAt, ExtraUsage: reading.ExtraUsage);
+        }
+        catch (ProviderException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired && !renewed)
+        {
+            // A rejected access token does not prove the stored grant is refused: renew it once and
+            // read once more. A second rejection or a refused renewal needs a new sign-in.
+            credentials = null;
+            await RenewAsync(lease, token).ConfigureAwait(false);
+            return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
         }
         catch (ProviderException error) when (error.Kind == ProviderFailureKind.AuthenticationRequired)
         {
