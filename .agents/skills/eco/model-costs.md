@@ -1,6 +1,6 @@
 # Model costs
 
-Evidence for the eco role map (decision R-222).
+Evidence for the eco roles (decisions R-222, R-NEW).
 
 - checked_at: 2026-10-10
 - sources: [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing),
@@ -47,14 +47,15 @@ per Index task. They come from a general test mix, not this repository's workloa
 - Haiku 5.5 at max beats Sonnet 5.5 at low and medium on both scores for less money, and
   Haiku at xhigh roughly ties Sonnet at medium for a quarter of the cost, so Sonnet below high
   is never the pick. Anthropic positions Haiku for subagents and summaries, not complex agentic
-  coding, so the map uses it for exploration and check runs.
+  coding, so the roles use it for exploration and check runs.
 - Opus 5.5 at medium costs about 2.8 times Sonnet 5.5 at medium per task, but comes within a
   point of Sonnet at xhigh on the Index (51 against 52) for two thirds of the cost, though
   lower on TB4. It is the default for reviews and for diagnosis.
 - Sonnet 5.5 at high is the cheapest step near that level; in this repository it matched Opus
   at medium on implementation briefs (below), so it is the default implementer.
-- Opus 5.5 at high stays the gate for reviews in security-lifecycle areas; on other T3 changes
-  it found no more than Opus at medium here.
+- Opus 5.5 at high stays the gate for reviews in security-lifecycle areas, as a precaution
+  that was not measured; on the one T3 change measured here (agent configuration) it found no
+  more than Opus at medium.
 
 ## Measured in this repository
 
@@ -64,10 +65,10 @@ are API-price equivalents from the transcripts; n is small, so they are directio
 
 | Question | Result |
 | --- | --- |
-| Review model, four seeded changes, two repeats | Sonnet high found 7.5 of 12 Important defects, Opus medium 11 of 12; Opus high found 2 of 4 on the T3 change in both repeats, Opus medium 3-4 |
+| Review model, three seeded changes (plus a clean control once), two repeats | Sonnet high found 7.5 of 12 Important defects, Opus medium 11 of 12; Opus high found 2 of 4 on the T3 change in both repeats, Opus medium 3-4 |
 | Implementation model, two small briefs, two repeats | Sonnet high matched Opus medium (held-out tests, fixes) at 40-55% of the cost; Haiku xhigh matched both on the fully specified brief at under 10% |
 | Check runs | A Haiku runner was 23% cheaper than the primary running quiet checks itself |
 | Exploration | A lean read-only scout (three tools, no CLAUDE.md) started at 4k tokens against 18.6k for `Explore`, 23% cheaper at equal accuracy; Haiku located members and values, only Sonnet explained a cause; the LSP tool was never called |
-| Delegating implementation (old eco, Opus high primary) against a lean primary working alone (Opus medium) | 93% against 50-61% of the normal mode's cost |
+| Delegating implementation (old eco, Opus high primary) against a lean primary working alone (Opus medium), two replays | 93% and 66% against 50-51% and 61% of the normal mode's cost; directional, confounded with the primary's effort |
 | Eco v2 candidate on four real tasks, against the normal mode | median 54% of the cost; no Important finding or false PASS in either mode; the normal mode was judged better in 3 of 4 pairs, each time on Minor missed details: a sibling or caller path not covered, exact values of the brief not met, an implied record missing |
 | Where the cost went | the primary was 68-85% of a task; about 60% of the saving came from the primary at medium effort, 40% from one review at Opus medium with `/code-review` run once |

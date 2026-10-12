@@ -16,9 +16,9 @@ owner's setting; this skill cannot change it.
 ## What costs
 
 - Every call re-sends the whole context. Cached reads are about 60% of spend, so cost is
-  roughly context size times the number of calls. The primary is 70-85% of a task's cost.
-- A subagent starts cold: about 4-8k tokens as `aiu-scout` or `aiu-runner`, 20-55k as
-  `general-purpose` or `Explore`, plus the brief and the report. Delegation pays only when it
+  roughly context size times the number of calls. The primary is 68-85% of a task's cost.
+- A subagent starts cold: about 4-8k tokens as `aiu-scout` or `aiu-runner`, 18-55k as
+  `Explore` or `general-purpose`, plus the brief and the report. Delegation pays only when it
   keeps much more than that out of your context, runs on a much cheaper model, or runs in
   parallel.
 - Rework and a missed detail are the most expensive outcomes. A too-weak model on a write or a
@@ -26,15 +26,17 @@ owner's setting; this skill cannot change it.
 
 ## Primary: lean, mostly alone
 
-- Do the work yourself unless a role below pays. Delegating implementation to an opus worker
-  cost about as much as the normal mode; a lean primary doing it cost half.
+- Do the work yourself unless a role below pays. Measured directionally (confounded with the
+  primary's effort): delegating implementation to an opus worker saved little against the
+  normal mode; a lean primary doing it cost about half.
 - Put independent tool calls in one message; fewer calls is the main saving.
 - Read only what the task needs: grep with line numbers, read ranges, never re-read a file you
   hold. For rules, read the skill for the area and the named sections of CONTRIBUTING.md or
   verification.md, found with grep.
 - Keep command output quiet: full output to a log, then the exit code and the first error
-  lines. In the inner loop run one test class; run the full suites once, in the background,
-  and wait for the completion notice.
+  lines. In the inner loop run one test class; run the full suites in the background, not in
+  the inner loop, and wait for the completion notice. The merge gate's run on the merged tree
+  still applies.
 - Keep plans, briefs and replies short. Think hard at decision points, not on routine steps.
 - One task per session; start a fresh session for the next task.
 
@@ -46,6 +48,8 @@ lost. Right after the plan line, write a short ledger, one line per item:
 - every exact value, name or path that the brief, the spec or an owner pick states (durations,
   sizes, strings, file and folder names);
 - every stated behavior, including what must stay unchanged;
+- every item of a set that the brief or the rules enumerate (upstream commits, findings,
+  rows), each present in its record;
 - every record the rules imply: the spec and verification record, a "Pending owner checks" row
   for each owner check left NOT_RUN, a decision, the "Amended by" line on every decision the
   change alters (docs/workflow/formats.md, Decisions), and guidance elsewhere that the change
@@ -65,16 +69,17 @@ applicable" verdict names its paths.
 
 ## Roles
 
-Delegate only to these agents, never to `general-purpose` or `Explore`: they inherit every tool
-and the full instructions. Pass the model and effort on a call when they differ from the
-agent's default.
+Delegate only to these agents, not to `general-purpose` or `Explore` directly: those start at
+18-55k tokens against 4-8k. When one of these agents is not loaded, use a general-purpose agent
+given its contract, as CLAUDE.md says. Pass the model and effort on a call when they differ
+from the agent's default (Claude Code aliases; another agent uses its nearest equivalents).
 
 | Work | Agent | Model, effort |
 | --- | --- | --- |
 | Locate code or answer "where and what" across many files, when much work remains | `aiu-scout` | haiku, high (default); sonnet, high when it must explain why |
 | Full check runs (restore, build, suites, validator, diff check, smokes) | `aiu-runner` | haiku, medium (default) |
 | A large, separable implementation with a clear brief | `aiu-implementer` | sonnet, high; haiku, xhigh for a small, fully specified mechanical brief; opus, medium to diagnose an unexplained failure |
-| Every review the tier requires (per-task, whole-feature, T3 focused) | `aiu-reviewer` | opus, medium, T3 included; opus, high when the diff touches a security-lifecycle area |
+| Every fresh-context review the tier requires (per-task, whole-feature, T3 focused; a T0 diff stays the primary's review) | `aiu-reviewer` | opus, medium, T3 included; opus, high when the diff touches a security-lifecycle area (a precaution, not measured) |
 
 Outside a parallel run, the implementer works in the task's worktree on the task branch and
 stops after its report (implementer contract, step 4). The primary then runs the review,
