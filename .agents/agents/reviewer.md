@@ -26,7 +26,9 @@ the full review.
    whether the tier is right.
 2. Verify each acceptance item by reading the code and rerunning the brief's commands in the
    given worktree; keep the output under the review path. A mismatch between your results and
-   the report is a finding.
+   the report is a finding. When the brief carries a brief ledger or a path list (eco skill),
+   check each ledger line against the diff and the records, and each path's stated handling
+   against the code; an unmet line, or a reachable path missing from the list, is a finding.
 3. For a bug fix, create a temporary worktree at the base commit outside the checkout, add the
    new test there, and confirm that it fails for the expected reason. Then delete or revert the
    added test file and remove the worktree without `--force`.

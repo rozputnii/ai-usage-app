@@ -50,7 +50,24 @@ per Index task. They come from a general test mix, not this repository's workloa
   coding, so the map uses it for exploration and check runs.
 - Opus 5.5 at medium costs about 2.8 times Sonnet 5.5 at medium per task, but comes within a
   point of Sonnet at xhigh on the Index (51 against 52) for two thirds of the cost, though
-  lower on TB4. It is the default for implementation and ordinary reviews.
-- Sonnet 5.5 at high is the cheapest step near that level and suits small, fully specified
-  briefs.
-- Opus 5.5 at high stays the gate for T3 reviews.
+  lower on TB4. It is the default for reviews and for diagnosis.
+- Sonnet 5.5 at high is the cheapest step near that level; in this repository it matched Opus
+  at medium on implementation briefs (below), so it is the default implementer.
+- Opus 5.5 at high stays the gate for reviews in security-lifecycle areas; on other T3 changes
+  it found no more than Opus at medium here.
+
+## Measured in this repository
+
+The eco experiment (branch `exp/eco-roles`, 2026-10-11 to 2026-10-12, report
+`experiments/eco/results/S5-report.md` there) measured these on this repository's work. Costs
+are API-price equivalents from the transcripts; n is small, so they are directional.
+
+| Question | Result |
+| --- | --- |
+| Review model, four seeded changes, two repeats | Sonnet high found 7.5 of 12 Important defects, Opus medium 11 of 12; Opus high found 2 of 4 on the T3 change in both repeats, Opus medium 3-4 |
+| Implementation model, two small briefs, two repeats | Sonnet high matched Opus medium (held-out tests, fixes) at 40-55% of the cost; Haiku xhigh matched both on the fully specified brief at under 10% |
+| Check runs | A Haiku runner was 23% cheaper than the primary running quiet checks itself |
+| Exploration | A lean read-only scout (three tools, no CLAUDE.md) started at 4k tokens against 18.6k for `Explore`, 23% cheaper at equal accuracy; Haiku located members and values, only Sonnet explained a cause; the LSP tool was never called |
+| Delegating implementation (old eco, Opus high primary) against a lean primary working alone (Opus medium) | 93% against 50-61% of the normal mode's cost |
+| Eco v2 candidate on four real tasks, against the normal mode | median 54% of the cost; no Important finding or false PASS in either mode; the normal mode was judged better in 3 of 4 pairs, each time on Minor missed details: a sibling or caller path not covered, exact values of the brief not met, an implied record missing |
+| Where the cost went | the primary was 68-85% of a task; about 60% of the saving came from the primary at medium effort, 40% from one review at Opus medium with `/code-review` run once |
