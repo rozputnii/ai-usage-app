@@ -1,10 +1,10 @@
 ---
-id: T-NEW
+id: T-070
 type: feature
-status: implementing
+status: implemented
 goal: G-003
 scope_version: 1
-approval_basis: owner decision, 2026-10-11, in the request. The owner asked to polish spacing and motion in the main window and the tray without breaking any behavior, and chose every visible option in the request, so no new variants were rendered. Recorded as R-NEW.
+approval_basis: owner decision, 2026-10-11, in the request. The owner asked to polish spacing and motion in the main window and the tray without breaking any behavior, and chose every visible option in the request, so no new variants were rendered. Recorded as R-224.
 ---
 # Motion and spacing polish
 
