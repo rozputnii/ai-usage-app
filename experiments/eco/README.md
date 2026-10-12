@@ -19,7 +19,7 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 
 S4a is done (2026-10-12, [results/S4a.md](results/S4a.md)): BL1 TIE (E merged, `65f9d01`), BL3
 A better (A merged as T-064, `397c6cb`); $27.39 in all. The owner chose "Sign-in expired" for the
-Codex state after a refused renewal (2026-10-12; implemented outside this branch).
+Codex state after a refused renewal (2026-10-12; merged as T-066).
 
 S4b has the owner's go (2026-10-12) and runs in a new operator session on account `main`, in this
 worktree (`C:\src\aiu-eco`, branch `exp/eco-roles`). One pair, A against the frozen E, of the
@@ -32,8 +32,8 @@ worktree (`C:\src\aiu-eco`, branch `exp/eco-roles`). One pair, A against the fro
 2. One judge (`Start-Judge.ps1 -Brief ..\tasks\real-omp-review.md#brief`), then the operator
    merges the better result into `main` under CONTRIBUTING: T3 (sign-in, refresh and quota
    contracts), so the run's focused review and `/security-review` are required; never merge a
-   result with a Major finding. Merge fresh `main` first: another session changes provider code
-   on 2026-10-12 (Codex re-sign-in state, Claude "Sync failed"), so conflicts are likely.
+   result with a Major finding. Merge fresh `main` first; the Codex re-sign-in state (T-066) and
+   the Claude "sync failed" fix (T-065) are already in `main` (`23e48e0`).
 3. Gate: estimate about $40-70 for the pair and the judge (BL3 cost $22.56 for both arms). Read
    `/usage` before each run; start a run only when the five-hour window has $30 free and the week
    has at least 6% left. If not, wait for the window, or for the weekly reset (2026-10-13 12:00).
