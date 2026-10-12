@@ -13,16 +13,18 @@ approval_basis: owner report and request, 2026-10-12, in conversation: both inst
 - Current: any failed refresh marks the account "sync failed" at once, even while its reading
   is still current. The installed app's logs (2026-10-11 20:46 to 2026-10-12 15:03 local) show
   742 Claude usage requests at a one-minute refresh interval, 72 of them answered 429 with
-  `Retry-After` 0 (or 300), mostly on a 20-minute rhythm, each followed a minute later by a
-  successful reading. Every such 429 put the mark on a card for about a minute, on one account
-  or the other.
+  `Retry-After` 0 (or 300). The pattern repeats every 20 minutes: about ten successful
+  readings, one 429, then the failed account waits the scheduler's 10-minute retry delay before
+  it reads successfully again. Each 429 kept the mark on that card for those 10 minutes, so
+  each account showed "sync failed" about half the time, often on one account or the other.
 - Expected: a rate-limited refresh while the reading is still current is not a sync failure:
-  the card keeps its reading without the mark, and the next due refresh tries again. Once the
+  the card keeps its reading without the mark, and the scheduler's retry (10 minutes, within
+  the 15-minute floor) tries again. Once the
   reading is stale (the T-055 continuity tolerance, at least 15 minutes), a rate limit shows as
   "sync failed" like any other failure.
 - Unchanged: every other failure kind with a current reading still shows the mark (T-034 H7);
   sign-in expired and provider error; the Retry-After cooldown in the quota clients; the
-  refresh interval; logging (each 429 is still one failure record); layout and copy.
+  refresh interval and the retry delays; logging (each 429 is still one failure record); layout and copy.
 
 ## Requirements
 

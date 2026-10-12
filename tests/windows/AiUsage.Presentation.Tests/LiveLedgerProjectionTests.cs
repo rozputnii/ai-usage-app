@@ -322,6 +322,10 @@ public sealed class LiveLedgerProjectionTests
         var stale = Project(20);
         Assert.Equal(AccountHealth.SyncFailedStale, stale.Health);
         Assert.Contains(stale.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed);
+        // Without any reading a rate limit is a sync failure too.
+        var none = LiveLedgerProjection.Account(new AccountSnapshot(Account, "claude", true,
+            new(ProviderSessionStatus.QuotaAvailable, Failure: ProviderFailureKind.RateLimited), false, Now), "Work", [], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.Equal(AccountHealth.SyncFailedStale, none.Health);
     }
 
     // ---- T-055 R-13: the continuity tolerance of the refresh interval ----
