@@ -31,7 +31,11 @@ reference and from their siblings.
   - From empty: when the window or the tray miniature opens, and when a bar first appears.
   - From the edges on screen to the new ones: when a value changes, also when it decreases
     (for example Used/Left).
-  - A resize shows the end state at once. With system animations off
+  - The tray miniature rebuilds its rows on every data change; each new bar goes on from
+    the edges its account's bar showed.
+  - A resize after a fill shows the end state at once; a resize during a fill (the tray
+    sizing itself as it opens) lets the fill go on to the new places. A bar that leaves
+    the screen or loses its width ends its fill. With system animations off
     (`LedgerTheme.AnimationsEnabled`) the bars show their end state at once.
 - **R-03 Lift.** Dragging a card's grip lifts the card: it scales to 1.02 around its centre
   and casts a soft shadow in its squircle outline, in 200 ms. The dragged card no longer

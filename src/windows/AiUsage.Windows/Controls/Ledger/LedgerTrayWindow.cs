@@ -38,7 +38,7 @@ internal sealed partial class LedgerTrayWindow : Window
     private bool stale = true;
     /// <summary>Each row's today strip by account, and the edges the strips showed before the last rebuild.</summary>
     private readonly Dictionary<string, TodayStrip> strips = [];
-    private Dictionary<string, double[]> shownEdges = [];
+    private readonly Dictionary<string, double[]> shownEdges = [];
 
     public LedgerTrayWindow(LedgerTrayViewModel tray, Action<string> openAccount)
     {
@@ -137,8 +137,12 @@ internal sealed partial class LedgerTrayWindow : Window
         peakText.Text = tray.Peak?.Text ?? string.Empty;
         ToolTipService.SetToolTip(peakChip, tray.Peak is { } peak ? LedgerTheme.Tip(peak.Tip) : null);
         AutomationProperties.SetName(peakChip, tray.Peak?.AccessibleName ?? string.Empty);
-        // Every change rebuilds the rows; each new strip goes on from the edges its account's strip showed (R-02).
-        shownEdges = strips.Where(pair => pair.Value.ShownEdges is not null).ToDictionary(pair => pair.Key, pair => pair.Value.ShownEdges!);
+        // Every change rebuilds the rows, once for the cleared list and once per added row; each new strip goes on from the
+        // edges its account's strip last showed (R-02). Edges are kept across those rebuilds, so a strip not built yet in
+        // one of them still finds its account's edges in the next.
+        foreach (var (account, strip) in strips)
+            if (strip.ShownEdges is { } edges)
+                shownEdges[account] = edges;
         strips.Clear();
         rows.Children.Clear();
         if (tray.IsEmpty)

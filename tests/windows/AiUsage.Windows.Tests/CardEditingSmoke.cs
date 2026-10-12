@@ -241,6 +241,82 @@ public sealed partial class CardEditingSmoke
         }
     }
 
+    /// <summary>
+    /// R-02: a data change while the tray miniature is open rebuilds its rows, and an unchanged row's bar goes on from the
+    /// edges on screen: it holds still instead of filling again from empty. A demo sign-in adds an account after 3 s.
+    /// </summary>
+    [Fact]
+    public void TrayBarsHoldStillWhenTheRowsChange()
+    {
+        DesktopTestEnvironment.RequireUnlockedDesktop();
+        var evidence = EvidenceDirectory();
+        using var app = new DemoApp("aiu-tray-bars-smoke-");
+        var passed = false;
+        var stage = "launch";
+        try
+        {
+            SmokeKit.Focus(app.Main());
+            var title = app.Main().FindFirstDescendant(cf => cf.ByName("AI Usage").And(cf.ByControlType(ControlType.Text)))!.BoundingRectangle;
+            SmokeKit.HoverOwned(new System.Drawing.Point(title.Left + title.Width / 2, title.Top + title.Height / 2), app.ProcessId);
+            AutomationElement? TrayRow(string prefix) => SmokeKit.OwnedWindows(app.Automation.GetDesktop(), app.ProcessId)
+                .Select(w => w.FindFirstDescendant(cf => cf.ByName("AI Usage tray"))).FirstOrDefault(content => content is { IsOffscreen: false })?
+                .FindAllDescendants().FirstOrDefault(e => (e.Properties.Name.ValueOrDefault ?? "").StartsWith(prefix, StringComparison.Ordinal));
+
+            stage = "sign in";
+            Invoke(app, "AddButton");
+            AutomationElement? signIn = null;
+            Assert.True(Wait(() => (signIn = SmokeKit.OwnedWindows(app.Automation.GetDesktop(), app.ProcessId)
+                .SelectMany(w => w.FindAllDescendants(cf => cf.ByName("Sign in to Claude").And(cf.ByControlType(ControlType.Button))))
+                .FirstOrDefault(b => b.IsEnabled && !b.IsOffscreen)) is not null), "No Sign in to Claude button");
+            signIn!.AsButton().Invoke();
+
+            stage = "tray";
+            OpenTrayMiniature(app);
+            SmokeKit.Find(() => TrayRow("Claude Pro."), "the Claude Pro tray row");
+            var steady = Steady(() => Pixels(SmokeKit.Find(() => TrayRow("Claude Pro."), "the Claude Pro tray row")), null);
+            Assert.True(TrayRow("Claude Pro 2.") is null, "The sign-in finished before the tray bars held still");
+
+            stage = "rows change";
+            // Every capture until the new account's row has shown for a second matches the steady bar.
+            var watch = Stopwatch.StartNew();
+            TimeSpan? added = null;
+            var captures = 0;
+            while (added is null || watch.Elapsed - added < TimeSpan.FromSeconds(1))
+            {
+                Assert.True(watch.Elapsed < TimeSpan.FromSeconds(15), "The signed-in account did not appear in the tray");
+                // The rebuild replaces the row's element, so it is found again for every capture; between the rebuilds of
+                // one change it can be missing for a moment.
+                byte[] now;
+                try
+                {
+                    if (TrayRow("Claude Pro.") is not { } row)
+                        continue;
+                    now = Pixels(row);
+                }
+                catch (System.Runtime.InteropServices.COMException)
+                {
+                    continue;
+                }
+                captures++;
+                if (!Same(now, steady))
+                {
+                    File.WriteAllBytes(Path.Combine(evidence, "tray-row-moved.bmp"), now);
+                    Assert.Fail($"The Claude Pro tray bar moved when the rows changed (capture {captures})");
+                }
+                if (added is null && TrayRow("Claude Pro 2.") is not null)
+                    added = watch.Elapsed;
+            }
+
+            stage = "exit";
+            app.Exit();
+            passed = true;
+        }
+        finally
+        {
+            app.Finish(evidence, "tray-bars", passed, stage);
+        }
+    }
+
     /// <summary>The screen pixels of an element.</summary>
     private static byte[] Pixels(AutomationElement element)
     {

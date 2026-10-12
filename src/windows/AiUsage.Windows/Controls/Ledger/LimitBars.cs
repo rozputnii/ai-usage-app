@@ -153,8 +153,12 @@ internal sealed partial class TodayStrip : Grid
 
     private void Fill()
     {
+        // Without width there is nothing to fill; a fill still running for the old cells ends before it draws the new ones.
         if (ActualWidth <= 0)
+        {
+            fill.Stop();
             return;
+        }
         Measure();
         fill.Show(target);
     }
@@ -172,7 +176,7 @@ internal sealed partial class TodayStrip : Grid
     /// <summary>Each part's column takes its stretch of the moving edges, cut to its cell.</summary>
     private void Apply(double[] edges)
     {
-        if (edges.Length != target.Length)
+        if (edges.Length != target.Length || cellBounds.Length != (Cells?.Count ?? 0))
             return;
         foreach (var (column, _, cell, part) in partColumns)
         {
