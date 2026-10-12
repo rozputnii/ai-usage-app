@@ -183,3 +183,16 @@ In short:
   both go into the review brief, and the reviewer contract checks them when a brief carries
   them; the final message is the report block.
 - Drop what was not proven: the 150k handoff rule and the advisor role.
+- Added as a precaution, not measured: reviews of a diff in a security-lifecycle area stay at
+  opus high.
+
+State: commits `23e468e` and `1588699`, pushed to `origin/feat/eco-v2-roles`. C2 and C6 PASS.
+Focused T3 review (`aiu-reviewer`, opus high, convergence-review, local `/code-review`):
+CHANGES_REQUIRED with 2 Important (a wrong number in the model-costs evidence; the ban on
+`general-purpose` contradicted the documented fallback when a role is not loaded) and 5 Minor
+(among them a missing "Amended by" line on R-217, the very kind of implied record the ledger
+targets); all fixed except one declined with its reason (the `aiu-implementer` description is
+normal-mode guidance); re-check APPROVE, 0 open findings. `/security-review` NOT_RUN: launched
+from the reviewer it bound to the experiment checkout, not the proposal branch; the reviewer's
+manual security pass found nothing. Owner checks pending before merge: review the text, and use
+`/eco` at opus medium on ordinary tasks.
