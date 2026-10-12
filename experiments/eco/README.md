@@ -11,15 +11,15 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | S4-local | done 2026-10-11 | [installed-app log digest](results/S4-local-log-digest.md); nothing else needs the current PC |
 | S1 | done 2026-10-11 | new PC, account `second`: self-tests, calibration, pilot in [results/S1.md](results/S1.md) |
 | S2 | done 2026-10-12 | micro-trials (runner, exploration, review, implementation) in [results/S2.md](results/S2.md) |
-| S3 | running | replays on account `main`: [results/S3.md](results/S3.md) |
+| S3 | done 2026-10-12 | replays on account `main`, arm E frozen: [results/S3.md](results/S3.md) |
 | S4-S5 | waiting | see the plan |
 
 ## Next action
 
-S3 is running (owner's go 2026-10-12): finish the first runs (batch 2: RP1 B, RP3 D, RP2 A-D), judge
-B, C and D against A per replay with `Start-Judge.ps1 -Brief ..\tasks\replays.md#rpN -DefectKey
-..\tasks\replays.md#rpN`, run the held-out tests in a copy of each clone, repeat the two cheapest
-arms on RP3, then freeze arm E. State and plan in [results/S3.md](results/S3.md).
+S4a (real tasks, arm A against the frozen arm E on account `main`) needs the owner's go. Arm E and the
+S3 evidence behind it are in [results/S3.md](results/S3.md#arm-e-frozen-2026-10-12). Before S4a, the operator
+proposed one E validation run on RP1 and RP2 (about $12) to check the tuning; run it only on the owner's
+answer. Fix the eco skill's unread-PASS defect (S2) and the eco v2 review-set gap (S3) before S5.
 
 Account switch (owner decision 2026-10-12): S3 and later run on account `main` (Max x5, $100) on the
 same PC; S1 and S2 ran on `second` ($20). Measured on `main` over S3 batch 1
