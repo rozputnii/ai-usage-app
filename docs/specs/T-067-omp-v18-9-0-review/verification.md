@@ -96,8 +96,8 @@ environment.
 | C5 | PASS | 348/348 |
 | C6 | PASS | clean |
 | C7 | PASS | 0 warnings, 0 errors |
-| C8 | NOT_RUN | Merge-step check for product inputs; this change touches no Windows UI, tray, launch or lifetime code |
-| C3 | NOT_RUN | Merge step only |
+| C8 | PASS | Merged tree `784df91`, 3/3 against the Release unpackaged build, desktop lock |
+| C3 | PASS | Merged tree `784df91`, valid, no diagnostics; C2, C4 (943/943), C5 (348/348), C6 and C7 repeated there and PASS |
 
 ## Acceptance results
 
@@ -127,6 +127,13 @@ table now lists the `auth/refresh.ts` and `a87ed11210` commits. Re-check of the 
 APPROVE: the test now pins the one-minute fallback and the rows match `git log` on
 `auth/refresh.ts`; one Minor (a function named `isCoolingDown` that does not exist at v18.9.0)
 was fixed by citing `OAuthRefresher.#recentMint` and `OAUTH_REMINT_COOLDOWN_MS`. No open findings.
+
+At the merge (2026-10-12), on the numbered branch against `origin/main`: `/security-review`
+found nothing (the client version is a constant behind the existing header guard; the Claude change
+only lengthens a backoff). `/code-review` found two Minor items, left as they are: the zero
+Retry-After rule lives in the Claude client only, while Copilot and Antigravity keep the old
+pattern without evidence that either sends zero; and the first 429 exception still carries a zero
+delay, which no Claude caller reads.
 
 ## Pending owner checks
 
