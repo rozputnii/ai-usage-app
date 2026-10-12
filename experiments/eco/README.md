@@ -15,7 +15,7 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | S4a | done 2026-10-12 | BL1 and BL3 pairs judged and merged: [results/S4a.md](results/S4a.md) |
 | S4b | done 2026-10-12 | OMP review pair judged and merged: [results/S4b.md](results/S4b.md) |
 | S4c | done 2026-10-12 | UI motion pair judged and merged: [results/S4c.md](results/S4c.md) |
-| S5 | done 2026-10-12 | [report](results/S5-report.md); eco v2 proposal on `feat/eco-v2-roles`, not merged, waits on the owner |
+| S5 | done 2026-10-12 | [report](results/S5-report.md); eco v2 merged into `main` as R-225 (`e93c9e7`) on the owner's instruction |
 
 ## Next action
 
@@ -28,11 +28,13 @@ two lean role contracts (`aiu-scout`, `aiu-runner`), one reviewer-contract step,
 decision R-NEW amending R-222 and R-217. C2 and C6 PASS; focused T3 review CHANGES_REQUIRED (2
 Important, 5 Minor), fixed in `1588699`, re-check APPROVE (report, Proposal).
 
-Next action, the owner's: review the proposal and test it in ordinary sessions with `/eco` (at
-opus medium). It does not merge into `main` until the owner says so; then the merging session
-merges fresh `origin/main`, numbers R-NEW, runs C2, C3 and C6 and pushes. S4d-S4f are ordinary
-single-arm work outside the experiment. No paired runs unless the owner asks; any run needs the
-gate (five-hour window $30 free, at most 94% of the week used).
+Update 2026-10-12: the owner added a rule (haiku never below high effort; the runner moved from
+haiku medium to high) and ordered the merge before own testing. Eco v2 replaced eco in `main` as
+R-225 (`e93c9e7`; C2, C3, C6 PASS; second re-check APPROVE); the remote task branch is deleted.
+Next action, the owner's: use `/eco` (at opus medium) on ordinary tasks and watch the first 3-5,
+above all T3 work, for the two miss patterns. S4d-S4f are ordinary single-arm work. No paired runs
+unless the owner asks; any run needs the gate (five-hour window $30 free, at most 94% of the week
+used).
 
 Operator notes: set `$env:AIU_EXP_ACCOUNT='main'` and `$env:DISABLE_AUTOUPDATER='1'` in every
 command that starts a run; launch batches as a detached process (`Start-Process powershell`), not

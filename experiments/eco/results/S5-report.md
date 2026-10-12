@@ -194,5 +194,9 @@ CHANGES_REQUIRED with 2 Important (a wrong number in the model-costs evidence; t
 targets); all fixed except one declined with its reason (the `aiu-implementer` description is
 normal-mode guidance); re-check APPROVE, 0 open findings. `/security-review` NOT_RUN: launched
 from the reviewer it bound to the experiment checkout, not the proposal branch; the reviewer's
-manual security pass found nothing. Owner checks pending before merge: review the text, and use
-`/eco` at opus medium on ordinary tasks.
+manual security pass found nothing.
+
+Merged 2026-10-12 on the owner's instruction, before own testing: the owner added that haiku
+never runs below high effort (the runner moved from haiku medium to high; re-check APPROVE).
+R-NEW became R-225; C2, C3 and C6 PASS; pushed to `main` as `e93c9e7`. Owner check pending:
+use `/eco` at opus medium on ordinary tasks and watch the first few for the two miss patterns.
