@@ -55,7 +55,7 @@ Result: no compatibility change for Codex; no code changed (AC-04).
 | 0bc99de927 | ai/src/registry/engine/refresh.ts | `createRequestRefresh` | Adds `organization_id: credentials.activeOrganizationId` to the refresh body | Not applicable: only the Factory Droid hook sets that value, and `postTokenRequest` drops undefined parameters, so the Anthropic refresh body is unchanged |
 | c767616cfc | ai/src/registry/oauth/callback-server.ts | `serializeCallbackState` | Escapes `<` in the state embedded in OMP's callback result page | Not applicable: AI Usage's loopback page (`CallbackRequest.RespondAsync`) writes only constant messages |
 | 9013268ba1, a834aa1b09, bde8fdd4cf, 0bc99de927, fde4d79303, 56e5bea2e1, f81261100a, 6962d5cd2e | ai/src/auth/usage.ts, ai/src/auth/usage-cache.ts (split from auth-storage.ts) | `#fetchUsageCached`, `#usageRequestInFlight`, `USAGE_FAILURE_BACKOFF_MS` | Broker polling, cache keys with organization, SQLite and settings changes | Not applicable apart from the per-provider backoff adopted above |
-| 9013268ba1, 8dfd37d6d9, 65a333a337, d79f856677, 6de123da2b, 236f422df5, 0bc99de927, e185e9b586, 383cac4bf1, bf40ce2e3a | ai/src/auth/refresh.ts (split from auth-storage.ts) | `OAuthRefresher`, `isCoolingDown` | Credential-pool refresh leases, a five-minute cooldown after a fresh token is rejected so recovery does not rotate again, broker recovery reasons and mint provenance, disable events | Not applicable: OMP pool and broker coordination; the provider token requests are unchanged. AI Usage already renews at most once per refresh after a usage 401 (T-064) |
+| 9013268ba1, 8dfd37d6d9, 65a333a337, d79f856677, 6de123da2b, 236f422df5, 0bc99de927, e185e9b586, 383cac4bf1, bf40ce2e3a | ai/src/auth/refresh.ts (split from auth-storage.ts) | `OAuthRefresher`, `#recentMint`, `OAUTH_REMINT_COOLDOWN_MS` | Credential-pool refresh leases, a five-minute cooldown after a fresh token is rejected so recovery does not rotate again, broker recovery reasons and mint provenance, disable events | Not applicable: OMP pool and broker coordination; the provider token requests are unchanged. AI Usage already renews at most once per refresh after a usage 401 (T-064) |
 | a87ed11210 | ai/src/auth-storage.ts, ai/src/error/auth-classify.ts | Anthropic error classification | `oauth_not_allowed_for_organization` on inference rotates to another pooled account | Not applicable: inference path and account rotation |
 
 ## Copilot (pin v18.2.6)
@@ -124,7 +124,9 @@ checkout has no `main` ref to diff against, so the reviewer read the code change
 Minor findings, both fixed in the commit after `7b9067c`: the Claude test now also checks that
 no request goes out 59 seconds after the 429, which pins the one-minute fallback; and the Claude
 table now lists the `auth/refresh.ts` and `a87ed11210` commits. Re-check of the fixed lines:
-see below.
+APPROVE: the test now pins the one-minute fallback and the rows match `git log` on
+`auth/refresh.ts`; one Minor (a function named `isCoolingDown` that does not exist at v18.9.0)
+was fixed by citing `OAuthRefresher.#recentMint` and `OAUTH_REMINT_COOLDOWN_MS`. No open findings.
 
 ## Pending owner checks
 
