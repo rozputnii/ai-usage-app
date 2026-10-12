@@ -1,6 +1,6 @@
 ---
 provider: copilot
-source_verified_at: 2026-09-18
+source_verified_at: 2026-10-12
 live_verified_at: 2026-09-18
 confidence: source-and-live-verified-private-unsupported
 classification: method-specific
@@ -19,6 +19,8 @@ On 2026-09-18 GitHub's latest-release endpoint returned [OMP v18.2.6](https://gi
 - [Wire source](https://github.com/can1357/oh-my-pi/blob/78b753124d11f8dd3ae73e2524125890ff7c977e/packages/catalog/src/wire/github-copilot.ts): `COPILOT_GITHUB_HEADERS`, `COPILOT_CAPI_IDENTITY_HEADERS`.
 
 The local read-only clone was clean at `becbf82cb2c0b598e27cf0bf10453065645d915e` (`v18.1.21-6-gbecbf82cb2`). Quota and wire files match the stable source ignoring line endings. The stable auth file was separately read; its prompt type import differs. No clone checkout, update or executable upstream code was used.
+
+Current reference: tag v18.9.0, commit `eec114a9226da698ebc015fd8996a8ca3bc4625c`, reviewed on 2026-10-12 against v18.2.6 ([review](../specs/T-NEW-omp-v18-9-0-review/verification.md#copilot-pin-v1826)). Nothing relevant changed: the [authentication source](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/registry/oauth/github-copilot.ts) and the [wire source](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/catalog/src/wire/github-copilot.ts) have no commit since the pin, and the only change in the [quota source](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/usage/github-copilot.ts) renames a window id in the excluded personal-billing branch (`normalizeBillingUsage`). The functions named above are unchanged, and no AI Usage code changed for Copilot.
 
 ## Authentication: official protocol, owner-selected OMP registration
 

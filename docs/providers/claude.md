@@ -1,6 +1,6 @@
 ---
 provider: claude
-source_verified_at: 2026-09-14
+source_verified_at: 2026-10-12
 live_verified_at: 2026-09-15
 confidence: source-and-live-verified-private-unsupported
 classification: method-specific
@@ -33,6 +33,20 @@ Primary verification of GitHub's public release API on 2026-09-14 identified [v1
 | [Usage coordination](https://github.com/can1357/oh-my-pi/blob/23a5b9ae38864d3f785dc6cbc96eb6d674a1d32d/packages/ai/src/auth-storage.ts) | `#fetchUsageCached`, `#usageRequestInFlight`, cache epochs and failure cooldown |
 
 The research agent initially identified v18.1.18 (`00085d4e7dfdcfbf302c122fa2682b410a0f43d1`) as stable. Fresh primary API verification superseded that claim. Auth/identity declarations matched that earlier tag, but its quota adapter lacked the current configurable-host fallback. The current contract below uses v18.1.22 throughout.
+
+### Current reference: v18.9.0
+
+On 2026-10-12 the files above were reviewed from v18.1.22 to tag v18.9.0, commit `eec114a9226da698ebc015fd8996a8ca3bc4625c` ([review](../specs/T-NEW-omp-v18-9-0-review/verification.md#claude-pin-v18122-v1832-for-the-t-034-money-audit)). The contract below still holds at that commit, with these changes:
+
+| Source at v18.9.0 | Change since v18.1.22 |
+| --- | --- |
+| [Quota adapter](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/usage/claude.ts) | `claudeUsageProvider.failureBackoffMs` is 60 s because the usage endpoint answers 429 with `retry-after: 0` and stays limited for minutes (6d838a104b). Adopted: a zero Retry-After now gates the next read for the one-minute fallback, as an absent one does |
+| [Usage headers](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/usage/claude-api.ts) | `buildClaudeOAuthHeaders`, `claudeOAuthBaseUrls`: the same host, path and beta header, moved into a shared helper |
+| [Saved resets](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/usage/claude-reset.ts) | New: `cedar_ember`/`juniper_tide` reset inventory and redemption. Backlog item T-NEW-3 (read-only research); not implemented |
+| [Usage coordination](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/auth/usage.ts) | `#fetchUsageCached` and `#usageRequestInFlight` moved here from `auth-storage.ts`; the per-provider failure backoff is read here |
+| [Identity hook](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/registry/oauth/anthropic.ts) | The bootstrap User-Agent carries a discovered Claude Code version; AI Usage keeps its own identity |
+
+The auth rule gained `org-scoped-identity`, the declarative engines gained URL templates and an `organization_id` refresh parameter that is undefined and dropped for this provider, and the callback page escapes its embedded state: none changes an Anthropic request. The grant-lifetime constant is unchanged.
 
 ## Authentication method: undocumented public-client reuse, restricted
 

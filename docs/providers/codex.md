@@ -1,6 +1,6 @@
 ---
 provider: codex
-source_verified_at: 2026-09-13
+source_verified_at: 2026-10-12
 live_verified_at: 2026-09-14
 confidence: source-verified-live-verified
 classification: source-observed-internal-endpoints
@@ -12,6 +12,8 @@ backlog: T-003
 Owner selected a reusable library with console/test verification before UI integration. No personal CLI credential store, token, browser session or authenticated provider response was inspected. Fixtures for this slice are synthetic. No model/inference, purchase or quota-reset redemption request is authorized or needed.
 
 Official latest stable release observed through GitHub releases/latest: rust-v0.154.0, published 2026-09-09. Annotated tag 36eab01061df3cde5f95ec20a526777b430091ba resolves to commit 6b9826e3aa83b1a5947db50f4332cb9c65f1b340. Installed OMP 18.1.19 tag resolves to commit e4dd2ec3b487f216c569281e2cdb7ec476a81f2e. These references describe source behavior, not provider approval for this application.
+
+Current OMP reference: tag v18.9.0, commit `eec114a9226da698ebc015fd8996a8ca3bc4625c`, reviewed on 2026-10-12 against the v18.1.19 pin ([review](../specs/T-NEW-omp-v18-9-0-review/verification.md#codex-pin-v18119)). Nothing relevant to sign-in, refresh or quota reading changed: `registry/oauth/openai-codex.ts` has no commit since the pin, the `CODEX_CLIENT_VERSION` bump to 0.159.0 gates only model and inference routes, and the `accounts/verified_access` lookup is an access-program badge for model routing. The new `credits.overage_limit_reached` field and OMP's credit-funded overage verdict are recorded as backlog item T-NEW-2, not implemented. The official Codex references below are unchanged.
 
 ## Authentication contract
 - Official documentation describes ChatGPT subscription browser login and device-code login (beta); device login must be enabled in account security settings or workspace permissions. API-key billing is a separate product and is not substituted here.
@@ -44,8 +46,8 @@ Official latest stable release observed through GitHub releases/latest: rust-v0.
 - [Official device flow](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/login/src/device_code_auth.rs): request_device_code, complete_device_code_login, poll_for_token.
 - [Official token/refresh manager](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/login/src/auth/manager.rs): request_chatgpt_token_refresh, classify_refresh_token_failure, RefreshResponse, oauth_client_id.
 - [Official token claims](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/login/src/token_data.rs): parse_chatgpt_jwt_claims, parse_jwt_expiration.
-- [OMP OAuth](https://github.com/can1357/oh-my-pi/blob/e4dd2ec3b487f216c569281e2cdb7ec476a81f2e/packages/ai/src/registry/oauth/openai-codex.ts): loginOpenAICodexDevice, exchangeCodeForToken, createOpenAICodexAuthorizationUrl, getTokenProfile.
-- [OMP quota](https://github.com/can1357/oh-my-pi/blob/e4dd2ec3b487f216c569281e2cdb7ec476a81f2e/packages/ai/src/usage/openai-codex.ts): openaiCodexUsageProvider.fetchUsage, parseUsagePayload, resolveResetTime. Its reset-credit detail fetch and raw payload retention are not copied into this passive console slice.
+- [OMP OAuth](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/registry/oauth/openai-codex.ts): loginOpenAICodexDevice, exchangeCodeForToken, createOpenAICodexAuthorizationUrl, getTokenProfile.
+- [OMP quota](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/usage/openai-codex.ts): openaiCodexUsageProvider.fetchUsage, parseUsagePayload, resolveResetTime. Its reset-credit detail fetch and raw payload retention are not copied into this passive console slice.
 - [Official wrapper/context](https://github.com/openai/codex/blob/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/backend-client/src/types.rs): RateLimitStatusWithResetCredits, AdditionalRateLimitWithNormalModel.
 - [Official generated quota models](https://github.com/openai/codex/tree/6b9826e3aa83b1a5947db50f4332cb9c65f1b340/codex-rs/codex-backend-openapi-models/src/models): rate_limit_status_payload.rs, rate_limit_status_details.rs, rate_limit_window_snapshot.rs, additional_rate_limit_details.rs, credit_status_details.rs, spend_control_status_details.rs.
 
