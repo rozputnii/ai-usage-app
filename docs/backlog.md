@@ -191,6 +191,18 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - source: OMP 3d4d323009, e45b49c0d4, a834aa1b09, `packages/ai/src/usage/claude-reset.ts` `parseClaudeResetCreditsFromUsagePayload`, `listClaudeResetCredits`, `consumeClaudeResetCredit`; review in docs/specs/T-067-omp-v18-9-0-review/verification.md
 - registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-067) as a new capability, not implemented. Not selected.
 
+## T-NEW - Motion and spacing polish
+- goal: G-003
+- status: review
+- depends_on: []
+- trigger: owner-selection
+- outcome: The usage bars fill as one strip from the left on opening and on every value change; dragging a card lifts it, opens a live gap and settles; transitions use two durations and one curve; four spacing inconsistencies are fixed.
+- acceptance: AC-01 through AC-08 in the specification.
+- specification: docs/specs/T-NEW-motion-and-spacing-polish/spec.md
+- evidence: docs/specs/T-NEW-motion-and-spacing-polish/verification.md
+- next-action: Merge fresh `main` into the branch, assign the numbers with `tools/windows/Set-ItemNumbers.ps1`, mark the item done and the specification implemented, run C3 and the launch smoke (C8) on the merged tree, and push to `main`.
+- registration-note: Owner request of 2026-10-11 with every visible option chosen (R-NEW). Implemented and verified on its branch; not merged.
+
 ## Done index
 
 Done and dropped items, one row each (OD-19). Their history is in each item's specification and verification records and in Git history.
@@ -270,6 +282,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-065 | A Claude account at a one-minute refresh interval no longer flashes "sync failed" on a single rate-limited refresh; a reading older than 15 minutes still shows it | 2026-10-12 |
 | T-066 | After a refused Codex renewal, a manual refresh and a relaunch still show "Sign-in expired" with the Sign-in action, and signing in again restores the account | 2026-10-12 |
 | T-067 | A rate-limited Claude account reads normally again by itself with no second 429 within the same minute, even after a manual refresh; Antigravity still connects and reads both quota groups with the 2.19.1 client identity | 2026-10-12 |
+| T-NEW | The bars fill smoothly as one strip from the left when the window and the tray open and when a value changes; a dragged card lifts, the gap opens and the card settles smoothly on drop and on Esc; the settings slide and fades feel even; the spacing looks consistent with live accounts | 2026-10-12 |
 
 ## Deferred clarifications, not forgotten
 
