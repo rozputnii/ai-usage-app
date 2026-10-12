@@ -18,11 +18,27 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 ## Next action
 
 S4a is done (2026-10-12, [results/S4a.md](results/S4a.md)): BL1 TIE (E merged, `65f9d01`), BL3
-A better (A merged as T-064, `397c6cb`); $27.39 in all. Next: S4b ([OMP review](tasks/real-omp-review.md))
-needs the owner's go and a budget; the weekly limit on `main` was at 88% at 16:11 and resets on
-2026-10-13 12:00. Two owner items from BL3 are open: the post-deploy live check of T-064, and the
-Codex "Provider error" after a refused renewal (arm A recommends "Sign-in expired"; recorded in the
-T-064 spec).
+A better (A merged as T-064, `397c6cb`); $27.39 in all. The owner chose "Sign-in expired" for the
+Codex state after a refused renewal (2026-10-12; implemented outside this branch).
+
+S4b has the owner's go (2026-10-12) and runs in a new operator session on account `main`, in this
+worktree (`C:\src\aiu-eco`, branch `exp/eco-roles`). One pair, A against the frozen E, of the
+[OMP review](tasks/real-omp-review.md#brief), arm A first:
+
+1. Base: current `main` (fetch first), the same commit for both arms; `-Brief
+   ..\tasks\real-omp-review.md#brief -Task omp -TimeoutMinutes 240`. Arm E: `-Arm E -Effort medium
+   -AppendPromptFile ..\arms\E-eco.md -AgentsFile ..\arms\E-agents.json`. The runs clone OMP from
+   GitHub themselves (the brief says so); that is the only network use.
+2. One judge (`Start-Judge.ps1 -Brief ..\tasks\real-omp-review.md#brief`), then the operator
+   merges the better result into `main` under CONTRIBUTING: T3 (sign-in, refresh and quota
+   contracts), so the run's focused review and `/security-review` are required; never merge a
+   result with a Major finding. Merge fresh `main` first: another session changes provider code
+   on 2026-10-12 (Codex re-sign-in state, Claude "Sync failed"), so conflicts are likely.
+3. Gate: estimate about $40-70 for the pair and the judge (BL3 cost $22.56 for both arms). Read
+   `/usage` before each run; start a run only when the five-hour window has $30 free and the week
+   has at least 6% left. If not, wait for the window, or for the weekly reset (2026-10-13 12:00).
+4. Record `results/S4b.md` like `results/S4a.md`, update this section and the status table, and
+   push `origin/exp/eco-roles`.
 
 Operator notes: set `$env:AIU_EXP_ACCOUNT='main'` and `$env:DISABLE_AUTOUPDATER='1'` in every
 command that starts a run; launch batches as a detached process (`Start-Process powershell`), not
