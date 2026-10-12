@@ -27,6 +27,32 @@ public sealed class ReorderMathTests
     }
 
     [Fact]
+    public void TheDraggedCardLandsAmongTheOthersWithItsHistoryAfterIt()
+    {
+        // Cards a, b (with its history panel) and c.
+        bool[] isCard = [true, true, false, true];
+        Assert.Equal([1, 2, 3, 0], ReorderMath.LandingOrder(isCard, 0, 2));
+        Assert.Equal([3, 0, 1, 2], ReorderMath.LandingOrder(isCard, 3, 0));
+        Assert.Equal([0, 3, 1, 2], ReorderMath.LandingOrder(isCard, 1, 2));
+        Assert.Equal([1, 2, 0, 3], ReorderMath.LandingOrder(isCard, 1, 0));
+        Assert.Equal([1, 2, 0, 3], ReorderMath.LandingOrder(isCard, 0, 1));
+        Assert.Equal([0, 1, 2, 3], ReorderMath.LandingOrder(isCard, 0, 0));
+    }
+
+    [Fact]
+    public void TheOtherCardsSlideByTheDraggedCardsHeightAndGap()
+    {
+        // Heights 100, 50 (b), 80 (b's history), 60 (c) with 12 px gaps: tops 0, 112, 174, 266.
+        double[] heights = [100, 50, 80, 60];
+        // a goes last: the others slide up by 112; a lands at the bottom (226).
+        Assert.Equal([226, -112, -112, -112], ReorderMath.Offsets(heights, 12, [1, 2, 3, 0]));
+        // c goes first: the others slide down by 72; c rises to the top.
+        Assert.Equal([72, 72, 72, -266], ReorderMath.Offsets(heights, 12, [3, 0, 1, 2]));
+        // The order as it is moves nothing.
+        Assert.Equal([0, 0, 0, 0], ReorderMath.Offsets(heights, 12, [0, 1, 2, 3]));
+    }
+
+    [Fact]
     public async Task OnlyAccountCardsHaveAGripAndOnlyWithAnotherAccountShown()
     {
         var scheduler = new ManualScheduler();
