@@ -67,7 +67,7 @@ are API-price equivalents from the transcripts; n is small, so they are directio
 | --- | --- |
 | Review model, three seeded changes (plus a clean control once), two repeats | Sonnet high found 7.5 of 12 Important defects, Opus medium 11 of 12; Opus high found 2 of 4 on the T3 change in both repeats, Opus medium 3-4 |
 | Implementation model, two small briefs, two repeats | Sonnet high matched Opus medium (held-out tests, fixes) at 40-55% of the cost; Haiku xhigh matched both on the fully specified brief at under 10% |
-| Check runs | A Haiku runner was 23% cheaper than the primary running quiet checks itself |
+| Check runs | A Haiku runner at medium effort was 23% cheaper than the primary running quiet checks itself; the roles run Haiku at high effort or above (owner rule) |
 | Exploration | A lean read-only scout (three tools, no CLAUDE.md) started at 4k tokens against 18.6k for `Explore`, 23% cheaper at equal accuracy; Haiku located members and values, only Sonnet explained a cause; the LSP tool was never called |
 | Delegating implementation (old eco, Opus high primary) against a lean primary working alone (Opus medium), two replays | 93% and 66% against 50-51% and 61% of the normal mode's cost; directional, confounded with the primary's effort |
 | Eco v2 candidate on four real tasks, against the normal mode | median 54% of the cost; no Important finding or false PASS in either mode; the normal mode was judged better in 3 of 4 pairs, each time on Minor missed details: a sibling or caller path not covered, exact values of the brief not met, an implied record missing |

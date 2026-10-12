@@ -77,7 +77,7 @@ from the agent's default (Claude Code aliases; another agent uses its nearest eq
 | Work | Agent | Model, effort |
 | --- | --- | --- |
 | Locate code or answer "where and what" across many files, when much work remains | `aiu-scout` | haiku, high (default); sonnet, high when it must explain why |
-| Full check runs (restore, build, suites, validator, diff check, smokes) | `aiu-runner` | haiku, medium (default) |
+| Full check runs (restore, build, suites, validator, diff check, smokes) | `aiu-runner` | haiku, high (default) |
 | A large, separable implementation with a clear brief | `aiu-implementer` | sonnet, high; haiku, xhigh for a small, fully specified mechanical brief; opus, medium to diagnose an unexplained failure |
 | Every fresh-context review the tier requires (per-task, whole-feature, T3 focused; a T0 diff stays the primary's review) | `aiu-reviewer` | opus, medium, T3 included; opus, high when the diff touches a security-lifecycle area (a precaution, not measured) |
 
@@ -115,12 +115,13 @@ with their check IDs and the log directory; the runner contract holds the rest.
 - NEEDS_CONTEXT calls for a better brief, and an environmental BLOCKED (a locked desktop, a
   missing restore) for fixing the cause, not a bigger model.
 - When a subagent fails the same step twice, or reports something the state contradicts,
-  rerun that step one level up: haiku, then sonnet high, then opus medium, then opus high. Do
+  rerun that step one level up: haiku high, then sonnet high, then opus medium, then opus high. Do
   not retry the same level unchanged. When opus high fails too, take the step over or report it
   BLOCKED.
 - A failing check found by a runner goes to you or an opus medium implementer for diagnosis
   (systematic-debugging); the runner never fixes anything.
 - Never review below the table.
+- Never run haiku below high effort (owner rule).
 - Haiku costs five times more once a prompt passes 100k tokens: keep haiku briefs small and
   have it read excerpts, never whole large logs or files.
 
