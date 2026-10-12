@@ -287,11 +287,13 @@ public sealed partial class CardEditingSmoke
                 // The rebuild replaces the row's element, so it is found again for every capture; between the rebuilds of
                 // one change it can be missing for a moment.
                 byte[] now;
+                bool shown;
                 try
                 {
                     if (TrayRow("Claude Pro.") is not { } row)
                         continue;
                     now = Pixels(row);
+                    shown = added is not null || TrayRow("Claude Pro 2.") is not null;
                 }
                 catch (System.Runtime.InteropServices.COMException)
                 {
@@ -303,7 +305,7 @@ public sealed partial class CardEditingSmoke
                     File.WriteAllBytes(Path.Combine(evidence, "tray-row-moved.bmp"), now);
                     Assert.Fail($"The Claude Pro tray bar moved when the rows changed (capture {captures})");
                 }
-                if (added is null && TrayRow("Claude Pro 2.") is not null)
+                if (added is null && shown)
                     added = watch.Elapsed;
             }
 
