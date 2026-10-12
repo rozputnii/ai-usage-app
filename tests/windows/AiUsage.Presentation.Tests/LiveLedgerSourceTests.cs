@@ -769,7 +769,7 @@ public sealed class LiveLedgerSourceTests
         var clock = new Clock(); var id = Guid.NewGuid();
         // The last reading is 40 minutes old and the latest refresh failed.
         var account = Account(id, clock.Now.AddMinutes(-40));
-        var failed = account with { Session = account.Session with { Failure = ProviderFailureKind.RateLimited }, LastFailureAt = clock.Now };
+        var failed = account with { Session = account.Session with { Failure = ProviderFailureKind.NetworkFailure }, LastFailureAt = clock.Now };
         using var source = Source(new Accounts { Current = [failed] }, new Store(), clock);
         try
         {

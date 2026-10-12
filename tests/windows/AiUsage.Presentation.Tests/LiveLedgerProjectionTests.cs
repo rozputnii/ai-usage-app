@@ -304,6 +304,26 @@ public sealed class LiveLedgerProjectionTests
         Assert.Contains(model.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed && m.Since == Now);
     }
 
+    [Fact]
+    public void RateLimitedRefreshWithAFreshReadingIsNotASyncFailure()
+    {
+        AccountModel Project(int minutesOld)
+        {
+            var fetched = Now.AddMinutes(-minutesOld);
+            var quota = new QuotaSnapshot(fetched, null, [], null, null, null, null) { Limits = new(fetched, null, SnapshotSource.ProviderApi, "test", [Weekly()]) };
+            var snapshot = new AccountSnapshot(Account, "claude", true,
+                new(ProviderSessionStatus.QuotaAvailable, quota, Failure: ProviderFailureKind.RateLimited), false, Now);
+            return LiveLedgerProjection.Account(snapshot, "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        }
+        var fresh = Project(2);
+        Assert.Equal(AccountHealth.Ok, fresh.Health);
+        Assert.DoesNotContain(fresh.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed);
+        // Once the reading is stale, a rate limit is a sync failure like any other.
+        var stale = Project(20);
+        Assert.Equal(AccountHealth.SyncFailedStale, stale.Health);
+        Assert.Contains(stale.Cards[0].Marks, m => m.Kind == MarkKind.SyncFailed);
+    }
+
     // ---- T-055 R-13: the continuity tolerance of the refresh interval ----
 
     [Fact]
@@ -314,7 +334,7 @@ public sealed class LiveLedgerProjectionTests
             var fetched = Now.AddMinutes(-minutesOld);
             var quota = new QuotaSnapshot(fetched, null, [], null, null, null, null) { Limits = new(fetched, null, SnapshotSource.ProviderApi, "test", [Weekly()]) };
             var snapshot = new AccountSnapshot(Account, "claude", true,
-                new(ProviderSessionStatus.QuotaAvailable, quota, Failure: ProviderFailureKind.RateLimited), false, Now);
+                new(ProviderSessionStatus.QuotaAvailable, quota, Failure: ProviderFailureKind.NetworkFailure), false, Now);
             return LiveLedgerProjection.Account(snapshot, "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null, tolerance: tolerance);
         }
         var ninety = TimeSpan.FromMinutes(90);

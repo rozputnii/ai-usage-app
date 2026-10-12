@@ -221,6 +221,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-062 | Tray icon lifetime and lost repeated-failure counts | done | G-003 | docs/specs/T-062-native-lifetime-lost-diagnostics/verification.md |
 | T-063 | Peak hours hint | done | G-003 | docs/specs/T-063-peak-hours-hint/verification.md |
 | T-064 | Renew once after a usage 401 | done | G-003 | docs/specs/T-064-usage-401-renewal/verification.md |
+| T-NEW | No "sync failed" for a routine rate limit | done | G-003 | docs/specs/T-NEW-rate-limit-mark/verification.md |
 
 ## Pending owner checks
 
@@ -244,6 +245,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-062 | After Explorer restarts, the tray icon still shows the current colour; the logs show at most hourly TrayFailure summaries, each with its incidentId | 2026-10-10 |
 | T-063 | During weekday peak hours the title row and the tray header show the Peak pill with its end time and tooltip, and it disappears after the window | 2026-10-10 |
 | T-064 | When a provider rejects a usage request but the stored sign-in still renews, the account keeps refreshing without a new sign-in; a refused sign-in shows "Sign-in expired" with the Sign-in action at once | 2026-10-12 |
+| T-NEW | A Claude account at a one-minute refresh interval no longer flashes "sync failed" on a single rate-limited refresh; a reading older than 15 minutes still shows it | 2026-10-12 |
 
 ## Deferred clarifications, not forgotten
 
