@@ -24,9 +24,24 @@ as T-070 / R-224 (`f74d2ab`); $59.21 in all (runs $55.61, judge $3.60), above th
 E cost 48% less with four Minor deviations from the brief. C9 ran on CI (owner-started dispatch,
 run 38299182671) and, after the owner repaired the Build Tools components, locally as well.
 
-S5 ([plan](plan.md): the report, eco v2 and the roles proposal as a separate change) is next and
-starts only on the owner's go. The week was at 93% on 2026-10-12 20:25 and resets 2026-10-13
-12:00.
+Real pairs so far: BL1 TIE, BL3 A, OMP A, UI A (E won or tied 1 of 4). Under the
+[decision rules](plan.md#decision-rules-fixed-before-running), E needs at least three quarters of
+the pairs; with S4d-S4f left it can reach at most 4 of 7, so the real-task outcome is decided:
+E (eco v2 as frozen in S3) does not pass. E saved 45-52% per pair (BL1 24%), but every loss was a
+missed detail at Minor severity (a missed compatibility path, deviations from the brief), never
+a Major finding or a false PASS claim. By the early-stop rule the remaining real tasks run
+single-arm A while eco v2 is reworked, so S4d-S4f leave the experiment and become ordinary work.
+
+S5 has the owner's go (2026-10-12) and runs in a new operator session. Scope, from the plan:
+(1) the report, `results/S5-report.md` on this branch: per-stage aggregates S1-S4c, each
+hypothesis H1-H9 with its verdict (supported, not supported, not proven) and evidence links,
+the decision-rule outcome above, cost per quality, and threats to validity (small n, one judge
+per pair, the S0-S3 judge base defect, C9 BLOCKED in S3 and S4c); (2) the eco v2 and roles
+proposal: what to change in `.agents/skills/eco/SKILL.md` and the agent contracts so that the
+savings stay and the missed details go, written as a T3 change on its own branch from `main`
+under CONTRIBUTING. The proposal does not merge into `main` without the owner's review and own
+testing (plan, Goal); the session asks that at its checkpoint. No paired runs unless the owner
+asks; the five-hour and weekly gates still apply to any run.
 
 Operator notes: set `$env:AIU_EXP_ACCOUNT='main'` and `$env:DISABLE_AUTOUPDATER='1'` in every
 command that starts a run; launch batches as a detached process (`Start-Process powershell`), not
