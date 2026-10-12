@@ -548,6 +548,30 @@ public sealed class CodexSessionTests : IDisposable
         Assert.Equal("synthetic-rotated", store.Read()!.RefreshToken);
     }
 
+    [Fact]
+    public async Task ASecondUsageRejectionAfterItsRenewalAsksForSignInWithoutAnotherRenewal()
+    {
+        var renewals = 0;
+        var reject = false;
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (request.Method != HttpMethod.Get)
+                renewals++;
+            return Task.FromResult(request.Method != HttpMethod.Get ? CodexTestServer.Json(CodexTestServer.Tokens())
+                : reject ? CodexTestServer.Json("{}", HttpStatusCode.Unauthorized) : CodexTestServer.Json("""{"plan_type":"synthetic"}"""));
+        });
+        using var session = Session(server, out var store);
+        store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-stored"));
+        await session.ResumeAsync(TestContext.Current.CancellationToken);
+        reject = true;
+
+        var state = await session.RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
+        Assert.Equal(2, renewals); // The resume and the one renewal after the first rejection.
+        Assert.Equal(5, server.Calls);
+    }
+
     private CodexSession Session(CodexTestServer server, out CodexGrantStore store)
     {
         var http = new HttpClient(server);

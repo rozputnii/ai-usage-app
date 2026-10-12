@@ -47,7 +47,7 @@ The registration is the part AI Usage does not own. GitHub push protection refus
 | Expiry/rotation | `expires_in` seconds with a five-minute skew in the rule. Google normally omits a new refresh token on refresh; a returned replacement is written durably before it is used. If that write fails the old value is kept and retried, which costs a reauthentication if the provider had already rotated it. Unlike Claude, no pre-refresh invalidation marker is written, because a provider that does not rotate would make every cancelled refresh demand a new sign-in |
 | Identity | `GET https://www.googleapis.com/oauth2/v1/userinfo?alt=json`; OMP maps `email`. AI Usage binds the account to the opaque `id` subject and treats a changed subject as a mismatch |
 
-After a usage 401 the session renews the stored grant once and reads usage once more (T-NEW); a refresh that already renewed or just signed in does not renew again. A renewal refused with `invalid_grant`, or one whose userinfo subject differs, records the connection as needing a new sign-in, so the refused grant is not sent again by later refreshes or after a restart.
+After a usage 401 the session renews the stored grant once and reads usage once more (T-NEW); a refresh that already renewed or just signed in does not renew again. A renewal the provider refuses (`invalid_grant`, or HTTP 401 from the token or userinfo request), or one whose userinfo subject differs, records the connection as needing a new sign-in, so the refused grant is not sent again by later refreshes or after a restart.
 
 ## Project discovery, and provisioning on the connect path only
 

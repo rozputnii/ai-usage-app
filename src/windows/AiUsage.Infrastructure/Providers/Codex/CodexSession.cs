@@ -157,10 +157,7 @@ public sealed class CodexSession : IProviderSession, IDisposable
         {
             // A rejected access token does not prove the stored grant is refused: renew it once from
             // storage and read once more. A second rejection or a refused renewal needs a new sign-in.
-            credentials?.Dispose();
-            credentials = null;
-            await RenewAsync(lease, token).ConfigureAwait(false);
-            return await ReadQuotaAsync(lease, renewed: true, token).ConfigureAwait(false);
+            return await ResumeCoreAsync(lease, token).ConfigureAwait(false);
         }
         catch (CodexException error) when (error.Kind != ProviderFailureKind.AuthenticationRequired)
         {

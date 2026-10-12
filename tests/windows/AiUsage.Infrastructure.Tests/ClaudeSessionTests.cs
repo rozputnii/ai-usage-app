@@ -283,6 +283,32 @@ public sealed class ClaudeSessionTests : IDisposable
     }
 
     [Fact]
+    public async Task ASecondUsageRejectionAfterItsRenewalAsksForSignInWithoutAnotherRenewal()
+    {
+        var store = new ClaudeStateStore(directory);
+        await SeedAsync(store);
+        var renewals = 0;
+        var reject = false;
+        using var server = new CodexTestServer((request, _) =>
+        {
+            if (request.Method == HttpMethod.Post)
+                renewals++;
+            return Task.FromResult(request.Method == HttpMethod.Post ? CodexTestServer.Json(ClaudeAuthClientTests.Tokens())
+                : reject ? CodexTestServer.Json("{}", HttpStatusCode.Unauthorized) : CodexTestServer.Json(Usage));
+        });
+        using var http = new HttpClient(server);
+        using var session = Session(http, store);
+        await session.ResumeAsync(TestContext.Current.CancellationToken);
+        reject = true;
+
+        var state = await session.RefreshAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, state.Status);
+        Assert.Equal(2, renewals); // The resume and the one renewal after the first rejection.
+        Assert.Equal(5, server.Calls);
+    }
+
+    [Fact]
     public async Task FailedDeletionKeepsARecoverableConnectedState()
     {
         var store = new ClaudeStateStore(directory);
