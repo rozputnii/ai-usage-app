@@ -346,7 +346,7 @@ internal sealed partial class LedgerWindow : Window
         Fill(wanted);
         CardGrid.UpdateLayout();
         foreach (var element in CardGrid.Children)
-            if (shown.TryGetValue(element, out var top))
+            if (shown.TryGetValue(element, out var top) && (top != LayoutTop(element) || slides.ContainsKey(element)))
                 Slide(element).Set(top - LayoutTop(element));
         if (!CancelDrag())
             Settle();
@@ -421,8 +421,9 @@ internal sealed partial class LedgerWindow : Window
             ? ReorderMath.Offsets([.. children.Select(LayoutHeight)], CardGrid.Spacing,
                 ReorderMath.LandingOrder([.. children.Select(child => child is LedgerCardView)], children.IndexOf(dragged), place))
             : new double[children.Count];
+        // A card that stays in its place and has not slid is left alone.
         for (var i = 0; i < children.Count; i++)
-            if (children[i] != dragged)
+            if (children[i] != dragged && (offsets[i] != 0 || slides.ContainsKey(children[i])))
                 Slide(children[i]).To(offsets[i], LedgerMotion.Drag);
     }
 

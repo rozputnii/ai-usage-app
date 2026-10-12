@@ -15,14 +15,19 @@ namespace AiUsage.Controls.Ledger;
 internal sealed class BarFill(Action<double[]> apply, Action finish)
 {
     private double[]? shown;
+    private double[] target = [];
     private Action? stop;
 
-    public bool HasShown => shown is not null;
+    /// <summary>The edges on screen; null before the bar was first shown.</summary>
+    public double[]? Shown => shown;
+
+    public bool IsRunning => stop is not null;
 
     public void Show(double[] target)
     {
         stop?.Invoke();
         stop = null;
+        this.target = target;
         var sweep = new BarSweep(shown ?? [], target);
         if (!LedgerTheme.AnimationsEnabled || sweep.Duration <= 0)
         {
@@ -52,8 +57,23 @@ internal sealed class BarFill(Action<double[]> apply, Action finish)
     {
         stop?.Invoke();
         stop = null;
+        this.target = target;
         shown = target;
         finish();
+    }
+
+    /// <summary>Ends a running fill at its target: the bar left the screen or lost its width.</summary>
+    public void Stop()
+    {
+        if (IsRunning)
+            Snap(target);
+    }
+
+    /// <summary>The next fill starts from these edges, as a bar that replaces another one continues its fill.</summary>
+    public void Seed(double[] edges)
+    {
+        if (!IsRunning)
+            shown = edges;
     }
 
     /// <summary>The next fill starts from empty.</summary>
@@ -86,6 +106,11 @@ internal sealed partial class TodayStrip : Grid
     /// <summary>Each part's column with its star weight, its cell and its part of the fill.</summary>
     private readonly List<(ColumnDefinition Column, double Weight, int Cell, int Part)> partColumns = [];
     private readonly BarFill fill;
+    /// <summary>The fill's end edges and each cell's first part and bounds, as fractions of the width, for the current size.</summary>
+    private double[] target = [];
+    private (int First, double Left, double Right)[] cellBounds = [];
+    /// <summary>Whether the strip has a width; the first width after none fills it, later ones keep the fill where it ends.</summary>
+    private bool laidOut;
     public static readonly DependencyProperty CellsProperty = DependencyProperty.Register(nameof(Cells), typeof(IReadOnlyList<StripCell>), typeof(TodayStrip), new PropertyMetadata(null, (d, _) => ((TodayStrip)d).Rebuild()));
     public static readonly DependencyProperty CellHeightProperty = DependencyProperty.Register(nameof(CellHeight), typeof(double), typeof(TodayStrip), new PropertyMetadata(14.0, (d, _) => ((TodayStrip)d).Rebuild()));
     public static readonly DependencyProperty FocusableCellsProperty = DependencyProperty.Register(nameof(FocusableCells), typeof(bool), typeof(TodayStrip), new PropertyMetadata(true, (d, _) => ((TodayStrip)d).Rebuild()));
@@ -93,17 +118,32 @@ internal sealed partial class TodayStrip : Grid
     public TodayStrip()
     {
         fill = new BarFill(Apply, Finish);
-        // The first size shows the strip: it fills from empty. Later sizes keep the fill where it ends.
         SizeChanged += (_, _) =>
         {
-            if (fill.HasShown) fill.Snap(Edges());
-            else Fill();
+            if (ActualWidth <= 0)
+            {
+                fill.Stop();
+                laidOut = false;
+                return;
+            }
+            Measure();
+            // A resize during a fill (the tray sizing itself as it opens) lets the fill go on to the new places.
+            if (!laidOut || fill.IsRunning) fill.Show(target);
+            else fill.Snap(target);
+            laidOut = true;
         };
+        Unloaded += (_, _) => fill.Stop();
     }
 
     public IReadOnlyList<StripCell>? Cells { get => (IReadOnlyList<StripCell>?)GetValue(CellsProperty); set => SetValue(CellsProperty, value); }
     public double CellHeight { get => (double)GetValue(CellHeightProperty); set => SetValue(CellHeightProperty, value); }
     public bool FocusableCells { get => (bool)GetValue(FocusableCellsProperty); set => SetValue(FocusableCellsProperty, value); }
+
+    /// <summary>The edges on screen, for a strip that replaces this one (<see cref="ContinueFill"/>).</summary>
+    public double[]? ShownEdges => fill.Shown;
+
+    /// <summary>A new strip in place of an old one fills from the old one's edges instead of from empty.</summary>
+    public void ContinueFill(double[] edges) => fill.Seed(edges);
 
     public void ReplayFill()
     {
@@ -113,31 +153,30 @@ internal sealed partial class TodayStrip : Grid
 
     private void Fill()
     {
-        if (ActualWidth > 0)
-            fill.Show(Edges());
+        if (ActualWidth <= 0)
+            return;
+        Measure();
+        fill.Show(target);
     }
 
-    private double[] Edges()
+    private void Measure()
     {
         var cells = Cells ?? [];
-        return BarSweep.StripEdges([.. cells.Select(c => Math.Max(0.001, c.Weight))], [.. cells.Select(c => c.Parts.Select(p => p.Weight).ToArray())], ActualWidth, ColumnSpacing);
+        target = BarSweep.StripEdges([.. cells.Select(c => Math.Max(0.001, c.Weight))], [.. cells.Select(c => c.Parts.Select(p => p.Weight).ToArray())], ActualWidth, ColumnSpacing);
+        var gap = ColumnSpacing / ActualWidth;
+        cellBounds = new (int, double, double)[cells.Count];
+        for (int i = 0, first = 0; i < cells.Count; first += cells[i].Parts.Count + 1, i++)
+            cellBounds[i] = (first, first == 0 ? 0 : target[first - 1], i < cells.Count - 1 ? target[first + cells[i].Parts.Count] - gap : 1);
     }
 
     /// <summary>Each part's column takes its stretch of the moving edges, cut to its cell.</summary>
     private void Apply(double[] edges)
     {
-        // A strip without width (its window closing) has nothing to draw while the last frames of a fill still arrive.
-        var target = Edges();
-        if (target.Length != edges.Length)
+        if (edges.Length != target.Length)
             return;
-        var cells = Cells ?? [];
-        var gap = ActualWidth > 0 ? ColumnSpacing / ActualWidth : 0;
         foreach (var (column, _, cell, part) in partColumns)
         {
-            var first = cells.Take(cell).Sum(c => c.Parts.Count + 1);
-            var cellLeft = first == 0 ? 0 : target[first - 1];
-            var filler = first + cells[cell].Parts.Count;
-            var cellRight = cell < cells.Count - 1 ? target[filler] - gap : 1;
+            var (first, cellLeft, cellRight) = cellBounds[cell];
             var k = first + part;
             var left = Math.Max(k == 0 ? 0 : edges[k - 1], cellLeft);
             var right = Math.Min(edges[k], cellRight);
@@ -150,6 +189,7 @@ internal sealed partial class TodayStrip : Grid
         foreach (var (column, weight, _, _) in partColumns)
             column.Width = new GridLength(weight, GridUnitType.Star);
     }
+
 
     private void Rebuild()
     {
@@ -252,14 +292,17 @@ internal sealed partial class PeriodBar : Canvas
     private readonly List<(FrameworkElement Rect, double Left, double Width, int Part)> painted = [];
     private double[] edges = [];
     private readonly BarFill fill;
+    /// <summary>Whether the bar has a width; the first width after none fills it, later ones keep the fill where it ends.</summary>
+    private bool laidOut;
     public static readonly DependencyProperty VisualProperty = DependencyProperty.Register(nameof(Visual), typeof(CardVisual), typeof(PeriodBar), new PropertyMetadata(null, (d, _) => ((PeriodBar)d).Show(true)));
 
     public PeriodBar()
     {
         Height = 20;
         fill = new BarFill(Apply, Finish);
-        // A resize redraws the bar where its fill ends; the first size fills it from empty.
-        SizeChanged += (_, _) => Show(!fill.HasShown);
+        // A resize during a fill lets the fill go on to the new places; otherwise it redraws the bar where the fill ended.
+        SizeChanged += (_, _) => Show(!laidOut || fill.IsRunning);
+        Unloaded += (_, _) => fill.Stop();
     }
 
     public CardVisual? Visual { get => (CardVisual?)GetValue(VisualProperty); set => SetValue(VisualProperty, value); }
@@ -274,7 +317,12 @@ internal sealed partial class PeriodBar : Canvas
     {
         Rebuild();
         if (ActualWidth <= 0 || Visual is null)
+        {
+            fill.Stop();
+            laidOut = false;
             return;
+        }
+        laidOut = true;
         if (move)
             fill.Show(edges);
         else
@@ -283,6 +331,8 @@ internal sealed partial class PeriodBar : Canvas
 
     private void Apply(double[] shown)
     {
+        if (shown.Length != edges.Length)
+            return;
         foreach (var (rect, _, _, part) in painted)
         {
             var left = part == 0 ? 0 : shown[part - 1];

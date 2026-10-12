@@ -136,16 +136,24 @@ public sealed class BarSweepTests
     [Fact]
     public void PeriodBarEdgesFillTheTrackBetweenSegments()
     {
-        // Left mode mirrors the bar: the track shows before and after the painted parts.
+        // Left mode mirrors the bar: the track shows before the painted parts. The fill ends at the last painted edge, so
+        // its ease-out shows on paint, not on the empty track after it.
         var (edges, parts) = BarSweep.BarEdges([(30, 20), (50, 10)]);
-        AssertEdges([0.3, 0.5, 0.6, 1], edges);
+        AssertEdges([0.3, 0.5, 0.6], edges);
         Assert.Equal([1, 2], parts);
+        var (used, usedParts) = BarSweep.BarEdges([(0, 20)]);
+        AssertEdges([0.2], used);
+        Assert.Equal([0], usedParts);
         var (full, fullParts) = BarSweep.BarEdges([(0, 40), (40, 60)]);
         AssertEdges([0.4, 1], full);
         Assert.Equal([0, 1], fullParts);
         var (none, noParts) = BarSweep.BarEdges([]);
-        AssertEdges([1], none);
+        Assert.Empty(none);
         Assert.Empty(noParts);
+        // A 20 % bar fills in 20 % of the full time, easing out on its painted edge.
+        var sweep = new BarSweep([], used);
+        Assert.Equal(0.2 * 450, sweep.Duration, Tolerance);
+        Assert.True(sweep.At(sweep.Duration)[0] - sweep.At(sweep.Duration - 1)[0] < 0.2 / 90 / 10);
     }
 
     private static void AssertEdges(double[] expected, double[] actual)

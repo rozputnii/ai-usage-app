@@ -36,6 +36,9 @@ internal sealed partial class LedgerTrayWindow : Window
     private bool closing;
     /// <summary>T-061 R-04: the rows changed while the miniature was hidden; it rebuilds once before it is shown.</summary>
     private bool stale = true;
+    /// <summary>Each row's today strip by account, and the edges the strips showed before the last rebuild.</summary>
+    private readonly Dictionary<string, TodayStrip> strips = [];
+    private Dictionary<string, double[]> shownEdges = [];
 
     public LedgerTrayWindow(LedgerTrayViewModel tray, Action<string> openAccount)
     {
@@ -134,6 +137,9 @@ internal sealed partial class LedgerTrayWindow : Window
         peakText.Text = tray.Peak?.Text ?? string.Empty;
         ToolTipService.SetToolTip(peakChip, tray.Peak is { } peak ? LedgerTheme.Tip(peak.Tip) : null);
         AutomationProperties.SetName(peakChip, tray.Peak?.AccessibleName ?? string.Empty);
+        // Every change rebuilds the rows; each new strip goes on from the edges its account's strip showed (R-02).
+        shownEdges = strips.Where(pair => pair.Value.ShownEdges is not null).ToDictionary(pair => pair.Key, pair => pair.Value.ShownEdges!);
+        strips.Clear();
         rows.Children.Clear();
         if (tray.IsEmpty)
         {
@@ -162,6 +168,12 @@ internal sealed partial class LedgerTrayWindow : Window
         if (row.Strip is { } strip)
         {
             var body = StripBody(strip);
+            if (body is TodayStrip today)
+            {
+                strips[row.AccountId] = today;
+                if (shownEdges.TryGetValue(row.AccountId, out var edges))
+                    today.ContinueFill(edges);
+            }
             body.VerticalAlignment = VerticalAlignment.Center;
             body.Opacity = strip.Opacity;
             ToolTipService.SetToolTip(body, LedgerTheme.Tip(strip.Tip));

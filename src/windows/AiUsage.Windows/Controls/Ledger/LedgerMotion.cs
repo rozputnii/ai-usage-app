@@ -16,8 +16,8 @@ internal static class LedgerMotion
     public const int Panel = 250;
     public const int Drag = 200;
 
-    /// <summary>The one easing curve.</summary>
-    public static double Ease(double progress) => 1 - (1 - progress) * (1 - progress);
+    /// <summary>The one easing curve; storyboards use the same quadratic ease-out.</summary>
+    public static double Ease(double progress) => Features.Ledger.BarSweep.Ease(progress);
 
     public static void FadeIn(FrameworkElement element, int milliseconds)
     {

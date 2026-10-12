@@ -16,8 +16,8 @@ Branch `run` from `main` at `041919c`. Times are local, 2026-10-12.
 | Card editing smokes (`*CardEditingSmoke*`) | PASS 4/4, twice: rename, drag (now also checks the settle), tooltips, and the new `UsageBarsFillToTheirLayout` |
 | `UsageBarsFillToTheirLayout` repeated | PASS 5/5 consecutive runs after the comparison tolerance below |
 | Window-size smoke (`*SqueezedWindowKeepsTheTitleRowClearOfTheCaptionButtons*`) | PASS 1/1 with the wider title-row gaps |
-| C9 Package build | PENDING |
-| UI smoke suite (`-method "*"`) | PENDING |
+| C9 Package build | BLOCKED on this host: the latest Visual Studio Build Tools MSBuild that `Build-Package.ps1` selects has no .NET SDK resolver (`Could not resolve SDK "Microsoft.NET.Sdk"`; with `MSBuildSDKsPath` set it then cannot resolve `Microsoft.NET.SDK.WorkloadAutoImportPropsLocator`). Installing the missing component is a host install, not done. Supplementary, not C9: the same packaging properties through `dotnet msbuild` built an unsigned `AiUsage.Windows_2026.10.1203.0_x64.msix` (exit 0; one warning that `mspdbcmf.exe` is missing, so no symbols package) |
+| UI smoke suite (`-method "*"`) | 64 of 65 run cases PASS, 39 explicit audit cases not run. The one FAIL, `WorkBudgetPopoverShowsCreditsInDollarsAndSetsToday` (`LedgerActivationSmoke.cs:102`: the Copilot popover does not reopen after Save), fails the same way against the base commit `041919c` built in a temporary worktree, so it predates this change |
 | C2 Document validation | PENDING |
 | C6 Diff check | PENDING |
 

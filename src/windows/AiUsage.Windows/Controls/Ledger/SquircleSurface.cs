@@ -82,6 +82,9 @@ internal sealed partial class SquircleSurface : Grid
         layer.Margin = new Thickness(-Padding.Left, -Padding.Top, 0, 0);
         shape.StrokeThickness = Stroke is null ? 0 : StrokeThickness;
         shape.Data = Geometry(ActualWidth, ActualHeight, Radius, Stroke is null ? 0 : StrokeThickness / 2);
+        // A lifted card that changes size keeps its shadow under it.
+        if (shadowVisual is not null)
+            shadowVisual.Size = new Vector2((float)ActualWidth, (float)ActualHeight);
     }
 
     /// <summary>A rectangle with superellipse corners, inset by half the stroke so the border stays inside the bounds.</summary>

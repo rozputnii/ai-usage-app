@@ -1,8 +1,8 @@
 namespace AiUsage.Features.Ledger;
 
 /// <summary>
-/// How a usage bar fills (owner picks 2026-10-11). A bar is a row of consecutive parts from 0 to 1 of its width, painted
-/// parts and the track or gaps between them, given by the parts' right edges. The edges move from where they were shown
+/// How a usage bar fills (owner picks 2026-10-11). A bar is a row of consecutive parts from its left end, painted parts
+/// and the track or gaps before and between them, given by the parts' right edges as fractions of its width. The edges move from where they were shown
 /// to their new places one after another, left to right, at one speed, so the bar reads as one strip and every part
 /// grows from its left edge. An edge that another one passes is pushed ahead of it. A full bar takes 450 ms; the last
 /// move takes twice its linear time and slows to a stop, so it starts at the same speed.
@@ -64,7 +64,7 @@ internal sealed class BarSweep
             else
             {
                 var p = (milliseconds - begin[k]) / length[k];
-                edges[k] = start[k] + (to[k] - start[k]) * (k == last ? 1 - (1 - p) * (1 - p) : p);
+                edges[k] = start[k] + (to[k] - start[k]) * (k == last ? Ease(p) : p);
             }
             previous = edges[k];
         }
@@ -99,7 +99,13 @@ internal sealed class BarSweep
         return [.. edges];
     }
 
-    /// <summary>A period bar's edges from its segments in percent, with the track between them; Parts maps each segment to its part.</summary>
+    /// <summary>The app's one easing curve, a quadratic ease-out (<c>LedgerMotion.Ease</c>).</summary>
+    public static double Ease(double progress) => 1 - (1 - progress) * (1 - progress);
+
+    /// <summary>
+    /// A period bar's edges from its segments in percent, with the track before and between them; Parts maps each segment
+    /// to its part.
+    /// </summary>
     public static (double[] Edges, int[] Parts) BarEdges(IReadOnlyList<(double Left, double Width)> segments)
     {
         var edges = new List<double>();
@@ -114,8 +120,7 @@ internal sealed class BarSweep
             parts[i] = edges.Count;
             edges.Add(cursor);
         }
-        if (edges.Count == 0 || cursor < 1 - Epsilon)
-            edges.Add(1);
+        // The track after the last painted part does not move, so the fill ends (and eases out) on paint.
         return ([.. edges], parts);
     }
 }
