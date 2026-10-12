@@ -51,7 +51,7 @@ internal static class AntigravityHttp
     internal static string ClientIdentity =>
         $"antigravity/hub/{Version} (aidev_client; os_type=darwin; arch=arm64; cl=963137146)";
     internal const string VersionVariable = "AIU_ANTIGRAVITY_CLIENT_VERSION";
-    private const string DefaultVersion = "2.8.0";
+    private const string DefaultVersion = "2.19.1";
     private static string Version =>
         Environment.GetEnvironmentVariable(VersionVariable) is { Length: > 0 and <= 32 } version &&
         version.All(character => char.IsAsciiDigit(character) || character == '.') ? version : DefaultVersion;

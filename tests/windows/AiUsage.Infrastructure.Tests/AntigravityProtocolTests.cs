@@ -208,13 +208,16 @@ public sealed class AntigravityProtocolTests
         var original = Environment.GetEnvironmentVariable(AntigravityHttp.VersionVariable);
         try
         {
+            // OMP v18.9.0 getAntigravityUserAgent with DEFAULT_ANTIGRAVITY_VERSION (7f2a17e5cf).
+            Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, null);
+            Assert.Equal("antigravity/hub/2.19.1 (aidev_client; os_type=darwin; arch=arm64; cl=963137146)", AntigravityHttp.ClientIdentity);
             Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, "9.9.9");
             Assert.StartsWith("antigravity/hub/9.9.9 (", AntigravityHttp.ClientIdentity);
             // The version reaches a header, so a value that could inject one is refused.
             Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, "9.9.9\r\nX-Injected: 1");
-            Assert.StartsWith("antigravity/hub/2.8.0 (", AntigravityHttp.ClientIdentity);
+            Assert.StartsWith("antigravity/hub/2.19.1 (", AntigravityHttp.ClientIdentity);
             Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, "");
-            Assert.StartsWith("antigravity/hub/2.8.0 (", AntigravityHttp.ClientIdentity);
+            Assert.StartsWith("antigravity/hub/2.19.1 (", AntigravityHttp.ClientIdentity);
         }
         finally { Environment.SetEnvironmentVariable(AntigravityHttp.VersionVariable, original); }
     }

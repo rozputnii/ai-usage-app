@@ -34,7 +34,9 @@ internal sealed class ClaudeQuotaClient(HttpClient client, TimeProvider? timePro
                 lock (sync)
                 {
                     throttledIdentity = credentials.Identity;
-                    var delay = error.RetryAfter ?? transport.RetryAfterFallback;
+                    // The usage endpoint answers 429 with Retry-After 0 and stays limited for minutes, so a
+                    // zero delay is treated as absent rather than as permission to read again at once.
+                    var delay = error.RetryAfter is { } after && after > TimeSpan.Zero ? after : transport.RetryAfterFallback;
                     retryAt = ProviderTransport.RetryAt(clock, delay);
                 }
             }

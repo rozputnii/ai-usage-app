@@ -38,6 +38,29 @@ public sealed class ClaudeQuotaClientTests
         Assert.Equal(2, server.Calls);
     }
 
+    [Fact]
+    public async Task AZeroRetryAfterStillDefersTheNextReadForTheFallbackDelay()
+    {
+        // OMP 6d838a104b: the usage endpoint answers 429 with `retry-after: 0` and stays limited for minutes.
+        var clock = new CodexTestServer.Clock();
+        using var server = new CodexTestServer((_, _) =>
+        {
+            var response = CodexTestServer.Json("{}", HttpStatusCode.TooManyRequests);
+            response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.Zero);
+            return Task.FromResult(response);
+        });
+        using var http = new HttpClient(server);
+        var client = new ClaudeQuotaClient(http, clock);
+        var credentials = new ClaudeCredentials("synthetic-access", "synthetic-refresh", new("synthetic-account", "synthetic-org"), clock.GetUtcNow().AddHours(1));
+        await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
+        var deferred = await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.RateLimited, deferred.Kind);
+        Assert.Equal(1, server.Calls);
+        clock.Current = clock.Current.AddSeconds(61);
+        await Assert.ThrowsAsync<ProviderException>(() => client.GetQuotaAsync(credentials, TestContext.Current.CancellationToken));
+        Assert.Equal(2, server.Calls);
+    }
+
     [Theory]
     [InlineData("{\"unexpected\":\"synthetic-secret\"}")]
     [InlineData("not-json-synthetic-secret")]
