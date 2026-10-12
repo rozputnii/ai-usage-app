@@ -171,25 +171,25 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - open-questions: The definition of the accuracy percentage. Recommended: the share of measured windows whose own bounds agree with the pooled estimate, which directly measures how often the constant-cost assumption holds; the alternative is the relative tightness of the bounds. Whether the per-window figures are derived on demand from the stored reading series, which needs no new persistence, or kept as their own records.
 - registration-note: Owner proposed this on 2026-10-07 after the T-048 review noted that its bounds are guaranteed only while the window cost stays constant. Not selected for implementation yet.
 
-## T-NEW-2 - Codex credit-funded overage past a plan limit
+## T-068 - Codex credit-funded overage past a plan limit
 - goal: G-003
 - status: research-needed
 - depends_on: []
 - trigger: owner-selection
 - outcome: Research whether the card for a Codex plan window that reports `limit_reached` should say that paid credits still fund requests, as Codex itself keeps serving such an account. OMP v18.9.0 reads a new `credits.overage_limit_reached` field and treats the plan meter as serving when the plan limit is reached, credits exist or are unlimited, overage is not exhausted and `spend_control.reached` is not set. AI Usage reads `credits.has_credits`, `unlimited`, `balance` and `spend_control.reached` but not `overage_limit_reached`, and shows the plan window and the credit pool separately.
 - acceptance: (1) Official Codex source or documentation establishes `overage_limit_reached` and its scope (plan windows only, not additional meters such as Spark). (2) The field is parsed as an independent flag; absent means unknown. (3) A credit-funded state never changes a window's percentage or hides a reached plan limit. (4) Owner decides the presentation before any UI change.
-- source: OMP 5dfdbf879d, 089d08a9df, `packages/ai/src/usage/openai-codex.ts` `hasPlanCreditOverage`, `buildPlanMeterState`; review in docs/specs/T-NEW-omp-v18-9-0-review/verification.md
-- registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-NEW) as a new capability, not implemented. Not selected.
+- source: OMP 5dfdbf879d, 089d08a9df, `packages/ai/src/usage/openai-codex.ts` `hasPlanCreditOverage`, `buildPlanMeterState`; review in docs/specs/T-067-omp-v18-9-0-review/verification.md
+- registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-067) as a new capability, not implemented. Not selected.
 
-## T-NEW-3 - Claude saved rate-limit resets (read-only)
+## T-069 - Claude saved rate-limit resets (read-only)
 - goal: G-003
 - status: research-needed
 - depends_on: []
 - trigger: owner-selection
 - outcome: Research whether to show the count of saved Claude rate-limit resets that an account holds, as Codex already shows its available reset credits. OMP v18.9.0 reads two program blocks, `cedar_ember` and `juniper_tide`, from the usage payload, probes the usage route with queries such as `?cedar_ember=1&skip_spend=1` when they are null, resolves the organization, and can redeem a reset with POST `/api/organizations/{org}/reset_rate_limits`. AI Usage ignores both keys today.
 - acceptance: (1) Source evidence names each field, its unit and expiry, and whether the plain usage request already returns it, so no extra probe is needed; any extra request is justified separately. (2) Only a read-only inventory is in scope: redemption is a provider write and stays excluded unless the owner decides otherwise. (3) An absent or null block is unknown, never zero. (4) Owner decides the presentation before any UI change.
-- source: OMP 3d4d323009, e45b49c0d4, a834aa1b09, `packages/ai/src/usage/claude-reset.ts` `parseClaudeResetCreditsFromUsagePayload`, `listClaudeResetCredits`, `consumeClaudeResetCredit`; review in docs/specs/T-NEW-omp-v18-9-0-review/verification.md
-- registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-NEW) as a new capability, not implemented. Not selected.
+- source: OMP 3d4d323009, e45b49c0d4, a834aa1b09, `packages/ai/src/usage/claude-reset.ts` `parseClaudeResetCreditsFromUsagePayload`, `listClaudeResetCredits`, `consumeClaudeResetCredit`; review in docs/specs/T-067-omp-v18-9-0-review/verification.md
+- registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-067) as a new capability, not implemented. Not selected.
 
 ## Done index
 
@@ -243,7 +243,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-064 | Renew once after a usage 401 | done | G-003 | docs/specs/T-064-usage-401-renewal/verification.md |
 | T-065 | No "sync failed" for a routine rate limit | done | G-003 | docs/specs/T-065-rate-limit-mark/verification.md |
 | T-066 | Codex asks for sign-in after a refused renewal | done | G-003 | docs/specs/T-066-codex-intent-sign-in/verification.md |
-| T-NEW | Provider sources reviewed against OMP v18.9.0 | done | G-003 | docs/specs/T-NEW-omp-v18-9-0-review/verification.md |
+| T-067 | Provider sources reviewed against OMP v18.9.0 | done | G-003 | docs/specs/T-067-omp-v18-9-0-review/verification.md |
 
 ## Pending owner checks
 
@@ -269,7 +269,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-064 | When a provider rejects a usage request but the stored sign-in still renews, the account keeps refreshing without a new sign-in; a refused sign-in shows "Sign-in expired" with the Sign-in action at once | 2026-10-12 |
 | T-065 | A Claude account at a one-minute refresh interval no longer flashes "sync failed" on a single rate-limited refresh; a reading older than 15 minutes still shows it | 2026-10-12 |
 | T-066 | After a refused Codex renewal, a manual refresh and a relaunch still show "Sign-in expired" with the Sign-in action, and signing in again restores the account | 2026-10-12 |
-| T-NEW | A rate-limited Claude account reads normally again by itself with no second 429 within the same minute, even after a manual refresh; Antigravity still connects and reads both quota groups with the 2.19.1 client identity | 2026-10-12 |
+| T-067 | A rate-limited Claude account reads normally again by itself with no second 429 within the same minute, even after a manual refresh; Antigravity still connects and reads both quota groups with the 2.19.1 client identity | 2026-10-12 |
 
 ## Deferred clarifications, not forgotten
 
