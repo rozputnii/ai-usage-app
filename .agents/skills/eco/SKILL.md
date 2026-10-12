@@ -21,8 +21,10 @@ the role map is in [model costs](model-costs.md).
 - Write self-contained briefs: exact paths, values, acceptance items, commands, and the rule
   excerpts the worker needs, so it does not have to search the rule set for them. Excerpts
   never replace the reads a contract requires.
-- Ask for the contract's short report; full output goes to a log file. Read a log only on a
-  failure, and only its failing part.
+- Ask for the contract's short report; full output goes to a log file. On a failure, read only
+  the log's failing part. A reported PASS is a claim: before it counts as evidence at the
+  merge gate, confirm it yourself from the log's summary line (exit code, totals), never
+  from the report alone.
 - Run independent read-only subagents (exploration, check runs) in parallel. Parallel write
   workers follow CONTRIBUTING, Parallel work, unchanged.
 - One task per session; start a fresh session for the next task.
@@ -45,6 +47,11 @@ Outside a parallel run, the implementer works in the task's worktree on the task
 stops after its report (implementer contract, step 4). The primary then runs the review,
 numbering, records and merge under CONTRIBUTING, Git flow. In a parallel run the contract
 applies unchanged.
+
+The review a tier requires is the whole set in CONTRIBUTING, Risk tiers, never a part of it:
+the review brief tells the reviewer to run local `/code-review` on the diff (reviewer
+contract) and, for T3, `/security-review` where available. Do not run `/code-review` yourself
+as well; once per change meets the rule.
 
 ## Escalation
 
