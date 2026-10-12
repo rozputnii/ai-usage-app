@@ -28,7 +28,17 @@ records per CONTRIBUTING.
 > record it with its sources and a `checked_at` date in `docs/providers/peak-hours.md`.
 > The specification follows below.
 
-Defect key: D1-D6 of [micro-review RV1](micro-review.md#rv1---peak-hours-hint-8eaf1f7).
+Defect key (the real review of `8eaf1f7`, fixed in `9e0b115`; same as
+[micro-review RV1](micro-review.md#rv1---peak-hours-hint-8eaf1f7), copied here because the judge
+receives only this section):
+- D1 (Important) the spec's verification record is missing.
+- D2 (Important) the title-bar passthrough regions are not refreshed when the hint appears or
+  changes (`LedgerWindow.xaml.cs` property-changed handling has no `Peak` case).
+- D3 (Minor) the new AGENTS.md review rule is broader than the decision.
+- D4 (Minor) the tooltip writes the schedule as a separate literal instead of using the
+  schedule constants (`PeakHours.cs`).
+- D5 (Minor) evidence details in peak-hours.md.
+- D6 (Minor) layout nits in the tray header (vertical alignment).
 
 ## RP2 - repeated-failure diagnostics (T3, logging) {#rp2}
 
