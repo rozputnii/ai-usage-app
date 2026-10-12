@@ -27,7 +27,7 @@ run 38299182671) and, after the owner repaired the Build Tools components, local
 Real pairs so far: BL1 TIE, BL3 A, OMP A, UI A (E won or tied 1 of 4). Under the
 [decision rules](plan.md#decision-rules-fixed-before-running), E needs at least three quarters of
 the pairs; with S4d-S4f left it can reach at most 4 of 7, so the real-task outcome is decided:
-E (eco v2 as frozen in S3) does not pass. E saved 45-52% per pair (BL1 24%), but every loss was a
+E (eco v2 as frozen in S3) does not pass. E saved 43-52% per pair (BL1 24%), but every loss was a
 missed detail at Minor severity (a missed compatibility path, deviations from the brief), never
 a Major finding or a false PASS claim. By the early-stop rule the remaining real tasks run
 single-arm A while eco v2 is reworked, so S4d-S4f leave the experiment and become ordinary work.
