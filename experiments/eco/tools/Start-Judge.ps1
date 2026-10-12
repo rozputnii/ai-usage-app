@@ -27,12 +27,14 @@ function Get-Report([string] $run) {
     $raw = Get-Content (Join-Path $RunRoot "results\$run\claude.json") -Raw
     try { ($raw | ConvertFrom-Json).result } catch { $raw }
 }
-$runA = Get-Content (Join-Path $RunRoot "results\$RunA\run.json") -Raw | ConvertFrom-Json
-$runB = Get-Content (Join-Path $RunRoot "results\$RunB\run.json") -Raw | ConvertFrom-Json
-$base = $runA.base
-if ($runB.base -ne $base) { throw "The runs start from different bases ($base, $($runB.base)); they are not a pair." }
-if ($runA.account -ne $runB.account) {
-    Write-Warning "The runs used different accounts ($($runA.account), $($runB.account)); connectors and cache differ, so the pair's cost comparison is invalid (plan.md, Accounts)."
+# PowerShell names are case-insensitive: $runA would overwrite the [string] $RunA parameter and
+# leave .base and .account empty (every judge before S4b got a blank base; the guards never ran).
+$infoA = Get-Content (Join-Path $RunRoot "results\$RunA\run.json") -Raw | ConvertFrom-Json
+$infoB = Get-Content (Join-Path $RunRoot "results\$RunB\run.json") -Raw | ConvertFrom-Json
+$base = $infoA.base
+if ($infoB.base -ne $base) { throw "The runs start from different bases ($base, $($infoB.base)); they are not a pair." }
+if ($infoA.account -ne $infoB.account) {
+    Write-Warning "The runs used different accounts ($($infoA.account), $($infoB.account)); connectors and cache differ, so the pair's cost comparison is invalid (plan.md, Accounts)."
 }
 $id = 'j' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
 $dir = Join-Path $RunRoot "judgments\$id"

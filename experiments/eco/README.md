@@ -13,38 +13,30 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | S2 | done 2026-10-12 | micro-trials (runner, exploration, review, implementation) in [results/S2.md](results/S2.md) |
 | S3 | done 2026-10-12 | replays on account `main`, arm E frozen: [results/S3.md](results/S3.md) |
 | S4a | done 2026-10-12 | BL1 and BL3 pairs judged and merged: [results/S4a.md](results/S4a.md) |
-| S4b-S5 | waiting | see the plan |
+| S4b | done 2026-10-12 | OMP review pair judged and merged: [results/S4b.md](results/S4b.md) |
+| S4c-S5 | waiting | see the plan |
 
 ## Next action
 
-S4a is done (2026-10-12, [results/S4a.md](results/S4a.md)): BL1 TIE (E merged, `65f9d01`), BL3
-A better (A merged as T-064, `397c6cb`); $27.39 in all. The owner chose "Sign-in expired" for the
-Codex state after a refused renewal (2026-10-12; merged as T-066).
+S4b is done (2026-10-12, [results/S4b.md](results/S4b.md)): OMP review A better (medium); A merged
+as T-067 (`041919c`, with T-068 and T-069 as research-needed backlog items); $19.69 in all. E cost
+52% less but missed the Claude zero-Retry-After change on the manual-refresh path. The judge
+harness defect (blank base, guards never ran) is fixed in `tools/Start-Judge.ps1`.
 
-S4b has the owner's go (2026-10-12) and runs in a new operator session on account `main`, in this
-worktree (`C:\src\aiu-eco`, branch `exp/eco-roles`). One pair, A against the frozen E, of the
-[OMP review](tasks/real-omp-review.md#brief), arm A first:
-
-1. Base: current `main` (fetch first), the same commit for both arms; `-Brief
-   ..\tasks\real-omp-review.md#brief -Task omp -TimeoutMinutes 240`. Arm E: `-Arm E -Effort medium
-   -AppendPromptFile ..\arms\E-eco.md -AgentsFile ..\arms\E-agents.json`. The runs clone OMP from
-   GitHub themselves (the brief says so); that is the only network use.
-2. One judge (`Start-Judge.ps1 -Brief ..\tasks\real-omp-review.md#brief`), then the operator
-   merges the better result into `main` under CONTRIBUTING: T3 (sign-in, refresh and quota
-   contracts), so the run's focused review and `/security-review` are required; never merge a
-   result with a Major finding. Merge fresh `main` first; the Codex re-sign-in state (T-066) and
-   the Claude "sync failed" fix (T-065) are already in `main` (`23e48e0`).
-3. Gate: estimate about $40-70 for the pair and the judge (BL3 cost $22.56 for both arms). Read
-   `/usage` before each run; start a run only when the five-hour window has $30 free and the week
-   has at least 6% left. If not, wait for the window, or for the weekly reset (2026-10-13 12:00).
-4. Record `results/S4b.md` like `results/S4a.md`, update this section and the status table, and
-   push `origin/exp/eco-roles`.
+S4c ([UI/UX and motion](tasks/real-ui-motion.md#brief)) is next and starts only on the owner's go,
+as S4a and S4b did. Same procedure as S4b: base current `main`, arm A first, then arm E with
+`-Effort medium -AppendPromptFile ..\arms\E-eco.md -AgentsFile ..\arms\E-agents.json`, one
+judge, merge the better result under CONTRIBUTING (C8 is required: UI change). The week was at 89%
+on 2026-10-12 18:04 and resets 2026-10-13 12:00; apply the gate before each run (five-hour window
+$30 free, at least 6% of the week left), and estimate S4c from S4a-S4b (about $20-35 a pair).
 
 Operator notes: set `$env:AIU_EXP_ACCOUNT='main'` and `$env:DISABLE_AUTOUPDATER='1'` in every
 command that starts a run; launch batches as a detached process (`Start-Process powershell`), not
 as a tool background task (2-hour limit), and watch the UTF-8 batch log, not the redirected output;
 close any installed AI Usage app before a run (C8); write files with `[IO.File]` and absolute paths
-(relative paths resolve against the process directory). BL2 is out of S4a (owner, 2026-10-12).
+(relative paths resolve against the process directory); watch a batch log with a polling
+reader (`wc -l` and `sed -n` every 30 s), never `tail -f`, which locks the file against the
+batch's writes (S4b). BL2 is out of S4a (owner, 2026-10-12).
 Both eco-skill defects (the unread PASS from S2, the missing `/code-review` from S3) are fixed in `main`
 (`504526a`, merged 2026-10-12 on the owner's request; T3 review APPROVE, C2/C3/C6 PASS).
 
