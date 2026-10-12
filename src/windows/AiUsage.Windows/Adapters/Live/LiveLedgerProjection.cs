@@ -50,9 +50,11 @@ internal static class LiveLedgerProjection
         var readingAt = session.Quota?.FetchedAt;
         // T-055 R-13: a reading stays current within the continuity tolerance of the refresh interval.
         var stale = readingAt is null || now - readingAt > (tolerance ?? ReadingContinuity.Floor);
+        // A rate-limited refresh is routine while the reading is still current; it counts as a sync failure once the reading is stale.
+        var failed = session.Failure is not null && (stale || session.Failure != ProviderFailureKind.RateLimited);
         var health = !account.Connected ? AccountHealth.SignedOut : session.Status == ProviderSessionStatus.ReauthenticationRequired
             ? AccountHealth.SignInExpired : session.Status == ProviderSessionStatus.RecoveryRequired ? AccountHealth.ProviderError
-            : session.Failure is not null ? stale ? AccountHealth.SyncFailedStale : AccountHealth.SyncFailedFresh
+            : failed ? stale ? AccountHealth.SyncFailedStale : AccountHealth.SyncFailedFresh
             : readingAt is null ? AccountHealth.ProviderError : AccountHealth.Ok;
         var normalized = AccountLimits(limits).Select(l => l with { Series = new(id, l.Facts.Key) }).ToArray();
         var hasSubscriptionWindows = normalized.Any(l => l.Facts.Kind == LimitKind.PercentWindow);
