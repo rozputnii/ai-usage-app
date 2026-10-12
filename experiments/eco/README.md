@@ -1,4 +1,4 @@
-# Eco experiment
+﻿# Eco experiment
 
 Measures economy mode and subagent roles on real and replayed work. Start with the
 [plan](plan.md). This branch never merges into `main`.
@@ -11,7 +11,8 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | S4-local | done 2026-10-11 | [installed-app log digest](results/S4-local-log-digest.md); nothing else needs the current PC |
 | S1 | done 2026-10-11 | new PC, account `second`: self-tests, calibration, pilot in [results/S1.md](results/S1.md) |
 | S2 | done 2026-10-12 | micro-trials (runner, exploration, review, implementation) in [results/S2.md](results/S2.md) |
-| S3-S5 | waiting | see the plan |
+| S3 | running | replays on account `main`: [results/S3.md](results/S3.md) |
+| S4-S5 | waiting | see the plan |
 
 ## Next action
 
@@ -23,9 +24,11 @@ holds about $18 ([S2 calibration](results/S2.md#summary)); start only when the r
 limit covers the estimate plus 10%. Run in batches that fit the current window.
 
 Account switch (owner decision 2026-10-12): S3 and later run on account `main` (Max x5, $100) on the
-same PC; S1 and S2 ran on `second` ($20). Limits are taken as five times `second`'s until
-measured: one weekly percent about $11, a five-hour window about $90. Recalibrate from the first
-S3 batch, and compare runs only within one account. The environment on `main` was checked and
+same PC; S1 and S2 ran on `second` ($20). Measured on `main` over S3 batch 1
+([results/S3.md](results/S3.md#batch-1-2026-10-12-1131-1217)): one session percent about $1.37
+(a five-hour window about $137, not the assumed $90); one weekly percent $11-16 (integer
+rounding allows up to $33), so the gate keeps $11 until more readings accumulate. Compare runs
+only within one account. The environment on `main` was checked and
 found equivalent on 2026-10-12 ([results/S3.md](results/S3.md#account-switch-main)).
 
 ## Layout
