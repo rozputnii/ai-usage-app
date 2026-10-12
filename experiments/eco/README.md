@@ -14,21 +14,26 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | S3 | done 2026-10-12 | replays on account `main`, arm E frozen: [results/S3.md](results/S3.md) |
 | S4a | done 2026-10-12 | BL1 and BL3 pairs judged and merged: [results/S4a.md](results/S4a.md) |
 | S4b | done 2026-10-12 | OMP review pair judged and merged: [results/S4b.md](results/S4b.md) |
-| S4c-S5 | waiting | see the plan |
+| S4c | judged 2026-10-12; merge waits on C9 | UI motion pair judged, A on its branch: [results/S4c.md](results/S4c.md) |
+| S5 | waiting | see the plan |
 
 ## Next action
 
-S4b is done (2026-10-12, [results/S4b.md](results/S4b.md)): OMP review A better (medium); A merged
-as T-067 (`041919c`, with T-068 and T-069 as research-needed backlog items); $19.69 in all. E cost
-52% less but missed the Claude zero-Retry-After change on the manual-refresh path. The judge
-harness defect (blank base, guards never ran) is fixed in `tools/Start-Judge.ps1`.
+S4c is judged (2026-10-12, [results/S4c.md](results/S4c.md)): UI motion A better (medium); $59.21
+in all (runs $55.61, judge $3.60), above the $20-35 estimate. E cost 48% less with four Minor
+deviations from the brief. A is numbered T-070 / R-224 on `origin/feat/motion-spacing-polish`
+(`a527036`, worktree `C:\src\aiu-motion`) with C2-C8 and the card smokes PASS on the merged tree
+and `/code-review` clean of Major findings, but **not merged: C9 BLOCKED** (the host's Build
+Tools MSBuild has no .NET SDK resolver; C9 is not a smoke, so the gate holds).
 
-S4c ([UI/UX and motion](tasks/real-ui-motion.md#brief)) is next and starts only on the owner's go,
-as S4a and S4b did. Same procedure as S4b: base current `main`, arm A first, then arm E with
-`-Effort medium -AppendPromptFile ..\arms\E-eco.md -AgentsFile ..\arms\E-agents.json`, one
-judge, merge the better result under CONTRIBUTING (C8 is required: UI change). The week was at 89%
-on 2026-10-12 18:04 and resets 2026-10-13 12:00; apply the gate before each run (five-hour window
-$30 free, at least 6% of the week left), and estimate S4c from S4a-S4b (about $20-35 a pair).
+Next action: the owner chooses how C9 runs. (a) The operator dispatches `validation.yml` on
+`feat/motion-spacing-polish` (its `windows-package` job runs `Build-Package.ps1`; `preview` runs
+only on `main`); the auto-mode classifier refused that as a CI bypass, so it needs the owner's
+explicit go. (b) The owner repairs the Build Tools .NET SDK resolver component (host install),
+then the operator runs C9 locally. On C9 PASS: record it in the T-070 verification record (Merge
+table, AC-08 to PASS), rerun C3, fast-forward `main` to the branch (if `main` moved, merge it in
+and rerun C3 and C8), push, confirm in `origin/main`, and mark S4c done here. S5 follows on the
+owner's go. The week was at 93% on 2026-10-12 20:25 and resets 2026-10-13 12:00.
 
 Operator notes: set `$env:AIU_EXP_ACCOUNT='main'` and `$env:DISABLE_AUTOUPDATER='1'` in every
 command that starts a run; launch batches as a detached process (`Start-Process powershell`), not
