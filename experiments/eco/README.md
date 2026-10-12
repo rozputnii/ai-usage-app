@@ -1,4 +1,4 @@
-﻿# Eco experiment
+# Eco experiment
 
 Measures economy mode and subagent roles on real and replayed work. Start with the
 [plan](plan.md). This branch never merges into `main`.
