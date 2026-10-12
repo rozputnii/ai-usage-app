@@ -16,7 +16,9 @@ Base `0f25e49`. Held-out tests: `PeakHoursTests.cs` from `8eaf1f7` (all ten case
 operator adapts only namespaces or member names the brief left open, and records any change).
 
 Brief: the approved specification as the owner and the primary wrote it before
-implementation, appended with `-Appendix tasks/rp1-spec.md`. The run adds it as
+implementation (as of `8eaf1f7`, status implementing), appended with
+`-Appendix tasks/rp1-spec.md`. The appendix holds only the fenced specification: Start-Run
+appends it verbatim, so an operator note there would reach the run. The run adds it as
 `docs/specs/T-NEW-peak-hours-hint/spec.md` (status implementing), implements it, and keeps
 records per CONTRIBUTING.
 

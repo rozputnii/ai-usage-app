@@ -1,7 +1,3 @@
-# RP1 specification (from 8eaf1f7, status implementing)
-
-Appendix for replay RP1: `Start-Run.ps1 -Brief tasks/replays.md#rp1 -Appendix tasks/rp1-spec.md`.
-
 ```markdown
 ---
 id: T-NEW
