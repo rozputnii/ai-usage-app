@@ -12,24 +12,17 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 | S1 | done 2026-10-11 | new PC, account `second`: self-tests, calibration, pilot in [results/S1.md](results/S1.md) |
 | S2 | done 2026-10-12 | micro-trials (runner, exploration, review, implementation) in [results/S2.md](results/S2.md) |
 | S3 | done 2026-10-12 | replays on account `main`, arm E frozen: [results/S3.md](results/S3.md) |
-| S4-S5 | waiting | see the plan |
+| S4a | done 2026-10-12 | BL1 and BL3 pairs judged and merged: [results/S4a.md](results/S4a.md) |
+| S4b-S5 | waiting | see the plan |
 
 ## Next action
 
-S4a has the owner's go (2026-10-12) and runs in a new operator session on account `main`, all of it
-before the weekly reset on 2026-10-13 12:00 (owner: finish within the 14% left, about $190). Two
-pairs, A against the frozen E, in this order; every pair's first run before anything else:
-
-1. BL1 ([CR-T-002-01](tasks/real-backlog.md#bl1), T0, about $2 a pair) and BL3
-   ([CR-T-003-03](tasks/real-backlog.md#bl3), T3, about $20-25 a pair, with
-   `-Appendix ..\results\S4-local-log-digest.md`). Base: current `main`, the same commit for both
-   arms. Arm E: `-Arm E -Effort medium -AppendPromptFile ..\arms\E-eco.md -AgentsFile ..\arms\E-agents.json`.
-2. One judge per pair (`Start-Judge.ps1 -Brief ..\tasks\real-backlog.md#blN`), then the operator
-   merges the better result into `main` under CONTRIBUTING (a T3 merge needs the run's focused
-   review; never merge a result with a Major finding).
-3. Gate: about $35-45 in all. Read `/usage` with `claude -p "/usage"` (a local command, $0) before
-   each run; one weekly percent is about $13.5 and a five-hour window about $100. Start BL3's arm
-   A only when the window has $20 free.
+S4a is done (2026-10-12, [results/S4a.md](results/S4a.md)): BL1 TIE (E merged, `65f9d01`), BL3
+A better (A merged as T-064, `397c6cb`); $27.39 in all. Next: S4b ([OMP review](tasks/real-omp-review.md))
+needs the owner's go and a budget; the weekly limit on `main` was at 88% at 16:11 and resets on
+2026-10-13 12:00. Two owner items from BL3 are open: the post-deploy live check of T-064, and the
+Codex "Provider error" after a refused renewal (arm A recommends "Sign-in expired"; recorded in the
+T-064 spec).
 
 Operator notes: set `$env:AIU_EXP_ACCOUNT='main'` and `$env:DISABLE_AUTOUPDATER='1'` in every
 command that starts a run; launch batches as a detached process (`Start-Process powershell`), not
