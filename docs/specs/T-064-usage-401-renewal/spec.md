@@ -54,6 +54,7 @@ approval_basis: owner decision, 2026-10-12, selecting backlog finding CR-T-003-0
 
 - Codex after a refused renewal: its intact renewal journal loads as `RecoveryRequired` on the
   next manual refresh or launch (provider error, no Sign-in action). Changing that is a change
-  to the journal's recovery rule and is left to the owner.
+  to the journal's recovery rule and is left to the owner. Resolved by T-NEW (owner,
+  2026-10-12).
 - Claude's rule that any failed renewal, including a network failure, needs a new sign-in.
 - Live provider behavior, which is a post-deploy owner check.

@@ -18,6 +18,12 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
     private byte[]? externalUpdateIntent;
 
     /// <summary>
+    /// True after a load stopped at an intact intent of the committed grant: its renewal was refused,
+    /// lost or interrupted, and only an explicit fresh authorization may supersede it.
+    /// </summary>
+    internal bool IntentAwaitsFreshAuthorization { get; private set; }
+
+    /// <summary>
     /// Before a rotating external update, durably make the predecessor non-replayable.
     /// This exclusive lease may replace its exact intent with a returned successor;
     /// a later explicit fresh authorization may adopt a valid, revision-bound intent.
@@ -196,8 +202,13 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                 {
                     // Only explicit fresh authorization may supersede an intact intent.
                     // The predecessor must never be used for another rotating exchange.
-                    if (!forFreshAuthorization || committed is null || journal.ParentRevision != Revision(committed))
+                    if (committed is null || journal.ParentRevision != Revision(committed))
                         throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+                    if (!forFreshAuthorization)
+                    {
+                        IntentAwaitsFreshAuthorization = true;
+                        throw new ProviderException(ProviderFailureKind.RecoveryRequired);
+                    }
                     return (journal, committed);
                 }
                 return (journal, Decode(journal.Ciphertext));

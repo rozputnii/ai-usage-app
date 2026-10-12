@@ -61,7 +61,7 @@ public sealed class CodexSessionTests : IDisposable
         {
             Assert.NotEqual(ProviderSessionStatus.QuotaAvailable, result.Status);
             Assert.Equal(ProviderFailureKind.RecoveryRequired, Assert.Throws<ProviderException>(() => reopened.Read()).Kind);
-            Assert.Equal(ProviderSessionStatus.RecoveryRequired, (await session.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+            Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, (await session.ResumeAsync(TestContext.Current.CancellationToken)).Status);
             Assert.Equal(1, server.Calls);
         }
     }
@@ -104,7 +104,7 @@ public sealed class CodexSessionTests : IDisposable
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() => session.ResumeAsync(cancellation.Token));
         }
         using var relaunched = Session(server, out _);
-        Assert.Equal(ProviderSessionStatus.RecoveryRequired, (await relaunched.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, (await relaunched.ResumeAsync(TestContext.Current.CancellationToken)).Status);
         Assert.Equal(1, server.Calls);
     }
 
@@ -241,6 +241,28 @@ public sealed class CodexSessionTests : IDisposable
         Assert.Null(state.Quota);
         Assert.True(File.Exists(Path.Combine(root, "codex.grant")));
         Assert.Equal(ProviderFailureKind.RecoveryRequired, Assert.Throws<ProviderException>(() => store.Read()).Kind);
+    }
+
+    [Fact]
+    public async Task ARefusedGrantStillAsksForANewSignInAfterARelaunchWithoutTraffic()
+    {
+        using var server = new CodexTestServer((_, _) => Task.FromResult(
+            CodexTestServer.Json("""{"error":"invalid_grant"}""", HttpStatusCode.BadRequest)));
+        using (var first = Session(server, out var store))
+        {
+            store.Write(new CodexStoredGrant("synthetic-workspace", "synthetic-refused"));
+            Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, (await first.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+            // The next manual refresh in the same process reads the intact renewal intent.
+            var again = await first.RefreshAsync(TestContext.Current.CancellationToken);
+            Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, again.Status);
+            Assert.Equal(ProviderFailureKind.AuthenticationRequired, again.Failure);
+        }
+        using var relaunched = Session(server, out _);
+        var cached = await relaunched.ReadCachedStateAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, cached.Status);
+        Assert.True(relaunched.HasStoredGrant);
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, (await relaunched.ResumeAsync(TestContext.Current.CancellationToken)).Status);
+        Assert.Equal(1, server.Calls);
     }
 
     [Fact]

@@ -205,10 +205,11 @@ public sealed class CodexSession : IProviderSession, IDisposable
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        ProviderStateLease<CodexGrantStore.StoredRecord>? acquired = null;
         try
         {
             State = ProviderSessionState.Working;
-            await using var lease = await store.AcquireAsync(cancellationToken).ConfigureAwait(false);
+            await using var lease = acquired = await store.AcquireAsync(cancellationToken).ConfigureAwait(false);
             if (load)
             {
                 var loaded = await lease.LoadAsync(cancellationToken, forFreshAuthorization).ConfigureAwait(false);
@@ -236,6 +237,16 @@ public sealed class CodexSession : IProviderSession, IDisposable
             diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             return State = Stale(
                 credentials is null ? ProviderSessionStatus.NotConnected : ProviderSessionStatus.QuotaUnavailable, error.Kind);
+        }
+        catch (ProviderException error) when (acquired?.IntentAwaitsFreshAuthorization == true)
+        {
+            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
+            // The stored grant's renewal was refused or its outcome lost; it is never replayed, and
+            // only a new sign-in, which may supersede the intact intent, makes the account usable again.
+            credentials?.Dispose();
+            credentials = null;
+            HasStoredGrant = true;
+            return State = Stale(ProviderSessionStatus.ReauthenticationRequired, ProviderFailureKind.AuthenticationRequired);
         }
         catch (ProviderException error)
         {
