@@ -126,7 +126,10 @@ internal sealed partial class TodayStrip : Grid
     /// <summary>Each part's column takes its stretch of the moving edges, cut to its cell.</summary>
     private void Apply(double[] edges)
     {
+        // A strip without width (its window closing) has nothing to draw while the last frames of a fill still arrive.
         var target = Edges();
+        if (target.Length != edges.Length)
+            return;
         var cells = Cells ?? [];
         var gap = ActualWidth > 0 ? ColumnSpacing / ActualWidth : 0;
         foreach (var (column, _, cell, part) in partColumns)
