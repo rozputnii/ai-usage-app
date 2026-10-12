@@ -19,7 +19,8 @@ Measures economy mode and subagent roles on real and replayed work. Start with t
 S4a (real tasks, arm A against the frozen arm E on account `main`) needs the owner's go. Arm E and the
 S3 evidence behind it are in [results/S3.md](results/S3.md#arm-e-frozen-2026-10-12). Before S4a, the operator
 proposed one E validation run on RP1 and RP2 (about $12) to check the tuning; run it only on the owner's
-answer. Both eco-skill defects (the unread PASS from S2, the missing `/code-review` from S3) are fixed and reviewed on branch`r`n`eco-skill-review-evidence` (`504526a`, T3 review APPROVE, C2/C3/C6 PASS) and held back from `main` by the`r`nowner (2026-10-12): it goes into `main` with the S5 eco v2 change, or earlier if the owner asks.
+answer. Both eco-skill defects (the unread PASS from S2, the missing `/code-review` from S3) are fixed in `main`
+(`504526a`, merged 2026-10-12 on the owner's request; T3 review APPROVE, C2/C3/C6 PASS).
 
 Account switch (owner decision 2026-10-12): S3 and later run on account `main` (Max x5, $100) on the
 same PC; S1 and S2 ran on `second` ($20). Measured on `main` over S3 batch 1
