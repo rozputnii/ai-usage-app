@@ -43,14 +43,14 @@ more: the green fill against the dark hatch is about 140 apart.
 | AC-05 | PASS | `DraggingTheGripReordersAccounts`: the open rename is saved, the drop reorders and Claude Pro settles below Codex, Esc returns the card to its exact top, and a release after Esc changes nothing. `drag.png` shows the lifted card and the open gap |
 | AC-06 | PASS | Code review: `LedgerMotion.Small`, `Panel`, `Drag` and `Ease` (one curve shared with `BarSweep.Ease`). `FadeIn`, `SlideHeight`, `Tween` and `BarFill` skip motion when `LedgerTheme.AnimationsEnabled` is false. The independent reviewer confirmed this |
 | AC-07 | PASS | Diff: note lines `StackPanel Spacing="6"`, tray empty text `Margin = RowPadding`, `TitleControls` `Spacing="10"`, Caps `Spacing="6"`. Window-size smoke PASS |
-| AC-08 | BLOCKED (C9 only) | C4, C5, C7 and C8 PASS. The UI smoke suite passes except one pre-existing failure that also fails at the base commit. C9 BLOCKED by the host's MSBuild (above), with a supplementary unsigned MSIX build through `dotnet msbuild`; see Merge for C9 |
+| AC-08 | PASS | C4, C5, C7 and C8 PASS. The UI smoke suite passes except one pre-existing failure that also fails at the base commit. C9 PASS at the merge (see Merge), after BLOCKED on the branch |
 
 ## Not run
 
 | Item | Reason |
 | --- | --- |
 | Smoothness of the fill, lift, gap, settle, slide and fades with live accounts | Post-deploy owner check (R-190), listed in the backlog's "Pending owner checks" |
-| C9 with `Build-Package.ps1` | BLOCKED: the host's Visual Studio MSBuild lacks the .NET SDK resolver; repairing it is a host install |
+| C9 with `Build-Package.ps1` on the branch | BLOCKED then; it ran at the merge (see Merge) |
 | Live-provider checks | Not required: no provider, authentication or persistence change |
 
 ## Review
@@ -100,10 +100,10 @@ plus the numbering commit `df0e3a2` (T-070, R-224). Results on that tree, 2026-1
 | C8 Launch smoke | PASS 3/3 under the desktop lock, after an offline `win-x64` restore |
 | Card editing smokes (`-class CardEditingSmoke`) | First FAIL 4/5: `TrayBarsHoldStillWhenTheRowsChange` threw a UIA `COMException` (0x80040201) from the second tray-row lookup, which was outside the guard the first lookup already had for a row replaced by the rebuild. The lookup moved inside that guard (test only); then PASS 5/5 |
 | `tools/windows/Test-Erosion.ps1` | No test erosion signals |
-| C9 Package build | BLOCKED locally (host MSBuild, above) |
+| C9 Package build | PASS: CI `Validation` run 38299182671 (`workflow_dispatch` on `a527036`, owner-started): `validate` and `windows-package` success, `preview` skipped. Then locally, after the owner repaired the Build Tools components: `Build-Package.ps1 -MsixVersion 2026.10.1240.0 -NoRestore` exit 0, unsigned-validation-only `AiUsage.Windows_2026.10.1240.0_x64.msix` |
 
 Local `/code-review` (high) on `origin/main..df0e3a2`: no Critical or Important findings,
-six Minor. Corrected: AC-08 had been marked PASS while C9 was BLOCKED. Found wrong: the 14 px
+six Minor. Corrected: AC-08 had been marked PASS while C9 was BLOCKED (now PASS with C9). Found wrong: the 14 px
 gap after the Used/Left toggle is R-07's stated choice. Left as they are, recorded here:
 
 - the fill matches old and new edges by index, so when a cell's part count or the strip's
