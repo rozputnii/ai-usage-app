@@ -36,20 +36,26 @@ approval_basis: owner decision, 2026-10-12, in conversation, answering the quest
 ## Design
 
 `ProviderStateLease` already tells the intact-intent case apart from corruption (an empty
-journal generation whose parent is the committed revision). It records that case in an
-`IntentAwaitsFreshAuthorization` flag before throwing the same `RecoveryRequired`; only
-`CodexSession` reads the flag. This changes no storage contract or file format, and every
-renewal outcome that leaves an intent (refused, lost response, cancelled, network failure,
-account mismatch) ends at the same state: the grant cannot be replayed, and a new sign-in is the
-only way back.
+journal generation whose parent is the committed revision). Before it throws the same
+`RecoveryRequired`, it keeps the committed record in `AwaitingFreshAuthorization`; only
+`CodexSession` reads it. The session keeps that record for its identity, so the account
+binding check still matches after a relaunch, and holds no credentials: every later load stops
+at the intent again, so nothing can renew it. No storage contract or file format changes, and
+the known state is not logged again (the refusal was logged when it happened).
+
+When it applies: a refused renewal shows "Sign-in expired" at once (T-064) and now also on the
+next manual refresh and after a relaunch. A lost, cancelled, network-failed or mismatched
+renewal still reports `RecoveryRequired` in the process that started it, which the account
+service does not refresh again; from the next launch it shows "Sign-in expired" as well.
 
 ## Acceptance criteria
 
 - AC-01: After a refused renewal, the next refresh in the same process, a relaunch's cached
-  read and its resume all report `ReauthenticationRequired` with one provider request in total;
-  the test fails at the base.
-- AC-02: The tests for a cancelled renewal and a declined fresh sign-in after an uncertain
-  renewal now expect `ReauthenticationRequired`; corrupt storage, a locked store and a failed
+  read and its resume all report `ReauthenticationRequired` with one provider request in total,
+  in the session and through the account service across a relaunch; both tests fail at the
+  base.
+- AC-02: The tests for a cancelled renewal, a lost renewal response and a declined fresh
+  sign-in after an uncertain renewal now expect `ReauthenticationRequired` after reloading; corrupt storage, a locked store and a failed
   durable cutover keep `RecoveryRequired`.
 - AC-03: The Infrastructure and Presentation suites, the app build and the launch smoke pass.
 

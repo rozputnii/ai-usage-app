@@ -85,7 +85,7 @@ public sealed class CodexSessionTests : IDisposable
         var retry = await relaunched.ResumeAsync(TestContext.Current.CancellationToken);
         Assert.Equal(1, server.Calls);
         Assert.True(relaunched.HasStoredGrant);
-        Assert.True(retry.Status is ProviderSessionStatus.ReauthenticationRequired or ProviderSessionStatus.RecoveryRequired);
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, retry.Status);
     }
 
     [Fact]

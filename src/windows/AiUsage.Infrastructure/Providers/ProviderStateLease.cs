@@ -18,10 +18,11 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
     private byte[]? externalUpdateIntent;
 
     /// <summary>
-    /// True after a load stopped at an intact intent of the committed grant: its renewal was refused,
-    /// lost or interrupted, and only an explicit fresh authorization may supersede it.
+    /// The committed state after a load stopped at its intact intent: its renewal was refused, lost
+    /// or interrupted, and only an explicit fresh authorization may supersede it. It names the stored
+    /// account only; nothing may renew it.
     /// </summary>
-    internal bool IntentAwaitsFreshAuthorization { get; private set; }
+    internal TState? AwaitingFreshAuthorization { get; private set; }
 
     /// <summary>
     /// Before a rotating external update, durably make the predecessor non-replayable.
@@ -206,7 +207,7 @@ internal sealed class ProviderStateLease<TState>(string directory, FileStream ex
                         throw new ProviderException(ProviderFailureKind.RecoveryRequired);
                     if (!forFreshAuthorization)
                     {
-                        IntentAwaitsFreshAuthorization = true;
+                        AwaitingFreshAuthorization = committed;
                         throw new ProviderException(ProviderFailureKind.RecoveryRequired);
                     }
                     return (journal, committed);

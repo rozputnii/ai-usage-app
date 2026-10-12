@@ -238,13 +238,14 @@ public sealed class CodexSession : IProviderSession, IDisposable
             return State = Stale(
                 credentials is null ? ProviderSessionStatus.NotConnected : ProviderSessionStatus.QuotaUnavailable, error.Kind);
         }
-        catch (ProviderException error) when (acquired?.IntentAwaitsFreshAuthorization == true)
+        catch (ProviderException) when (acquired?.AwaitingFreshAuthorization is { } blocked)
         {
-            diagnostics?.Failure(DiagnosticEvent.OperationFailure, error);
             // The stored grant's renewal was refused or its outcome lost; it is never replayed, and
             // only a new sign-in, which may supersede the intact intent, makes the account usable again.
+            // The failure was recorded when it happened; this known state is not logged again.
             credentials?.Dispose();
             credentials = null;
+            stored = blocked;
             HasStoredGrant = true;
             return State = Stale(ProviderSessionStatus.ReauthenticationRequired, ProviderFailureKind.AuthenticationRequired);
         }
