@@ -13,7 +13,7 @@ Owner selected a reusable library with console/test verification before UI integ
 
 Official latest stable release observed through GitHub releases/latest: rust-v0.154.0, published 2026-09-09. Annotated tag 36eab01061df3cde5f95ec20a526777b430091ba resolves to commit 6b9826e3aa83b1a5947db50f4332cb9c65f1b340. Installed OMP 18.1.19 tag resolves to commit e4dd2ec3b487f216c569281e2cdb7ec476a81f2e. These references describe source behavior, not provider approval for this application.
 
-Current OMP reference: tag v18.9.0, commit `eec114a9226da698ebc015fd8996a8ca3bc4625c`, reviewed on 2026-10-12 against the v18.1.19 pin ([review](../specs/T-067-omp-v18-9-0-review/verification.md#codex-pin-v18119)). Nothing relevant to sign-in, refresh or quota reading changed: `registry/oauth/openai-codex.ts` has no commit since the pin, the `CODEX_CLIENT_VERSION` bump to 0.159.0 gates only model and inference routes, and the `accounts/verified_access` lookup is an access-program badge for model routing. The new `credits.overage_limit_reached` field and OMP's credit-funded overage verdict are recorded as backlog item T-068, not implemented. The official Codex references below are unchanged.
+Current OMP reference: tag v18.9.0, commit `eec114a9226da698ebc015fd8996a8ca3bc4625c`, reviewed on 2026-10-12 against the v18.1.19 pin ([review](../specs/T-067-omp-v18-9-0-review/verification.md#codex-pin-v18119)). Nothing relevant to sign-in, refresh or quota reading changed: `registry/oauth/openai-codex.ts` has no commit since the pin, the `CODEX_CLIENT_VERSION` bump to 0.159.0 gates only model and inference routes, and the `accounts/verified_access` lookup is an access-program badge for model routing. The new `credits.overage_limit_reached` field and OMP's credit-funded overage verdict are recorded as backlog item T-068, not implemented; official Codex source and documentation do not establish the field ([research](#credit-funded-overage-research-t-068)). The official Codex references below are unchanged.
 
 ## Authentication contract
 - Official documentation describes ChatGPT subscription browser login and device-code login (beta); device login must be enabled in account security settings or workspace permissions. API-key billing is a separate product and is not substituted here.
@@ -139,3 +139,41 @@ replenishment or expiry. No values, personal dates or captures are retained. Oth
 wire presence, transport eligibility and negative-balance behavior remain unverified.
 No subscription percentage regression, AI Usage connection, CLI or direct provider request
 was performed; this evidence is visible UI only.
+
+## Credit-funded overage research (T-068)
+
+- source_verified_at: 2026-10-13
+- live_verified_at: null
+- confidence: high that official source does not define the field; its wire meaning and scope are unknown
+
+Official source does not define `overage_limit_reached`. At the latest stable release
+[rust-v0.162.1](https://github.com/openai/codex/releases/tag/rust-v0.162.1) (published
+2026-10-09, commit `092d3acd6bec3e3a14bdc7e7a2810ab628ab759d`) and at `main` commit
+`90f00bd89ed3263b4d5993849cccb795f4330449` (2026-10-13), the generated
+[`CreditStatusDetails`](https://github.com/openai/codex/blob/90f00bd89ed3263b4d5993849cccb795f4330449/codex-rs/codex-backend-openapi-models/src/models/credit_status_details.rs)
+holds `has_credits`, `unlimited`, `balance`, `approx_local_messages` and
+`approx_cloud_messages`; the protocol `CreditsSnapshot` and the `x-codex-credits-*` response
+headers in `codex-rs/codex-api/src/rate_limits.rs` carry only the first three. A search of
+both trees for `overage` finds only tool-metadata byte budgets.
+
+Official documentation establishes the behavior, not the field. The
+[pricing page](https://learn.chatgpt.com/docs/pricing), read on 2026-10-13, says "After you
+reach your included limits, available credits let you continue working", and that Plus and
+Pro users, and Business, Edu and Enterprise workspaces with flexible pricing, can buy credits
+to continue. It names no response field and no overage cap, and does not say whether credits
+cover additional meters such as Spark. The help-center articles on credits and on Codex with a
+ChatGPT plan refused automated reads (HTTP 403) and are not used as evidence.
+
+The field exists only in OMP v18.9.0: the `overage_limit_reached` member of the credits payload
+type and `hasPlanCreditOverage` in
+[openai-codex.ts](https://github.com/can1357/oh-my-pi/blob/eec114a9226da698ebc015fd8996a8ca3bc4625c/packages/ai/src/usage/openai-codex.ts).
+Commits 5dfdbf879d and 089d08a9df cite an observed `/wham/usage` payload and an automated
+review; the plan-only scope is OMP's inference ("nothing in the payload says a balance covers a
+separate metered feature"), not a provider statement.
+
+T-068 acceptance (1) is therefore unmet and nothing is parsed or shown. AI Usage is unchanged:
+`CodexQuotaParser` reads `has_credits`, `unlimited`, `balance` and `spend_control.reached` by
+name and ignores other keys, and the plan window and the credit pool stay separate, so a reached
+plan limit stays visible. A live payload could show only that the key is present, not its
+meaning or scope, so no live check is pending. Reopen when official Codex source or
+documentation names the field or an equivalent and its scope.
