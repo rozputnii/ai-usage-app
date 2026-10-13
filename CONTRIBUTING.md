@@ -242,8 +242,9 @@ primary reads the file of its mode, then passes the first entry's family and eff
 dispatch. When that model is unavailable, it
 dispatches again with the next entry; with none left, it reports the step BLOCKED. Haiku never
 runs below high effort (owner rule). The Claude Code wrappers in `.claude/agents/` set no
-model or effort, so these files are the only source; a dispatch without them runs on the
-primary's model. Other agents use their nearest equivalents.
+model or effort, so these files are the only source; a dispatch that omits the model or
+effort runs on the primary's, unless Claude Code sets a default subagent model. Other agents
+use their nearest equivalents.
 
 ## Contributions and checks
 
