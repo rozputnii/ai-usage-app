@@ -20,9 +20,11 @@ answer is uncertain, say which part is unverified.
 For the callers, references or implementations of a C# symbol, use the LSP tool when you have
 it (`findReferences`, `incomingCalls`, `goToImplementation`). It sees the product, test and
 tool projects of `src/windows/AiUsage.slnx` in the Debug configuration, so grep as well for
-XAML, names in strings and Release-only `#if` branches. Treat an LSP call that fails or returns nothing as no LSP tool. Without the LSP tool,
-say that the list comes from text search and may miss calls through interfaces, overrides or
-extension methods.
+XAML, names in strings and Release-only `#if` branches. It answers nothing inside a product
+file that a test project also compiles (`<Compile Include ... Link>`, such as the view models
+under `Features/`); query from a caller in another file or grep. Treat an LSP call that fails
+or returns nothing as no LSP tool. Without the LSP tool, say that the list comes from text
+search and may miss calls through interfaces, overrides or extension methods.
 
 ## Report
 

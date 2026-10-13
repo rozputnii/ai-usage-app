@@ -21,7 +21,10 @@ cost time to rediscover. Check them before planning tooling or desktop work. Las
 - Claude Code sessions in this repository enable the `csharp-lsp@claude-plugins-official`
   plugin (1.0.0, project scope in `.claude/settings.json`; OD-38), which starts `csharp-ls`
   for diagnostics after edits. It loads `src/windows/AiUsage.slnx`, which lists the product,
-  test and tool projects, in the Debug configuration. Each machine needs `dotnet tool install --global csharp-ls
+  test and tool projects, in the Debug configuration, once at session start: a solution edit
+  reaches the next session. It gives no answers and no diagnostics inside the product files
+  that a test project also compiles (26 files of `AiUsage.Windows`, such as the view models
+  under `Features/`; R-NEW). Each machine needs `dotnet tool install --global csharp-ls
   --version 0.28.0`; without it a session simply has no language server. Undo: delete the key
   from `.claude/settings.json`; the plugin's cached copy can stay or be removed with
   `claude plugin uninstall csharp-lsp@claude-plugins-official`.
