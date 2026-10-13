@@ -108,4 +108,4 @@ from `main` after these records, and merged once C8 passed there.
 
 | Item | Reason |
 | --- | --- |
-| In the installed app: the tray colour follows a card change at once, the tray miniature shows current rows when opened, history stays open across a refresh, and a cap edit opened in Settings survives the next refresh | Post-deploy owner check (R-190) |
+| In the installed app: the tray colour follows a card change at once, the tray miniature shows current rows when opened, history stays open across a refresh, and a cap edit opened in Settings survives the next refresh | PASS on 2026-10-13 (agent check at the owner's request, with changes the owner approved and then reverted). On 2026.10.1205.0 the tray rows matched the cards and an open history stayed open across the automatic refresh. On 2026.10.1301.0 a 1 % cap turned a card over cap and the tray icon red at once, and removing it turned the icon green; an unsaved cap edit of 3 in Settings kept its value across the 17:23 to 17:24 refresh and was then discarded by removing the cap. |

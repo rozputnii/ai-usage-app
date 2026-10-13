@@ -61,7 +61,7 @@ screenshots `work-budget-used.png`, `work-budget-left.png`, `credits-popover.png
 
 | Item | Reason |
 | --- | --- |
-| Owner check of the updated installed app: tray flyout, provider-mark tooltips, the wrapped empty-tray text, click rename, grip drag and the refresh stepper with live accounts | Post-deploy owner check (R-190) |
+| Owner check of the updated installed app: provider-mark tooltips and the wrapped empty-tray text | Post-deploy owner check (R-190). Agent check on 2026-10-13 (installed 2026.10.1205.0 and 2026.10.1301.0, at the owner's request): the flyout showed one row per live account with provider marks, today bars and five-hour rings; the refresh stepper showed 1 min; one click on a card name opened the rename box with the text selected, and a changed name saved on a click outside and was renamed back; a grip drag lifted the card, opened the gap and reordered the cards, and a second drag restored the order. Mark tooltips did not appear under injected hover, so they stay with the owner; the empty-tray text needs no signed-in account. |
 | `AuditTrayControls` | Windows Sandbox opt-in; compiled only. Esc closing the flyout was checked with throwaway probes (T-055.1) |
 | A stale row with a five-hour ring | Not in the demo scenarios; the ring takes the strip's opacity in `LedgerTrayWindow`, checked by code review only |
 

@@ -41,7 +41,7 @@ desktop, .NET 10, branch `users/manual-spend-currency-conversion-2ee5a2` from `m
 | AC-04 Preference file | PASS | `LedgerPreferenceTests.NewFieldsPersistAndOldFilesLoad` and seven new `InvalidOrNewerFileIsNeverOverwritten` cases; the existing extension-data test keeps unknown fields for older builds. Entries older than 35 days are dropped when a new one is saved (`TodayValueValidationRejectsInvalidAmounts`). |
 | AC-05 Popover | PASS | `LimitSettingsTests` (six view-model tests and `DemoPopoverSwitchesUnitsAndSetsToday`); the UI smoke opened the Copilot Business popover through UI Automation, switched to USD ("$32.40 of $175.00 used"), saved $9.00 for today and reopened it with "set by you"; the percent Codex card has no settings button. Screenshots are in the git-ignored `.ai-usage-local/AIU-053/` folder of the worktree. |
 | AC-06 Checks | PASS | Commands above. |
-| Live Copilot Business and Claude spending in the installed app | NOT_RUN (post-deploy owner check, R-190) | Needs the owner's signed-in accounts. |
+| Live Copilot Business and Claude spending in the installed app | Copilot PASS; Claude spending NOT_RUN (installed 2026.10.1301.0, 2026-10-13, agent check at the owner's request, with changes the owner approved and then reverted) | Live Copilot Business: "USD" in limit settings showed the card in dollars ($4.19 of $175 for the month, today $0.00 of $12.20, cap at most $175.00), and "credits" restored 419 of 17,500. Today's use set by hand to 5 credits showed "Today. 5 of 1,220 used. Set by you"; an empty value restored "Tracked since 16:46". Claude spending stays NOT_RUN: neither live Claude account has a spending limit (the only hidden section is a model limit). |
 
 ## Review
 

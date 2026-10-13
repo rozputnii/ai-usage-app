@@ -66,5 +66,5 @@ The whole-run review is in the [T-061 verification](../T-061-unchanged-state-wor
 
 | Item | Reason |
 | --- | --- |
-| In the installed app: the tray icon keeps showing the current colour after Explorer restarts, and the logs show at most hourly TrayFailure summaries carrying their incidentId | Post-deploy owner check (R-190) |
+| In the installed app: the tray icon keeps showing the current colour after Explorer restarts, and the logs show at most hourly TrayFailure summaries carrying their incidentId | PASS on 2026-10-13 (installed 2026.10.1301.0, agent check at the owner's request, with changes the owner approved and then reverted). After an Explorer restart the icon came back in the current green; a temporary over-cap turned it red at once and its removal turned it green. The application log from the update to the end of the check holds no TrayFailure record and no critical file exists. |
 | A guaranteed final count on a kill or power loss | Not achievable; up to an hour of counts can be lost (logging.md) |

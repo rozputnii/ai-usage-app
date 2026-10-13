@@ -245,14 +245,11 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 
 | Item | Check in the installed app | Pending since |
 | --- | --- | --- |
-| T-046 | AC-06 automatic path: in Always mode with "Update ready", hiding the window installs the newer Preview and the app relaunches in the tray (the manual path passed, 2026-10-13) | 2026-10-07 |
+| T-046 | AC-06 automatic path: in Always mode, a newer Preview installs while the window is hidden and the app relaunches in the tray (the manual path passed twice, 2026-10-12 and 2026-10-13) | 2026-10-07 |
 | T-047 | AC-08: after an uninstall and reinstall, signing in to the same real account re-attaches its usage history | 2026-10-07 |
-| T-053 | Copilot credits shown in US dollars after choosing USD in limit settings, and today's use set by hand on Claude spending (the live popover with credits/USD, rate and today's field was seen, 2026-10-13) | 2026-10-08 |
-| T-054 | Percent caps and the cap-as-full-bar on live weekly windows | 2026-10-08 |
-| T-055 | Provider-mark tooltips in the tray flyout, the wrapped empty-tray text, click rename and grip drag (the flyout rows, marks and rings and the refresh stepper were seen live, 2026-10-13) | 2026-10-08 |
+| T-053 | Today's use set by hand on a Claude spending limit, once a live Claude account has one (Copilot dollars and today's use by hand passed, 2026-10-13) | 2026-10-08 |
+| T-055 | Provider-mark tooltips in the tray flyout and the wrapped empty-tray text (flyout, stepper, click rename and grip drag passed, 2026-10-13) | 2026-10-08 |
 | T-056 | After days of uptime the tray colour keeps updating and the logs show no TrayFailure flood (at most one detailed record plus a counted summary) | 2026-10-10 |
-| T-061 | The tray colour follows a card change at once, and a cap edit opened in Settings survives the next refresh (tray rows matching the cards and history staying open across a refresh passed, 2026-10-13; the WR-T-061-M1 fix ships in the Preview after 2026.10.1205.0) | 2026-10-10 |
-| T-062 | After Explorer restarts, the tray icon still shows the current colour; the logs show at most hourly TrayFailure summaries, each with its incidentId | 2026-10-10 |
 | T-063 | The Peak pill tooltip, and the pill disappearing after the window (title row and tray header with the end time passed, 2026-10-13) | 2026-10-10 |
 | T-064 | When a provider rejects a usage request but the stored sign-in still renews, the account keeps refreshing without a new sign-in; a refused sign-in shows "Sign-in expired" with the Sign-in action at once | 2026-10-12 |
 | T-065 | A Claude account at a one-minute refresh interval no longer flashes "sync failed" on a single rate-limited refresh; a reading older than 15 minutes still shows it | 2026-10-12 |

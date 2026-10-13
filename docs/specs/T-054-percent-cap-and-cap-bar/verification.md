@@ -39,7 +39,7 @@ worktree.
 | AC-04 Bars | PASS | `LedgerCardTests.CapIsTheFullBarAndATickMarksItOnceExceeded` (cap 300 against 500 at 218: no tick, no hatched segment; 320: tick at 93.75 %), `FiveHourDividersFollowTheCapScale` (dividers at k / 90, "47 % of 90 % cap · ≈ 4 × 5h left", "43 % left to cap", tooltip "Custom cap 90 % · binds" and "Provider limit 100 % · 53 % left"). |
 | AC-05 Popover | PASS | `LedgerCardTests.WeeklyPercentWindowTakesACapInItsPopover` (unit "%", hint "· at most 100 %", 101 and 90.5 refused, 90 saved, footer "47 % of 90 % cap") and the feature UI smoke above. |
 | AC-06 Checks | PASS | Commands above. |
-| Live weekly windows in the installed app | NOT_RUN (post-deploy owner check, R-190) | Needs the owner's signed-in accounts. |
+| Live weekly windows in the installed app | PASS (installed 2026.10.1301.0, 2026-10-13, agent check at the owner's request, with changes the owner approved and then reverted) | A 1 % cap on a live Claude 7d window at 2 % used: the card showed "over cap" and "2 % of 1 % cap · ≈ 0 × 5h left", the cap filled the whole 7d bar with a tick past it ("Past the tick: over custom cap 1 percent"), and Settings listed the cap as binding. Removing the cap restored "2 percent of 100 percent used". |
 
 ## Review
 
