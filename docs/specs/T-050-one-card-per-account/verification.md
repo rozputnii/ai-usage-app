@@ -25,7 +25,7 @@ desktop, .NET 10, branch `users/account-limits-ui-variants-6f623a`. Product sour
 | AC-03 Live source | PASS | `LiveLedgerSourceTests.HiddenSectionsPersistAcrossRestartAndThePrimaryCannotBeHidden` |
 | AC-04 Preference file | PASS | `LedgerPreferenceTests`: a file without the list loads; null and duplicated lists are rejected without a write. |
 | AC-05 Checks | PASS | Commands above |
-| Live Copilot Business account in the installed app | NOT_RUN (post-deploy owner check, R-190) | Needs the owner's signed-in account. |
+| Live Copilot Business account in the installed app | PASS (installed 2026.10.1205.0, 2026-10-13, agent check at the owner's request) | The live Copilot Business account shows as one card: premium requests as the primary limit with today and month rows, a "2 hidden" mark ("Show 2 hidden limits"), and its own limit settings, history and sign-out buttons. Read through UI Automation and a window capture, not committed; nothing was hidden or shown. |
 
 Screenshots are in the git-ignored `.ai-usage-local/AIU-050/` folder of the worktree.
 They were captured with `PrintWindow` while the owner used the desktop; the cursor was

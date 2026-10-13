@@ -28,7 +28,7 @@ desktop, .NET 10, branch `users/subscription-tiles-layout-18d92f`, merged with `
 | AC-03 Content, menu, delete | PASS | `open.png` shows only Work days, Caps with warning marks and edit/remove icons, View, Updates and the footer; `menu.png` lists the five menu actions; `delete.png` shows the short warning, Delete and Cancel with focus on Cancel. |
 | AC-04 View model | PASS | `LedgerTests.SettingsListCapsWithTheirStatus`, `SettingsFooterShowsTheIntervalWhileAllSynced`, `UpdatesSectionShowsVersionStatusAndModeSelector`, `InstallButtonStaysVisibleAndBusyWhileInstalling` |
 | AC-05 Checks | PASS | Commands above |
-| Installed app after deployment | NOT_RUN (post-deploy owner check, R-190) | The owner checks the updated installed app. |
+| Installed app after deployment | PASS (installed 2026.10.1205.0, 2026-10-13, agent check at the owner's request) | Three live account cards in one column. Settings opened the sheet over the cards with Work days, View, Refresh, Updates and the ⋯ footer, and "Close settings" closed it. Read through UI Automation and window captures, not committed; nothing was changed. The slide motion was not judged here; T-070 owns it. |
 
 Screenshots are in the git-ignored `.ai-usage-local/AIU-051/` folder of the worktree.
 They were captured from the Debug demo build before the merge with `main`, which changed

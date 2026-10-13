@@ -27,7 +27,7 @@ desktop at 125 % scale, .NET 10, branch `users/window-system-buttons-min-size-39
 | AC-02 Demo icon | PASS | `size-brief.png`: red icon after the title, with the per-account tooltip; `size-day-off.png`: neutral icon. |
 | AC-03 Minimum size | PASS | The smoke squeezes the window to 200 × 120 px in the brief scenario, on the day off and with Work today on, and checks Settings against the DWM caption-button bounds and Refresh against Used. The day-off and Work today title rows (with the demo button) are wider than the launch width, so turning Work today on grew the window. The screenshots show the first card's header and primary limit in full. |
 | AC-04 Checks | PASS | Commands above |
-| Installed app after deployment | NOT_RUN (post-deploy owner check, R-190) | The owner checks the updated installed app with live accounts. |
+| Installed app after deployment | PASS (installed 2026.10.1205.0, 2026-10-13, agent check at the owner's request) | With three live accounts the title row shows the refresh button ("Refresh. Updated 16:57", then 16:58 after the next automatic refresh). Squeezed to 200 × 120 px through UI Automation, the window stopped at the title row's width and a 341 px height with Settings clear of the caption buttons and the first card's header and primary limit in full; the original size was restored. Window captures were not committed. |
 
 Screenshots are in the git-ignored `.ai-usage-local/size-evidence/` folder of the worktree.
 UI Automation is reported without bounds for the caption buttons of the extended title bar,
