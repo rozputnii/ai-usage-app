@@ -85,10 +85,12 @@ seam, so the fix rests on review and the smoke.
 | Independent re-check of the fixed lines (`aiu-reviewer`) | Fixed; no new findings |
 | C7, C4, C5 on `89d9839` | PASS: 0 warnings; 926/926; 337/337 |
 | C8 on `89d9839`, under the desktop lock | BLOCKED, two runs at 11:05: the owner's installed app window covered the test's tray-flyout point, and the owned-point guard refused the click. A 30-minute wait for that window to close ended at 11:36 without it closing. The installed app was not touched. |
+| C7, C9 on `7baa2b8` (2026-10-13) | PASS: 0 warnings; unsigned package built |
+| C8 on `7baa2b8`, under the desktop lock | PASS: 3/3 |
+| C4, C5 on `7baa2b8` | PASS: 943/943; 359/359 |
 
-The fix touches tray code, so under the blocked-smoke rule it waits on branch `t061-tray-failure-recovery`, made from
-`main` after these records. Next action: with the installed app's window hidden, run C8 on that branch, then merge
-it under the merge gate.
+The fix touches tray code, so under the blocked-smoke rule it waited on branch `t061-tray-failure-recovery`, made
+from `main` after these records, and merged once C8 passed there.
 
 ## Left open
 
