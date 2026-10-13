@@ -8,4 +8,15 @@
     <Platform Project="x64" />
     <Deploy />
   </Project>
+  <Folder Name="/tests/">
+    <Project Path="../../tests/AiUsage.ProjectValidation.Tests/AiUsage.ProjectValidation.Tests.csproj" />
+    <Project Path="../../tests/windows/AiUsage.Infrastructure.Tests/AiUsage.Infrastructure.Tests.csproj" />
+    <Project Path="../../tests/windows/AiUsage.Presentation.Tests/AiUsage.Presentation.Tests.csproj" />
+    <Project Path="../../tests/windows/AiUsage.Windows.Tests/AiUsage.Windows.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="../../tools/AiUsage.DiagnosticsProbe/AiUsage.DiagnosticsProbe.csproj" />
+    <Project Path="../../tools/AiUsage.ProjectValidation/AiUsage.ProjectValidation.csproj" />
+    <Project Path="../../tools/AiUsage.ProviderConsole/AiUsage.ProviderConsole.csproj" />
+  </Folder>
 </Solution>

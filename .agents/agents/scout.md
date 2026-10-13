@@ -18,9 +18,9 @@ Read excerpts: grep with line numbers and read ranges, never whole large files. 
 answer is uncertain, say which part is unverified.
 
 For the callers, references or implementations of a C# symbol, use the LSP tool when you have
-it (`findReferences`, `incomingCalls`, `goToImplementation`). It sees only the projects in
-`src/windows/AiUsage.slnx`, so grep as well for the rest: `tests/`, `tools/`, XAML and names in
-strings. Treat an LSP call that fails or returns nothing as no LSP tool. Without the LSP tool,
+it (`findReferences`, `incomingCalls`, `goToImplementation`). It sees the product, test and
+tool projects of `src/windows/AiUsage.slnx` in the Debug configuration, so grep as well for
+XAML, names in strings and Release-only `#if` branches. Treat an LSP call that fails or returns nothing as no LSP tool. Without the LSP tool,
 say that the list comes from text search and may miss calls through interfaces, overrides or
 extension methods.
 
