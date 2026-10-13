@@ -5,9 +5,9 @@
 # families: haiku sonnet opus fable    (fable is not measured in this repository)
 # efforts:  low medium high xhigh max  (haiku: high or above, owner rule)
 aiu-scout: haiku xhigh, sonnet high
-aiu-scout/why: sonnet high, opus medium        # the answer must explain why
-aiu-runner: haiku high, sonnet high
+aiu-scout/why: sonnet high, opus high          # the answer must explain why
+aiu-runner: haiku xhigh, sonnet high
 aiu-implementer: opus high
 aiu-implementer/small: sonnet high, opus high  # a small, fully specified brief
-aiu-reviewer: opus high
+aiu-reviewer: opus xhigh
 aiu-reviewer/security: opus xhigh              # the diff touches a security-lifecycle area
