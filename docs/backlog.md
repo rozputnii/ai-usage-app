@@ -171,17 +171,6 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - open-questions: The definition of the accuracy percentage. Recommended: the share of measured windows whose own bounds agree with the pooled estimate, which directly measures how often the constant-cost assumption holds; the alternative is the relative tightness of the bounds. Whether the per-window figures are derived on demand from the stored reading series, which needs no new persistence, or kept as their own records.
 - registration-note: Owner proposed this on 2026-10-07 after the T-048 review noted that its bounds are guaranteed only while the window cost stays constant. Not selected for implementation yet.
 
-## T-068 - Codex credit-funded overage past a plan limit
-- goal: G-003
-- status: blocked
-- depends_on: []
-- trigger: owner-selection
-- outcome: Research whether the card for a Codex plan window that reports `limit_reached` should say that paid credits still fund requests, as Codex itself keeps serving such an account. OMP v18.9.0 reads a new `credits.overage_limit_reached` field and treats the plan meter as serving when the plan limit is reached, credits exist or are unlimited, overage is not exhausted and `spend_control.reached` is not set. AI Usage reads `credits.has_credits`, `unlimited`, `balance` and `spend_control.reached` but not `overage_limit_reached`, and shows the plan window and the credit pool separately.
-- acceptance: (1) Official Codex source or documentation establishes `overage_limit_reached` and its scope (plan windows only, not additional meters such as Spark). (2) The field is parsed as an independent flag; absent means unknown. (3) A credit-funded state never changes a window's percentage or hides a reached plan limit. (4) Owner decides the presentation before any UI change.
-- source: OMP 5dfdbf879d, 089d08a9df, `packages/ai/src/usage/openai-codex.ts` `hasPlanCreditOverage`, `buildPlanMeterState`; review in docs/specs/T-067-omp-v18-9-0-review/verification.md
-- research: On 2026-10-13 the owner selected items (1)-(3). Official Codex source (release rust-v0.162.1 and `main` of 2026-10-13) and documentation do not define `overage_limit_reached` or its scope; the documentation confirms only that credits continue work past included limits. Item (1) is unmet, so items (2) and (3) were not started and nothing is parsed or shown. Blocked until official source or documentation names the field and its scope; a live payload would not settle it, so no owner check is pending. Record: docs/providers/codex.md, "Credit-funded overage research (T-068)".
-- registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-067) as a new capability, not implemented. Not selected.
-
 ## T-069 - Claude saved rate-limit resets (read-only)
 - goal: G-003
 - status: research-needed
@@ -245,6 +234,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-065 | No "sync failed" for a routine rate limit | done | G-003 | docs/specs/T-065-rate-limit-mark/verification.md |
 | T-066 | Codex asks for sign-in after a refused renewal | done | G-003 | docs/specs/T-066-codex-intent-sign-in/verification.md |
 | T-067 | Provider sources reviewed against OMP v18.9.0 | done | G-003 | docs/specs/T-067-omp-v18-9-0-review/verification.md |
+| T-068 | Codex credit-funded overage past a plan limit | dropped | G-003 | docs/providers/codex.md |
 | T-070 | Motion and spacing polish | done | G-003 | docs/specs/T-070-motion-and-spacing-polish/verification.md |
 
 ## Pending owner checks
