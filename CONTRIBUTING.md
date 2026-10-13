@@ -221,10 +221,10 @@ reviews never go to the helpers.
   check, smokes) in the background, so their output stays out of the primary's context. The
   brief names the worktree, the commands with their check IDs and the log directory. Until it
   reports, do not change files in that worktree or build or test in it; a change after the
-  run needs a new run. A reported PASS counts at the merge gate only after the primary confirms it from the log's last lines
-  (the `exit=<code>` line, and the totals where the check prints them); on a failure, read
-  only the failing part and diagnose it yourself (systematic-debugging). The inner-loop test
-  class stays with the primary.
+  run needs a new run. A reported PASS counts at the merge gate only after the primary
+  confirms it from the log's last lines (the `exit=<code>` line, and the totals where the
+  check prints them); on a failure, read only the failing part and diagnose it yourself
+  (systematic-debugging). The inner-loop test class stays with the primary.
 
 ## Contributions and checks
 

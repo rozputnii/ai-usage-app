@@ -4,11 +4,11 @@ description: Owner-invoked economy mode. The primary works lean and mostly alone
 ---
 # eco
 
-Owner-invoked mode (decisions R-222, R-225, R-NEW). It changes who does the work, on which model, and
-how the details are tracked, never what the rules require: tiers, red to green, reviews, the
-merge gate and the always-ask list stay as AGENTS.md and CONTRIBUTING.md define them, and they
-win wherever this text seems to differ. The mode lasts until the session ends or the owner
-turns it off. The evidence is in [model costs](model-costs.md).
+Owner-invoked mode (decisions R-222, R-225, R-226). It changes who does the work, on which
+model, and how the details are tracked, never what the rules require: tiers, red to green,
+reviews, the merge gate and the always-ask list stay as AGENTS.md and CONTRIBUTING.md define
+them, and they win wherever this text seems to differ. The mode lasts until the session ends or
+the owner turns it off. The evidence is in [model costs](model-costs.md).
 
 The mode was measured with the primary on opus at medium effort. The session's effort is the
 owner's setting; this skill cannot change it.
