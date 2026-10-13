@@ -181,9 +181,9 @@ set Claude Code's choices (Subagent models).
   boundary, or is a reproducible defect; it needs file:line evidence and a failing test or
   a reproduction. Report at most five Minor findings. Zero findings is a valid result.
 - One review round, then a re-check of the fixed lines only, without an automatic
-  full-review loop. Unresolved material findings block integration; in a parallel run the
-  whole-feature review's findings become follow-ups (Parallel work). Report an
-  unavailable required review honestly.
+  full-review loop; the security rerun above is a new review, not a re-check. Unresolved
+  material findings block integration; in a parallel run the whole-feature review's
+  findings become follow-ups (Parallel work). Report an unavailable required review honestly.
 - For a bug fix, the reviewer confirms in a temporary worktree outside the checkout that
   the new test fails at the base commit.
 - A Preview is an owner-test build, not public release approval. Full independent review
@@ -220,8 +220,8 @@ files (below). Judgment, implementation, records and reviews never go to the hel
   much work remains, instead of a general-purpose or exploration agent; several at once when
   the question splits. Use its `why` entry when it must explain why. Its answer is a claim:
   read the lines it names before relying on them. The callers, references or implementations
-  of one C# symbol need no scout: call the LSP tool yourself where it is available, and grep
-  `tests/` and `tools/`, which sit outside the solution it loads.
+  of one C# symbol need no scout: call the LSP tool yourself where it is available and grep
+  for what it cannot see (scout contract); without it, grep the whole repository.
 - **Runner** (`runner.md`): full check runs (restore, build, full suites, validator, diff
   check, smokes) in the background, so their output stays out of the primary's context. The
   brief names the worktree, the commands with their check IDs and the log directory. Until it
