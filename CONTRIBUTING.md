@@ -220,7 +220,8 @@ files (below). Judgment, implementation, records and reviews never go to the hel
   much work remains, instead of a general-purpose or exploration agent; several at once when
   the question splits. Use its `why` entry when it must explain why. Its answer is a claim:
   read the lines it names before relying on them. The callers, references or implementations
-  of one C# symbol need no scout: call the LSP tool yourself where it is available.
+  of one C# symbol need no scout: call the LSP tool yourself where it is available, and grep
+  `tests/` and `tools/`, which sit outside the solution it loads.
 - **Runner** (`runner.md`): full check runs (restore, build, full suites, validator, diff
   check, smokes) in the background, so their output stays out of the primary's context. The
   brief names the worktree, the commands with their check IDs and the log directory. Until it
