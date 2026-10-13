@@ -23,7 +23,8 @@ correct, readable and easy to change.
 1. Inspect the request and Git state. Preserve unrelated tracked and untracked changes;
    read only the relevant requirements and evidence.
 2. Choose the tier (below) and state the intended result and acceptance checks in a short
-   plan. Planning tools are optional.
+   plan. Planning tools are optional. For T1 and up, follow the plan with a brief ledger and
+   a path list (below).
 3. Implement and verify within the requested scope without repeated approval for internal
    steps. Ask only what the always-ask list in [AGENTS](AGENTS.md#when-to-ask) covers,
    after completing the independent preparation.
@@ -32,9 +33,34 @@ correct, readable and easy to change.
 5. Test logic and bug fixes red to green: write the test, run it and see it fail for the
    expected reason, implement the minimum, and run it green. A bug-fix test must fail at
    the base commit.
-6. Review the integrated diff against the acceptance criteria, run the required checks and
-   record the actual results and limitations. Never weaken requirements to hide a failure.
+6. Review the integrated diff against the acceptance criteria, tick the brief ledger and the
+   path list, run the required checks and record the actual results and limitations. Never
+   weaken requirements to hide a failure.
 7. Merge under the Git flow below and report changes, evidence and remaining work.
+
+### Brief ledger and path list
+
+The details a session misses are mostly of two kinds: an exact value or implied record of the
+brief not met, and a caller, sibling or failure path left out (R-225). Two short lists, kept
+in the session, guard them.
+
+- **Brief ledger**, one line per item: every exact value, name or path that the brief, the
+  spec or an owner pick states (durations, sizes, strings, file and folder names); every
+  stated behavior, including what must stay unchanged; every item of a set that the brief or
+  the rules enumerate (upstream commits, findings, rows), each present in its record; every
+  record the rules imply: the spec and verification record, a "Pending owner checks" row for
+  each owner check left NOT_RUN, a decision, the "Amended by" line on every decision the
+  change alters (docs/workflow/formats.md, Decisions), and guidance elsewhere that the change
+  makes stale.
+- **Path list:** for every behavior the change alters, and every upstream change, finding or
+  rule judged not applicable, the paths that reach it, listed before deciding: each caller of
+  the changed member (grep for its references), scheduled and manual triggers, each provider
+  or sibling with the same branch, and the failure branches (refused, mismatched, cancelled),
+  not only the success path. Each path is marked changed, unchanged with the reason, or
+  unreachable; a "not applicable" verdict names its paths.
+
+Before the final report, tick each line with file:line or check evidence. A line that cannot
+be met as stated is fixed or reported as a deviation with its reason, never dropped silently.
 
 ## Risk tiers
 
@@ -141,6 +167,8 @@ is not completion. No model vendor or family is prescribed.
 - Review by tier (above). A fresh-context, read-only subagent with no implementation
   transcript counts as independent; use the tracked reviewer agent, or a general-purpose
   agent given the same contract when the tracked one is not loaded.
+- For T1 and up the review brief carries the brief ledger and the path list, and the
+  reviewer checks both (reviewer contract).
 - In parallel runs, each code, test or harness task gets a per-task independent review.
   Docs tasks get a primary diff check, except rule and agent-configuration edits, which
   are T3. One whole-feature review always runs, after the parallel tasks have landed and
@@ -176,6 +204,27 @@ verification of the integrated result.
   [verification](docs/workflow/verification.md#desktop-smokes). A worker whose change has
   product inputs runs the launch smoke (C8) before its own push to `main`; after the tasks
   have landed, the primary runs the required smokes once more on the merged tree.
+
+## Helper agents
+
+The primary may hand mechanical work to two lean, read-only helpers whose contracts are in
+`.agents/agents/`. They start without the CLAUDE.md instruction files, at about 4-8k tokens
+against 18-55k for a general-purpose agent, and run on a small model by default (haiku in
+Claude Code), never below high effort (owner rule). Judgment, implementation, records and the
+review set stay with the primary and the reviewer.
+
+- **Scout** (`scout.md`): locates code or answers "where and what" across many files when
+  much work remains, instead of a general-purpose or exploration agent; several at once when
+  the question splits. Give it a mid-tier model when it must explain why. Its answer is a
+  claim: read the lines it names before relying on them.
+- **Runner** (`runner.md`): full check runs (restore, build, full suites, validator, diff
+  check, smokes) in the background, so their output stays out of the primary's context. The
+  brief names the worktree, the commands with their check IDs and the log directory. Do not
+  change that worktree's tracked files until it reports, or run the checks again. A reported
+  PASS counts at the merge gate only after the primary confirms it from the log's last lines
+  (the `exit=<code>` line, and the totals where the check prints them); on a failure, read
+  only the failing part and diagnose it yourself (systematic-debugging). The inner-loop test
+  class stays with the primary.
 
 ## Contributions and checks
 

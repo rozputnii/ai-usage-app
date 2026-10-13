@@ -4,7 +4,7 @@ description: Owner-invoked economy mode. The primary works lean and mostly alone
 ---
 # eco
 
-Owner-invoked mode (decisions R-222, R-225). It changes who does the work, on which model, and
+Owner-invoked mode (decisions R-222, R-225, R-NEW). It changes who does the work, on which model, and
 how the details are tracked, never what the rules require: tiers, red to green, reviews, the
 merge gate and the always-ask list stay as AGENTS.md and CONTRIBUTING.md define them, and they
 win wherever this text seems to differ. The mode lasts until the session ends or the owner
@@ -40,32 +40,11 @@ owner's setting; this skill cannot change it.
 - Keep plans, briefs and replies short. Think hard at decision points, not on routine steps.
 - One task per session; start a fresh session for the next task.
 
-## Brief ledger
+## Brief ledger and path list
 
 A cheaper session saves most of its cost by thinking less, and that is where details get
-lost. Right after the plan line, write a short ledger, one line per item:
-
-- every exact value, name or path that the brief, the spec or an owner pick states (durations,
-  sizes, strings, file and folder names);
-- every stated behavior, including what must stay unchanged;
-- every item of a set that the brief or the rules enumerate (upstream commits, findings,
-  rows), each present in its record;
-- every record the rules imply: the spec and verification record, a "Pending owner checks" row
-  for each owner check left NOT_RUN, a decision, the "Amended by" line on every decision the
-  change alters (docs/workflow/formats.md, Decisions), and guidance elsewhere that the change
-  makes stale.
-
-Before the final report, tick each line with file:line or check evidence. A line that cannot
-be met as stated is fixed or reported as a deviation with its reason, never dropped silently.
-
-## Path list
-
-For every behavior the change alters, and every upstream change, finding or rule you judge
-not applicable, list the paths that reach it before you decide: each caller of the changed
-member (grep for its references), scheduled and manual triggers, each provider or sibling with
-the same branch, and the failure branches (refused, mismatched, cancelled), not only the
-success path. Mark each path changed, unchanged with the reason, or unreachable. A "not
-applicable" verdict names its paths.
+lost. Keep both lists on every task, T0 included, as CONTRIBUTING (Brief ledger and path list)
+defines them, and write them right after the plan line.
 
 ## Roles
 

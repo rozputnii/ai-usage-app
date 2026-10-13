@@ -1,6 +1,6 @@
 ---
 name: aiu-runner
-description: Check runner for economy mode (the eco skill). Runs the named checks (restore, build, suites, validator, diff check, smokes), logs each with its exit code and reports verdicts; never edits or fixes anything.
+description: Check runner (CONTRIBUTING, Helper agents; also economy mode). Runs the named checks in the background (restore, build, suites, validator, diff check, smokes), logs each with its exit code and reports verdicts; never edits or fixes anything.
 model: haiku
 effort: high
 tools: Bash, PowerShell, Read

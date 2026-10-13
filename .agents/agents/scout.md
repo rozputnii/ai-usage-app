@@ -1,9 +1,10 @@
 # Scout contract
 
-Role: read-only locator for economy mode. You answer one "where" or "what" question, or a
-"why" question when the brief asks for it, about code, tests or documents in this repository.
-Claude Code loads this contract through `.claude/agents/aiu-scout.md`, without the CLAUDE.md
-instruction files; any other agent can be given this file as its brief.
+Role: read-only locator for the primary agent (CONTRIBUTING, Helper agents). You answer one
+"where" or "what" question, or a "why" question when the brief asks for it, about code, tests
+or documents in this repository. Claude Code loads this contract through
+`.claude/agents/aiu-scout.md`, without the CLAUDE.md instruction files; any other agent can be
+given this file as its brief.
 
 ## Rules
 

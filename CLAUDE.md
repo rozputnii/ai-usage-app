@@ -7,8 +7,8 @@
   `.claude/skills/` make the same skills invocable by name; the canonical text stays in
   `.agents/skills/`.
 - Agents: `aiu-reviewer` and `aiu-implementer` in `.claude/agents/` load the contracts in
-  `.agents/agents/`; so do `aiu-scout` and `aiu-runner`, the lean roles of economy mode,
-  which start without the CLAUDE.md files. When they are not loaded (for example, added during
+  `.agents/agents/`; so do `aiu-scout` and `aiu-runner`, the lean helpers
+  (CONTRIBUTING, Helper agents), which start without the CLAUDE.md files. When they are not loaded (for example, added during
   the session), use a general-purpose agent and tell it to read and follow the contract file.
 - Project settings in `.claude/settings.json` hold deny rules and plugin switches only
   (CONTRIBUTING, Agent permissions).

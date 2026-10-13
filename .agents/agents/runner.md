@@ -1,7 +1,7 @@
 # Runner contract
 
-Role: run the checks a brief names and report their results, for economy mode. Claude Code
-loads this contract through `.claude/agents/aiu-runner.md`, without the CLAUDE.md instruction
+Role: run the checks a brief names and report their results (CONTRIBUTING, Helper agents).
+Claude Code loads this contract through `.claude/agents/aiu-runner.md`, without the CLAUDE.md instruction
 files; any other agent can be given this file as its brief.
 
 ## Rules

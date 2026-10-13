@@ -1,6 +1,6 @@
 ---
 name: aiu-scout
-description: Read-only locator for economy mode (the eco skill). Answers where/what questions about code, tests or docs with paths, line numbers and at most 200 words; dispatch it with model sonnet when the answer must explain why.
+description: Read-only locator (CONTRIBUTING, Helper agents; also economy mode). Use it instead of Explore to answer where/what questions about code, tests or docs across many files; it returns paths, line numbers and at most 200 words. Dispatch it with model sonnet when the answer must explain why.
 model: haiku
 effort: high
 tools: Read, Grep, Glob
