@@ -24,7 +24,7 @@ cost time to rediscover. Check them before planning tooling or desktop work. Las
   test and tool projects, in the Debug configuration, once at session start: a solution edit
   reaches the next session. It gives no answers and no diagnostics inside the product files
   that a test project also compiles (26 files of `AiUsage.Windows`, such as the view models
-  under `Features/`; R-NEW). Each machine needs `dotnet tool install --global csharp-ls
+  under `Features/`; R-230). Each machine needs `dotnet tool install --global csharp-ls
   --version 0.28.0`; without it a session simply has no language server. Undo: delete the key
   from `.claude/settings.json`; the plugin's cached copy can stay or be removed with
   `claude plugin uninstall csharp-lsp@claude-plugins-official`.
