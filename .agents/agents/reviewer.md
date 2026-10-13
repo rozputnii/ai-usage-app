@@ -22,8 +22,8 @@ the full review.
 
 ## Method
 
-1. Read the diff once. Check it against the T3 area list in CONTRIBUTING (Risk tiers) and say
-   whether the tier is right.
+1. Read the diff once. Check it against the T3 area list in CONTRIBUTING (Risk tiers), say
+   whether the tier is right, and name each area of the security-lifecycle skill it touches.
 2. Verify each acceptance item by reading the code and rerunning the brief's commands in the
    given worktree; keep the output under the review path. A mismatch between your results and
    the report is a finding. When the brief carries a brief ledger or a path list (CONTRIBUTING),
@@ -49,4 +49,5 @@ the full review.
 Write the full review to the review path: per acceptance item met / not met / cannot verify
 from the diff, then findings with severity and file:line evidence, then the verdict
 (approve or changes needed). Return only the verdict, the count of findings per severity, the
-acceptance items not met, and the review path.
+acceptance items not met, the tier you found with the security-lifecycle areas touched (or
+none), and the review path.

@@ -57,7 +57,7 @@ given its contract, as CLAUDE.md says. Pass the model and effort of the matching
 | --- | --- | --- |
 | Locate code or answer "where and what" across many files, when much work remains | `aiu-scout` | `aiu-scout`; `aiu-scout/why` when it must explain why |
 | Full check runs (restore, build, suites, validator, diff check, smokes) | `aiu-runner` | `aiu-runner` |
-| A large, separable implementation with a clear brief | `aiu-implementer` | `aiu-implementer`; `aiu-implementer/small` for a small, fully specified mechanical brief; `aiu-implementer/diagnose` to diagnose an unexplained failure |
+| Work with a clear brief: a large, separable implementation, a small, fully specified mechanical one, or the diagnosis of an unexplained failure | `aiu-implementer` | `aiu-implementer`; `aiu-implementer/small` for the small brief; `aiu-implementer/diagnose` for the diagnosis |
 | Every fresh-context review the tier requires (per-task, whole-feature, T3 focused; a T0 diff stays the primary's review) | `aiu-reviewer` | `aiu-reviewer`, T3 included; `aiu-reviewer/security` when the diff touches a security-lifecycle area (a precaution, not measured) |
 
 Outside a parallel run, the implementer works in the task's worktree on the task branch and

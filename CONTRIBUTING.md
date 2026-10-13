@@ -54,10 +54,10 @@ in the session, guard them.
   makes stale.
 - **Path list:** for every behavior the change alters, and every upstream change, finding or
   rule judged not applicable, the paths that reach it, listed before deciding: each caller of
-  the changed member (grep for its references), scheduled and manual triggers, each provider
-  or sibling with the same branch, and the failure branches (refused, mismatched, cancelled),
-  not only the success path. Each path is marked changed, unchanged with the reason, or
-  unreachable; a "not applicable" verdict names its paths.
+  the changed member (its LSP references where available, and a grep), scheduled and manual
+  triggers, each provider or sibling with the same branch, and the failure branches (refused,
+  mismatched, cancelled), not only the success path. Each path is marked changed, unchanged
+  with the reason, or unreachable; a "not applicable" verdict names its paths.
 
 Before the final report, tick each line with file:line or check evidence. A line that cannot
 be met as stated is fixed or reported as a deviation with its reason, never dropped silently.
@@ -169,8 +169,8 @@ set Claude Code's choices (Subagent models).
   transcript counts as independent; use the tracked reviewer agent, or a general-purpose
   agent given the same contract when the tracked one is not loaded. A review whose diff
   touches an area of the security-lifecycle skill uses the reviewer's `security` entry
-  (Subagent models); when a review on another entry reports such an area, the primary runs it
-  again with that entry.
+  (Subagent models); when a review on another entry returns such an area, the primary runs the
+  full review again with that entry, not only a re-check of fixed lines.
 - For T1 and up the review brief carries the brief ledger and the path list, and the
   reviewer checks both (reviewer contract).
 - In parallel runs, each code, test or harness task gets a per-task independent review.
@@ -219,7 +219,8 @@ files (below). Judgment, implementation, records and reviews never go to the hel
 - **Scout** (`scout.md`): locates code or answers "where and what" across many files when
   much work remains, instead of a general-purpose or exploration agent; several at once when
   the question splits. Use its `why` entry when it must explain why. Its answer is a claim:
-  read the lines it names before relying on them.
+  read the lines it names before relying on them. The callers, references or implementations
+  of one C# symbol need no scout: call the LSP tool yourself where it is available.
 - **Runner** (`runner.md`): full check runs (restore, build, full suites, validator, diff
   check, smokes) in the background, so their output stays out of the primary's context. The
   brief names the worktree, the commands with their check IDs and the log directory. Until it
