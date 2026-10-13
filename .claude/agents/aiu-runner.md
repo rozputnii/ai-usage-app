@@ -1,8 +1,6 @@
 ---
 name: aiu-runner
 description: Check runner (CONTRIBUTING, Helper agents; also economy mode). Runs the named checks (restore, build, suites, validator, diff check, smokes) one at a time, logs each with its exit code and reports verdicts; never edits or fixes anything. Dispatch it in the background, with the model and effort of its entry in .agents/models/ (normal.yaml or eco.yaml by mode).
-model: haiku
-effort: high
 tools: Bash, PowerShell, Read
 omitClaudeMd: true
 maxTurns: 40
