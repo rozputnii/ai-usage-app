@@ -43,6 +43,8 @@ this text seems to differ.
 - One whole-feature review runs, plus the focused T3 review when the tier requires it. In a
   parallel run it runs after the tasks have landed and before the run is reported done, and
   its findings are fixed as follow-ups. One round, then a re-check of the fixed lines only.
+  These reviews, unlike the per-task ones, add the optional second reviewer (CONTRIBUTING,
+  Review).
 - Use the receiving-code-review skill to evaluate findings; unresolved material findings block
   the merge, or in a parallel run, reporting the run done.
 

@@ -11,3 +11,4 @@ aiu-implementer: opus high
 aiu-implementer/small: sonnet high, opus high  # a small, fully specified brief
 aiu-reviewer: opus xhigh
 aiu-reviewer/security: opus xhigh              # the diff touches a security-lifecycle area
+aiu-reviewer/alt: fable high                   # second reviewer in parallel; no fallback (CONTRIBUTING, Review)

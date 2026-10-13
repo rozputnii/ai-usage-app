@@ -171,6 +171,12 @@ set Claude Code's choices (Subagent models).
   touches an area of the security-lifecycle skill uses the reviewer's `security` entry
   (Subagent models); when a review on another entry returns such an area, the primary runs the
   full review again with that entry, not only a re-check of fixed lines.
+- When the mode's model file has an `aiu-reviewer/alt` entry, every fresh-context review the
+  tier requires, except the per-task reviews of a parallel run, also runs a second reviewer
+  on that entry, in parallel and with the same brief. The entry has no fallback: with no
+  entry, or with its model unavailable, one reviewer runs and the record notes the second
+  as NOT_RUN. The primary merges both findings lists without a vote and checks each
+  Important finding itself; the first reviewer alone re-checks the fixed lines.
 - For T1 and up the review brief carries the brief ledger and the path list, and the
   reviewer checks both (reviewer contract).
 - In parallel runs, each code, test or harness task gets a per-task independent review.
@@ -240,7 +246,8 @@ role/case: [normal](.agents/models/normal.yaml) for the normal mode and
 Before its first dispatch in a session, and again when economy mode is turned on or off, the
 primary reads the file of its mode, then passes the first entry's family and effort on every
 dispatch. When that model is unavailable, it
-dispatches again with the next entry; with none left, it reports the step BLOCKED. Haiku never
+dispatches again with the next entry; with none left, it reports the step BLOCKED, except
+for the optional second reviewer (Review). Haiku never
 runs below high effort (owner rule). The Claude Code wrappers in `.claude/agents/` set no
 model or effort, so these files are the only source; a dispatch that omits the model or
 effort runs on the primary's, unless Claude Code sets a default subagent model. Other agents
