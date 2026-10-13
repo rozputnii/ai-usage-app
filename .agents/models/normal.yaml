@@ -1,7 +1,9 @@
 # Subagent models in the normal mode (CONTRIBUTING, Subagent models).
 # One line per role or role/case: "<family> <effort>[, <family> <effort>...]".
-# A family (haiku, sonnet, opus) always means its latest model. The first entry is used;
-# the next ones only when it is unavailable. Haiku never runs below high effort.
+# A family always means its latest model. The first entry is used; the next ones only when
+# it is unavailable. Claude Code runs xhigh or max as high on a model that lacks them.
+# families: haiku sonnet opus fable    (fable is not measured in this repository)
+# efforts:  low medium high xhigh max  (haiku: high or above, owner rule)
 aiu-scout: haiku high, sonnet high
 aiu-scout/why: sonnet high, opus medium        # the answer must explain why
 aiu-runner: haiku high, sonnet high
