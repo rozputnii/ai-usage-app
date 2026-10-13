@@ -162,7 +162,8 @@ feature, not in separate per-task record commits.
 
 The primary alone updates canonical state: goals, backlog, decisions and the feature's
 verification record. Review actual diffs with fresh, relevant evidence; a worker's claim
-is not completion. No model vendor or family is prescribed.
+is not completion. No model vendor or family is required (R-036); the subagent model files
+set Claude Code's choices (Subagent models).
 
 - Review by tier (above). A fresh-context, read-only subagent with no implementation
   transcript counts as independent; use the tracked reviewer agent, or a general-purpose
@@ -209,14 +210,13 @@ verification of the integrated result.
 
 The primary may hand mechanical work to two lean, read-only helpers whose contracts are in
 `.agents/agents/`. They start without the CLAUDE.md instruction files, at about 4-8k tokens
-against 18-55k for a general-purpose agent, and run on a small model by default (haiku in
-Claude Code), never below high effort (owner rule). Judgment, implementation, records and
-reviews never go to the helpers.
+against 18-55k for a general-purpose agent, and take their models from the subagent model
+files (below). Judgment, implementation, records and reviews never go to the helpers.
 
 - **Scout** (`scout.md`): locates code or answers "where and what" across many files when
   much work remains, instead of a general-purpose or exploration agent; several at once when
-  the question splits. Give it a mid-tier model when it must explain why. Its answer is a
-  claim: read the lines it names before relying on them.
+  the question splits. Use its `why` entry when it must explain why. Its answer is a claim:
+  read the lines it names before relying on them.
 - **Runner** (`runner.md`): full check runs (restore, build, full suites, validator, diff
   check, smokes) in the background, so their output stays out of the primary's context. The
   brief names the worktree, the commands with their check IDs and the log directory. Until it
@@ -225,6 +225,19 @@ reviews never go to the helpers.
   confirms it from the log's last lines (the `exit=<code>` line, and the totals where the
   check prints them); on a failure, read only the failing part and diagnose it yourself
   (systematic-debugging). The inner-loop test class stays with the primary.
+
+## Subagent models
+
+The models and efforts of the tracked subagents live in two files, one line per role or
+role/case: [normal](.agents/models/normal.yaml) for the normal mode and
+[eco](.agents/models/eco.yaml) while economy mode is on. An entry is
+`<family> <effort>[, <family> <effort>...]`, and a family always means its latest model.
+Before its first dispatch in a session the primary reads the file of its mode, then passes
+the first entry's family and effort on every dispatch. When that model is unavailable, it
+dispatches again with the next entry; with none left, it reports the step BLOCKED. Haiku never
+runs below high effort (owner rule). The Claude Code wrappers in `.claude/agents/` hold the
+normal file's role entries as their defaults; change both together. Other agents use their
+nearest equivalents.
 
 ## Contributions and checks
 

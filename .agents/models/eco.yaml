@@ -1,0 +1,12 @@
+# Subagent models while economy mode is on (eco skill, Roles).
+# One line per role or role/case: "<family> <effort>[, <family> <effort>...]".
+# A family (haiku, sonnet, opus) always means its latest model. The first entry is used;
+# the next ones only when it is unavailable. Haiku never runs below high effort.
+aiu-scout: haiku high, sonnet high
+aiu-scout/why: sonnet high, opus medium           # the answer must explain why
+aiu-runner: haiku high, sonnet high
+aiu-implementer: sonnet high, opus medium
+aiu-implementer/small: haiku xhigh, sonnet high   # a small, fully specified mechanical brief
+aiu-implementer/diagnose: opus medium             # an unexplained failure
+aiu-reviewer: opus medium                         # every required review, T3 included
+aiu-reviewer/security: opus high                  # the diff touches a security-lifecycle area

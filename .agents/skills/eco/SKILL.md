@@ -50,15 +50,15 @@ defines them, and write them right after the plan line.
 
 Delegate only to these agents, not to `general-purpose` or `Explore` directly: those start at
 18-55k tokens against 4-8k. When one of these agents is not loaded, use a general-purpose agent
-given its contract, as CLAUDE.md says. Pass the model and effort on a call when they differ
-from the agent's default (Claude Code aliases; another agent uses its nearest equivalents).
+given its contract, as CLAUDE.md says. Pass the model and effort of the matching entry in
+[eco models](../../models/eco.yaml) on every call (CONTRIBUTING, Subagent models).
 
-| Work | Agent | Model, effort |
+| Work | Agent | Entry in eco models |
 | --- | --- | --- |
-| Locate code or answer "where and what" across many files, when much work remains | `aiu-scout` | haiku, high (default); sonnet, high when it must explain why |
-| Full check runs (restore, build, suites, validator, diff check, smokes) | `aiu-runner` | haiku, high (default) |
-| A large, separable implementation with a clear brief | `aiu-implementer` | sonnet, high; haiku, xhigh for a small, fully specified mechanical brief; opus, medium to diagnose an unexplained failure |
-| Every fresh-context review the tier requires (per-task, whole-feature, T3 focused; a T0 diff stays the primary's review) | `aiu-reviewer` | opus, medium, T3 included; opus, high when the diff touches a security-lifecycle area (a precaution, not measured) |
+| Locate code or answer "where and what" across many files, when much work remains | `aiu-scout` | `aiu-scout`; `aiu-scout/why` when it must explain why |
+| Full check runs (restore, build, suites, validator, diff check, smokes) | `aiu-runner` | `aiu-runner` |
+| A large, separable implementation with a clear brief | `aiu-implementer` | `aiu-implementer`; `aiu-implementer/small` for a small, fully specified mechanical brief; `aiu-implementer/diagnose` to diagnose an unexplained failure |
+| Every fresh-context review the tier requires (per-task, whole-feature, T3 focused; a T0 diff stays the primary's review) | `aiu-reviewer` | `aiu-reviewer`, T3 included; `aiu-reviewer/security` when the diff touches a security-lifecycle area (a precaution, not measured) |
 
 Outside a parallel run, the implementer works in the task's worktree on the task branch and
 stops after its report (implementer contract, step 4). The primary then runs the review,
@@ -97,9 +97,11 @@ with their check IDs and the log directory; the runner contract holds the rest.
   rerun that step one level up: haiku high, then sonnet high, then opus medium, then opus
   high. Do not retry the same level unchanged. When opus high fails too, take the step over or
   report it BLOCKED.
-- A failing check found by a runner goes to you or an opus medium implementer for diagnosis
-  (systematic-debugging); the runner never fixes anything.
-- Never review below the table.
+- A failing check found by a runner goes to you or the `aiu-implementer/diagnose` entry for
+  diagnosis (systematic-debugging); the runner never fixes anything.
+- Never review below the reviewer entries.
+- An unavailable model is not a failure: use the entry's next model (CONTRIBUTING, Subagent
+  models).
 - Never run haiku below high effort (owner rule).
 - Haiku costs five times more once a prompt passes 100k tokens: keep haiku briefs small and
   have it read excerpts, never whole large logs or files.

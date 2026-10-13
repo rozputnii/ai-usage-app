@@ -1,6 +1,6 @@
 ---
 name: aiu-reviewer
-description: Independent read-only reviewer for one task, feature or run. Use for the per-task, whole-feature and T3 focused reviews that CONTRIBUTING requires; fresh context, no implementation transcript.
+description: Independent read-only reviewer for one task, feature or run. Use for the per-task, whole-feature and T3 focused reviews that CONTRIBUTING requires; fresh context, no implementation transcript. Dispatch it with the model and effort of its entry in .agents/models/ (normal.yaml or eco.yaml by mode).
 model: opus
 effort: high
 tools: Read, Grep, Glob, Bash, PowerShell, Skill

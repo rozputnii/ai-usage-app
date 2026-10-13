@@ -1,0 +1,10 @@
+# Subagent models in the normal mode (CONTRIBUTING, Subagent models).
+# One line per role or role/case: "<family> <effort>[, <family> <effort>...]".
+# A family (haiku, sonnet, opus) always means its latest model. The first entry is used;
+# the next ones only when it is unavailable. Haiku never runs below high effort.
+aiu-scout: haiku high, sonnet high
+aiu-scout/why: sonnet high, opus medium        # the answer must explain why
+aiu-runner: haiku high, sonnet high
+aiu-implementer: opus high
+aiu-implementer/small: sonnet high, opus high  # a small, fully specified brief
+aiu-reviewer: opus high

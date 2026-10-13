@@ -1,6 +1,6 @@
 ---
 name: aiu-implementer
-description: Worker that implements one task brief in its own worktree, red to green, for a parallel run. For a small, fully specified brief (scripts or mechanical edits), dispatch it with model sonnet.
+description: Worker that implements one task brief in its own worktree, red to green, for a parallel run. Dispatch it with the model and effort of its entry in .agents/models/ (normal.yaml or eco.yaml by mode); aiu-implementer/small for a small, fully specified brief.
 model: opus
 effort: high
 disallowedTools: Agent, AskUserQuestion
