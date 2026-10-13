@@ -167,7 +167,9 @@ set Claude Code's choices (Subagent models).
 
 - Review by tier (above). A fresh-context, read-only subagent with no implementation
   transcript counts as independent; use the tracked reviewer agent, or a general-purpose
-  agent given the same contract when the tracked one is not loaded.
+  agent given the same contract when the tracked one is not loaded. A review whose diff
+  touches a security-lifecycle area (credentials, storage, migrations, recovery or owned-data
+  cleanup) uses the reviewer's `security` entry (Subagent models).
 - For T1 and up the review brief carries the brief ledger and the path list, and the
   reviewer checks both (reviewer contract).
 - In parallel runs, each code, test or harness task gets a per-task independent review.
