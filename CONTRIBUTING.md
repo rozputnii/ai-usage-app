@@ -210,8 +210,8 @@ verification of the integrated result.
 The primary may hand mechanical work to two lean, read-only helpers whose contracts are in
 `.agents/agents/`. They start without the CLAUDE.md instruction files, at about 4-8k tokens
 against 18-55k for a general-purpose agent, and run on a small model by default (haiku in
-Claude Code), never below high effort (owner rule). Judgment, implementation, records and the
-review set stay with the primary and the reviewer.
+Claude Code), never below high effort (owner rule). Judgment, implementation, records and
+reviews never go to the helpers.
 
 - **Scout** (`scout.md`): locates code or answers "where and what" across many files when
   much work remains, instead of a general-purpose or exploration agent; several at once when
@@ -219,9 +219,9 @@ review set stay with the primary and the reviewer.
   claim: read the lines it names before relying on them.
 - **Runner** (`runner.md`): full check runs (restore, build, full suites, validator, diff
   check, smokes) in the background, so their output stays out of the primary's context. The
-  brief names the worktree, the commands with their check IDs and the log directory. Do not
-  change that worktree's tracked files until it reports, or run the checks again. A reported
-  PASS counts at the merge gate only after the primary confirms it from the log's last lines
+  brief names the worktree, the commands with their check IDs and the log directory. Until it
+  reports, do not change files in that worktree or build or test in it; a change after the
+  run needs a new run. A reported PASS counts at the merge gate only after the primary confirms it from the log's last lines
   (the `exit=<code>` line, and the totals where the check prints them); on a failure, read
   only the failing part and diagnose it yourself (systematic-debugging). The inner-loop test
   class stays with the primary.

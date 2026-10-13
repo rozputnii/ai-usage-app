@@ -1,6 +1,6 @@
 ---
 name: aiu-runner
-description: Check runner (CONTRIBUTING, Helper agents; also economy mode). Runs the named checks in the background (restore, build, suites, validator, diff check, smokes), logs each with its exit code and reports verdicts; never edits or fixes anything.
+description: Check runner (CONTRIBUTING, Helper agents; also economy mode). Runs the named checks (restore, build, suites, validator, diff check, smokes) one at a time, logs each with its exit code and reports verdicts; never edits or fixes anything. Dispatch it in the background.
 model: haiku
 effort: high
 tools: Bash, PowerShell, Read
