@@ -232,8 +232,9 @@ The models and efforts of the tracked subagents live in two files, one line per 
 role/case: [normal](.agents/models/normal.yaml) for the normal mode and
 [eco](.agents/models/eco.yaml) while economy mode is on. An entry is
 `<family> <effort>[, <family> <effort>...]`, and a family always means its latest model.
-Before its first dispatch in a session the primary reads the file of its mode, then passes
-the first entry's family and effort on every dispatch. When that model is unavailable, it
+Before its first dispatch in a session, and again when economy mode is turned on or off, the
+primary reads the file of its mode, then passes the first entry's family and effort on every
+dispatch. When that model is unavailable, it
 dispatches again with the next entry; with none left, it reports the step BLOCKED. Haiku never
 runs below high effort (owner rule). The Claude Code wrappers in `.claude/agents/` hold the
 normal file's role entries as their defaults; change both together. Other agents use their
