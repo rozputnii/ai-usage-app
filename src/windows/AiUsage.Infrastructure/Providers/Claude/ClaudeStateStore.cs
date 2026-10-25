@@ -1,4 +1,5 @@
 using AiUsage.Core.Diagnostics;
+using AiUsage.Core.Providers.Claude;
 using AiUsage.Core.Usage;
 namespace AiUsage.Infrastructure.Providers.Claude;
 
@@ -35,7 +36,12 @@ internal sealed class ClaudeStateStore
             state.Identity is null || !ClaudeAuthClient.SafeIdentity(state.Identity.AccountId) ||
             !ClaudeAuthClient.SafeIdentity(state.Identity.OrganizationId) || !ClaudeAuthClient.SafeToken(state.RefreshToken))
             throw new ProviderException(ProviderFailureKind.RecoveryRequired);
-        if (state.CachedQuota is { } reading)
+        ValidateReading(state.CachedQuota);
+    }
+
+    internal static void ValidateReading(ClaudeQuotaReading? cached)
+    {
+        if (cached is { } reading)
         {
             if (reading.Quota is null || !ProviderStateMigration.Valid(reading.Quota) || reading.Quota.Groups is null || reading.Quota.Groups.Count > 1024 ||
                 reading.Quota.Groups.Any(group => group is null || group.Id is null || group.Windows is null ||
