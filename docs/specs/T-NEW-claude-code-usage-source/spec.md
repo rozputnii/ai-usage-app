@@ -41,9 +41,9 @@ the same plan usage itself, with its own sign-in, so the app needs no Claude cre
 - AC-02: Choosing "Use Claude Code on this PC" opens no browser; on success a new Claude
   account appears with the session, weekly and model-scoped weekly limits and usage credits
   that the report carries, parsed by `ClaudeQuotaParser`.
-- AC-03: The account card shows "via Claude Code" after the account name, followed by
-  " · " and the plan (Pro, Max, Team, Enterprise) when `auth status` reports a known
-  subscription type.
+- AC-03: The account card shows "via Claude Code" after the account name; the plan that
+  `auth status` reports (Pro, Max, Team, Enterprise) becomes part of the default account
+  name, as for other providers that report a plan.
 - AC-04: Automatic and manual refresh rerun the report; the R-233 two-minute floor for Claude
   applies to these accounts too.
 - AC-05: The runner passes arguments through `ProcessStartInfo.ArgumentList` with
@@ -67,4 +67,5 @@ the same plan usage itself, with its own sign-in, so the app needs no Claude cre
   (`CLAUDE_CONFIG_DIR`); WSL.
 - Importing or replaying Claude Code credentials (T-005 method A).
 
-Variant: B (Claude row expands into the two ways), owner, 2026-10-25.
+Variant: B (Claude row expands into the two ways), owner, 2026-10-25. The first-run screen,
+which the variants did not show, lists Claude Code as its own card ("Connect").

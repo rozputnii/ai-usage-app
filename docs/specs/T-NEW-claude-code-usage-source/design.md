@@ -1,3 +1,10 @@
+---
+id: T-NEW
+type: design
+status: approved
+goal: G-003
+scope_version: 1
+---
 # Claude usage through the local Claude Code CLI - design
 
 ## Account kind

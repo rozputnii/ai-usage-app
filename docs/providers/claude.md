@@ -143,3 +143,40 @@ time, GMT offset, month and day. It is CL-C in the UI matrix, not a recurring mo
 allotment or proof of OAuth `spend`/`extra_usage` mapping. No amount, actual reset/expiry value,
 identity or screenshot is retained. All transport gaps and Max/Team/Enterprise evidence
 levels remain unchanged. See the [LC-01 UI matrix](../specs/T-034-limit-audit-design-brief/research.md#claude-pro-ui-observations-lc-01-2026-09-26).
+
+## Claude Code local usage method (T-NEW)
+
+- provider: claude
+- source_verified_at: 2026-10-25
+- live_verified_at: 2026-10-25
+- live_scope: one owner-authorized run on the owner's PC, Claude Code 2.1.296, a personal Max subscription; field names and behaviour only, no values or identity retained
+- classification: authentication none (the unmodified Claude Code binary keeps its own sign-in); quota documented local command (`/usage` report, Agent SDK `SDKUsageReport`, marked experimental)
+- confidence: high for the report shape on this version; other plans, rate-limited and signed-out output not observed live
+- sources: [research](../specs/T-NEW-claude-code-usage-source/research.md), [design](../specs/T-NEW-claude-code-usage-source/design.md)
+
+A second Claude connection, next to the browser method above, which stays unchanged. The app
+starts the installed `claude.exe` directly (no shell) with `auth status --json`, then
+`-p /usage --output-format stream-json --verbose --no-session-persistence --safe-mode`, in an
+app-owned empty folder. The credential-use policy restricts third-party Claude.ai login and
+the collection or intermediation of Claude credentials, and allows a user to sign in to the
+unmodified Claude Code binary; this method reads no credential and sends no prompt.
+
+Live run, 2026-10-25: the `/usage` run took about 1.5 s and exited 0. Its assistant message
+had model `<synthetic>`, `local_command_run.command` `usage` and a `usage_report` whose
+`rate_limits` held three `limits[]` rows (`session`, `weekly_all`, `weekly_scoped` with
+`scope.model.display_name`), each with `kind`, `group`, `percent`, ISO `resets_at`, `scope`,
+`severity` and `is_active`, and `extra_usage` with `is_enabled`, `monthly_limit`,
+`used_credits`, `utilization` and `currency`. The `result` line had `subtype` `success`,
+`local_command` `usage`, `num_turns` 0, `total_cost_usd` 0 and an empty `modelUsage`.
+`auth status --json` (about 150 ms) returned `loggedIn`, `authMethod` (`claude.ai`),
+`apiProvider` (`firstParty`), `email`, `orgId`, `orgName` and `subscriptionType` (`max`).
+
+An earlier attempt the same day ran through Git Bash, which rewrote `/usage` into a Windows
+path; the text reached the model as a prompt: one inference of about 21k input tokens
+(list-price estimate $0.18, counted against the plan) that also emitted a `rate_limit_event`.
+The product never uses a shell, and it rejects any run whose result shows a model turn,
+a cost or model usage.
+
+NOT_RUN live: signed-out and API-key sign-ins, a rate-limited usage endpoint (whether a
+last-known snapshot is marked in `usage_report`), Pro, Team and Enterprise payloads, usage
+credits switched on, and the packaged MSIX app starting `claude.exe` (post-deploy owner check).
