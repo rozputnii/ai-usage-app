@@ -144,7 +144,7 @@ allotment or proof of OAuth `spend`/`extra_usage` mapping. No amount, actual res
 identity or screenshot is retained. All transport gaps and Max/Team/Enterprise evidence
 levels remain unchanged. See the [LC-01 UI matrix](../specs/T-034-limit-audit-design-brief/research.md#claude-pro-ui-observations-lc-01-2026-09-26).
 
-## Claude Code local usage method (T-NEW)
+## Claude Code local usage method (T-071)
 
 - provider: claude
 - source_verified_at: 2026-10-25
@@ -152,7 +152,7 @@ levels remain unchanged. See the [LC-01 UI matrix](../specs/T-034-limit-audit-de
 - live_scope: one owner-authorized run on the owner's PC, Claude Code 2.1.296, a personal Max subscription; field names and behaviour only, no values or identity retained
 - classification: authentication none (the unmodified Claude Code binary keeps its own sign-in); quota documented local command (`/usage` report, Agent SDK `SDKUsageReport`, marked experimental)
 - confidence: high for the report shape on this version; other plans, rate-limited and signed-out output not observed live
-- sources: [research](../specs/T-NEW-claude-code-usage-source/research.md), [design](../specs/T-NEW-claude-code-usage-source/design.md)
+- sources: [research](../specs/T-071-claude-code-usage-source/research.md), [design](../specs/T-071-claude-code-usage-source/design.md)
 
 A second Claude connection, next to the browser method above, which stays unchanged. The app
 starts the installed `claude.exe` directly (no shell) with `auth status --json`, then

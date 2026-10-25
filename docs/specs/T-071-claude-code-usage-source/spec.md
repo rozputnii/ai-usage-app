@@ -1,7 +1,7 @@
 ---
-id: T-NEW
+id: T-071
 type: feature
-status: approved
+status: implemented
 goal: G-003
 scope_version: 1
 approval_basis: owner decision, 2026-10-25, in conversation. The owner selected the Claude Code part of the ideas-inbox entry on legal usage sources as an additional connection method, chose the `/usage` report through `claude -p` from the research, picked UI variant B and authorized one live run of that report on the owner's PC.

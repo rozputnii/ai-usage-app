@@ -11,7 +11,7 @@ Code reference: 8373691 (final checks; 4e5aec0 for the first run), plus records.
 | C9 Package build | PASS, unsigned validation-only package 2026.10.2552.0 |
 | C8 Launch smoke | PASS, 3/3 (demo, comfortable, live empty, tray icons) |
 | C2 Document validation, C6 diff check | PASS |
-| Live `/usage` and `auth status` run on the owner's PC (owner-authorized) | PASS, field shape recorded in [claude.md](../../providers/claude.md#claude-code-local-usage-method-t-new) |
+| Live `/usage` and `auth status` run on the owner's PC (owner-authorized) | PASS, field shape recorded in [claude.md](../../providers/claude.md#claude-code-local-usage-method-t-071) |
 
 New tests: `ClaudeCodeReportTests` (14), `ClaudeCodeSessionTests` (15), `ClaudeCodeProcessTests` (11),
 `ClaudeCodeAccountServiceTests` (3), `ClaudeCodeLedgerTests` (10); `OwnedDataDeletionTests` gained a Claude Code slot.

@@ -17,7 +17,7 @@ Sources: Claude Code 2.1.296 installed on the owner's PC (`claude --help`, `clau
 code.claude.com/docs/en: `statusline`, `hooks`, `plugins-reference`, `plugins/components`,
 `agent-sdk/typescript`, `costs`, `desktop`, `monitoring-usage`, `legal-and-compliance`. Nothing
 was run against the provider while researching; no credential store was read. The live check
-of surface A that followed is recorded in [claude.md](../../providers/claude.md#claude-code-local-usage-method-t-new).
+of surface A that followed is recorded in [claude.md](../../providers/claude.md#claude-code-local-usage-method-t-071).
 
 ## Permission boundary
 

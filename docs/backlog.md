@@ -181,17 +181,6 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - source: OMP 3d4d323009, e45b49c0d4, a834aa1b09, `packages/ai/src/usage/claude-reset.ts` `parseClaudeResetCreditsFromUsagePayload`, `listClaudeResetCredits`, `consumeClaudeResetCredit`; review in docs/specs/T-067-omp-v18-9-0-review/verification.md
 - registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-067) as a new capability, not implemented. Not selected.
 
-## T-NEW - Claude usage through the local Claude Code CLI
-- goal: G-003
-- status: in-progress
-- depends_on: []
-- trigger: owner-selection
-- outcome: A second, provider-sanctioned way to connect a Claude account, next to the existing browser sign-in, which stays unchanged: on a PC where the owner uses Claude Code, the app reads that account's usage through the unmodified Claude Code binary, which keeps its own sign-in, so the app never handles a Claude credential. Research first which native Claude Code surface is best (a plugin or hook that pushes usage to the app, the status line `rate_limits` data, the Agent SDK `/usage` report, OpenTelemetry), then design and implement the chosen one.
-- acceptance: (1) Research names each surface with its fields relative to the T-034 limit matrix, its trigger and freshness, whether it needs inference (disallowed), what it changes on the owner's machine and its permission standing under Anthropic's credential-use policy. (2) The owner picks the method and the UI variant before implementation. (3) The app never reads, copies or stores Claude Code credentials, and never sends a prompt to a model. (4) The existing browser connection, its accounts and its stored state stay unchanged.
-- specification: docs/specs/T-NEW-claude-code-usage-source/spec.md
-- evidence: docs/specs/T-NEW-claude-code-usage-source/verification.md
-- registration-note: Owner selected this on 2026-10-25 from the ideas inbox ("Legal, ban-safe auth and usage-limit sources per provider"), for Claude Code only, as an additional connection method and not a rewrite. It is T-005 method B for Claude, selected ahead of T-005's sequencing; T-005 keeps the other providers and method A.
-
 ## Done index
 
 Done and dropped items, one row each (OD-19). Their history is in each item's specification and verification records and in Git history.
@@ -247,6 +236,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-067 | Provider sources reviewed against OMP v18.9.0 | done | G-003 | docs/specs/T-067-omp-v18-9-0-review/verification.md |
 | T-068 | Codex credit-funded overage past a plan limit | dropped | G-003 | docs/providers/codex.md |
 | T-070 | Motion and spacing polish | done | G-003 | docs/specs/T-070-motion-and-spacing-polish/verification.md |
+| T-071 | Claude usage through the local Claude Code CLI | done | G-003 | docs/specs/T-071-claude-code-usage-source/verification.md |
 
 ## Pending owner checks
 
@@ -259,7 +249,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-046 | AC-06 automatic path: in Always mode, a newer Preview installs while the window is hidden and the app relaunches in the tray (the manual path passed twice, 2026-10-12 and 2026-10-13) | 2026-10-07 |
 | T-047 | AC-08: after an uninstall and reinstall, signing in to the same real account re-attaches its usage history | 2026-10-07 |
 | T-053 | Today's use set by hand on a Claude spending limit, once a live Claude account has one (Copilot dollars and today's use by hand passed, 2026-10-13) | 2026-10-08 |
-| T-NEW | Add a Claude account with "Use Claude Code on this PC": the packaged app finds and starts `claude.exe`, the card shows the session, weekly and model rows with "via Claude Code", and a refresh updates them | 2026-10-25 |
+| T-071 | Add a Claude account with "Use Claude Code on this PC": the packaged app finds and starts `claude.exe`, the card shows the session, weekly and model rows with "via Claude Code", and a refresh updates them | 2026-10-25 |
 | T-055 | Provider-mark tooltips in the tray flyout and the wrapped empty-tray text (flyout, stepper, click rename and grip drag passed, 2026-10-13) | 2026-10-08 |
 | T-056 | After days of uptime the tray colour keeps updating and the logs show no TrayFailure flood (at most one detailed record plus a counted summary) | 2026-10-10 |
 | T-063 | The Peak pill tooltip, and the pill disappearing after the window (title row and tray header with the end time passed, 2026-10-13) | 2026-10-10 |
