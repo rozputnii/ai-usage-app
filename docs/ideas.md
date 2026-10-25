@@ -20,7 +20,8 @@ Statuses: new / discussing / moved (to T-nnn) / dropped.
 -->
 
 ## Legal, ban-safe auth and usage-limit sources per provider
-- status: new
+- status: discussing (Claude Code part moved to T-NEW on 2026-10-25; Codex, Copilot and
+  Antigravity stay here)
 - added: 2026-10-11
 - idea: Перевірити, які ще можливі способи авторизації та отримання usage limits провайдерів,
   які були б легальними і точно не забанили акаунт. Ідеї можна взяти з більш зрілого

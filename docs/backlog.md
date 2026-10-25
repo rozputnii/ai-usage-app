@@ -181,6 +181,16 @@ Statuses: idea / research-needed / blocked / ready / selected / in-progress / pa
 - source: OMP 3d4d323009, e45b49c0d4, a834aa1b09, `packages/ai/src/usage/claude-reset.ts` `parseClaudeResetCreditsFromUsagePayload`, `listClaudeResetCredits`, `consumeClaudeResetCredit`; review in docs/specs/T-067-omp-v18-9-0-review/verification.md
 - registration-note: Recorded on 2026-10-12 by the OMP v18.9.0 source review (T-067) as a new capability, not implemented. Not selected.
 
+## T-NEW - Claude usage through the local Claude Code CLI
+- goal: G-003
+- status: in-progress
+- depends_on: []
+- trigger: owner-selection
+- outcome: A second, provider-sanctioned way to connect a Claude account, next to the existing browser sign-in, which stays unchanged: on a PC where the owner uses Claude Code, the app reads that account's usage through the unmodified Claude Code binary, which keeps its own sign-in, so the app never handles a Claude credential. Research first which native Claude Code surface is best (a plugin or hook that pushes usage to the app, the status line `rate_limits` data, the Agent SDK `/usage` report, OpenTelemetry), then design and implement the chosen one.
+- acceptance: (1) Research names each surface with its fields relative to the T-034 limit matrix, its trigger and freshness, whether it needs inference (disallowed), what it changes on the owner's machine and its permission standing under Anthropic's credential-use policy. (2) The owner picks the method and the UI variant before implementation. (3) The app never reads, copies or stores Claude Code credentials, and never sends a prompt to a model. (4) The existing browser connection, its accounts and its stored state stay unchanged.
+- specification: docs/specs/T-NEW-claude-code-usage-source/research.md
+- registration-note: Owner selected this on 2026-10-25 from the ideas inbox ("Legal, ban-safe auth and usage-limit sources per provider"), for Claude Code only, as an additional connection method and not a rewrite. It is T-005 method B for Claude, selected ahead of T-005's sequencing; T-005 keeps the other providers and method A.
+
 ## Done index
 
 Done and dropped items, one row each (OD-19). Their history is in each item's specification and verification records and in Git history.
