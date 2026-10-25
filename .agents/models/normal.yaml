@@ -6,8 +6,8 @@
 # efforts:  low medium high xhigh max  (haiku: high or above, owner rule)
 aiu-scout: haiku xhigh, sonnet high
 aiu-scout/why: sonnet high, opus high          # the answer must explain why
-aiu-runner: haiku xhigh, sonnet high
+aiu-runner: haiku high, sonnet medium
 aiu-implementer: opus high
 aiu-implementer/small: sonnet high, opus high  # a small, fully specified brief
 aiu-reviewer: opus xhigh
-aiu-reviewer/security: opus xhigh              # the diff touches a security-lifecycle area
+aiu-reviewer/security: fable xhigh, opus xhigh # the diff touches a security-lifecycle area
