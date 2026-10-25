@@ -7,6 +7,7 @@ using AiUsage.Features.Ledger;
 using AiUsage.Features.Ledger.Contract;
 using AiUsage.Infrastructure.Accounts;
 using AiUsage.Infrastructure.Persistence;
+using AiUsage.Infrastructure.Providers.Claude;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Dispatching;
 
@@ -30,7 +31,8 @@ internal static class LiveLedgerRegistration
             return new LiveLedgerSource(p.GetRequiredService<IAccountService>(), p.GetRequiredService<LocalBudgetStore>(),
                 p.GetRequiredService<LocalBudgetStore>(), p.GetRequiredService<IQuotaObservationRecorder>(),
                 new LedgerPreferenceStore(file.ReadAsync, file.WriteAsync), action => Dispatch(queue, action),
-                uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }), diagnostics: diagnostics);
+                uri => Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }), diagnostics: diagnostics)
+            { ClaudeCodeInstalled = ClaudeCodeInstallation.IsInstalled };
         });
         services.AddSingleton<ILedgerSource>(p => p.GetRequiredService<LiveLedgerSource>());
         services.AddSingleton(p => new LedgerProductLifetime(root, p.GetRequiredService<LiveLedgerSource>(),

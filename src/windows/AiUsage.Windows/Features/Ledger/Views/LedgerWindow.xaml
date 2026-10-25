@@ -107,7 +107,7 @@
                   <ItemsControl ItemsSource="{x:Bind ViewModel.Providers}" IsTabStop="False">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate x:DataType="ledger:ProviderItem">
-                        <lc:LedgerButton Style="{StaticResource LedgerButtonBase}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Height="30" Padding="10,0,10,0"
+                        <lc:LedgerButton Style="{StaticResource LedgerButtonBase}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Height="30" Padding="{x:Bind lc:LedgerViews.MenuPadding(IsMethod)}"
                                 IsEnabled="{x:Bind IsEnabled}" Tag="{x:Bind}" Click="OnProviderMenuClick" AutomationProperties.Name="{x:Bind ButtonName}">
                           <Grid>
                             <TextBlock Text="{x:Bind Name}" Style="{StaticResource LedgerStrongText}" />
@@ -195,7 +195,7 @@
         <StackPanel MaxWidth="460" Spacing="12" Margin="16,44,16,16" HorizontalAlignment="Stretch">
           <TextBlock Text="Add an account" Style="{StaticResource LedgerHeadingText}" />
           <TextBlock Text="AI Usage shows how much of each subscription limit is left today. Sign-in opens your browser; nothing is read before you sign in." Style="{StaticResource LedgerIntroText}" />
-          <ItemsControl ItemsSource="{x:Bind ViewModel.Providers}" IsTabStop="False">
+          <ItemsControl ItemsSource="{x:Bind ViewModel.FirstRunProviders}" IsTabStop="False">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate><StackPanel Spacing="12" /></ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>

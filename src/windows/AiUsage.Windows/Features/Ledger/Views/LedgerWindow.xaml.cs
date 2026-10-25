@@ -615,9 +615,15 @@ internal sealed partial class LedgerWindow : Window
 
     private void OnProviderMenuClick(object sender, RoutedEventArgs e)
     {
+        if (((FrameworkElement)sender).Tag is not ProviderItem item)
+            return;
+        if (item.IsGroup)
+        {
+            ViewModel.ToggleProviderGroup(item.Provider);
+            return;
+        }
         ProviderFlyout.Hide();
-        if (((FrameworkElement)sender).Tag is ProviderItem item)
-            _ = ViewModel.SignInAsync(item.Provider);
+        _ = ViewModel.SignInAsync(item.Provider, item.Method);
     }
 
     private void OnShowSignedOutClick(object sender, RoutedEventArgs e) => _ = ViewModel.ToggleShowSignedOutAsync();

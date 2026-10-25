@@ -7,10 +7,18 @@ namespace AiUsage.Features.Ledger;
 
 internal sealed record ProviderItem(ProviderKind Provider, string Name, string Description, bool Added, bool SigningIn, bool Available = true)
 {
-    public bool IsEnabled => Available && !SigningIn;
-    public string MenuRight => Added ? "added" : SigningIn ? "waiting…" : string.Empty;
-    public string ButtonText => SigningIn ? "Waiting…" : "Sign in";
-    public string ButtonName => "Sign in to " + Name;
+    public SignInMethod Method { get; init; }
+    /// <summary>A provider with several sign-in methods: the menu row opens or closes them instead of signing in.</summary>
+    public bool IsGroup { get; init; }
+    public bool Expanded { get; init; }
+    /// <summary>One sign-in method of a group, indented under its provider row.</summary>
+    public bool IsMethod { get; init; }
+    /// <summary>False only when the method cannot work on this PC; the row then says why.</summary>
+    public bool Installed { get; init; } = true;
+    public bool IsEnabled => IsGroup ? Available : Available && Installed && !SigningIn;
+    public string MenuRight => IsGroup ? (Expanded ? "▾" : "▸") : !Installed ? "not found" : Added ? "added" : SigningIn ? "waiting…" : string.Empty;
+    public string ButtonText => SigningIn ? "Waiting…" : !Installed ? "Not found" : Method == SignInMethod.ClaudeCode ? "Connect" : "Sign in";
+    public string ButtonName => IsGroup ? Name + ", sign-in methods" : Method == SignInMethod.ClaudeCode ? "Connect Claude Code on this PC" : "Sign in to " + Name;
 }
 
 internal sealed record DemoScenario(string Id, string Title);
@@ -55,6 +63,10 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     public LedgerSettingsViewModel Settings { get; }
     public ObservableCollection<LimitCardViewModel> Cards { get; } = [];
     public ObservableCollection<ProviderItem> Providers { get; } = [];
+    /// <summary>The first-run cards: one per sign-in method, with no groups to open.</summary>
+    public ObservableCollection<ProviderItem> FirstRunProviders { get; } = [];
+    private IReadOnlyList<ProviderOption> providerOptions = [];
+    private readonly HashSet<ProviderKind> expandedProviders = [];
     public LedgerSnapshot Snapshot => source.Current;
     public LedgerPreferences Preferences => source.Preferences;
 
@@ -168,7 +180,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         if (History is { } history && !cardsById.ContainsKey(history.CardId))
             CloseHistory();
 
-        Sync(Providers, snapshot.Providers.Select(p => new ProviderItem(p.Provider, LedgerFormat.ProviderName(p.Provider), Describe(p.Provider), p.Added, p.SigningIn, CanUseAccounts)).ToList());
+        providerOptions = snapshot.Providers;
+        SyncProviders();
         UpdateStrip(snapshot.SignInStrip);
         Settings.Rebuild(snapshot, prefs);
         // Card visuals change only above (Update or a new card), so the tray tone is final here.
@@ -222,6 +235,40 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         })]);
     }
 
+    /// <summary>Opens or closes the sign-in methods of a provider in the Add account menu (variant B).</summary>
+    public void ToggleProviderGroup(ProviderKind provider)
+    {
+        if (!expandedProviders.Remove(provider))
+            expandedProviders.Add(provider);
+        SyncProviders();
+    }
+
+    private void SyncProviders()
+    {
+        ProviderItem Item(ProviderOption p, string name, string description) =>
+            new(p.Provider, name, description, p.Added, p.SigningIn, CanUseAccounts) { Method = p.Method, Installed = p.Available };
+        List<ProviderItem> menu = [];
+        foreach (var group in providerOptions.GroupBy(p => p.Provider))
+        {
+            var name = LedgerFormat.ProviderName(group.Key);
+            if (group.Count() == 1)
+            {
+                menu.Add(Item(group.First(), name, Describe(group.Key)));
+                continue;
+            }
+            var expanded = expandedProviders.Contains(group.Key);
+            menu.Add(new(group.Key, name, Describe(group.Key), group.Any(p => p.Added), group.Any(p => p.SigningIn), CanUseAccounts) { IsGroup = true, Expanded = expanded });
+            if (expanded)
+                menu.AddRange(group.Select(p => Item(p, MethodName(p.Method), Describe(group.Key)) with { IsMethod = true }));
+        }
+        Sync(Providers, menu);
+        Sync(FirstRunProviders, providerOptions.Select(p => p.Method == SignInMethod.ClaudeCode
+            ? Item(p, "Claude Code", "reads Claude usage from Claude Code on this PC, no browser")
+            : Item(p, LedgerFormat.ProviderName(p.Provider), Describe(p.Provider))).ToList());
+    }
+
+    private static string MethodName(SignInMethod method) => method == SignInMethod.ClaudeCode ? "Use Claude Code on this PC" : "Sign in with browser";
+
     private static string Describe(ProviderKind provider) => provider switch
     {
         ProviderKind.Claude => "5h and 7d limits, extra usage",
@@ -259,7 +306,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         StripCode = StripBusy ? strip.UserCode ?? string.Empty : string.Empty;
         (StripTone, StripText, StripAction, StripActionIsPrimary) = strip.Phase switch
         {
-            SignInPhase.Waiting => (Tone.Neutral, StripCode.Length > 0 ? string.Empty : StripAcceptsCode ? "sign in, then paste the code here" : "finish in the browser", "Cancel", false),
+            SignInPhase.Waiting => (Tone.Neutral, StripCode.Length > 0 ? string.Empty : StripAcceptsCode ? "sign in, then paste the code here"
+                : strip.Method == SignInMethod.ClaudeCode ? "reading Claude Code" : "finish in the browser", "Cancel", false),
             SignInPhase.Succeeded => (Tone.Ok, strip.LimitsFound is { } n ? "added · " + n + (n == 1 ? " limit" : " limits") : "added", string.Empty, false),
             SignInPhase.Cancelled => (Tone.Attention, "cancelled", "Try again", true),
             _ => (Tone.Attention, strip.Failure switch
@@ -271,6 +319,8 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
                 SignInFailure.Expired => "expired",
                 SignInFailure.Browser => "browser sign-in couldn't start",
                 SignInFailure.Registration => "not configured on this PC",
+                SignInFailure.ClaudeCodeMissing => "Claude Code not found",
+                SignInFailure.ClaudeCodeSignedOut => "sign in to Claude Code with a subscription first",
                 _ => "sign-in failed",
             }, "Try again", true),
         };
@@ -377,7 +427,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     // ---- Sign-in ----
 
     [RelayCommand]
-    public async Task SignInAsync(ProviderKind provider)
+    public Task SignInAsync(ProviderKind provider) => SignInAsync(provider, SignInMethod.Provider);
+
+    public async Task SignInAsync(ProviderKind provider, SignInMethod method)
     {
         if (!CanUseAccounts)
         {
@@ -386,7 +438,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         }
         hiddenStrip = null;
         announce(LedgerFormat.ProviderName(provider) + " sign-in started");
-        await source.SignInAsync(provider, CancellationToken.None);
+        await source.SignInAsync(provider, method, CancellationToken.None);
     }
 
     public Task ReconnectAsync(string accountId)
@@ -417,7 +469,7 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
     {
         { Phase: SignInPhase.Waiting } strip => CancelSignInAsync(strip),
         { Phase: SignInPhase.Cancelled or SignInPhase.Failed, ReconnectAccountId: { } id } => ReconnectAsync(id),
-        { Phase: SignInPhase.Cancelled or SignInPhase.Failed } strip => SignInAsync(strip.Provider),
+        { Phase: SignInPhase.Cancelled or SignInPhase.Failed } strip => SignInAsync(strip.Provider, strip.Method),
         _ => Task.CompletedTask,
     };
 

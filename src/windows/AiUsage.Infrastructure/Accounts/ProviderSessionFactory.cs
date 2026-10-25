@@ -37,7 +37,7 @@ internal sealed class ProviderSessionFactory(IServiceProvider services, string o
         {
             "claude" => new ClaudeSession(services.GetRequiredService<ClaudeAuthClient>(), services.GetRequiredService<ClaudeQuotaClient>(),
                 new ClaudeStateStore(directory, null, diagnostics), clock, diagnostics),
-            // Claude read through the installed Claude Code binary (T-NEW); presented as Claude.
+            // Claude read through the installed Claude Code binary; presented as Claude.
             "claude-code" => new ClaudeCodeSession(services.GetRequiredService<IClaudeCode>(), new ClaudeCodeStateStore(directory, null, diagnostics),
                 clock, diagnostics),
             "codex" => new CodexSession(services.GetRequiredService<CodexAuthClient>(), services.GetRequiredService<CodexQuotaClient>(),

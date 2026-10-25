@@ -38,9 +38,16 @@ internal static class LiveLedgerProjection
 
     public static ProviderKind Provider(string provider) => provider switch
     {
-        "claude" => ProviderKind.Claude, "codex" => ProviderKind.Codex, "copilot" => ProviderKind.Copilot,
+        "claude" or "claude-code" => ProviderKind.Claude, "codex" => ProviderKind.Codex, "copilot" => ProviderKind.Copilot,
         "antigravity" => ProviderKind.Antigravity, _ => throw new ArgumentOutOfRangeException(nameof(provider))
     };
+
+    /// <summary>A Claude Code account is a Claude account read through the local Claude Code.</summary>
+    public static SignInMethod Method(string provider) => provider == "claude-code" ? SignInMethod.ClaudeCode : SignInMethod.Provider;
+
+    /// <summary>The account service's provider key for a sign-in.</summary>
+    public static string Key(ProviderKind provider, SignInMethod method) =>
+        method == SignInMethod.ClaudeCode ? "claude-code" : provider.ToString().ToLowerInvariant();
 
     public static AccountModel Account(AccountSnapshot account, string name, IReadOnlyList<LedgerLimit> limits,
         BudgetConfiguration configuration, DateTimeOffset now, TimeZoneInfo zone, DateOnly? workToday, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null)
@@ -130,7 +137,8 @@ internal static class LiveLedgerProjection
                 null, null, null, null, !account.Connected || health == AccountHealth.SignInExpired ? CardAction.SignIn : CardAction.None, null)];
         if (cards.Any(c => c.Monetary is null))
             cards = cards.Select(c => c.Monetary is not null && c.Action == CardAction.SignIn ? c with { Action = CardAction.None } : c).ToList();
-        return new(id, Provider(account.Provider), name, health, Local(readingAt, zone), Local(account.LastFailureAt, zone), null, cards);
+        return new(id, Provider(account.Provider), name, health, Local(readingAt, zone), Local(account.LastFailureAt, zone), null, cards)
+            { Method = Method(account.Provider) };
     }
 
     private static DateTimeOffset? Local(DateTimeOffset? instant, TimeZoneInfo zone) =>

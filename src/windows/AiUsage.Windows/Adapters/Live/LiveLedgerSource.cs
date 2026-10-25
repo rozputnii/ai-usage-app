@@ -71,6 +71,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     public Func<CancellationToken, Task<CommandOutcome>>? DeleteData { get; set; }
     public Func<LedgerSupportAction, CancellationToken, Task<CommandOutcome>>? SupportAction { get; set; }
     public Func<CancellationToken, Task<string>>? DiagnosticsPreview { get; set; }
+    /// <summary>Whether Claude Code is installed where the app looks; set by the desktop composition.</summary>
+    public Func<bool> ClaudeCodeInstalled { get; set; } = () => false;
     public Task<CommandOutcome> SupportAsync(LedgerSupportAction action, CancellationToken ct) => SupportAction?.Invoke(action, ct) ?? Task.FromResult(CommandOutcome.Unavailable);
     public Task<string> PreviewDiagnosticsAsync(CancellationToken ct) => DiagnosticsPreview?.Invoke(ct) ?? Task.FromResult("Diagnostics unavailable");
     public Task SetRecoveryAsync(LedgerRecoveryModel? value)
@@ -295,8 +297,15 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         var number = all.Where(a => a.Provider == account.Provider).TakeWhile(a => a.AccountId != account.AccountId).Count() + 1;
         return provider + (account.Session.Quota?.PlanType is { Length: > 0 } plan ? " " + plan : string.Empty) + (number > 1 ? " " + number : string.Empty);
     }
-    private ProviderOption[] Options(IReadOnlyList<AccountSnapshot> current) => Enum.GetValues<ProviderKind>().Select(p =>
-        new ProviderOption(p, current.Any(a => LiveLedgerProjection.Provider(a.Provider) == p && a.Connected), strip?.Phase == SignInPhase.Waiting)).ToArray();
+    private ProviderOption[] Options(IReadOnlyList<AccountSnapshot> current)
+    {
+        var waiting = strip?.Phase == SignInPhase.Waiting;
+        bool Added(ProviderKind p, SignInMethod m) => current.Any(a => a.Provider == LiveLedgerProjection.Key(p, m) && a.Connected);
+        return [.. Enum.GetValues<ProviderKind>().SelectMany<ProviderKind, ProviderOption>(p => p == ProviderKind.Claude
+            ? [new(p, Added(p, SignInMethod.Provider), waiting),
+               new(p, Added(p, SignInMethod.ClaudeCode), waiting) { Method = SignInMethod.ClaudeCode, Available = ClaudeCodeInstalled() }]
+            : [new(p, Added(p, SignInMethod.Provider), waiting)])];
+    }
     private Task PublishAsync(LedgerSnapshot snapshot) => dispatch(() => { if (!stopped) { Current = snapshot; Changed?.Invoke(this, EventArgs.Empty); } });
 
     private async Task<CommandOutcome> ChangeAsync(Func<CancellationToken, Task<CommandOutcome>> change, CancellationToken token)
@@ -434,27 +443,29 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         finally { gate.Release(); }
     }
 
-    public Task SignInAsync(ProviderKind provider, CancellationToken ct) => ConnectAsync(provider, null, ct);
+    public Task SignInAsync(ProviderKind provider, CancellationToken ct) => ConnectAsync(provider, SignInMethod.Provider, null, ct);
+    public Task SignInAsync(ProviderKind provider, SignInMethod method, CancellationToken ct) => ConnectAsync(provider, method, null, ct);
     public Task ReconnectAsync(string accountId, CancellationToken ct)
     {
         var account = accounts.Current.FirstOrDefault(a => a.AccountId.ToString("N") == accountId);
-        return account is null ? Task.CompletedTask : ConnectAsync(LiveLedgerProjection.Provider(account.Provider), account.AccountId, ct);
+        return account is null ? Task.CompletedTask
+            : ConnectAsync(LiveLedgerProjection.Provider(account.Provider), LiveLedgerProjection.Method(account.Provider), account.AccountId, ct);
     }
-    private async Task ConnectAsync(ProviderKind provider, Guid? reconnect, CancellationToken token)
+    private async Task ConnectAsync(ProviderKind provider, SignInMethod method, Guid? reconnect, CancellationToken token)
     {
         Guid attempt = Guid.NewGuid();
         lock (sync)
         {
             if (stopped || paused || !initialized || strip?.Phase == SignInPhase.Waiting) return;
-            strip = new(SignInPhase.Waiting, provider, null, null) { AttemptId = attempt, ReconnectAccountId = reconnect?.ToString("N") };
+            strip = new(SignInPhase.Waiting, provider, null, null) { AttemptId = attempt, ReconnectAccountId = reconnect?.ToString("N"), Method = method };
         }
         QueueRebuild();
-        var result = await accounts.ConnectAsync(provider.ToString().ToLowerInvariant(), reconnect, attempt, challenge =>
+        var result = await accounts.ConnectAsync(LiveLedgerProjection.Key(provider, method), reconnect, attempt, challenge =>
         {
             lock (sync)
             {
                 if (stopped || strip?.AttemptId != attempt || strip.Phase != SignInPhase.Waiting) return;
-                strip = strip with { UserCode = challenge.UserCode, AcceptsManualCode = provider == ProviderKind.Claude };
+                strip = strip with { UserCode = challenge.UserCode, AcceptsManualCode = provider == ProviderKind.Claude && method == SignInMethod.Provider };
             }
             QueueRebuild();
             openBrowser(challenge.VerificationUri);
@@ -476,6 +487,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
                     ProviderFailureKind.DeviceCodeExpired or ProviderFailureKind.LoginAttemptExpired => SignInFailure.Expired,
                     ProviderFailureKind.BrowserCallbackUnavailable => SignInFailure.Browser,
                     ProviderFailureKind.RegistrationUnavailable => SignInFailure.Registration,
+                    ProviderFailureKind.ProviderUnavailable when method == SignInMethod.ClaudeCode => SignInFailure.ClaudeCodeMissing,
+                    ProviderFailureKind.AuthenticationRequired when method == SignInMethod.ClaudeCode => SignInFailure.ClaudeCodeSignedOut,
                     _ => SignInFailure.Provider
                 }
             };

@@ -15,6 +15,9 @@ internal static class LedgerViews
 
     public static ToolTip? TextTip(string text) => LedgerTheme.Tip([text]);
 
+    /// <summary>A sign-in method row sits indented under its provider row in the Add account menu.</summary>
+    public static Thickness MenuPadding(bool method) => method ? new(22, 0, 10, 0) : new(10, 0, 10, 0);
+
     public static string Spoken(IReadOnlyList<string>? lines) => lines is null ? string.Empty : LedgerFormat.Spoken(string.Join(". ", lines));
 
     public static Brush MarkBrush(bool neutral) => LedgerTheme.Solid(neutral ? "Ink2" : "AttText");

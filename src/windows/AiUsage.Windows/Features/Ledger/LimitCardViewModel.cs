@@ -148,8 +148,10 @@ internal sealed partial class LimitCardViewModel : ObservableObject
     public string HiddenTip => "Hidden: " + string.Join(", ", HiddenCards().Select(c => c.ScopeLabel ?? LedgerFormat.PeriodWords(c.Period)));
     public string Name => Account.DisplayName;
     public string HeaderName => IsAccountSection ? string.Empty : Name;
-    public string? Tag => Model.ScopeLabel;
-    public bool HasTag => !string.IsNullOrEmpty(Model.ScopeLabel);
+    /// <summary>The scope of a section; the account card also says when Claude Code on this PC supplies the account.</summary>
+    public string? Tag => !IsAccountSection && Account.Method == SignInMethod.ClaudeCode
+        ? "via Claude Code" + (Model.ScopeLabel is { } scope ? " · " + scope : string.Empty) : Model.ScopeLabel;
+    public bool HasTag => !string.IsNullOrEmpty(Tag);
     public bool CanEditCap => Model.CapTargetId is not null;
     /// <summary>R-199: the limit has a cap, today's use or units to set in its popover.</summary>
     public bool HasSettings => CanEditCap || Model.TodayUse is not null || Model.Units is not null;

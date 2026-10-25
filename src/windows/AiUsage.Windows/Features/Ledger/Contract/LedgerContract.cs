@@ -26,13 +26,25 @@ internal sealed record AccountModel(
     DateTimeOffset? LastReadingAt,
     DateTimeOffset? LastSyncFailedAt,
     DateTimeOffset? NextRetryAt,
-    IReadOnlyList<LimitCardModel> Cards);
+    IReadOnlyList<LimitCardModel> Cards)
+{
+    /// <summary>How the account is connected; a Claude Code account is read through Claude Code on this PC.</summary>
+    public SignInMethod Method { get; init; }
+}
 
 internal enum ProviderKind { Claude, Codex, Copilot, Antigravity }
 
+/// <summary>The provider's own sign-in, or Claude usage read through the local Claude Code.</summary>
+internal enum SignInMethod { Provider, ClaudeCode }
+
 internal enum AccountHealth { Ok, SyncFailedFresh, SyncFailedStale, SignInExpired, SignedOut, ProviderError }
 
-internal sealed record ProviderOption(ProviderKind Provider, bool Added, bool SigningIn);
+internal sealed record ProviderOption(ProviderKind Provider, bool Added, bool SigningIn)
+{
+    public SignInMethod Method { get; init; }
+    /// <summary>False when the method cannot work on this PC, such as Claude Code not being installed.</summary>
+    public bool Available { get; init; } = true;
+}
 
 internal sealed record SignInStripModel(SignInPhase Phase, ProviderKind Provider, string? AccountName, int? LimitsFound)
 {
@@ -41,10 +53,11 @@ internal sealed record SignInStripModel(SignInPhase Phase, ProviderKind Provider
     public string? UserCode { get; init; }
     public bool AcceptsManualCode { get; init; }
     public SignInFailure? Failure { get; init; }
+    public SignInMethod Method { get; init; }
     public override string ToString() => "SignInStripModel (redacted)";
 }
 
-internal enum SignInFailure { Duplicate, WrongAccount, Storage, AccessDenied, Expired, Browser, Registration, Provider }
+internal enum SignInFailure { Duplicate, WrongAccount, Storage, AccessDenied, Expired, Browser, Registration, Provider, ClaudeCodeMissing, ClaudeCodeSignedOut }
 
 internal enum SignInPhase { Waiting, Succeeded, Failed, Cancelled }
 
@@ -327,6 +340,8 @@ internal interface ILedgerSource
     /// <summary>Hides or shows a section of its account card; the primary limit cannot be hidden.</summary>
     Task<CommandOutcome> SetCardHiddenAsync(string cardId, bool hidden, CancellationToken ct);
     Task SignInAsync(ProviderKind provider, CancellationToken ct);
+    Task SignInAsync(ProviderKind provider, SignInMethod method, CancellationToken ct) =>
+        method == SignInMethod.Provider ? SignInAsync(provider, ct) : Task.CompletedTask;
     Task ReconnectAsync(string accountId, CancellationToken ct);
     Task RefreshAccountAsync(string accountId, CancellationToken ct);
     bool TrySubmitSignInCode(Guid attemptId, string code);
