@@ -86,6 +86,23 @@ public sealed class ClaudeCodeLedgerTests
     }
 
     [Fact]
+    public async Task RebuildsReuseTheClaudeCodeLookupForAMinute()
+    {
+        var accounts = new Accounts();
+        var lookups = 0;
+        using var source = Source(accounts);
+        source.ClaudeCodeInstalled = () => { lookups++; return true; };
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            for (var i = 0; i < 3; i++) { accounts.Emit(); await source.WaitForIdleAsync(); }
+            Assert.Equal(1, lookups);
+            Assert.True(source.Current.Providers.Single(p => p.Method == SignInMethod.ClaudeCode).Available);
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
     public async Task AClaudeCodeAccountIsPresentedAsClaudeAndSaysWhereItComesFrom()
     {
         var accounts = new Accounts { Current = [Account("claude-code"), Account("claude", plan: null)] };

@@ -8,6 +8,8 @@ namespace AiUsage.Infrastructure.Providers.Claude;
 /// Reads the stream-json output of `claude -p /usage`. Only a local `/usage` command result with
 /// no model turn and no cost is accepted; its structured `usage_report.rate_limits` object has
 /// the `limits` and `extra_usage` members of the OAuth usage payload and goes to the same parser.
+/// A sign of a model turn is <see cref="ProviderFailureKind.InternalError"/>, which automatic
+/// refresh never retries: each retry could be another billed prompt.
 /// </summary>
 internal static class ClaudeCodeReport
 {
@@ -32,7 +34,9 @@ internal static class ClaudeCodeReport
                     return ProviderFailureKind.InvalidResponse;
                 switch (type.GetString())
                 {
-                    case "assistant" when LocalUsage(root):
+                    case "assistant" when LocalCommand(root) is { } command:
+                        if (command != "usage")
+                            return ProviderFailureKind.InvalidResponse;
                         if (root.TryGetProperty("usage_report", out var report) && report.ValueKind == JsonValueKind.Object)
                         {
                             reported = true;
@@ -41,8 +45,10 @@ internal static class ClaudeCodeReport
                         break;
                     case "assistant":
                         // Any other assistant message is a model reply: the prompt did not stay local.
-                        return ProviderFailureKind.InvalidResponse;
+                        return ProviderFailureKind.InternalError;
                     case "result":
+                        if (ModelTurn(root))
+                            return ProviderFailureKind.InternalError;
                         if (resultSeen || !LocalResult(root))
                             return ProviderFailureKind.InvalidResponse;
                         resultSeen = true;
@@ -65,9 +71,9 @@ internal static class ClaudeCodeReport
         }
     }
 
-    private static bool LocalUsage(JsonElement assistant) =>
+    private static string? LocalCommand(JsonElement assistant) =>
         assistant.TryGetProperty("local_command_run", out var run) && run.ValueKind == JsonValueKind.Object &&
-        run.TryGetProperty("command", out var command) && command.ValueKind == JsonValueKind.String && command.GetString() == "usage";
+        run.TryGetProperty("command", out var command) && command.ValueKind == JsonValueKind.String ? command.GetString() : null;
 
     private static bool LocalResult(JsonElement result) =>
         result.TryGetProperty("subtype", out var subtype) && subtype.ValueKind == JsonValueKind.String && subtype.GetString() == "success" &&
@@ -75,6 +81,11 @@ internal static class ClaudeCodeReport
         result.TryGetProperty("num_turns", out var turns) && turns.ValueKind == JsonValueKind.Number && turns.TryGetInt32(out var count) && count == 0 &&
         result.TryGetProperty("total_cost_usd", out var cost) && cost.ValueKind == JsonValueKind.Number && cost.GetDouble() == 0 &&
         result.TryGetProperty("modelUsage", out var models) && models.ValueKind == JsonValueKind.Object && !models.EnumerateObject().Any();
+
+    private static bool ModelTurn(JsonElement result) =>
+        result.TryGetProperty("num_turns", out var turns) && turns.ValueKind == JsonValueKind.Number && (!turns.TryGetInt32(out var count) || count != 0) ||
+        result.TryGetProperty("total_cost_usd", out var cost) && cost.ValueKind == JsonValueKind.Number && cost.GetDouble() != 0 ||
+        result.TryGetProperty("modelUsage", out var models) && models.ValueKind == JsonValueKind.Object && models.EnumerateObject().Any();
 
     private static IEnumerable<ReadOnlyMemory<byte>> Lines(byte[] output)
     {

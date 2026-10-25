@@ -58,7 +58,7 @@ public sealed class ClaudeCodeReportTests
     public void AnySignOfAModelTurnRejectsTheRun(int turns, double cost, string modelUsage)
     {
         var (failure, reading) = Read(Stream(turns: turns, cost: cost, modelUsage: modelUsage));
-        Assert.Equal(ProviderFailureKind.InvalidResponse, failure);
+        Assert.Equal(ProviderFailureKind.InternalError, failure);
         Assert.Null(reading);
     }
 
@@ -67,7 +67,7 @@ public sealed class ClaudeCodeReportTests
     {
         var model = "{\"type\":\"assistant\",\"message\":{\"model\":\"claude\",\"content\":[{\"type\":\"text\",\"text\":\"synthetic\"}]}}\n" +
             "{\"type\":\"result\",\"subtype\":\"success\",\"num_turns\":1,\"total_cost_usd\":0.18,\"modelUsage\":{\"claude\":{}}}\n";
-        Assert.Equal(ProviderFailureKind.InvalidResponse, Read(model).Failure);
+        Assert.Equal(ProviderFailureKind.InternalError, Read(model).Failure);
     }
 
     [Theory]

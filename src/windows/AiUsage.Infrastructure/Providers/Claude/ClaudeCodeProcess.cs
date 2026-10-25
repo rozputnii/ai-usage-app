@@ -57,7 +57,9 @@ internal sealed class ClaudeCodeProcess(string workingDirectory, Func<string?>? 
     public async Task<ClaudeCodeRun> RunAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
         var executable = Locate() ?? throw new ProviderException(ProviderFailureKind.ProviderUnavailable);
-        Directory.CreateDirectory(workingDirectory);
+        try { Directory.CreateDirectory(workingDirectory); }
+        catch (Exception failure) when (failure is IOException or UnauthorizedAccessException)
+        { throw new ProviderException(ProviderFailureKind.ProviderUnavailable); }
         var start = new ProcessStartInfo(executable)
         {
             UseShellExecute = false,
@@ -76,28 +78,39 @@ internal sealed class ClaudeCodeProcess(string workingDirectory, Func<string?>? 
                 throw new ProviderException(ProviderFailureKind.ProviderUnavailable);
         }
         catch (System.ComponentModel.Win32Exception) { throw new ProviderException(ProviderFailureKind.ProviderUnavailable); }
-        process.StandardInput.Close();
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         limit.CancelAfter(deadline);
+        Task<byte[]>? output = null;
+        Task? error = null;
         try
         {
-            var output = ReadCappedAsync(process.StandardOutput.BaseStream, limit.Token);
-            var error = process.StandardError.BaseStream.CopyToAsync(Stream.Null, limit.Token);
-            await process.WaitForExitAsync(limit.Token).ConfigureAwait(false);
+            process.StandardInput.Close();
+            output = ReadCappedAsync(process.StandardOutput.BaseStream, limit.Token);
+            error = process.StandardError.BaseStream.CopyToAsync(Stream.Null, limit.Token);
+            var exited = process.WaitForExitAsync(limit.Token);
+            // Output past the cap fails the read while the child still waits on a full pipe: stop at once.
+            if (await Task.WhenAny(output, exited).ConfigureAwait(false) == output)
+                await output.ConfigureAwait(false);
+            await exited.ConfigureAwait(false);
             var bytes = await output.ConfigureAwait(false);
             await error.ConfigureAwait(false);
             return new(process.ExitCode, bytes);
         }
         catch (OperationCanceledException)
         {
-            Stop(process);
+            Stop(process, output, error);
             cancellationToken.ThrowIfCancellationRequested();
             throw new ProviderException(ProviderFailureKind.Timeout);
         }
         catch (ProviderException)
         {
-            Stop(process);
+            Stop(process, output, error);
             throw;
+        }
+        catch (IOException)
+        {
+            Stop(process, output, error);
+            throw new ProviderException(ProviderFailureKind.ProviderUnavailable);
         }
     }
 
@@ -115,7 +128,7 @@ internal sealed class ClaudeCodeProcess(string workingDirectory, Func<string?>? 
         return buffer.ToArray();
     }
 
-    private static void Stop(Process process)
+    private static void Stop(Process process, params Task?[] pending)
     {
         try
         {
@@ -124,6 +137,9 @@ internal sealed class ClaudeCodeProcess(string workingDirectory, Func<string?>? 
         }
         catch (InvalidOperationException) { }
         catch (System.ComponentModel.Win32Exception) { }
+        // The abandoned pipe reads end with the process; observe them so they never surface as unobserved faults.
+        foreach (var task in pending)
+            _ = task?.ContinueWith(static t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
     }
 }
 

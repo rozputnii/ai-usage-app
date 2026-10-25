@@ -91,7 +91,10 @@ public sealed class ClaudeCodeSession : IProviderSession, IDisposable
     private ProviderSessionState Cached(ProviderFailureKind? failure = null)
     {
         var reading = stored?.CachedQuota;
-        var status = stored is null ? ProviderSessionStatus.NotConnected : ProviderSessionStatus.QuotaUnavailable;
+        // A Claude Code signed out (or switched to an API key) after connecting needs the owner to sign in there again;
+        // automatic refresh stops until the account is reconnected.
+        var status = stored is null ? ProviderSessionStatus.NotConnected
+            : failure == ProviderFailureKind.AuthenticationRequired ? ProviderSessionStatus.ReauthenticationRequired : ProviderSessionStatus.QuotaUnavailable;
         return new(status, reading?.Quota, failure, reading?.Quota.FetchedAt, FromCache: reading is not null, ExtraUsage: reading?.ExtraUsage);
     }
 

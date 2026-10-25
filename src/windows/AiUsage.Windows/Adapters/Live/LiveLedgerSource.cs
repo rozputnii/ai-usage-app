@@ -72,7 +72,21 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     public Func<LedgerSupportAction, CancellationToken, Task<CommandOutcome>>? SupportAction { get; set; }
     public Func<CancellationToken, Task<string>>? DiagnosticsPreview { get; set; }
     /// <summary>Whether Claude Code is installed where the app looks; set by the desktop composition.</summary>
-    public Func<bool> ClaudeCodeInstalled { get; set; } = () => false;
+    public Func<bool> ClaudeCodeInstalled
+    {
+        get => claudeCodeInstalled;
+        set { claudeCodeInstalled = value; claudeCode = null; }
+    }
+    private Func<bool> claudeCodeInstalled = () => false;
+    // The lookup walks every PATH folder, so a rebuild reuses an answer for a minute.
+    private (DateTimeOffset At, bool Installed)? claudeCode;
+    private bool ClaudeCodeAvailable()
+    {
+        var now = time.GetUtcNow();
+        if (claudeCode is not { } known || now - known.At >= TimeSpan.FromMinutes(1) || now < known.At)
+            claudeCode = known = (now, ClaudeCodeInstalled());
+        return known.Installed;
+    }
     public Task<CommandOutcome> SupportAsync(LedgerSupportAction action, CancellationToken ct) => SupportAction?.Invoke(action, ct) ?? Task.FromResult(CommandOutcome.Unavailable);
     public Task<string> PreviewDiagnosticsAsync(CancellationToken ct) => DiagnosticsPreview?.Invoke(ct) ?? Task.FromResult("Diagnostics unavailable");
     public Task SetRecoveryAsync(LedgerRecoveryModel? value)
@@ -303,7 +317,7 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         bool Added(ProviderKind p, SignInMethod m) => current.Any(a => a.Provider == LiveLedgerProjection.Key(p, m) && a.Connected);
         return [.. Enum.GetValues<ProviderKind>().SelectMany<ProviderKind, ProviderOption>(p => p == ProviderKind.Claude
             ? [new(p, Added(p, SignInMethod.Provider), waiting),
-               new(p, Added(p, SignInMethod.ClaudeCode), waiting) { Method = SignInMethod.ClaudeCode, Available = ClaudeCodeInstalled() }]
+               new(p, Added(p, SignInMethod.ClaudeCode), waiting) { Method = SignInMethod.ClaudeCode, Available = ClaudeCodeAvailable() }]
             : [new(p, Added(p, SignInMethod.Provider), waiting)])];
     }
     private Task PublishAsync(LedgerSnapshot snapshot) => dispatch(() => { if (!stopped) { Current = snapshot; Changed?.Invoke(this, EventArgs.Empty); } });

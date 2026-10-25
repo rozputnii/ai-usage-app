@@ -17,10 +17,12 @@ public sealed class OwnedDataDeletionTests : IDisposable
         var slot = "accounts/" + Guid.NewGuid().ToString("N") + "/";
         string[] files = ["accounts.state", "accounts.state.pending", "providers/claude.state", "providers/claude.state.pending",
             "providers/claude.state.v1.bak", slot + "codex.grant", slot + "codex.grant.new", slot + "codex.grant.pending",
-            slot + "codex.quota.json", slot + "codex.quota.json.v1.bak", "preferences/appearance.v1.json",
+            slot + "codex.quota.json", slot + "codex.quota.json.v1.bak", slot + "claude-code.state", slot + "claude-code.state.pending",
+            "preferences/appearance.v1.json",
             "preferences/ledger/appearance.v1.json", "maintenance/checkpoint.v1.bin", "maintenance/journal.v1.json",
             "budget/configuration.v1.json", "diagnostics.v1.log"];
         foreach (var file in files) Put(file);
+        Put(slot + "claude-code.state.lock");
         Put("owner-export.json", "keep"); Put("logs/owner-note.txt", "keep");
         var deletion = new OwnedDataDeletion(root);
         Assert.False(deletion.Pending);

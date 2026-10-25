@@ -120,7 +120,7 @@ public sealed class ClaudeCodeSessionTests : IDisposable
     public static TheoryData<string, int, ProviderFailureKind> RejectedUsage => new()
     {
         { ClaudeCodeReportTests.Stream(), 1, ProviderFailureKind.InvalidResponse },
-        { ClaudeCodeReportTests.Stream(cost: 0.18, turns: 1), 0, ProviderFailureKind.InvalidResponse },
+        { ClaudeCodeReportTests.Stream(cost: 0.18, turns: 1), 0, ProviderFailureKind.InternalError },
         { ClaudeCodeReportTests.Stream(rateLimits: null), 0, ProviderFailureKind.RateLimited },
         { ClaudeCodeReportTests.Stream(report: false), 0, ProviderFailureKind.AuthenticationRequired }
     };
@@ -136,6 +136,21 @@ public sealed class ClaudeCodeSessionTests : IDisposable
         Assert.Equal(expected, refreshed.Failure);
         Assert.True(refreshed.FromCache);
         Assert.Equal(first.Quota!.FetchedAt, refreshed.Quota!.FetchedAt);
+        Assert.True(session.HasStoredGrant);
+    }
+
+    [Theory]
+    [InlineData(false, "claude.ai")]
+    [InlineData(true, "apiKey")]
+    public async Task ASignInLostAfterConnectingNeedsReauthenticationAndKeepsTheReading(bool loggedIn, string method)
+    {
+        var claude = new FakeClaudeCode(Answer(Auth()), Answer(ClaudeCodeReportTests.Stream()), Answer(Auth(loggedIn, method)));
+        using var session = Session(claude);
+        await session.ConnectAsync(_ => { }, TestContext.Current.CancellationToken);
+        var refreshed = await session.RefreshAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(ProviderSessionStatus.ReauthenticationRequired, refreshed.Status);
+        Assert.Equal(ProviderFailureKind.AuthenticationRequired, refreshed.Failure);
+        Assert.True(refreshed.FromCache);
         Assert.True(session.HasStoredGrant);
     }
 

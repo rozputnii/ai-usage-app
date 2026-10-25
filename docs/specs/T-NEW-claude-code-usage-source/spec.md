@@ -47,8 +47,9 @@ the same plan usage itself, with its own sign-in, so the app needs no Claude cre
 - AC-04: Automatic and manual refresh rerun the report; the R-233 two-minute floor for Claude
   applies to these accounts too.
 - AC-05: The runner passes arguments through `ProcessStartInfo.ArgumentList` with
-  `UseShellExecute = false`; a run whose output has no local `usage` command result, reports a
-  non-zero cost or model usage, or exits non-zero yields `InvalidResponse` and no reading.
+  `UseShellExecute = false`. A run that shows a model reply, turns, a non-zero cost or model
+  usage yields `InternalError` and no reading, and automatic refresh stops retrying it; a run
+  without a local `usage` command result, or that exits non-zero, yields `InvalidResponse`.
 - AC-06: Failures map to the existing kinds and keep the last reading: `claude.exe` missing
   → `ProviderUnavailable`; not signed in, or signed in without a claude.ai subscription (no
   `usage_report`) → `AuthenticationRequired`; a different email or organization than the

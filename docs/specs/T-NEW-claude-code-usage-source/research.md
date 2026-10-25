@@ -1,9 +1,9 @@
 ---
 provider: claude
 source_verified_at: 2026-10-25
-live_verified_at: null
+live_verified_at: 2026-10-25
 classification: method-specific
-confidence: official documentation for every surface; no live run yet
+confidence: official documentation for every surface; surface A live-checked once on the owner's PC (see the provider record)
 ---
 # Claude usage through the local Claude Code CLI - research
 
@@ -16,7 +16,8 @@ Sources: Claude Code 2.1.296 installed on the owner's PC (`claude --help`, `clau
 `claude plugin --help`), and the official documentation fetched on 2026-10-25 as Markdown from
 code.claude.com/docs/en: `statusline`, `hooks`, `plugins-reference`, `plugins/components`,
 `agent-sdk/typescript`, `costs`, `desktop`, `monitoring-usage`, `legal-and-compliance`. Nothing
-was run against the provider; no credential store was read.
+was run against the provider while researching; no credential store was read. The live check
+of surface A that followed is recorded in [claude.md](../../providers/claude.md#claude-code-local-usage-method-t-new).
 
 ## Permission boundary
 

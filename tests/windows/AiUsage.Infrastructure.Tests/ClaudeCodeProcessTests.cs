@@ -84,6 +84,29 @@ public sealed class ClaudeCodeProcessTests : IDisposable
     }
 
     [Fact]
+    public async Task OutputPastTheCapIsRejectedAtOnceAndNotReportedAsTimeout()
+    {
+        var large = Path.Combine(Folder("large", false), "output.txt");
+        File.WriteAllText(large, new string('x', 3 * 1024 * 1024));
+        var process = new ClaudeCodeProcess(Path.Combine(root, "work"), () => Cmd, TimeSpan.FromSeconds(20));
+        var watch = Stopwatch.StartNew();
+        var error = await Assert.ThrowsAsync<ProviderException>(() => process.RunAsync(["/d", "/c", "type", large], TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.InvalidResponse, error.Kind);
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
+    public async Task AWorkingFolderThatCannotBeCreatedIsAProviderFailure()
+    {
+        Directory.CreateDirectory(root);
+        var blocked = Path.Combine(root, "blocked");
+        File.WriteAllBytes(blocked, []);
+        var process = new ClaudeCodeProcess(blocked, () => Cmd);
+        var error = await Assert.ThrowsAsync<ProviderException>(() => process.RunAsync(["/d", "/c", "exit", "0"], TestContext.Current.CancellationToken));
+        Assert.Equal(ProviderFailureKind.ProviderUnavailable, error.Kind);
+    }
+
+    [Fact]
     public async Task CancellationKillsTheRunAndIsNotATimeout()
     {
         using var cancel = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));

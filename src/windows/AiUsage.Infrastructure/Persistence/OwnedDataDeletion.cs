@@ -16,7 +16,7 @@ public sealed class OwnedDataDeletion
     private readonly string root;
     private readonly string history;
     private readonly Action<string>? boundary;
-    private static readonly string[] ProviderNames = ["claude.state", "codex.grant", "codex.quota.json", "copilot.state", "antigravity.state"];
+    private static readonly string[] ProviderNames = ["claude.state", "claude-code.state", "codex.grant", "codex.quota.json", "copilot.state", "antigravity.state"];
     private static readonly string[] ProviderFiles = ProviderNames.SelectMany(name => name switch
     {
         "codex.grant" => new[] { name, name + ".pending", name + ".new", name + ".lock" },
