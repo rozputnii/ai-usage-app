@@ -6,6 +6,7 @@ using AiUsage.Infrastructure.Providers.Claude;
 using AiUsage.Infrastructure.Providers.Codex;
 using AiUsage.Infrastructure.Providers.Copilot;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AiUsage.Infrastructure.Accounts;
 
@@ -19,6 +20,7 @@ public static class AccountServiceRegistration
         historyRoot ??= ownedRoot;
         ArgumentNullException.ThrowIfNull(services);
         services.AddClaudeIntegration().AddCodexIntegration().AddCopilotIntegration().AddAntigravityIntegration();
+        services.TryAddSingleton<IClaudeCode>(_ => new ClaudeCodeProcess(Path.Combine(Path.GetFullPath(ownedRoot), "claude-code")));
         services.AddSingleton(p => new AccountRegistry(ownedRoot, diagnostics: p.GetService<IDiagnosticSink>()));
         services.AddSingleton(p => new ProviderSessionFactory(p, ownedRoot));
         services.AddSingleton(p => new AccountIdentityMap(historyRoot, p.GetService<IDiagnosticSink>()));

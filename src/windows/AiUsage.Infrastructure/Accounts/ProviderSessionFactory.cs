@@ -37,6 +37,9 @@ internal sealed class ProviderSessionFactory(IServiceProvider services, string o
         {
             "claude" => new ClaudeSession(services.GetRequiredService<ClaudeAuthClient>(), services.GetRequiredService<ClaudeQuotaClient>(),
                 new ClaudeStateStore(directory, null, diagnostics), clock, diagnostics),
+            // Claude read through the installed Claude Code binary (T-NEW); presented as Claude.
+            "claude-code" => new ClaudeCodeSession(services.GetRequiredService<IClaudeCode>(), new ClaudeCodeStateStore(directory, null, diagnostics),
+                clock, diagnostics),
             "codex" => new CodexSession(services.GetRequiredService<CodexAuthClient>(), services.GetRequiredService<CodexQuotaClient>(),
                 new CodexGrantStore(directory, null, diagnostics), new CodexQuotaCache(directory, null, diagnostics, storageId),
                 diagnostics),
@@ -51,6 +54,7 @@ internal sealed class ProviderSessionFactory(IServiceProvider services, string o
     internal static ProviderIdentity? IdentityOf(IProviderSession session) => session switch
     {
         ClaudeSession claude => claude.Identity,
+        ClaudeCodeSession claudeCode => claudeCode.Identity,
         CodexSession codex => codex.Identity,
         CopilotSession copilot => copilot.Identity,
         AntigravitySession antigravity => antigravity.Identity,

@@ -48,7 +48,7 @@ internal sealed class AccountRegistry(string ownedDirectory, IDiagnosticSink? di
         return await lease.SaveAsync(update(current ?? new()), current?.Revision, token).ConfigureAwait(false);
     }
 
-    internal static bool KnownProvider(string? provider) => provider is "claude" or "codex" or "copilot" or "antigravity";
+    internal static bool KnownProvider(string? provider) => provider is "claude" or "claude-code" or "codex" or "copilot" or "antigravity";
 
     private static void Validate(AccountRegistryState state)
     {

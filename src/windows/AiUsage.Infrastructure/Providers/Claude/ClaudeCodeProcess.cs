@@ -126,3 +126,10 @@ internal sealed class ClaudeCodeProcess(string workingDirectory, Func<string?>? 
         catch (System.ComponentModel.Win32Exception) { }
     }
 }
+
+/// <summary>Whether the Add account menu can offer the Claude Code connection on this PC.</summary>
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+public static class ClaudeCodeInstallation
+{
+    public static bool IsInstalled() => ClaudeCodeProcess.LocateInstalled() is not null;
+}
