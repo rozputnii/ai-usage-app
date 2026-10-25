@@ -14,7 +14,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     // T-055 R-12: refreshes are checked by a one-minute tick, so an account is due this much before a full interval.
     private static readonly TimeSpan TickSlack = TimeSpan.FromSeconds(30);
     // The Claude usage endpoint answers 429 after about ten reads a minute apart, and the failure backoff then hides
-    // every change for ten minutes; two minutes apart it keeps up (owner logs, 2026-10-18 to 2026-10-20).
+    // every change for ten minutes. The owner's logs (2026-10-18 to 2026-10-20) fit a limit slightly below one read a
+    // minute; two minutes leaves a margin.
     private static readonly TimeSpan ClaudeMinimumInterval = TimeSpan.FromMinutes(2);
     private readonly IAccountService accounts;
     private readonly IReadingSeriesStore readings;

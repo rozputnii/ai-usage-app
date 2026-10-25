@@ -699,35 +699,43 @@ public sealed class LiveLedgerSourceTests
         var clock = new Clock(); var claude = Guid.NewGuid(); var copilot = Guid.NewGuid(); var start = clock.Now;
         AccountSnapshot Snapshot(Guid id, DateTimeOffset at) => id == claude ? Account(id, at) with { Provider = "claude" } : Account(id, at);
         var accounts = new Accounts { Current = [Snapshot(claude, clock.Now), Snapshot(copilot, clock.Now)] };
+        var advance = true;
         accounts.Refresh = refreshed =>
         {
-            accounts.Current = accounts.Current.Select(a => a.AccountId == refreshed ? Snapshot(refreshed, clock.Now.AddSeconds(2)) : a).ToArray();
+            if (advance)
+                accounts.Current = accounts.Current.Select(a => a.AccountId == refreshed ? Snapshot(refreshed, clock.Now.AddSeconds(2)) : a).ToArray();
             return new(AccountOutcome.Done, refreshed);
         };
         using var source = Source(accounts, new Store(), clock);
+        async Task<int[]> Ticks(int first, int last)
+        {
+            var counts = new List<int>();
+            for (var minute = first; minute <= last; minute++)
+            {
+                clock.Now = start + TimeSpan.FromMinutes(minute);
+                await source.TickAsync(Token);
+                counts.Add(accounts.Refreshed.Count(id => id == claude));
+            }
+            return [.. counts];
+        }
         try
         {
             await source.InitializeAsync(null, Token);
             await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 1 }, Token);
-            for (var minute = 1; minute <= 6; minute++)
-            {
-                clock.Now = start + TimeSpan.FromMinutes(minute);
-                await source.TickAsync(Token);
-            }
+            var claudeReads = await Ticks(1, 6);
+            Assert.Equal([0, 1, 1, 2, 2, 3], claudeReads);
             Assert.Equal(6, accounts.Refreshed.Count(id => id == copilot));
-            Assert.Equal(3, accounts.Refreshed.Count(id => id == claude));
+            // A read that returns the same reading time is not repeated the next minute either.
+            advance = false;
+            claudeReads = await Ticks(7, 10);
+            Assert.Equal([3, 4, 4, 5], claudeReads);
+            advance = true;
             // A manual refresh is not held back.
             await source.RefreshAccountAsync(claude.ToString("N"), Token);
-            Assert.Equal(4, accounts.Refreshed.Count(id => id == claude));
+            Assert.Equal(6, accounts.Refreshed.Count(id => id == claude));
             // From two minutes up, the owner's interval applies to Claude unchanged.
             await source.SetPreferencesAsync(source.Preferences with { RefreshMinutes = 3 }, Token);
-            var before = accounts.Refreshed.Count(id => id == claude);
-            for (var minute = 7; minute <= 12; minute++)
-            {
-                clock.Now = start + TimeSpan.FromMinutes(minute);
-                await source.TickAsync(Token);
-            }
-            Assert.Equal(before + 2, accounts.Refreshed.Count(id => id == claude));
+            Assert.Equal(8, (await Ticks(11, 16))[^1]);
         }
         finally { await source.StopAsync(); }
     }
