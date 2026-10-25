@@ -13,6 +13,9 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     internal static readonly TimeSpan DefaultRefreshInterval = TimeSpan.FromMinutes(5);
     // T-055 R-12: refreshes are checked by a one-minute tick, so an account is due this much before a full interval.
     private static readonly TimeSpan TickSlack = TimeSpan.FromSeconds(30);
+    // The Claude usage endpoint answers 429 after about ten reads a minute apart, and the failure backoff then hides
+    // every change for ten minutes; two minutes apart it keeps up (owner logs, 2026-10-18 to 2026-10-20).
+    private static readonly TimeSpan ClaudeMinimumInterval = TimeSpan.FromMinutes(2);
     private readonly IAccountService accounts;
     private readonly IReadingSeriesStore readings;
     private readonly IBudgetConfigurationStore budgets;
@@ -518,12 +521,11 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
         await Task.Yield();
         QueueRebuild(); await WaitForIdleAsync();
         var now = time.GetUtcNow();
-        var interval = RefreshInterval;
         var due = accounts.Current.Where(a => a.Connected && !a.Busy &&
             a.Session.Status is not (ProviderSessionStatus.ReauthenticationRequired or ProviderSessionStatus.RecoveryRequired) &&
             a.Session.Failure is not (ProviderFailureKind.AccountMismatch or ProviderFailureKind.RegistrationUnavailable or ProviderFailureKind.ProjectUnavailable or ProviderFailureKind.InternalError) &&
             (NextRetry(a) is not { } retry || retry <= now) &&
-            (a.Session.Quota is null || a.Session.Failure is not null || now - a.Session.Quota.FetchedAt >= interval - TickSlack)).ToArray();
+            (a.Session.Quota is null || a.Session.Failure is not null || now - a.Session.Quota.FetchedAt >= IntervalOf(a) - TickSlack)).ToArray();
         // T-061 R-02: with nothing due the first build is current; a second one would only re-read every series.
         if (due.Length == 0) return;
         var results = await Task.WhenAll(due.Select(a => accounts.RefreshAsync(a.AccountId, token)));
@@ -538,8 +540,11 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     private DateTimeOffset? NextRetry(AccountSnapshot account)
     {
         lock (sync) return attempts.TryGetValue(account.AccountId, out var attempt) ? attempt.At + (account.Session.Failure is not null
-            ? TimeSpan.FromMinutes(Math.Min(30, 5 << attempt.Failures)) : RefreshInterval - TickSlack) : null;
+            ? TimeSpan.FromMinutes(Math.Min(30, 5 << attempt.Failures)) : IntervalOf(account) - TickSlack) : null;
     }
+    // Automatic refresh only; a manual refresh stays immediate.
+    private TimeSpan IntervalOf(AccountSnapshot account) =>
+        LiveLedgerProjection.Provider(account.Provider) == ProviderKind.Claude && RefreshInterval < ClaudeMinimumInterval ? ClaudeMinimumInterval : RefreshInterval;
 
     public Task StopAsync() { lock (sync) return stopping ??= StopCoreAsync(); }
     private async Task StopCoreAsync()

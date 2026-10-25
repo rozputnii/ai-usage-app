@@ -93,6 +93,8 @@ The current adapter tries a configured usage host first and falls back to the ca
 
 Quota retries are bounded to three attempts for supported transient failures and some malformed/missing responses, with cancellable delay and Retry-After handling. 429 is not retried within a fetch; the caller applies cooldown. `#fetchUsageCached` coalesces requests by cache key/epoch, caches successful reports and can retain the last good report on failure. These mechanics do not establish account-specific rate limits or guarantee a copied refresh token is independent.
 
+Owner logs from the installed app (2026-10-18 to 2026-10-20, status codes and timing only): two accounts read once a minute each received 429 with Retry-After 0 after about ten successful reads, read again successfully once the ten-minute failure backoff ended, and a fresh process read successfully 36 seconds after a 429. This fits a per-account limit slightly below one read a minute; the exact limit and window are unverified. AI Usage therefore reads a Claude account automatically at most every two minutes (R-NEW).
+
 ## Fixture and verification requirements
 
 The implemented parser and protocol tests use explicitly synthetic fixtures. No real fixture has been captured. Coverage includes valid/missing/conflicting identity, legacy and generic shared limits, multiple scoped rows including `is_active: false`, unknown kinds and duplicate names, null/invalid/exhausted percentages, ISO offsets and malformed resets, enabled/disabled/unknown extra spend, currency/exponent mismatch, malformed JSON and secret-bearing error payloads. The [verification record](../specs/T-007-claude-integration/verification.md) records executed checks separately from live evidence.
