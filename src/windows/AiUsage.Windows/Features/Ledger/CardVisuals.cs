@@ -82,7 +82,7 @@ internal static class CardVisuals
 
         if (card.Layout == CardLayout.Note)
         {
-            var lines = NoteLinesOf(card, period, resetText);
+            var lines = NoteLinesOf(card, account, period, resetText);
             var noteName = Name(card, account, StateWords(card, account, pill, marks, now), string.Join(", ", lines.Select(l => l.Value)), (resetTip.Count > 0 ? resetTip[0] : null));
             return new CardVisual(tone, pill, pillTip, marks, false, [], null, null, false, period, [], null, null, null, [], [], opacity,
                 string.Empty, [], false, resetText, resetTip, lines, action, noteName);
@@ -200,6 +200,9 @@ internal static class CardVisuals
 
     public static Tone ToneOf(LimitCardModel card)
     {
+        // A refused usage read needs the owner's attention however old the last reading is.
+        if (card.State == CardState.NoAccess)
+            return Tone.Attention;
         if (card.Freshness.IsStale)
             return Tone.Neutral;
         return card.State switch
@@ -214,7 +217,7 @@ internal static class CardVisuals
 
     /// <summary>States whose pill names a reason for having no budget; a stale reading keeps them instead of an age pill.</summary>
     private static bool IsReasonState(CardState state) => state is CardState.NotReady or CardState.PeriodUnknown or CardState.ValueUnknown
-        or CardState.NotIncluded or CardState.LimitUnknown or CardState.NoCap or CardState.SignedOut;
+        or CardState.NotIncluded or CardState.LimitUnknown or CardState.NoCap or CardState.SignedOut or CardState.NoAccess;
 
     public static string? PillText(CardState state, PeriodModel period) => state switch
     {
@@ -238,12 +241,20 @@ internal static class CardVisuals
         CardState.LimitUnknown => "limit unknown",
         CardState.NoCap => "no cap",
         CardState.SignedOut => "signed out",
+        CardState.NoAccess => "no access",
         _ => null,
     };
+
+    /// <summary>The note of a refused usage read. The owner's Claude account answered 403 once its subscription ended.</summary>
+    public static string NoAccessText(ProviderKind provider) => LedgerFormat.ProviderName(provider) + " doesn't share usage for this account" +
+        (provider == ProviderKind.Claude ? " · a free plan has none" : string.Empty);
 
     private static (string? Pill, IReadOnlyList<string> Tip) PillOf(LimitCardModel card, AccountModel account, DateTimeOffset now)
     {
         var stale = card.Freshness is { IsStale: true, ReadingAt: { } reading };
+        if (card.State == CardState.NoAccess)
+            return ("no access", ["No usage access",
+                (card.Freshness.ReadingAt is { } last ? "Last reading " + LedgerFormat.Clock(last) : "No reading yet") + Retry(account, now)]);
         if (stale && !IsReasonState(card.State))
         {
             var readingAt = card.Freshness.ReadingAt!.Value;
@@ -404,7 +415,7 @@ internal static class CardVisuals
 
     private static string ResetPlain(ResetModel? reset) => ResetLong(reset).Replace("Resets ", string.Empty, StringComparison.Ordinal);
 
-    private static IReadOnlyList<NoteLine> NoteLinesOf(LimitCardModel card, string period, string reset)
+    private static IReadOnlyList<NoteLine> NoteLinesOf(LimitCardModel card, AccountModel account, string period, string reset)
     {
         if (card.Monetary is { } money)
         {
@@ -426,6 +437,7 @@ internal static class CardVisuals
             CardState.ValueUnknown => [new NoteLine(period, "used unknown", reset)],
             CardState.SignedOut => [new NoteLine(string.Empty, "no current figures", "history kept")],
             CardState.NoDisplayedLimits => [new NoteLine(string.Empty, "No subscription limits to display", string.Empty)],
+            CardState.NoAccess => [new NoteLine(string.Empty, NoAccessText(account.Provider), string.Empty)],
             CardState.NoCap => [new NoteLine(string.Empty, f.ProviderBalance is { } b ? "balance " + LedgerFormat.Value(card.Scale, b) + " " + unit + " (provider)" : "no cap set", "no budget")],
             _ => [new NoteLine(period, f.Used is { } used ? LedgerFormat.Value(card.Scale, used) + " used" : "used unknown", reset)],
         };

@@ -43,7 +43,7 @@
       </tray:TaskbarIcon.ContextFlyout>
     </tray:TaskbarIcon>
 
-    <!-- Title row (38): name, refresh status, day off and Work today, the peak hint, then Used/Left, +, Settings. The rest drags the window. -->
+    <!-- Title row (38): name, refresh status, Work today on a day off, the peak hint, then Used/Left, +, Settings. The rest drags the window. -->
     <Grid x:Name="TitleRow" Padding="16,0,8,0" ColumnSpacing="10" BorderBrush="{StaticResource LedgerLineBrush}" BorderThickness="0,0,0,1">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" />
@@ -60,11 +60,17 @@
               AutomationProperties.Name="{x:Bind RefreshName(ViewModel.RefreshTip), Mode=OneWay}" ToolTipService.ToolTip="{x:Bind lc:LedgerViews.Tip(ViewModel.RefreshTip), Mode=OneWay}">
         <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE72C;" FontSize="15" Foreground="{x:Bind RefreshBrush(ViewModel.RefreshFailed), Mode=OneWay}" />
       </lc:LedgerButton>
+      <!-- The button alone says the state: outlined while off, filled with the extra day's green and ticked while on. -->
       <StackPanel x:Name="DayGroup" Grid.Column="2" Orientation="Horizontal" Spacing="10" Visibility="{x:Bind Show(ViewModel.IsDayOff), Mode=OneWay}">
-        <TextBlock Text="{x:Bind ViewModel.DayText, Mode=OneWay}" Style="{StaticResource LedgerCaptionText}" VerticalAlignment="Center" />
-        <lc:LedgerButton x:Name="WorkTodayButton" Content="Work today" Command="{x:Bind ViewModel.ToggleWorkTodayCommand}"
+        <lc:LedgerButton x:Name="WorkTodayButton" Command="{x:Bind ViewModel.ToggleWorkTodayCommand}"
                 Style="{x:Bind WorkTodayStyle(ViewModel.WorkTodayOn), Mode=OneWay}"
-                AutomationProperties.Name="{x:Bind WorkTodayName(ViewModel.WorkTodayOn), Mode=OneWay}" />
+                AutomationProperties.Name="{x:Bind WorkTodayName(ViewModel.WorkTodayOn), Mode=OneWay}"
+                ToolTipService.ToolTip="{x:Bind WorkTodayTip(ViewModel.WorkTodayOn), Mode=OneWay}">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE73E;" FontSize="12" VerticalAlignment="Center" Visibility="{x:Bind Show(ViewModel.WorkTodayOn), Mode=OneWay}" />
+            <TextBlock Text="Work today" VerticalAlignment="Center" />
+          </StackPanel>
+        </lc:LedgerButton>
       </StackPanel>
       <!-- The shared peak hint: an announced schedule for every account, shown only inside the window. -->
       <Border x:Name="PeakChip" Grid.Column="3" Style="{StaticResource LedgerPill}" Background="{x:Bind PeakBackground}" Visibility="{x:Bind ShowPeak(ViewModel.Peak), Mode=OneWay}"

@@ -155,6 +155,15 @@ public sealed class TrayMiniatureTests
     }
 
     [Fact]
+    public void NoAccessRowSaysSoInsteadOfOfferingAReading()
+    {
+        var row = Rows(DemoLedgerScenarios.Build(DemoLedgerScenarios.States)).Single(r => r.AccountId == "acct-h12");
+        Assert.True(row.IsError);
+        Assert.Null(row.Strip);
+        Assert.Equal(["No usage access", "Claude doesn't share usage for this account · a free plan has none"], row.NameTip);
+    }
+
+    [Fact]
     public void UsedUpIsOneSolidStripAndUsedOnlyAnEmptyDashedTrack()
     {
         var rows = Rows(DemoLedgerScenarios.Build(DemoLedgerScenarios.States));

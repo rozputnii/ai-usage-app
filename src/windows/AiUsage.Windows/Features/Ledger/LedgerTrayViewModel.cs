@@ -62,7 +62,7 @@ internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposabl
             var main = AccountCard.Primary(account) is { Layout: not CardLayout.Note } primary ? primary : null;
             var strip = main is null ? null : Strip(main, account, prefs.Mode, snapshot.LocalNow);
             var error = IsError(account.Health);
-            var nameTip = account.Health switch
+            var nameTip = AccountCard.Primary(account)?.State == CardState.NoAccess ? ["No usage access", CardVisuals.NoAccessText(account.Provider)] : account.Health switch
             {
                 AccountHealth.SignInExpired => new[] { "Sign-in expired", "Sign in again in the window to refresh" },
                 AccountHealth.SignedOut => ["Signed out", "History, name and caps kept"],

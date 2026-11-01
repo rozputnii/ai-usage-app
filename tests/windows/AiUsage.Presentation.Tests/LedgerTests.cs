@@ -284,7 +284,7 @@ public sealed class LedgerCardTests
         var states = StateGallery.Accounts.SelectMany(a => a.Cards).Select(c => c.State).ToHashSet();
         foreach (var state in Enum.GetValues<CardState>().Where(s => s != CardState.NoCap))
             Assert.Contains(state, states);
-        Assert.Equal(55, StateGallery.Accounts.Count);
+        Assert.Equal(56, StateGallery.Accounts.Count);
     }
 
     [Fact]
@@ -768,13 +768,12 @@ public sealed class LedgerInteractionTests
     {
         var (window, source, _, _) = Start(DemoLedgerScenarios.DayOff);
         Assert.True(window.IsDayOff);
-        Assert.Equal("Day off", window.DayText);
+        Assert.False(window.WorkTodayOn);
         Assert.Equal("day off", Card(window, "claude-week").Visual.Pill);
         Assert.Equal("7d used up", Card(window, "codex-week").Visual.Pill);
         var workDays = source.Current.Budget.WorkDays;
         await window.ToggleWorkTodayAsync();
         Assert.True(window.WorkTodayOn);
-        Assert.Equal("Extra work day · until midnight", window.DayText);
         Assert.Null(Card(window, "claude-week").Visual.Pill);
         Assert.Equal("extra day", Card(window, "claude-week").Visual.Marks.Single().Text);
         Assert.Equal("7d used up", Card(window, "codex-week").Visual.Pill);
@@ -1037,7 +1036,7 @@ public sealed class LedgerInteractionTests
         Assert.Equal(9, window.Demo!.Scenarios.Count);
         window.ToggleSettings();
         window.LoadScenario(DemoLedgerScenarios.States);
-        Assert.Equal(54, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
+        Assert.Equal(55, window.Cards.Count); // H9 is signed out and hidden until Show signed-out accounts is on.
         Assert.All(window.Cards, c => Assert.False(c.IsNew));
         window.LoadScenario(DemoLedgerScenarios.FirstRun);
         Assert.True(window.IsFirstRun);

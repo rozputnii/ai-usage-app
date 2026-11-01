@@ -174,6 +174,8 @@ internal enum CardState
     NoCap,
     SignedOut,
     NoDisplayedLimits,
+    /// <summary>The provider refused the usage read (403), as for a plan without usage access; old figures stay stored.</summary>
+    NoAccess,
 }
 
 internal sealed record Freshness(bool IsStale, DateTimeOffset? ReadingAt)

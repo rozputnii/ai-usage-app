@@ -328,6 +328,33 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(AccountHealth.SyncFailedStale, none.Health);
     }
 
+    [Theory]
+    [InlineData("claude", "Claude doesn't share usage for this account · a free plan has none")]
+    [InlineData("copilot", "GitHub Copilot doesn't share usage for this account")]
+    public void AccessDeniedShowsOneNoAccessNoteInsteadOfTheOldFigures(string provider, string note)
+    {
+        // The owner's Claude account after its subscription ended: the token renews, the usage read answers 403.
+        var fetched = Now.AddHours(-10);
+        var quota = new QuotaSnapshot(fetched, null, [], null, null, null, null) { Limits = new(fetched, null, SnapshotSource.ProviderApi, "test", [Weekly()]) };
+        var snapshot = new AccountSnapshot(Account, provider, true,
+            new(ProviderSessionStatus.QuotaAvailable, quota, Failure: ProviderFailureKind.AccessDenied), false, Now);
+        var model = LiveLedgerProjection.Account(snapshot, "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null)
+            with { NextRetryAt = Now.AddMinutes(25) };
+        Assert.Equal(AccountHealth.SyncFailedStale, model.Health);
+        var card = Assert.Single(model.Cards);
+        Assert.Equal((CardLayout.Note, CardState.NoAccess), (card.Layout, card.State));
+        Assert.Empty(card.Marks);
+        var visual = CardVisuals.Build(card, model, ValueMode.Used, Now);
+        Assert.Equal("no access", visual.Pill);
+        Assert.Equal(Tone.Attention, visual.Tone);
+        Assert.Equal(["No usage access", "Last reading 02:00 · retry " + LedgerFormat.Relative(Now.AddMinutes(25), Now)], visual.PillTip);
+        Assert.Equal(note, Assert.Single(visual.NoteLines).Value);
+        // Any other failure keeps the old figures with the sync-failed mark.
+        var other = LiveLedgerProjection.Account(snapshot with { Session = snapshot.Session with { Failure = ProviderFailureKind.NetworkFailure } },
+            "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
+        Assert.Contains(Assert.Single(other.Cards).Marks, m => m.Kind == MarkKind.SyncFailed);
+    }
+
     // ---- T-055 R-13: the continuity tolerance of the refresh interval ----
 
     [Fact]

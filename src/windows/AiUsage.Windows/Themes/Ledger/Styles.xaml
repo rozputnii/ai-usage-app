@@ -214,6 +214,12 @@
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Padding" Value="9,1,9,1" />
   </Style>
+  <!-- Work today while on: the extra day's green, so on and off differ at a glance; the outline keeps both the same size. -->
+  <Style x:Key="LedgerWorkTodayOnButton" TargetType="lc:LedgerButton" BasedOn="{StaticResource LedgerOutlineButton}">
+    <Setter Property="Background" Value="{StaticResource LedgerOkPBrush}" />
+    <Setter Property="BorderBrush" Value="{StaticResource LedgerOkPBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource LedgerInkBrush}" />
+  </Style>
   <Style x:Key="LedgerDangerButton" TargetType="lc:LedgerButton" BasedOn="{StaticResource LedgerButtonBase}">
     <Setter Property="Background" Value="{StaticResource LedgerCritPBrush}" />
   </Style>
@@ -257,11 +263,6 @@
     <Setter Property="MinHeight" Value="0" />
     <Setter Property="CornerRadius" Value="{StaticResource LedgerSegmentItemRadius}" />
     <Setter Property="Foreground" Value="{StaticResource LedgerInk3Brush}" />
-  </Style>
-
-  <Style x:Key="LedgerSegmentOnButton" TargetType="lc:LedgerButton" BasedOn="{StaticResource LedgerButtonBase}">
-    <Setter Property="Background" Value="{StaticResource LedgerControlOnBrush}" />
-    <Setter Property="Padding" Value="10,3,10,3" />
   </Style>
 
   <Style x:Key="LedgerNameBox" TargetType="TextBox">

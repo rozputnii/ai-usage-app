@@ -800,8 +800,9 @@ internal sealed partial class LedgerWindow : Window
         error.Length > 0 ? error : busy && !LedgerTheme.AnimationsEnabled ? (text.Length > 0 ? text + " · waiting" : "waiting") : text;
     private Brush StripDetailBrush(string error) => error.Length > 0 ? LedgerTheme.ToneText(Tone.Attention) : LedgerTheme.Solid("Ink3");
     private Style StripActionStyle(bool primary) => (Style)LedgerTheme.Find(primary ? "LedgerPrimaryButton" : "LedgerLinkButton")!;
-    private Style WorkTodayStyle(bool on) => (Style)LedgerTheme.Find(on ? "LedgerSegmentOnButton" : "LedgerOutlineButton")!;
+    private Style WorkTodayStyle(bool on) => (Style)LedgerTheme.Find(on ? "LedgerWorkTodayOnButton" : "LedgerOutlineButton")!;
     private string WorkTodayName(bool on) => on ? "Work today, on until midnight" : "Work today, off";
+    private ToolTip? WorkTodayTip(bool on) => LedgerViews.Tip(on ? ["Extra work day", "On until midnight · settings unchanged"] : ["Day off", "Work today colours it until midnight"]);
     private Brush SegmentBackground(bool isLeft, bool forLeft) => LedgerTheme.Solid(isLeft == forLeft ? "ControlOn" : "Transparent");
     private Brush SegmentForeground(bool isLeft, bool forLeft) => LedgerTheme.Solid(isLeft == forLeft ? "Ink" : "Ink3");
     private Brush SettingsBackground(bool open) => LedgerTheme.Solid(open ? "ControlOn" : "Transparent");
