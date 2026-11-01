@@ -160,7 +160,8 @@ public sealed class TrayMiniatureTests
         var row = Rows(DemoLedgerScenarios.Build(DemoLedgerScenarios.States)).Single(r => r.AccountId == "acct-h12");
         Assert.True(row.IsError);
         Assert.Null(row.Strip);
-        Assert.Equal(["No usage access", "Claude doesn't share usage for this account · a free plan has none"], row.NameTip);
+        Assert.Equal(["H12 · Claude Pro", "No usage access", "Claude doesn't share usage for this account · a free plan has none"], row.Tip);
+        Assert.DoesNotContain("reading", row.AccessibleName, StringComparison.Ordinal);
     }
 
     [Fact]

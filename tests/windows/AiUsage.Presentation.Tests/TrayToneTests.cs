@@ -58,6 +58,16 @@ public sealed class TrayToneTests
         Assert.Equal([(Tone.Critical, true)], seen);
     }
 
+    [Fact]
+    public void ANoAccessNoteLeavesTheTrayToneAlone()
+    {
+        // A free-plan account the owner keeps would otherwise hold the tray orange; the refresh button already turns red.
+        var noAccess = DemoLedgerScenarios.Build(DemoLedgerScenarios.States).Accounts.Single(a => a.AccountId == "acct-h12");
+        var calm = Calm();
+        using var window = new LedgerViewModel(new SnapshotSource(calm with { Accounts = [.. calm.Accounts, noAccess] }), new ManualScheduler());
+        Assert.Equal(Tone.Ok, window.TrayTone);
+    }
+
     /// <summary>A test source that publishes the snapshots it is given; commands are not used here.</summary>
     internal sealed class SnapshotSource(LedgerSnapshot current) : ILedgerSource
     {

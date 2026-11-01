@@ -50,18 +50,23 @@ internal static class LiveLedgerProjection
         method == SignInMethod.ClaudeCode ? "claude-code" : provider.ToString().ToLowerInvariant();
 
     public static AccountModel Account(AccountSnapshot account, string name, IReadOnlyList<LedgerLimit> limits,
-        BudgetConfiguration configuration, DateTimeOffset now, TimeZoneInfo zone, DateOnly? workToday, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null)
+        BudgetConfiguration configuration, DateTimeOffset now, TimeZoneInfo zone, DateOnly? workToday, IReadOnlyList<TodayEntry>? entries = null, TimeSpan? tolerance = null,
+        bool refused = false)
     {
         var id = account.AccountId.ToString("N");
         var session = account.Session;
         var readingAt = session.Quota?.FetchedAt;
         // T-055 R-13: a reading stays current within the continuity tolerance of the refresh interval.
         var stale = readingAt is null || now - readingAt > (tolerance ?? ReadingContinuity.Floor);
+        // A refused Claude usage read (403) means the plan no longer shares usage: one note replaces the old figures until a
+        // read succeeds, also through later failures such as the 429 that quick retries bring. Other providers answer 403
+        // for other reasons (GitHub's secondary rate limits, Antigravity's refused renewal) and keep a plain sync failure.
+        var denied = account.Provider == "claude" && session.Failure is { } kind && (kind == ProviderFailureKind.AccessDenied || refused);
         // A rate-limited refresh is routine while the reading is still current; it counts as a sync failure once the reading is stale.
-        var failed = session.Failure is not null && (stale || session.Failure != ProviderFailureKind.RateLimited);
+        var failed = denied || session.Failure is not null && (stale || session.Failure != ProviderFailureKind.RateLimited);
         var health = !account.Connected ? AccountHealth.SignedOut : session.Status == ProviderSessionStatus.ReauthenticationRequired
             ? AccountHealth.SignInExpired : session.Status == ProviderSessionStatus.RecoveryRequired ? AccountHealth.ProviderError
-            : failed ? stale ? AccountHealth.SyncFailedStale : AccountHealth.SyncFailedFresh
+            : failed ? stale || denied ? AccountHealth.SyncFailedStale : AccountHealth.SyncFailedFresh
             : readingAt is null ? AccountHealth.ProviderError : AccountHealth.Ok;
         var normalized = AccountLimits(limits).Select(l => l with { Series = new(id, l.Facts.Key) }).ToArray();
         var hasSubscriptionWindows = normalized.Any(l => l.Facts.Kind == LimitKind.PercentWindow);
@@ -130,13 +135,12 @@ internal static class LiveLedgerProjection
             }
             cards.Add(card with { Marks = marks, Action = health == AccountHealth.SignInExpired ? CardAction.SignIn : card.Action });
         }
-        // A refused usage read (403) means the plan no longer shares usage, so the old figures give way to one note. It shows
-        // nothing old, so it is not stale; the readings stay stored and come back with the next successful read.
-        var denied = health is AccountHealth.SyncFailedFresh or AccountHealth.SyncFailedStale && session.Failure == ProviderFailureKind.AccessDenied;
-        if (!account.Connected || cards.Count == 0 || denied)
+        // The no-access note shows nothing old, so it is not stale; the readings stay stored for the next successful read.
+        var noAccess = denied && health == AccountHealth.SyncFailedStale;
+        if (!account.Connected || cards.Count == 0 || noAccess)
             cards = [new(id + ":status", null, CardLayout.Note, ScaleModel.Percent, PeriodModel.Unknown,
-                !account.Connected ? CardState.SignedOut : denied ? CardState.NoAccess : session.Quota is not null ? CardState.NoDisplayedLimits : CardState.NotReady,
-                new(stale && !denied, Local(readingAt, zone)), [], LimitFigures.UsedOnly(null),
+                !account.Connected ? CardState.SignedOut : noAccess ? CardState.NoAccess : session.Quota is not null ? CardState.NoDisplayedLimits : CardState.NotReady,
+                new(stale && !noAccess, Local(readingAt, zone)), [], LimitFigures.UsedOnly(null),
                 null, null, null, null, !account.Connected || health == AccountHealth.SignInExpired ? CardAction.SignIn : CardAction.None, null)];
         if (cards.Any(c => c.Monetary is null))
             cards = cards.Select(c => c.Monetary is not null && c.Action == CardAction.SignIn ? c with { Action = CardAction.None } : c).ToList();

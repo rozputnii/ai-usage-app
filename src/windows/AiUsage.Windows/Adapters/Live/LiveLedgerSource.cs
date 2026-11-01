@@ -33,6 +33,8 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
     private readonly Queue<AccountSnapshot> captures = [];
     private readonly Dictionary<Guid, DateTimeOffset> observed = [];
     private readonly HashSet<Guid> lostCaptures = [];
+    // Accounts whose last conclusive usage read was refused (403); a later failure keeps them refused until a read succeeds.
+    private readonly HashSet<Guid> refused = [];
     private readonly Dictionary<Guid, (DateTimeOffset At, int Failures)> attempts = [];
     private Dictionary<string, LedgerLimit> limits = [];
     private BudgetConfiguration configuration = BudgetConfiguration.Default;
@@ -260,7 +262,10 @@ internal sealed class LiveLedgerSource : ILedgerSource, IDisposable
             data = [.. LiveLedgerProjection.AccountLimits(data)];
             foreach (var limit in data) nextLimits.Add(LiveLedgerProjection.CardId(limit.Series), limit);
             var name = preferences.Current.Labels.GetValueOrDefault(id) ?? DefaultName(account, snapshots);
-            var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday, preferences.Current.Today, tolerance);
+            if (account.Session.Failure == ProviderFailureKind.AccessDenied) refused.Add(account.AccountId);
+            else if (!account.Connected || account.Session is { Status: ProviderSessionStatus.QuotaAvailable, Failure: null, FromCache: false }) refused.Remove(account.AccountId);
+            var model = LiveLedgerProjection.Account(account, name, data, configuration, now, zone, preferences.Current.WorkToday, preferences.Current.Today, tolerance,
+                refused.Contains(account.AccountId));
             model = model with { Cards = model.Cards.OrderBy(c => Order(c.CardId))
                     .Select(c => preferences.Current.Hidden.Contains(c.CardId) ? c with { Hidden = true } : c)
                     .Select(c => CreditDollars.Apply(c, preferences.Current.Units.GetValueOrDefault(c.CardId))).ToArray(),

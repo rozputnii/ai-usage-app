@@ -31,24 +31,32 @@ approval_basis: owner request, 2026-11-01, in conversation: Work today looks the
 ## Requirements
 
 - R-01: The title row shows no day caption. The Work today button is outlined while off, and
-  filled with the OkP green (#5E8A6B) with a tick while on, at the same size; its tooltip and
-  accessible name carry the state.
-- R-02: A connected account whose last refresh failed with `AccessDenied`, and is neither
-  sign-in expired nor in recovery, shows one note card in the state `NoAccess` instead of its
-  limit cards, in the attention tone. The note shows nothing old, so it is not stale: it is not
-  dimmed and its spoken name gives no reading time.
+  filled with the OkP green (#5E8A6B) with a tick while on, with the same height and outline
+  (the tick widens it slightly); its tooltip and accessible name carry the state.
+- R-02: A connected Claude account signed in through the browser (provider key `claude`) whose
+  usage read was refused (`AccessDenied`), and is neither sign-in expired nor in recovery, shows
+  one note card in the state `NoAccess` instead of its limit cards, in the attention tone, with
+  the health `SyncFailedStale` whatever the age of its reading. The refusal holds through later
+  failures (such as the 429 that quick retries bring, or a network failure) until a read
+  succeeds. The note shows nothing old, so it is not stale: it is not dimmed and its spoken name
+  gives no reading time. It does not colour the tray icon.
 - R-03: The `NoAccess` card's pill is "no access"; its tip is "No usage access" and the last
   reading time with the retry; its note is "Claude doesn't share usage for this account · a free
-  plan has none" for Claude and "<Provider> doesn't share usage for this account" otherwise. The
-  tray row's tip says "No usage access" with the same note, and the refresh button's tip names
-  the account with "no access" and no reading time; the button stays red.
-- R-04: Every other refresh failure keeps the figures and the "sync failed" mark.
+  plan has none". The tray row's tip says "No usage access" with the same note and its spoken
+  name gives no reading age; the refresh button's tip names the account with "no access" and no
+  reading time, and the button is red.
+- R-04: Every other refresh failure, and a 403 for any other provider or for the Claude Code
+  method (GitHub also answers 403 to secondary rate limits; Antigravity refuses a renewal with
+  it), keeps the figures and the "sync failed" mark.
 
 ## Acceptance criteria
 
-- AC-01: `AccessDeniedShowsOneNoAccessNoteInsteadOfTheOldFigures` (Claude and Copilot) shows
-  R-02 to R-04 for the card, `NoAccessRowSaysSoInsteadOfOfferingAReading` R-03 for the tray and
-  `NoAccessAccountSaysSoInTheRefreshTip` R-03 for the refresh tip; all fail at the base.
+- AC-01: Presentation tests show R-02 to R-04 and fail at the base:
+  `RefusedClaudeReadShowsOneNoAccessNoteInsteadOfTheOldFigures` (a 10-hour-old and a 5-minute-old
+  reading), `ARefusalOutlastsLaterFailuresUntilAReadSucceeds`,
+  `ARefusedClaudeReadStaysNoAccessThroughALaterRateLimitUntilAReadSucceeds`,
+  `OnlyTheClaudeBrowserSignInReadsA403AsNoAccess`, `NoAccessRowSaysSoInsteadOfOfferingAReading`,
+  `NoAccessAccountSaysSoInTheRefreshTip` and `ANoAccessNoteLeavesTheTrayToneAlone`.
 - AC-02: The state gallery covers `NoAccess` (H12), and the gallery geometry and spoken-name
   checks pass.
 - AC-03: The window-size smoke turns Work today on in the day-off demo without overlap, and its
@@ -61,6 +69,7 @@ approval_basis: owner request, 2026-11-01, in conversation: Work today looks the
   record in docs/providers is unchanged.
 - Fewer manual reads of a refused account: the 429 followed three quick manual refreshes; the
   automatic backoff already waits 10, 20, then 30 minutes.
+- Remembering a refusal across a restart: the first read after a restart is refused again.
 - Log retention: only the current session's application log was present to review.
 
 Variant: A (green fill with a tick) and 1 (one note line, old bars hidden), owner, 2026-11-01.

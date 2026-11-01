@@ -328,18 +328,22 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(AccountHealth.SyncFailedStale, none.Health);
     }
 
-    [Theory]
-    [InlineData("claude", "Claude doesn't share usage for this account · a free plan has none")]
-    [InlineData("copilot", "GitHub Copilot doesn't share usage for this account")]
-    public void AccessDeniedShowsOneNoAccessNoteInsteadOfTheOldFigures(string provider, string note)
+    private static AccountModel Refusal(string provider, ProviderFailureKind? failure, int minutesOld, bool refused = false)
     {
-        // The owner's Claude account after its subscription ended: the token renews, the usage read answers 403.
-        var fetched = Now.AddHours(-10);
+        var fetched = Now.AddMinutes(-minutesOld);
         var quota = new QuotaSnapshot(fetched, null, [], null, null, null, null) { Limits = new(fetched, null, SnapshotSource.ProviderApi, "test", [Weekly()]) };
-        var snapshot = new AccountSnapshot(Account, provider, true,
-            new(ProviderSessionStatus.QuotaAvailable, quota, Failure: ProviderFailureKind.AccessDenied), false, Now);
-        var model = LiveLedgerProjection.Account(snapshot, "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null)
-            with { NextRetryAt = Now.AddMinutes(25) };
+        var snapshot = new AccountSnapshot(Account, provider, true, new(ProviderSessionStatus.QuotaAvailable, quota, Failure: failure), false, Now);
+        return LiveLedgerProjection.Account(snapshot, "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null, refused: refused);
+    }
+
+    [Theory]
+    [InlineData(600)]
+    [InlineData(5)]
+    public void RefusedClaudeReadShowsOneNoAccessNoteInsteadOfTheOldFigures(int minutesOld)
+    {
+        // The owner's Claude account after its subscription ended: the token renews, the usage read answers 403. The first
+        // refused read after it ended may follow a reading that is still within the freshness tolerance.
+        var model = Refusal("claude", ProviderFailureKind.AccessDenied, minutesOld) with { NextRetryAt = Now.AddMinutes(25) };
         Assert.Equal(AccountHealth.SyncFailedStale, model.Health);
         var card = Assert.Single(model.Cards);
         Assert.Equal((CardLayout.Note, CardState.NoAccess), (card.Layout, card.State));
@@ -347,16 +351,37 @@ public sealed class LiveLedgerProjectionTests
         var visual = CardVisuals.Build(card, model, ValueMode.Used, Now);
         Assert.Equal("no access", visual.Pill);
         Assert.Equal(Tone.Attention, visual.Tone);
-        Assert.Equal(["No usage access", "Last reading 02:00 · retry " + LedgerFormat.Relative(Now.AddMinutes(25), Now)], visual.PillTip);
-        Assert.Equal(note, Assert.Single(visual.NoteLines).Value);
+        Assert.Equal(["No usage access", "Last reading " + LedgerFormat.Clock(Now.AddMinutes(-minutesOld)) + " · retry " + LedgerFormat.Relative(Now.AddMinutes(25), Now)],
+            visual.PillTip);
+        Assert.Equal("Claude doesn't share usage for this account · a free plan has none", Assert.Single(visual.NoteLines).Value);
         // Nothing old is shown, so the card is not stale: not dimmed, and its name gives no reading time.
         Assert.False(card.Freshness.IsStale);
         Assert.Equal(1, visual.Opacity);
         Assert.DoesNotContain("reading from", visual.AccessibleName, StringComparison.Ordinal);
         // Any other failure keeps the old figures with the sync-failed mark.
-        var other = LiveLedgerProjection.Account(snapshot with { Session = snapshot.Session with { Failure = ProviderFailureKind.NetworkFailure } },
-            "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);
-        Assert.Contains(Assert.Single(other.Cards).Marks, m => m.Kind == MarkKind.SyncFailed);
+        Assert.Contains(Assert.Single(Refusal("claude", ProviderFailureKind.NetworkFailure, 600).Cards).Marks, m => m.Kind == MarkKind.SyncFailed);
+    }
+
+    [Fact]
+    public void ARefusalOutlastsLaterFailuresUntilAReadSucceeds()
+    {
+        // The owner's log: three 403s, then a 429 with Retry-After 3600; a network failure after sleep is the same.
+        foreach (var failure in new[] { ProviderFailureKind.RateLimited, ProviderFailureKind.NetworkFailure })
+            Assert.Equal(CardState.NoAccess, Assert.Single(Refusal("claude", failure, 600, refused: true).Cards).State);
+        var read = Refusal("claude", null, 0, refused: true);
+        Assert.Equal(AccountHealth.Ok, read.Health);
+        Assert.NotEqual(CardState.NoAccess, Assert.Single(read.Cards).State);
+    }
+
+    [Theory]
+    [InlineData("copilot")]
+    [InlineData("claude-code")]
+    [InlineData("antigravity")]
+    public void OnlyTheClaudeBrowserSignInReadsA403AsNoAccess(string provider)
+    {
+        // GitHub also answers 403 to secondary rate limits, and Antigravity refuses a renewal with it: a sync failure as before.
+        var model = Refusal(provider, ProviderFailureKind.AccessDenied, 600);
+        Assert.Contains(Assert.Single(model.Cards).Marks, m => m.Kind == MarkKind.SyncFailed);
     }
 
     // ---- T-055 R-13: the continuity tolerance of the refresh interval ----

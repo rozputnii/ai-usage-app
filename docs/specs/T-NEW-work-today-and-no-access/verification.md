@@ -30,7 +30,7 @@ routes and timings only; nothing was copied out.
 
 | AC | Verdict | Evidence |
 | --- | --- | --- |
-| AC-01 | PASS | `AccessDeniedShowsOneNoAccessNoteInsteadOfTheOldFigures` (claude, copilot), `NoAccessRowSaysSoInsteadOfOfferingAReading`, `NoAccessAccountSaysSoInTheRefreshTip`. Red before the change: the card was `(Period, TodayUsed)` instead of `(Note, NoAccess)`, the tray had no H12 row, the refresh tip read "failed 14:18, showing 09:00" |
+| AC-01 | PASS | The seven tests named in the spec. Red before the change: the card was `(Period, TodayUsed)` instead of `(Note, NoAccess)`; with the H12 case alone, the tray tip read "Sync failed 14:18" and the refresh tip "failed 14:18, showing 09:00" (reviewer, temporary worktree at the base). Red before the review fixes: a 5-minute-old reading gave `SyncFailedFresh`, a later 429 gave `TodayUsed` / `NotReady` instead of `NoAccess`, Copilot, Claude Code and Antigravity 403s gave the note, the tray tone was `Attention` and the tray's spoken name gave the reading age |
 | AC-02 | PASS | `GalleryCoversEveryCardState` (56 accounts), `EveryGalleryStateHasBoundedGeometryAndSpokenMeaning` (4 cases) |
 | AC-03 | PASS | `SqueezedWindowKeepsTheTitleRowClearOfTheCaptionButtons`: `size-day-off.png` shows the outlined button with no caption, `size-work-today.png` the green fill with the tick |
 | AC-04 | PASS | Checks below |
@@ -59,4 +59,18 @@ On the task branch before review.
 
 ## Review
 
-Pending.
+Fresh-context review (`aiu-reviewer`, T1, at `30dee83`) with local `/code-review`: changes
+needed, one Important and five Minor; tier T1 confirmed, no security-lifecycle area. C4, C5, C2
+and C6 rerun PASS; fails at base confirmed in a temporary worktree. All six were fixed:
+
+- I-1: a 403 within the freshness tolerance (the first refresh after a subscription ends)
+  showed the note while the tray and refresh tip went by `SyncFailedFresh`. A refusal is now
+  always `SyncFailedStale`.
+- M-1: a later 429 or network failure brought the old bars back, as the owner's log sequence
+  would have. `LiveLedgerSource` now remembers a refusal until a read succeeds.
+- M-2: the note held the tray icon orange; it no longer colours the tray.
+- M-3: the tray's spoken name gave the reading age; it no longer does.
+- M-4: Antigravity's refused renewal and GitHub's 403 rate limits would have shown the note;
+  only the Claude browser sign-in reads a 403 as no access.
+- M-5: R-01's size wording corrected; the T-038 spec line for S12/S13 amended. The BOM in the
+  subject of `ce84715` is already pushed and stays.

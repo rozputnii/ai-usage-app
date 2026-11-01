@@ -182,8 +182,9 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
         SyncProviders();
         UpdateStrip(snapshot.SignInStrip);
         Settings.Rebuild(snapshot, prefs);
-        // Card visuals change only above (Update or a new card), so the tray tone is final here.
-        var tones = ordered.Select(c => c.Visual.Tone).ToArray();
+        // Card visuals change only above (Update or a new card), so the tray tone is final here. A no-access note does not
+        // colour the tray: a free-plan account would hold it orange, and the refresh button already turns red.
+        var tones = ordered.Where(c => c.Model.State != CardState.NoAccess).Select(c => c.Visual.Tone).ToArray();
         TrayTone = tones.Contains(Tone.Critical) ? Tone.Critical : tones.Contains(Tone.Attention) ? Tone.Attention : Tone.Ok;
     }
 

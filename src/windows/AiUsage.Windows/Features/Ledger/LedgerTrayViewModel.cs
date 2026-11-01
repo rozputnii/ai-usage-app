@@ -62,7 +62,8 @@ internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposabl
             var main = AccountCard.Primary(account) is { Layout: not CardLayout.Note } primary ? primary : null;
             var strip = main is null ? null : Strip(main, account, prefs.Mode, snapshot.LocalNow);
             var error = IsError(account.Health);
-            var nameTip = AccountCard.Primary(account)?.State == CardState.NoAccess ? ["No usage access", CardVisuals.NoAccessText(account.Provider)] : account.Health switch
+            var noAccess = AccountCard.Primary(account)?.State == CardState.NoAccess;
+            var nameTip = noAccess ? ["No usage access", CardVisuals.NoAccessText] : account.Health switch
             {
                 AccountHealth.SignInExpired => new[] { "Sign-in expired", "Sign in again in the window to refresh" },
                 AccountHealth.SignedOut => ["Signed out", "History, name and caps kept"],
@@ -71,7 +72,8 @@ internal sealed partial class LedgerTrayViewModel : ObservableObject, IDisposabl
                     account.LastReadingAt is { } r ? "Showing the reading from " + LedgerFormat.Clock(r) + (account.NextRetryAt is { } n && n > snapshot.LocalNow ? " · retry " + LedgerFormat.Relative(n, snapshot.LocalNow) : string.Empty) : "No current reading"],
                 _ => [account.DisplayName],
             };
-            var health = error ? ", " + nameTip[0].ToLowerInvariant() + (account.LastReadingAt is { } at ? ", reading " + LedgerFormat.AgeWords(at, snapshot.LocalNow) : string.Empty) : string.Empty;
+            // A no-access row shows no reading, so it names no reading age.
+            var health = error ? ", " + nameTip[0].ToLowerInvariant() + (account.LastReadingAt is { } at && !noAccess ? ", reading " + LedgerFormat.AgeWords(at, snapshot.LocalNow) : string.Empty) : string.Empty;
             var spoken = account.DisplayName + health + ". " + strip?.AccessibleName;
             rows.Add(new TrayRow(account.AccountId, account.DisplayName, error, nameTip, strip, main is null ? null : Ring(main, prefs.Mode), spoken.Trim(),
                 account.Provider, [account.DisplayName, .. error ? nameTip : []]));

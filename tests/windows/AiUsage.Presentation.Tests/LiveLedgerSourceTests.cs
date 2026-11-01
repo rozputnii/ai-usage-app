@@ -338,6 +338,38 @@ public sealed class LiveLedgerSourceTests
         action => { action(); return Task.CompletedTask; }, _ => { }, clock, TimeZoneInfo.Utc);
 
     [Fact]
+    public async Task ARefusedClaudeReadStaysNoAccessThroughALaterRateLimitUntilAReadSucceeds()
+    {
+        var clock = new Clock(); var id = Guid.NewGuid();
+        var weekly = new LimitFacts(new("claude", "CL-W", "shared"), LimitKind.PercentWindow, "percent", FactValue.NotApplicable)
+        { UsedPercent = 45, Duration = TimeSpan.FromDays(7), Reset = new(clock.Now.AddDays(2), ValueOrigin.Provider, ResetMeaning.Replenish) };
+        AccountSnapshot Claude(ProviderFailureKind? failure, DateTimeOffset fetched) => new(id, "claude", true, new(ProviderSessionStatus.QuotaAvailable,
+            new QuotaSnapshot(fetched, null, [], null, null, null, null) { Limits = new(fetched, null, SnapshotSource.ProviderApi, "test", [weekly]) }, Failure: failure),
+            false, failure is null ? null : clock.Now);
+        var old = clock.Now.AddHours(-10);
+        var accounts = new Accounts { Current = [Claude(ProviderFailureKind.AccessDenied, old)] };
+        using var source = Source(accounts, new Store(), clock);
+        try
+        {
+            await source.InitializeAsync(null, Token);
+            CardState State() => Assert.Single(Assert.Single(source.Current.Accounts).Cards).State;
+            Assert.Equal(CardState.NoAccess, State());
+            // The owner's log: the fourth read answered 429 with Retry-After 3600.
+            accounts.Current = [Claude(ProviderFailureKind.RateLimited, old)];
+            accounts.Emit(); await source.WaitForIdleAsync();
+            Assert.Equal(CardState.NoAccess, State());
+            accounts.Current = [Claude(null, clock.Now)];
+            accounts.Emit(); await source.WaitForIdleAsync();
+            Assert.NotEqual(CardState.NoAccess, State());
+            // A later rate limit is a routine one again.
+            accounts.Current = [Claude(ProviderFailureKind.RateLimited, clock.Now)];
+            accounts.Emit(); await source.WaitForIdleAsync();
+            Assert.NotEqual(CardState.NoAccess, State());
+        }
+        finally { await source.StopAsync(); }
+    }
+
+    [Fact]
     public async Task MonetaryCapsStayMatchedAndSeparateAcrossRenameAndSourceRestart()
     {
         var clock = new Clock(); var store = new Store(); var first = Guid.NewGuid(); var second = Guid.NewGuid();
