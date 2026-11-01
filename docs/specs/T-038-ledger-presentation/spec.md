@@ -352,7 +352,7 @@ A demo-only "Demo" flyout in the title row switches scenarios; product builds ne
 | S10b | Tray, last work day | ⚡ (ok) on rush strips, $ (attention) on the on-extra-usage strip, red name with ⚠ for sign-in expired |
 | S10c, S10d | Tray, day off and Work today | Neutral dashed strips; Work today colours them; a used-up limit stays one solid red strip |
 | S11 | Tokens and components | Section 7 transfers them to `Themes/Ledger/` |
-| S12, S13 | Main window, day off and Work today | Title row shows "Day off" and a Work today button; on, it is pressed, says "Extra work day · until midnight", and Ctrl+Z or a second click turns it off. Amended by T-NEW (2026-11-01): no caption; the button alone shows the state, green with a tick while on |
+| S12, S13 | Main window, day off and Work today | Title row shows "Day off" and a Work today button; on, it is pressed, says "Extra work day · until midnight", and Ctrl+Z or a second click turns it off. Amended by T-072 (2026-11-01): no caption; the button alone shows the state, green with a tick while on |
 
 There is no modal dialog, pop-up window or account detail view. Menus and tooltips are
 light-dismiss flyouts; the undo bar is an in-window overlay (36 px, 16 px from the bottom,

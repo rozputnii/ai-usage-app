@@ -74,3 +74,9 @@ and C6 rerun PASS; fails at base confirmed in a temporary worktree. All six were
   only the Claude browser sign-in reads a 403 as no access.
 - M-5: R-01's size wording corrected; the T-038 spec line for S12/S13 amended. The BOM in the
   subject of `ce84715` is already pushed and stays.
+
+Re-check of the fixed lines at `14f06a5`: approve, all six closed, C5 380/380, C2 and C6 clean.
+One new Minor, fixed: AC-01 said every test fails at the base, but the provider and tray-tone
+tests guard review fixes. Observation kept as is: a refusal is recorded when a rebuild reads the
+accounts, so a 403 and a second failure inside one rebuild could miss it and show the old bars,
+as before this change; each Claude refresh is a network round trip, so this is unlikely.

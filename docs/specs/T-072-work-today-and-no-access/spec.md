@@ -1,5 +1,5 @@
 ---
-id: T-NEW
+id: T-072
 type: bug
 status: implemented
 goal: G-003
@@ -51,7 +51,8 @@ approval_basis: owner request, 2026-11-01, in conversation: Work today looks the
 
 ## Acceptance criteria
 
-- AC-01: Presentation tests show R-02 to R-04 and fail at the base:
+- AC-01: Presentation tests show R-02 to R-04; each fails before the change it guards (the
+  provider and tray-tone tests guard review fixes, so they fail before those, not at the base):
   `RefusedClaudeReadShowsOneNoAccessNoteInsteadOfTheOldFigures` (a 10-hour-old and a 5-minute-old
   reading), `ARefusalOutlastsLaterFailuresUntilAReadSucceeds`,
   `ARefusedClaudeReadStaysNoAccessThroughALaterRateLimitUntilAReadSucceeds`,
