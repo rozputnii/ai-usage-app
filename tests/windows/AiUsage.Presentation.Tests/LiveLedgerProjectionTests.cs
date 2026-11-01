@@ -349,6 +349,10 @@ public sealed class LiveLedgerProjectionTests
         Assert.Equal(Tone.Attention, visual.Tone);
         Assert.Equal(["No usage access", "Last reading 02:00 · retry " + LedgerFormat.Relative(Now.AddMinutes(25), Now)], visual.PillTip);
         Assert.Equal(note, Assert.Single(visual.NoteLines).Value);
+        // Nothing old is shown, so the card is not stale: not dimmed, and its name gives no reading time.
+        Assert.False(card.Freshness.IsStale);
+        Assert.Equal(1, visual.Opacity);
+        Assert.DoesNotContain("reading from", visual.AccessibleName, StringComparison.Ordinal);
         // Any other failure keeps the old figures with the sync-failed mark.
         var other = LiveLedgerProjection.Account(snapshot with { Session = snapshot.Session with { Failure = ProviderFailureKind.NetworkFailure } },
             "Work", [Data(Weekly())], BudgetConfiguration.Default, Now, TimeZoneInfo.Utc, null);

@@ -130,13 +130,13 @@ internal static class LiveLedgerProjection
             }
             cards.Add(card with { Marks = marks, Action = health == AccountHealth.SignInExpired ? CardAction.SignIn : card.Action });
         }
-        // A refused usage read (403) means the plan no longer shares usage, so the old figures are not shown as current;
-        // their readings stay stored and come back with the next successful read.
+        // A refused usage read (403) means the plan no longer shares usage, so the old figures give way to one note. It shows
+        // nothing old, so it is not stale; the readings stay stored and come back with the next successful read.
         var denied = health is AccountHealth.SyncFailedFresh or AccountHealth.SyncFailedStale && session.Failure == ProviderFailureKind.AccessDenied;
         if (!account.Connected || cards.Count == 0 || denied)
             cards = [new(id + ":status", null, CardLayout.Note, ScaleModel.Percent, PeriodModel.Unknown,
                 !account.Connected ? CardState.SignedOut : denied ? CardState.NoAccess : session.Quota is not null ? CardState.NoDisplayedLimits : CardState.NotReady,
-                new(stale, Local(readingAt, zone)), [], LimitFigures.UsedOnly(null),
+                new(stale && !denied, Local(readingAt, zone)), [], LimitFigures.UsedOnly(null),
                 null, null, null, null, !account.Connected || health == AccountHealth.SignInExpired ? CardAction.SignIn : CardAction.None, null)];
         if (cards.Any(c => c.Monetary is null))
             cards = cards.Select(c => c.Monetary is not null && c.Action == CardAction.SignIn ? c with { Action = CardAction.None } : c).ToList();

@@ -513,6 +513,15 @@ public sealed class LedgerRefreshStatusTests
     }
 
     [Fact]
+    public void NoAccessAccountSaysSoInTheRefreshTip()
+    {
+        // The card hides the old figures, so the tip names no reading time either; the refresh stays red.
+        var (failed, tip) = LedgerViewModel.RefreshStatus([DemoLedgerScenarios.Build(DemoLedgerScenarios.States).Accounts.Single(a => a.AccountId == "acct-h12")]);
+        Assert.True(failed);
+        Assert.Equal(["H12 · Claude Pro · no access"], tip);
+    }
+
+    [Fact]
     public void DifferentTimesListEveryAccountWithoutRed()
     {
         var (failed, tip) = LedgerViewModel.RefreshStatus([Account("Claude Pro", AccountHealth.Ok, Now.AddMinutes(-1)), Account("Codex Pro", AccountHealth.Ok, Now.AddMinutes(-4))]);

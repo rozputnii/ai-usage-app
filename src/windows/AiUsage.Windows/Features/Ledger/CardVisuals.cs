@@ -200,7 +200,7 @@ internal static class CardVisuals
 
     public static Tone ToneOf(LimitCardModel card)
     {
-        // A refused usage read needs the owner's attention however old the last reading is.
+        // A refused usage read needs the owner's attention.
         if (card.State == CardState.NoAccess)
             return Tone.Attention;
         if (card.Freshness.IsStale)
@@ -217,7 +217,7 @@ internal static class CardVisuals
 
     /// <summary>States whose pill names a reason for having no budget; a stale reading keeps them instead of an age pill.</summary>
     private static bool IsReasonState(CardState state) => state is CardState.NotReady or CardState.PeriodUnknown or CardState.ValueUnknown
-        or CardState.NotIncluded or CardState.LimitUnknown or CardState.NoCap or CardState.SignedOut or CardState.NoAccess;
+        or CardState.NotIncluded or CardState.LimitUnknown or CardState.NoCap or CardState.SignedOut;
 
     public static string? PillText(CardState state, PeriodModel period) => state switch
     {

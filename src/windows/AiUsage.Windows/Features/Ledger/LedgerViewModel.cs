@@ -220,8 +220,10 @@ internal sealed partial class LedgerViewModel : ObservableObject, IDisposable
             return (false, ["Updated " + time]);
         return (failed, [.. connected.Select(a =>
         {
-            var reading = a.LastReadingAt is { } at ? LedgerFormat.Clock(at) : null;
-            var problem = a.Health switch
+            // A refused usage read hides the old figures, so its line names no reading time.
+            var noAccess = AccountCard.Primary(a)?.State == CardState.NoAccess;
+            var reading = a.LastReadingAt is { } at && !noAccess ? LedgerFormat.Clock(at) : null;
+            var problem = noAccess ? "no access" : a.Health switch
             {
                 AccountHealth.SyncFailedStale => a.LastSyncFailedAt is { } f ? "failed " + LedgerFormat.Clock(f) : "failed",
                 AccountHealth.SignInExpired => "sign-in expired",
