@@ -68,8 +68,9 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
     /// <summary>
     /// A reply with status 400 or above keeps its provider error envelope, so the log says why a request was refused: code-shaped
     /// values, small whole-number codes and statuses, Anthropic's request id, GitHub's documentation link, and messages with every
-    /// word that is not a plain word withheld (any digit, address, dotted name, path or symbol). Letters-only words remain, so a
-    /// name, login or slug a provider puts in a message is kept. Everything else stays withheld as in any reply.
+    /// word that is not a plain word withheld (any digit, address, dotted name, absolute path or symbol). Plain words remain, so
+    /// a name, login, slug, letters-only code or relative path a provider puts in a message is kept. Everything else stays
+    /// withheld as in any reply.
     /// </summary>
     internal static ErrorValue? Error(string key, JsonElement value)
     {

@@ -238,7 +238,7 @@ Done and dropped items, one row each (OD-19). Their history is in each item's sp
 | T-070 | Motion and spacing polish | done | G-003 | docs/specs/T-070-motion-and-spacing-polish/verification.md |
 | T-071 | Claude usage through the local Claude Code CLI | done | G-003 | docs/specs/T-071-claude-code-usage-source/verification.md |
 | T-072 | Work today state and a refused usage read | done | G-003 | docs/specs/T-072-work-today-and-no-access/verification.md |
-| T-NEW | Error replies keep the provider's reason | done | G-003 | docs/specs/T-NEW-error-reply-details/verification.md |
+| T-073 | Error replies keep the provider's reason | done | G-003 | docs/specs/T-073-error-reply-details/verification.md |
 
 ## Pending owner checks
 
@@ -259,7 +259,7 @@ feature that leaves such a check adds one row; the post-deploy-check skill
 | T-065 | A Claude account at a one-minute refresh interval no longer flashes "sync failed" on a single rate-limited refresh; a reading older than 15 minutes still shows it | 2026-10-12 |
 | T-066 | After a refused Codex renewal, a manual refresh and a relaunch still show "Sign-in expired" with the Sign-in action, and signing in again restores the account | 2026-10-12 |
 | T-067 | A rate-limited Claude account reads normally again by itself with no second 429 within the same minute, even after a manual refresh; Antigravity still connects and reads both quota groups with the 2.19.1 client identity | 2026-10-12 |
-| T-NEW | After the update, the next refused read of the free-plan Claude account has the provider's error type, message and request id in its `response-` capture | 2026-11-01 |
+| T-073 | After the update, the next refused read of the free-plan Claude account has the provider's error type, message and request id in its `response-` capture | 2026-11-01 |
 | T-072 | On a day off, Work today is outlined while off and green with a tick while on, with no caption beside it; the Claude account on the free plan shows one "no access" line instead of old bars and "sync failed" | 2026-11-01 |
 | T-070 | The bars fill smoothly as one strip from the left when the window and the tray open and when a value changes; a dragged card lifts, the gap opens and the card settles smoothly on drop and on Esc; the settings slide and fades feel even; the spacing looks consistent with live accounts | 2026-10-12 |
 

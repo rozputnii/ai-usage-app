@@ -49,7 +49,12 @@ Minor, all fixed:
   `$` accepted a final line break. Codes are now letters joined by `_` or `-`, at most 64
   characters; numbers are whole and at most 99,999; every shape ends with `\z`
   (`ErrorValuesAreBounded`).
-- Minor: R-NEW, the spec and the code summary said identifiers and paths are covered; they now
+- Minor: R-235, the spec and the code summary said identifiers and paths are covered; they now
   say letters-only logins, slugs, codes and relative paths remain.
 - Minor: an error inside a 200 reply (Antigravity operations) keeps nothing new; recorded as out
   of scope.
+
+Re-check of the fixed lines at `fa3de31`: approve, all four closed, C4 1002/1002; a reply below
+400 reproduced exactly as at the base on the Claude quota and an OpenAI auth route. One new
+Minor, fixed: the `EndpointPolicy.Error` summary and logging.md still described the kept words
+too narrowly; they now say "plain word" and name letters-only codes and relative paths.

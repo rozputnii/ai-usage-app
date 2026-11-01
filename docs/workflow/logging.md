@@ -42,10 +42,10 @@ Redactions identify the output location, original JSON type and reason. Unknown
 property names become ordinal placeholders; their values remain withheld until an
 explicit endpoint policy classifies them. Null replacements cannot be interpreted as
 provider-sent nulls without checking redactions. A reply with status 400 or above also keeps
-its provider error envelope (R-NEW): code-shaped `type`, `error`, `error_code`,
+its provider error envelope (R-235): code-shaped `type`, `error`, `error_code`,
 `error_visibility`, `reason`, `code` and `status`, whole-number `code` and `status`,
 Anthropic's `request_id`, GitHub's `documentation_url`, and `message`, `detail` and
-`error_description` with every word that is not letters-only replaced by `[withheld]`
+`error_description` with every word that is not a plain word replaced by `[withheld]`
 (redaction reason `message-words-withheld`); replies below 400 keep nothing new. Start there
 when a provider refuses a request. Numeric tokens retain their original
 precision; duplicate properties remain present and are flagged. No malformed text

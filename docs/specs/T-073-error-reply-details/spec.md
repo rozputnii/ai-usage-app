@@ -1,5 +1,5 @@
 ---
-id: T-NEW
+id: T-073
 type: bug
 status: implemented
 goal: G-003
