@@ -1,7 +1,8 @@
 # Error replies keep the provider's reason - verification
 
-Evidence for [the specification](spec.md). Environment: Windows 11 Pro 10.0.26300, .NET SDK
-from global.json, Release, desktop unlocked. Date: 2026-11-01.
+Evidence for [the specification](spec.md). Code: `185e60f` and the review fixes `fa3de31` and
+`a7abe34`; final checks on `a7abe34`, which equals `origin/main` (`2166f38`) merged. Environment:
+Windows 11 Pro 10.0.26300, .NET SDK from global.json, Release, desktop unlocked. Date: 2026-11-01.
 
 ## Diagnosis
 
@@ -18,12 +19,23 @@ with eleven redactions, all `unclassified-name` or `unclassified-or-sensitive-va
 | AC | Verdict | Evidence |
 | --- | --- | --- |
 | AC-01 | PASS | The three new tests (six cases). Red at the base (a temporary worktree at `2166f38` with only a `bool error = false` parameter added): every case failed on nulls or withheld names, and the transport test on `sanitizerVersion` 1 |
-| AC-02 | PASS | `ProviderCaptureTests` 42/42, including `CapturePreservesApprovedNumbersBeforeProjectionAndWithholdsUnknownValues` (400) and `DisabledCaptureAndMalformedErrorAreNeverCalledComplete` |
-| AC-03 | NOT_RUN | Checks below, on the merged tree |
+| AC-02 | PASS | `ProviderCaptureTests` 52/52 (ten cases added by the review fixes), including `CapturePreservesApprovedNumbersBeforeProjectionAndWithholdsUnknownValues` (400) and `DisabledCaptureAndMalformedErrorAreNeverCalledComplete` |
+| AC-03 | PASS | Checks below |
 
 ## Checks
 
-Pending.
+On the merged tree (`a7abe34`) before the push to `main`.
+
+| Check | Result |
+| --- | --- |
+| C2 Document validation | PASS, valid, no diagnostics |
+| C3 Final document validation | PASS, `--final` valid, no diagnostics |
+| C4 Infrastructure suite | PASS, 1002/1002 |
+| C5 Presentation suite | PASS, 380/380 |
+| C6 Diff check | PASS, clean |
+| C7 App build | PASS, 0 warnings, 0 errors |
+| C8 Launch smoke | PASS, 3/3 under the desktop lock |
+| Window-size smoke | PASS, 1/1 under the desktop lock |
 
 ## Not run
 
