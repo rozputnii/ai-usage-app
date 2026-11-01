@@ -27,18 +27,20 @@ approval_basis: owner direction, 2026-11-01, in conversation, after T-072 could 
 ## Requirements
 
 - R-01: In a reply with status 400 or above, the capture keeps code-shaped values (letters
-  joined by `_`, `.` or `-`) of `type`, `error`, `error_code`, `error_visibility`, `reason`,
-  `code` and `status`; numeric `code` and `status`; `status` as three digits; Anthropic's
-  `request_id` (`req_` and 8 to 64 letters or digits); and GitHub's `documentation_url` on
-  `https://docs.github.com/`. `code` and `error_description` may be read there although other
-  replies never read below them.
+  joined by `_` or `-`, at most 64 characters) of `type`, `error`, `error_code`,
+  `error_visibility`, `reason`, `code` and `status`; whole-number `code` and `status` from 0 to
+  99,999; `status` as three digits; Anthropic's `request_id` (`req_` and 8 to 64 letters or
+  digits); and GitHub's `documentation_url` on `https://docs.github.com/`. The names `message`,
+  `detail`, `details`, `error_code`, `error_visibility`, `request_id`, `documentation_url`,
+  `status` and `reason` are known only in such a reply, and `code` and `error_description` may be
+  read there although other replies never read below them.
 - R-02: `message`, `detail` and `error_description` of up to 1,000 characters keep their plain
   words and replace every other word with `[withheld]`. A plain word is letters, optionally
   joined by an apostrophe, colon, slash, underscore or hyphen, with an opening bracket or quote
   and closing punctuation, at most 40 characters. A message that lost words adds the redaction
   reason `message-words-withheld`, so the capture is `withheld-values`.
-- R-03: Every other value stays withheld as before; the same envelope in a reply below 400
-  keeps nothing new.
+- R-03: Every other value stays withheld as before; a reply below 400 is sanitized exactly as
+  before, its envelope names staying unknown.
 - R-04: The capture's `sanitizerVersion` is 2.
 
 ## Acceptance criteria
@@ -46,7 +48,8 @@ approval_basis: owner direction, 2026-11-01, in conversation, after T-072 could 
 - AC-01: `ARefusedReadKeepsTheProviderErrorInItsCapture` (an Anthropic 403 through the
   transport), `ErrorRepliesKeepTheirEnvelope` (GitHub, Google, Codex and an OAuth error) and
   `ErrorMessagesLoseEveryWordThatCouldIdentifyOrAuthorize` show R-01 to R-04 and fail at the
-  base.
+  base; `RepliesBelow400KeepNothingNewUnderTheEnvelopeNames` and `ErrorValuesAreBounded` guard
+  the review fixes.
 - AC-02: The existing capture tests, including the canary tests for 400 replies, pass unchanged.
 - AC-03: C2, C4, C5, C6, C7 and C8 pass.
 
@@ -55,9 +58,11 @@ approval_basis: owner direction, 2026-11-01, in conversation, after T-072 could 
 The choice was between codes only and codes with the message. Codes alone (`permission_error`)
 often do not say why; Anthropic's and GitHub's 403s differ only in their message. A message
 cannot be proven free of private text by a blacklist (R-137), so it is reduced by an allowlist of
-word shapes: everything with a digit, `@`, an inner `.`, a backslash or another symbol goes,
-which removes identifiers, addresses, links, paths and tokens. Plain words stay, so a name a
-provider puts in an error message is kept; the owner's direction accepts that cost. The
+word shapes: every word with a digit, `@`, an inner `.`, a backslash or another symbol goes,
+which removes numeric and dotted identifiers, addresses, links, absolute paths and tokens.
+Letters-only words stay, so a name, login, slug, letters-only code or relative path such as
+`settings/billing` that a provider puts in an error message is kept; the owner's direction
+accepts that cost. The
 request id is kept because it is the provider's own handle for a support request and names no
 person.
 
@@ -66,5 +71,8 @@ person.
 - Generic log records: the failure record keeps naming only the failure category; the capture,
   linked by the operation id, carries the provider's reason.
 - Correlation headers beyond the existing `x-request-id` GUID.
+- An error inside a 200 reply, such as a failed Antigravity onboarding operation
+  (`/v1internal/operations/{operation}` with `done` and an `error` object): it keeps nothing new.
+  None has been seen failing; extend the policy when one does.
 - Log retention (168 hours): the owner's earlier logs were gone because the app had not run
   since 2026-10-13, by its usage history.

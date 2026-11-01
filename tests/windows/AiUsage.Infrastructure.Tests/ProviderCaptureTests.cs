@@ -205,6 +205,31 @@ public sealed class ProviderCaptureTests : IDisposable
     }
 
     [Fact]
+    public void RepliesBelow400KeepNothingNewUnderTheEnvelopeNames()
+    {
+        // The envelope names are known in error replies only; below 400 they stay unknown names, as before.
+        using var document = JsonDocument.Parse("""{"details":{"utilization":5,"used":7},"status":{"percent":3},"message":"canary","request_id":"req_011CSyntheticRequest01"}""");
+        var sanitized = ResponseSanitizer.Sanitize(document.RootElement, EndpointPolicy.Classify(new Uri("https://api.anthropic.com/api/oauth/usage")));
+        Assert.Equal("""{"withheld_0":{"utilization":null,"used":null},"withheld_1":{"percent":null},"withheld_2":null,"withheld_3":null}""", sanitized.Body.GetRawText());
+    }
+
+    [Theory]
+    [InlineData("type", "\"permission_error\"", true)]
+    [InlineData("type", "\"type.googleapis.com\"", false)]
+    [InlineData("type", "\"permission_error\\n\"", false)]
+    [InlineData("error_code", "\"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmn\"", false)]
+    [InlineData("code", "403", true)]
+    [InlineData("code", "123456789", false)]
+    [InlineData("code", "4.5", false)]
+    [InlineData("status", "\"403\"", true)]
+    [InlineData("request_id", "\"req_011CSyntheticRequest01\\n\"", false)]
+    public void ErrorValuesAreBounded(string key, string json, bool kept)
+    {
+        using var document = JsonDocument.Parse(json);
+        Assert.Equal(kept, EndpointPolicy.Error(key, document.RootElement) is not null);
+    }
+
+    [Fact]
     public async Task DisabledValidResponseKeepsMetadataWithoutBody()
     {
         using var log = new FileDiagnostics(root, new DiagnosticOptions { CaptureBodies = false });

@@ -33,4 +33,23 @@ Pending.
 
 ## Review
 
-Pending.
+Focused independent review (`aiu-reviewer`, T3, at `185e60f`) with the convergence-review
+skill and an inline `/security-review` (no finding at confidence 8 or above); `/code-review`
+NOT_RUN in the reviewer (no sub-agent tooling there), the code reviewed by hand. Tier T3
+confirmed, no security-lifecycle area. No secret, credential, token, PKCE value, email, URL with
+a query, absolute path or identity-name value reaches a capture through the new rules. C4, C5,
+C2 and C6 rerun PASS; fails at base confirmed. Verdict: changes needed, one Important and three
+Minor, all fixed:
+
+- Important: the envelope names were known in every reply, so a reply below 400 read below
+  `details`, `status` and the rest (only values the endpoint policies already approve, no privacy
+  exposure). They are now known only in a reply of 400 or above;
+  `RepliesBelow400KeepNothingNewUnderTheEnvelopeNames` keeps a reply below 400 exactly as before.
+- Minor: code values had no length bound and took dotted host names, numbers had no bound, and
+  `$` accepted a final line break. Codes are now letters joined by `_` or `-`, at most 64
+  characters; numbers are whole and at most 99,999; every shape ends with `\z`
+  (`ErrorValuesAreBounded`).
+- Minor: R-NEW, the spec and the code summary said identifiers and paths are covered; they now
+  say letters-only logins, slugs, codes and relative paths remain.
+- Minor: an error inside a 200 reply (Antigravity operations) keeps nothing new; recorded as out
+  of scope.

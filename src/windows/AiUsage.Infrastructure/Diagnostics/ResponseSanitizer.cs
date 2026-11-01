@@ -31,7 +31,7 @@ internal static class ResponseSanitizer
                     var index = 0;
                     foreach (var property in value.EnumerateObject())
                     {
-                        var known = EndpointPolicy.KnownKey(property.Name);
+                        var known = EndpointPolicy.KnownKey(property.Name, error);
                         var name = known ? property.Name : $"withheld_{index}";
                         var child = path + "/" + name;
                         if (!seen.Add(property.Name)) duplicates = true;

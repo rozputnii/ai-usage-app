@@ -44,7 +44,8 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
 
     internal bool Boolean(string key) => Kind is "quota" or "provisioning" && key is "allowed" or "limit_reached" or "has_credits" or "unlimited" or "reached" or "is_enabled" or "enabled" or "is_active" or "overage_permitted" or "done" or "isDefault";
 
-    internal static bool KnownKey(string key) => Names.Contains(key);
+    /// <param name="error">The reply's status is 400 or above; the error envelope's names are known there only.</param>
+    internal static bool KnownKey(string key, bool error = false) => Names.Contains(key) || error && ErrorNames.Contains(key);
     internal static bool CanDescend(string key) => key is not ("access_token" or "refresh_token" or "id_token" or "authorization_code" or
         "device_code" or "user_code" or "client_secret" or "code" or "verifier" or "account" or "organization" or "email" or "login" or
         "id" or "name" or "user" or "project" or "cloudAICompanionProject" or "verification_uri" or "verification_url" or "scope" or "scopes" or "error_description");
@@ -57,21 +58,23 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
         "quota_snapshots premium_interactions chat completions entitlement percent_remaining overage_count overage_permitted quota_remaining copilot_plan access_type quota_reset_date quota_reset_date_utc " +
         "groups buckets quotaInfos remainingAmount remainingFraction resetTime quotaId modelId currentTier allowedTiers paidTier tierId done response result data " +
         "usageItems usageItemsSummary usage usage_summary daily_usage daily_tokens events items date day timestamp unit unitType quantity grossAmount discountAmount netAmount count total input_tokens output_tokens cached_input_tokens tokens amount currency product sku " +
-        "message detail details error_code error_visibility request_id documentation_url status reason " +
         "").Split(' ', StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
+    private static readonly HashSet<string> ErrorNames = new(
+        "message detail details error_code error_visibility request_id documentation_url status reason".Split(' '), StringComparer.Ordinal);
 
     /// <summary>A value an error reply keeps: <see cref="Text"/> replaces a message's withheld words; null writes the value as sent.</summary>
     internal readonly record struct ErrorValue(string? Text, bool WordsWithheld);
 
     /// <summary>
     /// A reply with status 400 or above keeps its provider error envelope, so the log says why a request was refused: code-shaped
-    /// values, numeric codes and statuses, Anthropic's request id, GitHub's documentation link, and messages with every word that
-    /// is not a plain word withheld (digits, addresses, paths, links, token shapes). Plain words remain, including a name a
-    /// provider might put in a message. Everything else stays withheld as in any reply.
+    /// values, small whole-number codes and statuses, Anthropic's request id, GitHub's documentation link, and messages with every
+    /// word that is not a plain word withheld (any digit, address, dotted name, path or symbol). Letters-only words remain, so a
+    /// name, login or slug a provider puts in a message is kept. Everything else stays withheld as in any reply.
     /// </summary>
     internal static ErrorValue? Error(string key, JsonElement value)
     {
-        if (value.ValueKind == JsonValueKind.Number) return key is "code" or "status" ? new(null, false) : null;
+        if (value.ValueKind == JsonValueKind.Number)
+            return key is "code" or "status" && value.TryGetInt32(out var number) && number is >= 0 and <= 99999 ? new(null, false) : null;
         if (value.ValueKind != JsonValueKind.String) return null;
         var text = value.GetString()!;
         return key switch
@@ -100,13 +103,14 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
         return new(string.Join(' ', words), withheld);
     }
 
-    private static readonly Regex CodeShape = new(@"^[A-Za-z]+(?:[_.-][A-Za-z]+)*$", RegexOptions.CultureInvariant);
-    private static readonly Regex StatusShape = new(@"^[1-5][0-9]{2}$", RegexOptions.CultureInvariant);
-    private static readonly Regex RequestIdShape = new(@"^req_[A-Za-z0-9]{8,64}$", RegexOptions.CultureInvariant);
-    private static readonly Regex GitHubDocsShape = new(@"^https://docs\.github\.com/[A-Za-z0-9/#._-]{1,200}$", RegexOptions.CultureInvariant);
+    // \z, not $: $ also matches before a final line break.
+    private static readonly Regex CodeShape = new(@"^(?=.{1,64}\z)[A-Za-z]+(?:[_-][A-Za-z]+)*\z", RegexOptions.CultureInvariant);
+    private static readonly Regex StatusShape = new(@"^[1-5][0-9]{2}\z", RegexOptions.CultureInvariant);
+    private static readonly Regex RequestIdShape = new(@"^req_[A-Za-z0-9]{8,64}\z", RegexOptions.CultureInvariant);
+    private static readonly Regex GitHubDocsShape = new(@"^https://docs\.github\.com/[A-Za-z0-9/#._-]{1,200}\z", RegexOptions.CultureInvariant);
     // Letters, optionally joined by an apostrophe, colon, slash, underscore or hyphen ("user:profile", "Pro/Max", "don't"),
     // with an opening bracket or quote and closing punctuation around them.
-    private static readonly Regex PlainWord = new(@"^[(""'“]?\p{L}+(?:['’:/_-]\p{L}+)*[.,;:!?)""'”]*$", RegexOptions.CultureInvariant);
+    private static readonly Regex PlainWord = new(@"^[(""'“]?\p{L}+(?:['’:/_-]\p{L}+)*[.,;:!?)""'”]*\z", RegexOptions.CultureInvariant);
 
     internal bool StringValue(string key, string value)
     {

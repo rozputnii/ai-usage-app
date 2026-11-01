@@ -43,10 +43,11 @@ property names become ordinal placeholders; their values remain withheld until a
 explicit endpoint policy classifies them. Null replacements cannot be interpreted as
 provider-sent nulls without checking redactions. A reply with status 400 or above also keeps
 its provider error envelope (R-NEW): code-shaped `type`, `error`, `error_code`,
-`error_visibility`, `reason`, `code` and `status`, numeric `code` and `status`, Anthropic's
-`request_id`, GitHub's `documentation_url`, and `message`, `detail` and `error_description`
-with every word that is not a plain word replaced by `[withheld]` (redaction reason
-`message-words-withheld`). Start there when a provider refuses a request. Numeric tokens retain their original
+`error_visibility`, `reason`, `code` and `status`, whole-number `code` and `status`,
+Anthropic's `request_id`, GitHub's `documentation_url`, and `message`, `detail` and
+`error_description` with every word that is not letters-only replaced by `[withheld]`
+(redaction reason `message-words-withheld`); replies below 400 keep nothing new. Start there
+when a provider refuses a request. Numeric tokens retain their original
 precision; duplicate properties remain present and are flagged. No malformed text
 fallback is saved. Bodies can contain untrusted provider data even after projection.
 Transport/parser failures retain safe original exception type, HResult, stack and
