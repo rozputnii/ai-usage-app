@@ -1,6 +1,7 @@
 # Work today state and a refused usage read - verification
 
-Evidence for [the specification](spec.md). Code: `a922e2a` and `ce84715` on the task branch.
+Evidence for [the specification](spec.md). Code: `a922e2a`, `ce84715` and the review fixes
+`14f06a5`; final checks on `6781e78`, which equals `origin/main` (`6a67f66`) merged.
 Environment: Windows 11 Pro 10.0.26300, .NET SDK from global.json, Release, desktop unlocked.
 Date: 2026-11-01.
 
@@ -40,15 +41,19 @@ picked variant: name, "no access" pill in orange, the note line, not dimmed.
 
 ## Checks
 
-On the task branch before review.
+On the merged tree (`6781e78`) before the push to `main`.
 
 | Check | Result |
 | --- | --- |
+| C2 Document validation | PASS, valid, no diagnostics |
+| C3 Final document validation | PASS, `--final` valid, no diagnostics |
 | C4 Infrastructure suite | PASS, 986/986 |
-| C5 Presentation suite | PASS, 374/374 |
+| C5 Presentation suite | PASS, 380/380 (seven new tests) |
+| C6 Diff check | PASS, clean |
 | C7 App build | PASS, 0 warnings, 0 errors |
 | C8 Launch smoke | PASS, 3/3 under the desktop lock |
 | Window-size smoke | PASS, 1/1 under the desktop lock |
+| C9 Package build | PASS, `Build-Package.ps1 -MsixVersion 2026.11.101.0 -NoRestore`, unsigned-validation-only `AiUsage.Windows_2026.11.101.0_x64.msix` |
 
 ## Not run
 
