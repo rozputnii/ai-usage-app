@@ -147,6 +147,64 @@ public sealed class ProviderCaptureTests : IDisposable
     }
 
     [Fact]
+    public async Task ARefusedReadKeepsTheProviderErrorInItsCapture()
+    {
+        // The owner's Claude 403 of 2026-11-01 kept only nulls; the reason has to be in the log. Synthetic values.
+        const string body = """{"type":"error","error":{"type":"permission_error","message":"OAuth token does not meet scope requirement user:profile","details":{"error_visibility":"user_facing","error_code":"synthetic_code"}},"request_id":"req_011CSyntheticRequest01"}""";
+        using var log = new FileDiagnostics(root);
+        using var client = new HttpClient(new Handler(HttpStatusCode.Forbidden, body));
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.anthropic.com/api/oauth/usage");
+        using var response = await ProviderHttp.SendAsync(client, request, TimeProvider.System, TestContext.Current.CancellationToken, new() { Diagnostics = log });
+        await log.FlushAsync();
+        using var artifact = JsonDocument.Parse(File.ReadAllText(Assert.Single(Directory.GetFiles(log.DirectoryPath, "response-*.json"))));
+        var captured = artifact.RootElement;
+        Assert.Equal(2, captured.GetProperty("sanitizerVersion").GetInt32());
+        Assert.Equal("complete-sanitized", captured.GetProperty("completeness").GetString());
+        var error = captured.GetProperty("body").GetProperty("error");
+        Assert.Equal("error", captured.GetProperty("body").GetProperty("type").GetString());
+        Assert.Equal("permission_error", error.GetProperty("type").GetString());
+        Assert.Equal("OAuth token does not meet scope requirement user:profile", error.GetProperty("message").GetString());
+        Assert.Equal("user_facing", error.GetProperty("details").GetProperty("error_visibility").GetString());
+        Assert.Equal("synthetic_code", error.GetProperty("details").GetProperty("error_code").GetString());
+        Assert.Equal("req_011CSyntheticRequest01", captured.GetProperty("body").GetProperty("request_id").GetString());
+    }
+
+    [Theory]
+    [InlineData("https://api.github.com/copilot_internal/user",
+        """{"message":"You have exceeded a secondary rate limit. Please wait a few minutes before you try again.","documentation_url":"https://docs.github.com/rest/overview/rate-limits-for-the-rest-api#about-secondary-rate-limits","status":"403"}""",
+        """{"message":"You have exceeded a secondary rate limit. Please wait a few minutes before you try again.","documentation_url":"https://docs.github.com/rest/overview/rate-limits-for-the-rest-api#about-secondary-rate-limits","status":"403"}""")]
+    [InlineData("https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary",
+        """{"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"ACCESS_TOKEN_SCOPE_INSUFFICIENT","domain":"googleapis.com","metadata":{"service":"canary"}}]}}""",
+        """{"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED","details":[{"withheld_0":null,"reason":"ACCESS_TOKEN_SCOPE_INSUFFICIENT","withheld_2":null,"withheld_3":{"withheld_0":null}}]}}""")]
+    [InlineData("https://chatgpt.com/backend-api/wham/usage",
+        """{"error":{"message":"Your plan does not include usage","type":"invalid_request_error","code":"plan_not_supported"}}""",
+        """{"error":{"message":"Your plan does not include usage","type":"invalid_request_error","code":"plan_not_supported"}}""")]
+    [InlineData("https://oauth2.googleapis.com/token",
+        """{"error":"invalid_grant","error_description":"Token has been expired or revoked."}""",
+        """{"error":"invalid_grant","error_description":"Token has been expired or revoked."}""")]
+    public void ErrorRepliesKeepTheirEnvelope(string url, string json, string expected)
+    {
+        using var document = JsonDocument.Parse(json);
+        var sanitized = ResponseSanitizer.Sanitize(document.RootElement, EndpointPolicy.Classify(new Uri(url)), error: true);
+        Assert.Equal(expected, sanitized.Body.GetRawText());
+        Assert.DoesNotContain("canary", sanitized.Body.GetRawText());
+    }
+
+    [Fact]
+    public void ErrorMessagesLoseEveryWordThatCouldIdentifyOrAuthorize()
+    {
+        using var document = JsonDocument.Parse("""{"error":{"type":"permission_error","message":"Organization 3f2a9c1e-canary for canary@example.com is disabled; see https://console.anthropic.com/settings?x=canary and sk-ant-api03-canary or C:\\Users\\canary","request_id":"canary"},"access_token":"canary","code":"Canary9Code"}""");
+        var sanitized = ResponseSanitizer.Sanitize(document.RootElement, EndpointPolicy.Classify(new Uri("https://api.anthropic.com/api/oauth/usage")), error: true);
+        var text = sanitized.Body.GetRawText();
+        Assert.DoesNotContain("canary", text, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Organization [withheld] for [withheld] is disabled; see [withheld] and [withheld] or [withheld]",
+            sanitized.Body.GetProperty("error").GetProperty("message").GetString());
+        Assert.Contains(sanitized.Redactions, r => r is { Path: "/error/message", Reason: "message-words-withheld" });
+        // The same envelope in a success reply stays withheld.
+        Assert.DoesNotContain("permission_error", ResponseSanitizer.Sanitize(document.RootElement, EndpointPolicy.Classify(new Uri("https://api.anthropic.com/api/oauth/usage"))).Body.GetRawText());
+    }
+
+    [Fact]
     public async Task DisabledValidResponseKeepsMetadataWithoutBody()
     {
         using var log = new FileDiagnostics(root, new DiagnosticOptions { CaptureBodies = false });

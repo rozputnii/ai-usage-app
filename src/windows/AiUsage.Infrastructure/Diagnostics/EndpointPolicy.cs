@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
+
 namespace AiUsage.Infrastructure.Diagnostics;
 
 /// <summary>Routes are source constants/templates; URLs and query values are never persisted.</summary>
@@ -54,7 +57,56 @@ internal sealed record EndpointPolicy(string Provider, string Route, string Kind
         "quota_snapshots premium_interactions chat completions entitlement percent_remaining overage_count overage_permitted quota_remaining copilot_plan access_type quota_reset_date quota_reset_date_utc " +
         "groups buckets quotaInfos remainingAmount remainingFraction resetTime quotaId modelId currentTier allowedTiers paidTier tierId done response result data " +
         "usageItems usageItemsSummary usage usage_summary daily_usage daily_tokens events items date day timestamp unit unitType quantity grossAmount discountAmount netAmount count total input_tokens output_tokens cached_input_tokens tokens amount currency product sku " +
+        "message detail details error_code error_visibility request_id documentation_url status reason " +
         "").Split(' ', StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
+
+    /// <summary>A value an error reply keeps: <see cref="Text"/> replaces a message's withheld words; null writes the value as sent.</summary>
+    internal readonly record struct ErrorValue(string? Text, bool WordsWithheld);
+
+    /// <summary>
+    /// A reply with status 400 or above keeps its provider error envelope, so the log says why a request was refused: code-shaped
+    /// values, numeric codes and statuses, Anthropic's request id, GitHub's documentation link, and messages with every word that
+    /// is not a plain word withheld (digits, addresses, paths, links, token shapes). Plain words remain, including a name a
+    /// provider might put in a message. Everything else stays withheld as in any reply.
+    /// </summary>
+    internal static ErrorValue? Error(string key, JsonElement value)
+    {
+        if (value.ValueKind == JsonValueKind.Number) return key is "code" or "status" ? new(null, false) : null;
+        if (value.ValueKind != JsonValueKind.String) return null;
+        var text = value.GetString()!;
+        return key switch
+        {
+            "type" or "error" or "error_code" or "error_visibility" or "reason" or "code" => CodeShape.IsMatch(text) ? new(null, false) : null,
+            "status" => CodeShape.IsMatch(text) || StatusShape.IsMatch(text) ? new(null, false) : null,
+            "request_id" => RequestIdShape.IsMatch(text) ? new(null, false) : null,
+            "documentation_url" => GitHubDocsShape.IsMatch(text) ? new(null, false) : null,
+            "message" or "detail" or "error_description" when text.Length <= 1000 => PlainWords(text),
+            _ => null
+        };
+    }
+
+    /// <summary>The keys an error reply may read below although other replies never do: an error code and the OAuth error text.</summary>
+    internal static bool ErrorMayDescend(string key) => key is "code" or "error_description";
+
+    private static ErrorValue PlainWords(string text)
+    {
+        var withheld = false;
+        var words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Select(word =>
+        {
+            if (word.Length <= 40 && PlainWord.IsMatch(word)) return word;
+            withheld = true;
+            return "[withheld]";
+        }).ToArray();
+        return new(string.Join(' ', words), withheld);
+    }
+
+    private static readonly Regex CodeShape = new(@"^[A-Za-z]+(?:[_.-][A-Za-z]+)*$", RegexOptions.CultureInvariant);
+    private static readonly Regex StatusShape = new(@"^[1-5][0-9]{2}$", RegexOptions.CultureInvariant);
+    private static readonly Regex RequestIdShape = new(@"^req_[A-Za-z0-9]{8,64}$", RegexOptions.CultureInvariant);
+    private static readonly Regex GitHubDocsShape = new(@"^https://docs\.github\.com/[A-Za-z0-9/#._-]{1,200}$", RegexOptions.CultureInvariant);
+    // Letters, optionally joined by an apostrophe, colon, slash, underscore or hyphen ("user:profile", "Pro/Max", "don't"),
+    // with an opening bracket or quote and closing punctuation around them.
+    private static readonly Regex PlainWord = new(@"^[(""'“]?\p{L}+(?:['’:/_-]\p{L}+)*[.,;:!?)""'”]*$", RegexOptions.CultureInvariant);
 
     internal bool StringValue(string key, string value)
     {

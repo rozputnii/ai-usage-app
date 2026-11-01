@@ -7,7 +7,8 @@ internal sealed record SanitizedResponse(JsonElement Body, Redaction[] Redaction
 
 internal static class ResponseSanitizer
 {
-    internal static SanitizedResponse Sanitize(JsonElement root, EndpointPolicy policy)
+    /// <param name="error">The reply's status is 400 or above: its provider error envelope is kept (<see cref="EndpointPolicy.Error"/>).</param>
+    internal static SanitizedResponse Sanitize(JsonElement root, EndpointPolicy policy, bool error = false)
     {
         using var bytes = new MemoryStream();
         using var writer = new Utf8JsonWriter(bytes);
@@ -36,7 +37,7 @@ internal static class ResponseSanitizer
                         if (!seen.Add(property.Name)) duplicates = true;
                         if (!known) redactions.Add(new(child, property.Value.ValueKind.ToString(), "unclassified-name"));
                         writer.WritePropertyName(name);
-                        Write(property.Value, child, name, approved && known && EndpointPolicy.CanDescend(name), depth + 1);
+                        Write(property.Value, child, name, approved && known && (EndpointPolicy.CanDescend(name) || error && EndpointPolicy.ErrorMayDescend(name)), depth + 1);
                         index++;
                     }
                     writer.WriteEndObject();
@@ -49,6 +50,13 @@ internal static class ResponseSanitizer
                     break;
                 case JsonValueKind.Null: writer.WriteNullValue(); break;
                 default:
+                    if (approved && error && EndpointPolicy.Error(key, value) is { } kept)
+                    {
+                        if (kept.Text is { } text) writer.WriteStringValue(text);
+                        else value.WriteTo(writer);
+                        if (kept.WordsWithheld) redactions.Add(new(path, value.ValueKind.ToString(), "message-words-withheld"));
+                        break;
+                    }
                     var safe = approved && (value.ValueKind == JsonValueKind.Number && policy.Numeric(key) ||
                         value.ValueKind is JsonValueKind.True or JsonValueKind.False && policy.Boolean(key) ||
                         value.ValueKind == JsonValueKind.String && policy.StringValue(key, value.GetString()!));

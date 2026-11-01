@@ -38,7 +38,7 @@ internal sealed class ProviderCapture
                 {
                     try
                     {
-                        sanitized = ResponseSanitizer.Sanitize(body.RootElement, policy);
+                        sanitized = ResponseSanitizer.Sanitize(body.RootElement, policy, error: response is not null && (int)response.StatusCode >= 400);
                         state = sanitized.Redactions.Length > 0 ? "withheld-values" : "complete-sanitized";
                     }
                     catch (InvalidDataException) { state = "sanitizer-limit"; }
@@ -47,7 +47,7 @@ internal sealed class ProviderCapture
             var contentType = response?.Content.Headers.ContentType?.MediaType;
             var envelope = new
             {
-                schemaVersion = 1, captureVersion = 1, sanitizerVersion = 1, captureId = id,
+                schemaVersion = 1, captureVersion = 1, sanitizerVersion = 2, captureId = id,
                 timestamp = started, endedAt = DateTimeOffset.UtcNow, durationMs = Stopwatch.GetElapsedTime(tick).TotalMilliseconds,
                 operationId = operation?.Id, parentOperationId = operation?.Parent,
                 provider = policy.Provider, route = policy.Route, method, attemptId = id,
